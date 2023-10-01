@@ -16,6 +16,13 @@
   }
 }
 
+body,
+html,
+:root {
+  height: 100%;
+  width: 100%;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(

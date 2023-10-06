@@ -1,20 +1,65 @@
-import React from 'react';
-import StartButton from './components/StartButton';
-import { Container, Typography } from '@mui/material';
+import * as React from "react";
+import { Box, Flex, IconButton, Button } from "@chakra-ui/react";
+import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
 
-const Home: React.FC = () => {
+const HomePage: React.FC = () => {
   return (
-    <Container 
-      disableGutters 
-      maxWidth={false} 
-      className="flex flex-col items-center justify-center h-screen w-full bg-green-800"
-    >
-      <Typography variant="h1" gutterBottom className="text-6xl text-white mb-4 animate__animated animate__bounce">
-        Poker Game
-      </Typography>
-      <StartButton />
-    </Container>
+    <Flex width="100vw" height="100vh">
+      {/* Left Container */}
+      <Box
+        width="33%"
+        height="100%"
+        overflow="hidden"
+        backgroundImage="url('tile4.png')"
+        backgroundRepeat="repeat"
+        backgroundSize="300px"
+        position="relative"  
+      >
+        <Flex
+          position="absolute"  
+          top="30%"    
+          left="17%"  
+          direction="column"
+          justify="center"
+          align="center"
+          height="40%"
+          borderRadius={32}
+          width="66%"
+          bgColor="red.500"
+        >
+          <Button mb={4}>Play Now</Button>
+          <Flex>
+            <IconButton
+              aria-label="Facebook"
+              icon={<FaFacebook />}
+              m={2}
+            />
+            <IconButton
+              aria-label="Twitter"
+              icon={<FaTwitter />}
+              m={2}
+            />
+            <IconButton
+              aria-label="Instagram"
+              icon={<FaInstagram />}
+              m={2}
+            />
+          </Flex>
+        </Flex>
+      </Box>
+
+      {/* Right Container */}
+      <Box width="67%" height="100%" overflowY="auto">
+        {/* Your content here */}
+      </Box>
+    </Flex>
   );
 };
 
-export default Home;
+export default function Home() {
+  return (
+    <main>
+      <HomePage />
+    </main>
+  );
+}

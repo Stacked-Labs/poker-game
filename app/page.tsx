@@ -1,8 +1,12 @@
-import * as React from "react";
-import { Box, Flex, IconButton, Button } from "@chakra-ui/react";
-import { FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
+import * as React from 'react';
+import { Box, Flex } from '@chakra-ui/react';
+import HomeCard from '@/components/HomeCard';
+
+const randomImageNumber = Math.floor(Math.random() * 5) + 1;
+const bgImage = `tile${randomImageNumber}.png`;
 
 const HomePage: React.FC = () => {
+ 
   return (
     <Flex width="100vw" height="100vh">
       {/* Left Container */}
@@ -10,42 +14,12 @@ const HomePage: React.FC = () => {
         width="33%"
         height="100%"
         overflow="hidden"
-        backgroundImage="url('tile4.png')"
+        backgroundImage={`url('${bgImage}')`}
         backgroundRepeat="repeat"
         backgroundSize="300px"
-        position="relative"  
+        position="relative"
       >
-        <Flex
-          position="absolute"  
-          top="30%"    
-          left="17%"  
-          direction="column"
-          justify="center"
-          align="center"
-          height="40%"
-          borderRadius={32}
-          width="66%"
-          bgColor="red.500"
-        >
-          <Button mb={4}>Play Now</Button>
-          <Flex>
-            <IconButton
-              aria-label="Facebook"
-              icon={<FaFacebook />}
-              m={2}
-            />
-            <IconButton
-              aria-label="Twitter"
-              icon={<FaTwitter />}
-              m={2}
-            />
-            <IconButton
-              aria-label="Instagram"
-              icon={<FaInstagram />}
-              m={2}
-            />
-          </Flex>
-        </Flex>
+        <HomeCard />
       </Box>
 
       {/* Right Container */}

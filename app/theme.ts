@@ -21,6 +21,7 @@ const tokens = {
       'btn-empty': 'transparent',
       'btn-dark': '#101010',
       'twitter-blue': '#1DA1F2',
+      charcoal: '#171717',
     },
 
     dark: {
@@ -35,6 +36,7 @@ const tokens = {
       'btn-empty': 'transparent',
       'btn-dark': 'black',
       'twitter-blue': '#1DA1F2',
+      charcoal: '#171717',
     },
     // Add shadows here
   },
@@ -86,17 +88,18 @@ const styles = {
   global: {
     body: {
       fontFamily: 'inter, sans-serif',
-      background: '#323232 10%',
+      background: 'white',
       backgroundAttachment: 'scroll',
       backgroundRepeat: 'repeat',
       overflowY: 'auto',
+      bg: 'white',
       _before: {
         content: "''",
         position: 'fixed',
         top: 0,
         bottom: 0,
         width: '100%',
-        background: 'linear-gradient(to top, #000000, rgba(0, 0, 0, 0.99))',
+        background: 'white',
         zIndex: -1,
       },
     },
@@ -105,9 +108,7 @@ const styles = {
 
 const components = {
   Text: {
-    baseStyle: {
-
-    },
+    baseStyle: {},
     variants: {
       secondary: {
         color: 'text-secondary',
@@ -116,9 +117,22 @@ const components = {
   },
   Button: {
     baseStyle: {
+      bg: 'charcoal',
+      color: 'white',
+      borderRadius: '10px',
+      border: '2px solid white',
+      _hover: {
+        bg: '#2e2e2e', // Adjust this color to your preference for a lighter color on hover
+      },
     },
     variants: {
       base: {},
+      social: {
+        border: 'none',
+        _hover: {
+          bg: 'none',
+        },
+      },
       underlined: {
         bg: 'transparent',
         border: 'none',

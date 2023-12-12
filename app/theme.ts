@@ -4,7 +4,7 @@ const breakpoints = {
   xs: '450px',
   sm: '770px',
   md: '1290px',
-  lg: '1800px',
+  lg: '1500px',
 };
 
 const tokens = {
@@ -20,8 +20,13 @@ const tokens = {
       'btn-hover': '#424242',
       'btn-empty': 'transparent',
       'btn-dark': '#101010',
-      'twitter-blue': '#1DA1F2',
       charcoal: '#171717',
+      'gray.50': '#212121', // Lightest gray
+      'gray.100': '#191414',
+      'gray.200': '#121212', // Darkest gray
+      'green.50': '#1ed760', // Lighter green
+      'green.100': '#1db954',
+      'red.100': '#eb4034',
     },
 
     dark: {
@@ -35,7 +40,12 @@ const tokens = {
       'btn-hover': '#424242',
       'btn-empty': 'transparent',
       'btn-dark': 'black',
-      'twitter-blue': '#1DA1F2',
+      'gray.50': '#212121', // Lightest gray
+      'gray.100': '#191414',
+      'gray.200': '#121212', // Darkest gray
+      'green.50': '#1ed760', // Lighter green
+      'green.100': '#1db954', // Darker green
+      'red.100': '#eb4034',
       charcoal: '#171717',
     },
     // Add shadows here
@@ -44,6 +54,26 @@ const tokens = {
 
 const semanticTokens = {
   colors: {
+    'gray.50': {
+      default: tokens.colors.light['gray.50'],
+      _dark: tokens.colors.dark['gray.50'],
+    },
+    'gray.100': {
+      default: tokens.colors.light['gray.100'],
+      _dark: tokens.colors.dark['gray.100'],
+    },
+    'gray.200': {
+      default: tokens.colors.light['gray.200'],
+      _dark: tokens.colors.dark['gray.200'],
+    },
+    'green.50': {
+      default: tokens.colors.light['green.50'],
+      _dark: tokens.colors.dark['green.50'],
+    },
+    'green.100': {
+      default: tokens.colors.light['green.100'],
+      _dark: tokens.colors.dark['green.100'],
+    },
     'bg-default': {
       default: tokens.colors.light['bg-default'],
       _dark: tokens.colors.dark['bg-default'],
@@ -76,9 +106,9 @@ const semanticTokens = {
       default: tokens.colors.light['btn-empty'],
       _dark: tokens.colors.dark['btn-empty'],
     },
-    'twitter-blue': {
-      default: tokens.colors.light['twitter-blue'],
-      _dark: tokens.colors.dark['twitter-blue'],
+    'red.100': {
+      default: tokens.colors.light['red.100'],
+      _dark: tokens.colors.dark['red.100'],
     },
     // Add shadows here
   },
@@ -196,6 +226,25 @@ const components = {
         fontWeight: 'bold',
       },
     },
+    emptySeatButton: {
+      width: '100%',
+      height: {
+        base: 'fit-content',
+        sm: '100%',
+      },
+      border: '2px dashed',
+      color: 'lightGray',
+      fontSize: {
+        base: '0.95rem',
+        sm: '1rem',
+        md: '1.5rem',
+        lg: '2.3rem',
+      },
+      paddingY: {
+        base: '1rem ',
+        xs: '2rem',
+      },
+    },
   },
 };
 
@@ -205,4 +254,10 @@ export const theme = extendTheme({
   semanticTokens,
   components,
   breakpoints,
+  radii: {
+    default: '0.625rem',
+  },
+  shadows: {
+    default: '0px 0px 8px 0px rgba(0, 0, 0, 0.15)',
+  },
 });

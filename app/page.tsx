@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Box, Flex } from '@chakra-ui/react';
-import HomeCard from '@/components/HomeCard';
+import HomeCard from '@/app/components/HomeCard';
 
 const randomImageNumber = Math.floor(Math.random() * 5) + 1;
-const bgImage = `tile${randomImageNumber}.png`;
+const bgImage = `./tiles/tile${randomImageNumber}.png`;
 
 const HomePage: React.FC = () => {
  

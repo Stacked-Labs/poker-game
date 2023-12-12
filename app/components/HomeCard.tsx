@@ -16,7 +16,7 @@ const HomeCard = () => {
       height="40%"
       borderRadius={32}
       width="66%"
-      bgColor="#171717"
+      bgColor="gray.100"
     >
       <Button size="lg" mb={4} w={200} h={20}>
         Play Now

@@ -34,8 +34,8 @@ const EmptySeatButton = () => {
   return (
     <>
       <MotionButton
-        width={['100px', '150px', '200px']}
-        height={[ '75px', '100px']}
+        width={['150px', '250px', '300px']}
+        height={[ '40px', '65px']}
         color="gray.200"
         bgColor="gray.50"
         onClick={handleOpenModal}

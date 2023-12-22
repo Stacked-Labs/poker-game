@@ -1,9 +1,19 @@
 'use client';
-import { Flex, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
+import {
+  Box,
+  CircularProgress,
+  Flex,
+  Grid,
+  GridItem,
+  useBreakpointValue,
+} from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
+import { useEffect, useState } from 'react';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
-  const shouldRotate = useBreakpointValue({ base: true, lg: false, md: false });
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const shouldRotate = useBreakpointValue({ base: true, xl: false });
 
   // Indices where seats should be placed
   const seatIndices = [1, 2, 3, 5, 9, 15, 19, 21, 22, 23];
@@ -18,10 +28,52 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     const rowStart =
       index >= 0 && index < rowStartOptions.length ? rowStartOptions[index] : 0;
 
-    console.log(index, rowStart);
-
     return rowStart;
   };
+
+  useEffect(() => {
+    const startTime = Date.now();
+    const duration = 300;
+
+    const updateProgress = () => {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - startTime;
+
+      const newProgress = Math.min((elapsedTime / duration) * 100, 100);
+
+      setProgress(newProgress);
+
+      if (elapsedTime >= duration + 1000) {
+        setLoading(false);
+      } else {
+        requestAnimationFrame(updateProgress);
+      }
+    };
+
+    requestAnimationFrame(updateProgress);
+
+    return () => {};
+  }, []);
+
+  if (loading) {
+    return (
+      <Flex
+        justify="center"
+        align="center"
+        w="100vw"
+        h="100vh"
+        position="fixed"
+        backgroundColor="rgba(255, 255, 255, 0.8)"
+      >
+        <CircularProgress
+          value={progress}
+          isIndeterminate={false}
+          color="grey"
+          size="100px"
+        />
+      </Flex>
+    );
+  }
 
   return (
     <Flex
@@ -80,7 +132,6 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                 colStart={handleColStart(arrayIndex)}
                 rowStart={handleRowStart(arrayIndex)}
                 bg="transparent"
-                style={style}
               >
                 {seatIndices.includes(index) ? <EmptySeatButton /> : null}
               </GridItem>

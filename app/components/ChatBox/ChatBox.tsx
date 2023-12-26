@@ -1,4 +1,11 @@
-import { Box, Input, IconButton, Text, Flex } from '@chakra-ui/react';
+import {
+  Box,
+  Input,
+  IconButton,
+  Text,
+  Flex,
+  useMediaQuery,
+} from '@chakra-ui/react';
 import { IoIosSend } from 'react-icons/io';
 import { useState } from 'react';
 import { useCurrentUser } from '../../contexts/currentUserContext';
@@ -33,6 +40,8 @@ const Chatbox: React.FC<ChatboxProps> = ({ onSendMessage }) => {
     }
   };
 
+  const [isLargerScreen] = useMediaQuery('(min-width: 770px)');
+
   return (
     <Flex
       flexDirection={'column'}
@@ -48,13 +57,24 @@ const Chatbox: React.FC<ChatboxProps> = ({ onSendMessage }) => {
         height={'100%'}
         overflowY="auto"
         color={'lightGray'}
+        marginTop={isLargerScreen ? 0 : 8}
       >
         {messages.map((msg) => (
           <Text key={msg.id}>
-            <Text as={'span'} color={'themeColor'} fontWeight={'bold'}>
+            <Text as={'span'} color={'green'} fontWeight={'bold'}>
               {msg.sender}
             </Text>
-            : {msg.text}
+            :{' '}
+            <Text
+              as={'span'}
+              maxWidth="100%"
+              style={{
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+              }}
+            >
+              {msg.text}
+            </Text>
           </Text>
         ))}
       </Box>

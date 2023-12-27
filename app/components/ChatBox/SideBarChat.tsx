@@ -5,19 +5,18 @@ import {
   useMediaQuery,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { IoChatbox } from 'react-icons/io5';
 import Chatbox from './ChatBox';
+import { IoMdClose } from 'react-icons/io';
 
 export default function SideBarChat() {
   const { isOpen, onToggle } = useDisclosure();
-  const [hidden, setHidden] = useState(!isOpen);
 
   const handleSendMessage = (message: string) => {
     console.log(`Sending message: ${message}`);
   };
 
-  const [isLargerScreen] = useMediaQuery('(min-width: 770px)');
+  const [isLargerScreen] = useMediaQuery('(min-width: 1025px)');
 
   return (
     <Box
@@ -31,28 +30,22 @@ export default function SideBarChat() {
       right={'0'}
       height={'100%'}
       top={'0'}
-      onAnimationStart={() => setHidden(false)}
-      onAnimationComplete={() => setHidden(!isOpen)}
     >
       <IconButton
-        icon={isOpen ? <FaChevronRight /> : <FaChevronLeft />}
+        icon={isOpen ? <IoMdClose /> : <IoChatbox />}
         onClick={onToggle}
         aria-label={'Open Chat Box'}
         border={'none'}
-        position={{ base: 'fixed', sm: 'absolute' }}
-        right={!isLargerScreen ? 0 : ''}
-        left={isLargerScreen ? 0 : ''}
-        top={0}
-        bottom={0}
-        padding={{ base: 4, sm: 2 }}
-        height={{ base: 'fit-content', sm: '100%' }}
-        color={'lightGray'}
+        position={'absolute'}
+        right={3}
+        top={3}
+        fontSize={isOpen ? '24' : '30'}
         _hover={{ background: 'none' }}
         _active={{ background: 'none', outline: 'none' }}
         _focus={{ outline: 'none', boxShadow: 'none' }}
       ></IconButton>
       {isOpen && (
-        <Box marginLeft={{ base: 0, sm: '50px' }} height={'100%'}>
+        <Box height={'100%'}>
           <Chatbox onSendMessage={handleSendMessage} />
         </Box>
       )}

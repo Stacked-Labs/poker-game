@@ -8,7 +8,6 @@ import {
 } from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
 import { useEffect, useState } from 'react';
-import Chatbox from '@/app/components/ChatBox/ChatBox';
 import SideBarChat from '@/app/components/ChatBox/SideBarChat';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
@@ -30,10 +29,6 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
       index >= 0 && index < rowStartOptions.length ? rowStartOptions[index] : 0;
 
     return rowStart;
-  };
-
-  const handleSendMessage = (message: string) => {
-    console.log(`Sending message: ${message}`);
   };
 
   useEffect(() => {
@@ -143,8 +138,8 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
             );
           })}
         </Grid>
+        <SideBarChat />
       </Flex>
-      <SideBarChat />
     </Flex>
   );
 };

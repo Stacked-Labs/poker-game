@@ -40,8 +40,6 @@ const Chatbox: React.FC<ChatboxProps> = ({ onSendMessage }) => {
     }
   };
 
-  const [isLargerScreen] = useMediaQuery('(min-width: 770px)');
-
   return (
     <Flex
       flexDirection={'column'}
@@ -57,7 +55,7 @@ const Chatbox: React.FC<ChatboxProps> = ({ onSendMessage }) => {
         height={'100%'}
         overflowY="auto"
         color={'lightGray'}
-        marginTop={isLargerScreen ? 0 : 8}
+        marginTop={10}
       >
         {messages.map((msg) => (
           <Text key={msg.id}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Box,
@@ -21,12 +21,15 @@ import {
 } from '@chakra-ui/react';
 import { motion, MotionStyle } from 'framer-motion';
 import { FaDiscord, FaWallet } from 'react-icons/fa';
+import { useWeb3Modal, useWeb3ModalState } from '@web3modal/ethers/react';
 
 const MotionButton = motion(Button);
 
 const EmptySeatButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open: openWeb3Modal } = useWeb3Modal();
+  const { open: openWeb3ModalState } = useWeb3ModalState();
 
   const handleOpenModal = () => {
     setIsLoading(true);
@@ -35,6 +38,11 @@ const EmptySeatButton = () => {
 
   const handleCloseModal = () => {
     setIsLoading(false);
+    onClose();
+  };
+
+  const handleConnectButtonClick = () => {
+    openWeb3Modal();
     onClose();
   };
 
@@ -49,6 +57,12 @@ const EmptySeatButton = () => {
     hover: { scale: 1.5, transition: { duration: 0.3 } }, // Scale up on hover
     initial: { scale: 1 }, // Initial scale
   };
+
+  useEffect(() => {
+    if (!openWeb3ModalState) {
+      setIsLoading(false);
+    }
+  }, [openWeb3ModalState]);
 
   return (
     <>
@@ -74,7 +88,6 @@ const EmptySeatButton = () => {
       <Modal isOpen={isOpen} onClose={handleCloseModal} isCentered>
         <ModalOverlay />
         <ModalContent bgColor="gray.100">
-          {' '}
           {/* Set modal background color */}
           <ModalHeader color="#f2f2f2" textAlign="center">
             <Tooltip
@@ -141,6 +154,7 @@ const EmptySeatButton = () => {
                 mb={4}
                 w={'80%'}
                 h={12}
+                onClick={handleConnectButtonClick}
                 leftIcon={<Icon as={FaWallet} color="white" />}
                 bg="green.500" // Replace with a specific green color from theme if available
                 color="white"

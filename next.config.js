@@ -16,6 +16,7 @@ const nextConfig = {
       test: /\.svg$/,
       use: ['@svgr/webpack'],
     });
+    config.externals.push('pino-pretty', 'lokijs', 'encoding');
 
     return config;
   },
@@ -28,9 +29,7 @@ const nextConfig = {
       },
     ];
   },
-  compiler: {
-
-  },
+  compiler: {},
   reactStrictMode: true,
   eslint: {
     // Warning: This allows production builds to successfully complete even if
@@ -39,6 +38,9 @@ const nextConfig = {
   },
   publicRuntimeConfig: {
     // Will be available on both server and client
+  },
+  env: {
+    PROJECT_ID: process.env.PROJECT_ID,
   },
 };
 module.exports = nextConfig;

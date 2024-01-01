@@ -1,9 +1,31 @@
 {
-  "javascript.suggest.autoImports": true,
-  "typescript.suggest.autoImports": true,
-  
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  }
+	// Basic settings: turn linter off for node_modules only
+	"eslint.workingDirectories": [{ "mode": "auto" }],
 
+	// Turn on Auto Save
+	"files.autoSave": "onFocusChange",
+
+	// Format a file on save
+	"editor.formatOnSave": true,
+
+	// Enable ESLint for TypeScript and JavaScript
+	"eslint.validate": [
+		"javascript",
+		"javascriptreact",
+		"typescript",
+		"typescriptreact"
+	],
+
+	// Use Prettier for formatting
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+
+	// Optional: If you have the ESLint plugin installed, this will make sure Prettier formats on save
+	"editor.codeActionsOnSave": {
+		"source.fixAll": true,
+		"source.fixAll.eslint": true
+	},
+
+	// Optional: Configure Prettier settings (these settings are examples, adjust them as needed)
+	"prettier.singleQuote": true,
+	"prettier.semi": false
 }

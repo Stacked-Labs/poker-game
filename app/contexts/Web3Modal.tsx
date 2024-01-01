@@ -1,34 +1,49 @@
 'use client';
 
-import { createWeb3Modal, defaultConfig } from '@web3modal/ethers/react';
+import { createWeb3Modal } from '@web3modal/wagmi/react';
+import { walletConnectProvider, EIP6963Connector } from '@web3modal/wagmi';
+
+import { WagmiConfig, configureChains, createConfig } from 'wagmi';
+import { publicProvider } from 'wagmi/providers/public';
+import { mainnet, arbitrum, optimism, polygon } from 'viem/chains';
+import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet';
+import { InjectedConnector } from 'wagmi/connectors/injected';
+import { WalletConnectConnector } from 'wagmi/connectors/walletConnect';
 import { ReactNode } from 'react';
 
 // 1. Get projectId at https://cloud.walletconnect.com
 const projectId = process.env.PROJECT_ID || '';
 
-// 2. Set chains
-const mainnet = {
-  chainId: 1,
-  name: 'Ethereum',
-  currency: 'ETH',
-  explorerUrl: 'https://etherscan.io',
-  rpcUrl: 'https://cloudflare-eth.com',
-};
+// 2. Create wagmiConfig
+const { chains, publicClient } = configureChains(
+	[mainnet, arbitrum, polygon, optimism],
+	[walletConnectProvider({ projectId }), publicProvider()]
+);
 
-// 3. Create modal
 const metadata = {
-  name: 'My Website',
-  description: 'My Website description',
-  url: 'http://localhost:3000/game/123',
-  icons: ['https://react-icons.github.io/react-icons/'],
+	name: 'Web3Modal',
+	description: 'Web3Modal Example',
+	url: 'http://localhost:3000/',
+	icons: ['https://avatars.githubusercontent.com/u/37784886'],
 };
 
-createWeb3Modal({
-  ethersConfig: defaultConfig({ metadata }),
-  chains: [mainnet],
-  projectId,
+const wagmiConfig = createConfig({
+	autoConnect: true,
+	connectors: [
+		new WalletConnectConnector({
+			chains,
+			options: { projectId, showQrModal: false, metadata },
+		}),
+		new EIP6963Connector({ chains }),
+		new InjectedConnector({ chains, options: { shimDisconnect: true } }),
+		new CoinbaseWalletConnector({ chains, options: { appName: metadata.name } }),
+	],
+	publicClient,
 });
 
+// 3. Create modal
+createWeb3Modal({ wagmiConfig, projectId, chains });
+
 export function Web3ModalProvider({ children }: { children: ReactNode }) {
-  return children;
+	return <WagmiConfig config={wagmiConfig}>{children}</WagmiConfig>;
 }

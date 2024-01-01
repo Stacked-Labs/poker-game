@@ -21,8 +21,8 @@
 
 	// Optional: If you have the ESLint plugin installed, this will make sure Prettier formats on save
 	"editor.codeActionsOnSave": {
-		"source.fixAll": true,
-		"source.fixAll.eslint": true
+		"source.fixAll": "explicit",
+		"source.fixAll.eslint": "explicit"
 	},
 
 	// Optional: Configure Prettier settings (these settings are examples, adjust them as needed)

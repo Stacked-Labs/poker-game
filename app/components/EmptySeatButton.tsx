@@ -149,12 +149,6 @@ const EmptySeatButton: FC<EmptySeatButtonProps> = ({
 		}
 	}, [openWeb3ModalState]);
 
-	useEffect(() => {
-		if (!currentUser.seatedAt) {
-			disconnect();
-		}
-	}, [currentUser.seatedAt, disconnect]);
-
 	return (
 		<>
 			<MotionButton

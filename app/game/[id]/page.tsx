@@ -10,6 +10,8 @@ import EmptySeatButton from '@/app/components/EmptySeatButton';
 import { useEffect, useState } from 'react';
 import SideBarChat from '@/app/components/ChatBox/SideBarChat';
 import { Seat } from '@/app/interfaces';
+import { useCurrentUser } from '@/app/contexts/currentUserContext';
+import { useDisconnect } from 'wagmi';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
 	// Indices where seats should be placed
@@ -22,6 +24,9 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 			player: null,
 		})
 	);
+
+	const { currentUser } = useCurrentUser();
+	const { disconnect } = useDisconnect();
 
 	const shouldRotate = useBreakpointValue({ base: true, xl: false });
 
@@ -39,8 +44,10 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 	};
 
 	useEffect(() => {
-		console.log(seats);
-	}, [seats]);
+		if (!currentUser.seatedAt) {
+			disconnect();
+		}
+	}, [currentUser.seatedAt, disconnect]);
 
 	useEffect(() => {
 		const startTime = Date.now();

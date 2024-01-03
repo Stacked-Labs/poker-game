@@ -11,9 +11,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 	return (
 		<CacheProvider>
 			<ChakraProvider theme={theme}>
-				<Web3ModalProvider>
-					<UserProvider>{children}</UserProvider>
-				</Web3ModalProvider>
+				<UserProvider>
+					<Web3ModalProvider>{children}</Web3ModalProvider>
+				</UserProvider>
 			</ChakraProvider>
 		</CacheProvider>
 	);

@@ -18,15 +18,13 @@ import {
 	useDisclosure,
 	Spinner,
 	Center,
-	Text,
 } from '@chakra-ui/react';
 import { motion, MotionStyle } from 'framer-motion';
 import { FaDiscord, FaWallet } from 'react-icons/fa';
-import { AiOutlineDisconnect } from 'react-icons/ai';
 import { useWeb3Modal, useWeb3ModalState } from '@web3modal/ethers/react';
 import { EmptySeatButtonProps } from '../interfaces';
 import { useCurrentUser } from '../contexts/currentUserContext';
-import { useAccount, useDisconnect } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 const MotionButton = motion(Button);
 
@@ -39,8 +37,7 @@ const EmptySeatButton: FC<EmptySeatButtonProps> = ({
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const { open: openWeb3Modal } = useWeb3Modal();
 	const { open: openWeb3ModalState } = useWeb3ModalState();
-	const { isDisconnected } = useAccount();
-	const { disconnect } = useDisconnect();
+	const { address } = useAccount();
 
 	const [buttonType, setButtonType] = useState('discord' || 'connect');
 
@@ -48,17 +45,6 @@ const EmptySeatButton: FC<EmptySeatButtonProps> = ({
 	const [amount, setAmount] = useState(0);
 
 	const { currentUser, setCurrentUser } = useCurrentUser();
-
-	const handleResetSeats = (index: number) => {
-		setCurrentUser({ name: '', amount: 0, seatedAt: null });
-
-		const newSeats = [...seats];
-		newSeats[index] = {
-			player: null,
-		};
-
-		handleSetSeats(newSeats);
-	};
 
 	const handleSeats = (index: number) => {
 		const newSeats = [...seats];
@@ -94,7 +80,12 @@ const EmptySeatButton: FC<EmptySeatButtonProps> = ({
 
 	const handleOpenModal = () => {
 		setIsLoading(true);
-		onOpen();
+
+		if (address) {
+			openWeb3Modal({ view: 'Account' });
+		} else {
+			onOpen();
+		}
 	};
 
 	const handleCloseModal = () => {
@@ -104,31 +95,18 @@ const EmptySeatButton: FC<EmptySeatButtonProps> = ({
 
 	const handleConnectButtonClick = (index: number) => {
 		openWeb3Modal();
-		if (!isDisconnected) {
-			handleSeats(index);
-		}
+
+		console.log(index);
+
+		// if (!isDisconnected) {
+		// 	handleSeats(index);
+		// }
 		onClose();
 	};
 
 	const handleDiscordButtonClick = (index: number) => {
 		handleSeats(index);
 		handleCloseModal();
-	};
-
-	const handleTransferButtonClicked = () => {
-		handleSeats(seatIndex);
-		handleCloseModal();
-	};
-
-	const handleDisconnectButtonClick = () => {
-		if (currentUser.seatedAt) {
-			if (!isDisconnected) {
-				disconnect();
-			}
-
-			handleResetSeats(currentUser.seatedAt);
-			handleCloseModal();
-		}
 	};
 
 	const motionStyle: MotionStyle = {
@@ -170,153 +148,100 @@ const EmptySeatButton: FC<EmptySeatButtonProps> = ({
 				{seatIndex === currentUser.seatedAt ? currentUser.name : '🪑'}
 			</MotionButton>
 
-			{!currentUser.seatedAt ? (
-				<Modal isOpen={isOpen} onClose={handleCloseModal} isCentered>
-					<ModalOverlay />
-					<ModalContent bgColor="gray.100">
-						{/* Set modal background color */}
-						<ModalHeader color="#f2f2f2" textAlign="center">
-							<Tooltip
-								label="All you need is a chip and a chair - Jack  Straus "
-								fontSize="lg"
-								placement="top"
+			<Modal isOpen={isOpen} onClose={handleCloseModal} isCentered>
+				<ModalOverlay />
+				<ModalContent bgColor="gray.100">
+					{/* Set modal background color */}
+					<ModalHeader color="#f2f2f2" textAlign="center">
+						<Tooltip
+							label="All you need is a chip and a chair - Jack  Straus "
+							fontSize="lg"
+							placement="top"
+						>
+							<Box
+								as={motion.div}
+								style={motionStyle}
+								variants={variants}
+								initial="initial"
+								whileHover="hover"
+								fontSize="6xl"
 							>
-								<Box
-									as={motion.div}
-									style={motionStyle}
-									variants={variants}
-									initial="initial"
-									whileHover="hover"
-									fontSize="6xl"
-								>
-									🪑
-								</Box>
-							</Tooltip>
-						</ModalHeader>
-						<ModalCloseButton color={'#f2f2f2'} size="42px" padding={2} />
-						<form onSubmit={handleSubmit}>
-							<ModalBody w="100%">
-								<Center>
-									<FormControl justifyContent={'center'} w="80%">
-										<FormLabel color="#f2f2f2" fontSize={'4xl'}>
-											🕵️
-										</FormLabel>
-										<Input
-											border={'1.5px solid #f2f2f2'}
-											placeholder="Name"
-											onChange={(e) => setName(e.target.value)}
-											_placeholder={{ color: 'white' }}
-											color="white"
-											// required
-										/>
-										<FormLabel mt={4} color="#f2f2f2" fontSize={'4xl'}>
-											💵
-										</FormLabel>
-										<Input
-											border={'1.5px solid #f2f2f2'}
-											placeholder="Amount"
-											type="number"
-											onChange={(e) => setAmount(parseInt(e.target.value))}
-											_placeholder={{ color: 'white' }}
-											color="white"
-											// required
-										/>
-									</FormControl>
-								</Center>
-							</ModalBody>
-							<ModalFooter>
-								<VStack w={'100%'}>
-									<Button
-										size="lg"
-										mb={4}
-										w={'80%'}
-										h={12}
-										leftIcon={<Icon as={FaDiscord} color="white" />}
-										bg="#7289DA"
-										color="white"
-										_hover={{
-											borderColor: 'white',
-											borderWidth: '2px',
-										}}
-										type="submit"
-										onClick={() => setButtonType('discord')}
-									>
-										Discord
-									</Button>
-									<Button
-										size="lg"
-										mb={4}
-										w={'80%'}
-										h={12}
-										leftIcon={<Icon as={FaWallet} color="white" />}
-										bg="green.500" // Replace with a specific green color from theme if available
-										color="white"
-										_hover={{
-											borderColor: 'white',
-											borderWidth: '2px',
-										}}
-										type="submit"
-										onClick={() => setButtonType('connect')}
-									>
-										Connect
-									</Button>
-								</VStack>
-							</ModalFooter>
-						</form>
-					</ModalContent>
-				</Modal>
-			) : (
-				<Modal isOpen={isOpen} onClose={handleCloseModal} isCentered>
-					<ModalOverlay />
-					<ModalContent bgColor="gray.100">
-						<ModalCloseButton color={'#f2f2f2'} size="42px" padding={2} />
-						<ModalBody w="100%" marginTop="42px">
+								🪑
+							</Box>
+						</Tooltip>
+					</ModalHeader>
+					<ModalCloseButton color={'#f2f2f2'} size="42px" padding={2} />
+					<form onSubmit={handleSubmit}>
+						<ModalBody w="100%">
 							<Center>
-								<Text fontSize="xl">{currentUser.name}</Text>
+								<FormControl justifyContent={'center'} w="80%">
+									<FormLabel color="#f2f2f2" fontSize={'4xl'}>
+										🕵️
+									</FormLabel>
+									<Input
+										border={'1.5px solid #f2f2f2'}
+										placeholder="Name"
+										onChange={(e) => setName(e.target.value)}
+										_placeholder={{ color: 'white' }}
+										color="white"
+										required
+									/>
+									<FormLabel mt={4} color="#f2f2f2" fontSize={'4xl'}>
+										💵
+									</FormLabel>
+									<Input
+										border={'1.5px solid #f2f2f2'}
+										placeholder="Amount"
+										type="number"
+										onChange={(e) => setAmount(parseInt(e.target.value))}
+										_placeholder={{ color: 'white' }}
+										color="white"
+										required
+									/>
+								</FormControl>
 							</Center>
 						</ModalBody>
 						<ModalFooter>
 							<VStack w={'100%'}>
-								{seatIndex !== currentUser.seatedAt ? (
-									<Button
-										size="lg"
-										mb={4}
-										w={'80%'}
-										h={12}
-										leftIcon={<Icon as={AiOutlineDisconnect} color="white" />}
-										bg="blue.500" // Replace with a specific green color from theme if available
-										color="white"
-										_hover={{
-											borderColor: 'white',
-											borderWidth: '2px',
-										}}
-										onClick={handleTransferButtonClicked}
-									>
-										Transfer
-									</Button>
-								) : (
-									<Button
-										size="lg"
-										mb={4}
-										w={'80%'}
-										h={12}
-										leftIcon={<Icon as={AiOutlineDisconnect} color="white" />}
-										bg="red.500" // Replace with a specific green color from theme if available
-										color="white"
-										_hover={{
-											borderColor: 'white',
-											borderWidth: '2px',
-										}}
-										onClick={handleDisconnectButtonClick}
-									>
-										Disconnect
-									</Button>
-								)}
+								<Button
+									size="lg"
+									mb={4}
+									w={'80%'}
+									h={12}
+									leftIcon={<Icon as={FaDiscord} color="white" />}
+									bg="#7289DA"
+									color="white"
+									_hover={{
+										borderColor: 'white',
+										borderWidth: '2px',
+									}}
+									type="submit"
+									onClick={() => setButtonType('discord')}
+								>
+									Discord
+								</Button>
+								<Button
+									size="lg"
+									mb={4}
+									w={'80%'}
+									h={12}
+									leftIcon={<Icon as={FaWallet} color="white" />}
+									bg="green.500" // Replace with a specific green color from theme if available
+									color="white"
+									_hover={{
+										borderColor: 'white',
+										borderWidth: '2px',
+									}}
+									type="submit"
+									onClick={() => setButtonType('connect')}
+								>
+									Connect
+								</Button>
 							</VStack>
 						</ModalFooter>
-					</ModalContent>
-				</Modal>
-			)}
+					</form>
+				</ModalContent>
+			</Modal>
 		</>
 	);
 };

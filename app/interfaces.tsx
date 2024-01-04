@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from 'react';
+
 export interface User {
 	name: string;
 	amount: number;
@@ -17,4 +19,8 @@ export interface Player {
 
 export interface Seat {
 	player: Player | null;
+}
+
+export interface SideBarChatProps {
+	handleOpen: Dispatch<SetStateAction<boolean>>;
 }

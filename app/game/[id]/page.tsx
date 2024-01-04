@@ -1,17 +1,23 @@
 'use client';
 import {
+	Box,
+	Button,
 	CircularProgress,
 	Flex,
 	Grid,
 	GridItem,
+	Icon,
+	Text,
 	useBreakpointValue,
+	useMediaQuery,
 } from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
 import { useEffect, useState } from 'react';
 import SideBarChat from '@/app/components/ChatBox/SideBarChat';
 import { Seat } from '@/app/interfaces';
 import { useCurrentUser } from '@/app/contexts/currentUserContext';
-import { useDisconnect } from 'wagmi';
+import { AiOutlineDisconnect } from 'react-icons/ai';
+import { useAccount, useDisconnect } from 'wagmi';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
 	// Indices where seats should be placed
@@ -19,6 +25,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 
 	const [loading, setLoading] = useState(true);
 	const [progress, setProgress] = useState(0);
+	const [isChatBoxOpen, setIsChatBoxOpen] = useState(false);
 	const [seats, setSeats] = useState<Array<Seat>>(
 		Array(10).fill({
 			player: null,
@@ -27,8 +34,10 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 
 	const { currentUser } = useCurrentUser();
 	const { disconnect } = useDisconnect();
+	const { address } = useAccount();
 
 	const shouldRotate = useBreakpointValue({ base: true, xl: false });
+	const [isLargerScreen] = useMediaQuery('(min-width: 1025px)');
 
 	const handleColStart = (index: number): number => {
 		const colStartOptions = [2, 1, 3, 1, 3, 1, 3, 1, 3, 2];
@@ -41,6 +50,10 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 			index >= 0 && index < rowStartOptions.length ? rowStartOptions[index] : 0;
 
 		return rowStart;
+	};
+
+	const handleDisconnectButtonClick = () => {
+		disconnect();
 	};
 
 	useEffect(() => {
@@ -168,7 +181,52 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 						);
 					})}
 				</Grid>
-				<SideBarChat />
+				<Box
+					position={'absolute'}
+					top={0}
+					right={0}
+					height={isChatBoxOpen ? '100%' : 'fit-content'}
+					width={isChatBoxOpen && !isLargerScreen ? '100%' : 'fit-content'}
+					padding={2}
+				>
+					<Box alignSelf={'end'} textAlign={'end'}>
+						<SideBarChat handleOpen={setIsChatBoxOpen} />
+						<Flex
+							flexDirection={'column'}
+							justifyContent={'center'}
+							alignItems={'center'}
+							bg={'gray.800'}
+							border={'black'}
+							rounded={'xl'}
+							padding={4}
+							gap={2}
+						>
+							{address ? (
+								<>
+									<Text>{`${address.substring(0, 4)}...${address.slice(-5)}`}</Text>
+									<Button
+										size="lg"
+										w={'100%'}
+										paddingX={3}
+										h={12}
+										leftIcon={<Icon as={AiOutlineDisconnect} color="white" />}
+										bg="red.500"
+										color="white"
+										_hover={{
+											borderColor: 'white',
+											borderWidth: '2px',
+										}}
+										onClick={handleDisconnectButtonClick}
+									>
+										Disconnect
+									</Button>
+								</>
+							) : (
+								<Text>Wallet not connected.</Text>
+							)}
+						</Flex>
+					</Box>
+				</Box>
 			</Flex>
 		</Flex>
 	);

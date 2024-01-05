@@ -188,44 +188,56 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 					height={isChatBoxOpen ? '100%' : 'fit-content'}
 					width={isChatBoxOpen && !isLargerScreen ? '100%' : 'fit-content'}
 					padding={2}
+					alignSelf={'end'}
+					textAlign={'end'}
 				>
-					<Box alignSelf={'end'} textAlign={'end'}>
-						<SideBarChat handleOpen={setIsChatBoxOpen} />
-						<Flex
-							flexDirection={'column'}
-							justifyContent={'center'}
-							alignItems={'center'}
-							bg={'gray.800'}
-							border={'black'}
-							rounded={'xl'}
-							padding={4}
-							gap={2}
-						>
-							{address ? (
-								<>
-									<Text>{`${address.substring(0, 4)}...${address.slice(-5)}`}</Text>
-									<Button
-										size="lg"
-										w={'100%'}
-										paddingX={3}
-										h={12}
-										leftIcon={<Icon as={AiOutlineDisconnect} color="white" />}
-										bg="red.500"
-										color="white"
-										_hover={{
-											borderColor: 'white',
-											borderWidth: '2px',
-										}}
-										onClick={handleDisconnectButtonClick}
-									>
-										Disconnect
-									</Button>
-								</>
-							) : (
-								<Text>Wallet not connected.</Text>
-							)}
-						</Flex>
-					</Box>
+					<SideBarChat handleOpen={setIsChatBoxOpen} />
+				</Box>
+				<Box
+					position={'absolute'}
+					top={0}
+					left={0}
+					padding={2}
+					alignSelf={'end'}
+					textAlign={'end'}
+				>
+					<Flex
+						justifyContent={'center'}
+						alignItems={'center'}
+						border={'black'}
+						rounded={'xl'}
+						padding={4}
+						gap={2}
+						color="white.200"
+						bgColor="gray.50"
+					>
+						<Text>
+							{address
+								? `${address.substring(0, 4)}...${address.slice(-5)}`
+								: 'Not connected.'}
+						</Text>
+						<Button
+							size="lg"
+							w={'fit-content'}
+							paddingX={3}
+							h={8}
+							iconSpacing={0}
+							leftIcon={<Icon as={AiOutlineDisconnect} color="white" />}
+							bg="red.500"
+							color="black"
+							_hover={{
+								borderColor: 'white',
+								borderWidth: '2px',
+							}}
+							onClick={handleDisconnectButtonClick}
+							isDisabled={address ? false : true}
+							// _disabled={{
+							// 	cursor: 'none',
+							// 	bg: 'gray.500',
+							// 	color: 'gray.500',
+							// }}
+						></Button>
+					</Flex>
 				</Box>
 			</Flex>
 		</Flex>

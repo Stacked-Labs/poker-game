@@ -35,7 +35,7 @@ const SideBarChat: FC<SideBarChatProps> = ({ handleOpen }) => {
 				_hover={{ background: 'none' }}
 				_active={{ background: 'none', outline: 'none' }}
 				_focus={{ outline: 'none', boxShadow: 'none' }}
-				zIndex={isOpen ? 3 : 1}
+				zIndex={isOpen ? 4 : 1}
 			></IconButton>
 			<Box
 				as={motion.div}
@@ -48,6 +48,7 @@ const SideBarChat: FC<SideBarChatProps> = ({ handleOpen }) => {
 				right={'0'}
 				height={'100%'}
 				top={'0'}
+				zIndex={2}
 			>
 				{isOpen && (
 					<Box height={'100%'}>

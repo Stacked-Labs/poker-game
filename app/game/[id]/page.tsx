@@ -7,7 +7,7 @@ import {
 	useBreakpointValue,
 } from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, ReactNode } from 'react';
 import { MetaStateContext } from '@/app/state';
 import TakenSeatButton from '@/app/components/TakenSeatButton';
 
@@ -63,6 +63,19 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 		return () => {};
 	}, []);
 
+	interface AspectRatioBoxProps {
+    children: ReactNode;
+    ratio: number; // Aspect ratio as a percentage
+	}
+
+	const AspectRatioBox: React.FC<AspectRatioBoxProps>= ({ children, ratio }) => (
+	<div style={{ position: 'relative', width: '100%', paddingBottom: `${ratio}%` }}>
+		<div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}>
+			{children}
+		</div>
+	</div>
+	);
+
 	if (loading) {
 		return (
 			<Flex
@@ -86,28 +99,29 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 	return (
 			<Flex
 				direction="column"
-				align="center"
-				justify="center"
+				alignSelf="center"
+				justifySelf="center"
 				//bg="gray.200"
-				maxW="90%"
-				maxH="90%"
+				maxW="100%"
+				maxH="100%"
 				w={!shouldRotate ? '100%' : 'calc( 89vh / 1.6 )'}
 				h={!shouldRotate ? 'calc(89vw / 1.6)' : '100%'}
 				position="relative"
 				backgroundImage={
 					!shouldRotate ? '/table-horizontal.png' : '/table-vertical.png'
 				}
-				top={-44}
+				overflow={'hidden'}
 				backgroundRepeat="no-repeat"
 				backgroundPosition="center"
 				zIndex={1}
-				backgroundSize={!shouldRotate ? '67% auto' : '80% auto'}
+				backgroundSize="contain"
 			>
+				<AspectRatioBox ratio={(9 / 16) * 100}>
 				<Grid
 					templateRows={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(9, 1fr)'}
 					templateColumns={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'}
 					gap={4}
-					position="absolute"
+					position="relative"
 					w="100%"
 					h="100%"
 					p={6}
@@ -154,6 +168,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 						);
 					})}
 				</Grid>
+				</AspectRatioBox>
 			</Flex>
 	);
 };

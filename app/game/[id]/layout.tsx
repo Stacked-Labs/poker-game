@@ -9,13 +9,16 @@ const GameLayout: React.FC = ({ children }: React.PropsWithChildren<{}>) => {
 			direction="column"
 
 			maxW="100%"
-			maxH="100%"
+ 			maxH="100vh" 
 			position="relative"
 			zIndex="auto"
 			transformOrigin="center center"
 		>
             <Navbar />
-            <Box as="main">{children}</Box>
+    <Flex flex="1" direction="column" overflow="auto">
+                {children}
+</Flex>
+			<Navbar />
         </Flex>
     );
 };

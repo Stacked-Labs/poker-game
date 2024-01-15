@@ -10,13 +10,15 @@ import { StateProvider } from './state';
 export function Providers({ children }: { children: React.ReactNode }) {
 	return (
 		<CacheProvider>
+							<Web3ModalProvider>
 			<ChakraProvider theme={theme}>
-				<Web3ModalProvider>
+
 				<StateProvider>
 						{children}
 				</StateProvider>
-			</Web3ModalProvider>
+
 			</ChakraProvider>
+						</Web3ModalProvider>
 		</CacheProvider>
 	);
 }

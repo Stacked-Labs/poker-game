@@ -4,6 +4,7 @@ import {
 	Flex,
 	Grid,
 	GridItem,
+	Image,
 	useBreakpointValue,
 } from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
@@ -63,19 +64,6 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 		return () => {};
 	}, []);
 
-	interface AspectRatioBoxProps {
-    children: ReactNode;
-    ratio: number; // Aspect ratio as a percentage
-	}
-
-	const AspectRatioBox: React.FC<AspectRatioBoxProps>= ({ children, ratio }) => (
-	<div style={{ position: 'relative', width: '100%', paddingBottom: `${ratio}%` }}>
-		<div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}>
-			{children}
-		</div>
-	</div>
-	);
-
 	if (loading) {
 		return (
 			<Flex
@@ -97,34 +85,32 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 	}
 
 	return (
-			<Flex
-				direction="column"
-				alignSelf="center"
-				justifySelf="center"
-				//bg="gray.200"
-				maxW="100%"
-				maxH="100%"
-				w={!shouldRotate ? '100%' : 'calc( 89vh / 1.6 )'}
-				h={!shouldRotate ? 'calc(89vw / 1.6)' : '100%'}
-				position="relative"
+		<Flex
+			direction="column"
+			alignSelf="center"
+			justifySelf="center"
+			bgColor={'transparent'}
+			h="100vh"
+			
+			// maintain 16/9 ratio for width
+			aspectRatio={16 / 9}
+			position="relative"
 				backgroundImage={
 					!shouldRotate ? '/table-horizontal.png' : '/table-vertical.png'
-				}
-				overflow={'hidden'}
-				backgroundRepeat="no-repeat"
-				backgroundPosition="center"
-				zIndex={1}
-				backgroundSize="contain"
+			}
+			overflow={'hidden'}
+			backgroundRepeat="no-repeat"
+			backgroundPosition="center"
+			backgroundSize={'cover'}
+			zIndex={1}
 			>
-				<AspectRatioBox ratio={(9 / 16) * 100}>
+
 				<Grid
 					templateRows={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(9, 1fr)'}
 					templateColumns={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'}
 					gap={4}
-					position="relative"
 					w="100%"
 					h="100%"
-					p={6}
 					placeItems="center"
 				>
 					{Array.from({ length: !shouldRotate ? 25 : 24 }).map((_, index) => {
@@ -133,12 +119,12 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 
 						let style = {};
 						if (index === 5 || index === 15) {
-							style = { justifySelf: 'end', alignSelf: 'end' }; // Right align and bottom
+							style = { justifySelf: 'start', alignSelf: 'end' }; // Right align and bottom
 						} else if (index === 9 || index === 19) {
-							style = { justifySelf: 'start', alignSelf: 'end' }; // Left align and bottom
+							style = { justifySelf: 'end', alignSelf: 'end' }; // Left align and bottom
 						} else if (index === 1 || index === 2 || index === 3) {
-							style = { alignSelf: 'end' }; // Bottom align only
-						}
+						 	style = { marginTop: 20}; // Bottom align only
+						 }
 						
 
 						//If User is sitting auto fill in seat five for him
@@ -168,7 +154,6 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 						);
 					})}
 				</Grid>
-				</AspectRatioBox>
 			</Flex>
 	);
 };

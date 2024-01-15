@@ -1,61 +1,44 @@
-import React, { FC, FormEvent, useEffect, useState } from 'react';
-import {
-	Button,
-	Box,
-	Icon,
-	Modal,
-	Tooltip,
-	VStack,
-	ModalOverlay,
-	ModalContent,
-	ModalHeader,
-	ModalCloseButton,
-	ModalBody,
-	ModalFooter,
-	FormControl,
-	FormLabel,
-	Input,
-	useDisclosure,
-	Spinner,
-	Center,
-} from '@chakra-ui/react';
-import { motion, MotionStyle } from 'framer-motion';
-import { useWeb3Modal, useWeb3ModalState } from '@web3modal/ethers/react';
-import { useAccount } from 'wagmi';
+import React, { useState } from 'react';
+import { Button, Spinner, useDisclosure, Text } from '@chakra-ui/react';
 import TakeSeatModal from './TakeSeatModal';
+import { motion } from 'framer-motion';
 const MotionButton = motion(Button);
 
+const EmptySeatButton = () => {
+    const [isHovered, setIsHovered] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
-const EmptySeatButton = ({}) => {
-	const [isLoading, setIsLoading] = useState(false);
-	const { isOpen, onOpen, onClose } = useDisclosure();
-
-	return (
-		<>
-			<MotionButton
-				width={['100%', '200px', '200px']}
-				height={['40px', '60px']}
-				color="gray.200"
-				bgColor="gray.50"
-				onClick={onOpen}
-				whileHover={{ scale: 1.05 }}
-				whileTap={{ scale: 0.95 }}
-				isLoading={isLoading}
-				textColor="white"
-				borderRadius={10}
-				spinner={<Spinner color="green.100" size="lg" />}
-				border="2px dashed white"
-				fontSize={['2xl', '3xl', '4xl']}
-				fontFamily="sans-serif"
-			>
-				🪑
-			</MotionButton>
-			<TakeSeatModal
-				isOpen={isOpen}
-				onClose={onClose}
-			/>
-		</>
-	);
+    return (
+        <>
+            <MotionButton
+                width={['100%', '200px', '300px']}
+                height={['40px', '150px']}
+                bgColor="transparent"
+                onClick={onOpen}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                isLoading={isLoading}
+                textColor="white"
+                borderRadius={10}
+                spinner={<Spinner color="green.100" size="lg" />}
+                border="2px dashed white"
+                fontSize={['5xl', '8xl', '10xl']}
+                fontFamily="sans-serif"
+				_hover={{ bg: 'transparent' }}
+				onMouseEnter={() => setIsHovered(true)}
+				onMouseLeave={() => setIsHovered(false)}
+            >
+                {isHovered ? <Text       color="white"
+      fontFamily="Pacifico, cursive" 
+      opacity="0.7" >Sit</Text> : ''}
+            </MotionButton>
+            <TakeSeatModal
+                isOpen={isOpen}
+                onClose={onClose}
+            />
+        </>
+    );
 };
 
-export default EmptySeatButton;
+export default EmptySeatButton

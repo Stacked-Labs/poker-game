@@ -43,7 +43,7 @@ const wagmiConfig = createConfig({
 });
 
 const themeVariables = {
-	'--w3m-z-index': 2,
+	'--w3m-z-index':99999,
 	'--w3m-accent': '#1db954',
 	'--w3m-border-radius-master': '2px',
 	'--w3m-font-size-master' : '12px',

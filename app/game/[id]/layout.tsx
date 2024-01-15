@@ -7,17 +7,17 @@ const GameLayout: React.FC = ({ children }: React.PropsWithChildren<{}>) => {
     return (
         	<Flex
 			direction="column"
-
-			maxW="100%"
+			bgColor={'gray.200'}
+			maxW="100vw"
  			maxH="100vh" 
 			position="relative"
 			zIndex="auto"
 			transformOrigin="center center"
 		>
             <Navbar />
-    <Flex flex="1" direction="column" overflow="auto">
+
                 {children}
-</Flex>
+
 			<Navbar />
         </Flex>
     );

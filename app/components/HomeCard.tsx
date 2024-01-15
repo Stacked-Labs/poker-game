@@ -1,9 +1,10 @@
 // HomeCard.js
+'use client'
 import React from 'react';
 import { Flex, Button, IconButton } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord, FaInstagram } from 'react-icons/fa';
-
+import Web3Button from './Web3Button';
 const HomeCard = () => {
 	return (
 		<Flex
@@ -21,9 +22,7 @@ const HomeCard = () => {
 			<Button size="lg" mb={4} w={200} h={20}>
 				Play Now
 			</Button>
-			<Button size="lg" mb={4} w={200} h={20}>
-				Connect
-			</Button>
+			<Web3Button />
 			<Flex
 				direction="row"
 				justify="center"

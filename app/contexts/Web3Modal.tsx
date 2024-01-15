@@ -5,7 +5,7 @@ import { walletConnectProvider, EIP6963Connector } from '@web3modal/wagmi';
 
 import { WagmiConfig, configureChains, createConfig } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
-import { mainnet, arbitrum, optimism, polygon } from 'viem/chains';
+import { arbitrum, optimism, polygon } from 'viem/chains';
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect';
@@ -16,10 +16,11 @@ const projectId = process.env.PROJECT_ID || '';
 
 // 2. Create wagmiConfig
 const { chains, publicClient } = configureChains(
-	[mainnet, arbitrum, polygon, optimism],
+	[arbitrum, polygon, optimism],
 	[walletConnectProvider({ projectId }), publicProvider()]
 );
 
+//TODO: Add metadata
 const metadata = {
 	name: 'Web3Modal',
 	description: 'Web3Modal Example',
@@ -41,8 +42,14 @@ const wagmiConfig = createConfig({
 	publicClient,
 });
 
+const themeVariables = {
+	'--w3m-z-index': 2,
+	'--w3m-accent': '#1db954',
+	'--w3m-border-radius-master': '2px',
+	'--w3m-font-size-master' : '12px',
+};
 // 3. Create modal
-createWeb3Modal({ wagmiConfig, projectId, chains });
+createWeb3Modal({ wagmiConfig, projectId, chains, themeVariables });
 
 export function Web3ModalProvider({ children }: { children: ReactNode }) {
 	return <WagmiConfig config={wagmiConfig}>{children}</WagmiConfig>;

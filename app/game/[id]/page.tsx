@@ -1,43 +1,29 @@
 'use client';
 import {
-	Box,
-	Button,
 	CircularProgress,
 	Flex,
 	Grid,
 	GridItem,
-	Icon,
-	Text,
 	useBreakpointValue,
-	useMediaQuery,
 } from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
-import { useEffect, useState } from 'react';
-import SideBarChat from '@/app/components/ChatBox/SideBarChat';
-import { Seat } from '@/app/interfaces';
-import { useCurrentUser } from '@/app/contexts/currentUserContext';
-import { AiOutlineDisconnect } from 'react-icons/ai';
-import { useAccount, useDisconnect } from 'wagmi';
+import { useEffect, useState, useContext } from 'react';
+import { MetaStateContext } from '@/app/state';
+import TakenSeatButton from '@/app/components/TakenSeatButton';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
-	// Indices where seats should be placed
-	const seatIndices = [1, 2, 3, 5, 9, 15, 19, 21, 22, 23];
-
+	const seatIndices = [1, 2, 3, 5, 9, 15, 19, 21, 23];
 	const [loading, setLoading] = useState(true);
 	const [progress, setProgress] = useState(0);
-	const [isChatBoxOpen, setIsChatBoxOpen] = useState(false);
-	const [seats, setSeats] = useState<Array<Seat>>(
+	const { isUserSitting, User } = useContext(MetaStateContext);
+	const [seats, setSeats] = useState<Array<any>>(
 		Array(10).fill({
 			player: null,
 		})
-	);
-
-	const { currentUser } = useCurrentUser();
-	const { disconnect } = useDisconnect();
-	const { address } = useAccount();
+	)
 
 	const shouldRotate = useBreakpointValue({ base: true, xl: false });
-	const [isLargerScreen] = useMediaQuery('(min-width: 1025px)');
+	const userSeat = !shouldRotate ? 22 : 0;
 
 	const handleColStart = (index: number): number => {
 		const colStartOptions = [2, 1, 3, 1, 3, 1, 3, 1, 3, 2];
@@ -52,15 +38,6 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 		return rowStart;
 	};
 
-	const handleDisconnectButtonClick = () => {
-		disconnect();
-	};
-
-	useEffect(() => {
-		if (!currentUser.seatedAt) {
-			disconnect();
-		}
-	}, [currentUser.seatedAt, disconnect]);
 
 	useEffect(() => {
 		const startTime = Date.now();
@@ -107,28 +84,23 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 	}
 
 	return (
-		<Flex
-			direction="column"
-			justify="center"
-			align="center"
-			w="100vw"
-			h="100vh"
-			position="fixed"
-			transformOrigin="center center"
-		>
 			<Flex
 				direction="column"
 				align="center"
 				justify="center"
-				bg="gray.200"
+				//bg="gray.200"
+				maxW="90%"
+				maxH="90%"
 				w={!shouldRotate ? '100%' : 'calc( 89vh / 1.6 )'}
 				h={!shouldRotate ? 'calc(89vw / 1.6)' : '100%'}
 				position="relative"
 				backgroundImage={
 					!shouldRotate ? '/table-horizontal.png' : '/table-vertical.png'
 				}
+				top={-44}
 				backgroundRepeat="no-repeat"
 				backgroundPosition="center"
+				zIndex={1}
 				backgroundSize={!shouldRotate ? '67% auto' : '80% auto'}
 			>
 				<Grid
@@ -143,6 +115,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 				>
 					{Array.from({ length: !shouldRotate ? 25 : 24 }).map((_, index) => {
 						const arrayIndex = seatIndices.indexOf(index);
+						let buttonComponent = <EmptySeatButton />;
 
 						let style = {};
 						if (index === 5 || index === 15) {
@@ -152,15 +125,19 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 						} else if (index === 1 || index === 2 || index === 3) {
 							style = { alignSelf: 'end' }; // Bottom align only
 						}
+						
 
+						//If User is sitting auto fill in seat five for him
+						if (index === userSeat) {
+							console.log("User is sitting", index)
+							buttonComponent = isUserSitting ? <TakenSeatButton player={User}/> : <EmptySeatButton />;
+						} else if (seatIndices.includes(index)) {
+							buttonComponent = <EmptySeatButton />;
+						}
 						return !shouldRotate ? (
 							<GridItem key={index} bg="transparent" style={style}>
 								{arrayIndex !== -1 && (
-									<EmptySeatButton
-										seats={seats}
-										handleSetSeats={setSeats}
-										seatIndex={arrayIndex}
-									/>
+									<EmptySeatButton />
 								)}
 							</GridItem>
 						) : (
@@ -171,76 +148,13 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 								bg="transparent"
 							>
 								{arrayIndex !== -1 && (
-									<EmptySeatButton
-										seats={seats}
-										handleSetSeats={setSeats}
-										seatIndex={arrayIndex}
-									/>
+									<EmptySeatButton />
 								)}
 							</GridItem>
 						);
 					})}
 				</Grid>
-				<Box
-					position={'absolute'}
-					top={0}
-					right={0}
-					height={isChatBoxOpen ? '100%' : 'fit-content'}
-					width={isChatBoxOpen && !isLargerScreen ? '100%' : 'fit-content'}
-					padding={2}
-					alignSelf={'end'}
-					textAlign={'end'}
-				>
-					<SideBarChat handleOpen={setIsChatBoxOpen} />
-				</Box>
-				<Box
-					position={'absolute'}
-					top={0}
-					left={0}
-					padding={2}
-					alignSelf={'end'}
-					textAlign={'end'}
-				>
-					<Flex
-						justifyContent={'center'}
-						alignItems={'center'}
-						border={'black'}
-						rounded={'xl'}
-						padding={4}
-						gap={2}
-						color="white.200"
-						bgColor="gray.50"
-					>
-						<Text>
-							{address
-								? `${address.substring(0, 4)}...${address.slice(-5)}`
-								: 'Not connected.'}
-						</Text>
-						<Button
-							size="lg"
-							w={'fit-content'}
-							paddingX={3}
-							h={8}
-							iconSpacing={0}
-							leftIcon={<Icon as={AiOutlineDisconnect} color="white" />}
-							bg="red.500"
-							color="black"
-							_hover={{
-								borderColor: 'white',
-								borderWidth: '2px',
-							}}
-							onClick={handleDisconnectButtonClick}
-							isDisabled={address ? false : true}
-							// _disabled={{
-							// 	cursor: 'none',
-							// 	bg: 'gray.500',
-							// 	color: 'gray.500',
-							// }}
-						></Button>
-					</Flex>
-				</Box>
 			</Flex>
-		</Flex>
 	);
 };
 

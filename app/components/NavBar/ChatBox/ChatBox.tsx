@@ -4,11 +4,10 @@ import {
   IconButton,
   Text,
   Flex,
-  useMediaQuery,
 } from '@chakra-ui/react';
 import { IoIosSend } from 'react-icons/io';
 import { useState } from 'react';
-import { useCurrentUser } from '../../contexts/currentUserContext';
+import { useCurrentUser } from '../../../contexts/currentUserContext';
 
 interface Message {
   id: number;

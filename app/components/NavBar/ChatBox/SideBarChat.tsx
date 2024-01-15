@@ -9,7 +9,10 @@ import { IoChatbox } from 'react-icons/io5';
 import Chatbox from './ChatBox';
 import { IoMdClose } from 'react-icons/io';
 import { FC, useEffect } from 'react';
-import { SideBarChatProps } from '@/app/interfaces';
+
+interface SideBarChatProps {
+	handleOpen: (isOpen: boolean) => void;
+}
 
 const SideBarChat: FC<SideBarChatProps> = ({ handleOpen }) => {
 	const { isOpen, onToggle } = useDisclosure();

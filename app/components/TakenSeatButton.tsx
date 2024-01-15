@@ -23,10 +23,15 @@ import { motion, MotionStyle } from 'framer-motion';
 import { useWeb3Modal, useWeb3ModalState } from '@web3modal/ethers/react';
 import { useAccount } from 'wagmi';
 import TakeSeatModal from './TakeSeatModal';
+import { User } from '../interfaces';
+
 const MotionButton = motion(Button);
 
+interface TakenSeatButtonProps {
+    player: User;
+}
 
-const EmptySeatButton = ({}) => {
+const TakenSeatButton:React.FC<TakenSeatButtonProps> = ({ player }) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -48,8 +53,9 @@ const EmptySeatButton = ({}) => {
 				fontSize={['2xl', '3xl', '4xl']}
 				fontFamily="sans-serif"
 			>
-				🪑
+				taken
 			</MotionButton>
+
 			<TakeSeatModal
 				isOpen={isOpen}
 				onClose={onClose}
@@ -58,4 +64,4 @@ const EmptySeatButton = ({}) => {
 	);
 };
 
-export default EmptySeatButton;
+export default TakenSeatButton;

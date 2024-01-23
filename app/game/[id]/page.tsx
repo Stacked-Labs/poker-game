@@ -21,7 +21,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 		Array(10).fill({
 			player: null,
 		})
-	)
+	);
 
 	const shouldRotate = useBreakpointValue({ base: true, xl: false });
 	const userSeat = !shouldRotate ? 22 : 0;
@@ -38,7 +38,6 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 
 		return rowStart;
 	};
-
 
 	useEffect(() => {
 		const startTime = Date.now();
@@ -72,7 +71,8 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 				w="100vw"
 				h="100vh"
 				position="fixed"
-				backgroundColor="rgba(255, 255, 255, 0.8)"
+				backgroundColor="white"
+				zIndex={999}
 			>
 				<CircularProgress
 					value={progress}
@@ -91,70 +91,67 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 			justifySelf="center"
 			bgColor={'transparent'}
 			h="100vh"
-			
 			// maintain 16/9 ratio for width
 			aspectRatio={16 / 9}
 			position="relative"
-				backgroundImage={
-					!shouldRotate ? '/table-horizontal.png' : '/table-vertical.png'
+			backgroundImage={
+				!shouldRotate ? '/table-horizontal.png' : '/table-vertical.png'
 			}
 			overflow={'hidden'}
 			backgroundRepeat="no-repeat"
 			backgroundPosition="center"
 			backgroundSize={'cover'}
 			zIndex={1}
+		>
+			<Grid
+				templateRows={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(9, 1fr)'}
+				templateColumns={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'}
+				gap={4}
+				w="100%"
+				h="100%"
+				placeItems="center"
 			>
+				{Array.from({ length: !shouldRotate ? 25 : 24 }).map((_, index) => {
+					const arrayIndex = seatIndices.indexOf(index);
+					let buttonComponent = <EmptySeatButton />;
 
-				<Grid
-					templateRows={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(9, 1fr)'}
-					templateColumns={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'}
-					gap={4}
-					w="100%"
-					h="100%"
-					placeItems="center"
-				>
-					{Array.from({ length: !shouldRotate ? 25 : 24 }).map((_, index) => {
-						const arrayIndex = seatIndices.indexOf(index);
-						let buttonComponent = <EmptySeatButton />;
+					let style = {};
+					if (index === 5 || index === 15) {
+						style = { justifySelf: 'start', alignSelf: 'end' }; // Right align and bottom
+					} else if (index === 9 || index === 19) {
+						style = { justifySelf: 'end', alignSelf: 'end' }; // Left align and bottom
+					} else if (index === 1 || index === 2 || index === 3) {
+						style = { marginTop: 20 }; // Bottom align only
+					}
 
-						let style = {};
-						if (index === 5 || index === 15) {
-							style = { justifySelf: 'start', alignSelf: 'end' }; // Right align and bottom
-						} else if (index === 9 || index === 19) {
-							style = { justifySelf: 'end', alignSelf: 'end' }; // Left align and bottom
-						} else if (index === 1 || index === 2 || index === 3) {
-						 	style = { marginTop: 20}; // Bottom align only
-						 }
-						
-
-						//If User is sitting auto fill in seat five for him
-						if (index === userSeat) {
-							console.log("User is sitting", index)
-							buttonComponent = isUserSitting ? <TakenSeatButton player={User}/> : <EmptySeatButton />;
-						} else if (seatIndices.includes(index)) {
-							buttonComponent = <EmptySeatButton />;
-						}
-						return !shouldRotate ? (
-							<GridItem key={index} bg="transparent" style={style}>
-								{arrayIndex !== -1 && (
-									<EmptySeatButton />
-								)}
-							</GridItem>
+					//If User is sitting auto fill in seat five for him
+					if (index === userSeat) {
+						console.log('User is sitting', index);
+						buttonComponent = isUserSitting ? (
+							<TakenSeatButton player={User} />
 						) : (
-							<GridItem
-								key={index}
-								colStart={handleColStart(arrayIndex)}
-								rowStart={handleRowStart(arrayIndex)}
-								bg="transparent"
-							>
-								{arrayIndex !== -1 && (
-									<EmptySeatButton />
-								)}
-							</GridItem>
+							<EmptySeatButton />
 						);
-					})}
-				</Grid>
-			</Flex>
+					} else if (seatIndices.includes(index)) {
+						buttonComponent = <EmptySeatButton />;
+					}
+					return !shouldRotate ? (
+						<GridItem key={index} bg="transparent" style={style}>
+							{arrayIndex !== -1 && <EmptySeatButton />}
+						</GridItem>
+					) : (
+						<GridItem
+							key={index}
+							colStart={handleColStart(arrayIndex)}
+							rowStart={handleRowStart(arrayIndex)}
+							bg="transparent"
+						>
+							{arrayIndex !== -1 && <EmptySeatButton />}
+						</GridItem>
+					);
+				})}
+			</Grid>
+		</Flex>
 	);
 };
 

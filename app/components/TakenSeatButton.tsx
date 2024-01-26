@@ -28,18 +28,18 @@ import { User } from '../interfaces';
 const MotionButton = motion(Button);
 
 interface TakenSeatButtonProps {
-    player: User;
+	player: User;
 }
 
-const TakenSeatButton:React.FC<TakenSeatButtonProps> = ({ player }) => {
+const TakenSeatButton: React.FC<TakenSeatButtonProps> = ({ player }) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const { isOpen, onOpen, onClose } = useDisclosure();
 
 	return (
 		<>
 			<MotionButton
-				width={['100%', '200px', '200px']}
-				height={['40px', '60px']}
+				width="100%"
+				h="80%"
 				color="gray.200"
 				bgColor="gray.50"
 				onClick={onOpen}
@@ -50,16 +50,13 @@ const TakenSeatButton:React.FC<TakenSeatButtonProps> = ({ player }) => {
 				borderRadius={10}
 				spinner={<Spinner color="green.100" size="lg" />}
 				border="2px dashed white"
-				fontSize={['2xl', '3xl', '4xl']}
+				// fontSize={['2xl', '3xl', '4xl']}
 				fontFamily="sans-serif"
 			>
 				taken
 			</MotionButton>
 
-			<TakeSeatModal
-				isOpen={isOpen}
-				onClose={onClose}
-			/>
+			<TakeSeatModal isOpen={isOpen} onClose={onClose} />
 		</>
 	);
 };

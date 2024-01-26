@@ -1,21 +1,13 @@
 'use client';
-import {
-	CircularProgress,
-	Flex,
-	Grid,
-	GridItem,
-	Image,
-	useBreakpointValue,
-} from '@chakra-ui/react';
+
+import { Flex, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
-import { useEffect, useState, useContext, ReactNode } from 'react';
+import { useState, useContext } from 'react';
 import { MetaStateContext } from '@/app/state';
 import TakenSeatButton from '@/app/components/TakenSeatButton';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
 	const seatIndices = [1, 2, 3, 5, 9, 15, 19, 21, 23];
-	const [loading, setLoading] = useState(true);
-	const [progress, setProgress] = useState(0);
 	const { isUserSitting, User } = useContext(MetaStateContext);
 	const [seats, setSeats] = useState<Array<any>>(
 		Array(10).fill({
@@ -39,118 +31,97 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 		return rowStart;
 	};
 
-	useEffect(() => {
-		const startTime = Date.now();
-		const duration = 300;
-
-		const updateProgress = () => {
-			const currentTime = Date.now();
-			const elapsedTime = currentTime - startTime;
-
-			const newProgress = Math.min((elapsedTime / duration) * 100, 100);
-
-			setProgress(newProgress);
-
-			if (elapsedTime >= duration + 1000) {
-				setLoading(false);
-			} else {
-				requestAnimationFrame(updateProgress);
-			}
-		};
-
-		requestAnimationFrame(updateProgress);
-
-		return () => {};
-	}, []);
-
-	if (loading) {
-		return (
-			<Flex
-				justify="center"
-				align="center"
-				w="100vw"
-				h="100vh"
-				position="fixed"
-				backgroundColor="white"
-				zIndex={999}
-			>
-				<CircularProgress
-					value={progress}
-					isIndeterminate={false}
-					color="grey"
-					size="100px"
-				/>
-			</Flex>
-		);
-	}
-
 	return (
 		<Flex
 			direction="column"
-			alignSelf="center"
-			justifySelf="center"
-			bgColor={'transparent'}
+			justify="center"
+			align="center"
+			w="80vw"
 			h="100vh"
-			// maintain 16/9 ratio for width
-			aspectRatio={16 / 9}
 			position="relative"
-			backgroundImage={
-				!shouldRotate ? '/table-horizontal.png' : '/table-vertical.png'
-			}
-			overflow={'hidden'}
-			backgroundRepeat="no-repeat"
-			backgroundPosition="center"
-			backgroundSize={'cover'}
-			zIndex={1}
+			transformOrigin="center center"
+			bg="gray.200"
 		>
-			<Grid
-				templateRows={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(9, 1fr)'}
-				templateColumns={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'}
-				gap={4}
-				w="100%"
-				h="100%"
-				placeItems="center"
+			<Flex
+				direction="column"
+				align="center"
+				justify="center"
+				w={!shouldRotate ? '100%' : 'calc( 89vh / 1.6 )'}
+				h={!shouldRotate ? 'calc(89vw / 1.6)' : '100%'}
+				aspectRatio={16 / 9}
+				position="relative"
+				backgroundImage={
+					!shouldRotate ? '/table-horizontal.png' : '/table-vertical.png'
+				}
+				backgroundRepeat="no-repeat"
+				backgroundPosition="center"
+				backgroundSize={!shouldRotate ? '67% auto' : '80% auto'}
 			>
-				{Array.from({ length: !shouldRotate ? 25 : 24 }).map((_, index) => {
-					const arrayIndex = seatIndices.indexOf(index);
-					let buttonComponent = <EmptySeatButton />;
+				<Grid
+					templateRows={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(9, 1fr)'}
+					templateColumns={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'}
+					gap={4}
+					w={['80vw', '100%']}
+					h="100%"
+					placeItems="center"
+					// bg={'red'}
+					position={'absolute'}
+				>
+					{Array.from({ length: !shouldRotate ? 25 : 24 }).map((_, index) => {
+						const arrayIndex = seatIndices.indexOf(index);
+						let buttonComponent = <EmptySeatButton />;
 
-					let style = {};
-					if (index === 5 || index === 15) {
-						style = { justifySelf: 'start', alignSelf: 'end' }; // Right align and bottom
-					} else if (index === 9 || index === 19) {
-						style = { justifySelf: 'end', alignSelf: 'end' }; // Left align and bottom
-					} else if (index === 1 || index === 2 || index === 3) {
-						style = { marginTop: 20 }; // Bottom align only
-					}
+						let style = {};
+						if (index === 5 || index === 15) {
+							style = { justifySelf: 'start', alignSelf: 'end' }; // Right align and bottom
+						} else if (index === 9 || index === 19) {
+							style = { justifySelf: 'end', alignSelf: 'end' }; // Left align and bottom
+						} else if (index === 1 || index === 2 || index === 3) {
+							style = { marginTop: 20 }; // Bottom align only
+						}
 
-					//If User is sitting auto fill in seat five for him
-					if (index === userSeat) {
-						console.log('User is sitting', index);
-						buttonComponent = isUserSitting ? (
-							<TakenSeatButton player={User} />
+						//If User is sitting auto fill in seat five for him
+						if (index === userSeat) {
+							console.log('User is sitting', index);
+							buttonComponent = isUserSitting ? (
+								<TakenSeatButton player={User} />
+							) : (
+								<EmptySeatButton />
+							);
+						} else if (seatIndices.includes(index)) {
+							buttonComponent = <EmptySeatButton />;
+						}
+						return !shouldRotate ? (
+							<GridItem
+								key={index}
+								bg="transparent"
+								style={style}
+								w={'100%'}
+								h={'100%'}
+								display={'flex'}
+								justifyContent={'center'}
+								alignItems={'center'}
+							>
+								{arrayIndex !== -1 && <EmptySeatButton />}
+							</GridItem>
 						) : (
-							<EmptySeatButton />
+							<GridItem
+								key={index}
+								colStart={handleColStart(arrayIndex)}
+								rowStart={handleRowStart(arrayIndex)}
+								bg="transparent"
+								w={'100%'}
+								h={'100%'}
+								display={'flex'}
+								justifyContent={'center'}
+								alignItems={'center'}
+							>
+								{arrayIndex !== -1 && <EmptySeatButton />}
+							</GridItem>
 						);
-					} else if (seatIndices.includes(index)) {
-						buttonComponent = <EmptySeatButton />;
-					}
-					return !shouldRotate ? (
-						<GridItem key={index} bg="transparent" style={style}>
-							{arrayIndex !== -1 && <EmptySeatButton />}
-						</GridItem>
-					) : (
-						<GridItem
-							key={index}
-							colStart={handleColStart(arrayIndex)}
-							rowStart={handleRowStart(arrayIndex)}
-							bg="transparent"
-						>
-							{arrayIndex !== -1 && <EmptySeatButton />}
-						</GridItem>
-					);
-				})}
-			</Grid>
+					})}
+				</Grid>
+			</Flex>
 		</Flex>
 	);
 };

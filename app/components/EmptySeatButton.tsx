@@ -12,8 +12,8 @@ const EmptySeatButton = () => {
 	return (
 		<>
 			<MotionButton
-				width="100%"
-				h="80%"
+				py={10}
+				w={['100%', '50%', '150px', '150px']}
 				bgColor="transparent"
 				onClick={onOpen}
 				whileHover={{ scale: 1.05 }}
@@ -23,7 +23,7 @@ const EmptySeatButton = () => {
 				borderRadius={10}
 				spinner={<Spinner color="green.100" size="lg" />}
 				border="2px dashed white"
-				fontSize={['3xl', '5xl', '7xl']}
+				fontSize={['2xl', '3xl', '4xl']}
 				fontFamily="sans-serif"
 				_hover={{ bg: 'transparent' }}
 				onMouseEnter={() => setIsHovered(true)}

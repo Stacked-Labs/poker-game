@@ -41,7 +41,7 @@ const Footer = () => {
 	};
 
 	return (
-		<Flex justifyContent={'end'} gap={3}>
+		<Flex justifyContent={'end'} gap={3} py={3}>
 			{showRaise ? (
 				<Flex width={'50%'} gap={2} alignItems={'center'}>
 					<Box

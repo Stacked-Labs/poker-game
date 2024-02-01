@@ -2,18 +2,13 @@
 
 import { Flex, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
-import { useState, useContext } from 'react';
+import { useContext } from 'react';
 import { MetaStateContext } from '@/app/state';
 import TakenSeatButton from '@/app/components/TakenSeatButton';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
 	const seatIndices = [1, 2, 3, 5, 9, 15, 19, 21, 23];
 	const { isUserSitting, User } = useContext(MetaStateContext);
-	const [seats, setSeats] = useState<Array<any>>(
-		Array(10).fill({
-			player: null,
-		})
-	);
 
 	const shouldRotate = useBreakpointValue({ base: true, xl: false });
 	const userSeat = !shouldRotate ? 22 : 0;
@@ -32,39 +27,28 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 	};
 
 	return (
-		<Flex
-			direction="column"
-			justify="center"
-			align="center"
-			w="80vw"
-			h="100vh"
-			position="relative"
-			transformOrigin="center center"
-			bg="gray.200"
-		>
+		<Flex w={'100%'} h={'100%'}>
 			<Flex
-				direction="column"
-				align="center"
-				justify="center"
-				w={!shouldRotate ? '100%' : 'calc( 89vh / 1.6 )'}
-				h={!shouldRotate ? 'calc(89vw / 1.6)' : '100%'}
-				aspectRatio={16 / 9}
+				mx={'auto'}
 				position="relative"
+				justifyContent={'center'}
+				alignItems={'center'}
+				aspectRatio={shouldRotate ? '9 / 16' : '16 / 9'}
 				backgroundImage={
 					!shouldRotate ? '/table-horizontal.png' : '/table-vertical.png'
 				}
 				backgroundRepeat="no-repeat"
 				backgroundPosition="center"
-				backgroundSize={!shouldRotate ? '67% auto' : '80% auto'}
+				backgroundSize={'contain'}
 			>
 				<Grid
 					templateRows={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(9, 1fr)'}
 					templateColumns={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'}
 					gap={4}
-					w={['80vw', '100%']}
-					h="100%"
+					h={'100%'}
+					w={['90%', 'fit-content']}
 					placeItems="center"
-					// bg={'red'}
+					justifyContent={'center'}
 					position={'absolute'}
 				>
 					{Array.from({ length: !shouldRotate ? 25 : 24 }).map((_, index) => {

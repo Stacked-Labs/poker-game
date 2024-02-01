@@ -5,7 +5,9 @@ import Navbar from '@/app/components/NavBar';
 import { Box, CircularProgress, Flex } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
 
-const GameLayout: React.FC = ({ children }: React.PropsWithChildren<{}>) => {
+const GameLayout: React.FC = ({
+	children,
+}: React.PropsWithChildren<object>) => {
 	const [loading, setLoading] = useState(true);
 	const [progress, setProgress] = useState(0);
 
@@ -57,15 +59,15 @@ const GameLayout: React.FC = ({ children }: React.PropsWithChildren<{}>) => {
 	return (
 		<Flex
 			direction="column"
-			maxW="100%"
-			maxH="100%"
+			w="100vw"
+			h="100vh"
 			position="relative"
 			zIndex="auto"
 			transformOrigin="center center"
 			bg={'gray.200'}
 		>
 			<Navbar />
-			<Box as="main" my={[0, 5]} mx="auto">
+			<Box height={'100%'} position={'relative'}>
 				{children}
 			</Box>
 			<Footer />

@@ -1,27 +1,6 @@
-import React, { FC, FormEvent, useEffect, useState } from 'react';
-import {
-	Button,
-	Box,
-	Icon,
-	Modal,
-	Tooltip,
-	VStack,
-	ModalOverlay,
-	ModalContent,
-	ModalHeader,
-	ModalCloseButton,
-	ModalBody,
-	ModalFooter,
-	FormControl,
-	FormLabel,
-	Input,
-	useDisclosure,
-	Spinner,
-	Center,
-} from '@chakra-ui/react';
-import { motion, MotionStyle } from 'framer-motion';
-import { useWeb3Modal, useWeb3ModalState } from '@web3modal/ethers/react';
-import { useAccount } from 'wagmi';
+import React, { useState } from 'react';
+import { Button, useDisclosure, Spinner } from '@chakra-ui/react';
+import { motion } from 'framer-motion';
 import TakeSeatModal from './TakeSeatModal';
 import { User } from '../interfaces';
 
@@ -50,7 +29,7 @@ const TakenSeatButton: React.FC<TakenSeatButtonProps> = ({ player }) => {
 				borderRadius={10}
 				spinner={<Spinner color="green.100" size="lg" />}
 				border="2px dashed white"
-				// fontSize={['2xl', '3xl', '4xl']}
+				fontSize={['2xl', '3xl', '4xl']}
 				fontFamily="sans-serif"
 			>
 				taken

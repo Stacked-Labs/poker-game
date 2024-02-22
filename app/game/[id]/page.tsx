@@ -1,10 +1,17 @@
 'use client';
 
-import { Flex, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
+import {
+	Box,
+	Flex,
+	Grid,
+	GridItem,
+	useBreakpointValue,
+} from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
 import { useContext } from 'react';
 import { MetaStateContext } from '@/app/state';
 import TakenSeatButton from '@/app/components/TakenSeatButton';
+import CommunityCards from '@/app/components/CommunityCards/CommunityCards';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
 	const seatIndices = [1, 2, 3, 5, 9, 15, 19, 21, 23];
@@ -41,6 +48,9 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 				backgroundPosition="center"
 				backgroundSize={'contain'}
 			>
+				<Box>
+					<CommunityCards />
+				</Box>
 				<Grid
 					templateRows={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(9, 1fr)'}
 					templateColumns={!shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'}

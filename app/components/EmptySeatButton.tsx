@@ -13,7 +13,7 @@ const EmptySeatButton = () => {
 		<>
 			<MotionButton
 				py={10}
-				w={['100%', '50%', '150px', '150px']}
+				w={['100%', '150px', '150px']}
 				bgColor="transparent"
 				onClick={onOpen}
 				whileHover={{ scale: 1.05 }}

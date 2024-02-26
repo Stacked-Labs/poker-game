@@ -1,6 +1,6 @@
 import { Card } from '../interfaces';
 
-const types: string[] = ['club', 'spades', 'diamond', 'heart'];
+const types: string[] = ['clubs', 'spades', 'diamonds', 'hearts'];
 const values: string[] = [
 	'ace',
 	'2',
@@ -11,7 +11,6 @@ const values: string[] = [
 	'7',
 	'8',
 	'9',
-	'10',
 	'jack',
 	'queen',
 	'king',

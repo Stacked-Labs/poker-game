@@ -16,8 +16,7 @@ import CommunityCards from '@/app/components/CommunityCards/CommunityCards';
 const MainGamePage = ({ params }: { params: { id: string } }) => {
 	const seatIndices = [1, 2, 3, 5, 9, 15, 19, 21, 23];
 	const { isUserSitting, User } = useContext(MetaStateContext);
-
-	const shouldRotate = useBreakpointValue({ base: true, xl: false });
+	const shouldRotate = useBreakpointValue({ base: true, xl: false }) ?? false;
 	const userSeat = !shouldRotate ? 22 : 0;
 
 	const handleColStart = (index: number): number => {
@@ -40,15 +39,19 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 				position="relative"
 				justifyContent={'center'}
 				alignItems={'center'}
-				aspectRatio={shouldRotate ? '9 / 16' : '16 / 9'}
+				aspectRatio={shouldRotate ? '9 / 12' : '16 / 9'}
 				backgroundImage={
 					!shouldRotate ? '/table-horizontal.png' : '/table-vertical.png'
 				}
 				backgroundRepeat="no-repeat"
-				backgroundPosition="center"
+				backgroundPosition="top"
 				backgroundSize={'contain'}
 			>
-				<Box>
+				<Box
+					display={shouldRotate ? 'none' : 'block'}
+					height={'fit-content'}
+					width={'fit-content'}
+				>
 					<CommunityCards />
 				</Box>
 				<Grid
@@ -61,6 +64,15 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 					justifyContent={'center'}
 					position={'absolute'}
 				>
+					<GridItem
+						display={shouldRotate ? 'block' : 'none'}
+						height={'fit-content'}
+						width={'fit-content'}
+						rowStart={5}
+						colSpan={3}
+					>
+						<CommunityCards />
+					</GridItem>
 					{Array.from({ length: !shouldRotate ? 25 : 24 }).map((_, index) => {
 						const arrayIndex = seatIndices.indexOf(index);
 						let buttonComponent = <EmptySeatButton />;
@@ -85,6 +97,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 						} else if (seatIndices.includes(index)) {
 							buttonComponent = <EmptySeatButton />;
 						}
+
 						return !shouldRotate ? (
 							<GridItem
 								key={index}

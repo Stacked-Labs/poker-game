@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Spinner, useDisclosure, Text } from '@chakra-ui/react';
 import TakeSeatModal from './TakeSeatModal';
 import { motion } from 'framer-motion';
+
 const MotionButton = motion(Button);
 
 const EmptySeatButton = () => {
@@ -12,8 +13,8 @@ const EmptySeatButton = () => {
     return (
         <>
             <MotionButton
-                width={['100%', '200px', '300px']}
-                height={['40px', '150px']}
+                width="100%"
+                h="80%"
                 bgColor="transparent"
                 onClick={onOpen}
                 whileHover={{ scale: 1.05 }}
@@ -23,22 +24,27 @@ const EmptySeatButton = () => {
                 borderRadius={10}
                 spinner={<Spinner color="green.100" size="lg" />}
                 border="2px dashed white"
-                fontSize={['5xl', '8xl', '10xl']}
+                fontSize={['3xl', '5xl', '7xl']}
                 fontFamily="sans-serif"
-				_hover={{ bg: 'transparent' }}
-				onMouseEnter={() => setIsHovered(true)}
-				onMouseLeave={() => setIsHovered(false)}
+                _hover={{ bg: 'transparent' }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
             >
-                {isHovered ? <Text       color="white"
-      fontFamily="Pacifico, cursive" 
-      opacity="0.7" >Sit</Text> : ''}
+                {isHovered ? (
+                    <Text
+                        color="white"
+                        fontFamily="Pacifico, cursive"
+                        opacity="0.7"
+                    >
+                        Sit
+                    </Text>
+                ) : (
+                    ''
+                )}
             </MotionButton>
-            <TakeSeatModal
-                isOpen={isOpen}
-                onClose={onClose}
-            />
+            <TakeSeatModal isOpen={isOpen} onClose={onClose} />
         </>
     );
 };
 
-export default EmptySeatButton
+export default EmptySeatButton;

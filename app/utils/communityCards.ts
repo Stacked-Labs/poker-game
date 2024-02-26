@@ -1,5 +1,6 @@
 import { Card } from '../interfaces';
 
+const cardsLength = 5;
 const types: string[] = ['clubs', 'spades', 'diamonds', 'hearts'];
 const values: string[] = [
 	'ace',
@@ -26,7 +27,7 @@ const generateRandomCard = () => {
 };
 
 export const getCommunityCards = () => {
-	const cards: Card[] = new Array(5);
+	const cards: Card[] = new Array(cardsLength);
 
 	for (let i = 0; i < cards.length; i++) {
 		const newCard: Card = generateRandomCard();

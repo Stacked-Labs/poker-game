@@ -48,7 +48,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                         : '/table-vertical.png'
                 }
                 backgroundRepeat="no-repeat"
-                backgroundPosition="top"
+                backgroundPosition="center"
                 backgroundSize={'contain'}
             >
                 <Box

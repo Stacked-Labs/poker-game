@@ -1,21 +1,22 @@
 'use client';
 
-import { Flex, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
+import {
+    Box,
+    Flex,
+    Grid,
+    GridItem,
+    useBreakpointValue,
+} from '@chakra-ui/react';
 import EmptySeatButton from '@/app/components/EmptySeatButton';
-import { useState, useContext } from 'react';
+import { useContext } from 'react';
 import { MetaStateContext } from '@/app/state';
 import TakenSeatButton from '@/app/components/TakenSeatButton';
+import CommunityCards from '@/app/components/CommunityCards/CommunityCards';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
     const seatIndices = [1, 2, 3, 5, 9, 15, 19, 21, 23];
     const { isUserSitting, User } = useContext(MetaStateContext);
-    const [seats, setSeats] = useState<Array<any>>(
-        Array(10).fill({
-            player: null,
-        })
-    );
-
-    const shouldRotate = useBreakpointValue({ base: true, xl: false });
+    const shouldRotate = useBreakpointValue({ base: true, xl: false }) ?? false;
     const userSeat = !shouldRotate ? 22 : 0;
 
     const handleColStart = (index: number): number => {
@@ -34,24 +35,13 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     };
 
     return (
-        <Flex
-            direction="column"
-            justify="center"
-            align="center"
-            w="80vw"
-            h="100vh"
-            position="relative"
-            transformOrigin="center center"
-            bg="gray.200"
-        >
+        <Flex w={'100%'} h={'100%'}>
             <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                w={!shouldRotate ? '100%' : 'calc( 89vh / 1.6 )'}
-                h={!shouldRotate ? 'calc(89vw / 1.6)' : '100%'}
-                aspectRatio={16 / 9}
+                mx={'auto'}
                 position="relative"
+                justifyContent={'center'}
+                alignItems={'center'}
+                aspectRatio={shouldRotate ? '9 / 12' : '16 / 9'}
                 backgroundImage={
                     !shouldRotate
                         ? '/table-horizontal.png'
@@ -59,8 +49,15 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                 }
                 backgroundRepeat="no-repeat"
                 backgroundPosition="center"
-                backgroundSize={!shouldRotate ? '67% auto' : '80% auto'}
+                backgroundSize={'contain'}
             >
+                <Box
+                    display={shouldRotate ? 'none' : 'block'}
+                    height={'fit-content'}
+                    width={'fit-content'}
+                >
+                    <CommunityCards />
+                </Box>
                 <Grid
                     templateRows={
                         !shouldRotate ? 'repeat(5, 1fr)' : 'repeat(9, 1fr)'
@@ -69,12 +66,21 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                         !shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'
                     }
                     gap={4}
-                    w={['80vw', '100%']}
-                    h="100%"
+                    h={'100%'}
+                    w={['90%', 'fit-content']}
                     placeItems="center"
-                    // bg={'red'}
+                    justifyContent={'center'}
                     position={'absolute'}
                 >
+                    <GridItem
+                        display={shouldRotate ? 'block' : 'none'}
+                        height={'fit-content'}
+                        width={'fit-content'}
+                        rowStart={5}
+                        colSpan={3}
+                    >
+                        <CommunityCards />
+                    </GridItem>
                     {Array.from({ length: !shouldRotate ? 25 : 24 }).map(
                         (_, index) => {
                             const arrayIndex = seatIndices.indexOf(index);
@@ -110,6 +116,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                             } else if (seatIndices.includes(index)) {
                                 buttonComponent = <EmptySeatButton />;
                             }
+
                             return !shouldRotate ? (
                                 <GridItem
                                     key={index}

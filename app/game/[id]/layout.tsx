@@ -59,15 +59,15 @@ const GameLayout: React.FC = ({
     return (
         <Flex
             direction="column"
-            maxW="100%"
-            maxH="100%"
+            w="100vw"
+            h="100vh"
             position="relative"
             zIndex="auto"
             transformOrigin="center center"
             bg={'gray.200'}
         >
             <Navbar />
-            <Box as="main" my={[0, 5]} mx="auto">
+            <Box height={'100%'} position={'relative'}>
                 {children}
             </Box>
             <Footer />

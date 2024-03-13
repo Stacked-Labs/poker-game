@@ -7,7 +7,7 @@ const bgImage = `./tiles/tile${randomImageNumber}.png`;
 
 const HomePage: React.FC = () => {
 	return (
-		<Flex width="100vw" height="100vh">
+		<Flex w="100vw" h="100vh">
 			{/* Left Container */}
 			<Box
 				width="33%"

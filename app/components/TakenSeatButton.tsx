@@ -29,7 +29,6 @@ const TakenSeatButton: React.FC<TakenSeatButtonProps> = ({ player }) => {
                 borderRadius={10}
                 spinner={<Spinner color="green.100" size="lg" />}
                 border="2px dashed white"
-                // fontSize={['2xl', '3xl', '4xl']}
                 fontFamily="sans-serif"
             >
                 taken

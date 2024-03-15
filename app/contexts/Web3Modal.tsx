@@ -16,41 +16,44 @@ const projectId = process.env.PROJECT_ID || '';
 
 // 2. Create wagmiConfig
 const { chains, publicClient } = configureChains(
-	[arbitrum, polygon, optimism],
-	[walletConnectProvider({ projectId }), publicProvider()]
+    [arbitrum, polygon, optimism],
+    [walletConnectProvider({ projectId }), publicProvider()]
 );
 
 //TODO: Add metadata
 const metadata = {
-	name: 'Web3Modal',
-	description: 'Web3Modal Example',
-	url: 'http://localhost:3000/',
-	icons: ['https://avatars.githubusercontent.com/u/37784886'],
+    name: 'Web3Modal',
+    description: 'Web3Modal Example',
+    url: 'http://localhost:3000/',
+    icons: ['https://avatars.githubusercontent.com/u/37784886'],
 };
 
 const wagmiConfig = createConfig({
-	autoConnect: true,
-	connectors: [
-		new WalletConnectConnector({
-			chains,
-			options: { projectId, showQrModal: false, metadata },
-		}),
-		new EIP6963Connector({ chains }),
-		new InjectedConnector({ chains, options: { shimDisconnect: true } }),
-		new CoinbaseWalletConnector({ chains, options: { appName: metadata.name } }),
-	],
-	publicClient,
+    autoConnect: true,
+    connectors: [
+        new WalletConnectConnector({
+            chains,
+            options: { projectId, showQrModal: false, metadata },
+        }),
+        new EIP6963Connector({ chains }),
+        new InjectedConnector({ chains, options: { shimDisconnect: true } }),
+        new CoinbaseWalletConnector({
+            chains,
+            options: { appName: metadata.name },
+        }),
+    ],
+    publicClient,
 });
 
 const themeVariables = {
-	'--w3m-z-index':100,
-	'--w3m-accent': '#1db954',
-	'--w3m-border-radius-master': '2px',
-	'--w3m-font-size-master' : '12px',
+    '--w3m-z-index': 999999,
+    '--w3m-accent': '#1db954',
+    '--w3m-border-radius-master': '2px',
+    '--w3m-font-size-master': '12px',
 };
 // 3. Create modal
 createWeb3Modal({ wagmiConfig, projectId, chains, themeVariables });
 
 export function Web3ModalProvider({ children }: { children: ReactNode }) {
-	return <WagmiConfig config={wagmiConfig}>{children}</WagmiConfig>;
+    return <WagmiConfig config={wagmiConfig}>{children}</WagmiConfig>;
 }

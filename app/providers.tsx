@@ -8,17 +8,13 @@ import { Web3ModalProvider } from './contexts/Web3Modal';
 import { StateProvider } from './state';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-	return (
-		<CacheProvider>
-							<Web3ModalProvider>
-			<ChakraProvider theme={theme}>
-
-				<StateProvider>
-						{children}
-				</StateProvider>
-
-			</ChakraProvider>
-						</Web3ModalProvider>
-		</CacheProvider>
-	);
+    return (
+        <CacheProvider>
+            <Web3ModalProvider>
+                <ChakraProvider theme={theme}>
+                    <StateProvider>{children}</StateProvider>
+                </ChakraProvider>
+            </Web3ModalProvider>
+        </CacheProvider>
+    );
 }

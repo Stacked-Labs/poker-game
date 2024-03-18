@@ -1,30 +1,30 @@
 {
-	// Basic settings: turn linter off for node_modules only
-	"eslint.workingDirectories": [{ "mode": "auto" }],
+    // Basic settings: turn linter off for node_modules only
+    "eslint.workingDirectories": [{ "mode": "auto" }],
 
-	// Turn on Auto Save
-	"files.autoSave": "onFocusChange",
+    // Turn on Auto Save
+    "files.autoSave": "onFocusChange",
 
-	// Format a file on save
-	"editor.formatOnSave": true,
+    // Format a file on save
+    "editor.formatOnSave": true,
 
-	// Enable ESLint for TypeScript and JavaScript
-	"eslint.validate": [
-		"javascript",
-		"javascriptreact",
-		"typescript",
-		"typescriptreact"
-	],
+    // Enable ESLint for TypeScript and JavaScript
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact"
+    ],
 
-	// Use Prettier for formatting
-	"editor.defaultFormatter": "esbenp.prettier-vscode",
+    // Use Prettier for formatting
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
 
-	// Optional: If you have the ESLint plugin installed, this will make sure Prettier formats on save
-	"editor.codeActionsOnSave": {
-		"source.fixAll": "explicit",
-		"source.fixAll.eslint": "explicit"
-	},
+    // Optional: If you have the ESLint plugin installed, this will make sure Prettier formats on save
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.fixAll.eslint": "explicit"
+    },
 
-	"editor.semanticHighlighting.enabled": false,
-	"prettier.configPath": ".prettierrc"
+    "editor.semanticHighlighting.enabled": false,
+    "prettier.configPath": ".prettierrc"
 }

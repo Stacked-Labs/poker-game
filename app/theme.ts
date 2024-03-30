@@ -259,6 +259,24 @@ const components = {
             },
         },
     },
+    Input: {
+        baseStyle: {},
+        variants: {
+            outlined: {
+                field: {
+                    variant: 'outlined',
+                    bgColor: 'charcoal.600',
+                    flex: '1',
+                    paddingY: '2',
+                    paddingX: '5',
+                    borderRadius: '4',
+                    borderWidth: '1',
+                    borderColor: 'grey',
+                    textAlign: 'left',
+                },
+            },
+        },
+    },
 };
 
 // eslint-disable-next-line import/prefer-default-export

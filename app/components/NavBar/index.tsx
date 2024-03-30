@@ -1,9 +1,12 @@
 'use client';
 import React from 'react';
-import { HStack, Flex, IconButton } from '@chakra-ui/react';
+import { HStack, Flex, IconButton, useDisclosure } from '@chakra-ui/react';
 import { FiSettings, FiMessageSquare } from 'react-icons/fi';
 import Web3Button from '../Web3Button';
+import SettingsModal from './Settings/SettingsModal';
 const Navbar = () => {
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
     return (
         <Flex
             as="nav"
@@ -19,9 +22,8 @@ const Navbar = () => {
                 icon={<FiSettings size={32} />}
                 aria-label="Settings"
                 size={'lg'}
-                //onClick={() => { /* Placeholder for future functionality */ }}
+                onClick={onOpen}
             />
-
             <HStack ml="auto" gap={6} alignItems="center">
                 <Web3Button />
                 <IconButton
@@ -32,6 +34,8 @@ const Navbar = () => {
                     marginRight="4"
                 />
             </HStack>
+
+            <SettingsModal isOpen={isOpen} onClose={onClose} />
         </Flex>
     );
 };

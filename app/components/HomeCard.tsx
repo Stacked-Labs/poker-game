@@ -1,11 +1,39 @@
 // HomeCard.js
 'use client';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Flex, Button, IconButton } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord, FaInstagram } from 'react-icons/fa';
 import Web3Button from './Web3Button';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { joinTable, newPlayer } from '@/app/hooks/server_actions';
+import { useSocket } from '@/app/contexts/WebSocketProvider';
+import { useRouter } from 'next/navigation';
+import { useAccount } from 'wagmi';
+
 const HomeCard = () => {
+    const { address } = useAccount();
+    const router = useRouter();
+    const socket = useSocket();
+    const { dispatch } = useContext(AppContext);
+
+    const handleSubmit = () => {
+        if (!address) {
+            alert('Please connect your wallet first');
+            return;
+        }
+        const tableName = address;
+        const username = '';
+        dispatch({ type: 'setUsername', payload: username });
+        dispatch({ type: 'setTablename', payload: tableName });
+        if (socket) {
+            console.log(tableName);
+            joinTable(socket, tableName);
+            newPlayer(socket, tableName);
+            router.push(`/game//${tableName}`);
+        }
+    };
+
     return (
         <Flex
             position="absolute"
@@ -19,7 +47,7 @@ const HomeCard = () => {
             width="66%"
             bgColor="gray.100"
         >
-            <Button size="lg" mb={4} w={200} h={20}>
+            <Button size="lg" mb={4} w={200} h={20} onClick={handleSubmit}>
                 Play Now
             </Button>
             <Web3Button />

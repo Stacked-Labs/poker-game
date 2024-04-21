@@ -1,12 +1,12 @@
 // HomeCard.js
 'use client';
-import React, { useContext } from 'react';
-import { Flex, Button, IconButton } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { Flex, Button, IconButton, CircularProgress } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord, FaInstagram } from 'react-icons/fa';
 import Web3Button from './Web3Button';
-import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { joinTable, newPlayer } from '@/app/hooks/server_actions';
+import { useAppState } from '@/app/contexts/AppStoreProvider';
+import { joinTable, sendLog } from '@/app/hooks/server_actions';
 import { useSocket } from '@/app/contexts/WebSocketProvider';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
@@ -15,23 +15,27 @@ const HomeCard = () => {
     const { address } = useAccount();
     const router = useRouter();
     const socket = useSocket();
-    const { dispatch } = useContext(AppContext);
+    const { dispatch } = useAppState();
+
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = () => {
         if (!address) {
             alert('Please connect your wallet first');
             return;
         }
+        if (!socket) {
+            return;
+        }
         const tableName = address;
-        const username = '';
-        dispatch({ type: 'setUsername', payload: username });
+        setIsLoading(true);
         dispatch({ type: 'setTablename', payload: tableName });
         if (socket) {
-            console.log(tableName);
             joinTable(socket, tableName);
-            newPlayer(socket, tableName);
+            sendLog(socket, `Joined table fdsfsd ${tableName}`);
             router.push(`/game//${tableName}`);
         }
+        setIsLoading(false);
     };
 
     return (
@@ -47,9 +51,17 @@ const HomeCard = () => {
             width="66%"
             bgColor="gray.100"
         >
-            <Button size="lg" mb={4} w={200} h={20} onClick={handleSubmit}>
-                Play Now
-            </Button>
+            {!isLoading ? (
+                <Button size="lg" mb={4} w={200} h={20} onClick={handleSubmit}>
+                    Play Now
+                </Button>
+            ) : (
+                <CircularProgress
+                    isIndeterminate={false}
+                    color="grey"
+                    size="100px"
+                />
+            )}
             <Web3Button />
             <Flex
                 direction="row"

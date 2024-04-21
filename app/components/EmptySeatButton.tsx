@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 const MotionButton = motion(Button);
 
-const EmptySeatButton = () => {
+const EmptySeatButton = ({ seatId }: { seatId: number }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -13,8 +13,8 @@ const EmptySeatButton = () => {
     return (
         <>
             <MotionButton
-                py={10}
-                w={['100%', '150px', '150px']}
+                w={['80px', '150px', '150px', '100%']}
+                h={['40px', '100%']}
                 bgColor="transparent"
                 onClick={onOpen}
                 whileHover={{ scale: 1.05 }}
@@ -42,7 +42,7 @@ const EmptySeatButton = () => {
                     ''
                 )}
             </MotionButton>
-            <TakeSeatModal isOpen={isOpen} onClose={onClose} />
+            <TakeSeatModal isOpen={isOpen} onClose={onClose} seatId={seatId} />
         </>
     );
 };

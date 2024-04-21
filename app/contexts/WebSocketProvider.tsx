@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import {
     createContext,
     ReactNode,
@@ -22,6 +23,7 @@ type SocketProviderProps = {
 
 export function SocketProvider(props: SocketProviderProps) {
     const [socket, setSocket] = useState<WebSocket | null>(null);
+    const router = useRouter();
 
     useEffect(() => {
         // WebSocket api is browser side only.
@@ -35,6 +37,7 @@ export function SocketProvider(props: SocketProviderProps) {
             };
             _socket.onclose = () => {
                 console.log('websocket disconnected');
+                router.push('/');
             };
 
             setSocket(_socket);

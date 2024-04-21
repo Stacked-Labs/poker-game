@@ -14,7 +14,7 @@ const CommunityCards = () => {
                     <Box
                         key={index}
                         position={'relative'}
-                        width={{ base: 50, xl: 90 }}
+                        width={'100%'}
                         aspectRatio={[9 / 12, 9 / 16]}
                     >
                         <Image

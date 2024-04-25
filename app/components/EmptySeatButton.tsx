@@ -5,7 +5,13 @@ import { motion } from 'framer-motion';
 
 const MotionButton = motion(Button);
 
-const EmptySeatButton = ({ seatId }: { seatId: number }) => {
+const EmptySeatButton = ({
+    seatId,
+    disabled,
+}: {
+    seatId: number;
+    disabled: boolean;
+}) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -29,6 +35,7 @@ const EmptySeatButton = ({ seatId }: { seatId: number }) => {
                 _hover={{ bg: 'transparent' }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
+                isDisabled={disabled}
             >
                 {isHovered ? (
                     <Text

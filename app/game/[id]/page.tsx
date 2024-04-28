@@ -18,6 +18,7 @@ const seatIndices = [
     'seven',
     'eight',
     'nine',
+    'current',
 ];
 
 const templateGridLarge = `"a one two three b"
@@ -33,7 +34,7 @@ const templateGridSmall = `"a one b"
                           "eight current nine"`;
 
 const MainGamePage = () => {
-    const { User } = useContext(MetaStateContext);
+    const { User, isUserSitting } = useContext(MetaStateContext);
     const shouldRotate = useBreakpointValue({ base: true, xl: false }) ?? false;
     const currentUser = useCurrentUser();
 
@@ -82,9 +83,7 @@ const MainGamePage = () => {
                         >
                             <EmptySeatButton
                                 seatId={index}
-                                disabled={
-                                    currentUser.currentUser.seatId == index
-                                }
+                                disabled={isUserSitting}
                             />
                         </GridItem>
                     ))}

@@ -7,7 +7,6 @@ const MotionButton = motion(Button);
 
 const TakenSeatButton = ({ player }: { player: User }) => {
     const [isLoading, setIsLoading] = useState(false);
-    const { isOpen, onOpen, onClose } = useDisclosure();
 
     return (
         <>
@@ -16,9 +15,6 @@ const TakenSeatButton = ({ player }: { player: User }) => {
                 h={['40px', '100%']}
                 color="gray.200"
                 bgColor="gray.50"
-                onClick={onOpen}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
                 isLoading={isLoading}
                 textColor="white"
                 borderRadius={10}

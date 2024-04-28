@@ -18,22 +18,23 @@ const seatIndices = [
     'seven',
     'eight',
     'nine',
+    'current',
 ];
 
 const templateGridLarge = `"a one two three b"
                           "four cards cards cards five"
                           "six cards cards cards seven"
-                          "c eight j nine d"`;
+                          "c eight current nine d"`;
 
 const templateGridSmall = `"a one b"
                           "two c three"
                           "four d five"
                           "cards cards cards"
                           "six e seven"
-                          "eight f nine"`;
+                          "eight current nine"`;
 
 const MainGamePage = () => {
-    const { User } = useContext(MetaStateContext);
+    const { User, isUserSitting } = useContext(MetaStateContext);
     const shouldRotate = useBreakpointValue({ base: true, xl: false }) ?? false;
     const currentUser = useCurrentUser();
 
@@ -80,13 +81,23 @@ const MainGamePage = () => {
                             alignItems={'center'}
                             height={'100%'}
                         >
-                            {currentUser.currentUser.seatId == index ? (
-                                <TakenSeatButton player={User} />
-                            ) : (
-                                <EmptySeatButton seatId={index} />
-                            )}
+                            <EmptySeatButton
+                                seatId={index}
+                                disabled={isUserSitting}
+                            />
                         </GridItem>
                     ))}
+                    {currentUser.currentUser.seatId && (
+                        <GridItem
+                            area={'current'}
+                            width={'100%'}
+                            display={'flex'}
+                            alignItems={'center'}
+                            height={'100%'}
+                        >
+                            <TakenSeatButton player={User} />
+                        </GridItem>
+                    )}
                     <GridItem
                         height={'fit-content'}
                         width={'100%'}

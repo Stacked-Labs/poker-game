@@ -1,4 +1,4 @@
-import { createContext, useReducer, ReactChild } from 'react';
+import { createContext, useReducer, useContext, ReactNode } from 'react';
 import { AppState, Message, Game, Log } from '../utils/interfaces';
 
 const initialState: AppState = {
@@ -42,11 +42,11 @@ function reducer(state: AppState, action: ACTIONTYPE) {
 
 export const AppContext = createContext<{
     appState: AppState;
-    dispatch: React.Dispatch<any>;
+    dispatch: React.Dispatch<ACTIONTYPE>;
 }>({ appState: initialState, dispatch: () => null });
 
 type StoreProviderProps = {
-    children: ReactChild;
+    children: ReactNode;
 };
 
 export function AppStoreProvider(props: StoreProviderProps) {
@@ -57,4 +57,9 @@ export function AppStoreProvider(props: StoreProviderProps) {
             {props.children}
         </AppContext.Provider>
     );
+}
+
+export function useAppState() {
+    const { appState, dispatch } = useContext(AppContext);
+    return { appState, dispatch };
 }

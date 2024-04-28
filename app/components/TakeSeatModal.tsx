@@ -23,40 +23,60 @@ import { FaDiscord } from 'react-icons/fa';
 import Web3Button from './Web3Button';
 import { useAccount } from 'wagmi';
 import { MetaDispatchContext } from '../state';
+import { useSocket } from '@/app/contexts/WebSocketProvider';
+import { newPlayer, sendLog, takeSeat } from '../hooks/server_actions';
+import { useAppState } from '../contexts/AppStoreProvider';
+import { useCurrentUser } from '../contexts/CurrentUserProvider';
 
 interface TakeSeatModalProps {
     isOpen: boolean;
     onClose: () => void;
+    seatId?: number;
 }
 
 const motionStyle: MotionStyle = {
     display: 'inline-block',
-    // Use colors from the theme
     color: 'white',
 };
 
-// Motion variants for animation
 const variants = {
-    hover: { scale: 1.5, transition: { duration: 0.3 } }, // Scale up on hover
-    initial: { scale: 1 }, // Initial scale
+    hover: { scale: 1.5, transition: { duration: 0.3 } },
+    initial: { scale: 1 },
 };
 
-const TakeSeatModal = ({ isOpen, onClose }: TakeSeatModalProps) => {
+const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
+    const { address } = useAccount();
+    const metaDispatch = useContext(MetaDispatchContext);
+    const appStore = useAppState();
+    const currentUser = useCurrentUser();
+
+    const socket = useSocket();
     const [name, setName] = useState('');
     const [amount, setAmount] = useState(0);
-    const { address } = useAccount();
-    const dispatch = useContext(MetaDispatchContext);
+    const [buyIn, setBuyIn] = useState(
+        appStore.appState.game?.config.maxBuyIn
+            ? appStore.appState.game?.config.maxBuyIn
+            : 2000
+    );
 
     const connectDiscord = () => {
         // Implement Discord connection logic
     };
 
     const handleJoin = () => {
-        dispatch({ type: 'SET_IS_USER_SITTING', payload: true });
-        dispatch({
-            type: 'SET_USER',
-            payload: { address, username: name, amount },
-        });
+        if (socket && name.length > 0 && seatId) {
+            metaDispatch({ type: 'SET_IS_USER_SITTING', payload: true });
+            metaDispatch({
+                type: 'SET_USER',
+                payload: { address, username: name, amount },
+            });
+
+            newPlayer(socket, name);
+            takeSeat(socket, name, seatId, buyIn);
+            appStore.dispatch({ type: 'setUsername', payload: name });
+            currentUser.setCurrentUser({ name, seatId });
+            sendLog(socket, `${name} buys in for ${amount}`);
+        }
         onClose();
     };
 
@@ -64,10 +84,9 @@ const TakeSeatModal = ({ isOpen, onClose }: TakeSeatModalProps) => {
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
             <ModalOverlay />
             <ModalContent bgColor="gray.100" zIndex={'base'}>
-                {/* Set modal background color */}
                 <ModalHeader color="#f2f2f2" textAlign="center" p={0}>
                     <Tooltip
-                        label="All you need is a chip and a chair - Jack  Straus "
+                        label="All you need is a chip and a chair - Jack  Straus"
                         fontSize="lg"
                         placement="top"
                     >

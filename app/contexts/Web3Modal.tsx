@@ -24,7 +24,7 @@ const { chains, publicClient } = configureChains(
 const metadata = {
     name: 'Web3Modal',
     description: 'Web3Modal Example',
-    url: 'http://localhost:3000/',
+    url: 'http://localhost:3001/',
     icons: ['https://avatars.githubusercontent.com/u/37784886'],
 };
 

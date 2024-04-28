@@ -1,11 +1,11 @@
 'use client';
 
-import * as React from 'react';
 import { Box, Flex } from '@chakra-ui/react';
 import HomeCard from '@/app/components/HomeCard';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useRouter } from 'next/navigation';
 import { useSocket } from '@/app/contexts/WebSocketProvider';
+import { useContext } from 'react';
 
 const randomImageNumber = Math.floor(Math.random() * 5) + 1;
 const bgImage = `./tiles/tile${randomImageNumber}.png`;
@@ -13,7 +13,7 @@ const bgImage = `./tiles/tile${randomImageNumber}.png`;
 const HomePage: React.FC = () => {
     const router = useRouter();
     const socket = useSocket();
-    const { appState } = React.useContext(AppContext);
+    const { appState } = useContext(AppContext);
 
     if (appState.table !== null && socket) {
         router.push(`/game/${appState.table}`);

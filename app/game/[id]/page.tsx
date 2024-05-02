@@ -37,7 +37,7 @@ const MainGamePage = () => {
     const { User, isUserSitting } = useContext(MetaStateContext);
     const shouldRotate = useBreakpointValue({ base: true, xl: false }) ?? false;
     const currentUser = useCurrentUser();
-
+    console.log('SEATID', currentUser.currentUser.seatId);
     return (
         <Flex w={'100%'} h={'100%'}>
             <Flex
@@ -72,21 +72,29 @@ const MainGamePage = () => {
                     justifyContent={'center'}
                     position={'absolute'}
                 >
-                    {seatIndices.map((gridIndex: string, index: number) => (
-                        <GridItem
-                            key={index}
-                            area={gridIndex}
-                            width={'100%'}
-                            display={'flex'}
-                            alignItems={'center'}
-                            height={'100%'}
-                        >
-                            <EmptySeatButton
-                                seatId={index}
-                                disabled={isUserSitting}
-                            />
-                        </GridItem>
-                    ))}
+                    {seatIndices
+                        .filter(
+                            (gridIndex) =>
+                                !(
+                                    gridIndex === 'current' &&
+                                    currentUser.currentUser.seatId
+                                )
+                        )
+                        .map((gridIndex: string, index: number) => (
+                            <GridItem
+                                key={index}
+                                area={gridIndex}
+                                width={'100%'}
+                                display={'flex'}
+                                alignItems={'center'}
+                                height={'100%'}
+                            >
+                                <EmptySeatButton
+                                    seatId={index}
+                                    disabled={isUserSitting}
+                                />
+                            </GridItem>
+                        ))}
                     {currentUser.currentUser.seatId && (
                         <GridItem
                             area={'current'}
@@ -95,7 +103,7 @@ const MainGamePage = () => {
                             alignItems={'center'}
                             height={'100%'}
                         >
-                            <TakenSeatButton player={User} />
+                            <TakenSeatButton player={User} seatId={currentUser.currentUser.seatId} />
                         </GridItem>
                     )}
                     <GridItem

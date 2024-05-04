@@ -1,34 +1,21 @@
 import { Box, Input, IconButton, Text, Flex } from '@chakra-ui/react';
 import { IoIosSend } from 'react-icons/io';
-import { useState } from 'react';
-import { useCurrentUser } from '../../../contexts/currentUserContext';
+import { useContext, useState } from 'react';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import { sendMessage } from '@/app/hooks/server_actions';
 
-interface Message {
-    id: number;
-    text: string;
-    sender: string;
-}
-
-interface ChatboxProps {
-    onSendMessage: (message: string) => void;
-}
-
-const Chatbox: React.FC<ChatboxProps> = ({ onSendMessage }) => {
+const Chatbox = () => {
+    const socket = useContext(SocketContext);
     const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState<Message[]>([]);
-
-    const { currentUser } = useCurrentUser();
+    const appState = useContext(AppContext);
+    const username = appState.appState.username;
 
     const handleSendMessage = () => {
-        if (message.trim() !== '') {
-            const newMessage: Message = {
-                id: Date.now(),
-                text: message,
-                sender: currentUser.name,
-            };
+        console.log(appState.appState);
 
-            setMessages([...messages, newMessage]);
-            onSendMessage(`${currentUser.name}: ${message}`);
+        if (socket && username && message != '') {
+            sendMessage(socket, username, message);
             setMessage('');
         }
     };
@@ -48,24 +35,17 @@ const Chatbox: React.FC<ChatboxProps> = ({ onSendMessage }) => {
                 height={'100%'}
                 overflowY="auto"
                 color={'lightGray'}
-                marginTop={10}
             >
-                {messages.map((msg) => (
-                    <Text key={msg.id}>
-                        <Text as={'span'} color={'green'} fontWeight={'bold'}>
-                            {msg.sender}
-                        </Text>
-                        :{' '}
+                {appState.appState.messages.map((msg, index) => (
+                    <Text key={index}>
                         <Text
                             as={'span'}
-                            maxWidth="100%"
-                            style={{
-                                whiteSpace: 'normal',
-                                wordWrap: 'break-word',
-                            }}
+                            color={'themeColor'}
+                            fontWeight={'bold'}
                         >
-                            {msg.text}
+                            {msg.name}
                         </Text>
+                        : {msg.message}
                     </Text>
                 ))}
             </Box>
@@ -77,13 +57,14 @@ const Chatbox: React.FC<ChatboxProps> = ({ onSendMessage }) => {
                 width={'95%'}
             >
                 <Input
+                    bgColor={'charcoal.600'}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     _placeholder={{ opacity: 0.4, color: 'white' }}
                     focusBorderColor="themeColor"
                     placeholder="Enter message"
                     marginRight={2}
-                    // disabled={currentUser.name === '' && currentUser.seatedAt === null}
+                    disabled={username === null || username === ''}
                 />
                 <IconButton
                     icon={<IoIosSend />}
@@ -93,7 +74,7 @@ const Chatbox: React.FC<ChatboxProps> = ({ onSendMessage }) => {
                     variant="solid"
                     border={'none'}
                     _hover={{ color: 'themeColor' }}
-                    // disabled={currentUser.name === '' && currentUser.seatedAt === null}
+                    disabled={username === null || username === ''}
                 />
             </Box>
         </Flex>

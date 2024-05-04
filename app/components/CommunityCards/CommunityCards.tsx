@@ -1,7 +1,6 @@
 import { Card } from '@/app/interfaces';
 import { getCommunityCards } from '@/app/utils/communityCards';
-import { Box, Flex } from '@chakra-ui/react';
-import Image from 'next/image';
+import { Box, Flex, Image } from '@chakra-ui/react';
 import React from 'react';
 
 const CommunityCards = () => {
@@ -20,8 +19,9 @@ const CommunityCards = () => {
                         <Image
                             src={`/cards/png/${communityCard.value}_of_${communityCard.type}.png`}
                             alt={`${communityCard.value}_of_${communityCard.type}`}
+                            width={100}
+                            height={'auto'}
                             objectFit="contain"
-                            fill
                         />
                     </Box>
                 );

@@ -100,10 +100,10 @@ const MainGamePage = () => {
                             area={'current'}
                             width={'100%'}
                             display={'flex'}
-                            alignItems={'center'}
+                            alignItems={'flex-end'}
                             height={'100%'}
                         >
-                            <TakenSeatButton player={User} seatId={currentUser.currentUser.seatId} />
+                            <TakenSeatButton player={User} />
                         </GridItem>
                     )}
                     <GridItem

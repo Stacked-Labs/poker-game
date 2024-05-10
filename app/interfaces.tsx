@@ -3,17 +3,6 @@ export type Card = {
     value: string;
 };
 
-export type User = {
-    address: string;
-    username?: string;
-    amount?: number;
-};
-
-export type UserBasic = {
-    name: string;
-    seatId: number | null;
-};
-
 export type Message = {
     name: string;
     message: string;
@@ -29,14 +18,15 @@ export type AppState = {
     messages: Message[];
     logs: Log[];
     username: string | null;
-    clientID: string | null;
+    address: string | null; //Eth address
+    clientID: string | null; // might be same as address
     table: string | null;
     game: Game | null;
 };
 
 export type Player = {
     username: string;
-    uuid: string;
+    address: string; //Ethereum address which acts as uuid
     position: number;
     seatID: number;
     ready: boolean;

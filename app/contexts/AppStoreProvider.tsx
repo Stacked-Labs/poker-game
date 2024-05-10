@@ -1,11 +1,12 @@
 import { createContext, useReducer, useContext, ReactNode } from 'react';
-import { AppState, Message, Game, Log } from '../utils/interfaces';
+import { AppState, Message, Game, Log } from '../interfaces';
 
 const initialState: AppState = {
     messages: [],
     logs: [],
     username: null,
     clientID: null,
+    address: null,
     table: null,
     game: null,
 };

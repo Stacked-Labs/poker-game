@@ -14,11 +14,13 @@ import {
 import React, { ChangeEvent, useState } from 'react';
 import ActionButton from './ActionButton';
 import { LuMinus, LuPlus } from 'react-icons/lu';
+import { useAppState } from '@/app/contexts/AppStoreProvider';
 
 const Footer = () => {
     const maxRaise = 100;
     const minRaise = 0;
 
+    const { appState } = useAppState();
     const [showRaise, setShowRaise] = useState<boolean>(false);
     const [inputValue, setInputValue] = useState<number>(0);
     const [sliderValue, setSliderValue] = useState<number>(0);
@@ -51,12 +53,25 @@ const Footer = () => {
         setIsInputFocus(false);
     };
 
+    //Assume game is paused or not started would need to have buttons to start/unpause for the game owner
+    if (!appState.game?.running) {
+        return (
+            <Flex
+                justifyContent={'end'}
+                gap={3}
+                p={2}
+                height={180}
+                overflow={'hidden'}
+            />
+        );
+    }
+
     return (
         <Flex
             justifyContent={'end'}
             gap={3}
             p={2}
-            height={150}
+            height={180}
             overflow={'hidden'}
         >
             <Flex gap={2} alignItems={'center'}>

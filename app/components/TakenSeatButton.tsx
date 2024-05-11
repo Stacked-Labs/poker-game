@@ -25,6 +25,7 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
 
     console.log('Player Info: ', player);
 
+    //TODO Adjust position of chips later on
     const getChipPosition = (seatID: number) => {
         switch (seatID) {
             case 1:
@@ -72,13 +73,60 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
         }
     };
 
-    const chipPosition = getChipPosition(player.seatID);
+    //TODO: Need to add player seatIds
+    const chipPosition = getChipPosition(player.seatID || 4);
 
     /*
      *   TODO implement cards from the player and display them
      */
     return (
-        <>
+        <Flex
+            width={'100%'}
+            height={'100%'}
+            justifyContent={'center'}
+            alignItems={'center'}
+            direction={'column'}
+        >
+            <Flex {...chipPosition}>
+                {/* 
+                TODO: uncomment this and do the necessary dealer checks
+                {appState.game.running && appState.game.dealer == player.position && ( */}
+                <Flex
+                    mx={3} // Margin x-axis
+                    my={3} // Margin y-axis
+                    h="1.75rem" // 7 * 0.25 = 1.75rem
+                    w="2rem" // 8 * 0.25 = 2rem
+                    alignItems="center"
+                    justifyContent="center"
+                    borderRadius="50%" // Creates a circle or rounded shape
+                    bg="white"
+                    color="purple.800"
+                    fontSize="xl"
+                    fontWeight="bold"
+                    display="flex"
+                >
+                    D
+                </Flex>
+
+                {player.bet && player.bet !== 0 && (
+                    <Text
+                        className="flex items-center justify-center"
+                        h="2rem" // 8 * 0.25 = 2rem
+                        w="3rem" // 12 * 0.25 = 3rem
+                        borderRadius="1.5rem" // 3xl rounded equivalent
+                        bg="amber.300"
+                        fontSize="xl"
+                        fontWeight="semibold"
+                        color="zinc.900"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        backgroundColor={'gray'}
+                    >
+                        {player.bet}
+                    </Text>
+                )}
+            </Flex>
             <Flex
                 w={['100%', '150px', '150px', '100%']}
                 h={['100px', '150px', '170px', '70%']}
@@ -121,7 +169,7 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                     </Text>
                 </Box>
             </Flex>
-        </>
+        </Flex>
     );
 };
 

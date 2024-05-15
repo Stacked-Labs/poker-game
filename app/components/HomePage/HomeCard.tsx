@@ -1,10 +1,10 @@
-// HomeCard.js
 'use client';
+
 import React, { useState } from 'react';
 import { Flex, Button, IconButton, CircularProgress } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord, FaInstagram } from 'react-icons/fa';
-import Web3Button from './Web3Button';
+import Web3Button from '../Web3Button';
 import { useAppState } from '@/app/contexts/AppStoreProvider';
 import { joinTable, sendLog } from '@/app/hooks/server_actions';
 import { useSocket } from '@/app/contexts/WebSocketProvider';
@@ -51,18 +51,20 @@ const HomeCard = () => {
             width="66%"
             bgColor="gray.100"
         >
-            {!isLoading ? (
-                <Button size="lg" mb={4} w={200} h={20} onClick={handleSubmit}>
-                    Play Now
-                </Button>
-            ) : (
-                <CircularProgress
-                    isIndeterminate={false}
-                    color="grey"
-                    size="100px"
-                />
-            )}
-            <Web3Button />
+            <Flex flexDirection={'column'} gap={4} w={200}>
+                {!isLoading ? (
+                    <Button size="lg" h={20} onClick={handleSubmit}>
+                        Play Now
+                    </Button>
+                ) : (
+                    <CircularProgress
+                        isIndeterminate={false}
+                        color="grey"
+                        size="100px"
+                    />
+                )}
+                <Web3Button h={20} />
+            </Flex>
             <Flex
                 direction="row"
                 justify="center"

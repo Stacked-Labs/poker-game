@@ -71,3 +71,8 @@ export type Pot = {
     winningHand: Card[];
     winningScore: number;
 };
+
+export type FAQ = {
+    question: string;
+    answer: string;
+};

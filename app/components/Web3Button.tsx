@@ -1,12 +1,15 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
-import { Button, Icon, Text } from '@chakra-ui/react';
+import { Button, Icon, ButtonProps } from '@chakra-ui/react';
 import { FaWallet } from 'react-icons/fa';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { useAccount } from 'wagmi';
 import { useWeb3ModalState } from '@web3modal/wagmi/react';
 
-const Web3Button = () => {
+interface Web3ButtonProps extends ButtonProps {}
+
+const Web3Button: React.FC<Web3ButtonProps> = (props) => {
     const { open } = useWeb3Modal();
     const { address, isConnecting } = useAccount();
     const { open: isOpen } = useWeb3ModalState();
@@ -33,8 +36,6 @@ const Web3Button = () => {
     return (
         <Button
             size="lg"
-            w={'80%'}
-            h={12}
             leftIcon={<Icon as={FaWallet} color="white" />}
             bg="green.500"
             color="white"
@@ -44,6 +45,7 @@ const Web3Button = () => {
             }}
             type="submit"
             onClick={() => handleOpen()}
+            {...props}
         >
             {buttonText}
         </Button>

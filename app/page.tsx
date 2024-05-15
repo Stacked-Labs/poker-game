@@ -1,11 +1,12 @@
 'use client';
 
 import { Box, Flex } from '@chakra-ui/react';
-import HomeCard from '@/app/components/HomeCard';
+import HomeCard from '@/app/components/HomePage/HomeCard';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useRouter } from 'next/navigation';
 import { useSocket } from '@/app/contexts/WebSocketProvider';
 import { useContext } from 'react';
+import Landing from './components/HomePage/Landing';
 
 const randomImageNumber = Math.floor(Math.random() * 5) + 1;
 const bgImage = `./tiles/tile${randomImageNumber}.png`;
@@ -20,23 +21,27 @@ const HomePage: React.FC = () => {
     }
 
     return (
-        <Flex w="100vw" h="100vh">
-            {/* Left Container */}
+        <Flex w="100vw" bgColor={'gray.200'}>
             <Box
                 width="33%"
-                height="100%"
+                height="100vh"
                 overflow="hidden"
                 backgroundImage={`url('${bgImage}')`}
                 backgroundRepeat="repeat"
                 backgroundSize="300px"
-                position="relative"
+                position="fixed"
             >
                 <HomeCard />
             </Box>
 
-            {/* Right Container */}
-            <Box width="67%" height="100%" overflowY="auto">
-                {/* Your content here */}
+            <Box
+                marginLeft={'33%'}
+                width="67%"
+                height="100%"
+                overflowY="auto"
+                bgColor={'gray.200'}
+            >
+                <Landing />
             </Box>
         </Flex>
     );

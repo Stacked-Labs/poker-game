@@ -152,7 +152,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                         >
                             Discord
                         </Button>
-                        <Web3Button />
+                        <Web3Button w={'80%'} />
                         <HStack width="80%" justifyContent={'flex-end'} mt={4}>
                             <Button
                                 size="lg"

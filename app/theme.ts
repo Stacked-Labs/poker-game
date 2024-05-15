@@ -124,7 +124,12 @@ const semanticTokens = {
 
 const styles = {
     global: {
+        html: {
+            backgroundColor: tokens.colors.dark['gray.200'],
+        },
         body: {
+            backgrondCcolor: tokens.colors.dark['gray.200'],
+            color: tokens.colors.dark['gray.200'],
             fontFamily: 'inter, sans-serif',
             background: 'white',
             backgroundAttachment: 'scroll',
@@ -137,7 +142,7 @@ const styles = {
                 top: 0,
                 bottom: 0,
                 width: '100%',
-                background: 'white',
+                background: 'charcoal',
                 zIndex: -1,
             },
         },
@@ -146,7 +151,7 @@ const styles = {
 
 const components = {
     Text: {
-        baseStyle: {},
+        baseStyle: { color: 'charcoal' },
         variants: {
             secondary: {
                 color: 'text-secondary',
@@ -167,8 +172,10 @@ const components = {
             base: {},
             social: {
                 border: 'none',
+                bg: 'none',
                 _hover: {
                     bg: 'none',
+                    color: 'green.400',
                 },
             },
             underlined: {
@@ -274,6 +281,14 @@ const components = {
                     borderColor: 'grey',
                     textAlign: 'left',
                 },
+            },
+        },
+    },
+    Icon: {
+        variants: {
+            socialIcon: {
+                width: '300px',
+                height: '300px',
             },
         },
     },

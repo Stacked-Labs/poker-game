@@ -1,31 +1,19 @@
-import React from 'react';
-import {
-    Box,
-    Flex,
-    Text,
-    Image,
-    Circle,
-    ResponsiveValue,
-} from '@chakra-ui/react';
+import React, { useContext } from 'react';
+import { Box, Flex, Text, Image, ResponsiveValue } from '@chakra-ui/react';
 import { Player } from '../interfaces';
-import { useAppState } from '../contexts/AppStoreProvider';
+import { AppContext } from '../contexts/AppStoreProvider';
 
-//GetPlayer info and seat index
-// Seat index used for determining chip bet positions
 const TakenSeatButton = ({ player }: { player: Player }) => {
-    const shortEthAddress = `${player.address.slice(
-        0,
-        4
-    )}...${player.address.slice(-2)}`;
+    console.log('Player Info: ', player);
+    const shortEthAddress = player?.address
+        ? `${player.address.slice(0, 4)}...${player.address.slice(-2)}`
+        : 'No Address';
 
     const Card1 = '/cards/png/2_of_clubs.png';
     const Card2 = '/cards/png/2_of_diamonds.png';
 
-    const { appState } = useAppState();
+    const { appState } = useContext(AppContext);
 
-    console.log('Player Info: ', player);
-
-    //TODO Adjust position of chips later on
     const getChipPosition = (seatID: number) => {
         switch (seatID) {
             case 1:
@@ -73,12 +61,8 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
         }
     };
 
-    //TODO: Need to add player seatIds
-    const chipPosition = getChipPosition(player.seatID || 4);
+    const chipPosition = getChipPosition(player?.seatID || 4);
 
-    /*
-     *   TODO implement cards from the player and display them
-     */
     return (
         <Flex
             width={'100%'}
@@ -88,17 +72,14 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
             direction={'column'}
         >
             <Flex {...chipPosition}>
-                {/* 
-                TODO: uncomment this and do the necessary dealer checks
-                {appState.game.running && appState.game.dealer == player.position && ( */}
                 <Flex
-                    mx={3} // Margin x-axis
-                    my={3} // Margin y-axis
-                    h="1.75rem" // 7 * 0.25 = 1.75rem
-                    w="2rem" // 8 * 0.25 = 2rem
+                    mx={3}
+                    my={3}
+                    h="1.75rem"
+                    w="2rem"
                     alignItems="center"
                     justifyContent="center"
-                    borderRadius="50%" // Creates a circle or rounded shape
+                    borderRadius="50%"
                     bg="white"
                     color="purple.800"
                     fontSize="xl"
@@ -108,12 +89,12 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                     D
                 </Flex>
 
-                {player.bet && player.bet !== 0 && (
+                {player?.bet && player.bet !== 0 && (
                     <Text
                         className="flex items-center justify-center"
-                        h="2rem" // 8 * 0.25 = 2rem
-                        w="3rem" // 12 * 0.25 = 3rem
-                        borderRadius="1.5rem" // 3xl rounded equivalent
+                        h="2rem"
+                        w="3rem"
+                        borderRadius="1.5rem"
                         bg="amber.300"
                         fontSize="xl"
                         fontWeight="semibold"
@@ -137,24 +118,34 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 gap={4}
                 p={2}
             >
-                <Box id="cards" display="flex">
+                <Box
+                    id="cards"
+                    display="flex"
+                    height="100%"
+                    width="100%"
+                    justifyContent="center"
+                >
                     <Image
                         alt="Card 1"
                         src={Card1}
-                        height={'100%'}
-                        maxHeight={'150px'}
-                        objectFit="cover"
+                        width={'35%'}
+                        maxHeight="150px"
+                        style={{ objectFit: 'cover' }}
                         mr={1}
                     />
                     <Image
                         alt="Card 2"
                         src={Card2}
-                        height={'100%'}
-                        maxHeight={'150px'}
-                        objectFit="cover"
+                        width={'35%'}
+                        maxHeight="150px"
+                        style={{ objectFit: 'cover' }}
                     />
                 </Box>
-                <Box display="column" alignItems={'flex-end'}>
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="flex-end"
+                >
                     <Text fontSize={['14px', '16px', '24px']}>
                         {shortEthAddress}
                     </Text>

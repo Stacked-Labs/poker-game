@@ -23,11 +23,10 @@ import { FaDiscord } from 'react-icons/fa';
 import Web3Button from './Web3Button';
 import { useAccount } from 'wagmi';
 import { MetaDispatchContext } from '../state';
-import { useSocket } from '@/app/contexts/WebSocketProvider';
 import { newPlayer, sendLog, takeSeat } from '../hooks/server_actions';
-import { useAppState } from '../contexts/AppStoreProvider';
-import { useCurrentUser } from '../contexts/CurrentUserProvider';
-
+import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
 interface TakeSeatModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -47,10 +46,10 @@ const variants = {
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const { address } = useAccount();
     const metaDispatch = useContext(MetaDispatchContext);
-    const appStore = useAppState();
+    const appStore = useContext(AppContext);
     const currentUser = useCurrentUser();
 
-    const socket = useSocket();
+    const socket = useContext(SocketContext);
     const [name, setName] = useState('');
     const [amount, setAmount] = useState(0);
     const [buyIn, setBuyIn] = useState(

@@ -1,21 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Flex, Button, IconButton, CircularProgress } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord, FaInstagram } from 'react-icons/fa';
-import Web3Button from '../Web3Button';
-import { useAppState } from '@/app/contexts/AppStoreProvider';
+import Web3Button from '@/app/components/Web3Button';
 import { joinTable, sendLog } from '@/app/hooks/server_actions';
-import { useSocket } from '@/app/contexts/WebSocketProvider';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 const HomeCard = () => {
     const { address } = useAccount();
     const router = useRouter();
-    const socket = useSocket();
-    const { dispatch } = useAppState();
+    const socket = useContext(SocketContext);
+    const { dispatch } = useContext(AppContext);
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -32,7 +32,7 @@ const HomeCard = () => {
         dispatch({ type: 'setTablename', payload: tableName });
         if (socket) {
             joinTable(socket, tableName);
-            sendLog(socket, `Joined table fdsfsd ${tableName}`);
+            sendLog(socket, `Joined table ${tableName}`);
             router.push(`/game//${tableName}`);
         }
         setIsLoading(false);

@@ -11,16 +11,16 @@ import {
     SliderTrack,
     Text,
 } from '@chakra-ui/react';
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useState, useContext } from 'react';
 import ActionButton from './ActionButton';
 import { LuMinus, LuPlus } from 'react-icons/lu';
-import { useAppState } from '@/app/contexts/AppStoreProvider';
+import { AppContext } from '../../contexts/AppStoreProvider';
 
 const Footer = () => {
     const maxRaise = 100;
     const minRaise = 0;
 
-    const { appState } = useAppState();
+    const { appState } = useContext(AppContext);
     const [showRaise, setShowRaise] = useState<boolean>(false);
     const [inputValue, setInputValue] = useState<number>(0);
     const [sliderValue, setSliderValue] = useState<number>(0);

@@ -4,11 +4,11 @@
 import { CacheProvider } from '@chakra-ui/next-js';
 import { ChakraProvider } from '@chakra-ui/react';
 import { theme } from './theme';
-import { Web3ModalProvider } from './contexts/Web3Modal';
 import { StateProvider } from './state';
-import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import { AppStoreProvider } from '@/app/contexts/AppStoreProvider';
-import { UserProvider } from './contexts/CurrentUserProvider';
+import { UserProvider } from '@/app/contexts/CurrentUserProvider';
+import { Web3ModalProvider } from '@/app/contexts/Web3Modal';
+import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (

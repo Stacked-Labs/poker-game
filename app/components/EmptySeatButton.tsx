@@ -19,7 +19,7 @@ const EmptySeatButton = ({
     return (
         <>
             <MotionButton
-                w={['80px', '150px', '150px', '100%']}
+                w={['85%', '150px', '150px', '85%']}
                 h={['40px', '100%']}
                 bgColor="transparent"
                 onClick={onOpen}

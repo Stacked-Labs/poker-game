@@ -150,8 +150,8 @@ const Table = ({ players, setPlayers }: tableProps) => {
                                 area={gridIndex}
                                 width={'100%'}
                                 display={'flex'}
-                                alignItems={'center'}
-                                height={'100%'}
+                                h={'100%'}
+                                justifyContent={'center'}
                             >
                                 {player ? (
                                     <TakenSeatButton player={player} />
@@ -165,13 +165,13 @@ const Table = ({ players, setPlayers }: tableProps) => {
                         );
                     })}
 
-                    <GridItem
+                    {/* <GridItem
                         height={'fit-content'}
                         width={'100%'}
                         area={'cards'}
                     >
                         <CommunityCards />
-                    </GridItem>
+                    </GridItem> */}
                 </Grid>
             </Flex>
         </Flex>

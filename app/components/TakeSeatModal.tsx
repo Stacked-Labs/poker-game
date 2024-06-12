@@ -51,7 +51,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
     const socket = useContext(SocketContext);
     const [name, setName] = useState('');
-    const [amount, setAmount] = useState(0);
     const [buyIn, setBuyIn] = useState(
         appStore.appState.game?.config.maxBuyIn
             ? appStore.appState.game?.config.maxBuyIn
@@ -67,14 +66,14 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             metaDispatch({ type: 'SET_IS_USER_SITTING', payload: true });
             metaDispatch({
                 type: 'SET_USER',
-                payload: { address, username: name, amount },
+                payload: { address, username: name, buyIn },
             });
 
             newPlayer(socket, name);
             takeSeat(socket, name, seatId, buyIn);
             appStore.dispatch({ type: 'setUsername', payload: name });
             currentUser.setCurrentUser({ name, seatId });
-            sendLog(socket, `${name} buys in for ${amount}`);
+            sendLog(socket, `${name} buys in for ${buyIn}`);
         }
         onClose();
     };
@@ -124,7 +123,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 placeholder="Amount"
                                 type="number"
                                 onChange={(e) =>
-                                    setAmount(parseInt(e.target.value))
+                                    setBuyIn(parseInt(e.target.value))
                                 }
                                 _placeholder={{ color: 'white' }}
                                 color="white"
@@ -160,7 +159,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 h={12}
                                 isDisabled={
                                     name === '' ||
-                                    amount === 0 ||
+                                    buyIn === 0 ||
                                     address === null
                                 }
                                 bg="green.500"

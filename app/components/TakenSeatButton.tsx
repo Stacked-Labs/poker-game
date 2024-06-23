@@ -11,7 +11,6 @@ import {
 import { Player } from '../interfaces';
 
 const TakenSeatButton = ({ player }: { player: Player }) => {
-    console.log('Player Info: ', player);
     const shortEthAddress = player?.address
         ? `${player.address.slice(0, 2)}...${player.address.slice(-2)}`
         : '0x00...00';

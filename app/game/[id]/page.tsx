@@ -1,7 +1,8 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { joinTable, sendLog } from '@/app/hooks/server_actions';
+import { joinTable, sendLog, newPlayer } from '@/app/hooks/server_actions';
 import Table from '@/app/components/Table';
 import { useContext } from 'react';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';

@@ -25,16 +25,16 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
             >;
         };
     } = {
-        1: { bottom: '-35%', flexDirection: 'row' },
-        2: { bottom: '-35%', flexDirection: 'row' },
-        3: { bottom: '-35%', flexDirection: 'row' },
-        4: { right: '-15%', flexDirection: 'column' },
-        5: { left: '-15%', flexDirection: 'column' },
-        6: { right: '-15%', flexDirection: 'column' },
-        7: { left: '-15%', flexDirection: 'column' },
-        8: { top: '-38%', flexDirection: 'row' },
-        9: { top: '-38%', flexDirection: 'row' },
-        10: { top: '-38%', flexDirection: 'row' },
+        1: { bottom: '-25%', flexDirection: 'row' },
+        2: { bottom: '-25%', flexDirection: 'row' },
+        3: { bottom: '-25%', flexDirection: 'row' },
+        4: { right: '-25%', flexDirection: 'column' },
+        5: { left: '-25%', flexDirection: 'column' },
+        6: { right: '-25%', flexDirection: 'column' },
+        7: { left: '-25%', flexDirection: 'column' },
+        8: { top: '-20%', flexDirection: 'row' },
+        9: { top: '-20%', flexDirection: 'row' },
+        10: { top: '-20%', flexDirection: 'row' },
     };
 
     const defaultPosition = { top: '100%', flexDirection: 'row' };
@@ -42,15 +42,15 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
 
     return (
         <Flex
-            width={'100%'}
+            width={'80%'}
             position={'relative'}
-            top={8}
-            alignItems={'center'}
+            alignItems={'flex-end'}
             justifyContent={'center'}
         >
             <Flex
                 position={'absolute'}
                 gap={1}
+                key="betbox"
                 alignItems={'center'}
                 {...chipPosition}
             >
@@ -89,58 +89,54 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                     </Text>
                 )}
             </Flex>
-            <Box width={'80%'} position={'relative'}>
-                <Flex
-                    position={'absolute'}
-                    justifyContent={'center'}
-                    marginBottom={0}
-                    gap={1}
-                    top={-20}
-                >
-                    <Box bg={'blue'} width={'50%'} aspectRatio={1 / 1}>
-                        <Image
-                            alt="Card 1"
-                            src={Card1}
-                            flex={1}
-                            width={'100%'}
-                            style={{ objectFit: 'contain' }}
-                            mr={1}
-                        />
-                    </Box>
-                    <Box bg={'blue'} width={'50%'} aspectRatio={1 / 1}>
-                        <Image
-                            alt="Card 2"
-                            src={Card2}
-                            flex={1}
-                            width={'100%'}
-                            style={{ objectFit: 'contain' }}
-                            mr={1}
-                        />
-                    </Box>
-                </Flex>
-                <Flex
-                    direction={'column'}
-                    bg={'gray.50'}
-                    borderRadius={12}
-                    position={'absolute'}
-                    width={'100%'}
-                    paddingX={3}
-                    paddingY={1}
-                    height={'75px'}
-                    top={-8}
-                    zIndex={2}
-                    justifyContent={'center'}
-                    alignItems={'center'}
-                >
-                    <HStack spacing={2}>
-                        <Text fontWeight={'bold'}>{player.username}</Text>
-                        <Text fontSize={'14px'} color={'gray.300'}>
-                            {shortEthAddress}
-                        </Text>
-                    </HStack>
-                    <Text>{player.stack}</Text>
-                </Flex>
-            </Box>
+            <Flex
+                position={'absolute'}
+                justifyContent={'center'}
+                marginBottom={0}
+                gap={1}
+            >
+                <Box bg={'blue'} width={'50%'} aspectRatio={1 / 1}>
+                    <Image
+                        alt="Card 1"
+                        src={Card1}
+                        flex={1}
+                        width={'100%'}
+                        style={{ objectFit: 'contain' }}
+                        mr={1}
+                    />
+                </Box>
+                <Box bg={'blue'} width={'50%'} aspectRatio={1 / 1}>
+                    <Image
+                        alt="Card 2"
+                        src={Card2}
+                        flex={1}
+                        width={'100%'}
+                        style={{ objectFit: 'contain' }}
+                        mr={1}
+                    />
+                </Box>
+            </Flex>
+            <Flex
+                direction={'column'}
+                bg={'gray.50'}
+                borderRadius={12}
+                width={'100%'}
+                paddingX={3}
+                paddingY={1}
+                height={'75px'}
+                zIndex={2}
+                justifySelf={'flex-end'}
+                justifyContent={'center'}
+                alignItems={'center'}
+            >
+                <HStack spacing={2}>
+                    <Text fontWeight={'bold'}>{player.username}</Text>
+                    <Text fontSize={'14px'} color={'gray.300'}>
+                        {shortEthAddress}
+                    </Text>
+                </HStack>
+                <Text>{player.stack}</Text>
+            </Flex>
         </Flex>
     );
 };

@@ -26,7 +26,7 @@ const SideBarChat = ({
             height={'100%'}
             top={'0'}
             bgColor={'gray.200'}
-            zIndex={99999999999}
+            zIndex={1000}
         >
             {isOpen && (
                 <>
@@ -40,7 +40,7 @@ const SideBarChat = ({
                         _hover={{ background: 'none' }}
                         _active={{ background: 'none', outline: 'none' }}
                         _focus={{ outline: 'none', boxShadow: 'none' }}
-                    ></IconButton>
+                    />
                     <Chatbox />
                 </>
             )}

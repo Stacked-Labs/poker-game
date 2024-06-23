@@ -20,6 +20,12 @@ const Chatbox = () => {
         }
     };
 
+    const handleKeyPress = (event: React.KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            handleSendMessage();
+        }
+    };
+
     return (
         <Flex
             flexDirection={'column'}
@@ -64,6 +70,7 @@ const Chatbox = () => {
                     focusBorderColor="themeColor"
                     placeholder="Enter message"
                     marginRight={2}
+                    onKeyDown={handleKeyPress}
                     disabled={username === null || username === ''}
                 />
                 <IconButton

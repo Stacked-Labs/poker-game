@@ -1,5 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Flex, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
+import {
+    Flex,
+    Grid,
+    GridItem,
+    Text,
+    useBreakpointValue,
+} from '@chakra-ui/react';
 import CommunityCards from './CommunityCards/CommunityCards';
 import EmptySeatButton from './EmptySeatButton';
 import TakenSeatButton from './TakenSeatButton';
@@ -72,7 +78,6 @@ type tableProps = {
 };
 const Table = ({ players, setPlayers }: tableProps) => {
     const socket = useContext(SocketContext);
-    const { isUserSitting } = useContext(MetaStateContext);
     const { appState } = useContext(AppContext);
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
     const game = appState.game;
@@ -143,7 +148,7 @@ const Table = ({ players, setPlayers }: tableProps) => {
                     position={'absolute'}
                 >
                     {seatIndices.map((gridIndex: string, index: number) => {
-                        const player = players[index];
+                        const player: Player | null = players[index];
                         return (
                             <GridItem
                                 key={index}
@@ -153,7 +158,7 @@ const Table = ({ players, setPlayers }: tableProps) => {
                                 h={'100%'}
                                 justifyContent={'center'}
                             >
-                                {player ? (
+                                {player && player !== null ? (
                                     <TakenSeatButton player={player} />
                                 ) : (
                                     <EmptySeatButton

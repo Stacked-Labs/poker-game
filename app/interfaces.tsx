@@ -26,6 +26,7 @@ export type AppState = {
 
 export type Player = {
     username: string;
+    uuid: string;
     address: string; //Ethereum address which acts as uuid
     position: number;
     seatID: number;

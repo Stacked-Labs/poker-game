@@ -1,15 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {
-    Flex,
-    Grid,
-    GridItem,
-    Text,
-    useBreakpointValue,
-} from '@chakra-ui/react';
+import { Flex, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
 import CommunityCards from './CommunityCards/CommunityCards';
 import EmptySeatButton from './EmptySeatButton';
 import TakenSeatButton from './TakenSeatButton';
-import { MetaStateContext } from '../state';
 import { Player, Game as GameType } from '../interfaces';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog, dealGame } from '../hooks/server_actions';

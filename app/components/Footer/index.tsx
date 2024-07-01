@@ -1,59 +1,46 @@
 'use client';
 
-import {
-    Box,
-    Button,
-    Flex,
-    Input,
-    Slider,
-    SliderFilledTrack,
-    SliderThumb,
-    SliderTrack,
-    Text,
-} from '@chakra-ui/react';
-import React, { ChangeEvent, useState, useContext } from 'react';
+import { Flex } from '@chakra-ui/react';
+import React, { useState, useContext } from 'react';
 import ActionButton from './ActionButton';
-import { LuMinus, LuPlus } from 'react-icons/lu';
 import { AppContext } from '../../contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import RaiseInputBox from './RaiseInputBox';
+import {
+    sendLog,
+    playerCall,
+    playerCheck,
+    playerFold,
+} from '@/app/hooks/server_actions';
 
 const Footer = () => {
-    const maxRaise = 100;
-    const minRaise = 0;
-
+    const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
     const [showRaise, setShowRaise] = useState<boolean>(false);
-    const [inputValue, setInputValue] = useState<number>(0);
-    const [sliderValue, setSliderValue] = useState<number>(0);
-    const [isInputFocus, setIsInputFocus] = useState<boolean>(false);
 
-    const handleRaiseOnClick = () => {
-        setShowRaise(true);
-    };
-
-    const handleSubmitRaise = () => {
-        console.log('call raise backend');
-    };
-
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const value = parseInt(e.target.value, 10);
-        setInputValue(value);
-        setSliderValue(value);
-    };
-
-    const handleSliderChange = (value: number) => {
-        setInputValue(value);
-        setSliderValue(value);
-    };
-
-    const handleInputOnBlur = () => {
-        if (inputValue > maxRaise || inputValue < minRaise) {
-            setInputValue(maxRaise);
+    const handleCall = (user: string | null, amount: number) => {
+        if (socket) {
+            const callMessage = user + ' calls ' + amount;
+            sendLog(socket, callMessage);
+            playerCall(socket);
         }
-
-        setIsInputFocus(false);
+    };
+    const handleCheck = (user: string | null) => {
+        if (socket) {
+            const checkMessage = user + ' checks';
+            sendLog(socket, checkMessage);
+            playerCheck(socket);
+        }
+    };
+    const handleFold = (user: string | null) => {
+        if (socket) {
+            const foldMessage = user + ' folds';
+            sendLog(socket, foldMessage);
+            playerFold(socket);
+        }
     };
 
-    //Assume game is paused or not started would need to have buttons to start/unpause for the game owner
+    // Assume game is paused or not started would need to have buttons to start/unpause for the game owner
     if (!appState.game?.running) {
         return (
             <Flex
@@ -66,6 +53,20 @@ const Footer = () => {
         );
     }
 
+    if (!appState.game || appState.game.betting == false) return null;
+
+    const action =
+        appState.clientID === appState.game.players[appState.game.action].uuid;
+
+    const player = appState.game.players[appState.game.action];
+    const playerBets = appState.game.players.map((player) => player.bet);
+    const maxBet = Math.max(...playerBets);
+
+    const canCheck = player.bet >= maxBet;
+    const canCall = maxBet - player.bet === 0;
+    const callAmount =
+        maxBet - player.bet < player.stack ? maxBet - player.bet : player.stack;
+
     return (
         <Flex
             justifyContent={'end'}
@@ -76,136 +77,40 @@ const Footer = () => {
         >
             <Flex gap={2} alignItems={'center'}>
                 {showRaise ? (
-                    <>
-                        <Box
-                            bg={'charcoal.800'}
-                            width={'fit-content'}
-                            textAlign={'center'}
-                            rounded={'lg'}
-                            px={0.5}
-                            flex={1}
-                        >
-                            <Text whiteSpace={'nowrap'} p={1} fontSize={'sm'}>
-                                Your Bet
-                            </Text>
-                            <Input
-                                bg={'charcoal.600'}
-                                border={'white'}
-                                fontSize={'xl'}
-                                mb={1}
-                                type="number"
-                                value={inputValue}
-                                min={minRaise}
-                                max={maxRaise}
-                                onChange={handleInputChange}
-                                focusBorderColor={'gray.300'}
-                                textAlign={'center'}
-                                onFocus={() => setIsInputFocus(true)}
-                                onBlur={handleInputOnBlur}
-                            />
-                        </Box>
-                        <Flex
-                            flexDirection={'column'}
-                            bg={'charcoal.800'}
-                            rounded={'lg'}
-                            flex={1}
-                            justifyContent={'space-between'}
-                            height={'100%'}
-                            overflow={'hdden'}
-                        >
-                            <Flex flex={1} gap={2} p={2}>
-                                <Button variant={'raiseActionButton'}>
-                                    Min Raise
-                                </Button>
-                                <Button variant={'raiseActionButton'}>
-                                    1/2 Pot
-                                </Button>
-                                <Button variant={'raiseActionButton'}>
-                                    3/4 Pot
-                                </Button>
-                                <Button variant={'raiseActionButton'}>
-                                    Pot
-                                </Button>
-                                <Button variant={'raiseActionButton'}>
-                                    All In
-                                </Button>
-                            </Flex>
-                            <Flex
-                                alignItems={'center'}
-                                flex={1}
-                                bg={'charcoal.600'}
-                                roundedBottom={'lg'}
-                                overflow={'hidden'}
-                            >
-                                <Flex
-                                    bg={'charcoal.400'}
-                                    height={'100%'}
-                                    alignItems={'center'}
-                                    p={1}
-                                >
-                                    <LuMinus />
-                                </Flex>
-                                <Slider
-                                    aria-label="slider-ex-1"
-                                    marginX={3}
-                                    defaultValue={0}
-                                    value={sliderValue}
-                                    max={maxRaise}
-                                    min={minRaise}
-                                    onChange={(value: number) =>
-                                        handleSliderChange(value)
-                                    }
-                                    isDisabled={isInputFocus}
-                                >
-                                    <SliderTrack>
-                                        <SliderFilledTrack />
-                                    </SliderTrack>
-                                    <SliderThumb />
-                                </Slider>
-                                <Flex
-                                    bg={'charcoal.400'}
-                                    height={'100%'}
-                                    alignItems={'center'}
-                                    p={1}
-                                >
-                                    <LuPlus />
-                                </Flex>
-                            </Flex>
-                        </Flex>
-                        <Flex flex={1} gap={2}>
-                            <ActionButton
-                                text={'Back'}
-                                color="white"
-                                clickHandler={() => setShowRaise(false)}
-                            />
-                            <ActionButton
-                                text={'Raise'}
-                                color="green"
-                                clickHandler={handleSubmitRaise}
-                            />
-                        </Flex>
-                    </>
+                    <RaiseInputBox
+                        action={action}
+                        setShowRaise={setShowRaise}
+                        showRaise={showRaise}
+                    />
                 ) : (
                     <>
                         <ActionButton
-                            text={'Call'}
+                            text={
+                                canCall ? 'call' : 'call (' + callAmount + ')'
+                            }
                             color="green"
-                            clickHandler={() => console.log('Call Clicked')}
+                            clickHandler={() =>
+                                handleCall(appState.username, callAmount)
+                            }
+                            isDisabled={!action && !canCall}
                         />
                         <ActionButton
                             text={'Raise'}
                             color="green"
-                            clickHandler={handleRaiseOnClick}
+                            clickHandler={() => setShowRaise(true)}
+                            isDisabled={!action}
                         />
                         <ActionButton
                             text={'Check'}
                             color="green"
-                            clickHandler={() => console.log('Check Clicked')}
+                            clickHandler={() => handleCheck(appState.username)}
+                            isDisabled={!action && !canCheck}
                         />
                         <ActionButton
                             text={'Fold'}
                             color="red"
-                            clickHandler={() => console.log('Fold Clicked')}
+                            clickHandler={() => handleFold(appState.username)}
+                            isDisabled={!action}
                         />
                     </>
                 )}

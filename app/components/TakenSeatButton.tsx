@@ -43,6 +43,10 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
     const defaultPosition = { top: '100%', flexDirection: 'row' };
     const chipPosition = chipPositions[player?.seatID || 4] || defaultPosition;
 
+    if (!appState.game) {
+        return null;
+    }
+
     return (
         <Flex
             width={'80%'}
@@ -57,24 +61,25 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 alignItems={'center'}
                 {...chipPosition}
             >
-                {appState.game?.running && (
-                    <Text
-                        mx={3}
-                        my={3}
-                        h="1.75rem"
-                        w="2rem"
-                        alignItems="center"
-                        justifyContent="center"
-                        borderRadius="50%"
-                        bg="white"
-                        color="purple.800"
-                        fontSize="xl"
-                        fontWeight="bold"
-                        display="flex"
-                    >
-                        D
-                    </Text>
-                )}
+                {appState.game.running &&
+                    appState.game.dealer == player.position && (
+                        <Text
+                            mx={3}
+                            my={3}
+                            h="1.75rem"
+                            w="2rem"
+                            alignItems="center"
+                            justifyContent="center"
+                            borderRadius="50%"
+                            bg="white"
+                            color="purple.800"
+                            fontSize="xl"
+                            fontWeight="bold"
+                            display="flex"
+                        >
+                            D
+                        </Text>
+                    )}
                 {player.bet !== 0 && (
                     <Text
                         className="flex items-center justify-center"
@@ -100,7 +105,7 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 marginBottom={0}
                 gap={1}
             >
-                {appState.game?.running &&
+                {appState.game.running &&
                     (appState.clientID == player.uuid ? (
                         <>
                             <Box width={'50%'} aspectRatio={1 / 1}>

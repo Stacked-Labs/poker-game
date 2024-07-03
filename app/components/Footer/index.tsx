@@ -92,7 +92,7 @@ const Footer = () => {
                             clickHandler={() =>
                                 handleCall(appState.username, callAmount)
                             }
-                            isDisabled={!action && !canCall}
+                            isDisabled={!action || canCall}
                         />
                         <ActionButton
                             text={'Raise'}
@@ -104,7 +104,7 @@ const Footer = () => {
                             text={'Check'}
                             color="green"
                             clickHandler={() => handleCheck(appState.username)}
-                            isDisabled={!action && !canCheck}
+                            isDisabled={!action || !canCheck}
                         />
                         <ActionButton
                             text={'Fold'}

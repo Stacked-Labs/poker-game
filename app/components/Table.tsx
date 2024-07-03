@@ -7,6 +7,7 @@ import { Player, Game as GameType } from '../interfaces';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog, dealGame } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
+import Pot from './Pot';
 
 const seatIndices = [
     'one',
@@ -107,7 +108,7 @@ const Table = ({ players, setPlayers }: tableProps) => {
     }, [game?.pots]);
 
     return (
-        <Flex w={'100%'} h={'100%'}>
+        <Flex w={'100%'} h={'100%'} marginBottom={100}>
             <Flex
                 mx={'auto'}
                 position="relative"
@@ -163,11 +164,15 @@ const Table = ({ players, setPlayers }: tableProps) => {
                         );
                     })}
 
+                    {/* Pot for testing  */}
+                    <Pot />
+
                     {/* <GridItem
                         height={'fit-content'}
                         width={'100%'}
                         area={'cards'}
                     >
+                        
                         <CommunityCards />
                     </GridItem> */}
                 </Grid>

@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Navbar from '@/app/components/NavBar';
 import { Box, CircularProgress, Flex } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 const GameLayout: React.FC = ({
     children,
 }: React.PropsWithChildren<object>) => {
+    const { appState } = useContext(AppContext);
     const [loading, setLoading] = useState(true);
     const [progress, setProgress] = useState(0);
 
@@ -65,6 +67,7 @@ const GameLayout: React.FC = ({
             zIndex="auto"
             transformOrigin="center center"
             bg={'gray.200'}
+            paddingBottom={appState.game?.running ? 0 : '50px'}
         >
             <Navbar />
             <Box height={'100%'} position={'relative'}>

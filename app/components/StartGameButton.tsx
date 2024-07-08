@@ -21,21 +21,20 @@ const StartGameButton = () => {
         return null;
     }
 
-    if (appState.game?.running) {
-        return null;
-    }
-
     return (
         <Tooltip
             bg="red.600"
             label={'Needs 2 or more players to start a game.'}
-            isDisabled={!game.running && readyPlayers.length > 2}
+            isDisabled={!game.running && readyPlayers.length < 2}
             hasArrow
         >
             <Button
                 content="dfsdf"
                 aria-label="Start a game."
-                isDisabled={!game.running && readyPlayers.length < 2}
+                isDisabled={
+                    (!game.running && readyPlayers.length < 2) ||
+                    (game.running && readyPlayers.length >= 2)
+                }
                 onClick={() => onClickStartGame(socket)}
             >
                 Start

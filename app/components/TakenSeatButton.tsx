@@ -99,12 +99,7 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                     </Text>
                 )}
             </Flex>
-            <Flex
-                position={'absolute'}
-                justifyContent={'center'}
-                marginBottom={0}
-                gap={1}
-            >
+            <Flex position={'absolute'} justifyContent={'center'} gap={1}>
                 {appState.game.running &&
                     (appState.clientID == player.uuid ? (
                         <>
@@ -168,12 +163,14 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 alignItems={'center'}
             >
                 <HStack spacing={2}>
-                    <Text fontWeight={'bold'}>{player.username}</Text>
+                    <Text fontWeight={'bold'} color={'gray.300'}>
+                        {player.username}
+                    </Text>
                     <Text fontSize={'14px'} color={'gray.300'}>
                         {shortEthAddress}
                     </Text>
                 </HStack>
-                <Text>{player.stack}</Text>
+                <Text color={'gray.300'}>{player.stack}</Text>
             </Flex>
         </Flex>
     );

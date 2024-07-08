@@ -40,19 +40,6 @@ const Footer = () => {
         }
     };
 
-    // Assume game is paused or not started would need to have buttons to start/unpause for the game owner
-    if (!appState.game?.running) {
-        return (
-            <Flex
-                justifyContent={'end'}
-                gap={3}
-                p={2}
-                height={180}
-                overflow={'hidden'}
-            />
-        );
-    }
-
     if (!appState.game || appState.game.betting == false) return null;
 
     const action =

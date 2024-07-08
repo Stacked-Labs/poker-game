@@ -2,13 +2,13 @@ import { useContext } from 'react';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import { startGame } from '../hooks/server_actions';
 import { AppContext } from '../contexts/AppStoreProvider';
-import { Player } from '../interfaces';
 import { Button, Tooltip } from '@chakra-ui/react';
 
-const StartGameButton = ({ players }: { players: (Player | null)[] }) => {
+const StartGameButton = () => {
     const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
     const game = appState.game;
+    const players = appState.game?.players || [];
     const readyPlayers = players.filter((player) => player != null);
 
     const onClickStartGame = (socket: WebSocket) => {

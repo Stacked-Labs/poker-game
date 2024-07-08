@@ -70,9 +70,10 @@ type tableProps = {
     players: (Player | null)[];
     setPlayers: React.Dispatch<React.SetStateAction<(Player | null)[]>>;
 };
+
 const Table = ({ players, setPlayers }: tableProps) => {
     const socket = useContext(SocketContext);
-    const { appState } = useContext(AppContext);
+    const { appState, dispatch } = useContext(AppContext);
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
     const game = appState.game;
 
@@ -87,6 +88,7 @@ const Table = ({ players, setPlayers }: tableProps) => {
         for (let i = 0; i < game.players.length; i++) {
             updatedPlayers[game.players[i].seatID - 1] = game.players[i];
         }
+
         setPlayers(updatedPlayers);
     }, [game?.players]);
 

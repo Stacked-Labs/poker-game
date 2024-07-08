@@ -1,10 +1,13 @@
 'use client';
+
 import React from 'react';
 import { HStack, Flex, IconButton, useDisclosure } from '@chakra-ui/react';
 import { FiSettings, FiMessageSquare } from 'react-icons/fi';
 import Web3Button from '../Web3Button';
 import SettingsModal from './Settings/SettingsModal';
 import SideBarChat from './Chat/SideBarChat';
+import StartGameButton from '../StartGameButton';
+
 const Navbar = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { isOpen: isOpenChat, onToggle: onToggleChat } = useDisclosure();
@@ -28,6 +31,7 @@ const Navbar = () => {
                     onClick={onOpen}
                 />
                 <HStack ml="auto" gap={6} alignItems="center">
+                    <StartGameButton players={[]} />
                     <Web3Button />
                     <IconButton
                         icon={<FiMessageSquare size={32} />}

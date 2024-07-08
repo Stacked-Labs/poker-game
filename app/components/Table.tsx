@@ -3,11 +3,11 @@ import { Flex, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
 import CommunityCards from './CommunityCards/CommunityCards';
 import EmptySeatButton from './EmptySeatButton';
 import TakenSeatButton from './TakenSeatButton';
-import { MetaStateContext } from '../state';
 import { Player, Game as GameType } from '../interfaces';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog, dealGame } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
+import Pot from './Pot';
 
 const seatIndices = [
     'one',
@@ -72,7 +72,6 @@ type tableProps = {
 };
 const Table = ({ players, setPlayers }: tableProps) => {
     const socket = useContext(SocketContext);
-    const { isUserSitting } = useContext(MetaStateContext);
     const { appState } = useContext(AppContext);
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
     const game = appState.game;
@@ -109,7 +108,7 @@ const Table = ({ players, setPlayers }: tableProps) => {
     }, [game?.pots]);
 
     return (
-        <Flex w={'100%'} h={'100%'}>
+        <Flex w={'100%'} h={'100%'} marginBottom={100}>
             <Flex
                 mx={'auto'}
                 position="relative"
@@ -143,7 +142,7 @@ const Table = ({ players, setPlayers }: tableProps) => {
                     position={'absolute'}
                 >
                     {seatIndices.map((gridIndex: string, index: number) => {
-                        const player = players[index];
+                        const player: Player | null = players[index];
                         return (
                             <GridItem
                                 key={index}
@@ -153,7 +152,7 @@ const Table = ({ players, setPlayers }: tableProps) => {
                                 h={'100%'}
                                 justifyContent={'center'}
                             >
-                                {player ? (
+                                {player && player !== null ? (
                                     <TakenSeatButton player={player} />
                                 ) : (
                                     <EmptySeatButton
@@ -165,11 +164,15 @@ const Table = ({ players, setPlayers }: tableProps) => {
                         );
                     })}
 
+                    {/* Pot for testing  */}
+                    <Pot />
+
                     {/* <GridItem
                         height={'fit-content'}
                         width={'100%'}
                         area={'cards'}
                     >
+                        
                         <CommunityCards />
                     </GridItem> */}
                 </Grid>

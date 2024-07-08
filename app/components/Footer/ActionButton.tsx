@@ -7,10 +7,12 @@ const ActionButton = ({
     text,
     color,
     clickHandler,
+    isDisabled,
 }: {
     text: string;
     color: string;
     clickHandler: () => void;
+    isDisabled: boolean;
 }) => {
     return (
         <Button
@@ -20,6 +22,7 @@ const ActionButton = ({
             padding={8}
             textTransform={'uppercase'}
             onClick={clickHandler}
+            isDisabled={isDisabled}
         >
             {text}
         </Button>

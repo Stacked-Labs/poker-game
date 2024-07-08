@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
     Box,
     Flex,
@@ -9,14 +9,17 @@ import {
     HStack,
 } from '@chakra-ui/react';
 import { Player } from '../interfaces';
+import { AppContext } from '../contexts/AppStoreProvider';
 
 const TakenSeatButton = ({ player }: { player: Player }) => {
+    const { appState } = useContext(AppContext);
     const shortEthAddress = player?.address
         ? `${player.address.slice(0, 2)}...${player.address.slice(-2)}`
         : '0x00...00';
 
     const Card1 = '/cards/png/2_of_clubs.png';
     const Card2 = '/cards/png/2_of_diamonds.png';
+    const CardBack = '/cards/png/back_of_card.png';
 
     const chipPositions: {
         [key: number]: {
@@ -40,6 +43,10 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
     const defaultPosition = { top: '100%', flexDirection: 'row' };
     const chipPosition = chipPositions[player?.seatID || 4] || defaultPosition;
 
+    if (!appState.game) {
+        return null;
+    }
+
     return (
         <Flex
             width={'80%'}
@@ -54,22 +61,25 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 alignItems={'center'}
                 {...chipPosition}
             >
-                <Text
-                    mx={3}
-                    my={3}
-                    h="1.75rem"
-                    w="2rem"
-                    alignItems="center"
-                    justifyContent="center"
-                    borderRadius="50%"
-                    bg="white"
-                    color="purple.800"
-                    fontSize="xl"
-                    fontWeight="bold"
-                    display="flex"
-                >
-                    D
-                </Text>
+                {appState.game.running &&
+                    appState.game.dealer == player.position && (
+                        <Text
+                            mx={3}
+                            my={3}
+                            h="1.75rem"
+                            w="2rem"
+                            alignItems="center"
+                            justifyContent="center"
+                            borderRadius="50%"
+                            bg="white"
+                            color="purple.800"
+                            fontSize="xl"
+                            fontWeight="bold"
+                            display="flex"
+                        >
+                            D
+                        </Text>
+                    )}
                 {player.bet !== 0 && (
                     <Text
                         className="flex items-center justify-center"
@@ -95,26 +105,54 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 marginBottom={0}
                 gap={1}
             >
-                <Box bg={'blue'} width={'50%'} aspectRatio={1 / 1}>
-                    <Image
-                        alt="Card 1"
-                        src={Card1}
-                        flex={1}
-                        width={'100%'}
-                        style={{ objectFit: 'contain' }}
-                        mr={1}
-                    />
-                </Box>
-                <Box bg={'blue'} width={'50%'} aspectRatio={1 / 1}>
-                    <Image
-                        alt="Card 2"
-                        src={Card2}
-                        flex={1}
-                        width={'100%'}
-                        style={{ objectFit: 'contain' }}
-                        mr={1}
-                    />
-                </Box>
+                {appState.game.running &&
+                    (appState.clientID == player.uuid ? (
+                        <>
+                            <Box width={'50%'} aspectRatio={1 / 1}>
+                                <Image
+                                    alt="Card 1"
+                                    src={Card1}
+                                    flex={1}
+                                    width={'100%'}
+                                    style={{ objectFit: 'contain' }}
+                                    mr={1}
+                                />
+                            </Box>
+                            <Box width={'50%'} aspectRatio={1 / 1}>
+                                <Image
+                                    alt="Card 2"
+                                    src={Card2}
+                                    flex={1}
+                                    width={'100%'}
+                                    style={{ objectFit: 'contain' }}
+                                    mr={1}
+                                />
+                            </Box>
+                        </>
+                    ) : (
+                        <>
+                            <Box width={'50%'} aspectRatio={1 / 1}>
+                                <Image
+                                    alt="Back of card"
+                                    src={CardBack}
+                                    flex={1}
+                                    width={'100%'}
+                                    style={{ objectFit: 'contain' }}
+                                    mr={1}
+                                />
+                            </Box>
+                            <Box width={'50%'} aspectRatio={1 / 1}>
+                                <Image
+                                    alt="Back of card"
+                                    src={CardBack}
+                                    flex={1}
+                                    width={'100%'}
+                                    style={{ objectFit: 'contain' }}
+                                    mr={1}
+                                />
+                            </Box>
+                        </>
+                    ))}
             </Flex>
             <Flex
                 direction={'column'}

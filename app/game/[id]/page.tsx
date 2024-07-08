@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { joinTable, sendLog, newPlayer } from '@/app/hooks/server_actions';
+import { useState } from 'react';
+import { joinTable, newPlayer, sendLog } from '@/app/hooks/server_actions';
 import Table from '@/app/components/Table';
 import { useContext } from 'react';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Player } from '@/app/interfaces';
+import StartGameButton from '@/app/components/StartGameButton';
+import { Center } from '@chakra-ui/react';
 
-const MainGamePage = () => {
-    const searchParams = useSearchParams();
+const MainGamePage = ({ params }: { params: { id: string } }) => {
     const socket = useContext(SocketContext);
     const { appState, dispatch } = useContext(AppContext);
 
@@ -28,19 +28,23 @@ const MainGamePage = () => {
     ];
     const [players, setPlayers] = useState(initialPlayers);
 
-    useEffect(() => {
-        // Convert searchParams to a standard URLSearchParams object to use the get method
-        const params = new URLSearchParams(searchParams.toString());
-        const tableId = params.get('id');
+    const tableId = params.id;
 
-        if (socket && !appState.table && tableId) {
-            joinTable(socket, tableId);
-            dispatch({ type: 'setTablename', payload: tableId });
-            sendLog(socket, `Joined table ${tableId}`);
-        }
-    }, [socket, appState.table, searchParams, dispatch]); // Updated dependencies
+    if (socket && !appState.table && tableId) {
+        joinTable(socket, tableId);
+        newPlayer(socket, 'none');
+        dispatch({ type: 'setTablename', payload: tableId });
+        sendLog(socket, `Joined table ${tableId}`);
+    }
 
-    return <Table players={players} setPlayers={setPlayers} />;
+    return (
+        <>
+            <Table players={players} setPlayers={setPlayers} />
+            <Center marginY={10}>
+                <StartGameButton players={players} />
+            </Center>
+        </>
+    );
 };
 
 export default MainGamePage;

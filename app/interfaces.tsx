@@ -38,7 +38,7 @@ export type Player = {
     stack: number;
     bet: number;
     totalBet: number;
-    cards: Card[];
+    cards: string[];
 };
 
 export type Game = {

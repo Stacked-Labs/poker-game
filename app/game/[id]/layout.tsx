@@ -67,7 +67,7 @@ const GameLayout: React.FC = ({
             zIndex="auto"
             transformOrigin="center center"
             bg={'gray.200'}
-            paddingBottom={appState.game?.running ? 0 : '50px'}
+            paddingBottom={appState.game?.running ? 0 : '100px'}
         >
             <Navbar />
             <Box height={'100%'} position={'relative'}>

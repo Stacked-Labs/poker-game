@@ -3,23 +3,19 @@ import {
     Box,
     Flex,
     Text,
-    Image,
     ResponsiveValue,
     PositionProps,
     HStack,
 } from '@chakra-ui/react';
 import { Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
+import CardComponent from './Card';
 
 const TakenSeatButton = ({ player }: { player: Player }) => {
     const { appState } = useContext(AppContext);
     const shortEthAddress = player?.address
         ? `${player.address.slice(0, 2)}...${player.address.slice(-2)}`
         : '0x00...00';
-
-    const Card1 = '/cards/png/2_of_clubs.png';
-    const Card2 = '/cards/png/2_of_diamonds.png';
-    const CardBack = '/cards/png/back_of_card.png';
 
     const chipPositions: {
         [key: number]: {
@@ -101,53 +97,16 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
             </Flex>
             <Flex position={'absolute'} justifyContent={'center'} gap={1}>
                 {appState.game.running &&
-                    (appState.clientID == player.uuid ? (
-                        <>
-                            <Box width={'50%'} aspectRatio={1 / 1}>
-                                <Image
-                                    alt="Card 1"
-                                    src={Card1}
-                                    flex={1}
-                                    width={'100%'}
-                                    style={{ objectFit: 'contain' }}
-                                    mr={1}
+                    player.cards.map((card: string, index: number) => {
+                        return (
+                            <Box width={'50%'} aspectRatio={1 / 1} key={index}>
+                                <CardComponent
+                                    card={card}
+                                    hidden={appState.clientID !== player.uuid}
                                 />
                             </Box>
-                            <Box width={'50%'} aspectRatio={1 / 1}>
-                                <Image
-                                    alt="Card 2"
-                                    src={Card2}
-                                    flex={1}
-                                    width={'100%'}
-                                    style={{ objectFit: 'contain' }}
-                                    mr={1}
-                                />
-                            </Box>
-                        </>
-                    ) : (
-                        <>
-                            <Box width={'50%'} aspectRatio={1 / 1}>
-                                <Image
-                                    alt="Back of card"
-                                    src={CardBack}
-                                    flex={1}
-                                    width={'100%'}
-                                    style={{ objectFit: 'contain' }}
-                                    mr={1}
-                                />
-                            </Box>
-                            <Box width={'50%'} aspectRatio={1 / 1}>
-                                <Image
-                                    alt="Back of card"
-                                    src={CardBack}
-                                    flex={1}
-                                    width={'100%'}
-                                    style={{ objectFit: 'contain' }}
-                                    mr={1}
-                                />
-                            </Box>
-                        </>
-                    ))}
+                        );
+                    })}
             </Flex>
             <Flex
                 direction={'column'}

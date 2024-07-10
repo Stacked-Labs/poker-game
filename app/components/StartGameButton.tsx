@@ -2,8 +2,7 @@ import { useContext } from 'react';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import { startGame } from '../hooks/server_actions';
 import { AppContext } from '../contexts/AppStoreProvider';
-import { Box, Tooltip } from '@chakra-ui/react';
-import ActionButton from './Footer/ActionButton';
+import { Button, Tooltip } from '@chakra-ui/react';
 
 const StartGameButton = () => {
     const socket = useContext(SocketContext);
@@ -29,18 +28,19 @@ const StartGameButton = () => {
             isDisabled={game.running || readyPlayers.length >= 2}
             hasArrow
         >
-            {/*Tooltip wont work if ActionButton is not wrapped */}
-            <Box>
-                <ActionButton
-                    text={'Start'}
-                    color={'white'}
-                    clickHandler={() => onClickStartGame(socket)}
-                    isDisabled={
-                        (!game.running && readyPlayers.length < 2) ||
-                        (game.running && readyPlayers.length >= 2)
-                    }
-                />
-            </Box>
+            <Button
+                size="lg"
+                color={'white'}
+                borderColor={'white'}
+                paddingX={12}
+                onClick={() => onClickStartGame(socket)}
+                isDisabled={
+                    (!game.running && readyPlayers.length < 2) ||
+                    (game.running && readyPlayers.length >= 2)
+                }
+            >
+                Start
+            </Button>
         </Tooltip>
     );
 };

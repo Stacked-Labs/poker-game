@@ -19,19 +19,21 @@ const Navbar = () => {
                 align="center"
                 justify="space-between"
                 wrap="wrap"
-                padding="1rem"
+                padding="1.5rem"
                 bg="gray.200"
                 color="white"
                 zIndex={10}
             >
-                <IconButton
-                    icon={<FiSettings size={32} />}
-                    aria-label="Settings"
-                    size={'lg'}
-                    onClick={onOpen}
-                />
-                <HStack ml="auto" gap={6} alignItems="center">
-                    <StartGameButton players={[]} />
+                <HStack>
+                    <IconButton
+                        icon={<FiSettings size={32} />}
+                        aria-label="Settings"
+                        size={'lg'}
+                        onClick={onOpen}
+                    />
+                    <StartGameButton />
+                </HStack>
+                <HStack>
                     <Web3Button />
                     <IconButton
                         icon={<FiMessageSquare size={32} />}

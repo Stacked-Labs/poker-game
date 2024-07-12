@@ -7,7 +7,7 @@ import {
     PositionProps,
     HStack,
 } from '@chakra-ui/react';
-import { Player } from '../interfaces';
+import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import CardComponent from './Card';
 
@@ -97,7 +97,7 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
             </Flex>
             <Flex position={'absolute'} justifyContent={'center'} gap={1}>
                 {appState.game.running &&
-                    player.cards.map((card: string, index: number) => {
+                    player.cards.map((card: Card, index: number) => {
                         return (
                             <Box width={'50%'} aspectRatio={1 / 1} key={index}>
                                 <CardComponent

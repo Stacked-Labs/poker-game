@@ -25,6 +25,7 @@ const Footer = () => {
             playerCall(socket);
         }
     };
+
     const handleCheck = (user: string | null) => {
         if (socket) {
             const checkMessage = user + ' checks';
@@ -32,7 +33,9 @@ const Footer = () => {
             playerCheck(socket);
         }
     };
+
     const handleFold = (user: string | null) => {
+        console.log(appState.game);
         if (socket) {
             const foldMessage = user + ' folds';
             sendLog(socket, foldMessage);
@@ -40,7 +43,17 @@ const Footer = () => {
         }
     };
 
-    if (!appState.game || appState.game.betting == false) return null;
+    if (!appState.game || appState.game.betting == false) {
+        return (
+            <Flex
+                justifyContent={'end'}
+                gap={3}
+                p={2}
+                height={180}
+                overflow={'hidden'}
+            />
+        );
+    }
 
     const action =
         appState.clientID === appState.game.players[appState.game.action].uuid;

@@ -1,7 +1,4 @@
-export type Card = {
-    type: string;
-    value: string;
-};
+export type Card = string;
 
 export type Message = {
     name: string;

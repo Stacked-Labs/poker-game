@@ -9,7 +9,7 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 const GameLayout: React.FC = ({
     children,
 }: React.PropsWithChildren<object>) => {
-    const { appState } = useContext(AppContext);
+    useContext(AppContext);
     const [loading, setLoading] = useState(true);
     const [progress, setProgress] = useState(0);
 
@@ -67,7 +67,6 @@ const GameLayout: React.FC = ({
             zIndex="auto"
             transformOrigin="center center"
             bg={'gray.200'}
-            paddingBottom={appState.game?.running ? 0 : '100px'}
         >
             <Navbar />
             <Box height={'100%'} position={'relative'}>

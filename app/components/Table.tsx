@@ -169,14 +169,13 @@ const Table = ({ players, setPlayers }: tableProps) => {
                     {/* Pot for testing  */}
                     <Pot />
 
-                    {/* <GridItem
+                    <GridItem
                         height={'fit-content'}
                         width={'100%'}
                         area={'cards'}
                     >
-                        
                         <CommunityCards />
-                    </GridItem> */}
+                    </GridItem>
                 </Grid>
             </Flex>
         </Flex>

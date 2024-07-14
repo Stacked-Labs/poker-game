@@ -7,8 +7,6 @@ import { useContext } from 'react';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Player } from '@/app/interfaces';
-import StartGameButton from '@/app/components/StartGameButton';
-import { Center } from '@chakra-ui/react';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
     const socket = useContext(SocketContext);
@@ -26,6 +24,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
         null,
         null,
     ];
+
     const [players, setPlayers] = useState(initialPlayers);
 
     const tableId = params.id;
@@ -37,14 +36,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
         sendLog(socket, `Joined table ${tableId}`);
     }
 
-    return (
-        <>
-            <Table players={players} setPlayers={setPlayers} />
-            <Center marginY={10}>
-                <StartGameButton players={players} />
-            </Center>
-        </>
-    );
+    return <Table players={players} setPlayers={setPlayers} />;
 };
 
 export default MainGamePage;

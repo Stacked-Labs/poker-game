@@ -3,6 +3,7 @@
 import React, { useContext, useState } from 'react';
 import { AppContext } from '../contexts/AppStoreProvider';
 import { Pot as PotType } from '../interfaces';
+import { Button } from '@chakra-ui/react';
 
 const initialPot: PotType[] = [
     {

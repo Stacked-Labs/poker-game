@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Navbar from '@/app/components/NavBar';
 import { Box, CircularProgress, Flex } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 const GameLayout: React.FC = ({
     children,
 }: React.PropsWithChildren<object>) => {
+    useContext(AppContext);
     const [loading, setLoading] = useState(true);
     const [progress, setProgress] = useState(0);
 

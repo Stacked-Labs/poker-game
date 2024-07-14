@@ -25,6 +25,7 @@ const Footer = () => {
             playerCall(socket);
         }
     };
+
     const handleCheck = (user: string | null) => {
         if (socket) {
             const checkMessage = user + ' checks';
@@ -32,7 +33,9 @@ const Footer = () => {
             playerCheck(socket);
         }
     };
+
     const handleFold = (user: string | null) => {
+        console.log(appState.game);
         if (socket) {
             const foldMessage = user + ' folds';
             sendLog(socket, foldMessage);
@@ -40,8 +43,7 @@ const Footer = () => {
         }
     };
 
-    // Assume game is paused or not started would need to have buttons to start/unpause for the game owner
-    if (!appState.game?.running) {
+    if (!appState.game || appState.game.betting == false) {
         return (
             <Flex
                 justifyContent={'end'}
@@ -52,8 +54,6 @@ const Footer = () => {
             />
         );
     }
-
-    if (!appState.game || appState.game.betting == false) return null;
 
     const action =
         appState.clientID === appState.game.players[appState.game.action].uuid;

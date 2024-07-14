@@ -1,7 +1,4 @@
-export type Card = {
-    type: string;
-    value: string;
-};
+export type Card = string;
 
 export type Message = {
     name: string;
@@ -38,7 +35,7 @@ export type Player = {
     stack: number;
     bet: number;
     totalBet: number;
-    cards: Card[];
+    cards: string[];
 };
 
 export type Game = {

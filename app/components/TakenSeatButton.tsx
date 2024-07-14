@@ -47,7 +47,7 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
         <Flex
             width={'80%'}
             position={'relative'}
-            alignItems={'flex-end'}
+            alignItems={'center'}
             justifyContent={'center'}
         >
             <Flex
@@ -115,11 +115,13 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 width={'100%'}
                 paddingX={3}
                 paddingY={1}
-                height={'75px'}
+                height={'70px'}
                 zIndex={2}
                 justifySelf={'flex-end'}
                 justifyContent={'center'}
                 alignItems={'center'}
+                alignSelf={'flex-end'}
+                mb={2}
             >
                 <HStack spacing={2}>
                     <Text fontWeight={'bold'} color={'gray.300'}>

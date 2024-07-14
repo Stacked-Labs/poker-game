@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image } from '@chakra-ui/react';
+import { Flex, Image } from '@chakra-ui/react';
 
 const cardToString = (card: string) => {
     if (card === '?') {
@@ -87,14 +87,16 @@ const Card = ({ card, hidden }: { card: string; hidden: boolean }) => {
     }
 
     return (
-        <Image
-            alt={`Card ${cardString}`}
-            src={cardPhoto}
-            flex={1}
-            width={'100%'}
-            style={{ objectFit: 'contain' }}
-            mr={1}
-        />
+        <Flex>
+            <Image
+                alt={`Card ${cardString}`}
+                src={cardPhoto}
+                flex={1}
+                width={'100%'}
+                style={{ objectFit: 'contain' }}
+                mr={1}
+            />
+        </Flex>
     );
 };
 

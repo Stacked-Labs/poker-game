@@ -75,26 +75,24 @@ const Card = ({ card, hidden }: { card: string; hidden: boolean }) => {
 
     if (hidden) {
         return (
-            <Image
-                alt={`Opponent's card`}
-                src={cardBack}
-                flex={1}
-                width={'100%'}
-                style={{ objectFit: 'contain' }}
-                mr={1}
-            />
+            <Flex justifyContent={'center'}>
+                <Image
+                    alt={`Hidden card`}
+                    src={cardBack}
+                    width={'100%'}
+                    style={{ objectFit: 'contain' }}
+                />
+            </Flex>
         );
     }
 
     return (
-        <Flex>
+        <Flex justifyContent={'center'}>
             <Image
                 alt={`Card ${cardString}`}
                 src={cardPhoto}
-                flex={1}
                 width={'100%'}
                 style={{ objectFit: 'contain' }}
-                mr={1}
             />
         </Flex>
     );

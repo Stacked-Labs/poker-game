@@ -54,9 +54,7 @@ const Pot = () => {
                                     <Flex
                                         position={'absolute'}
                                         top={-5}
-                                        // right={-2}
-                                        width={'100%'}
-                                        justifyContent={'center'}
+                                        right={-2}
                                     >
                                         {game.pots[index] &&
                                         game.pots[index].amount !=

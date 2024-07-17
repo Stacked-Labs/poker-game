@@ -31,7 +31,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 
     if (socket && !appState.table && tableId) {
         joinTable(socket, tableId);
-        newPlayer(socket, 'none');
+        newPlayer(socket, '');
         dispatch({ type: 'setTablename', payload: tableId });
         sendLog(socket, `Joined table ${tableId}`);
     }

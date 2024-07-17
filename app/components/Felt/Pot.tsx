@@ -40,27 +40,63 @@ const Pot = () => {
     if (isGameStarted) {
         return (
             <Flex justifyContent={'center'} textAlign={'center'}>
-                <Box bg={'green.700'} padding={2} borderRadius={999}>
-                    {pots.map((pot, index) => (
-                        <Flex key={index} position={'relative'}>
-                            <Box position={'absolute'} top={-5} right={-75}>
-                                {game.pots[index] &&
-                                game.pots[index].amount != pot.amount ? (
-                                    <Text color={'green.800'}>
-                                        Total: {game.pots[index].amount}
-                                    </Text>
-                                ) : (
-                                    <Text>&nbsp;</Text>
-                                )}
-                            </Box>
-                            <Box paddingX={'10'}>
-                                <Text fontSize={'2xl'} fontWeight={'bolder'}>
-                                    {pot.amount}
-                                </Text>
-                            </Box>
-                        </Flex>
-                    ))}
-                </Box>
+                {pots.map((pot, index) => {
+                    if (pot.amount !== 0) {
+                        return (
+                            <Flex
+                                bg={'green.600'}
+                                padding={2}
+                                borderRadius={999}
+                                key={index}
+                                justifyContent={'center'}
+                            >
+                                <Flex position={'relative'}>
+                                    <Flex
+                                        position={'absolute'}
+                                        top={-5}
+                                        // right={-2}
+                                        width={'100%'}
+                                        justifyContent={'center'}
+                                    >
+                                        {game.pots[index] &&
+                                        game.pots[index].amount !=
+                                            pot.amount ? (
+                                            <Box
+                                                bg={'green.700'}
+                                                paddingX={'2'}
+                                                borderRadius={99999}
+                                            >
+                                                <Text fontSize={'small'}>
+                                                    total{' '}
+                                                    <Text
+                                                        as={'span'}
+                                                        fontWeight={'medium'}
+                                                        fontSize={'large'}
+                                                    >
+                                                        {
+                                                            game.pots[index]
+                                                                .amount
+                                                        }
+                                                    </Text>
+                                                </Text>
+                                            </Box>
+                                        ) : (
+                                            <Text>&nbsp;</Text>
+                                        )}
+                                    </Flex>
+                                    <Box paddingX={'20'}>
+                                        <Text
+                                            fontSize={'3xl'}
+                                            fontWeight={'bolder'}
+                                        >
+                                            {pot.amount}
+                                        </Text>
+                                    </Box>
+                                </Flex>
+                            </Flex>
+                        );
+                    }
+                })}
             </Flex>
         );
     }

@@ -82,9 +82,9 @@ const Pot = () => {
                                             <Text>&nbsp;</Text>
                                         )}
                                     </Flex>
-                                    <Box paddingX={'20'}>
+                                    <Box paddingX={'16'}>
                                         <Text
-                                            fontSize={'3xl'}
+                                            fontSize={'2xl'}
                                             fontWeight={'bolder'}
                                         >
                                             {pot.amount}

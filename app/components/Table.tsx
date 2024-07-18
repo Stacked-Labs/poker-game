@@ -6,7 +6,7 @@ import { Player, Game as GameType } from '../interfaces';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog, dealGame } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
-import Felt from './Felt/Felt';
+import Felt from './Felt';
 
 const seatIndices = [
     'one',

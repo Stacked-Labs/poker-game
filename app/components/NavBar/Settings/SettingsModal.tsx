@@ -64,7 +64,9 @@ const SettingsModal = ({
 
                         <TabPanels>
                             <TabPanel></TabPanel>
-                            <TabPanel>{<PlayerList />}</TabPanel>
+                            <TabPanel>
+                                <PlayerList />
+                            </TabPanel>
                             <TabPanel>
                                 <GameSettings />
                             </TabPanel>

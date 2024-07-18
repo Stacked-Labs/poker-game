@@ -20,52 +20,85 @@ const PlayerList = () => {
 
     if (players && players.length > 0) {
         return (
-            <VStack>
+            <VStack gap={5}>
                 {players.map((player: Player, index: number) => {
                     if (player.username !== '') {
                         return (
                             <Flex
                                 key={index}
                                 alignItems={'center'}
-                                marginY={8}
                                 gap={20}
                                 width={'70%'}
+                                borderColor={'grey'}
+                                borderWidth={2}
+                                borderRadius={10}
+                                paddingX={10}
+                                paddingY={5}
                             >
                                 <Flex
-                                    flex={2}
+                                    flex={3}
                                     justifyContent={'space-around'}
                                     alignItems={'center'}
                                     textAlign={'left'}
                                     gap={40}
                                 >
                                     <Box flex={2}>
-                                        <Text
-                                            fontSize={'xl'}
-                                            fontWeight={'bold'}
-                                        >
-                                            {player.username}
-                                        </Text>
                                         <Flex justifyContent={'space-between'}>
+                                            <Flex gap={2}>
+                                                <Text
+                                                    fontSize={'xl'}
+                                                    fontWeight={'black'}
+                                                >
+                                                    {player.username}
+                                                </Text>
+                                                <Box
+                                                    bgColor={'charcoal.600'}
+                                                    paddingY={1}
+                                                    paddingX={2}
+                                                    borderRadius={10}
+                                                >
+                                                    <Text fontSize={'small'}>
+                                                        ID: {player.uuid}
+                                                    </Text>
+                                                </Box>
+                                            </Flex>
                                             <Text>
-                                                Seated at: {player.seatID}
+                                                Total buy-in:{' '}
+                                                <Text
+                                                    as={'span'}
+                                                    fontWeight={'bold'}
+                                                >
+                                                    {player.totalBuyIn}
+                                                </Text>
                                             </Text>
-                                            <Text>Stack: {player.stack}</Text>
+                                        </Flex>
+                                        <Flex
+                                            gap={4}
+                                            justifyContent={'space-between'}
+                                        >
+                                            <Text>
+                                                Seat:{' '}
+                                                <Text
+                                                    as={'span'}
+                                                    fontWeight={'bold'}
+                                                >
+                                                    {player.seatID}
+                                                </Text>
+                                            </Text>
+                                            <Text>
+                                                Stack:{' '}
+                                                <Text
+                                                    as={'span'}
+                                                    fontWeight={'bold'}
+                                                >
+                                                    {player.stack}
+                                                </Text>
+                                            </Text>
                                         </Flex>
                                     </Box>
-                                    <Box
-                                        bgColor={'charcoal.600'}
-                                        flex={1}
-                                        paddingY={2}
-                                        paddingX={5}
-                                        borderRadius={4}
-                                        borderWidth={1}
-                                        borderColor={'grey'}
-                                        textAlign={'left'}
-                                    >
-                                        <Text>ID: {player.address}</Text>
-                                    </Box>
                                 </Flex>
-                                <Flex flex={1} gap={50}>
+
+                                <Flex gap={10}>
                                     <Button
                                         flex={1}
                                         gap={3}

@@ -17,8 +17,8 @@ const HomeSection = () => {
             >
                 <Text fontSize={'16px'} color={'red.500'}>
                     <strong>Note:</strong> This is currently a work-in-progress
-                    passion project. We're constantly adding new features and
-                    improving the experience. Follow @XYZ on X for updates.
+                    passion project. We`&apos;`re constantly adding new features
+                    and improving the experience. Follow @XYZ on X for updates.
                 </Text>
             </Flex>
             <TitleText text={'What is This?'} />
@@ -31,7 +31,7 @@ const HomeSection = () => {
                 1. Connect your Web3 wallet (Metamask, Coinbase, etc.).
             </Text>
             <Text fontSize={'18px'}>
-                2. Click "Play Now" to generate a link.
+                2. Click `&quot;`Play Now`&quot;` to generate a link.
             </Text>
             <Text fontSize={'18px'}>3. Share the link with fellow apes.</Text>
             <Text fontSize={'18px'}>4. Gamble</Text>

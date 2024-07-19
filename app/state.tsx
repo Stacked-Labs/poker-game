@@ -5,36 +5,29 @@ import React, {
     ReactNode,
     useEffect,
 } from 'react';
-import { User } from './interfaces';
 import { useAccount, useConnect } from 'wagmi';
 
 interface StateData {
     isConnected: boolean;
     isDiscordConnected: boolean;
     isUserSitting: boolean;
-    User: User;
 }
 
 const typeStateMap = {
     SET_IS_CONNECTED: 'isConnected',
     SET_IS_DISCORD_CONNECTED: 'isDiscordConnected',
     SET_IS_USER_SITTING: 'isUserSitting',
-    SET_USER: 'User',
 };
 
 const initialState: StateData = {
     isConnected: false,
     isDiscordConnected: false,
     isUserSitting: false,
-    User: {
-        address: '',
-        username: undefined,
-        amount: undefined,
-    },
 };
 
 const reducer = (
     state: StateData,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     action: { type: keyof typeof typeStateMap; payload: any }
 ) => {
     const stateName = typeStateMap[action.type];
@@ -70,17 +63,11 @@ const reducer = (
 };
 
 const MetaStateContext = createContext(initialState);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MetaDispatchContext = createContext<any>(null);
 
 const StateProvider: FC<{ children?: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(reducer, initialState);
-    const { address } = useAccount();
-
-    useEffect(() => {
-        if (address) {
-            dispatch({ type: 'SET_USER', payload: { address } });
-        }
-    }, [address]);
 
     return (
         <MetaDispatchContext.Provider value={dispatch}>

@@ -1,4 +1,5 @@
-import { Player } from '@/app/interfaces';
+'use client';
+
 import {
     Modal,
     ModalOverlay,
@@ -12,9 +13,8 @@ import {
     Box,
 } from '@chakra-ui/react';
 import { IoCaretBack } from 'react-icons/io5';
-import PlayerList from './PlayerList';
 import GameSettings from './GameSettings';
-import { players } from '@/app/utils/playersData';
+import PlayerList from './PlayerList';
 
 const SettingsModal = ({
     isOpen,
@@ -23,8 +23,6 @@ const SettingsModal = ({
     isOpen: boolean;
     onClose: () => void;
 }) => {
-    const currentPlayers: Player[] = players;
-
     return (
         <Modal isOpen={isOpen} onClose={onClose} size={'full'} isCentered>
             <ModalOverlay />
@@ -65,11 +63,9 @@ const SettingsModal = ({
                         </TabList>
 
                         <TabPanels>
+                            <TabPanel></TabPanel>
                             <TabPanel>
-                                {<PlayerList players={currentPlayers} />}
-                            </TabPanel>
-                            <TabPanel>
-                                {<PlayerList players={currentPlayers} />}
+                                <PlayerList />
                             </TabPanel>
                             <TabPanel>
                                 <GameSettings />

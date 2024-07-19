@@ -5,7 +5,11 @@ import React, {
     Dispatch,
     SetStateAction,
 } from 'react';
-import { UserBasic } from '../interfaces';
+
+interface UserBasic {
+    name: string;
+    seatId: number | null;
+}
 
 interface UserContextType {
     currentUser: UserBasic;

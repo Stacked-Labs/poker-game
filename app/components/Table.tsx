@@ -1,13 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Flex, Grid, GridItem, useBreakpointValue } from '@chakra-ui/react';
-import CommunityCards from './CommunityCards/CommunityCards';
 import EmptySeatButton from './EmptySeatButton';
 import TakenSeatButton from './TakenSeatButton';
 import { Player, Game as GameType } from '../interfaces';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog, dealGame } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
-import Pot from './Pot';
+import Felt from './Felt';
 
 const seatIndices = [
     'one',
@@ -23,14 +22,14 @@ const seatIndices = [
 ];
 
 const templateGridLarge = `"a one two three b"
-                        "four cards cards cards five"
-                        "six cards cards cards seven"
+                        "four felt felt felt five"
+                        "six felt felt felt seven"
                         "c eight current nine d"`;
 
 const templateGridSmall = `"a one b"
                         "two c three"
                         "four d five"
-                        "cards cards cards"
+                        "felt felt felt"
                         "six e seven"
                         "eight current nine"`;
 
@@ -166,15 +165,12 @@ const Table = ({ players, setPlayers }: tableProps) => {
                         );
                     })}
 
-                    {/* Pot for testing  */}
-                    <Pot />
-
                     <GridItem
                         height={'fit-content'}
                         width={'100%'}
-                        area={'cards'}
+                        area={'felt'}
                     >
-                        <CommunityCards />
+                        <Felt />
                     </GridItem>
                 </Grid>
             </Flex>

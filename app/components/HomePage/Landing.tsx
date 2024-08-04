@@ -7,8 +7,21 @@ import HomeSection from './LandingSections/HomeSection';
 import FAQsSection from './LandingSections/FAQsSection';
 import SocialsSection from './LandingSections/SocialsSection';
 import RoadMapSection from './LandingSections/RoadMapSection';
+import { useRouter } from 'next/navigation';
+import { useContext } from 'react';
+
+import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
 
 const Landing = () => {
+    const router = useRouter();
+    const socket = useContext(SocketContext);
+    const { appState } = useContext(AppContext);
+
+    if (appState.table && socket) {
+        router.push(`/game/${appState.table}`);
+    }
+
     const homeRef = useRef<HTMLDivElement>(null);
     const socialsRef = useRef<HTMLDivElement>(null);
     const faqsRef = useRef<HTMLDivElement>(null);
@@ -40,7 +53,7 @@ const Landing = () => {
     }, []);
 
     return (
-        <Box bg={'gray.200'} height={'fit-content'}>
+        <Box w="100vw" bgColor={'gray.200'}>
             <HomeNavBar
                 homeRef={homeRef}
                 socialsRef={socialsRef}
@@ -48,23 +61,19 @@ const Landing = () => {
                 roadmapRef={roadmapRef}
                 activeSection={activeSection}
             />
-            <VStack
-                height={'fit-content'}
-                spacing={4}
-                align="stretch"
-                paddingX={100}
-            >
-                <Flex ref={homeRef} alignItems={'center'} height={'100vh'}>
+
+            <VStack height={'fit-content'}>
+                <Flex ref={socialsRef} alignItems={'center'} height={'100vh'}>
                     <HomeSection />
+                </Flex>
+                <Flex ref={socialsRef} alignItems={'center'} height={'100vh'}>
+                    <SocialsSection />
                 </Flex>
                 <Flex ref={faqsRef} alignItems={'center'} height={'100vh'}>
                     <FAQsSection />
                 </Flex>
                 <Flex ref={roadmapRef} alignItems={'center'} height={'100vh'}>
                     <RoadMapSection />
-                </Flex>
-                <Flex ref={socialsRef} alignItems={'center'} height={'100vh'}>
-                    <SocialsSection />
                 </Flex>
             </VStack>
         </Box>

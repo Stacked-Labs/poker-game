@@ -9,6 +9,7 @@ const RoadMapSection = () => {
             height={'60%'}
             alignItems={'center'}
             justifyContent={'center'}
+            padding={10}
         >
             <Text>Road Map Here!</Text>
             <Text

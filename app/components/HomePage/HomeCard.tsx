@@ -1,7 +1,14 @@
 'use client';
 
 import React, { useContext, useState } from 'react';
-import { Flex, Button, IconButton, CircularProgress } from '@chakra-ui/react';
+import {
+    Flex,
+    Button,
+    IconButton,
+    CircularProgress,
+    Text,
+    Stack,
+} from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord, FaInstagram } from 'react-icons/fa';
 import Web3Button from '@/app/components/Web3Button';
@@ -39,62 +46,74 @@ const HomeCard = () => {
     };
 
     return (
-        <Flex
-            position="absolute"
-            top="30%"
-            left="17%"
-            direction="column"
-            justify="center"
-            align="center"
-            height="40%"
-            borderRadius={32}
-            width="66%"
-            bgColor="gray.100"
-        >
-            <Flex flexDirection={'column'} gap={4} w={200}>
-                {!isLoading ? (
-                    <Button size="lg" h={20} onClick={handleSubmit}>
-                        Play Now
-                    </Button>
-                ) : (
-                    <CircularProgress
-                        isIndeterminate={false}
-                        color="grey"
-                        size="100px"
-                    />
-                )}
-                <Web3Button h={20} />
-            </Flex>
+        <Flex justifyContent={'center'} alignItems={'center'}>
             <Flex
-                direction="row"
-                justify="center"
-                align="center"
-                gap={12}
-                position={'absolute'}
-                bottom={8}
-                left={0}
-                right={0}
+                flexDirection={'column'}
+                gap={4}
+                borderRadius={40}
+                width={'50%'}
+                height={'75%'}
+                bgColor="gray.100"
+                paddingY={8}
+                paddingX={16}
             >
-                <IconButton
-                    aria-label="X"
-                    variant="social"
-                    icon={<RiTwitterXLine color="white" size={36} />}
-                    w={12}
-                    h={12}
-                    size="lg"
-                />
-                <IconButton
-                    aria-label="Discord"
-                    variant="social"
-                    icon={<FaDiscord color="white" size={36} />}
-                    size="lg"
-                />
-                <IconButton
-                    aria-label="Instagram"
-                    variant="social"
-                    icon={<FaInstagram color="white" size={36} />}
-                    size="lg"
-                />
+                <Stack gap={8}>
+                    <Text
+                        fontFamily={'Knewave'}
+                        fontSize={'6xl'}
+                        textAlign={'center'}
+                        fontWeight={'bold'}
+                        mb={10}
+                    >
+                        Stacked
+                    </Text>
+                    {!isLoading ? (
+                        <Button
+                            variant={'homeSectionButton'}
+                            bg={'green'}
+                            onClick={handleSubmit}
+                            _hover={{ bg: 'green.900' }}
+                        >
+                            Play Now
+                        </Button>
+                    ) : (
+                        <CircularProgress
+                            isIndeterminate={false}
+                            color="grey"
+                            size="100px"
+                        />
+                    )}
+                    <Web3Button />
+                </Stack>
+
+                <Flex
+                    direction="row"
+                    justify="center"
+                    align="center"
+                    marginTop={12}
+                    gap={10}
+                >
+                    <IconButton
+                        aria-label="X"
+                        variant="social"
+                        icon={<RiTwitterXLine color="white" size={36} />}
+                        w={12}
+                        h={12}
+                        size="lg"
+                    />
+                    <IconButton
+                        aria-label="Discord"
+                        variant="social"
+                        icon={<FaDiscord color="white" size={36} />}
+                        size="lg"
+                    />
+                    <IconButton
+                        aria-label="Instagram"
+                        variant="social"
+                        icon={<FaInstagram color="white" size={36} />}
+                        size="lg"
+                    />
+                </Flex>
             </Flex>
         </Flex>
     );

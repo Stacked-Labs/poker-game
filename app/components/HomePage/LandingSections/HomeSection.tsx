@@ -1,40 +1,41 @@
-import { Box, Flex, Icon, Text } from '@chakra-ui/react';
+import { Box, Flex, Image, Text } from '@chakra-ui/react';
 import React from 'react';
-import TitleText from '../TitleText';
+import HomeCard from '../HomeCard';
 
 const HomeSection = () => {
     return (
-        <Flex direction={'column'} height={'fit-content'} width={'100%'}>
-            <Flex
-                direction="column"
-                backgroundColor="#ffe6e6"
-                border="1px solid red"
-                borderTopWidth="3px"
-                borderRadius={'10px'}
-                padding="10px"
-                marginTop="150px"
-                marginBottom={'20px'}
-            >
-                <Text fontSize={'16px'} color={'red.500'}>
-                    <strong>Note:</strong> This is currently a work-in-progress
-                    passion project. We`&apos;`re constantly adding new features
-                    and improving the experience. Follow @XYZ on X for updates.
+        <Flex
+            width={'100vw'}
+            alignItems={'center'}
+            position={'relative'}
+            justifyItems={'flex-start'}
+        >
+            <Image
+                alt={'Background Photo'}
+                src={'/bg.png'}
+                width={'100%'}
+                position={'absolute'}
+                transform={'scale(1.5)'}
+            />
+            <Box flex={1} zIndex={3}>
+                <HomeCard />
+            </Box>
+            <Box flex={1} zIndex={3}>
+                <Text
+                    textTransform={'uppercase'}
+                    fontFamily={'Luckiest Guy'}
+                    fontSize={'7xl'}
+                >
+                    Your crypto poker arena
                 </Text>
-            </Flex>
-            <TitleText text={'What is This?'} />
-            <Text fontSize={'18px'}>
-                This is a web app designed to help you organize a game of poker
-                as fast as possible, all while putting magic internet coins (aka
-                Crypto) on the line.
-            </Text>
-            <Text fontSize={'18px'}>
-                1. Connect your Web3 wallet (Metamask, Coinbase, etc.).
-            </Text>
-            <Text fontSize={'18px'}>
-                2. Click `&quot;`Play Now`&quot;` to generate a link.
-            </Text>
-            <Text fontSize={'18px'}>3. Share the link with fellow apes.</Text>
-            <Text fontSize={'18px'}>4. Gamble</Text>
+                <Text
+                    textTransform={'uppercase'}
+                    fontFamily={`'Libre Barcode 39 Text', system-ui`}
+                    fontSize={'4xl'}
+                >
+                    HOST AND PLAY FOR ANY ERC20
+                </Text>
+            </Box>
         </Flex>
     );
 };

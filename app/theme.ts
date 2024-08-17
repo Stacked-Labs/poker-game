@@ -198,6 +198,22 @@ const components = {
                 width: '80px',
                 height: 'fit-content',
             },
+            navButton: {
+                border: 0,
+                textTransform: 'uppercase',
+                fontFamily: 'Knewave',
+                fontSize: '2xl',
+                borderRadius: 0,
+                _hover: {
+                    bg: 'none',
+                    borderBottom: '2px solid red',
+                },
+            },
+            homeSectionButton: {
+                paddingY: 8,
+                border: 0,
+                fontSize: 'xl',
+            },
         },
         defaultProps: {
             variant: 'base',
@@ -306,5 +322,9 @@ export const theme = extendTheme({
     },
     shadows: {
         default: '0px 0px 8px 0px rgba(0, 0, 0, 0.15)',
+    },
+    fonts: {
+        heading: `'Knewave', sans-serif`,
+        body: `'Open Sans', sans-serif`,
     },
 });

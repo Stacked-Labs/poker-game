@@ -2,6 +2,9 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from './providers';
+import '@fontsource/luckiest-guy';
+import '@fontsource/knewave';
+import '@fontsource/libre-barcode-39-text';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {

@@ -22,35 +22,48 @@ type SocketProviderProps = {
 
 export function SocketProvider(props: SocketProviderProps) {
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
+    const [socket, setSocket] = useState<WebSocket | null>(null);
+    const { dispatch } = useContext(AppContext);
+
+    useEffect(() => {
+        if (!WS_URL) return;
+
+        const connectWebSocket = () => {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+
+            const _socket = new WebSocket(`${WS_URL}?token=${token}`);
+
+            _socket.onopen = () => {
+                console.log('WebSocket connected');
+                setSocket(_socket);
+            };
+
+            _socket.onclose = () => {
+                console.log('WebSocket disconnected');
+                setSocket(null);
+            };
+
+            _socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                setSocket(null);
+            };
+        };
+
+        window.addEventListener('authenticationComplete', connectWebSocket);
+        
+        // Attempt to connect if token already exists
+        connectWebSocket();
+
+        return () => {
+            window.removeEventListener('authenticationComplete', connectWebSocket);
+            socket?.close();
+        };
+    }, [WS_URL]);
+
     if (!WS_URL) {
         return null;
     }
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [socket, setSocket] = useState<WebSocket | null>(null);
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { appState, dispatch } = useContext(AppContext);
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useEffect(() => {
-        // WebSocket api is browser side only.
-        const isBrowser = typeof window !== 'undefined';
-        const _socket = isBrowser ? new WebSocket(WS_URL) : null;
-
-        if (_socket) {
-            _socket.onopen = () => {
-                console.log('websocket connected');
-            };
-            _socket.onclose = () => {
-                console.log('websocket disconnected');
-            };
-        }
-        setSocket(_socket);
-
-        return () => {
-            socket?.close();
-        };
-    }, [dispatch]);
 
     if (socket) {
         socket.onmessage = (e) => {

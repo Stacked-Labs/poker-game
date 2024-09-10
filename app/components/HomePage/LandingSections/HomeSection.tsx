@@ -1,42 +1,67 @@
-import { Box, Flex, Image, Text } from '@chakra-ui/react';
+import { Box, Flex, Image, Text, keyframes, VStack } from '@chakra-ui/react';
 import React from 'react';
 import HomeCard from '../HomeCard';
 
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
 const HomeSection = () => {
     return (
-        <Flex
-            width={'100vw'}
-            alignItems={'center'}
-            position={'relative'}
-            justifyItems={'flex-start'}
-        >
+        <Box position="relative" width="100vw" height="100vh">
             <Image
-                alt={'Background Photo'}
-                src={'/bg.png'}
-                width={'100%'}
-                position={'absolute'}
-                transform={'scale(1.5)'}
+                alt="Background Photo"
+                src="/bg.png"
+                width="100%"
+                height="100%"
+                position="absolute"
+                objectFit="cover"
             />
-            <Box flex={1} zIndex={3}>
-                <HomeCard />
-            </Box>
-            <Box flex={1} zIndex={3}>
-                <Text
-                    textTransform={'uppercase'}
-                    fontFamily={'Luckiest Guy'}
-                    fontSize={'7xl'}
-                >
-                    Your crypto poker arena
-                </Text>
-                <Text
-                    textTransform={'uppercase'}
-                    fontFamily={`'Libre Barcode 39 Text', system-ui`}
-                    fontSize={'4xl'}
-                >
-                    HOST AND PLAY FOR ANY ERC20
-                </Text>
-            </Box>
-        </Flex>
+            <Flex
+                position="relative"
+                width="100%"
+                height="100%"
+                zIndex={1}
+                alignItems="center"
+                justifyContent="space-between"
+                px={4}
+            >
+                <Box flex={1}>
+                    <HomeCard />
+                </Box>
+                
+                <VStack flex={1} justifyContent="center" alignItems="flex-start" spacing={0}>
+                    {['YOUR', 'CRYPTO', 'POKER ARENA'].map((word, index) => (
+                        <Text
+                            key={index}
+                            fontSize="7xl"
+                            fontWeight="bold"
+                            color="white"
+                            lineHeight={1.5}
+                            animation={`${fadeIn} 0.5s ease-out ${index * 0.2}s forwards`}
+                            opacity={0}
+                            fontFamily="Poppins"
+                        >
+                            {word}
+                        </Text>
+                    ))}
+                    <Text
+                        fontSize="2xl"
+                        fontWeight="bold"
+                        color="white"
+                        mt={4}
+                        animation={`${fadeIn} 0.5s ease-out 0.6s forwards`}
+                        opacity={0}
+                        fontFamily="Poppins"
+                    >
+                        HOST AND PLAY FOR ANY ERC20
+                    </Text>
+                </VStack>
+                
+                <Box flex={1} />
+            </Flex>
+        </Box>
     );
 };
 

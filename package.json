@@ -19,6 +19,7 @@
         "@fontsource/knewave": "^5.0.13",
         "@fontsource/libre-barcode-39-text": "^5.0.19",
         "@fontsource/luckiest-guy": "^5.0.19",
+        "@fontsource/poppins": "^5.0.16",
         "@web3modal/ethers": "^3.5.3",
         "@web3modal/wagmi": "^3.5.5",
         "dotenv": "^16.3.1",

@@ -130,7 +130,7 @@ const styles = {
         body: {
             backgrondCcolor: tokens.colors.dark['gray.200'],
             color: tokens.colors.dark['gray.200'],
-            fontFamily: 'inter, sans-serif',
+            fontFamily: 'Poppins, sans-serif',
             background: 'white',
             backgroundAttachment: 'scroll',
             backgroundRepeat: 'repeat',
@@ -201,7 +201,7 @@ const components = {
             navButton: {
                 border: 0,
                 textTransform: 'uppercase',
-                fontFamily: 'Knewave',
+                fontFamily: 'Poppins',
                 fontSize: '2xl',
                 borderRadius: 0,
                 _hover: {
@@ -324,7 +324,7 @@ export const theme = extendTheme({
         default: '0px 0px 8px 0px rgba(0, 0, 0, 0.15)',
     },
     fonts: {
-        heading: `'Knewave', sans-serif`,
-        body: `'Open Sans', sans-serif`,
+        heading: `'Poppins', sans-serif`,
+        body: `'Poppins', sans-serif`,
     },
 });

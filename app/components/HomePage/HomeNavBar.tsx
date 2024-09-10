@@ -1,6 +1,13 @@
 import { Button, Flex, Image, Text } from '@chakra-ui/react';
 import React from 'react';
 import Web3Button from '../Web3Button';
+import { Poppins } from 'next/font/google';
+
+const poppins = Poppins({
+  weight: ['700'],
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 interface HomeNavBarProps {
     homeRef: React.RefObject<HTMLElement>;
@@ -40,7 +47,7 @@ const HomeNavBar: React.FC<HomeNavBarProps> = ({
                     width={'100%'}
                     style={{ objectFit: 'contain' }}
                 />
-                <Text color={'white'} fontFamily={'Knewave'} fontSize={'4xl'}>
+                <Text color={'white'} className={poppins.className} fontSize={'4xl'}>
                     Stacked
                 </Text>
             </Flex>
@@ -54,24 +61,28 @@ const HomeNavBar: React.FC<HomeNavBarProps> = ({
                 <Button
                     variant={'navButton'}
                     onClick={() => scrollToSection(socialsRef)}
+                    className={poppins.className}
                 >
                     Socials
                 </Button>
                 <Button
                     variant={'navButton'}
                     onClick={() => scrollToSection(faqsRef)}
+                    className={poppins.className}
                 >
                     FAQs
                 </Button>
                 <Button
                     variant={'navButton'}
                     onClick={() => scrollToSection(roadmapRef)}
+                    className={poppins.className}
                 >
                     Road Map
                 </Button>
                 <Button
                     variant={'navButton'}
                     onClick={() => scrollToSection(homeRef)}
+                    className={poppins.className}
                 >
                     Support
                 </Button>

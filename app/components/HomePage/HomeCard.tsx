@@ -1,6 +1,14 @@
 'use client';
 
 import React, { useContext, useState } from 'react';
+import { Poppins } from 'next/font/google';
+
+const poppins = Poppins({
+  weight: ['700'],
+  subsets: ['latin'],
+  display: 'swap',
+});
+
 import {
     Flex,
     Button,
@@ -8,6 +16,7 @@ import {
     CircularProgress,
     Text,
     Stack,
+    keyframes,
 } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord, FaInstagram } from 'react-icons/fa';
@@ -17,6 +26,11 @@ import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
 
 const HomeCard = () => {
     const { address } = useAccount();
@@ -46,27 +60,32 @@ const HomeCard = () => {
     };
 
     return (
-        <Flex justifyContent={'center'} alignItems={'center'}>
+        <Flex justifyContent={'center'} alignItems={'center'} height="100%">
             <Flex
                 flexDirection={'column'}
                 gap={4}
-                borderRadius={40}
-                width={'50%'}
-                height={'75%'}
-                bgColor="gray.100"
-                paddingY={8}
-                paddingX={16}
+                borderRadius={'40px'}
+                width={'500px'} // Set a fixed width
+                minWidth={'500px'} // Add a minimum width
+                height={'500px'} // Set a fixed width
+                minHeight={'500px'} // Add a minimum width
+                bgColor="gray.100" // Change to a darker color
+                paddingY={8} // Increase vertical padding
+                paddingX={20} // Increase horizontal padding
             >
                 <Stack gap={8}>
+                    
                     <Text
-                        fontFamily={'Knewave'}
-                        fontSize={'6xl'}
+                        className={poppins.className}
+                        fontSize={'7xl'}
                         textAlign={'center'}
-                        fontWeight={'bold'}
+                        fontWeight={700}
                         mb={10}
+                        color="white"
                     >
-                        Stacked
+                        Stacked 
                     </Text>
+
                     {!isLoading ? (
                         <Button
                             variant={'homeSectionButton'}

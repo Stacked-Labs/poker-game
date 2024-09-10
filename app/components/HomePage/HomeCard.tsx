@@ -60,46 +60,51 @@ const HomeCard = () => {
     };
 
     return (
-        <Flex justifyContent={'center'} alignItems={'center'} height="100%">
+        <Flex justifyContent="center" alignItems="center" minHeight="100vh" width="100%" p={4}>
             <Flex
-                flexDirection={'column'}
+                flexDirection="column"
+                justifyContent="space-between"
                 gap={4}
-                borderRadius={'40px'}
-                width={'500px'} // Set a fixed width
-                minWidth={'500px'} // Add a minimum width
-                height={'500px'} // Set a fixed width
-                minHeight={'500px'} // Add a minimum width
-                bgColor="gray.100" // Change to a darker color
-                paddingY={8} // Increase vertical padding
-                paddingX={20} // Increase horizontal padding
+                borderRadius={["40px"]}
+                width={["100%", "90%", "80%", "70%"]}
+                maxWidth="600px"
+                minWidth="300px"
+                minHeight="400px"
+                height="auto"
+                bgColor="gray.100"
+                padding={["6", "8", "10"]}
+                boxShadow="xl"
             >
-                <Stack gap={8}>
-                    
+                <Stack gap={6} flex={1} justifyContent="center">
                     <Text
                         className={poppins.className}
-                        fontSize={'7xl'}
-                        textAlign={'center'}
+                        fontSize={["4xl", "5xl", "6xl"]}
+                        textAlign="center"
                         fontWeight={700}
-                        mb={10}
                         color="white"
+                        whiteSpace="nowrap"
                     >
                         Stacked 
                     </Text>
 
                     {!isLoading ? (
                         <Button
-                            variant={'homeSectionButton'}
-                            bg={'green'}
+                            variant="homeSectionButton"
+                            bg="green.500"
                             onClick={handleSubmit}
-                            _hover={{ bg: 'green.900' }}
+                            _hover={{ bg: 'green.600' }}
+                            size={["lg"]}
+                            py={6}
+                            fontSize={["lg", "xl"]}
                         >
                             Play Now
                         </Button>
                     ) : (
                         <CircularProgress
-                            isIndeterminate={false}
-                            color="grey"
-                            size="100px"
+                            isIndeterminate
+                            color="green.500"
+                            size="60px"
+                            thickness="8px"
                         />
                     )}
                     <Web3Button />
@@ -109,28 +114,26 @@ const HomeCard = () => {
                     direction="row"
                     justify="center"
                     align="center"
-                    marginTop={12}
-                    gap={10}
+                    gap={[4, 6]}
+                    mt={8}
                 >
                     <IconButton
                         aria-label="X"
                         variant="social"
-                        icon={<RiTwitterXLine color="white" size={36} />}
-                        w={12}
-                        h={12}
-                        size="lg"
+                        icon={<RiTwitterXLine size={24} />}
+                        size={["lg"]}
                     />
                     <IconButton
                         aria-label="Discord"
                         variant="social"
-                        icon={<FaDiscord color="white" size={36} />}
-                        size="lg"
+                        icon={<FaDiscord size={24} />}
+                        size={["md", "lg"]}
                     />
                     <IconButton
                         aria-label="Instagram"
                         variant="social"
-                        icon={<FaInstagram color="white" size={36} />}
-                        size="lg"
+                        icon={<FaInstagram size={24} />}
+                        size={["md", "lg"]}
                     />
                 </Flex>
             </Flex>

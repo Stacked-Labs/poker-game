@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Flex, VStack } from '@chakra-ui/react';
+import { Box, Flex, VStack, Button } from '@chakra-ui/react';
 import HomeNavBar from './HomeNavBar';
 import HomeSection from './LandingSections/HomeSection';
 import FAQsSection from './LandingSections/FAQsSection';
@@ -47,6 +47,10 @@ const Landing = () => {
         }
     };
 
+    const handleThreeButtonClick = () => {
+        router.push('/threepage/page');
+    };
+
     useEffect(() => {
         window.addEventListener('scroll', handleOnScroll);
         return () => window.removeEventListener('scroll', handleOnScroll);
@@ -61,6 +65,16 @@ const Landing = () => {
                 roadmapRef={roadmapRef}
                 activeSection={activeSection}
             />
+
+            <Button
+                position="fixed"
+                top="20px"
+                right="20px"
+                zIndex={1000}
+                onClick={handleThreeButtonClick}
+            >
+                Three
+            </Button>
 
             <VStack height={'fit-content'}>
                 <Flex ref={socialsRef} alignItems={'center'} height={'100vh'}>

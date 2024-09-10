@@ -21,7 +21,7 @@ const tokens = {
             'btn-hover': '#424242',
             'btn-empty': 'transparent',
             'btn-dark': '#101010',
-            charcoal: '#171717',
+            'charcoal': '#171717',
             'gray.50': '#212121', // Lightest gray
             'gray.100': '#191414',
             'gray.200': '#121212', // Darkest gray

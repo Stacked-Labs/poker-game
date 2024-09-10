@@ -9,7 +9,7 @@ const fadeIn = keyframes`
 
 const HomeSection = () => {
     return (
-        <Box position="relative" width="100vw" height="100vh">
+        <Box position="relative" width="100vw" minHeight="100vh">
             <Image
                 alt="Background Photo"
                 src="/bg.png"
@@ -21,17 +21,24 @@ const HomeSection = () => {
             <Flex
                 position="relative"
                 width="100%"
-                height="100%"
+                minHeight="100%"
                 zIndex={1}
                 alignItems="center"
                 justifyContent="space-between"
                 px={4}
+                flexWrap="wrap" // Allow wrapping
+                gap={8} // Add gap between wrapped items
             >
-                <Box flex={1}>
+                <Box flex={['1 1 100%', '1 1 100%', '1']} mb={[8, 8, 0]}>
                     <HomeCard />
                 </Box>
                 
-                <VStack flex={1} justifyContent="center" alignItems="flex-start" spacing={0}>
+                <VStack 
+                    flex={['1 1 100%', '1 1 100%', '1']} 
+                    justifyContent="center" 
+                    alignItems={['center', 'center', 'flex-start']} 
+                    spacing={0}
+                >
                     {['YOUR', 'CRYPTO', 'POKER ARENA'].map((word, index) => (
                         <Text
                             key={index}
@@ -59,7 +66,7 @@ const HomeSection = () => {
                     </Text>
                 </VStack>
                 
-                <Box flex={1} />
+                <Box flex={['1 1 100%', '1 1 100%', '1']} display={['none', 'none', 'block']} />
             </Flex>
         </Box>
     );

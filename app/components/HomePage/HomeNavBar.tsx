@@ -1,5 +1,6 @@
-import { Button, Flex, Image, Text } from '@chakra-ui/react';
+import { Button, Flex, Image, Text, IconButton, useDisclosure, Drawer, DrawerOverlay, DrawerContent, DrawerBody, VStack } from '@chakra-ui/react';
 import React from 'react';
+import { RiMenu3Line } from 'react-icons/ri';
 import Web3Button from '../Web3Button';
 import { Poppins } from 'next/font/google';
 
@@ -9,25 +10,37 @@ const poppins = Poppins({
   display: 'swap',
 });
 
-interface HomeNavBarProps {
-    homeRef: React.RefObject<HTMLElement>;
-    socialsRef: React.RefObject<HTMLElement>;
-    faqsRef: React.RefObject<HTMLElement>;
-    roadmapRef: React.RefObject<HTMLElement>;
-    activeSection: string;
-}
-
 const logoImage = '/logo.png';
 
-const HomeNavBar: React.FC<HomeNavBarProps> = ({
-    homeRef,
-    socialsRef,
-    faqsRef,
-    roadmapRef,
-}) => {
-    const scrollToSection = (ref: React.RefObject<HTMLElement>) => {
-        ref.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+const HomeNavBar: React.FC = () => {
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
+    const NavButtons = React.memo(() => (
+        <>
+            <Button
+                variant={'navButton'}
+                as="a"
+                href="/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Documentation"
+            >
+                <Text className={poppins.className}>Docs</Text>
+            </Button>
+            <Button
+                variant={'navButton'}
+                as="a"
+                href="/Support"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <Text className={poppins.className}>Support</Text>
+            </Button>
+            <Web3Button width="200px" />
+        </>
+    ));
+    NavButtons.displayName = 'NavButtons';
+
     return (
         <Flex
             width={'100%'}
@@ -35,9 +48,10 @@ const HomeNavBar: React.FC<HomeNavBarProps> = ({
             paddingY={2}
             justifyContent={'space-between'}
             alignItems={'center'}
-            zIndex={999999}
+            zIndex={99}
             position={'fixed'}
             top={0}
+            as="nav"    
             bg={'gray.200'}
         >
             <Flex alignItems={'center'} gap={2} fontSize={'x-large'}>
@@ -47,47 +61,40 @@ const HomeNavBar: React.FC<HomeNavBarProps> = ({
                     width={'100%'}
                     style={{ objectFit: 'contain' }}
                 />
-                <Text color={'white'} className={poppins.className} fontSize={'4xl'}>
+                <Text color={'white'} className={poppins.className} fontSize={'5xl'}>
                     Stacked
                 </Text>
             </Flex>
 
+            {/* Desktop Navigation */}
             <Flex
+                display={{ base: 'none', md: 'flex' }}
                 bg={'gray.200'}
                 textTransform={'uppercase'}
                 gap={10}
                 alignItems={'center'}
             >
-                <Button
-                    variant={'navButton'}
-                    onClick={() => scrollToSection(socialsRef)}
-                    className={poppins.className}
-                >
-                    Socials
-                </Button>
-                <Button
-                    variant={'navButton'}
-                    onClick={() => scrollToSection(faqsRef)}
-                    className={poppins.className}
-                >
-                    FAQs
-                </Button>
-                <Button
-                    variant={'navButton'}
-                    onClick={() => scrollToSection(roadmapRef)}
-                    className={poppins.className}
-                >
-                    Road Map
-                </Button>
-                <Button
-                    variant={'navButton'}
-                    onClick={() => scrollToSection(homeRef)}
-                    className={poppins.className}
-                >
-                    Support
-                </Button>
-                <Web3Button width="200px" />
+                <NavButtons />
             </Flex>
+
+            {/* Mobile Navigation */}
+            <IconButton
+                aria-label="Open menu"
+                icon={<RiMenu3Line />}
+                onClick={onOpen}
+                display={{ base: 'flex', md: 'none' }}
+            />
+
+            <Drawer placement="right" onClose={onClose} isOpen={isOpen}>
+                <DrawerOverlay />
+                <DrawerContent bg="gray.200" top="60px"> {/* Added top property */}
+                    <DrawerBody>
+                        <VStack spacing={4} align="stretch" mt={8}>
+                            <NavButtons />
+                        </VStack>
+                    </DrawerBody>
+                </DrawerContent>
+            </Drawer>
         </Flex>
     );
 };

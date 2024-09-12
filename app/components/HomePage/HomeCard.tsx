@@ -64,18 +64,18 @@ const HomeCard = () => {
             <Flex
                 flexDirection="column"
                 justifyContent="space-between"
-                gap={4}
+                gap={[6, 6, 8]}
                 borderRadius={["40px"]}
                 width={["100%", "90%", "80%", "70%"]}
                 maxWidth="600px"
-                minWidth="300px"
-                minHeight="400px"
-                height="auto"
+                minWidth="250px"
+                minHeight="300px"
+                height="fit-content"
                 bgColor="gray.100"
-                padding={["6", "8", "10"]}
+                padding={[8, 12, 16]}
                 boxShadow="xl"
             >
-                <Stack gap={6} flex={1} justifyContent="center">
+                <Stack gap={12} flex={1} justifyContent="flex-start">
                     <Text
                         className={poppins.className}
                         fontSize={["4xl", "5xl", "6xl"]}
@@ -93,9 +93,9 @@ const HomeCard = () => {
                             bg="green.500"
                             onClick={handleSubmit}
                             _hover={{ bg: 'green.600' }}
-                            size={["lg"]}
-                            py={6}
-                            fontSize={["lg", "xl"]}
+                            size={["xl"]}
+                            py={8}
+                            fontSize={["xl"]}
                         >
                             Play Now
                         </Button>
@@ -107,7 +107,7 @@ const HomeCard = () => {
                             thickness="8px"
                         />
                     )}
-                    <Web3Button />
+                    <Web3Button size={["xl"]}/>
                 </Stack>
 
                 <Flex
@@ -115,25 +115,30 @@ const HomeCard = () => {
                     justify="center"
                     align="center"
                     gap={[4, 6]}
-                    mt={8}
                 >
                     <IconButton
                         aria-label="X"
                         variant="social"
-                        icon={<RiTwitterXLine size={24} />}
+                        icon={<RiTwitterXLine size={48} />}
                         size={["lg"]}
+                        transition="transform 0.2s"
+                        _hover={{ transform: 'scale(1.1)' }}
                     />
                     <IconButton
                         aria-label="Discord"
                         variant="social"
-                        icon={<FaDiscord size={24} />}
+                        icon={<FaDiscord size={48} />}
                         size={["md", "lg"]}
+                        transition="transform 0.2s"
+                        _hover={{ transform: 'scale(1.1)' }}
                     />
                     <IconButton
                         aria-label="Instagram"
                         variant="social"
-                        icon={<FaInstagram size={24} />}
+                        icon={<FaInstagram size={48} />}
                         size={["md", "lg"]}
+                        transition="transform 0.2s"
+                        _hover={{ transform: 'scale(1.1)' }}
                     />
                 </Flex>
             </Flex>

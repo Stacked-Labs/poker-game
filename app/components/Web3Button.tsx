@@ -13,7 +13,7 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
     const { open } = useWeb3Modal();
     const { address, isConnecting } = useAccount();
     const { open: isOpen } = useWeb3ModalState();
-    const [buttonText, setButtonText] = useState('Connect Wallet');
+    const [buttonText, setButtonText] = useState('Connect');
 
     useEffect(() => {
         if (isConnecting || (isOpen && !address)) {

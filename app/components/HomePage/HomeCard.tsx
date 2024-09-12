@@ -1,6 +1,14 @@
 'use client';
 
 import React, { useContext, useState } from 'react';
+import { Poppins } from 'next/font/google';
+
+const poppins = Poppins({
+  weight: ['700'],
+  subsets: ['latin'],
+  display: 'swap',
+});
+
 import {
     Flex,
     Button,
@@ -8,6 +16,7 @@ import {
     CircularProgress,
     Text,
     Stack,
+    keyframes,
 } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord, FaInstagram } from 'react-icons/fa';
@@ -17,6 +26,11 @@ import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
 
 const HomeCard = () => {
     const { address } = useAccount();
@@ -46,72 +60,85 @@ const HomeCard = () => {
     };
 
     return (
-        <Flex justifyContent={'center'} alignItems={'center'}>
+        <Flex justifyContent="center" alignItems="center" minHeight="100vh" width="100%" p={4}>
             <Flex
-                flexDirection={'column'}
-                gap={4}
-                borderRadius={40}
-                width={'50%'}
-                height={'75%'}
+                flexDirection="column"
+                justifyContent="space-between"
+                gap={[6, 6, 8]}
+                borderRadius={["40px"]}
+                width={["100%", "90%", "80%", "70%"]}
+                maxWidth="600px"
+                minWidth="250px"
+                minHeight="300px"
+                height="fit-content"
                 bgColor="gray.100"
-                paddingY={8}
-                paddingX={16}
+                padding={[8, 12, 16]}
+                boxShadow="xl"
             >
-                <Stack gap={8}>
+                <Stack gap={12} flex={1} justifyContent="flex-start">
                     <Text
-                        fontFamily={'Knewave'}
-                        fontSize={'6xl'}
-                        textAlign={'center'}
-                        fontWeight={'bold'}
-                        mb={10}
+                        className={poppins.className}
+                        fontSize={["4xl", "5xl", "6xl"]}
+                        textAlign="center"
+                        fontWeight={700}
+                        color="white"
+                        whiteSpace="nowrap"
                     >
-                        Stacked
+                        Stacked 
                     </Text>
+
                     {!isLoading ? (
                         <Button
-                            variant={'homeSectionButton'}
-                            bg={'green'}
+                            variant="homeSectionButton"
+                            bg="green.500"
                             onClick={handleSubmit}
-                            _hover={{ bg: 'green.900' }}
+                            _hover={{ bg: 'green.600' }}
+                            size={["xl"]}
+                            py={8}
+                            fontSize={["xl"]}
                         >
                             Play Now
                         </Button>
                     ) : (
                         <CircularProgress
-                            isIndeterminate={false}
-                            color="grey"
-                            size="100px"
+                            isIndeterminate
+                            color="green.500"
+                            size="60px"
+                            thickness="8px"
                         />
                     )}
-                    <Web3Button />
+                    <Web3Button size={["xl"]}/>
                 </Stack>
 
                 <Flex
                     direction="row"
                     justify="center"
                     align="center"
-                    marginTop={12}
-                    gap={10}
+                    gap={[4, 6]}
                 >
                     <IconButton
                         aria-label="X"
                         variant="social"
-                        icon={<RiTwitterXLine color="white" size={36} />}
-                        w={12}
-                        h={12}
-                        size="lg"
+                        icon={<RiTwitterXLine size={48} />}
+                        size={["lg"]}
+                        transition="transform 0.2s"
+                        _hover={{ transform: 'scale(1.1)' }}
                     />
                     <IconButton
                         aria-label="Discord"
                         variant="social"
-                        icon={<FaDiscord color="white" size={36} />}
-                        size="lg"
+                        icon={<FaDiscord size={48} />}
+                        size={["md", "lg"]}
+                        transition="transform 0.2s"
+                        _hover={{ transform: 'scale(1.1)' }}
                     />
                     <IconButton
                         aria-label="Instagram"
                         variant="social"
-                        icon={<FaInstagram color="white" size={36} />}
-                        size="lg"
+                        icon={<FaInstagram size={48} />}
+                        size={["md", "lg"]}
+                        transition="transform 0.2s"
+                        _hover={{ transform: 'scale(1.1)' }}
                     />
                 </Flex>
             </Flex>

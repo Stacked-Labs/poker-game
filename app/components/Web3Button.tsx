@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Button, ButtonProps, Icon } from '@chakra-ui/react';
 import { FaWallet } from 'react-icons/fa';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
@@ -17,6 +17,7 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
     const [buttonText, setButtonText] = useState('Connect');
     const { signMessageAsync } = useSignMessage();
     const [isAuthenticating, setIsAuthenticating] = useState(false);
+    const hasRequestedSignature = useRef(false); // Ref to track signature request
 
     useEffect(() => {
         if (isConnecting || (isOpen && !address)) {
@@ -33,18 +34,12 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
     }, [address, isConnecting, isOpen]);
 
     const requestSignature = useCallback(async () => {
-        // Not connected to wallet, cant sign
-        if (!isConnected) return;
-
-        // No address, cant sign
-        if (!address) return;
-
-        // Already authenticated and have cookie
-        // Migth be a a problem if user logs out of wallet, swaps addresses, etc. We need to keep track and update accordingly with wallet status
+        if (!isConnected || !address || hasRequestedSignature.current) return;
         if (localStorage.getItem('authToken')) return;
 
         setIsAuthenticating(true);
-        console.log('Requesting signature...'); // Debug log
+        hasRequestedSignature.current = true; // Prevent multiple requests
+        console.log('Requesting signature...');
         try {
             const message = `I agree to the following terms and conditions:
 
@@ -55,19 +50,20 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
 Signing Address: ${address}
 Timestamp: ${Date.now()}`;
 
-            console.log('Signing message...'); // Debug log
+            console.log('Signing message...');
             const signature = await signMessageAsync({ message });
-            console.log('Message signed, authenticating...'); // Debug log
+            console.log('Message signed, authenticating...');
             const token = await authenticateUser(address, signature, message);
             localStorage.setItem('authToken', token);
-            console.log('Authentication complete'); // Debug log
+            console.log('Authentication complete');
             window.dispatchEvent(new Event('authenticationComplete'));
         } catch (error) {
             console.error('Authentication failed:', error);
+            hasRequestedSignature.current = false; // Reset on failure
         } finally {
             setIsAuthenticating(false);
         }
-    }, [signMessageAsync, isConnected]);
+    }, [signMessageAsync, isConnected, address]);
 
     useEffect(() => {
         if (!address || !isConnected) return;

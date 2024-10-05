@@ -4,6 +4,7 @@ import {
     useEffect,
     useState,
     useContext,
+    useRef,
 } from 'react';
 import { Message, Game, Log } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
@@ -24,96 +25,129 @@ export function SocketProvider(props: SocketProviderProps) {
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { dispatch } = useContext(AppContext);
+    const socketRef = useRef<WebSocket | null>(null); // Ref to store WebSocket instance
 
     useEffect(() => {
         if (!WS_URL) return;
 
         const connectWebSocket = () => {
+            if (socketRef.current) {
+                console.log('WebSocket already connected');
+                return;
+            }
+
             const token = localStorage.getItem('authToken');
-            if (!token) return;
+            if (!token) {
+                console.log('No auth token, cannot connect WebSocket');
+                return;
+            }
 
             const _socket = new WebSocket(`${WS_URL}?token=${token}`);
+            socketRef.current = _socket;
+            setSocket(_socket);
 
             _socket.onopen = () => {
                 console.log('WebSocket connected');
-                setSocket(_socket);
             };
 
             _socket.onclose = () => {
                 console.log('WebSocket disconnected');
+                socketRef.current = null;
                 setSocket(null);
             };
 
             _socket.onerror = (error) => {
                 console.error('WebSocket error:', error);
+                socketRef.current = null;
                 setSocket(null);
+            };
+
+            _socket.onmessage = (e) => {
+                const event = JSON.parse(e.data);
+                switch (event.action) {
+                    case 'new-message': {
+                        const newMessage: Message = {
+                            name: event.username,
+                            message: event.message,
+                            timestamp: event.timestamp,
+                        };
+                        dispatch({ type: 'addMessage', payload: newMessage });
+                        return;
+                    }
+                    case 'new-log': {
+                        const newLog: Log = {
+                            message: event.message,
+                            timestamp: event.timestamp,
+                        };
+                        dispatch({ type: 'addLog', payload: newLog });
+                        return;
+                    }
+                    case 'update-game': {
+                        const newGame: Game = {
+                            running: event.game.running,
+                            dealer: event.game.dealer,
+                            action: event.game.action,
+                            utg: event.game.utg,
+                            sb: event.game.sb,
+                            bb: event.game.bb,
+                            communityCards: event.game.communityCards,
+                            stage: event.game.stage,
+                            betting: event.game.betting,
+                            config: event.game.config,
+                            players: event.game.players,
+                            pots: event.game.pots,
+                            minRaise: event.game.minRaise,
+                            readyCount: event.game.readyCount,
+                        };
+                        dispatch({ type: 'updateGame', payload: newGame });
+                        return;
+                    }
+                    case 'update-player-uuid': {
+                        dispatch({
+                            type: 'updatePlayerID',
+                            payload: event.uuid,
+                        });
+                        return;
+                    }
+                    default: {
+                        console.warn(`Unhandled action type: ${event.action}`);
+                        return;
+                    }
+                }
             };
         };
 
-        window.addEventListener('authenticationComplete', connectWebSocket);
-        
+        // Event handler ensuring single connection
+        const handleAuthenticationComplete = () => {
+            connectWebSocket();
+        };
+
+        window.addEventListener(
+            'authenticationComplete',
+            handleAuthenticationComplete
+        );
+
         // Attempt to connect if token already exists
         connectWebSocket();
 
         return () => {
-            window.removeEventListener('authenticationComplete', connectWebSocket);
-            socket?.close();
-        };
-    }, [WS_URL]);
-
-    if (!WS_URL) {
-        return null;
-    }
-
-    if (socket) {
-        socket.onmessage = (e) => {
-            const event = JSON.parse(e.data);
-            switch (event.action) {
-                case 'new-message':
-                    // eslint-disable-next-line no-case-declarations
-                    const newMessage: Message = {
-                        name: event.username,
-                        message: event.message,
-                        timestamp: event.timestamp,
-                    };
-                    dispatch({ type: 'addMessage', payload: newMessage });
-                    return;
-                case 'new-log':
-                    // eslint-disable-next-line no-case-declarations
-                    const newLog: Log = {
-                        message: event.message,
-                        timestamp: event.timestamp,
-                    };
-                    dispatch({ type: 'addLog', payload: newLog });
-                    return;
-                case 'update-game':
-                    // eslint-disable-next-line no-case-declarations
-                    const newGame: Game = {
-                        running: event.game.running,
-                        dealer: event.game.dealer,
-                        action: event.game.action,
-                        utg: event.game.utg,
-                        sb: event.game.sb,
-                        bb: event.game.bb,
-                        communityCards: event.game.communityCards,
-                        stage: event.game.stage,
-                        betting: event.game.betting,
-                        config: event.game.config,
-                        players: event.game.players,
-                        pots: event.game.pots,
-                        minRaise: event.game.minRaise,
-                        readyCount: event.game.readyCount,
-                    };
-                    dispatch({ type: 'updateGame', payload: newGame });
-                    return;
-                case 'update-player-uuid':
-                    dispatch({ type: 'updatePlayerID', payload: event.uuid });
-                    return;
-                default:
-                    throw new Error();
+            window.removeEventListener(
+                'authenticationComplete',
+                handleAuthenticationComplete
+            );
+            if (socketRef.current) {
+                socketRef.current.close();
+                socketRef.current = null;
             }
         };
-    }
+    }, [WS_URL, dispatch]);
+
+    // Update the socket state with the ref
+    useEffect(() => {
+        if (socketRef.current !== socket) {
+            setSocket(socketRef.current);
+        }
+    }, [socket]);
 
     return (
         <SocketContext.Provider value={socket}>

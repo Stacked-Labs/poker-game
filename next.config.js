@@ -4,7 +4,7 @@ const fs = require('fs');
 const f = require('dotenv');
 
 // const envPath = `./.env.${process.env?.BUILD_ENV || 'local'}`;
-const envPath = './.env';
+const envPath = './.env.local';
 
 if (!fs.existsSync(envPath)) {
     console.error('> env file not exists > ', envPath);

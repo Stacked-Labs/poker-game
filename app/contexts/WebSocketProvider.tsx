@@ -130,7 +130,7 @@ export function SocketProvider(props: SocketProviderProps) {
                 setSocket(null);
             }
         };
-    }, [WS_URL, dispatch, authToken]);
+    }, [WS_URL, authToken]);
 
     // Update the socket state with the ref
     useEffect(() => {

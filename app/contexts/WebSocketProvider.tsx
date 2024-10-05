@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { Message, Game, Log } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
+import { useAuth } from './AuthContext';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -26,6 +27,7 @@ export function SocketProvider(props: SocketProviderProps) {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null); // Ref to store WebSocket instance
+    const { authToken } = useAuth(); // Consume AuthContext
 
     useEffect(() => {
         if (!WS_URL) return;
@@ -36,13 +38,12 @@ export function SocketProvider(props: SocketProviderProps) {
                 return;
             }
 
-            const token = localStorage.getItem('authToken');
-            if (!token) {
+            if (!authToken) {
                 console.log('No auth token, cannot connect WebSocket');
                 return;
             }
 
-            const _socket = new WebSocket(`${WS_URL}?token=${token}`);
+            const _socket = new WebSocket(`${WS_URL}?token=${authToken}`);
             socketRef.current = _socket;
             setSocket(_socket);
 
@@ -117,30 +118,19 @@ export function SocketProvider(props: SocketProviderProps) {
             };
         };
 
-        // Event handler ensuring single connection
-        const handleAuthenticationComplete = () => {
+        // Attempt to connect if token exists
+        if (authToken) {
             connectWebSocket();
-        };
-
-        window.addEventListener(
-            'authenticationComplete',
-            handleAuthenticationComplete
-        );
-
-        // Attempt to connect if token already exists
-        connectWebSocket();
+        }
 
         return () => {
-            window.removeEventListener(
-                'authenticationComplete',
-                handleAuthenticationComplete
-            );
             if (socketRef.current) {
                 socketRef.current.close();
                 socketRef.current = null;
+                setSocket(null);
             }
         };
-    }, [WS_URL, dispatch]);
+    }, [WS_URL, dispatch, authToken]);
 
     // Update the socket state with the ref
     useEffect(() => {

@@ -1,3 +1,10 @@
+## License
+
+© 2024 Stacked Poker. All rights reserved.
+
+This repository is unlicensed. All content is protected under default copyright laws. Unauthorized copying, distribution, modification, or use of any part of this project is strictly prohibited.
+
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

@@ -6,12 +6,16 @@ const f = require('dotenv');
 // const envPath = `./.env.${process.env?.BUILD_ENV || 'local'}`;
 const envPath = './.env.local';
 
-if (!fs.existsSync(envPath)) {
-    console.error('> env file not exists > ', envPath);
-    process.exit(11);
+if (fs.existsSync(envPath)) {
+    // Load environment variables from .env.local if it exists
+    f.config({ path: envPath });
+} else {
+    console.warn(
+        '> env file not exists > ',
+        envPath,
+        ', proceeding without it.'
+    );
 }
-
-f.config({ path: envPath });
 
 const nextConfig = {
     webpack(config) {
@@ -43,6 +47,8 @@ const nextConfig = {
         // Will be available on both server and client
     },
     env: {
+        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+        NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
         PROJECT_ID: process.env.PROJECT_ID,
     },
 };

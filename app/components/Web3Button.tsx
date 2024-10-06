@@ -5,20 +5,18 @@ import { Button, ButtonProps, Icon } from '@chakra-ui/react';
 import { FaWallet } from 'react-icons/fa';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { useAccount } from 'wagmi';
-import { useWeb3ModalState } from '@web3modal/wagmi/react';
 
 interface Web3ButtonProps extends ButtonProps {}
 
 const Web3Button: React.FC<Web3ButtonProps> = (props) => {
     const { open } = useWeb3Modal();
-    const { address, isConnecting } = useAccount();
-    const { open: isOpen } = useWeb3ModalState();
+    const { address, isConnecting, isConnected } = useAccount();
     const [buttonText, setButtonText] = useState('Connect');
 
     useEffect(() => {
-        if (isConnecting || (isOpen && !address)) {
+        if (isConnecting) {
             setButtonText('Connecting...');
-        } else if (address) {
+        } else if (isConnected && address) {
             setButtonText(
                 `${address.substring(0, 4)}...${address.substring(
                     address.length - 4
@@ -27,7 +25,7 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
         } else {
             setButtonText('Connect');
         }
-    }, [address, isConnecting, isOpen]);
+    }, [address, isConnecting, isConnected]);
 
     const handleOpen = () => {
         open();
@@ -44,8 +42,7 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
                 borderWidth: '2px',
                 bg: '#202020',
             }}
-            type="submit"
-            onClick={() => handleOpen()}
+            onClick={handleOpen}
             {...props}
         >
             {buttonText}

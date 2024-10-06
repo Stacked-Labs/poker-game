@@ -9,21 +9,24 @@ import { AppStoreProvider } from '@/app/contexts/AppStoreProvider';
 import { UserProvider } from '@/app/contexts/CurrentUserProvider';
 import { Web3ModalProvider } from '@/app/contexts/Web3Modal';
 import { SocketProvider } from '@/app/contexts/WebSocketProvider';
+import { AuthProvider } from '@/app/contexts/AuthContext';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <CacheProvider>
-            <AppStoreProvider>
-                <UserProvider>
-                    <SocketProvider>
+            <ChakraProvider theme={theme}>
+                <AppStoreProvider>
+                    <UserProvider>
                         <Web3ModalProvider>
-                            <ChakraProvider theme={theme}>
-                                <StateProvider>{children}</StateProvider>
-                            </ChakraProvider>
+                            <AuthProvider>
+                                <SocketProvider>
+                                    <StateProvider>{children}</StateProvider>
+                                </SocketProvider>
+                            </AuthProvider>
                         </Web3ModalProvider>
-                    </SocketProvider>
-                </UserProvider>
-            </AppStoreProvider>
+                    </UserProvider>
+                </AppStoreProvider>
+            </ChakraProvider>
         </CacheProvider>
     );
 }

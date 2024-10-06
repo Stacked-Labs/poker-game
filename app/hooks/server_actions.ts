@@ -111,3 +111,28 @@ export function playerFold(socket: WebSocket) {
         })
     );
 }
+
+export async function authenticateUser(address: string, signature: string, message: string) {
+    console.log('Authenticating user with address:', address);
+    console.log('Signature:', signature);
+    console.log('Message:', message);
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!backendUrl) {
+        throw new Error('Backend API URL is not defined');
+    }
+
+    const response = await fetch(`${backendUrl}/auth`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address, signature, message }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Authentication failed');
+    }
+
+    const data = await response.json();
+    return data.token;
+}

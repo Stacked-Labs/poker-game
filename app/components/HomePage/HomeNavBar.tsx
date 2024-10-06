@@ -1,13 +1,25 @@
-import { Button, Flex, Image, Text, IconButton, useDisclosure, Drawer, DrawerOverlay, DrawerContent, DrawerBody, VStack } from '@chakra-ui/react';
+import {
+    Button,
+    Flex,
+    Image,
+    Text,
+    IconButton,
+    useDisclosure,
+    Drawer,
+    DrawerOverlay,
+    DrawerContent,
+    DrawerBody,
+    VStack,
+} from '@chakra-ui/react';
 import React from 'react';
 import { RiMenu3Line } from 'react-icons/ri';
 import Web3Button from '../Web3Button';
 import { Poppins } from 'next/font/google';
 
 const poppins = Poppins({
-  weight: ['700'],
-  subsets: ['latin'],
-  display: 'swap',
+    weight: ['700'],
+    subsets: ['latin'],
+    display: 'swap',
 });
 
 const logoImage = '/logo.png';
@@ -51,7 +63,7 @@ const HomeNavBar: React.FC = () => {
             zIndex={99}
             position={'fixed'}
             top={0}
-            as="nav"    
+            as="nav"
             bg={'gray.200'}
         >
             <Flex alignItems={'center'} gap={2} fontSize={'x-large'}>
@@ -61,7 +73,11 @@ const HomeNavBar: React.FC = () => {
                     width={'100%'}
                     style={{ objectFit: 'contain' }}
                 />
-                <Text color={'white'} className={poppins.className} fontSize={'5xl'}>
+                <Text
+                    color={'white'}
+                    className={poppins.className}
+                    fontSize={'5xl'}
+                >
                     Stacked
                 </Text>
             </Flex>
@@ -87,7 +103,9 @@ const HomeNavBar: React.FC = () => {
 
             <Drawer placement="right" onClose={onClose} isOpen={isOpen}>
                 <DrawerOverlay />
-                <DrawerContent bg="gray.200" top="60px"> {/* Added top property */}
+                <DrawerContent bg="gray.200" top="60px">
+                    {' '}
+                    {/* Added top property */}
                     <DrawerBody>
                         <VStack spacing={4} align="stretch" mt={8}>
                             <NavButtons />

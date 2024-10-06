@@ -4,9 +4,9 @@ import React, { useContext, useState } from 'react';
 import { Poppins } from 'next/font/google';
 
 const poppins = Poppins({
-  weight: ['700'],
-  subsets: ['latin'],
-  display: 'swap',
+    weight: ['700'],
+    subsets: ['latin'],
+    display: 'swap',
 });
 
 import {
@@ -16,21 +16,17 @@ import {
     CircularProgress,
     Text,
     Stack,
-    keyframes,
+    Link,
 } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
-import { FaDiscord, FaInstagram } from 'react-icons/fa';
+import { FaDiscord } from 'react-icons/fa';
+import { SiFarcaster } from 'react-icons/si'; // Imported SiFarcaster from react-icons/si
 import Web3Button from '@/app/components/Web3Button';
 import { joinTable, sendLog } from '@/app/hooks/server_actions';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
 
 const HomeCard = () => {
     const { address } = useAccount();
@@ -60,13 +56,19 @@ const HomeCard = () => {
     };
 
     return (
-        <Flex justifyContent="center" alignItems="center" minHeight="100vh" width="100%" p={4}>
+        <Flex
+            justifyContent="center"
+            alignItems="center"
+            minHeight="100vh"
+            width="100%"
+            p={4}
+        >
             <Flex
                 flexDirection="column"
                 justifyContent="space-between"
                 gap={[6, 6, 8]}
-                borderRadius={["40px"]}
-                width={["100%", "90%", "80%", "70%"]}
+                borderRadius={['40px']}
+                width={['100%', '90%', '80%', '70%']}
                 maxWidth="600px"
                 minWidth="250px"
                 minHeight="300px"
@@ -78,13 +80,13 @@ const HomeCard = () => {
                 <Stack gap={12} flex={1} justifyContent="flex-start">
                     <Text
                         className={poppins.className}
-                        fontSize={["4xl", "5xl", "6xl"]}
+                        fontSize={['4xl', '5xl', '6xl']}
                         textAlign="center"
                         fontWeight={700}
                         color="white"
                         whiteSpace="nowrap"
                     >
-                        Stacked 
+                        Stacked
                     </Text>
 
                     {!isLoading ? (
@@ -93,9 +95,9 @@ const HomeCard = () => {
                             bg="green.500"
                             onClick={handleSubmit}
                             _hover={{ bg: 'green.600' }}
-                            size={["xl"]}
+                            size={['xl']}
                             py={8}
-                            fontSize={["xl"]}
+                            fontSize={['xl']}
                         >
                             Play Now
                         </Button>
@@ -107,39 +109,45 @@ const HomeCard = () => {
                             thickness="8px"
                         />
                     )}
-                    <Web3Button size={["xl"]}/>
+                    <Web3Button size={['xl']} />
                 </Stack>
 
                 <Flex
                     direction="row"
-                    justify="center"
+                    justify="space-evenly" // Evenly distribute the icons
                     align="center"
-                    gap={[4, 6]}
+                    width="100%"
                 >
-                    <IconButton
-                        aria-label="X"
-                        variant="social"
-                        icon={<RiTwitterXLine size={48} />}
-                        size={["lg"]}
-                        transition="transform 0.2s"
-                        _hover={{ transform: 'scale(1.1)' }}
-                    />
-                    <IconButton
-                        aria-label="Discord"
-                        variant="social"
-                        icon={<FaDiscord size={48} />}
-                        size={["md", "lg"]}
-                        transition="transform 0.2s"
-                        _hover={{ transform: 'scale(1.1)' }}
-                    />
-                    <IconButton
-                        aria-label="Instagram"
-                        variant="social"
-                        icon={<FaInstagram size={48} />}
-                        size={["md", "lg"]}
-                        transition="transform 0.2s"
-                        _hover={{ transform: 'scale(1.1)' }}
-                    />
+                    <Link href="https://x.com/stacked_poker" isExternal>
+                        <IconButton
+                            aria-label="X"
+                            variant="social"
+                            icon={<RiTwitterXLine size={36} />}
+                            size="lg"
+                            transition="transform 0.2s"
+                            _hover={{ transform: 'scale(1.1)' }}
+                        />
+                    </Link>
+                    <Link href="https://discord.gg/R42388MfDd" isExternal>
+                        <IconButton
+                            aria-label="Discord"
+                            variant="social"
+                            icon={<FaDiscord size={36} />}
+                            size="lg"
+                            transition="transform 0.2s"
+                            _hover={{ transform: 'scale(1.1)' }}
+                        />
+                    </Link>
+                    <Link href="https://warpcast.com/stackedpoker" isExternal>
+                        <IconButton
+                            aria-label="Warpcast"
+                            variant="social"
+                            icon={<SiFarcaster size={36} />} // Using SiFarcaster icon
+                            size="lg"
+                            transition="transform 0.2s"
+                            _hover={{ transform: 'scale(1.1)' }}
+                        />
+                    </Link>
                 </Flex>
             </Flex>
         </Flex>

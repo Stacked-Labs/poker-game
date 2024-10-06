@@ -32,7 +32,7 @@ const HomeNavBar: React.FC = () => {
             <Button
                 variant={'navButton'}
                 as="a"
-                href="/docs"
+                href="https://docs.stackedpoker.io"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Documentation"
@@ -42,7 +42,7 @@ const HomeNavBar: React.FC = () => {
             <Button
                 variant={'navButton'}
                 as="a"
-                href="/Support"
+                href="https://discord.gg/EeEHt8rWy6"
                 target="_blank"
                 rel="noopener noreferrer"
             >

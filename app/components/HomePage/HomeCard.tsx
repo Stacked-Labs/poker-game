@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import useToastHelper from '@/app/hooks/useToastHelper';
 
 const HomeCard = () => {
     const { address } = useAccount();
@@ -35,24 +36,42 @@ const HomeCard = () => {
     const { dispatch } = useContext(AppContext);
 
     const [isLoading, setIsLoading] = useState(false);
+    const toast = useToastHelper();
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!address) {
-            alert('Please connect your wallet first');
+            toast.warning(
+                'Wallet Not Connected',
+                'Please connect your wallet first.'
+            );
             return;
         }
         if (!socket) {
+            toast.error('Connection Error', 'Unable to connect to the server.');
             return;
         }
+
         const tableName = address;
         setIsLoading(true);
         dispatch({ type: 'setTablename', payload: tableName });
-        if (socket) {
-            joinTable(socket, tableName);
+
+        try {
+            await joinTable(socket, tableName);
             sendLog(socket, `Joined table ${tableName}`);
-            router.push(`/game//${tableName}`);
+            router.push(`/game/${tableName}`);
+            toast.success(
+                'Joined Table',
+                `You have joined table ${tableName}.`
+            );
+        } catch (error) {
+            console.error(error);
+            toast.error(
+                'Join Failed',
+                'Failed to join the table. Please try again.'
+            );
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     return (

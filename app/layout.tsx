@@ -8,8 +8,11 @@ import '@fontsource/libre-barcode-39-text';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    title: 'Poker Game',
-    description: 'No gamble no future',
+    title: 'Stacked Poker',
+    description: 'Play poker with your friends for any stakes',
+    icons: {
+        icon: '/favicon.ico',
+    },
 };
 
 export default function RootLayout({

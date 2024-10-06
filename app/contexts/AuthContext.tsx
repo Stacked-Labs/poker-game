@@ -11,6 +11,7 @@ import React, {
 import { useSignMessage } from 'wagmi';
 import { useAccount } from 'wagmi';
 import { authenticateUser } from '@/app/hooks/server_actions';
+import useToastHelper from '@/app/hooks/useToastHelper';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
@@ -35,6 +36,7 @@ type AuthProviderProps = {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { address, isConnected } = useAccount();
     const { signMessageAsync } = useSignMessage();
+    const { success, error } = useToastHelper();
 
     // Initialize authToken and userAddress from localStorage
     const [authToken, setAuthToken] = useState<string | null>(() => {
@@ -75,12 +77,31 @@ Timestamp: ${Date.now()}`;
             localStorage.setItem('authToken', token);
             localStorage.setItem('address', address);
             window.dispatchEvent(new Event('authenticationComplete'));
-        } catch (error) {
-            console.error('Authentication failed:', error);
+
+            // Success toast
+            success(
+                'Authentication Successful',
+                'You have been successfully authenticated.'
+            );
+        } catch (err) {
+            console.error('Authentication failed:', err);
+            // Error toast
+            error(
+                'Authentication Failed',
+                'There was an error during authentication. Please try again.'
+            );
         } finally {
             setIsAuthenticating(false);
         }
-    }, [isConnected, address, signMessageAsync, authToken, isAuthenticating]);
+    }, [
+        isConnected,
+        address,
+        signMessageAsync,
+        authToken,
+        isAuthenticating,
+        success,
+        error,
+    ]);
 
     // Automatically authenticate if already connected and no token
     useEffect(() => {

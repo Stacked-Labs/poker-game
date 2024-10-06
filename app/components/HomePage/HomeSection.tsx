@@ -28,7 +28,14 @@ const revealFromLeft = keyframes`
 `;
 
 const HomeSection = () => {
-    const showArenaText = useBreakpointValue({ base: false, md: true });
+    const showArenaText = useBreakpointValue({
+        base: false, // Mobile
+        sm: false, // Small screens
+        md: true, // Medium screens
+        lg: true, // Large screens
+        xl: true, // Extra large screens
+        '2xl': true, // 2x Extra large screens (optional)
+    });
     const words = React.useMemo(() => ['YOUR', 'CRYPTO', 'POKER', 'ARENA'], []);
 
     return (
@@ -47,18 +54,20 @@ const HomeSection = () => {
                 zIndex={1}
                 alignItems="center"
                 justifyContent="space-between"
-                // px={[4, 8, 12, 20]}
-                flexWrap="wrap" // Allow wrapping
-                gap={[2, 4, 6]} // Responsive gap between wrapped items
+                flexWrap={{ base: 'wrap', lg: 'nowrap' }} // Wrap on mobile, nowrap on large screens
+                gap={{ base: 2, md: 4, lg: 6 }} // Responsive gap
             >
-                <Box flex={['1 1 100%', '1 1 100%', '1']} mb={[8, 8, 0]}>
+                <Box
+                    flex={{ base: '1 1 100%', lg: '1 1 0%' }} // Full width on mobile, equal width on large screens
+                    mb={{ base: 8, lg: 0 }} // Margin bottom on mobile
+                >
                     <HomeCard />
                 </Box>
 
                 <VStack
-                    flex={['1 1 100%', '1 1 100%', '1']}
+                    flex={{ base: '1 1 100%', lg: '1 1 0%' }} // Full width on mobile, equal width on large screens
                     justifyContent="center"
-                    alignItems={['center', 'center', 'flex-start']}
+                    alignItems={{ base: 'center', lg: 'flex-start' }} // Center align on mobile, start align on large screens
                     spacing={0}
                 >
                     {showArenaText && (

@@ -1,0 +1,31 @@
+{
+    "gameModes": [
+        {
+            "name": "Texas Holdem",
+            "description": "The Rolls Royce of Poker.",
+            "disabled": false
+        },
+        {
+            "name": "Pot Limit Omaha",
+            "description": "For those who want some extra cards.",
+            "disabled": true
+        }
+    ],
+    "networks": [
+        {
+            "name": "Arbitrum",
+            "image": "/networkLogos/arbitrum-logo.png",
+            "disabled": false
+        },
+        {
+            "name": "Base",
+            "image": "/networkLogos/base-logo.png",
+            "disabled": true
+        },
+        {
+            "name": "Solana",
+            "image": "/networkLogos/solana-logo.png",
+            "disabled": true
+        }
+    ]
+}

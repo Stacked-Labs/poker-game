@@ -24,8 +24,14 @@ const HomePage: React.FC = () => {
         <>
             <Head>
                 <title>Poker Game - Play Online Poker</title>
-                <meta name="description" content="Join our online poker game and play with friends. Experience the thrill of Texas Hold'em poker from the comfort of your home." />
-                <meta name="keywords" content="poker, online poker, Texas Hold'em, card game, multiplayer" />
+                <meta
+                    name="description"
+                    content="Join our online poker game and play with friends. Experience the thrill of Texas Hold'em poker from the comfort of your home."
+                />
+                <meta
+                    name="keywords"
+                    content="poker, online poker, Texas Hold'em, card game, multiplayer"
+                />
             </Head>
             <Box w="100vw" bgColor={'gray.200'}>
                 <HomeNavBar />

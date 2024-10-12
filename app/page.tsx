@@ -34,7 +34,6 @@ const HomePage: React.FC = () => {
                 />
             </Head>
             <Box w="100vw" bgColor={'gray.200'}>
-                <HomeNavBar />
                 <VStack height={'fit-content'}>
                     <Flex alignItems={'center'} height={'100vh'}>
                         <HomeSection />

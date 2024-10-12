@@ -1,3 +1,4 @@
+'use client';
 import {
     Button,
     Flex,
@@ -60,13 +61,20 @@ const HomeNavBar: React.FC = () => {
             paddingY={2}
             justifyContent={'space-between'}
             alignItems={'center'}
-            zIndex={99}
             position={'fixed'}
-            top={0}
+            zIndex={99}
             as="nav"
             bg={'gray.200'}
         >
-            <Flex alignItems={'center'} gap={2} fontSize={'x-large'}>
+            <Flex
+                as="a"
+                href="/"
+                alignItems={'center'}
+                gap={2}
+                fontSize={'x-large'}
+                textDecoration="none"
+                _hover={{ textDecoration: 'none' }}
+            >
                 <Image
                     alt={`Logo Image`}
                     src={logoImage}
@@ -104,8 +112,6 @@ const HomeNavBar: React.FC = () => {
             <Drawer placement="right" onClose={onClose} isOpen={isOpen}>
                 <DrawerOverlay />
                 <DrawerContent bg="gray.200" top="60px">
-                    {' '}
-                    {/* Added top property */}
                     <DrawerBody>
                         <VStack spacing={4} align="stretch" mt={8}>
                             <NavButtons />

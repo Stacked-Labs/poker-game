@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, Switch, Text } from '@chakra-ui/react';
 
-export default function CryptoToggle() {
-    const [isCrypto, setIsCrypto] = useState(false);
+interface PlayTypeToggleProps {
+    playType: 'Free' | 'Crypto';
+    setPlayType: (type: 'Free' | 'Crypto') => void;
+}
 
+export default function PlayTypeToggle({
+    playType,
+    setPlayType,
+}: PlayTypeToggleProps) {
     const bgColor = 'gray.800';
     const activeColor = 'gray.50';
     const textColor = 'white';
     const borderColor = 'red';
 
     const handleToggle = () => {
-        setIsCrypto(!isCrypto);
+        setPlayType(playType === 'Free' ? 'Crypto' : 'Free');
     };
 
     return (
@@ -28,7 +34,7 @@ export default function CryptoToggle() {
         >
             <Box
                 position="absolute"
-                left={isCrypto ? '50%' : '0'}
+                left={playType === 'Crypto' ? '50%' : '0'}
                 width="50%"
                 height="32px"
                 bg={activeColor}
@@ -66,7 +72,7 @@ export default function CryptoToggle() {
                 opacity="0"
                 cursor="pointer"
                 onChange={handleToggle}
-                isChecked={isCrypto}
+                isChecked={playType === 'Crypto'}
             />
         </Box>
     );

@@ -15,7 +15,7 @@ import OptionCard from '../components/CreateGame/OptionCard';
 import gameData from './gameOptions.json';
 
 const CreateGamePage: React.FC = () => {
-    const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Crypto');
+    const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] = useState<string | null>(
         null
     );
@@ -29,9 +29,9 @@ const CreateGamePage: React.FC = () => {
                 <VStack
                     spacing={4}
                     alignItems="center"
-                    justifyContent="center"
                     width="100%"
                     maxWidth="800px"
+                    pt={20}
                 >
                     <Text
                         fontSize="5xl"
@@ -41,7 +41,10 @@ const CreateGamePage: React.FC = () => {
                     >
                         Game Settings
                     </Text>
-                    <PlayTypeToggle />
+                    <PlayTypeToggle
+                        playType={playType}
+                        setPlayType={setPlayType}
+                    />
 
                     <Flex width="50%" justifyContent="space-between">
                         <FormControl flex="1" mr={2}>

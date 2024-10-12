@@ -5,11 +5,14 @@ import { Providers } from './providers';
 import '@fontsource/luckiest-guy';
 import '@fontsource/poppins';
 import '@fontsource/libre-barcode-39-text';
+import HomeNavBar from './components/HomePage/HomeNavBar';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
     title: 'Stacked Poker',
-    description: 'Play poker with your friends for any stakes',
+    description:
+        'The premier platform to play poker for free with your friends or to up the stakes and battle for any ERC20 cryptocurrency',
     icons: {
         icon: '/favicon.ico',
     },
@@ -23,7 +26,10 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={inter.className}>
-                <Providers>{children}</Providers>
+                <Providers>
+                    <HomeNavBar />
+                    <main>{children}</main>
+                </Providers>
             </body>
         </html>
     );

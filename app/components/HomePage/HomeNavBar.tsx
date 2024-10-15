@@ -16,6 +16,7 @@ import React from 'react';
 import { RiMenu3Line } from 'react-icons/ri';
 import Web3Button from '../Web3Button';
 import { Poppins } from 'next/font/google';
+import { usePathname } from 'next/navigation'; // Import the hook
 
 const poppins = Poppins({
     weight: ['700'],
@@ -27,6 +28,12 @@ const logoImage = '/logo.png';
 
 const HomeNavBar: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
+
+    const pathname = usePathname();
+    const showHomeNavBar = !pathname.startsWith('/game');
+    if (!showHomeNavBar) {
+        return null; // Do not render the navbar on /game pages
+    }
 
     const NavButtons = React.memo(() => (
         <>

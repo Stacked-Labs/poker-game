@@ -1,3 +1,4 @@
+'use client';
 import {
     Button,
     Flex,
@@ -15,6 +16,7 @@ import React from 'react';
 import { RiMenu3Line } from 'react-icons/ri';
 import Web3Button from '../Web3Button';
 import { Poppins } from 'next/font/google';
+import { usePathname } from 'next/navigation'; // Import the hook
 
 const poppins = Poppins({
     weight: ['700'],
@@ -26,6 +28,12 @@ const logoImage = '/logo.png';
 
 const HomeNavBar: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
+
+    const pathname = usePathname();
+    const showHomeNavBar = !pathname.startsWith('/game');
+    if (!showHomeNavBar) {
+        return null; // Do not render the navbar on /game pages
+    }
 
     const NavButtons = React.memo(() => (
         <>
@@ -60,13 +68,20 @@ const HomeNavBar: React.FC = () => {
             paddingY={2}
             justifyContent={'space-between'}
             alignItems={'center'}
-            zIndex={99}
             position={'fixed'}
-            top={0}
+            zIndex={99}
             as="nav"
             bg={'gray.200'}
         >
-            <Flex alignItems={'center'} gap={2} fontSize={'x-large'}>
+            <Flex
+                as="a"
+                href="/"
+                alignItems={'center'}
+                gap={2}
+                fontSize={'x-large'}
+                textDecoration="none"
+                _hover={{ textDecoration: 'none' }}
+            >
                 <Image
                     alt={`Logo Image`}
                     src={logoImage}
@@ -104,8 +119,6 @@ const HomeNavBar: React.FC = () => {
             <Drawer placement="right" onClose={onClose} isOpen={isOpen}>
                 <DrawerOverlay />
                 <DrawerContent bg="gray.200" top="60px">
-                    {' '}
-                    {/* Added top property */}
                     <DrawerBody>
                         <VStack spacing={4} align="stretch" mt={8}>
                             <NavButtons />

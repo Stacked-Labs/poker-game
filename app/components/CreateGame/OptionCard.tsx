@@ -46,11 +46,11 @@ const OptionCard: React.FC<OptionCardProps> = ({
                         height={50}
                     />
                 )}
-                <Text fontWeight="bold" textAlign="center">
+                <Text fontWeight="bold" textAlign="center" color="white">
                     {name}
                 </Text>
                 {description && (
-                    <Text fontSize="sm" textAlign="center">
+                    <Text fontSize="sm" textAlign="center" color="white">
                         {description}
                     </Text>
                 )}

@@ -8,7 +8,7 @@ import React, {
     useCallback,
     useEffect,
 } from 'react';
-import { useSignMessage } from 'wagmi';
+import { useDisconnect, useSignMessage } from 'wagmi';
 import { useAccount } from 'wagmi';
 import { authenticateUser } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -35,6 +35,7 @@ type AuthProviderProps = {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { address, isConnected } = useAccount();
+    const { disconnect } = useDisconnect();
     const { signMessageAsync } = useSignMessage();
     const { success, error } = useToastHelper();
 
@@ -62,16 +63,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticating(true);
         try {
             const message = `I agree to the following terms and conditions:
+                1. Stacked is not responsible for any funds used on this platform.
+                2. This is a testing phase and the platform may contain bugs or errors.
+                3. I am using this platform at my own risk.
 
-1. Stacked is not responsible for any funds used on this platform.
-2. This is a testing phase and the platform may contain bugs or errors.
-3. I am using this platform at my own risk.
-
-Signing Address: ${address}
-Timestamp: ${Date.now()}`;
+                Signing Address: ${address}
+                Timestamp: ${Date.now()}`;
 
             const signature = await signMessageAsync({ message });
             const token = await authenticateUser(address, signature, message);
+            console.log('TOKEN', token);
             setAuthToken(token);
             setUserAddress(address);
             localStorage.setItem('authToken', token);
@@ -84,6 +85,9 @@ Timestamp: ${Date.now()}`;
                 'You have been successfully authenticated.'
             );
         } catch (err) {
+            disconnect();
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('address');
             console.error('Authentication failed:', err);
             // Error toast
             error(

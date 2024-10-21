@@ -27,6 +27,8 @@ import { newPlayer, sendLog, takeSeat } from '../hooks/server_actions';
 import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import useToastHelper from '@/app/hooks/useToastHelper';
+
 interface TakeSeatModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -44,11 +46,10 @@ const variants = {
 };
 
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
-    const { address } = useAccount();
+    const { address, isConnected } = useAccount();
     const metaDispatch = useContext(MetaDispatchContext);
     const appStore = useContext(AppContext);
     const currentUser = useCurrentUser();
-
     const socket = useContext(SocketContext);
     const [name, setName] = useState('');
     const [buyIn, setBuyIn] = useState(
@@ -56,12 +57,23 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             ? appStore.appState.game?.config.maxBuyIn
             : 2000
     );
+    const { error } = useToastHelper();
 
     const connectDiscord = () => {
         // Implement Discord connection logic
     };
 
     const handleJoin = () => {
+        console.log('isConnected', isConnected);
+        if (!isConnected) {
+            error(
+                'Wallet Not Connected',
+                'Please connect your wallet to join.'
+            );
+            return;
+        }
+
+        console.log('socket', socket);
         if (socket && name.length > 0 && seatId) {
             metaDispatch({ type: 'SET_IS_USER_SITTING', payload: true });
             metaDispatch({

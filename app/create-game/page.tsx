@@ -11,16 +11,6 @@ const CreateGamePage: React.FC = () => {
             <Flex flex="1" p={4} justifyContent="center">
                 <GameSettingLeftSide />
             </Flex>
-
-            {/* Right Side Content (Existing) */}
-            <Flex
-                flex="1"
-                p={4}
-                justifyContent="center"
-                alignItems="flex-start"
-            >
-                {/* Right side content can be added here */}
-            </Flex>
         </Flex>
     );
 };

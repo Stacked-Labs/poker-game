@@ -1,7 +1,13 @@
 'use client';
 
 import React from 'react';
-import { HStack, Flex, IconButton, useDisclosure } from '@chakra-ui/react';
+import {
+    HStack,
+    Flex,
+    IconButton,
+    useDisclosure,
+    Icon,
+} from '@chakra-ui/react';
 import { FiSettings, FiMessageSquare } from 'react-icons/fi';
 import Web3Button from '../Web3Button';
 import SettingsModal from './Settings/SettingsModal';
@@ -19,14 +25,19 @@ const Navbar = () => {
                 align="center"
                 justify="space-between"
                 wrap="wrap"
-                padding="1.5rem"
+                padding={{ base: '0.5rem', md: '1rem' }}
                 bg="gray.200"
                 color="white"
                 zIndex={10}
             >
                 <HStack>
                     <IconButton
-                        icon={<FiSettings size={32} />}
+                        icon={
+                            <Icon
+                                as={FiSettings}
+                                boxSize={{ base: 5, md: 8 }}
+                            />
+                        }
                         aria-label="Settings"
                         size={'lg'}
                         onClick={onOpen}
@@ -36,11 +47,15 @@ const Navbar = () => {
                 <HStack>
                     <Web3Button />
                     <IconButton
-                        icon={<FiMessageSquare size={32} />}
+                        icon={
+                            <Icon
+                                as={FiMessageSquare}
+                                boxSize={{ base: 5, md: 8 }}
+                            />
+                        }
                         aria-label="Chat"
                         size={'lg'}
                         onClick={onToggleChat}
-                        marginRight="4"
                     />
                 </HStack>
 

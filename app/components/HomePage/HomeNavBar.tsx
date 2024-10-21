@@ -113,14 +113,14 @@ const HomeNavBar: React.FC = () => {
                 aria-label="Open menu"
                 icon={<RiMenu3Line />}
                 onClick={onOpen}
-                display={{ base: 'flex', md: 'none' }}
+                display={{ base: 'flex', md: 'none' }} //this causes it to appear on mobile?
             />
 
             <Drawer placement="right" onClose={onClose} isOpen={isOpen}>
                 <DrawerOverlay />
                 <DrawerContent bg="gray.200" top="60px">
                     <DrawerBody>
-                        <VStack spacing={4} align="stretch" mt={8}>
+                        <VStack spacing={4} align="center" mt={8} height="100%">
                             <NavButtons />
                         </VStack>
                     </DrawerBody>

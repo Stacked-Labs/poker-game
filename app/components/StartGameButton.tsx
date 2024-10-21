@@ -32,7 +32,7 @@ const StartGameButton = () => {
                 size="lg"
                 color={'white'}
                 borderColor={'white'}
-                paddingX={12}
+                paddingX={{ base: 8, md: 12 }}
                 onClick={() => onClickStartGame(socket)}
                 isDisabled={
                     (!game.running && readyPlayers.length < 2) ||

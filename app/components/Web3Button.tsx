@@ -35,7 +35,13 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
         <Button
             variant={'homeSectionButton'}
             border={0}
-            leftIcon={<Icon as={FaWallet} color="white" />}
+            leftIcon={
+                <Icon
+                    as={FaWallet}
+                    color="white"
+                    boxSize={{ base: 4, md: 6 }}
+                />
+            }
             bg={'#2D2D2D'}
             _hover={{
                 borderColor: 'white',
@@ -43,6 +49,9 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
                 bg: '#202020',
             }}
             onClick={handleOpen}
+            fontSize={{ base: 'sm', md: 'md' }}
+            px={{ base: 2, md: 3 }}
+            py={{ base: '1.5rem', md: '2rem' }}
             {...props}
         >
             {buttonText}

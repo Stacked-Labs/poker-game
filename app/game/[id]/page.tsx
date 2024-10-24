@@ -7,6 +7,7 @@ import { useContext } from 'react';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Player } from '@/app/interfaces';
+import { Flex } from '@chakra-ui/react';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
     const socket = useContext(SocketContext);
@@ -36,7 +37,11 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
         sendLog(socket, `Joined table ${tableId}`);
     }
 
-    return <Table players={players} setPlayers={setPlayers} />;
+    return (
+        <Flex flex={1}>
+            <Table players={players} setPlayers={setPlayers} />
+        </Flex>
+    );
 };
 
 export default MainGamePage;

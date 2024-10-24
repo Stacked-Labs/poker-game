@@ -1,11 +1,12 @@
 import { extendTheme } from '@chakra-ui/react';
 
 const breakpoints = {
-    xs: '450px',
-    sm: '770px',
-    md: '1290px',
-    lg: '1500px',
-};
+    sm: "30em",
+    md: "48em",
+    lg: "62em",
+    xl: "80em",
+    "2xl": "96em",
+}
 
 const tokens = {
     colors: {

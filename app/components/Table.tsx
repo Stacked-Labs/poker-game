@@ -31,7 +31,8 @@ const templateGridSmall = `"a one b"
                         "four d five"
                         "felt felt felt"
                         "six e seven"
-                        "eight current nine"`;
+                        "eight f nine"
+                        "g current h"`;
 
 function getWinner(game: GameType) {
     const winnerNum = game.pots[game.pots.length - 1].winningPlayerNums[0];
@@ -109,13 +110,12 @@ const Table = ({ players, setPlayers }: tableProps) => {
     }, [game?.pots]);
 
     return (
-        <Flex w={'100%'} h={'100%'}>
+        <Flex flex={1}>
             <Flex
                 mx={'auto'}
-                position="relative"
                 justifyContent={'center'}
                 alignItems={'center'}
-                aspectRatio={shouldRotate ? '9 / 12' : '16 / 9'}
+                aspectRatio={shouldRotate ? '9 / 14' : '16 / 9'}
                 backgroundImage={
                     !shouldRotate
                         ? '/table-horizontal.png'
@@ -123,27 +123,28 @@ const Table = ({ players, setPlayers }: tableProps) => {
                 }
                 backgroundRepeat="no-repeat"
                 backgroundPosition="center"
-                backgroundSize={'contain'}
+                backgroundSize={shouldRotate ? '85%' : 'contain'}
+                maxWidth={'100vw'}
             >
                 <Grid
                     templateAreas={
                         !shouldRotate ? templateGridLarge : templateGridSmall
                     }
                     gridTemplateRows={
-                        !shouldRotate ? 'repeat(4, 1fr)' : 'repeat(6, 1fr)'
+                        !shouldRotate ? 'repeat(4, 1fr)' : 'repeat(7, 1fr)'
                     }
                     gridTemplateColumns={
                         !shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'
                     }
                     gap={4}
                     h={'100%'}
-                    w={['90%', '100%']}
+                    flex={1}
                     placeItems="center"
                     justifyContent={'center'}
-                    position={'absolute'}
                 >
                     {seatIndices.map((gridIndex: string, index: number) => {
                         const player: Player | null = players[index];
+                        const seatId = index + 1;
                         return (
                             <GridItem
                                 key={index}
@@ -152,12 +153,19 @@ const Table = ({ players, setPlayers }: tableProps) => {
                                 display={'flex'}
                                 h={'100%'}
                                 justifyContent={'center'}
+                                alignItems={
+                                    seatId == 1
+                                        ? 'end'
+                                        : seatId == 10
+                                          ? 'top'
+                                          : 'center'
+                                }
                             >
                                 {player && player !== null ? (
                                     <TakenSeatButton player={player} />
                                 ) : (
                                     <EmptySeatButton
-                                        seatId={index + 1}
+                                        seatId={seatId}
                                         disabled={false}
                                     />
                                 )}

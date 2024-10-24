@@ -1,15 +1,7 @@
 'use client';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Player } from '@/app/interfaces';
-import {
-    Flex,
-    Button,
-    Text,
-    Box,
-    CloseButton,
-    HStack,
-    VStack,
-} from '@chakra-ui/react';
+import { Flex, Button, Text, Box, VStack } from '@chakra-ui/react';
 import React, { useContext } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import { GiBootKick } from 'react-icons/gi';
@@ -27,13 +19,17 @@ const PlayerList = () => {
                             <Flex
                                 key={index}
                                 alignItems={'center'}
-                                gap={20}
-                                width={'70%'}
+                                gap={{ base: 0, lg: 10 }}
+                                width={{ base: '90vw', md: '70%' }}
                                 borderColor={'grey'}
                                 borderWidth={2}
                                 borderRadius={10}
-                                paddingX={10}
-                                paddingY={5}
+                                paddingX={{ base: 5, md: 10 }}
+                                paddingY={{ base: 2, md: 5 }}
+                                direction={{
+                                    base: 'column',
+                                    lg: 'row',
+                                }}
                             >
                                 <Flex
                                     flex={3}
@@ -42,9 +38,29 @@ const PlayerList = () => {
                                     textAlign={'left'}
                                     gap={40}
                                 >
-                                    <Box flex={2}>
-                                        <Flex justifyContent={'space-between'}>
-                                            <Flex gap={2}>
+                                    <Flex
+                                        gap={{ base: 2, xl: 5 }}
+                                        flex={2}
+                                        direction={{
+                                            base: 'column',
+                                            xl: 'row',
+                                        }}
+                                    >
+                                        <Flex
+                                            justifyContent={'space-between'}
+                                            direction={{
+                                                base: 'column',
+                                                xl: 'row',
+                                            }}
+                                            gap={{ base: 2, xl: 5 }}
+                                        >
+                                            <Flex
+                                                gap={{ base: 2, xl: 5 }}
+                                                direction={{
+                                                    base: 'column',
+                                                    xl: 'row',
+                                                }}
+                                            >
                                                 <Text
                                                     fontSize={'xl'}
                                                     fontWeight={'black'}
@@ -75,6 +91,10 @@ const PlayerList = () => {
                                         <Flex
                                             gap={4}
                                             justifyContent={'space-between'}
+                                            direction={{
+                                                base: 'column',
+                                                xl: 'row',
+                                            }}
                                         >
                                             <Text>
                                                 Seat:{' '}
@@ -95,10 +115,13 @@ const PlayerList = () => {
                                                 </Text>
                                             </Text>
                                         </Flex>
-                                    </Box>
+                                    </Flex>
                                 </Flex>
 
-                                <Flex gap={10}>
+                                <Flex
+                                    gap={{ base: 5, lg: 10 }}
+                                    py={{ base: 5, lg: 0 }}
+                                >
                                     <Button
                                         flex={1}
                                         gap={3}

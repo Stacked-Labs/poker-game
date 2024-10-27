@@ -45,7 +45,8 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
 
     return (
         <Flex
-            width={'80%'}
+            width={{ base: 100, lg: 150, '2xl': 250 }}
+            height={'100%'}
             position={'relative'}
             alignItems={'center'}
             justifyContent={'center'}

@@ -38,7 +38,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     }
 
     return (
-        <Flex flex={1}>
+        <Flex flex={1} justifyContent={'center'}>
             <Table players={players} setPlayers={setPlayers} />
         </Flex>
     );

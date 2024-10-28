@@ -2,7 +2,7 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import Navbar from '@/app/components/NavBar';
-import { Box, CircularProgress, Flex } from '@chakra-ui/react';
+import { CircularProgress, Flex } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 
@@ -63,15 +63,12 @@ const GameLayout: React.FC = ({
             direction="column"
             w="100vw"
             h="100vh"
-            position="relative"
             zIndex="auto"
             transformOrigin="center center"
             bg={'gray.200'}
         >
             <Navbar />
-            <Box height={'100%'} position={'relative'}>
-                {children}
-            </Box>
+            {children}
             <Footer />
         </Flex>
     );

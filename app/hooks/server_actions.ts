@@ -112,7 +112,11 @@ export function playerFold(socket: WebSocket) {
     );
 }
 
-export async function authenticateUser(address: string, signature: string, message: string) {
+export async function authenticateUser(
+    address: string,
+    signature: string,
+    message: string
+) {
     console.log('Authenticating user with address:', address);
     console.log('Signature:', signature);
     console.log('Message:', message);
@@ -123,6 +127,7 @@ export async function authenticateUser(address: string, signature: string, messa
 
     const response = await fetch(`${backendUrl}/auth`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
         },

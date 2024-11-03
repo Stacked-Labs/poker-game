@@ -108,155 +108,8 @@ const RaiseInputBox = ({
         }
     };
 
-    return (
-        <>
-            <Box
-                bg={'charcoal.800'}
-                width={'fit-content'}
-                textAlign={'center'}
-                rounded={'lg'}
-                px={0.5}
-                flex={1}
-            >
-                <Text whiteSpace={'nowrap'} p={1} fontSize={'sm'}>
-                    Your Bet
-                </Text>
-                <Input
-                    bg={'charcoal.600'}
-                    border={'white'}
-                    fontSize={'xl'}
-                    mb={1}
-                    type="number"
-                    value={inputValue}
-                    min={minRaise}
-                    max={maxRaise}
-                    onChange={handleInputChange}
-                    focusBorderColor={'gray.300'}
-                    textAlign={'center'}
-                    onBlur={handleInputOnBlur}
-                />
-            </Box>
-            <Flex
-                flexDirection={'column'}
-                bg={'charcoal.800'}
-                rounded={'lg'}
-                flex={1}
-                justifyContent={'space-between'}
-                height={'100%'}
-                overflow={'hdden'}
-            >
-                <Flex flex={1} gap={2} p={2}>
-                    <Button
-                        variant={'raiseActionButton'}
-                        onClick={() =>
-                            setInputValue(
-                                betValidator(
-                                    minRaise,
-                                    minRaise,
-                                    currentStack + currentBet
-                                )
-                            )
-                        }
-                    >
-                        Min
-                    </Button>
-                    <Button
-                        variant={'raiseActionButton'}
-                        onClick={() =>
-                            setInputValue(
-                                betValidator(
-                                    half,
-                                    minRaise,
-                                    currentStack + currentBet
-                                )
-                            )
-                        }
-                    >
-                        1/2 Pot
-                    </Button>
-                    <Button
-                        variant={'raiseActionButton'}
-                        onClick={() =>
-                            setInputValue(
-                                betValidator(
-                                    threeQuarter,
-                                    minRaise,
-                                    currentStack + currentBet
-                                )
-                            )
-                        }
-                    >
-                        3/4 Pot
-                    </Button>
-                    <Button
-                        variant={'raiseActionButton'}
-                        onClick={() =>
-                            setInputValue(
-                                betValidator(
-                                    full,
-                                    minRaise,
-                                    currentStack + currentBet
-                                )
-                            )
-                        }
-                    >
-                        Pot
-                    </Button>
-                    <Button
-                        variant={'raiseActionButton'}
-                        onClick={() =>
-                            setInputValue(
-                                betValidator(
-                                    allIn,
-                                    minRaise,
-                                    currentStack + currentBet
-                                )
-                            )
-                        }
-                    >
-                        All In
-                    </Button>
-                </Flex>
-                <Flex
-                    alignItems={'center'}
-                    flex={1}
-                    bg={'charcoal.600'}
-                    roundedBottom={'lg'}
-                    overflow={'hidden'}
-                >
-                    <Flex
-                        bg={'charcoal.400'}
-                        height={'100%'}
-                        alignItems={'center'}
-                        p={1}
-                    >
-                        <LuMinus />
-                    </Flex>
-                    <Slider
-                        aria-label="slider-ex-1"
-                        marginX={3}
-                        defaultValue={0}
-                        value={sliderValue}
-                        max={maxRaise}
-                        min={minRaise}
-                        onChange={(value: number) => handleSliderChange(value)}
-                        isDisabled={!action}
-                    >
-                        <SliderTrack>
-                            <SliderFilledTrack />
-                        </SliderTrack>
-                        <SliderThumb />
-                    </Slider>
-                    <Flex
-                        bg={'charcoal.400'}
-                        height={'100%'}
-                        alignItems={'center'}
-                        p={1}
-                    >
-                        <LuPlus />
-                    </Flex>
-                </Flex>
-            </Flex>
+    const actionButtons = () => {
+        return (
             <Flex flex={1} gap={2}>
                 <ActionButton
                     text={'Back'}
@@ -279,7 +132,183 @@ const RaiseInputBox = ({
                     }
                 />
             </Flex>
-        </>
+        );
+    };
+
+    return (
+        <Flex
+            gap={2}
+            direction={{ base: 'column', md: 'row' }}
+            alignItems={'center'}
+        >
+            <Flex
+                direction={{
+                    base: 'column-reverse',
+                    md: 'column-reverse',
+                    lg: 'row',
+                }}
+                gap={2}
+            >
+                <Flex gap={2} justifyContent={{ base: 'end' }}>
+                    <Box
+                        bg={'charcoal.800'}
+                        width={'fit-content'}
+                        textAlign={'center'}
+                        rounded={'lg'}
+                        px={1}
+                        flex={1}
+                        height={'100%'}
+                    >
+                        <Text whiteSpace={'nowrap'} p={1} fontSize={'sm'}>
+                            Your Bet
+                        </Text>
+                        <Input
+                            bg={'charcoal.600'}
+                            border={'white'}
+                            fontSize={{ base: 'small', md: 'xl' }}
+                            mb={1}
+                            type="number"
+                            value={inputValue}
+                            min={minRaise}
+                            max={maxRaise}
+                            onChange={handleInputChange}
+                            focusBorderColor={'gray.300'}
+                            textAlign={'center'}
+                            onBlur={handleInputOnBlur}
+                        />
+                    </Box>
+                    <Box display={{ base: 'inline-flex', lg: 'none' }} flex={2}>
+                        {actionButtons()}
+                    </Box>
+                </Flex>
+                <Flex
+                    flexDirection={'column'}
+                    bg={'charcoal.800'}
+                    rounded={'lg'}
+                    flex={1}
+                    justifyContent={'center'}
+                    overflow={'hdden'}
+                    maxW={'95vw'}
+                >
+                    <Flex flex={1} gap={2} p={2}>
+                        <Button
+                            variant={'raiseActionButton'}
+                            onClick={() =>
+                                setInputValue(
+                                    betValidator(
+                                        minRaise,
+                                        minRaise,
+                                        currentStack + currentBet
+                                    )
+                                )
+                            }
+                        >
+                            Min
+                        </Button>
+                        <Button
+                            variant={'raiseActionButton'}
+                            onClick={() =>
+                                setInputValue(
+                                    betValidator(
+                                        half,
+                                        minRaise,
+                                        currentStack + currentBet
+                                    )
+                                )
+                            }
+                        >
+                            1/2 Pot
+                        </Button>
+                        <Button
+                            variant={'raiseActionButton'}
+                            onClick={() =>
+                                setInputValue(
+                                    betValidator(
+                                        threeQuarter,
+                                        minRaise,
+                                        currentStack + currentBet
+                                    )
+                                )
+                            }
+                        >
+                            3/4 Pot
+                        </Button>
+                        <Button
+                            variant={'raiseActionButton'}
+                            onClick={() =>
+                                setInputValue(
+                                    betValidator(
+                                        full,
+                                        minRaise,
+                                        currentStack + currentBet
+                                    )
+                                )
+                            }
+                        >
+                            Pot
+                        </Button>
+                        <Button
+                            variant={'raiseActionButton'}
+                            onClick={() =>
+                                setInputValue(
+                                    betValidator(
+                                        allIn,
+                                        minRaise,
+                                        currentStack + currentBet
+                                    )
+                                )
+                            }
+                        >
+                            All In
+                        </Button>
+                    </Flex>
+                    <Flex
+                        alignItems={'center'}
+                        flex={1}
+                        bg={'charcoal.600'}
+                        roundedBottom={'lg'}
+                        overflow={'hidden'}
+                    >
+                        <Flex
+                            bg={'charcoal.400'}
+                            height={'100%'}
+                            alignItems={'center'}
+                            p={1}
+                        >
+                            <LuMinus />
+                        </Flex>
+                        <Slider
+                            aria-label="slider-ex-1"
+                            marginX={3}
+                            defaultValue={0}
+                            value={sliderValue}
+                            max={maxRaise}
+                            min={minRaise}
+                            onChange={(value: number) =>
+                                handleSliderChange(value)
+                            }
+                            isDisabled={!action}
+                        >
+                            <SliderTrack>
+                                <SliderFilledTrack />
+                            </SliderTrack>
+                            <SliderThumb />
+                        </Slider>
+                        <Flex
+                            bg={'charcoal.400'}
+                            height={'100%'}
+                            alignItems={'center'}
+                            p={1}
+                        >
+                            <LuPlus />
+                        </Flex>
+                    </Flex>
+                </Flex>
+            </Flex>
+            <Box display={{ base: 'none', lg: 'inline-flex' }}>
+                {actionButtons()}
+            </Box>
+        </Flex>
     );
 };
 

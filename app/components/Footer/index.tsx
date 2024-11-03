@@ -75,7 +75,11 @@ const Footer = () => {
             height={180}
             overflow={'hidden'}
         >
-            <Flex gap={2} alignItems={'center'}>
+            <Flex
+                gap={2}
+                alignItems={'center'}
+                width={{ base: '100%', md: 'fit-content' }}
+            >
                 {showRaise ? (
                     <RaiseInputBox
                         action={action}

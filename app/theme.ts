@@ -195,7 +195,7 @@ const components = {
                 },
             },
             raiseActionButton: {
-                fontSize: 'xs',
+                fontSize: { base: '10px', md: 'sm', lg: 'md' },
                 width: '80px',
                 height: 'fit-content',
             },

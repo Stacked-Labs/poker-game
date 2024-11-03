@@ -19,10 +19,18 @@ const ActionButton = ({
             color={`${color}.500`}
             borderColor={`${color}.500`}
             borderBottomWidth={4}
-            padding={8}
+            padding={{ sm: 2, md: 8 }}
             textTransform={'uppercase'}
             onClick={clickHandler}
             isDisabled={isDisabled}
+            fontSize={{
+                base: '15px',
+                md: 'medium',
+                lg: 'large',
+                xl: 'large',
+                '2xl': 'large',
+            }}
+            flex={1}
         >
             {text}
         </Button>

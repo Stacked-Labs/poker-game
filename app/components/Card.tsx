@@ -79,7 +79,7 @@ const Card = ({ card, hidden }: { card: string; hidden: boolean }) => {
                 <Image
                     alt={`Hidden card`}
                     src={cardBack}
-                    width={'100%'}
+                    width={{ base: '100%', md: '90%' }}
                     style={{ objectFit: 'contain' }}
                 />
             </Flex>
@@ -91,7 +91,7 @@ const Card = ({ card, hidden }: { card: string; hidden: boolean }) => {
             <Image
                 alt={`Card ${cardString}`}
                 src={cardPhoto}
-                width={'100%'}
+                width={{ base: '100%', lg: '90%' }}
                 style={{ objectFit: 'contain' }}
             />
         </Flex>

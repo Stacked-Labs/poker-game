@@ -24,16 +24,58 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
             >;
         };
     } = {
-        1: { bottom: '-25%', flexDirection: 'row' },
-        2: { bottom: '-25%', flexDirection: 'row' },
-        3: { bottom: '-25%', flexDirection: 'row' },
-        4: { right: '-25%', flexDirection: 'column' },
-        5: { left: '-25%', flexDirection: 'column' },
-        6: { right: '-25%', flexDirection: 'column' },
-        7: { left: '-25%', flexDirection: 'column' },
-        8: { top: '-20%', flexDirection: 'row' },
-        9: { top: '-20%', flexDirection: 'row' },
-        10: { top: '-20%', flexDirection: 'row' },
+        1: {
+            bottom: { base: '-70%', md: '-35%', '2xl': '-30%' },
+            flexDirection: { base: 'column', md: 'row' },
+            alignItems: { base: 'center', md: 'start' },
+        },
+        2: {
+            bottom: { base: '0%', md: '-35%', '2xl': '-30%' },
+            right: { base: '-110%', md: '0', '2xl': '0' },
+            flexDirection: { base: 'column', md: 'row' },
+        },
+        3: {
+            bottom: { base: '0%', md: '-35%', '2xl': '-30%' },
+            left: { base: '-110%', md: '0', '2xl': '0' },
+            flexDirection: { base: 'column', md: 'row' },
+            alignItems: { base: 'end', md: 'start' },
+        },
+        4: {
+            top: { base: '0%', md: '40%', lg: '30%' },
+            right: { base: '-105%', md: '-110%', lg: '-110%' },
+            flexDirection: { base: 'column', md: 'row' },
+        },
+        5: {
+            top: { base: '0%', md: '40%', lg: '30%' },
+            left: { base: '-110%', md: '-110%', lg: '-110%' },
+            flexDirection: { base: 'column', md: 'row-reverse' },
+            alignItems: { base: 'end', md: 'start' },
+        },
+        6: {
+            bottom: { base: '0%', md: '40%', lg: '23%' },
+            right: { base: '-110%', md: '-110%', lg: '-110%' },
+            flexDirection: { base: 'column', md: 'row' },
+        },
+        7: {
+            bottom: { base: '0%', md: '40%', lg: '23%' },
+            left: { base: '-110%', md: '-110%', lg: '-110%' },
+            flexDirection: { base: 'column', md: 'row-reverse' },
+            alignItems: { base: 'end', md: 'start' },
+        },
+        8: {
+            top: { base: '0%', md: '-25%', '2xl': '-28%' },
+            right: { base: '-110%', md: '0', '2xl': '0' },
+            flexDirection: { base: 'column', md: 'row' },
+        },
+        9: {
+            top: { base: '0%', md: '-25%', '2xl': '-28%' },
+            left: { base: '-110%', md: '0', '2xl': '0' },
+            flexDirection: { base: 'column', md: 'row' },
+            alignItems: { base: 'end', md: 'start' },
+        },
+        10: {
+            top: { base: '-45%', md: '-25%', '2xl': '-28%' },
+        },
     };
 
     const defaultPosition = { top: '100%', flexDirection: 'row' };
@@ -42,6 +84,8 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
     if (!appState.game) {
         return null;
     }
+
+    player.cards.map((c) => console.log(c));
 
     return (
         <Flex
@@ -53,44 +97,44 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
         >
             <Flex
                 position={'absolute'}
-                gap={1}
                 key="betbox"
-                alignItems={'center'}
                 {...chipPosition}
+                width={'100%'}
+                gap={2}
             >
                 {appState.game.running &&
                     appState.game.dealer == player.position && (
                         <Text
-                            mx={3}
-                            my={3}
-                            h="1.75rem"
-                            w="2rem"
+                            fontWeight="semibold"
+                            display="inline-flex"
                             alignItems="center"
                             justifyContent="center"
-                            borderRadius="50%"
+                            borderRadius="full"
                             bg="white"
-                            color="purple.800"
-                            fontSize="xl"
-                            fontWeight="bold"
-                            display="flex"
+                            color="black"
+                            width={{ base: 4, md: 6, lg: 6, xl: 6, '2xl': 8 }}
+                            height={{ base: 4, md: 6, lg: 6, xl: 6, '2xl': 8 }}
+                            variant={'seatText'}
+                            zIndex={3}
                         >
                             D
                         </Text>
                     )}
                 {player.bet !== 0 && (
                     <Text
-                        className="flex items-center justify-center"
-                        h="2rem"
-                        w="3rem"
                         borderRadius="1.5rem"
+                        px={4}
+                        py={1}
+                        w={'fit-content'}
                         bg="amber.300"
-                        fontSize="xl"
                         fontWeight="semibold"
                         color="zinc.900"
                         display="flex"
                         alignItems="center"
                         justifyContent="center"
                         backgroundColor={'gray'}
+                        variant={'seatText'}
+                        zIndex={3}
                     >
                         {player.bet}
                     </Text>
@@ -113,26 +157,30 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 direction={'column'}
                 bg={'gray.50'}
                 borderRadius={12}
-                width={'100%'}
-                paddingX={3}
+                width={'110%'}
+                paddingX={4}
                 paddingY={1}
-                height={'70px'}
                 zIndex={2}
                 justifySelf={'flex-end'}
                 justifyContent={'center'}
                 alignItems={'center'}
                 alignSelf={'flex-end'}
-                mb={2}
             >
                 <HStack spacing={2}>
-                    <Text fontWeight={'bold'} color={'gray.300'}>
+                    <Text
+                        variant={'seatText'}
+                        fontWeight={'bold'}
+                        color={'gray.300'}
+                    >
                         {player.username}
                     </Text>
-                    <Text fontSize={'14px'} color={'gray.300'}>
+                    <Text variant={'seatText'} color={'gray.300'}>
                         {shortEthAddress}
                     </Text>
                 </HStack>
-                <Text color={'gray.300'}>{player.stack}</Text>
+                <Text color={'gray.300'} variant={'seatText'}>
+                    {player.stack}
+                </Text>
             </Flex>
         </Flex>
     );

@@ -157,6 +157,15 @@ const components = {
             secondary: {
                 color: 'text-secondary',
             },
+            seatText: {
+                fontSize: {
+                    base: '10px',
+                    md: 'smaller',
+                    lg: 'small',
+                    xl: 'medium',
+                    '2xl': 'large',
+                }
+            }
         },
     },
     Button: {

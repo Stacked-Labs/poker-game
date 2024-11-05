@@ -50,10 +50,10 @@ const Pot = () => {
                                 key={index}
                                 justifyContent={'center'}
                             >
-                                <Flex position={'relative'}>
+                                <Flex position={'relative'} gap={1}>
                                     <Flex
                                         position={'absolute'}
-                                        top={-5}
+                                        top={{ base: -3, lg: -4, '2xl': -6 }}
                                         right={-2}
                                     >
                                         {game.pots[index] &&
@@ -64,12 +64,24 @@ const Pot = () => {
                                                 paddingX={'2'}
                                                 borderRadius={99999}
                                             >
-                                                <Text fontSize={'small'}>
+                                                <Text
+                                                    fontSize={{
+                                                        base: '8px',
+                                                        md: '10px',
+                                                        xl: 'small',
+                                                        '2xl': 'medium',
+                                                    }}
+                                                >
                                                     total{' '}
                                                     <Text
                                                         as={'span'}
                                                         fontWeight={'medium'}
-                                                        fontSize={'large'}
+                                                        fontSize={{
+                                                            base: '10px',
+                                                            md: 'small',
+                                                            xl: 'medium',
+                                                            '2xl': 'large',
+                                                        }}
                                                     >
                                                         {
                                                             game.pots[index]
@@ -84,7 +96,12 @@ const Pot = () => {
                                     </Flex>
                                     <Box paddingX={'16'}>
                                         <Text
-                                            fontSize={'2xl'}
+                                            fontSize={{
+                                                base: '10px',
+                                                md: 'medium',
+                                                xl: 'xl',
+                                                '2xl': '2xl',
+                                            }}
                                             fontWeight={'bolder'}
                                         >
                                             {pot.amount}

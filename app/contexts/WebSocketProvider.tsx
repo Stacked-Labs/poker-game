@@ -110,6 +110,10 @@ export function SocketProvider(props: SocketProviderProps) {
                         });
                         return;
                     }
+                    case 'error':
+                        // Handle error
+                        alert(`Error ${event.code}: ${event.message}`);
+                        break;
                     default: {
                         console.warn(`Unhandled action type: ${event.action}`);
                         return;

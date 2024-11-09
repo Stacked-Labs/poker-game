@@ -61,6 +61,14 @@ const Navbar = () => {
 
                 <SettingsModal isOpen={isOpen} onClose={onClose} />
             </Flex>
+            <Flex
+                height={'100vh'}
+                width={'100vw'}
+                position={'absolute'}
+                zIndex={999}
+                onClick={onToggleChat}
+                display={isOpenChat ? 'block' : 'none'}
+            ></Flex>
             <SideBarChat isOpen={isOpenChat} onToggle={onToggleChat} />
         </>
     );

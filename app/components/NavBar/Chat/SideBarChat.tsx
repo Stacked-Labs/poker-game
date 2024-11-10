@@ -2,6 +2,7 @@ import { Box, Flex, IconButton, useMediaQuery } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import Chatbox from './ChatBox';
 import { FaChevronRight, FaChevronLeft } from 'react-icons/fa';
+import { IoClose } from 'react-icons/io5';
 
 const SideBarChat = ({
     isOpen,
@@ -14,6 +15,7 @@ const SideBarChat = ({
 
     return (
         <Flex
+            direction={'column'}
             as={motion.div}
             initial={false}
             animate={{
@@ -28,22 +30,7 @@ const SideBarChat = ({
             bgColor={'gray.200'}
             zIndex={1000}
         >
-            {isOpen && (
-                <>
-                    <IconButton
-                        onClick={onToggle}
-                        icon={isOpen ? <FaChevronRight /> : <FaChevronLeft />}
-                        aria-label={'Close Chat Box'}
-                        border={'none'}
-                        height={{ base: 'fit-content', sm: '100%' }}
-                        color={'lightGray'}
-                        _hover={{ background: 'none' }}
-                        _active={{ background: 'none', outline: 'none' }}
-                        _focus={{ outline: 'none', boxShadow: 'none' }}
-                    />
-                    <Chatbox />
-                </>
-            )}
+            <Chatbox onToggle={onToggle} />
         </Flex>
     );
 };

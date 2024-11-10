@@ -36,6 +36,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                 paddingX={3}
                 aria-label={'Close Chat Box'}
                 border={'none'}
+                fontSize={'3xl'}
                 color={'lightGray'}
                 justifyContent={'start'}
                 _hover={{ background: 'none' }}
@@ -77,7 +78,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                     variant="solid"
                     border={'none'}
                     _hover={{ color: 'themeColor' }}
-                    fontSize={'2xl'}
+                    fontSize={'3xl'}
                     disabled={username === null || username === ''}
                 />
             </Box>

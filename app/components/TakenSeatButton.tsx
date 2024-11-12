@@ -154,6 +154,8 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                                 <CardComponent
                                     card={card}
                                     hidden={appState.clientID !== player.uuid}
+                                    placeholder={false}
+                                    folded={false}
                                 />
                             </Box>
                         );

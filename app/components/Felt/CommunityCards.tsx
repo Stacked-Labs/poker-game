@@ -12,30 +12,26 @@ const CommunityCards = () => {
 
     if (communityCards && isGameStarted) {
         return (
-            <Flex justifyContent={'center'}>
-                <Flex width={'80%'} gap={3}>
-                    {cards.map((num, i) => (
-                        <Box key={i}>
-                            <div key={i} className="m-0.5">
-                                {appState.game?.communityCards[num] ? (
-                                    <CardComponent
-                                        card={appState.game.communityCards[num]}
-                                        placeholder={false}
-                                        folded={false}
-                                        hidden={false}
-                                    />
-                                ) : (
-                                    <CardComponent
-                                        card="placeholder"
-                                        placeholder={true}
-                                        folded={false}
-                                        hidden={false}
-                                    />
-                                )}
-                            </div>
-                        </Box>
-                    ))}
-                </Flex>
+            <Flex width={'100%'} height={'100%'} gap={3}>
+                {cards.map((num, i) => (
+                    <Box key={i} flex={1}>
+                        {appState.game?.communityCards[num] ? (
+                            <CardComponent
+                                card={appState.game.communityCards[num]}
+                                placeholder={false}
+                                folded={false}
+                                hidden={false}
+                            />
+                        ) : (
+                            <CardComponent
+                                card="placeholder"
+                                placeholder={true}
+                                folded={false}
+                                hidden={false}
+                            />
+                        )}
+                    </Box>
+                ))}
             </Flex>
         );
     }

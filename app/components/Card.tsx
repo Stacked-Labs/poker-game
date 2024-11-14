@@ -75,12 +75,60 @@ const getCardPhoto = (card: string) => {
     return `/cards/png/${rankStr}_of_${suitStr}.png`;
 };
 
+const CardBack = ({ folded }: { folded: boolean }) => {
+    const cardPhotoBack = '/cards/png/back_of_card.png';
+
+    return (
+        <Box width={'100%'} height={'100%'} position={'relative'}>
+            <Image
+                position={'absolute'}
+                alt={`Card Back`}
+                src={cardPhotoBack}
+                width={'100%'}
+                height="100%"
+                sx={{
+                    objectFit: 'contain',
+                    filter: folded ? 'brightness(50%)' : 'none',
+                }}
+                draggable="false"
+                zIndex={1}
+            />
+        </Box>
+    );
+};
+
+const CardFront = ({
+    cardString,
+    cardPhoto,
+    folded,
+}: {
+    cardString: string;
+    cardPhoto: string;
+    folded: boolean;
+}) => {
+    return (
+        <>
+            <Image
+                position={'absolute'}
+                alt={`Card Front ${cardString}`}
+                src={cardPhoto}
+                width={'100%'}
+                height="100%"
+                draggable="false"
+                style={{
+                    objectFit: 'contain',
+                    transform: 'rotateY(180deg)',
+                    filter: folded ? 'brightness(50%)' : 'none',
+                }}
+            />
+        </>
+    );
+};
+
 const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
     const [isFlipped, setIsFlipped] = useState(false);
     const cardString = cardToString(card);
     const cardPhoto = getCardPhoto(cardString);
-
-    const cardBack = '/cards/png/back_of_card.png';
 
     useEffect(() => {
         if (!placeholder && !hidden && !folded) {
@@ -88,76 +136,19 @@ const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
         }
     }, [placeholder, hidden, folded]);
 
-    if (placeholder) {
-        return (
-            <Flex justifyContent={'center'} width={'100%'} height={'100%'}>
-                <Image
-                    alt={`Card ${cardString}`}
-                    src={cardBack}
-                    width={'100%'}
-                    style={{ objectFit: 'contain' }}
-                    opacity={0}
-                />
-            </Flex>
-        );
-    }
-
     if (cardString == '2\u0000' || card == '0') {
         return null;
     }
 
     if (hidden) {
-        if (folded) {
-            return (
-                <Flex justifyContent={'center'}>
-                    <Flex position={'absolute'}></Flex>
-                    <Image
-                        alt={`Card ${cardString}`}
-                        src={cardPhoto}
-                        width={'100%'}
-                        style={{ objectFit: 'contain' }}
-                    />
-                </Flex>
-            );
-        }
-        return (
-            <Flex justifyContent={'center'}>
-                <Image
-                    alt={`Hidden card`}
-                    src={cardBack}
-                    width={{ base: '100%', md: '90%' }}
-                    style={{ objectFit: 'contain' }}
-                />
-            </Flex>
-        );
-    }
-
-    if (folded) {
-        return (
-            <Flex justifyContent={'center'}>
-                <Image
-                    alt={`Card ${cardString}`}
-                    src={cardPhoto}
-                    width={'100%'}
-                    style={{ objectFit: 'contain' }}
-                    position={'relative'}
-                />
-                <Flex
-                    position={'absolute'}
-                    width={'100%'}
-                    height={'100%'}
-                    bg={'grey'}
-                    opacity={0.5}
-                ></Flex>
-            </Flex>
-        );
+        <CardBack folded={folded} />;
     }
 
     return (
         <Flex
             justifyContent="center"
             position="relative"
-            cursor="pointer"
+            cursor={placeholder ? 'pointer' : 'default'}
             sx={{
                 perspective: '500px',
                 '& > div': {
@@ -167,6 +158,7 @@ const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
             }}
             width={'100%'}
             height={'100%'}
+            opacity={placeholder ? 0 : 1}
         >
             <Box
                 width={'100%'}
@@ -186,31 +178,13 @@ const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
                         backfaceVisibility: 'hidden',
                     }}
                 >
-                    <Image
-                        position={'absolute'}
-                        alt={`Card Back ${cardString}`}
-                        src={cardBack}
-                        width={'100%'}
-                        height="100%"
-                        sx={{
-                            objectFit: 'contain',
-                        }}
-                        draggable="false"
-                        zIndex={1}
-                    />
+                    <CardBack folded={folded} />
                 </Box>
                 <Box position={'absolute'} width="100%" height="100%">
-                    <Image
-                        position={'absolute'}
-                        alt={`Card Front ${cardString}`}
-                        src={cardPhoto}
-                        width={'100%'}
-                        height="100%"
-                        draggable="false"
-                        style={{
-                            objectFit: 'contain',
-                            transform: 'rotateY(180deg)',
-                        }}
+                    <CardFront
+                        cardString={cardString}
+                        cardPhoto={cardPhoto}
+                        folded={folded}
                     />
                 </Box>
             </Box>

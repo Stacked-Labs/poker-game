@@ -146,11 +146,17 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                     </Text>
                 )}
             </Flex>
-            <Flex position={'absolute'} justifyContent={'center'} gap={1}>
+            <Flex
+                position={'absolute'}
+                justifyContent={'center'}
+                width={'100%'}
+                height={'100%'}
+                gap={1}
+            >
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
                         return (
-                            <Box width={'50%'} aspectRatio={1 / 1} key={index}>
+                            <Box flex={1} key={index}>
                                 <CardComponent
                                     card={card}
                                     hidden={appState.clientID !== player.uuid}

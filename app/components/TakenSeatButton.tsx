@@ -161,7 +161,7 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                                     card={card}
                                     hidden={appState.clientID !== player.uuid}
                                     placeholder={false}
-                                    folded={false}
+                                    folded={!player.in}
                                 />
                             </Box>
                         );

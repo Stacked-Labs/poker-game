@@ -131,17 +131,19 @@ const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
     const cardPhoto = getCardPhoto(cardString);
 
     useEffect(() => {
-        if (!placeholder && !hidden && !folded) {
-            setTimeout(() => setIsFlipped(true), 1000);
+        setIsFlipped(false);
+
+        if (!placeholder && !hidden) {
+            setTimeout(() => setIsFlipped(true), 300);
         }
-    }, [placeholder, hidden, folded]);
+    }, [card, placeholder, hidden]);
 
     if (cardString == '2\u0000' || card == '0') {
         return null;
     }
 
     if (hidden) {
-        <CardBack folded={folded} />;
+        return <CardBack folded={folded} />;
     }
 
     return (

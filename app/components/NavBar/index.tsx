@@ -13,6 +13,7 @@ import Web3Button from '../Web3Button';
 import SettingsModal from './Settings/SettingsModal';
 import SideBarChat from './Chat/SideBarChat';
 import StartGameButton from '../StartGameButton';
+import VolumeButton from '../VolumeButton';
 
 const Navbar = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -46,6 +47,7 @@ const Navbar = () => {
                 </HStack>
                 <HStack>
                     <Web3Button />
+                    <VolumeButton />
                     <IconButton
                         icon={
                             <Icon

@@ -19,6 +19,7 @@ export type AppState = {
     clientID: string | null; // might be same as address
     table: string | null;
     game: Game | null;
+    volume: number;
 };
 
 export type Player = {

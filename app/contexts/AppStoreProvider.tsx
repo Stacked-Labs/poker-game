@@ -1,4 +1,4 @@
-import { createContext, useReducer, ReactChild } from 'react';
+import React, { createContext, useReducer, ReactChild, useEffect } from 'react';
 import { AppState, Message, Game, Log } from '@/app/interfaces';
 
 const initialState: AppState = {
@@ -9,6 +9,7 @@ const initialState: AppState = {
     address: null,
     table: null,
     game: null,
+    volume: 1,
 };
 
 type ACTIONTYPE =
@@ -18,7 +19,8 @@ type ACTIONTYPE =
     | { type: 'updateGame'; payload: Game }
     | { type: 'resetGame' }
     | { type: 'updatePlayerID'; payload: string }
-    | { type: 'setTablename'; payload: string };
+    | { type: 'setTablename'; payload: string }
+    | { type: 'setVolume'; payload: number };
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
@@ -36,6 +38,11 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, clientID: action.payload };
         case 'setTablename':
             return { ...state, table: action.payload };
+        case 'setVolume':
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('volume', action.payload.toString());
+            }
+            return { ...state, volume: action.payload };
         default:
             throw new Error();
     }
@@ -44,18 +51,24 @@ function reducer(state: AppState, action: ACTIONTYPE) {
 export const AppContext = createContext<{
     appState: AppState;
     dispatch: React.Dispatch<ACTIONTYPE>;
-}>({ appState: initialState, dispatch: () => null });
+}>({
+    appState: initialState,
+    dispatch: () => null,
+});
 
-type StoreProviderProps = {
-    children: ReactChild;
-};
-
-export function AppStoreProvider(props: StoreProviderProps) {
+export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
     const [appState, dispatch] = useReducer(reducer, initialState);
+
+    useEffect(() => {
+        const storedVolume = localStorage.getItem('volume');
+        if (storedVolume) {
+            dispatch({ type: 'setVolume', payload: parseFloat(storedVolume) });
+        }
+    }, []);
 
     return (
         <AppContext.Provider value={{ appState, dispatch }}>
-            {props.children}
+            {children}
         </AppContext.Provider>
     );
-}
+};

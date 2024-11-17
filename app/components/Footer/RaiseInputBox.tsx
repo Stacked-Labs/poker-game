@@ -11,7 +11,7 @@ import {
     Box,
     Text,
 } from '@chakra-ui/react';
-import React, { ChangeEvent, useContext, useState } from 'react';
+import React, { ChangeEvent, useContext, useState, useEffect } from 'react';
 import { LuMinus, LuPlus } from 'react-icons/lu';
 import ActionButton from './ActionButton';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
@@ -22,10 +22,12 @@ const RaiseInputBox = ({
     action,
     showRaise,
     setShowRaise,
+    raiseSound,
 }: {
     action: boolean;
     showRaise: boolean;
     setShowRaise: React.Dispatch<React.SetStateAction<boolean>>;
+    raiseSound: () => void;
 }) => {
     const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
@@ -59,7 +61,6 @@ const RaiseInputBox = ({
     };
 
     const betValidator = (bet: number, minRaise: number, stack: number) => {
-        console.log('heebbfhbehfbeh');
         if (bet < minRaise) {
             setSliderValue(minRaise);
             return minRaise;
@@ -84,11 +85,12 @@ const RaiseInputBox = ({
 
     const handleSubmitRaise = (user: string | null, amount: number) => {
         if (socket) {
-            const raiseMessage = user + ' bets ' + amount;
+            const raiseMessage = `${user} bets ${amount}`;
             sendLog(socket, raiseMessage);
             playerRaise(socket, amount);
         }
         setShowRaise(!showRaise);
+        raiseSound();
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {

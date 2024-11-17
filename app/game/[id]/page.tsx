@@ -7,7 +7,7 @@ import { useContext } from 'react';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Player } from '@/app/interfaces';
-import { Flex } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
     const socket = useContext(SocketContext);
@@ -38,7 +38,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     }
 
     return (
-        <Flex flex={1} justifyContent={'center'}>
+        <Flex flex={1} justifyContent={'center'} position={'relative'}>
             <Table players={players} setPlayers={setPlayers} />
         </Flex>
     );

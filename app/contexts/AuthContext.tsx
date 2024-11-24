@@ -57,36 +57,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
     const authenticate = useCallback(async () => {
-        if (!isConnected || !address || authToken) return;
+        if (!isConnected || !address) return;
         if (isAuthenticating) return;
 
         setIsAuthenticating(true);
         try {
             const message = `I agree to the following terms and conditions:
-                1. Stacked is not responsible for any funds used on this platform.
-                2. This is a testing phase and the platform may contain bugs or errors.
-                3. I am using this platform at my own risk.
-
-                Signing Address: ${address}
-                Timestamp: ${Date.now()}`;
+            1. Stacked is not responsible for any funds used on this platform.
+            2. This is a testing phase and the platform may contain bugs or errors.
+            3. I am using this platform at my own risk.
+    
+            Signing Address: ${address}
+            Timestamp: ${Date.now()}`;
 
             const signature = await signMessageAsync({ message });
-            const token = await authenticateUser(address, signature, message);
-            console.log('TOKEN', token);
-            setAuthToken(token);
-            setUserAddress(address);
-            localStorage.setItem('authToken', token);
-            localStorage.setItem('address', address);
-            window.dispatchEvent(new Event('authenticationComplete'));
-
-            // Success toast
-            success(
-                'Authentication Successful',
-                'You have been successfully authenticated.'
+            const authResult = await authenticateUser(
+                address,
+                signature,
+                message
             );
+
+            if (authResult) {
+                setUserAddress(address);
+                // Only store the address, not the token
+                localStorage.setItem('address', address);
+                window.dispatchEvent(new Event('authenticationComplete'));
+
+                // Success toast
+                success(
+                    'Authentication Successful',
+                    'You have been successfully authenticated.'
+                );
+            } else {
+                throw new Error('Authentication failed');
+            }
         } catch (err) {
             disconnect();
-            localStorage.removeItem('authToken');
             localStorage.removeItem('address');
             console.error('Authentication failed:', err);
             // Error toast
@@ -101,10 +107,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isConnected,
         address,
         signMessageAsync,
-        authToken,
         isAuthenticating,
         success,
         error,
+        disconnect,
     ]);
 
     // Automatically authenticate if already connected and no token

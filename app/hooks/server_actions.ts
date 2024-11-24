@@ -116,7 +116,7 @@ export async function authenticateUser(
     address: string,
     signature: string,
     message: string
-) {
+): Promise<boolean> {
     console.log('Authenticating user with address:', address);
     console.log('Signature:', signature);
     console.log('Message:', message);
@@ -127,7 +127,7 @@ export async function authenticateUser(
 
     const response = await fetch(`${backendUrl}/auth`, {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include', // This is important for cookies
         headers: {
             'Content-Type': 'application/json',
         },
@@ -139,5 +139,5 @@ export async function authenticateUser(
     }
 
     const data = await response.json();
-    return data.token;
+    return data.success; // Return the success status instead of token
 }

@@ -188,7 +188,7 @@ const Table = ({ players, setPlayers }: tableProps) => {
                         </GridItem>
                     );
                 })}
-                <GridItem height={'fit-content'} width={'90%'} area={'felt'}>
+                <GridItem height={'50%'} width={'90%'} area={'felt'}>
                     <Felt />
                 </GridItem>
             </Grid>

@@ -1,5 +1,13 @@
-import React from 'react';
-import { Flex, Image } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { Box, Flex, Image } from '@chakra-ui/react';
+import { Card as CardType } from '../interfaces';
+
+type cardProps = {
+    card: CardType;
+    placeholder: boolean;
+    folded: boolean;
+    hidden: boolean;
+};
 
 const cardToString = (card: string) => {
     if (card === '?') {
@@ -67,33 +75,121 @@ const getCardPhoto = (card: string) => {
     return `/cards/png/${rankStr}_of_${suitStr}.png`;
 };
 
-const Card = ({ card, hidden }: { card: string; hidden: boolean }) => {
+const CardBack = ({ folded }: { folded: boolean }) => {
+    const cardPhotoBack = '/cards/png/back_of_card.png';
+
+    return (
+        <Box width={'100%'} height={'100%'} position={'relative'}>
+            <Image
+                position={'absolute'}
+                alt={`Card Back`}
+                src={cardPhotoBack}
+                width={'100%'}
+                height="100%"
+                sx={{
+                    objectFit: 'contain',
+                    filter: folded ? 'brightness(50%)' : 'none',
+                }}
+                draggable="false"
+                zIndex={1}
+            />
+        </Box>
+    );
+};
+
+const CardFront = ({
+    cardString,
+    cardPhoto,
+    folded,
+}: {
+    cardString: string;
+    cardPhoto: string;
+    folded: boolean;
+}) => {
+    return (
+        <>
+            <Image
+                position={'absolute'}
+                alt={`Card Front ${cardString}`}
+                src={cardPhoto}
+                width={'100%'}
+                height="100%"
+                draggable="false"
+                style={{
+                    objectFit: 'contain',
+                    transform: 'rotateY(180deg)',
+                    filter: folded ? 'brightness(50%)' : 'none',
+                }}
+            />
+        </>
+    );
+};
+
+const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
+    const [isFlipped, setIsFlipped] = useState(false);
     const cardString = cardToString(card);
     const cardPhoto = getCardPhoto(cardString);
 
-    const cardBack = '/cards/png/back_of_card.png';
+    useEffect(() => {
+        setIsFlipped(false);
+
+        if (!placeholder && !hidden) {
+            setTimeout(() => setIsFlipped(true), 300);
+        }
+    }, [card, placeholder, hidden]);
+
+    if (cardString == '2\u0000' || card == '0') {
+        return null;
+    }
 
     if (hidden) {
-        return (
-            <Flex justifyContent={'center'}>
-                <Image
-                    alt={`Hidden card`}
-                    src={cardBack}
-                    width={{ base: '100%', md: '90%' }}
-                    style={{ objectFit: 'contain' }}
-                />
-            </Flex>
-        );
+        return <CardBack folded={folded} />;
     }
 
     return (
-        <Flex justifyContent={'center'}>
-            <Image
-                alt={`Card ${cardString}`}
-                src={cardPhoto}
-                width={{ base: '100%', lg: '90%' }}
-                style={{ objectFit: 'contain' }}
-            />
+        <Flex
+            justifyContent="center"
+            position="relative"
+            cursor={placeholder ? 'pointer' : 'default'}
+            sx={{
+                perspective: '500px',
+                '& > div': {
+                    transition: 'transform 0.6s',
+                    transformStyle: 'preserve-3d',
+                },
+            }}
+            width={'100%'}
+            height={'100%'}
+            opacity={placeholder ? 0 : 1}
+        >
+            <Box
+                width={'100%'}
+                height={'100%'}
+                position={'relative'}
+                sx={{
+                    transition: 'transform 0.6s',
+                    transformStyle: 'preserve-3d',
+                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                }}
+            >
+                <Box
+                    position={'absolute'}
+                    width="100%"
+                    height="100%"
+                    sx={{
+                        backfaceVisibility: 'hidden',
+                    }}
+                >
+                    <CardBack folded={folded} />
+                </Box>
+                <Box position={'absolute'} width="100%" height="100%">
+                    <CardFront
+                        cardString={cardString}
+                        cardPhoto={cardPhoto}
+                        folded={folded}
+                    />
+                </Box>
+            </Box>
         </Flex>
     );
 };

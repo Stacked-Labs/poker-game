@@ -9,6 +9,7 @@ import {
 import { Message, Game, Log } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import { useAuth } from './AuthContext';
+import useToastHelper from '@/app/hooks/useToastHelper';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -28,6 +29,7 @@ export function SocketProvider(props: SocketProviderProps) {
     const { dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null); // Ref to store WebSocket instance
     const { authToken } = useAuth(); // Consume AuthContext
+    const toast = useToastHelper();
 
     useEffect(() => {
         if (!WS_URL) return;
@@ -49,18 +51,27 @@ export function SocketProvider(props: SocketProviderProps) {
 
             _socket.onopen = () => {
                 console.log('WebSocket connected');
+                toast.success('Connected', 'WebSocket connection established');
             };
 
             _socket.onclose = () => {
                 console.log('WebSocket disconnected');
                 socketRef.current = null;
                 setSocket(null);
+                toast.warning(
+                    'Disconnected',
+                    'WebSocket connection closed. Attempting to reconnect...'
+                );
             };
 
             _socket.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 socketRef.current = null;
                 setSocket(null);
+                toast.error(
+                    'Connection Error',
+                    'Failed to establish WebSocket connection. Please check your internet connection.'
+                );
             };
 
             _socket.onmessage = (e) => {

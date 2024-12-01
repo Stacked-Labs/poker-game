@@ -2,10 +2,10 @@ import {
     Box,
     Flex,
     Text,
-    keyframes,
     VStack,
     useBreakpointValue,
 } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
 import React from 'react';
 import HomeCard from './HomeCard';
 import { Poppins } from 'next/font/google';

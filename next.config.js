@@ -51,5 +51,6 @@ const nextConfig = {
         NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
         PROJECT_ID: process.env.PROJECT_ID,
     },
+    productionBrowserSourceMaps: true,
 };
 module.exports = nextConfig;

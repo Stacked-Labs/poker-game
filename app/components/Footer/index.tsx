@@ -1,7 +1,7 @@
 'use client';
 
 import { Flex } from '@chakra-ui/react';
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import ActionButton from './ActionButton';
 import { AppContext } from '../../contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
@@ -12,34 +12,71 @@ import {
     playerCheck,
     playerFold,
 } from '@/app/hooks/server_actions';
+import useAudio from '@/app/hooks/useAudio';
 
 const Footer = () => {
     const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
     const [showRaise, setShowRaise] = useState<boolean>(false);
 
+    // Initialize audio using useAudio hook
+    const { play: playFlip, setVolume: setVolumeFlip } = useAudio(
+        '/sound/card_flip_1.mp3',
+        appState.volume
+    );
+    const { play: playCheck, setVolume: setVolumeCheck } = useAudio(
+        '/sound/check_1.mp3',
+        appState.volume
+    );
+    const { play: playChips, setVolume: setVolumeChips } = useAudio(
+        '/sound/chips_1.mp3',
+        appState.volume
+    );
+    const { play: playRaise, setVolume: setVolumeRaise } = useAudio(
+        '/sound/chips_allin.mp3',
+        appState.volume
+    );
+
+    useEffect(() => {
+        setVolumeFlip(appState.volume);
+        setVolumeCheck(appState.volume);
+        setVolumeChips(appState.volume);
+        setVolumeRaise(appState.volume);
+    }, [
+        appState.volume,
+        setVolumeFlip,
+        setVolumeCheck,
+        setVolumeChips,
+        setVolumeRaise,
+    ]);
+
     const handleCall = (user: string | null, amount: number) => {
         if (socket) {
-            const callMessage = user + ' calls ' + amount;
+            const callMessage = `${user} calls ${amount}`;
             sendLog(socket, callMessage);
             playerCall(socket);
+            console.log(appState.volume);
+            playChips();
         }
     };
 
     const handleCheck = (user: string | null) => {
         if (socket) {
-            const checkMessage = user + ' checks';
+            const checkMessage = `${user} checks`;
             sendLog(socket, checkMessage);
             playerCheck(socket);
+            console.log(appState.volume);
+            playCheck();
         }
     };
 
     const handleFold = (user: string | null) => {
-        console.log(appState.game);
         if (socket) {
-            const foldMessage = user + ' folds';
+            const foldMessage = `${user} folds`;
             sendLog(socket, foldMessage);
             playerFold(socket);
+            console.log(appState.volume);
+            playFlip();
         }
     };
 
@@ -85,6 +122,7 @@ const Footer = () => {
                         action={action}
                         setShowRaise={setShowRaise}
                         showRaise={showRaise}
+                        raiseSound={playRaise}
                     />
                 ) : (
                     <>

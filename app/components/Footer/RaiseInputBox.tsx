@@ -142,6 +142,7 @@ const RaiseInputBox = ({
             gap={2}
             direction={{ base: 'column', md: 'row' }}
             alignItems={'center'}
+            color={'white'}
         >
             <Flex
                 direction={{

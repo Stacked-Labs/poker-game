@@ -1,3 +1,5 @@
+'use client';
+
 import {
     createContext,
     ReactChild,
@@ -8,7 +10,8 @@ import {
 } from 'react';
 import { Message, Game, Log } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
-import { useAuth } from './AuthContext';
+import { setCookie, useAuth } from './AuthContext';
+import useToastHelper from '../hooks/useToastHelper';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -26,8 +29,9 @@ export function SocketProvider(props: SocketProviderProps) {
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { dispatch } = useContext(AppContext);
-    const socketRef = useRef<WebSocket | null>(null); // Ref to store WebSocket instance
-    const { authToken } = useAuth(); // Consume AuthContext
+    const socketRef = useRef<WebSocket | null>(null);
+    const { authToken } = useAuth();
+    const { error, success } = useToastHelper();
 
     useEffect(() => {
         if (!WS_URL) return;
@@ -49,12 +53,20 @@ export function SocketProvider(props: SocketProviderProps) {
 
             _socket.onopen = () => {
                 console.log('WebSocket connected');
+                success('WebSocket connected');
             };
 
-            _socket.onclose = () => {
+            _socket.onclose = (event) => {
                 console.log('WebSocket disconnected');
+                error('WebSocket disconnected');
                 socketRef.current = null;
                 setSocket(null);
+
+                if (event.code === 1006) {
+                    setCookie('authToken', '', false);
+                    setCookie('address', '', false);
+                    window.location.reload();
+                }
             };
 
             _socket.onerror = (error) => {

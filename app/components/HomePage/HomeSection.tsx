@@ -2,7 +2,6 @@ import {
     Box,
     Flex,
     Text,
-    keyframes,
     VStack,
     useBreakpointValue,
 } from '@chakra-ui/react';
@@ -10,6 +9,7 @@ import React from 'react';
 import HomeCard from './HomeCard';
 import { Poppins } from 'next/font/google';
 import Image from 'next/image';
+import { keyframes } from '@emotion/react'; // Import keyframes from @emotion/react
 
 const poppins = Poppins({
     weight: ['700'],

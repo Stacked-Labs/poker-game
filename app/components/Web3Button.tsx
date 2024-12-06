@@ -1,34 +1,29 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Button, ButtonProps, Icon } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { Button, ButtonProps, Icon, Spinner } from '@chakra-ui/react';
 import { FaWallet } from 'react-icons/fa';
-import { useWeb3Modal } from '@web3modal/wagmi/react';
-import { useAccount } from 'wagmi';
+import { useActiveAccount, useActiveWallet, useConnectModal, useDisconnect } from 'thirdweb/react';
+import { client } from '../client';
 
-interface Web3ButtonProps extends ButtonProps {}
+interface Web3ButtonProps extends ButtonProps { }
 
 const Web3Button: React.FC<Web3ButtonProps> = (props) => {
-    const { open } = useWeb3Modal();
-    const { address, isConnecting, isConnected } = useAccount();
-    const [buttonText, setButtonText] = useState('Connect');
+    const { connect, isConnecting } = useConnectModal();
+    const { disconnect } = useDisconnect();
+    const accountAddress = useActiveAccount()?.address;
+    const wallet = useActiveWallet();
+    const [isHovered, setIsHovered] = useState(false);
 
-    useEffect(() => {
-        if (isConnecting) {
-            setButtonText('Connecting...');
-        } else if (isConnected && address) {
-            setButtonText(
-                `${address.substring(0, 4)}...${address.substring(
-                    address.length - 4
-                )}`
-            );
-        } else {
-            setButtonText('Connect');
+    const handleConnect = async () => {
+        await connect({ client });
+    };
+
+    const handleDisconnect = () => {
+        if (accountAddress && wallet) {
+            disconnect(wallet);
+            console.log('Wallet disconnected');
         }
-    }, [address, isConnecting, isConnected]);
-
-    const handleOpen = () => {
-        open();
     };
 
     return (
@@ -48,13 +43,27 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
                 borderWidth: '2px',
                 bg: '#202020',
             }}
-            onClick={handleOpen}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onClick={accountAddress ? handleDisconnect : handleConnect}
             fontSize={{ base: 'sm', md: 'md' }}
             px={{ base: 2, md: 3 }}
             py={{ base: '1.5rem', md: '2rem' }}
             {...props}
         >
-            {buttonText}
+            {isConnecting ? (
+                <Spinner />
+            ) : accountAddress ? (
+                isHovered ? (
+                    'Disconnect'
+                ) : (
+                    `${accountAddress.substring(0, 4)}...${accountAddress.substring(
+                        accountAddress.length - 4
+                    )}`
+                )
+            ) : (
+                'Connect'
+            )}
         </Button>
     );
 };

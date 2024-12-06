@@ -7,36 +7,13 @@ const poppins = Poppins({
     display: 'swap',
 });
 
-import {
-    Flex,
-    Button,
-    IconButton,
-    Text,
-    Stack,
-    Link,
-    Icon,
-    useBreakpointValue,
-} from '@chakra-ui/react';
+import { Flex, Button, IconButton, Text, Stack, Link } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
-import { FaDiscord, FaWallet } from 'react-icons/fa';
+import { FaDiscord } from 'react-icons/fa';
 import { SiFarcaster } from 'react-icons/si'; // Imported SiFarcaster from react-icons/si
 import Web3Button from '@/app/components/Web3Button';
-import { ConnectButton } from 'thirdweb/react';
-import { client } from '@/app/utils/client';
 
 const HomeCard = () => {
-    const buttonStyles = {
-        border: 0,
-        background: '#2D2D2D',
-        _hover: {
-            borderColor: 'white',
-            borderWidth: '2px',
-            bg: '#202020',
-        },
-        padding: 30,
-        gap: 6,
-    };
-
     return (
         <Flex
             justifyContent="center"
@@ -85,27 +62,6 @@ const HomeCard = () => {
                     </Button>
 
                     <Web3Button size={['xl']} />
-                    <ConnectButton
-                        client={client}
-                        connectButton={{
-                            style: buttonStyles,
-                            label: (
-                                <>
-                                    <Icon
-                                        as={FaWallet}
-                                        color="white"
-                                        boxSize={{ base: 4, md: 6 }}
-                                    />
-                                    <Text
-                                        fontSize={{ base: 'sm', md: 'md' }}
-                                        color={'white'}
-                                    >
-                                        Connect
-                                    </Text>
-                                </>
-                            ),
-                        }}
-                    />
                 </Stack>
 
                 <Flex

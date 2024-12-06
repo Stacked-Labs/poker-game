@@ -7,7 +7,6 @@ import { theme } from './theme';
 import { StateProvider } from './state';
 import { AppStoreProvider } from '@/app/contexts/AppStoreProvider';
 import { UserProvider } from '@/app/contexts/CurrentUserProvider';
-import { Web3ModalProvider } from '@/app/contexts/Web3Modal';
 import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import { AuthProvider } from '@/app/contexts/AuthContext';
 import { ThirdwebProvider } from 'thirdweb/react';
@@ -16,21 +15,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <CacheProvider>
             <ChakraProvider theme={theme}>
-                <AppStoreProvider>
-                    <UserProvider>
-                        <ThirdwebProvider>
-                            <Web3ModalProvider>
-                                <AuthProvider>
-                                    <SocketProvider>
-                                        <StateProvider>
-                                            {children}
-                                        </StateProvider>
-                                    </SocketProvider>
-                                </AuthProvider>
-                            </Web3ModalProvider>
-                        </ThirdwebProvider>
-                    </UserProvider>
-                </AppStoreProvider>
+                <ThirdwebProvider>
+                    <AppStoreProvider>
+                        <UserProvider>
+                            <AuthProvider>
+                                <SocketProvider>
+                                    <StateProvider>{children}</StateProvider>
+                                </SocketProvider>
+                            </AuthProvider>
+                        </UserProvider>
+                    </AppStoreProvider>
+                </ThirdwebProvider>
             </ChakraProvider>
         </CacheProvider>
     );

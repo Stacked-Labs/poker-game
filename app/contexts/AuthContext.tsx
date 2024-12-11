@@ -10,9 +10,10 @@ import React, {
 } from 'react';
 import { authenticateUser } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
-import { AutoConnect, useActiveAccount, useDisconnect } from 'thirdweb/react';
+import { AutoConnect, useActiveAccount, useActiveWallet } from 'thirdweb/react';
 import { signMessage } from 'thirdweb/utils';
 import { client } from '../client';
+import { useDisconnectWallet } from '../hooks/disconnectWallet';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
@@ -35,31 +36,24 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const { disconnect } = useDisconnect();
     const account = useActiveAccount();
+    const wallet = useActiveWallet();
     const address = account?.address;
+    const handleDisconnectWallet = useDisconnectWallet();
     const { success, error } = useToastHelper();
-
-    // Initialize authToken and userAddress from localStorage
-    const [authToken, setAuthToken] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('authToken');
-        }
-        return null;
-    });
-
-    const [userAddress, setUserAddress] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('address');
-        }
-        return null;
-    });
+    const authToken =
+        typeof window !== 'undefined'
+            ? localStorage.getItem('authToken')
+            : null;
+    const userAddress =
+        typeof window !== 'undefined' ? localStorage.getItem('address') : null;
 
     const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
     const authenticate = useCallback(async () => {
         if (!address || authToken) return;
         if (isAuthenticating) return;
+        if (!wallet || wallet === undefined) return;
 
         setIsAuthenticating(true);
         try {
@@ -76,9 +70,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 account,
             });
             const token = await authenticateUser(address, signature, message);
-            console.log('TOKEN', token);
-            setAuthToken(token);
-            setUserAddress(address);
             localStorage.setItem('authToken', token);
             localStorage.setItem('address', address);
             window.dispatchEvent(new Event('authenticationComplete'));
@@ -89,7 +80,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 'You have been successfully authenticated.'
             );
         } catch (err) {
-            disconnect;
+            handleDisconnectWallet();
             localStorage.removeItem('authToken');
             localStorage.removeItem('address');
             console.error('Authentication failed:', err);
@@ -108,7 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (account && !authToken) {
             authenticate();
         }
-    }, [account, authToken, authenticate]);
+    }, [account, authToken]);
 
     const value: AuthContextProps = {
         isAuthenticated: !!authToken,
@@ -118,6 +109,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={value}><AutoConnect client={client}/>{children}</AuthContext.Provider>
+        <AuthContext.Provider value={value}>
+            <AutoConnect client={client} />
+            {children}
+        </AuthContext.Provider>
     );
 };

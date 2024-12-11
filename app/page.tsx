@@ -2,7 +2,6 @@
 
 import React, { useContext, useEffect } from 'react';
 import { Box, Flex, VStack } from '@chakra-ui/react';
-import HomeNavBar from './components/HomePage/HomeNavBar';
 import HomeSection from './components/HomePage/HomeSection';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';

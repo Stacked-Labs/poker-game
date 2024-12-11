@@ -1,11 +1,4 @@
-import React, {
-    FC,
-    createContext,
-    useReducer,
-    ReactNode,
-    useEffect,
-} from 'react';
-import { useAccount, useConnect } from 'wagmi';
+import React, { FC, createContext, useReducer, ReactNode } from 'react';
 
 interface StateData {
     isConnected: boolean;

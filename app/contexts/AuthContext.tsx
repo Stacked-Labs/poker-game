@@ -18,14 +18,12 @@ import { useDisconnectWallet } from '../hooks/disconnectWallet';
 interface AuthContextProps {
     isAuthenticated: boolean;
     authToken: string | null;
-    userAddress: string | null;
     authenticate: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
     authToken: null,
-    userAddress: null,
     authenticate: async () => {},
 });
 
@@ -45,8 +43,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         typeof window !== 'undefined'
             ? localStorage.getItem('authToken')
             : null;
-    const userAddress =
-        typeof window !== 'undefined' ? localStorage.getItem('address') : null;
 
     const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
@@ -71,7 +67,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
             const token = await authenticateUser(address, signature, message);
             localStorage.setItem('authToken', token);
-            localStorage.setItem('address', address);
             window.dispatchEvent(new Event('authenticationComplete'));
 
             // Success toast
@@ -81,8 +76,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             );
         } catch (err) {
             handleDisconnectWallet();
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('address');
             console.error('Authentication failed:', err);
             // Error toast
             error(
@@ -104,7 +97,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const value: AuthContextProps = {
         isAuthenticated: !!authToken,
         authToken,
-        userAddress,
         authenticate,
     };
 

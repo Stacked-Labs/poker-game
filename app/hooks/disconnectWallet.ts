@@ -14,7 +14,6 @@ export const useDisconnectWallet = () => {
 
         disconnect(wallet);
         localStorage.removeItem('authToken');
-        localStorage.removeItem('address');
 
         warning('Wallet disconnected.');
     };

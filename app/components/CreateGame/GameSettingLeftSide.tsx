@@ -20,7 +20,7 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { joinTable, sendLog } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { Poppins } from 'next/font/google';
-import { useActiveAccount } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet } from 'thirdweb/react';
 
 const poppins = Poppins({
     weight: ['700'],
@@ -29,6 +29,7 @@ const poppins = Poppins({
 });
 
 const LeftSideContent: React.FC = () => {
+    const wallet = useActiveWallet();
     const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
@@ -61,7 +62,7 @@ const LeftSideContent: React.FC = () => {
             const isNetworkSelected =
                 playType === 'Free' ||
                 (playType === 'Crypto' && selectedNetwork !== '');
-            const isWalletConnected = !!address;
+            const isWalletConnected = !!wallet;
 
             setIsFormValid(
                 isSmallBlindValid &&

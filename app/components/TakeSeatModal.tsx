@@ -27,7 +27,7 @@ import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
-import { useActiveAccount, useActiveWallet } from 'thirdweb/react';
+import { useActiveWallet } from 'thirdweb/react';
 
 interface TakeSeatModalProps {
     isOpen: boolean;

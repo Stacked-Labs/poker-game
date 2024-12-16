@@ -5,9 +5,9 @@ import { Button, ButtonProps, Icon, Spinner } from '@chakra-ui/react';
 import { FaWallet } from 'react-icons/fa';
 import {
     useActiveAccount,
-    useActiveWallet,
     useConnectModal,
-    useDisconnect,
+    useIsAutoConnecting,
+    useSetActiveWallet,
 } from 'thirdweb/react';
 import { client } from '../client';
 import { useDisconnectWallet } from '../hooks/disconnectWallet';
@@ -18,10 +18,13 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
     const { connect, isConnecting } = useConnectModal();
     const accountAddress = useActiveAccount()?.address;
     const [isHovered, setIsHovered] = useState(false);
+    const setActiveWallet = useSetActiveWallet();
     const handleDisconnectWallet = useDisconnectWallet();
+    const isAutoConnecting = useIsAutoConnecting();
 
     const handleConnect = async () => {
-        await connect({ client });
+        const wallet = await connect({ client });
+        setActiveWallet(wallet);
     };
 
     const handleDisconnect = () => {
@@ -53,7 +56,7 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
             py={{ base: '1.5rem', md: '2rem' }}
             {...props}
         >
-            {isConnecting ? (
+            {isConnecting || isAutoConnecting ? (
                 <Spinner />
             ) : accountAddress ? (
                 isHovered ? (

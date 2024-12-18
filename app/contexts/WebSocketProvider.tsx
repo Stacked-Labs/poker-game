@@ -1,3 +1,5 @@
+'use client';
+
 import {
     createContext,
     ReactChild,
@@ -9,6 +11,12 @@ import {
 import { Message, Game, Log } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import { useAuth } from './AuthContext';
+import {
+    useActiveWallet,
+    useDisconnect,
+    useIsAutoConnecting,
+} from 'thirdweb/react';
+import useToastHelper from '../hooks/useToastHelper';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -26,8 +34,11 @@ export function SocketProvider(props: SocketProviderProps) {
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { dispatch } = useContext(AppContext);
-    const socketRef = useRef<WebSocket | null>(null); // Ref to store WebSocket instance
-    const { authToken } = useAuth(); // Consume AuthContext
+    const socketRef = useRef<WebSocket | null>(null);
+    const { authToken, authenticate } = useAuth();
+    const { disconnect } = useDisconnect();
+    const { warning } = useToastHelper();
+    const wallet = useActiveWallet();
 
     useEffect(() => {
         if (!WS_URL) return;
@@ -51,10 +62,15 @@ export function SocketProvider(props: SocketProviderProps) {
                 console.log('WebSocket connected');
             };
 
-            _socket.onclose = () => {
+            _socket.onclose = (event) => {
                 console.log('WebSocket disconnected');
                 socketRef.current = null;
                 setSocket(null);
+
+                if (event.code === 1006) {
+                    localStorage.removeItem('authToken');
+                    window.location.reload();
+                }
             };
 
             _socket.onerror = (error) => {

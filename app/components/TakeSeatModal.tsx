@@ -21,13 +21,13 @@ import {
 import { motion, MotionStyle } from 'framer-motion';
 import { FaDiscord } from 'react-icons/fa';
 import Web3Button from './Web3Button';
-import { useAccount } from 'wagmi';
 import { MetaDispatchContext } from '../state';
 import { newPlayer, sendLog, takeSeat } from '../hooks/server_actions';
 import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { useActiveWallet } from 'thirdweb/react';
 
 interface TakeSeatModalProps {
     isOpen: boolean;
@@ -46,7 +46,7 @@ const variants = {
 };
 
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
-    const { address, isConnected } = useAccount();
+    const address = useActiveWallet()?.getAccount()?.address;
     const metaDispatch = useContext(MetaDispatchContext);
     const appStore = useContext(AppContext);
     const currentUser = useCurrentUser();
@@ -64,8 +64,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     };
 
     const handleJoin = () => {
-        console.log('isConnected', isConnected);
-        if (!isConnected) {
+        if (!address) {
             error(
                 'Wallet Not Connected',
                 'Please connect your wallet to join.'

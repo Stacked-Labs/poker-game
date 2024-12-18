@@ -1,30 +1,26 @@
 'use client';
 
-import React, {
-    createContext,
-    useContext,
-    useState,
-    ReactNode,
-    useCallback,
-    useEffect,
-} from 'react';
-import { useDisconnect, useSignMessage } from 'wagmi';
-import { useAccount } from 'wagmi';
-import { authenticateUser } from '@/app/hooks/server_actions';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import {
+    useActiveAccount,
+    useActiveWallet,
+    useDisconnect,
+} from 'thirdweb/react';
+import { signMessage } from 'thirdweb/utils';
+import { Account, Wallet } from 'thirdweb/dist/types/exports/wallets.native';
+import { authenticateUser } from '../hooks/server_actions';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
     authToken: string | null;
-    userAddress: string | null;
-    authenticate: () => Promise<void>;
+    authenticate: (account: Account, wallet: Wallet) => void;
 }
 
 const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
     authToken: null,
-    userAddress: null,
-    authenticate: async () => {},
+    authenticate: (account: Account, wallet: Wallet) => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -34,91 +30,64 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const { address, isConnected } = useAccount();
+    const { error } = useToastHelper();
+    const wallet = useActiveWallet();
+    const account = useActiveAccount();
     const { disconnect } = useDisconnect();
-    const { signMessageAsync } = useSignMessage();
-    const { success, error } = useToastHelper();
 
-    // Initialize authToken and userAddress from localStorage
-    const [authToken, setAuthToken] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('authToken');
-        }
-        return null;
-    });
-
-    const [userAddress, setUserAddress] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('address');
-        }
-        return null;
-    });
-
-    const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
-
-    const authenticate = useCallback(async () => {
-        if (!isConnected || !address || authToken) return;
-        if (isAuthenticating) return;
-
-        setIsAuthenticating(true);
+    const authenticate = async (account: Account, wallet: Wallet) => {
+        localStorage.setItem('address', account.address);
         try {
-            const message = `I agree to the following terms and conditions:
-                1. Stacked is not responsible for any funds used on this platform.
-                2. This is a testing phase and the platform may contain bugs or errors.
-                3. I am using this platform at my own risk.
-
-                Signing Address: ${address}
-                Timestamp: ${Date.now()}`;
-
-            const signature = await signMessageAsync({ message });
-            const token = await authenticateUser(address, signature, message);
-            console.log('TOKEN', token);
-            setAuthToken(token);
-            setUserAddress(address);
-            localStorage.setItem('authToken', token);
-            localStorage.setItem('address', address);
-            window.dispatchEvent(new Event('authenticationComplete'));
-
-            // Success toast
-            success(
-                'Authentication Successful',
-                'You have been successfully authenticated.'
-            );
-        } catch (err) {
-            disconnect();
             localStorage.removeItem('authToken');
-            localStorage.removeItem('address');
-            console.error('Authentication failed:', err);
-            // Error toast
+            const message = `I agree to the following terms and conditions:
+                        1. Stacked is not responsible for any funds used on this platform.
+                        2. This is a testing phase and the platform may contain bugs or errors.
+                        3. I am using this platform at my own risk.
+
+                        Signing Address: ${account.address}
+                        Timestamp: ${Date.now()}`;
+
+            const signature = await signMessage({ message, account });
+
+            const token = await authenticateUser(
+                account.address,
+                signature,
+                message
+            );
+
+            localStorage.setItem('authToken', token);
+            window.dispatchEvent(new Event('authenticationComplete'));
+        } catch (err) {
+            console.error(err);
+            disconnect(wallet);
+            localStorage.removeItem('authToken');
             error(
                 'Authentication Failed',
                 'There was an error during authentication. Please try again.'
             );
-        } finally {
-            setIsAuthenticating(false);
         }
-    }, [
-        isConnected,
-        address,
-        signMessageAsync,
-        authToken,
-        isAuthenticating,
-        success,
-        error,
-    ]);
+    };
 
-    // Automatically authenticate if already connected and no token
     useEffect(() => {
-        if (isConnected && !authToken) {
-            authenticate();
+        if (!account || !wallet) return;
+
+        const localStorageAuth = localStorage.getItem('authToken');
+        const localStorageAddress = localStorage.getItem('address');
+
+        if (!localStorageAuth || localStorageAddress !== account.address) {
+            authenticate(account, wallet);
         }
-    }, [isConnected, authToken, authenticate]);
+    }, [account?.address]);
 
     const value: AuthContextProps = {
-        isAuthenticated: !!authToken,
-        authToken,
-        userAddress,
-        authenticate,
+        isAuthenticated:
+            typeof window !== 'undefined' &&
+            !!localStorage.getItem('authToken'),
+        authToken:
+            typeof window !== 'undefined'
+                ? localStorage.getItem('authToken')
+                : null,
+        authenticate: (account, wallet) => authenticate(account, wallet),
     };
 
     return (

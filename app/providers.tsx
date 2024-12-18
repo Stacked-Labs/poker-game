@@ -9,13 +9,15 @@ import { AppStoreProvider } from '@/app/contexts/AppStoreProvider';
 import { UserProvider } from '@/app/contexts/CurrentUserProvider';
 import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import { AuthProvider } from '@/app/contexts/AuthContext';
-import { ThirdwebProvider } from 'thirdweb/react';
+import { AutoConnect, ThirdwebProvider } from 'thirdweb/react';
+import { client } from './client';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <CacheProvider>
             <ChakraProvider theme={theme}>
                 <ThirdwebProvider>
+                    <AutoConnect client={client} />
                     <AppStoreProvider>
                         <UserProvider>
                             <AuthProvider>

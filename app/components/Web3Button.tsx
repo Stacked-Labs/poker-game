@@ -4,31 +4,45 @@ import React, { useState } from 'react';
 import { Button, ButtonProps, Icon, Spinner } from '@chakra-ui/react';
 import { FaWallet } from 'react-icons/fa';
 import {
+    useActiveWallet,
     useActiveAccount,
     useConnectModal,
+    useDisconnect,
     useIsAutoConnecting,
     useSetActiveWallet,
 } from 'thirdweb/react';
 import { client } from '../client';
-import { useDisconnectWallet } from '../hooks/disconnectWallet';
+import useToastHelper from '../hooks/useToastHelper';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Web3ButtonProps extends ButtonProps {}
 
 const Web3Button: React.FC<Web3ButtonProps> = (props) => {
+    const [isHovered, setIsHovered] = useState(false);
     const { connect, isConnecting } = useConnectModal();
     const accountAddress = useActiveAccount()?.address;
-    const [isHovered, setIsHovered] = useState(false);
+    const wallet = useActiveWallet();
     const setActiveWallet = useSetActiveWallet();
-    const handleDisconnectWallet = useDisconnectWallet();
     const isAutoConnecting = useIsAutoConnecting();
+    const { disconnect } = useDisconnect();
+    const { warning } = useToastHelper();
+    const { authenticate } = useAuth();
 
     const handleConnect = async () => {
-        const wallet = await connect({ client });
-        setActiveWallet(wallet);
+        const currentWallet = await connect({ client });
+        const currentaccount = currentWallet.getAccount();
+        setActiveWallet(currentWallet);
+        if (currentaccount) {
+            authenticate(currentWallet, currentaccount);
+        }
     };
 
     const handleDisconnect = () => {
-        handleDisconnectWallet();
+        if (wallet) {
+            disconnect(wallet);
+            localStorage.removeItem('authToken');
+            warning('Wallet disconnected.');
+        }
     };
 
     return (

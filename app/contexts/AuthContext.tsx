@@ -3,31 +3,32 @@
 import React, {
     createContext,
     useContext,
-    useState,
     ReactNode,
-    useCallback,
+    useState,
     useEffect,
+    useCallback,
 } from 'react';
-import { authenticateUser } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
-import { AutoConnect, useActiveAccount, useActiveWallet } from 'thirdweb/react';
+import {
+    useActiveAccount,
+    useActiveWallet,
+    useDisconnect,
+    useIsAutoConnecting,
+} from 'thirdweb/react';
 import { signMessage } from 'thirdweb/utils';
-import { client } from '../client';
-import { useDisconnectWallet } from '../hooks/disconnectWallet';
-import { Account } from 'thirdweb/dist/types/exports/wallets.native';
+import { Account, Wallet } from 'thirdweb/dist/types/exports/wallets.native';
+import { authenticateUser } from '../hooks/server_actions';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
     authToken: string | null;
-    authenticate: () => Promise<void>;
-    currentAccount: Account | null;
+    authenticate: (wallet: Wallet, account: Account) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
     authToken: null,
     authenticate: async () => {},
-    currentAccount: null,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -37,88 +38,80 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const account = useActiveAccount();
+    const { error, warning } = useToastHelper();
     const wallet = useActiveWallet();
-    const handleDisconnectWallet = useDisconnectWallet();
-    const { success, info, error } = useToastHelper();
-    const [authToken, setAuthToken] = useState<string | null>(
-        typeof window !== 'undefined' ? localStorage.getItem('authToken') : null
-    );
+    const { disconnect } = useDisconnect();
 
-    const [currentAccount, setCurrentAccount] = useState(account);
-    const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
+    const [isAuthenticating, setIsAuthenticating] = useState(false);
+    const isAutoConnecting = useIsAutoConnecting();
 
-    const authenticate = useCallback(async () => {
-        if (!currentAccount?.address || isAuthenticating || authToken) return;
-        setIsAuthenticating(true);
-        try {
-            info('Check wallet window for authentication.');
+    const authenticate = useCallback(
+        async (wallet: Wallet, account: Account) => {
+            const authToken = localStorage.getItem('authToken');
+            if (!wallet || isAuthenticating || authToken) {
+                console.log('Skipping authentication');
+                return;
+            }
 
-            const message = `I agree to the following terms and conditions:
+            console.log('Starting authentication process');
+            warning('Check wallet for authentication.');
+            setIsAuthenticating(true);
+
+            try {
+                const message = `I agree to the following terms and conditions:
                 1. Stacked is not responsible for any funds used on this platform.
                 2. This is a testing phase and the platform may contain bugs or errors.
                 3. I am using this platform at my own risk.
     
-                Signing Address: ${currentAccount.address}
+                Signing Address: ${account.address}
                 Timestamp: ${Date.now()}`;
 
-            const signature = await signMessage({
-                message,
-                account: currentAccount,
-            });
-            const token = await authenticateUser(
-                currentAccount.address,
-                signature,
-                message
-            );
-            localStorage.setItem('authToken', token);
-            setAuthToken(token);
-            window.dispatchEvent(new Event('authenticationComplete'));
+                const signature = await signMessage({
+                    message,
+                    account,
+                });
 
-            success(
-                'Authentication Successful',
-                'You have been successfully authenticated.'
-            );
-        } catch (err) {
-            handleDisconnectWallet();
-            console.error('Authentication failed:', err);
-            error(
-                'Authentication Failed',
-                'There was an error during authentication. Please try again.'
-            );
-        } finally {
-            setIsAuthenticating(false);
-        }
-    }, [
-        currentAccount,
-        isAuthenticating,
-        authToken,
-        success,
-        error,
-        handleDisconnectWallet,
-    ]);
+                const token = await authenticateUser(
+                    account.address,
+                    signature,
+                    message
+                );
+
+                localStorage.setItem('authToken', token);
+                window.dispatchEvent(new Event('authenticationComplete'));
+            } catch (err) {
+                disconnect(wallet);
+                localStorage.removeItem('authToken');
+                warning('Wallet disconnected.');
+                console.error('Authentication failed:', err);
+                error(
+                    'Authentication Failed',
+                    'There was an error during authentication. Please try again.'
+                );
+            } finally {
+                setIsAuthenticating(false);
+            }
+        },
+        [error, warning, disconnect, isAuthenticating]
+    );
 
     useEffect(() => {
-        if (account && account !== currentAccount) {
-            setCurrentAccount(account);
+        if (!localStorage.getItem('authToken') && wallet) {
+            disconnect(wallet);
         }
-    }, [account]);
 
-    useEffect(() => {
-        if (currentAccount && !authToken) {
-            authenticate();
+        if (localStorage.getItem('authToken') && wallet) {
+            localStorage.removeItem('authToken');
         }
-    }, [currentAccount, authToken, authenticate]);
+    }, [isAutoConnecting]);
 
     useEffect(() => {
         if (wallet) {
             const unsubscribe = wallet.subscribe(
                 'accountChanged',
                 (newAccount) => {
-                    console.log('ACCOUNT CHANGED:', newAccount);
-                    setCurrentAccount(newAccount);
-                    setAuthToken(null);
                     localStorage.removeItem('authToken');
+                    authenticate(wallet, newAccount);
                 }
             );
 
@@ -127,16 +120,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, [wallet]);
 
     const value: AuthContextProps = {
-        isAuthenticated: !!authToken,
-        authToken,
+        isAuthenticated:
+            typeof window !== 'undefined' &&
+            !!localStorage.getItem('authToken'),
+        authToken:
+            typeof window !== 'undefined'
+                ? localStorage.getItem('authToken')
+                : null,
         authenticate,
-        currentAccount: currentAccount ?? null,
     };
 
     return (
-        <AuthContext.Provider value={value}>
-            <AutoConnect client={client} />
-            {children}
-        </AuthContext.Provider>
+        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );
 };

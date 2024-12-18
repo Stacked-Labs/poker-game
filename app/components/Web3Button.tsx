@@ -30,11 +30,7 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
 
     const handleConnect = async () => {
         const currentWallet = await connect({ client });
-        const currentaccount = currentWallet.getAccount();
         setActiveWallet(currentWallet);
-        if (currentaccount) {
-            authenticate(currentWallet, currentaccount);
-        }
     };
 
     const handleDisconnect = () => {

@@ -35,22 +35,10 @@ export function SocketProvider(props: SocketProviderProps) {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
-    const { authToken } = useAuth();
+    const { authToken, authenticate } = useAuth();
     const { disconnect } = useDisconnect();
     const { warning } = useToastHelper();
     const wallet = useActiveWallet();
-
-    const handleDisconnect = () => {
-        console.log('Current wallet state:', wallet); // Log wallet state
-        if (wallet) {
-            console.log(wallet);
-            disconnect(wallet);
-        } else {
-            console.warn('Wallet is null, cannot disconnect.'); // Log if wallet is null
-        }
-        localStorage.removeItem('authToken');
-        warning('Wallet disconnected.');
-    };
 
     useEffect(() => {
         if (!WS_URL) return;
@@ -79,10 +67,9 @@ export function SocketProvider(props: SocketProviderProps) {
                 socketRef.current = null;
                 setSocket(null);
 
-                console.log(event);
-
-                if (event.code == 1006) {
-                    handleDisconnect();
+                if (event.code === 1006) {
+                    localStorage.removeItem('authToken');
+                    window.location.reload();
                 }
             };
 

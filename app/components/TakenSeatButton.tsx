@@ -10,11 +10,13 @@ import {
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import CardComponent from './Card';
+import { useActiveAccount } from 'thirdweb/react';
 
 const TakenSeatButton = ({ player }: { player: Player }) => {
     const { appState } = useContext(AppContext);
-    const shortEthAddress = player?.address
-        ? `${player.address.slice(0, 2)}...${player.address.slice(-2)}`
+    const address = useActiveAccount()?.address;
+    const shortEthAddress = address
+        ? `${address.slice(0, 2)}...${address.slice(-2)}`
         : '0x00...00';
 
     const chipPositions: {

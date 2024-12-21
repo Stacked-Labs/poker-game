@@ -14,13 +14,13 @@ import { FaInfoCircle } from 'react-icons/fa'; // Import the info icon from Reac
 import PlayTypeToggle from './PlayTypeToggle';
 import OptionCard from './OptionCard';
 import gameData from '../../create-game/gameOptions.json';
-import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { joinTable, sendLog } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { Poppins } from 'next/font/google';
+import { useActiveAccount, useActiveWallet } from 'thirdweb/react';
 
 const poppins = Poppins({
     weight: ['700'],
@@ -29,12 +29,13 @@ const poppins = Poppins({
 });
 
 const LeftSideContent: React.FC = () => {
+    const wallet = useActiveWallet();
     const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
     const [selectedNetwork, setSelectedNetwork] = useState<string>('Arbitrum');
     const [isLoading, setIsLoading] = useState(false);
-    const { address } = useAccount();
+    const address = useActiveAccount()?.address;
     const router = useRouter();
     const socket = useContext(SocketContext);
     const { dispatch } = useContext(AppContext);
@@ -61,7 +62,7 @@ const LeftSideContent: React.FC = () => {
             const isNetworkSelected =
                 playType === 'Free' ||
                 (playType === 'Crypto' && selectedNetwork !== '');
-            const isWalletConnected = !!address;
+            const isWalletConnected = !!wallet;
 
             setIsFormValid(
                 isSmallBlindValid &&
@@ -188,6 +189,7 @@ const LeftSideContent: React.FC = () => {
                             value={smallBlind}
                             onChange={(e) => setSmallBlind(e.target.value)}
                             mr={2}
+                            color={'white'}
                         />
                         <Input
                             type="number"
@@ -199,6 +201,7 @@ const LeftSideContent: React.FC = () => {
                             value={bigBlind}
                             onChange={(e) => setBigBlind(e.target.value)}
                             ml={2}
+                            color={'white'}
                         />
                     </Flex>
                 </FormControl>

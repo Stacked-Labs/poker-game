@@ -13,7 +13,7 @@ import {
 } from 'thirdweb/react';
 import { client } from '../client';
 import useToastHelper from '../hooks/useToastHelper';
-import { useAuth } from '../contexts/AuthContext';
+import { getCookie, setCookie, useAuth } from '../contexts/AuthContext';
 
 interface Web3ButtonProps extends ButtonProps {}
 
@@ -26,17 +26,20 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
     const isAutoConnecting = useIsAutoConnecting();
     const { disconnect } = useDisconnect();
     const { warning } = useToastHelper();
-    const { authenticate } = useAuth();
+    useAuth();
 
     const handleConnect = async () => {
         const currentWallet = await connect({ client });
         setActiveWallet(currentWallet);
     };
 
-    const handleDisconnect = () => {
+    const handleDisconnect = async () => {
         if (wallet) {
             disconnect(wallet);
-            localStorage.removeItem('authToken');
+            const cookieValue = await getCookie('authToken');
+            if (cookieValue) {
+                setCookie('authToken', cookieValue, true);
+            }
             warning('Wallet disconnected.');
         }
     };

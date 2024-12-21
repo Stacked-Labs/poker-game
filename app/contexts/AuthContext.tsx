@@ -36,9 +36,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { disconnect } = useDisconnect();
 
     const authenticate = async (account: Account, wallet: Wallet) => {
-        localStorage.setItem('address', account.address);
         try {
-            localStorage.removeItem('authToken');
+            setCookie('authToken', '', true);
             const message = `I agree to the following terms and conditions:
                         1. Stacked is not responsible for any funds used on this platform.
                         2. This is a testing phase and the platform may contain bugs or errors.
@@ -55,12 +54,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 message
             );
 
-            localStorage.setItem('authToken', token);
+            setCookie('authToken', token, false);
+            setCookie('address', account.address, false);
             window.dispatchEvent(new Event('authenticationComplete'));
         } catch (err) {
             console.error(err);
             disconnect(wallet);
-            localStorage.removeItem('authToken');
+            setCookie('authToken', '', true);
             error(
                 'Authentication Failed',
                 'There was an error during authentication. Please try again.'
@@ -71,21 +71,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         if (!account || !wallet) return;
 
-        const localStorageAuth = localStorage.getItem('authToken');
-        const localStorageAddress = localStorage.getItem('address');
+        const cookieToken = getCookie('authToken');
+        const cookieAddress = getCookie('address');
 
-        if (!localStorageAuth || localStorageAddress !== account.address) {
+        if (!cookieToken || cookieAddress !== account.address) {
             authenticate(account, wallet);
         }
     }, [account?.address]);
 
     const value: AuthContextProps = {
         isAuthenticated:
-            typeof window !== 'undefined' &&
-            !!localStorage.getItem('authToken'),
+            typeof window !== 'undefined' && !!getCookie('authToken'),
         authToken:
-            typeof window !== 'undefined'
-                ? localStorage.getItem('authToken')
+            typeof window !== 'undefined' && getCookie('authToken')
+                ? getCookie('authToken') || null
                 : null,
         authenticate: (account, wallet) => authenticate(account, wallet),
     };
@@ -93,4 +92,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return (
         <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );
+};
+
+export const getCookie = (key: string): string | undefined => {
+    return document.cookie
+        .split('; ')
+        .find((row) => row.startsWith(`${key}=`))
+        ?.split('=')[1];
+};
+
+export const setCookie = (key: string, value: string, toDelete: boolean) => {
+    const date = new Date();
+    if (toDelete) {
+        date.setTime(date.getTime() - 1); // Set to a time in the past to delete the cookie
+    } else {
+        date.setTime(date.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    }
+    const expires = `expires=${date.toUTCString()}`;
+    document.cookie = key + '=' + value + ';' + expires + ';path=/';
 };

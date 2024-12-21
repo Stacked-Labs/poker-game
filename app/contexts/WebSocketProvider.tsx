@@ -10,12 +10,8 @@ import {
 } from 'react';
 import { Message, Game, Log } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
-import { useAuth } from './AuthContext';
-import {
-    useActiveWallet,
-    useDisconnect,
-    useIsAutoConnecting,
-} from 'thirdweb/react';
+import { setCookie, useAuth } from './AuthContext';
+import { useActiveWallet, useDisconnect } from 'thirdweb/react';
 import useToastHelper from '../hooks/useToastHelper';
 
 /*  
@@ -68,7 +64,8 @@ export function SocketProvider(props: SocketProviderProps) {
                 setSocket(null);
 
                 if (event.code === 1006) {
-                    localStorage.removeItem('authToken');
+                    setCookie('authToken', '', false);
+                    setCookie('address', '', false);
                     window.location.reload();
                 }
             };

@@ -26,7 +26,8 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
     const isAutoConnecting = useIsAutoConnecting();
     const { disconnect } = useDisconnect();
     const { warning, error } = useToastHelper();
-    useAuth();
+
+    useAuth(); // TODO: is this the best place for this?
 
     const handleConnect = async () => {
         const currentWallet = await connect({ client });

@@ -13,8 +13,9 @@ import CardComponent from './Card';
 
 const TakenSeatButton = ({ player }: { player: Player }) => {
     const { appState } = useContext(AppContext);
-    const shortEthAddress = player?.address
-        ? `${player.address.slice(0, 2)}...${player.address.slice(-2)}`
+    const address = player?.address;
+    const shortEthAddress = address
+        ? `${address.slice(0, 2)}...${address.slice(-2)}`
         : '0x00...00';
 
     const chipPositions: {

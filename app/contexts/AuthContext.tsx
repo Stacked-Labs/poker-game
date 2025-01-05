@@ -1,30 +1,28 @@
 'use client';
 
-import React, {
-    createContext,
-    useContext,
-    useState,
-    ReactNode,
-    useCallback,
-    useEffect,
-} from 'react';
-import { useDisconnect, useSignMessage } from 'wagmi';
-import { useAccount } from 'wagmi';
-import { authenticateUser } from '@/app/hooks/server_actions';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import {
+    useActiveAccount,
+    useActiveWallet,
+    useDisconnect,
+} from 'thirdweb/react';
+import { signMessage } from 'thirdweb/utils';
+import { Account, Wallet } from 'thirdweb/dist/types/exports/wallets.native';
+import { authenticateUser } from '../hooks/server_actions';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
     authToken: string | null;
     userAddress: string | null;
-    authenticate: () => Promise<void>;
+    authenticate: (account: Account, wallet: Wallet) => void;
 }
 
 const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
     authToken: null,
     userAddress: null,
-    authenticate: async () => {},
+    authenticate: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -34,94 +32,98 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const { address, isConnected } = useAccount();
+    const { error, success } = useToastHelper();
+    const wallet = useActiveWallet();
+    const account = useActiveAccount();
     const { disconnect } = useDisconnect();
-    const { signMessageAsync } = useSignMessage();
-    const { success, error } = useToastHelper();
 
-    // Initialize authToken and userAddress from localStorage
-    const [authToken, setAuthToken] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('authToken');
-        }
-        return null;
-    });
-
-    const [userAddress, setUserAddress] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('address');
-        }
-        return null;
-    });
-
-    const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
-
-    const authenticate = useCallback(async () => {
-        if (!isConnected || !address || authToken) return;
-        if (isAuthenticating) return;
-
-        setIsAuthenticating(true);
+    const authenticate = async (account: Account, wallet: Wallet) => {
         try {
-            const message = `I agree to the following terms and conditions:
-                1. Stacked is not responsible for any funds used on this platform.
-                2. This is a testing phase and the platform may contain bugs or errors.
-                3. I am using this platform at my own risk.
+            if (!account || !wallet) {
+                error('Failed to authenticate due to wallet connection error.');
+                return;
+            }
+            setCookie('authToken', '', true);
+            const message = `
+I agree to the following terms and conditions:
 
-                Signing Address: ${address}
-                Timestamp: ${Date.now()}`;
+1. Stacked is not responsible for any funds used on this platform.
+2. This is a testing phase and the platform may contain bugs or errors.
+3. I am using this platform at my own risk.
 
-            const signature = await signMessageAsync({ message });
-            const token = await authenticateUser(address, signature, message);
-            console.log('TOKEN', token);
-            setAuthToken(token);
-            setUserAddress(address);
-            localStorage.setItem('authToken', token);
-            localStorage.setItem('address', address);
-            window.dispatchEvent(new Event('authenticationComplete'));
+Signing Address: ${account.address}
+Timestamp: ${Date.now()}`;
 
+            const signature = await signMessage({ message, account });
+
+            const token = await authenticateUser(
+                account.address,
+                signature,
+                message
+            );
+
+            setCookie('authToken', token, false);
+            setCookie('address', account.address, false);
             // Success toast
             success(
                 'Authentication Successful',
                 'You have been successfully authenticated.'
             );
         } catch (err) {
-            disconnect();
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('address');
-            console.error('Authentication failed:', err);
-            // Error toast
+            console.error(err);
+            disconnect(wallet);
+            setCookie('authToken', '', true);
             error(
                 'Authentication Failed',
                 'There was an error during authentication. Please try again.'
             );
-        } finally {
-            setIsAuthenticating(false);
         }
-    }, [
-        isConnected,
-        address,
-        signMessageAsync,
-        authToken,
-        isAuthenticating,
-        success,
-        error,
-    ]);
+    };
 
-    // Automatically authenticate if already connected and no token
     useEffect(() => {
-        if (isConnected && !authToken) {
-            authenticate();
+        if (!account || !wallet) return;
+
+        const cookieToken = getCookie('authToken');
+        const cookieAddress = getCookie('address');
+
+        if (!cookieToken || cookieAddress !== account.address) {
+            authenticate(account, wallet);
         }
-    }, [isConnected, authToken, authenticate]);
+    }, [account?.address, account, wallet]);
 
     const value: AuthContextProps = {
-        isAuthenticated: !!authToken,
-        authToken,
-        userAddress,
-        authenticate,
+        isAuthenticated:
+            typeof window !== 'undefined' && !!getCookie('authToken'),
+        authToken:
+            typeof window !== 'undefined' && getCookie('authToken')
+                ? getCookie('authToken') || null
+                : null,
+        userAddress:
+            typeof window !== 'undefined' && getCookie('address')
+                ? getCookie('address') || null
+                : null,
+        authenticate: (account, wallet) => authenticate(account, wallet),
     };
 
     return (
         <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );
+};
+
+export const getCookie = (key: string): string | undefined => {
+    return document.cookie
+        .split('; ')
+        .find((row) => row.startsWith(`${key}=`))
+        ?.split('=')[1];
+};
+
+export const setCookie = (key: string, value: string, toDelete: boolean) => {
+    const date = new Date();
+    if (toDelete) {
+        date.setTime(date.getTime() - 1); // Set to a time in the past to delete the cookie
+    } else {
+        date.setTime(date.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    }
+    const expires = `expires=${date.toUTCString()}`;
+    document.cookie = key + '=' + value + ';' + expires + ';path=/';
 };

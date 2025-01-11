@@ -138,6 +138,5 @@ export async function authenticateUser(
         throw new Error('Authentication failed');
     }
 
-    const data = await response.json();
-    return data.token;
+    return await response.json();
 }

@@ -127,7 +127,8 @@ export const setCookie = (key: string, value: string, toDelete: boolean) => {
 };
 
 export async function logoutUser() {
-    await fetch('/logout', {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    await fetch(`${backendUrl}/logout`, {
         method: 'POST',
         credentials: 'include', // ensure cookies are sent
     });

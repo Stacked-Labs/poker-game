@@ -122,18 +122,39 @@ const LeftSideContent: React.FC = () => {
         dispatch({ type: 'setTablename', payload: tableName });
 
         try {
-            await joinTable(socket, tableName);
-            sendLog(socket, `Joined table ${tableName}`);
-            router.push(`/game/${tableName}`);
-            toast.success(
-                'Joined Table',
-                `You have joined table ${tableName}.`
+            // Make a POST request to /create-game using fetch,
+            // passing tableName in the body, and including credentials:
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/create-table`,
+                {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ tableName }),
+                }
             );
+            console.log('create response:', response);
+            if (response.ok) {
+                const data = await response.json();
+                toast.success(
+                    'Game Created',
+                    `You have successfully created the game: ${tableName}`
+                );
+                router.push(`/game/${tableName}`);
+            } else {
+                toast.error(
+                    'Create Failed',
+                    'Failed to create the game. Please try again. ' +
+                        response.statusText
+                );
+            }
         } catch (error) {
             console.error(error);
             toast.error(
-                'Join Failed',
-                'Failed to join the table. Please try again.'
+                'Create Failed',
+                'Failed to create the game. Please try again.'
             );
         } finally {
             setIsLoading(false);

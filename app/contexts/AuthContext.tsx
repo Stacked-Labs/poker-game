@@ -9,7 +9,10 @@ import {
 } from 'thirdweb/react';
 import { signMessage } from 'thirdweb/utils';
 import { Account, Wallet } from 'thirdweb/dist/types/exports/wallets.native';
-import { authenticateUser } from '../hooks/server_actions';
+import {
+    authenticateUser,
+    getAddressFromCookie,
+} from '../hooks/server_actions';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
@@ -62,6 +65,7 @@ Timestamp: ${Date.now()}`;
 
             if (response?.success) {
                 setCookie('address', account.address, false);
+                localStorage.setItem('isAuthenticated', 'true');
                 success(
                     'Authentication Successful',
                     'You have been successfully authenticated.'
@@ -80,14 +84,23 @@ Timestamp: ${Date.now()}`;
     };
 
     useEffect(() => {
-        if (!account || !wallet) return;
+        const checkAuthentication = async () => {
+            if (!account || !wallet) return;
 
-        const cookieToken = getCookie('authToken');
-        const cookieAddress = getCookie('address');
+            const isAuthenticated = localStorage.getItem('isAuthenticated');
 
-        if (!cookieToken || cookieAddress !== account.address) {
-            authenticate(account, wallet);
-        }
+            try {
+                const { address } = await getAddressFromCookie();
+                console.log('BBBBBB', address);
+                if (!isAuthenticated || address !== account.address) {
+                    await authenticate(account, wallet);
+                }
+            } catch (error) {
+                console.error('Error during authentication check:', error);
+            }
+        };
+
+        checkAuthentication();
     }, [account?.address, account, wallet]);
 
     const value: AuthContextProps = {
@@ -133,5 +146,5 @@ export async function logoutUser() {
         credentials: 'include', // ensure cookies are sent
     });
     // Optionally clear local non-sensitive cookies like "address"
-    setCookie('address', '', true);
+    localStorage.removeItem('isAuthenticated');
 }

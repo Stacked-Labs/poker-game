@@ -9,10 +9,7 @@ import {
 } from 'thirdweb/react';
 import { signMessage } from 'thirdweb/utils';
 import { Account, Wallet } from 'thirdweb/dist/types/exports/wallets.native';
-import {
-    authenticateUser,
-    getAddressFromCookie,
-} from '../hooks/server_actions';
+import { authenticateUser, isAuth } from '../hooks/server_actions';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
@@ -65,7 +62,6 @@ Timestamp: ${Date.now()}`;
 
             if (response?.success) {
                 setCookie('address', account.address, false);
-                localStorage.setItem('isAuthenticated', 'true');
                 success(
                     'Authentication Successful',
                     'You have been successfully authenticated.'
@@ -87,11 +83,10 @@ Timestamp: ${Date.now()}`;
         const checkAuthentication = async () => {
             if (!account || !wallet) return;
 
-            const isAuthenticated = localStorage.getItem('isAuthenticated');
-
             try {
-                const { address } = await getAddressFromCookie();
-                console.log('BBBBBB', address);
+                const address = getCookie('address');
+                const isAuthenticated = await isAuth();
+
                 if (!isAuthenticated || address !== account.address) {
                     await authenticate(account, wallet);
                 }
@@ -146,5 +141,5 @@ export async function logoutUser() {
         credentials: 'include', // ensure cookies are sent
     });
     // Optionally clear local non-sensitive cookies like "address"
-    localStorage.removeItem('isAuthenticated');
+    setCookie('address', '', true);
 }

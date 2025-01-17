@@ -55,14 +55,12 @@ export function SocketProvider(props: SocketProviderProps) {
                 error('WebSocket disconnected');
                 socketRef.current = null;
                 setSocket(null);
-                localStorage.removeItem('isAuthenticated');
             };
 
             _socket.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 socketRef.current = null;
                 setSocket(null);
-                localStorage.removeItem('isAuthenticated');
             };
 
             _socket.onmessage = (e) => {

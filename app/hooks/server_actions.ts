@@ -141,13 +141,13 @@ export async function authenticateUser(
     return await response.json();
 }
 
-export async function getAddressFromCookie() {
+export async function isAuth() {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!backendUrl) {
         throw new Error('Backend API URL is not defined');
     }
 
-    const response = await fetch(`${backendUrl}/getAddress`, {
+    const response = await fetch(`${backendUrl}/isAuth`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -156,8 +156,10 @@ export async function getAddressFromCookie() {
     });
 
     if (!response.ok) {
-        throw new Error('Unable to get address from cookie.');
+        throw new Error('Error in confirming authorization.');
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    return data.isAuth;
 }

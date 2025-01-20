@@ -138,6 +138,28 @@ export async function authenticateUser(
         throw new Error('Authentication failed');
     }
 
+    return await response.json();
+}
+
+export async function isAuth() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!backendUrl) {
+        throw new Error('Backend API URL is not defined');
+    }
+
+    const response = await fetch(`${backendUrl}/isAuth`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Error in confirming authorization.');
+    }
+
     const data = await response.json();
-    return data.token;
+
+    return data.isAuth;
 }

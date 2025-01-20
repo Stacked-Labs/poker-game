@@ -9,18 +9,16 @@ import {
 } from 'thirdweb/react';
 import { signMessage } from 'thirdweb/utils';
 import { Account, Wallet } from 'thirdweb/dist/types/exports/wallets.native';
-import { authenticateUser } from '../hooks/server_actions';
+import { authenticateUser, isAuth } from '../hooks/server_actions';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
-    authToken: string | null;
     userAddress: string | null;
     authenticate: (account: Account, wallet: Wallet) => void;
 }
 
 const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
-    authToken: null,
     userAddress: null,
     authenticate: () => {},
 });
@@ -40,10 +38,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const authenticate = async (account: Account, wallet: Wallet) => {
         try {
             if (!account || !wallet) {
-                error('Failed to authenticate due to wallet connection error.');
+                error('Failed to authenticate: no wallet connection.');
                 return;
             }
-            setCookie('authToken', '', true);
+
             const message = `
 I agree to the following terms and conditions:
 
@@ -56,23 +54,24 @@ Timestamp: ${Date.now()}`;
 
             const signature = await signMessage({ message, account });
 
-            const token = await authenticateUser(
+            const response = await authenticateUser(
                 account.address,
                 signature,
                 message
             );
 
-            setCookie('authToken', token, false);
-            setCookie('address', account.address, false);
-            // Success toast
-            success(
-                'Authentication Successful',
-                'You have been successfully authenticated.'
-            );
+            if (response?.success) {
+                setCookie('address', account.address, false);
+                success(
+                    'Authentication Successful',
+                    'You have been successfully authenticated.'
+                );
+            } else {
+                throw new Error('No success response');
+            }
         } catch (err) {
             console.error(err);
             disconnect(wallet);
-            setCookie('authToken', '', true);
             error(
                 'Authentication Failed',
                 'There was an error during authentication. Please try again.'
@@ -81,28 +80,32 @@ Timestamp: ${Date.now()}`;
     };
 
     useEffect(() => {
-        if (!account || !wallet) return;
+        const checkAuthentication = async () => {
+            if (!account || !wallet) return;
 
-        const cookieToken = getCookie('authToken');
-        const cookieAddress = getCookie('address');
+            try {
+                const address = getCookie('address');
+                const isAuthenticated = await isAuth();
 
-        if (!cookieToken || cookieAddress !== account.address) {
-            authenticate(account, wallet);
-        }
+                if (!isAuthenticated || address !== account.address) {
+                    await authenticate(account, wallet);
+                }
+            } catch (error) {
+                console.error('Error during authentication check:', error);
+            }
+        };
+
+        checkAuthentication();
     }, [account?.address, account, wallet]);
 
     const value: AuthContextProps = {
         isAuthenticated:
-            typeof window !== 'undefined' && !!getCookie('authToken'),
-        authToken:
-            typeof window !== 'undefined' && getCookie('authToken')
-                ? getCookie('authToken') || null
-                : null,
+            typeof window !== 'undefined' && !!getCookie('address'),
         userAddress:
             typeof window !== 'undefined' && getCookie('address')
                 ? getCookie('address') || null
                 : null,
-        authenticate: (account, wallet) => authenticate(account, wallet),
+        authenticate,
     };
 
     return (
@@ -117,6 +120,9 @@ export const getCookie = (key: string): string | undefined => {
         ?.split('=')[1];
 };
 
+// Set nonsensitive Cookies such as address
+// NOT SECURE AND SHOULD NOT BE USED FOR SENSITIVE DATA
+// POTENTIALLY DEPRICATE IN THE FUTURE
 export const setCookie = (key: string, value: string, toDelete: boolean) => {
     const date = new Date();
     if (toDelete) {
@@ -127,3 +133,13 @@ export const setCookie = (key: string, value: string, toDelete: boolean) => {
     const expires = `expires=${date.toUTCString()}`;
     document.cookie = key + '=' + value + ';' + expires + ';path=/';
 };
+
+export async function logoutUser() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    await fetch(`${backendUrl}/logout`, {
+        method: 'POST',
+        credentials: 'include', // ensure cookies are sent
+    });
+    // Optionally clear local non-sensitive cookies like "address"
+    setCookie('address', '', true);
+}

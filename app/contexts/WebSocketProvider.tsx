@@ -10,7 +10,6 @@ import {
 } from 'react';
 import { Message, Game, Log } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
-import { setCookie, useAuth } from './AuthContext';
 import useToastHelper from '../hooks/useToastHelper';
 
 /*  
@@ -30,7 +29,6 @@ export function SocketProvider(props: SocketProviderProps) {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
-    const { authToken } = useAuth();
     const { error, success } = useToastHelper();
 
     useEffect(() => {
@@ -42,12 +40,8 @@ export function SocketProvider(props: SocketProviderProps) {
                 return;
             }
 
-            if (!authToken) {
-                console.log('No auth token, cannot connect WebSocket');
-                return;
-            }
+            const _socket = new WebSocket(WS_URL);
 
-            const _socket = new WebSocket(`${WS_URL}?token=${authToken}`);
             socketRef.current = _socket;
             setSocket(_socket);
 
@@ -61,12 +55,6 @@ export function SocketProvider(props: SocketProviderProps) {
                 error('WebSocket disconnected');
                 socketRef.current = null;
                 setSocket(null);
-
-                if (event.code === 1006) {
-                    setCookie('authToken', '', false);
-                    setCookie('address', '', false);
-                    window.location.reload();
-                }
             };
 
             _socket.onerror = (error) => {
@@ -134,10 +122,8 @@ export function SocketProvider(props: SocketProviderProps) {
             };
         };
 
-        // Attempt to connect if token exists
-        if (authToken) {
-            connectWebSocket();
-        }
+        // Attempt to connect if we think the user is authenticated
+        connectWebSocket();
 
         return () => {
             if (socketRef.current) {
@@ -146,7 +132,7 @@ export function SocketProvider(props: SocketProviderProps) {
                 setSocket(null);
             }
         };
-    }, [WS_URL, authToken]);
+    }, [WS_URL]);
 
     // Update the socket state with the ref
     useEffect(() => {

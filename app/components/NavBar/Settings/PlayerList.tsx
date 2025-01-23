@@ -1,20 +1,42 @@
 'use client';
-import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { Player } from '@/app/interfaces';
+import { getPendingPlayers } from '@/app/hooks/server_actions';
 import { Flex, Button, Text, Box, VStack } from '@chakra-ui/react';
-import React, { useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import { GiBootKick } from 'react-icons/gi';
 
-const PlayerList = () => {
-    const { appState } = useContext(AppContext);
-    const players = appState.game?.players;
+interface PendingPlayer {
+    Uuid: string;
+    SeatId: string;
+}
 
-    if (players && players.length > 0) {
+const truncateString = (text: String) => {
+    return text.length > 10 ? text.substring(0, 10) + '...' : text;
+};
+
+const PlayerList = () => {
+    const [pendingPlayers, setPendingPlayers] = useState<PendingPlayer[]>([]);
+
+    useEffect(() => {
+        async function fetchPendingPlayers() {
+            try {
+                const data = await getPendingPlayers(); // Call the function
+                setPendingPlayers(data);
+            } catch (error) {
+                console.error('Failed to fetch pending players:', error);
+            }
+        }
+
+        fetchPendingPlayers();
+    }, []);
+
+    console.log('AAA', pendingPlayers);
+
+    if (pendingPlayers && pendingPlayers.length > 0) {
         return (
             <VStack gap={5}>
-                {players.map((player: Player, index: number) => {
-                    if (player.username !== '') {
+                {pendingPlayers.map((player: PendingPlayer, index: number) => {
+                    if (player.Uuid !== '') {
                         return (
                             <Flex
                                 key={index}
@@ -65,7 +87,7 @@ const PlayerList = () => {
                                                     fontSize={'xl'}
                                                     fontWeight={'black'}
                                                 >
-                                                    {player.username}
+                                                    {player.Uuid}
                                                 </Text>
                                                 <Box
                                                     bgColor={'charcoal.600'}
@@ -73,12 +95,18 @@ const PlayerList = () => {
                                                     paddingX={2}
                                                     borderRadius={10}
                                                 >
-                                                    <Text fontSize={'small'}>
-                                                        ID: {player.uuid}
+                                                    <Text
+                                                        fontSize={'small'}
+                                                        color={'white'}
+                                                    >
+                                                        ID:{' '}
+                                                        {truncateString(
+                                                            player.Uuid
+                                                        )}
                                                     </Text>
                                                 </Box>
                                             </Flex>
-                                            <Text>
+                                            {/* <Text>
                                                 Total buy-in:{' '}
                                                 <Text
                                                     as={'span'}
@@ -86,7 +114,7 @@ const PlayerList = () => {
                                                 >
                                                     {player.totalBuyIn}
                                                 </Text>
-                                            </Text>
+                                            </Text> */}
                                         </Flex>
                                         <Flex
                                             gap={4}
@@ -102,10 +130,10 @@ const PlayerList = () => {
                                                     as={'span'}
                                                     fontWeight={'bold'}
                                                 >
-                                                    {player.seatID}
+                                                    {player.SeatId}
                                                 </Text>
                                             </Text>
-                                            <Text>
+                                            {/* <Text>
                                                 Stack:{' '}
                                                 <Text
                                                     as={'span'}
@@ -113,7 +141,7 @@ const PlayerList = () => {
                                                 >
                                                     {player.stack}
                                                 </Text>
-                                            </Text>
+                                            </Text> */}
                                         </Flex>
                                     </Flex>
                                 </Flex>

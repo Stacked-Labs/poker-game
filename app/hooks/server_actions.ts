@@ -193,3 +193,23 @@ export async function isTableExisting(table: string) {
         throw error;
     }
 }
+
+export async function getPendingPlayers() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    const response = await fetch(`${backendUrl}/getPendingPlayers`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Error in getting pending players.');
+    }
+
+    const data = await response.json();
+
+    return data;
+}

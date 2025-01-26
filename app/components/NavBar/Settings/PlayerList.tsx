@@ -1,7 +1,7 @@
 'use client';
 
 import { acceptPlayer } from '@/app/hooks/server_actions';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PendingPlayers from './PendingPlayers';
 import {
     fetcAcceptedPlayers,
@@ -14,9 +14,21 @@ const PlayerList = () => {
     const [pendingPlayers, setPendingPlayers] = useState([]);
     const [acceptedPlayers, setAcceptedPlayers] = useState([]);
 
+    const loadPendingPlayers = useCallback(async () => {
+        const players = await fetchPendingPlayers();
+        setPendingPlayers(players);
+    }, []);
+
+    const loadAcceptedPlayers = useCallback(async () => {
+        const players = await fetcAcceptedPlayers();
+        setAcceptedPlayers(players);
+    }, []);
+
     const handleAcceptPlayer = async (uuid: string) => {
         if (uuid) {
             await acceptPlayer(uuid);
+            await loadPendingPlayers();
+            await loadAcceptedPlayers();
         }
     };
 
@@ -25,19 +37,9 @@ const PlayerList = () => {
     const handleKickPlayer = async (uuid: string) => {};
 
     useEffect(() => {
-        const loadPendingPlayers = async () => {
-            const players = await fetchPendingPlayers();
-            setPendingPlayers(players);
-        };
-
-        const loadAcceptedPlayers = async () => {
-            const players = await fetcAcceptedPlayers();
-            setAcceptedPlayers(players);
-        };
-
         loadPendingPlayers();
         loadAcceptedPlayers();
-    }, [pendingPlayers, acceptedPlayers]);
+    }, [loadPendingPlayers, loadAcceptedPlayers]);
 
     return (
         <VStack gap={5}>

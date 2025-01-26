@@ -3,6 +3,7 @@
 import {
     acceptPlayer,
     denyPlayer,
+    kickPlayer,
     leaveTable,
     sendLog,
 } from '@/app/hooks/server_actions';
@@ -40,7 +41,11 @@ const PlayerList = () => {
         }
     };
 
-    const handleKickPlayer = async (uuid: string) => {};
+    const handleKickPlayer = async (uuid: string) => {
+        if (uuid) {
+            await kickPlayer(uuid, appState.table);
+        }
+    };
 
     useEffect(() => {
         loadPendingPlayers();

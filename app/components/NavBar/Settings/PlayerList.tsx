@@ -1,6 +1,6 @@
 'use client';
 
-import { acceptPlayer } from '@/app/hooks/server_actions';
+import { acceptPlayer, denyPlayer } from '@/app/hooks/server_actions';
 import React, { useCallback, useEffect, useState } from 'react';
 import PendingPlayers from './PendingPlayers';
 import {
@@ -32,7 +32,12 @@ const PlayerList = () => {
         }
     };
 
-    const handleDenyPlayer = async (uuid: string) => {};
+    const handleDenyPlayer = async (uuid: string) => {
+        if (uuid) {
+            await denyPlayer(uuid);
+            await loadPendingPlayers();
+        }
+    };
 
     const handleKickPlayer = async (uuid: string) => {};
 

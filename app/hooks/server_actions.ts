@@ -246,3 +246,36 @@ export async function acceptPlayer(playerUUID: string | null): Promise<void> {
         throw error;
     }
 }
+
+export async function denyPlayer(playerUUID: string | null): Promise<void> {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    if (!backendUrl) {
+        throw new Error('Backend API URL is not defined');
+    }
+
+    if (!playerUUID) {
+        throw new Error('Player UUID is required');
+    }
+
+    try {
+        const response = await fetch(`${backendUrl}/denyPlayer`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ playerUUID }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error in denying player: ${errorText}`);
+        }
+
+        console.log(`Player ${playerUUID} denied successfully.`);
+    } catch (error) {
+        console.error('Failed to deny player:', error);
+        throw error;
+    }
+}

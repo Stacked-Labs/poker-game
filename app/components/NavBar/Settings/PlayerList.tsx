@@ -1,34 +1,35 @@
 'use client';
 
-import { acceptPlayer, denyPlayer } from '@/app/hooks/server_actions';
-import React, { useCallback, useEffect, useState } from 'react';
-import PendingPlayers from './PendingPlayers';
 import {
-    fetcAcceptedPlayers,
-    fetchPendingPlayers,
-} from '@/app/utils/fetchPlayers';
+    acceptPlayer,
+    denyPlayer,
+    leaveTable,
+    sendLog,
+} from '@/app/hooks/server_actions';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import PendingPlayers from './PendingPlayers';
+import { fetchPendingPlayers } from '@/app/utils/fetchPlayers';
 import AcceptedPlayers from './AcceptedPlayers';
 import { VStack } from '@chakra-ui/react';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import useToastHelper from '@/app/hooks/useToastHelper';
 
 const PlayerList = () => {
     const [pendingPlayers, setPendingPlayers] = useState([]);
-    const [acceptedPlayers, setAcceptedPlayers] = useState([]);
+    const { appState } = useContext(AppContext);
+    const socket = useContext(SocketContext);
+    const toast = useToastHelper();
 
     const loadPendingPlayers = useCallback(async () => {
         const players = await fetchPendingPlayers();
         setPendingPlayers(players);
     }, []);
 
-    const loadAcceptedPlayers = useCallback(async () => {
-        const players = await fetcAcceptedPlayers();
-        setAcceptedPlayers(players);
-    }, []);
-
     const handleAcceptPlayer = async (uuid: string) => {
         if (uuid) {
             await acceptPlayer(uuid);
             await loadPendingPlayers();
-            await loadAcceptedPlayers();
         }
     };
 
@@ -43,8 +44,7 @@ const PlayerList = () => {
 
     useEffect(() => {
         loadPendingPlayers();
-        loadAcceptedPlayers();
-    }, [loadPendingPlayers, loadAcceptedPlayers]);
+    }, [loadPendingPlayers]);
 
     return (
         <VStack gap={5}>
@@ -54,7 +54,7 @@ const PlayerList = () => {
                 handleDenyPlayer={handleDenyPlayer}
             />
             <AcceptedPlayers
-                acceptedPlayers={acceptedPlayers}
+                acceptedPlayers={appState.game?.players}
                 handleKickPlayer={handleKickPlayer}
             />
         </VStack>

@@ -20,7 +20,7 @@ const PendingPlayers = ({
             <>
                 <Text color={'white'}>Pending</Text>
                 {pendingPlayers.map((player: PendingPlayer, index: number) => {
-                    if (player && !player.isAccepted) {
+                    if (player) {
                         return (
                             <Flex
                                 key={index}

@@ -1,10 +1,11 @@
+import { Player } from '@/app/interfaces';
 import { PendingPlayer } from '@/app/utils/fetchPlayers';
 import { Flex, Box, Button, Text } from '@chakra-ui/react';
 import React from 'react';
 import { GiBootKick } from 'react-icons/gi';
 
 interface Props {
-    acceptedPlayers: PendingPlayer[];
+    acceptedPlayers: Player[] | undefined;
     handleKickPlayer: (uuid: string) => void;
 }
 
@@ -13,8 +14,8 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
         return (
             <>
                 <Text color={'white'}>Accepted</Text>
-                {acceptedPlayers.map((player: PendingPlayer, index: number) => {
-                    if (player && player.isAccepted) {
+                {acceptedPlayers.map((player: Player, index: number) => {
+                    if (player) {
                         return (
                             <Flex
                                 key={index}
@@ -85,7 +86,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                                                     as={'span'}
                                                     fontWeight={'bold'}
                                                 >
-                                                    {player.buyIn}
+                                                    {player.totalBuyIn}
                                                 </Text>
                                             </Text>
                                         </Flex>
@@ -103,7 +104,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                                                     as={'span'}
                                                     fontWeight={'bold'}
                                                 >
-                                                    {player.seatId}
+                                                    {player.seatID}
                                                 </Text>
                                             </Text>
                                         </Flex>
@@ -121,6 +122,9 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                                         border={0}
                                         alignItems={'center'}
                                         _hover={{ background: 'red' }}
+                                        onClick={() =>
+                                            handleKickPlayer(player.uuid)
+                                        }
                                     >
                                         <GiBootKick size={25} />
                                     </Button>

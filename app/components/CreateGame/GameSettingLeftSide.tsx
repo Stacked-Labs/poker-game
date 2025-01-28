@@ -132,7 +132,13 @@ const LeftSideContent: React.FC = () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ tableName }),
+                    body: JSON.stringify({
+                        tablename: tableName,
+                        smallBlind: smallBlind,
+                        bigBlind: bigBlind,
+                        isCrypto: playType === 'Crypto',
+                        chain: selectedNetwork,
+                    }),
                 }
             );
             console.log('create response:', response);

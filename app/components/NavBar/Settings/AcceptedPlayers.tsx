@@ -1,5 +1,4 @@
 import { Player } from '@/app/interfaces';
-import { PendingPlayer } from '@/app/utils/fetchPlayers';
 import { Flex, Box, Button, Text } from '@chakra-ui/react';
 import React from 'react';
 import { GiBootKick } from 'react-icons/gi';
@@ -115,18 +114,19 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                                     gap={{ base: 5, lg: 10 }}
                                     py={{ base: 5, lg: 0 }}
                                     width={'20%'}
+                                    justifyItems={'space-between'}
                                 >
+                                    <Box width={'50%'}></Box>
                                     <Button
-                                        flex={1}
+                                        variant={'settingsSmallButton'}
                                         bg={'red.500'}
-                                        border={0}
-                                        alignItems={'center'}
+                                        marginLeft={{ base: 5, lg: 0 }}
                                         _hover={{ background: 'red' }}
                                         onClick={() =>
                                             handleKickPlayer(player.uuid)
                                         }
                                     >
-                                        <GiBootKick size={25} />
+                                        <GiBootKick />
                                     </Button>
                                 </Flex>
                             </Flex>

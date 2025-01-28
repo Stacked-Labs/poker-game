@@ -279,3 +279,43 @@ export async function denyPlayer(playerUUID: string | null): Promise<void> {
         throw error;
     }
 }
+
+export async function kickPlayer(
+    playerUUID: string | null,
+    tableName: string
+): Promise<void> {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    if (!backendUrl) {
+        throw new Error('Backend API URL is not defined');
+    }
+
+    if (!tableName) {
+        throw new Error('Table name is required');
+    }
+
+    if (!playerUUID) {
+        throw new Error('Player UUID is required');
+    }
+
+    try {
+        const response = await fetch(`${backendUrl}/kickPlayer`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ playerUUID, tableName }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error in kicking player: ${errorText}`);
+        }
+
+        console.log(`Player ${playerUUID} kicked successfully.`);
+    } catch (error) {
+        console.error('Failed to kick player:', error);
+        throw error;
+    }
+}

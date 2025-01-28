@@ -4,8 +4,6 @@ import {
     acceptPlayer,
     denyPlayer,
     kickPlayer,
-    leaveTable,
-    sendLog,
 } from '@/app/hooks/server_actions';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import PendingPlayers from './PendingPlayers';
@@ -31,6 +29,9 @@ const PlayerList = () => {
         if (uuid) {
             await acceptPlayer(uuid);
             await loadPendingPlayers();
+            toast.success('Player accepted.');
+        } else {
+            toast.error('Unable to accept player.');
         }
     };
 
@@ -38,12 +39,18 @@ const PlayerList = () => {
         if (uuid) {
             await denyPlayer(uuid);
             await loadPendingPlayers();
+            toast.success('Player denied.');
+        } else {
+            toast.error('Unable to kick player.');
         }
     };
 
     const handleKickPlayer = async (uuid: string) => {
-        if (uuid) {
+        if (uuid && appState.table) {
             await kickPlayer(uuid, appState.table);
+            toast.success('Player kicked from table.');
+        } else {
+            toast.error('Unable to kick player.');
         }
     };
 

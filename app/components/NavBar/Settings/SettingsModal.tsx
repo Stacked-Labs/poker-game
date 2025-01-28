@@ -11,6 +11,7 @@ import {
     TabPanels,
     Tabs,
     Box,
+    Text,
 } from '@chakra-ui/react';
 import { IoCaretBack } from 'react-icons/io5';
 import GameSettings from './GameSettings';
@@ -42,23 +43,23 @@ const SettingsModal = ({
                                 _focus={{ border: 0 }}
                             >
                                 <Box>
-                                    <IoCaretBack />
+                                    <IoCaretBack color="white" />
                                 </Box>
-                                Back
+                                <Text color="white">Back</Text>
                             </Tab>
                             <Tab
                                 _selected={{
                                     bg: 'green.500',
                                 }}
                             >
-                                Players
+                                <Text color="white">Players</Text>
                             </Tab>
                             <Tab
                                 _selected={{
                                     bg: 'green.500',
                                 }}
                             >
-                                Game
+                                <Text color="white">Game</Text>
                             </Tab>
                         </TabList>
 

@@ -1,8 +1,7 @@
 import { PendingPlayer } from '@/app/utils/fetchPlayers';
 import { Flex, Box, Button, Text } from '@chakra-ui/react';
 import React from 'react';
-import { FaCheck } from 'react-icons/fa';
-import { IoClose } from 'react-icons/io5';
+import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
 
 interface Props {
     pendingPlayers: PendingPlayer[];
@@ -120,32 +119,27 @@ const PendingPlayers = ({
                                     gap={{ base: 5, lg: 10 }}
                                     py={{ base: 5, lg: 0 }}
                                     width={'20%'}
+                                    justifyContent={'space-between'}
                                 >
                                     <Button
-                                        flex={1}
-                                        gap={3}
+                                        variant={'settingsSmallButton'}
                                         bg={'green.500'}
-                                        border={0}
-                                        alignItems={'center'}
                                         _hover={{ background: 'green' }}
                                         onClick={() =>
                                             handleAcceptPlayer(player.uuid)
                                         }
                                     >
-                                        <FaCheck />
+                                        <FaCircleCheck />
                                     </Button>
                                     <Button
-                                        flex={1}
-                                        gap={3}
+                                        variant={'settingsSmallButton'}
                                         bg={'red.500'}
-                                        border={0}
-                                        alignItems={'center'}
                                         _hover={{ background: 'red' }}
                                         onClick={() =>
                                             handleDenyPlayer(player.uuid)
                                         }
                                     >
-                                        <IoClose size={25} />
+                                        <FaCircleXmark />
                                     </Button>
                                 </Flex>
                             </Flex>

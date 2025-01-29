@@ -45,9 +45,9 @@ const PlayerList = () => {
         }
     };
 
-    const handleKickPlayer = async (uuid: string) => {
-        if (uuid && appState.table) {
-            await kickPlayer(uuid, appState.table);
+    const handleKickPlayer = async (uuid: string, seatId: number) => {
+        if (uuid && appState.table && socket) {
+            await kickPlayer(socket, uuid, seatId, appState.table);
             toast.success('Player kicked from table.');
         } else {
             toast.error('Unable to kick player.');

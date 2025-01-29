@@ -5,7 +5,7 @@ import { GiBootKick } from 'react-icons/gi';
 
 interface Props {
     acceptedPlayers: Player[] | undefined;
-    handleKickPlayer: (uuid: string) => void;
+    handleKickPlayer: (uuid: string, seatId: number) => void;
 }
 
 const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
@@ -123,7 +123,10 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                                         marginLeft={{ base: 5, lg: 0 }}
                                         _hover={{ background: 'red' }}
                                         onClick={() =>
-                                            handleKickPlayer(player.uuid)
+                                            handleKickPlayer(
+                                                player.uuid,
+                                                player.seatID
+                                            )
                                         }
                                     >
                                         <GiBootKick />

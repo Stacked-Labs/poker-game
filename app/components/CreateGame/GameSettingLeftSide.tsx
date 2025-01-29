@@ -10,7 +10,7 @@ import {
     FormLabel,
     Tooltip,
 } from '@chakra-ui/react';
-import { FaInfoCircle } from 'react-icons/fa'; // Import the info icon from React Icons
+import { FaInfoCircle } from 'react-icons/fa';
 import PlayTypeToggle from './PlayTypeToggle';
 import OptionCard from './OptionCard';
 import gameData from '../../create-game/gameOptions.json';
@@ -40,24 +40,22 @@ const LeftSideContent: React.FC = () => {
     const socket = useContext(SocketContext);
     const { dispatch } = useContext(AppContext);
     const toast = useToastHelper();
-    const [smallBlind, setSmallBlind] = useState<string>('');
-    const [bigBlind, setBigBlind] = useState<string>('');
+    const [smallBlind, setSmallBlind] = useState<number>(1);
+    const [bigBlind, setBigBlind] = useState<number>(2);
     const [isFormValid, setIsFormValid] = useState(false);
 
     const { gameModes, networks } = gameData;
 
     useEffect(() => {
         const validateForm = () => {
-            const smallBlindValue = parseFloat(smallBlind);
-            const bigBlindValue = parseFloat(bigBlind);
             const isSmallBlindValid =
-                !isNaN(smallBlindValue) &&
-                smallBlindValue >= 0.01 &&
-                /^\d+(\.\d{2})?$/.test(smallBlind);
+                !isNaN(smallBlind) &&
+                smallBlind >= 0.01 &&
+                /^\d+(\.\d{2})?$/.test(smallBlind.toString());
             const isBigBlindValid =
-                !isNaN(bigBlindValue) &&
-                bigBlindValue >= smallBlindValue &&
-                /^\d+(\.\d{2})?$/.test(bigBlind);
+                !isNaN(bigBlind) &&
+                bigBlind >= smallBlind &&
+                /^\d+(\.\d{2})?$/.test(bigBlind.toString());
             const isGameModeSelected = selectedGameMode !== '';
             const isNetworkSelected =
                 playType === 'Free' ||
@@ -91,7 +89,7 @@ const LeftSideContent: React.FC = () => {
                     'Please connect your wallet first.'
                 );
             }
-            if (smallBlind === '' || bigBlind === '') {
+            if (smallBlind === 0 || bigBlind === 0) {
                 toast.warning(
                     'Missing Blinds',
                     'Please enter both small and big blinds.'
@@ -122,18 +120,49 @@ const LeftSideContent: React.FC = () => {
         dispatch({ type: 'setTablename', payload: tableName });
 
         try {
-            await joinTable(socket, tableName);
-            sendLog(socket, `Joined table ${tableName}`);
-            router.push(`/game/${tableName}`);
-            toast.success(
-                'Joined Table',
-                `You have joined table ${tableName}.`
+            // Make a POST request to /create-table using fetch,
+            // passing tableName in the body, and including credentials:
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/create-table`,
+                {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        tablename: tableName,
+                        smallBlind: smallBlind,
+                        bigBlind: bigBlind,
+                        isCrypto: playType === 'Crypto',
+                        chain: selectedNetwork,
+                    }),
+                }
             );
+            console.log('create response:', response);
+            if (response.ok) {
+                const data = await response.json();
+                toast.success(
+                    'Game Created',
+                    `You have successfully created the game: ${tableName}`
+                );
+
+                // **Send Join-Table Message via WebSocket**
+                joinTable(socket, tableName);
+
+                router.push(`/game/${tableName}`);
+            } else {
+                toast.error(
+                    'Create Failed',
+                    'Failed to create the game. Please try again. ' +
+                        response.statusText
+                );
+            }
         } catch (error) {
             console.error(error);
             toast.error(
-                'Join Failed',
-                'Failed to join the table. Please try again.'
+                'Create Failed',
+                'Failed to create the game. Please try again.'
             );
         } finally {
             setIsLoading(false);
@@ -187,7 +216,9 @@ const LeftSideContent: React.FC = () => {
                             borderColor="white"
                             focusBorderColor="red.500"
                             value={smallBlind}
-                            onChange={(e) => setSmallBlind(e.target.value)}
+                            onChange={(e) =>
+                                setSmallBlind(Number(e.target.value))
+                            }
                             mr={2}
                             color={'white'}
                         />
@@ -199,7 +230,9 @@ const LeftSideContent: React.FC = () => {
                             borderColor="white"
                             focusBorderColor="red.500"
                             value={bigBlind}
-                            onChange={(e) => setBigBlind(e.target.value)}
+                            onChange={(e) =>
+                                setBigBlind(Number(e.target.value))
+                            }
                             ml={2}
                             color={'white'}
                         />

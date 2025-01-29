@@ -29,7 +29,6 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     const [players, setPlayers] = useState(initialPlayers);
 
     const tableId = params.id;
-
     if (socket && !appState.table && tableId) {
         joinTable(socket, tableId);
         newPlayer(socket, '');

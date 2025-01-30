@@ -39,10 +39,11 @@ const HomeCard = () => {
                 <Stack gap={12} flex={1} justifyContent="flex-start">
                     <Text
                         className={poppins.className}
-                        fontSize={['4xl', '5xl', '6xl']}
+                        fontSize={['3xl', '4xl', '6xl']}
                         textAlign="center"
                         fontWeight={700}
                         color="white"
+                        width="100%"
                         whiteSpace="nowrap"
                     >
                         Stacked

@@ -27,8 +27,8 @@ const OptionCard: React.FC<OptionCardProps> = ({
             p={4}
             cursor={disabled ? 'not-allowed' : 'pointer'}
             onClick={disabled ? undefined : onClick}
-            width={150}
-            height={150}
+            width={['100px', '100px', '150px', '150px']}
+            height={['100px', '100px', '150px', '150px']}
             transition="all 0.2s"
             _hover={disabled ? {} : { boxShadow: 'md', bgColor: 'gray.50' }}
             alignItems="center"
@@ -46,11 +46,20 @@ const OptionCard: React.FC<OptionCardProps> = ({
                         height={50}
                     />
                 )}
-                <Text fontWeight="bold" textAlign="center" color="white">
+                <Text
+                    fontWeight="bold"
+                    textAlign="center"
+                    color="white"
+                    fontSize={['12px', '12px', '16px', '16px']}
+                >
                     {name}
                 </Text>
                 {description && (
-                    <Text fontSize="sm" textAlign="center" color="white">
+                    <Text
+                        fontSize={['10px', '10px', '12px', '12px']}
+                        textAlign="center"
+                        color="white"
+                    >
                         {description}
                     </Text>
                 )}

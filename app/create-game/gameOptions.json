@@ -7,19 +7,24 @@
         },
         {
             "name": "Pot Limit Omaha",
-            "description": "For those who want some extra cards.",
+            "description": "For those who want more cards.",
             "disabled": true
         }
     ],
     "networks": [
         {
-            "name": "Arbitrum",
-            "image": "/networkLogos/arbitrum-logo.png",
+            "name": "Optimism",
+            "image": "/networkLogos/optimism-logo.png",
             "disabled": false
         },
         {
             "name": "Base",
             "image": "/networkLogos/base-logo.png",
+            "disabled": true
+        },
+        {
+            "name": "Arbitrum",
+            "image": "/networkLogos/arbitrum-logo.png",
             "disabled": true
         },
         {

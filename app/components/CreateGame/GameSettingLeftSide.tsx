@@ -33,7 +33,7 @@ const LeftSideContent: React.FC = () => {
     const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
-    const [selectedNetwork, setSelectedNetwork] = useState<string>('Arbitrum');
+    const [selectedNetwork, setSelectedNetwork] = useState<string>('Optimism');
     const [isLoading, setIsLoading] = useState(false);
     const address = useActiveAccount()?.address;
     const router = useRouter();

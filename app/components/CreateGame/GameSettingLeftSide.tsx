@@ -182,7 +182,7 @@ const LeftSideContent: React.FC = () => {
             <VStack spacing={4} alignItems="center" width="100%">
                 <Text
                     className={poppins.className}
-                    fontSize="5xl"
+                    fontSize={['2xl', '2xl', '3xl', '5xl']}
                     fontWeight="bold"
                     mb={4}
                     color="white"

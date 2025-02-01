@@ -50,7 +50,7 @@ const HomeNavBar: React.FC = () => {
             <Button
                 variant={'navButton'}
                 as="a"
-                href="https://discord.gg/EeEHt8rWy6"
+                href="https://discord.gg/4evYx7F4"
                 target="_blank"
                 rel="noopener noreferrer"
             >

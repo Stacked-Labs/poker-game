@@ -81,7 +81,7 @@ const HomeCard = () => {
                             _hover={{ transform: 'scale(1.1)' }}
                         />
                     </Link>
-                    <Link href="https://discord.gg/R42388MfDd" isExternal>
+                    <Link href="https://discord.gg/896EhkVYbd" isExternal>
                         <IconButton
                             aria-label="Discord"
                             variant="social"

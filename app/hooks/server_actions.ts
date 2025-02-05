@@ -163,3 +163,33 @@ export async function isAuth() {
 
     return data.isAuth;
 }
+
+export async function isTableExisting(table: string) {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!backendUrl) {
+        throw new Error('Backend API URL is not defined');
+    }
+
+    if (!table) {
+        throw new Error('Table is not defined');
+    }
+
+    try {
+        const response = await fetch(`${backendUrl}/is-table-existing`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ table }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Table check failed: ${response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to check if table exists.', error);
+        throw error;
+    }
+}

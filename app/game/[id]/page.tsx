@@ -52,11 +52,15 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                         sendLog(socket, `Joined table ${tableId}`);
                         setTableStatus('success');
                     } else {
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, 5000)
+                        );
                         router.push('/create-game');
                     }
                 } catch (error) {
                     console.error('Error checking table existence:', error);
                     toast.error('Table does not exist.');
+                    await new Promise((resolve) => setTimeout(resolve, 5000));
                     router.push('/create-game');
                 }
             }

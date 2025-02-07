@@ -112,7 +112,7 @@ export function SocketProvider(props: SocketProviderProps) {
                     }
                     case 'error':
                         // Handle error
-                        alert(`Error ${event.code}: ${event.message}`);
+                        error(`Error ${event.code}: ${event.message}`);
                         break;
                     default: {
                         console.warn(`Unhandled action type: ${event.action}`);

@@ -46,6 +46,26 @@ export function takeSeat(
     );
 }
 
+export function acceptPlayer(socket: WebSocket, uuid: string, tableName: string) {
+    socket.send(
+        JSON.stringify({
+            action: 'accept-player',
+            uuid: uuid,
+            tableName: tableName
+        })
+    );
+}
+
+export function denyPlayer(socket: WebSocket, uuid: string, tableName: string) {
+    socket.send(
+        JSON.stringify({
+            action: 'deny-player',
+            uuid: uuid,
+            tableName: tableName
+        })
+    );
+}
+
 export function kickPlayer(
     socket: WebSocket,
     uuid: string,
@@ -229,109 +249,3 @@ export async function getPendingPlayers() {
 
     return data;
 }
-
-export async function acceptPlayer(playerUUID: string | null): Promise<void> {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-
-    if (!backendUrl) {
-        throw new Error('Backend API URL is not defined');
-    }
-
-    if (!playerUUID) {
-        throw new Error('Player UUID is required');
-    }
-
-    try {
-        const response = await fetch(`${backendUrl}/acceptPlayer`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ playerUUID }),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Error in accepting player: ${errorText}`);
-        }
-
-        console.log(`Player ${playerUUID} accepted successfully.`);
-    } catch (error) {
-        console.error('Failed to accept player:', error);
-        throw error;
-    }
-}
-
-export async function denyPlayer(playerUUID: string | null): Promise<void> {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-
-    if (!backendUrl) {
-        throw new Error('Backend API URL is not defined');
-    }
-
-    if (!playerUUID) {
-        throw new Error('Player UUID is required');
-    }
-
-    try {
-        const response = await fetch(`${backendUrl}/denyPlayer`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ playerUUID }),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Error in denying player: ${errorText}`);
-        }
-
-        console.log(`Player ${playerUUID} denied successfully.`);
-    } catch (error) {
-        console.error('Failed to deny player:', error);
-        throw error;
-    }
-}
-
-// export async function kickPlayer(
-//     playerUUID: string | null,
-//     tableName: string
-// ): Promise<void> {
-//     const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-
-//     if (!backendUrl) {
-//         throw new Error('Backend API URL is not defined');
-//     }
-
-//     if (!tableName) {
-//         throw new Error('Table name is required');
-//     }
-
-//     if (!playerUUID) {
-//         throw new Error('Player UUID is required');
-//     }
-
-//     try {
-//         const response = await fetch(`${backendUrl}/kickPlayer`, {
-//             method: 'POST',
-//             credentials: 'include',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({ playerUUID, tableName }),
-//         });
-
-//         if (!response.ok) {
-//             const errorText = await response.text();
-//             throw new Error(`Error in kicking player: ${errorText}`);
-//         }
-
-//         console.log(`Player ${playerUUID} kicked successfully.`);
-//     } catch (error) {
-//         console.error('Failed to kick player:', error);
-//         throw error;
-//     }
-// }

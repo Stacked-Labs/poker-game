@@ -26,20 +26,18 @@ const PlayerList = () => {
     }, []);
 
     const handleAcceptPlayer = async (uuid: string) => {
-        if (uuid) {
-            await acceptPlayer(uuid);
-            await loadPendingPlayers();
-            toast.success('Player accepted.');
+        if (socket && uuid && appState.table) {
+            acceptPlayer(socket, uuid, appState.table);
+            loadPendingPlayers();
         } else {
             toast.error('Unable to accept player.');
         }
     };
 
     const handleDenyPlayer = async (uuid: string) => {
-        if (uuid) {
-            await denyPlayer(uuid);
-            await loadPendingPlayers();
-            toast.success('Player denied.');
+        if (socket && uuid && appState.table) {
+            denyPlayer(socket, uuid, appState.table);
+            loadPendingPlayers();
         } else {
             toast.error('Unable to kick player.');
         }
@@ -47,8 +45,7 @@ const PlayerList = () => {
 
     const handleKickPlayer = async (uuid: string, seatId: number) => {
         if (uuid && appState.table && socket) {
-            await kickPlayer(socket, uuid, seatId, appState.table);
-            toast.success('Player kicked from table.');
+            kickPlayer(socket, uuid, seatId, appState.table);
         } else {
             toast.error('Unable to kick player.');
         }

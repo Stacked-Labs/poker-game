@@ -75,3 +75,10 @@ export type FAQ = {
     question: string;
     answer: string;
 };
+
+export type PendingPlayer = {
+    uuid: string;
+    username: string;
+    seatId: number;
+    buyIn: number;
+};

@@ -14,6 +14,19 @@ import { sendLog, dealGame } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
 
+const initialPlayers: (Player | null)[] = [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+];
+
 const seatIndices = [
     'one',
     'two',
@@ -72,33 +85,32 @@ function getRevealedPlayers(game: GameType) {
     return revealedPlayers;
 }
 
-type tableProps = {
-    players: (Player | null)[];
-    setPlayers: React.Dispatch<React.SetStateAction<(Player | null)[]>>;
-};
-
-const Table = ({ players, setPlayers }: tableProps) => {
+const Table = () => {
     const socket = useContext(SocketContext);
-    const { appState, dispatch } = useContext(AppContext);
+    const { appState } = useContext(AppContext);
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
-    const game = appState.game;
+    const [players, setPlayers] = useState(initialPlayers);
 
     const shouldRotate = useBreakpointValue({ base: true, md: false }) ?? false;
 
     // map game players to their visual seats
     useEffect(() => {
-        const updatedPlayers: (Player | null)[] = [...players];
-        if (game?.players == null) {
-            return;
-        }
-        for (let i = 0; i < game.players.length; i++) {
-            updatedPlayers[game.players[i].seatID - 1] = game.players[i];
-        }
+        if (!appState.game?.players) return;
 
-        setPlayers(updatedPlayers);
-    }, [game?.players]);
+        const updatedPlayers: (Player | null)[] = Array(10).fill(null);
+
+        // Assign players to their correct seats
+        appState.game.players.forEach((player) => {
+            if (player.seatID >= 1 && player.seatID <= 10) {
+                updatedPlayers[player.seatID - 1] = player;
+            }
+        });
+
+        setPlayers([...updatedPlayers]);
+    }, [appState.game?.players]);
 
     useEffect(() => {
+        const game = appState.game;
         // this effect triggers when betting is over
         if (game && game.stage === 1 && game.pots.length !== 0) {
             setRevealedPlayers(getRevealedPlayers(game));
@@ -113,7 +125,7 @@ const Table = ({ players, setPlayers }: tableProps) => {
                 clearTimeout(timer);
             };
         }
-    }, [game?.pots]);
+    }, [appState.game?.pots]);
 
     return (
         <Flex
@@ -156,38 +168,39 @@ const Table = ({ players, setPlayers }: tableProps) => {
                 placeItems="center"
                 justifyContent={'center'}
             >
-                {seatIndices.map((gridIndex: string, index: number) => {
-                    const player: Player | null = players[index];
-                    const seatId = index + 1;
-                    return (
-                        <GridItem
-                            key={index}
-                            area={gridIndex}
-                            display={'flex'}
-                            justifyContent={'center'}
-                            alignItems={
-                                shouldRotate
-                                    ? seatId == 1
-                                        ? 'end'
-                                        : seatId == 10
-                                          ? 'top'
-                                          : 'center'
-                                    : 'center'
-                            }
-                            width={'100%'}
-                            height={'100%'}
-                        >
-                            {player && player !== null ? (
-                                <TakenSeatButton player={player} />
-                            ) : (
-                                <EmptySeatButton
-                                    seatId={seatId}
-                                    disabled={false}
-                                />
-                            )}
-                        </GridItem>
-                    );
-                })}
+                {players &&
+                    seatIndices.map((gridIndex: string, index: number) => {
+                        const player: Player | null = players[index];
+                        const seatId = index + 1;
+                        return (
+                            <GridItem
+                                key={index}
+                                area={gridIndex}
+                                display={'flex'}
+                                justifyContent={'center'}
+                                alignItems={
+                                    shouldRotate
+                                        ? seatId == 1
+                                            ? 'end'
+                                            : seatId == 10
+                                              ? 'top'
+                                              : 'center'
+                                        : 'center'
+                                }
+                                width={'100%'}
+                                height={'100%'}
+                            >
+                                {player && player !== null ? (
+                                    <TakenSeatButton player={player} />
+                                ) : (
+                                    <EmptySeatButton
+                                        seatId={seatId}
+                                        disabled={false}
+                                    />
+                                )}
+                            </GridItem>
+                        );
+                    })}
                 <GridItem height={'50%'} width={'90%'} area={'felt'}>
                     <Felt />
                 </GridItem>

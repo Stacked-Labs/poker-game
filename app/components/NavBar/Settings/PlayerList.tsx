@@ -1,157 +1,75 @@
 'use client';
+
+import {
+    acceptPlayer,
+    denyPlayer,
+    getPendingPlayers,
+    kickPlayer,
+} from '@/app/hooks/server_actions';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import PendingPlayers from './PendingPlayers';
+import AcceptedPlayers from './AcceptedPlayers';
+import { VStack } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { Player } from '@/app/interfaces';
-import { Flex, Button, Text, Box, VStack } from '@chakra-ui/react';
-import React, { useContext } from 'react';
-import { FaCheck } from 'react-icons/fa';
-import { GiBootKick } from 'react-icons/gi';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import useToastHelper from '@/app/hooks/useToastHelper';
 
 const PlayerList = () => {
+    const [pendingPlayers, setPendingPlayers] = useState([]);
     const { appState } = useContext(AppContext);
-    const players = appState.game?.players;
+    const socket = useContext(SocketContext);
+    const toast = useToastHelper();
 
-    if (players && players.length > 0) {
-        return (
-            <VStack gap={5}>
-                {players.map((player: Player, index: number) => {
-                    if (player.username !== '') {
-                        return (
-                            <Flex
-                                key={index}
-                                alignItems={'center'}
-                                gap={{ base: 0, lg: 10 }}
-                                width={{ base: '90vw', md: '70%' }}
-                                borderColor={'grey'}
-                                borderWidth={2}
-                                borderRadius={10}
-                                paddingX={{ base: 5, md: 10 }}
-                                paddingY={{ base: 2, md: 5 }}
-                                direction={{
-                                    base: 'column',
-                                    lg: 'row',
-                                }}
-                            >
-                                <Flex
-                                    flex={3}
-                                    justifyContent={'space-around'}
-                                    alignItems={'center'}
-                                    textAlign={'left'}
-                                    gap={40}
-                                >
-                                    <Flex
-                                        gap={{ base: 2, xl: 5 }}
-                                        flex={2}
-                                        direction={{
-                                            base: 'column',
-                                            xl: 'row',
-                                        }}
-                                    >
-                                        <Flex
-                                            justifyContent={'space-between'}
-                                            direction={{
-                                                base: 'column',
-                                                xl: 'row',
-                                            }}
-                                            gap={{ base: 2, xl: 5 }}
-                                        >
-                                            <Flex
-                                                gap={{ base: 2, xl: 5 }}
-                                                direction={{
-                                                    base: 'column',
-                                                    xl: 'row',
-                                                }}
-                                            >
-                                                <Text
-                                                    fontSize={'xl'}
-                                                    fontWeight={'black'}
-                                                >
-                                                    {player.username}
-                                                </Text>
-                                                <Box
-                                                    bgColor={'charcoal.600'}
-                                                    paddingY={1}
-                                                    paddingX={2}
-                                                    borderRadius={10}
-                                                >
-                                                    <Text fontSize={'small'}>
-                                                        ID: {player.uuid}
-                                                    </Text>
-                                                </Box>
-                                            </Flex>
-                                            <Text>
-                                                Total buy-in:{' '}
-                                                <Text
-                                                    as={'span'}
-                                                    fontWeight={'bold'}
-                                                >
-                                                    {player.totalBuyIn}
-                                                </Text>
-                                            </Text>
-                                        </Flex>
-                                        <Flex
-                                            gap={4}
-                                            justifyContent={'space-between'}
-                                            direction={{
-                                                base: 'column',
-                                                xl: 'row',
-                                            }}
-                                        >
-                                            <Text>
-                                                Seat:{' '}
-                                                <Text
-                                                    as={'span'}
-                                                    fontWeight={'bold'}
-                                                >
-                                                    {player.seatID}
-                                                </Text>
-                                            </Text>
-                                            <Text>
-                                                Stack:{' '}
-                                                <Text
-                                                    as={'span'}
-                                                    fontWeight={'bold'}
-                                                >
-                                                    {player.stack}
-                                                </Text>
-                                            </Text>
-                                        </Flex>
-                                    </Flex>
-                                </Flex>
+    const loadPendingPlayers = useCallback(async () => {
+        if (appState.table) {
+            const players = await getPendingPlayers(appState.table);
+            setPendingPlayers(players);
+        }
+    }, []);
 
-                                <Flex
-                                    gap={{ base: 5, lg: 10 }}
-                                    py={{ base: 5, lg: 0 }}
-                                >
-                                    <Button
-                                        flex={1}
-                                        gap={3}
-                                        bg={'green.500'}
-                                        border={0}
-                                        alignItems={'center'}
-                                        _hover={{ background: 'green' }}
-                                    >
-                                        Accept
-                                        <FaCheck />
-                                    </Button>
-                                    <Button
-                                        flex={1}
-                                        gap={3}
-                                        bg={'red.500'}
-                                        border={0}
-                                        alignItems={'center'}
-                                        _hover={{ background: 'red' }}
-                                    >
-                                        Kick
-                                        <GiBootKick size={25} />
-                                    </Button>
-                                </Flex>
-                            </Flex>
-                        );
-                    }
-                })}
-            </VStack>
-        );
-    }
+    const handleAcceptPlayer = async (uuid: string) => {
+        if (socket && uuid && appState.table) {
+            acceptPlayer(socket, uuid, appState.table);
+            loadPendingPlayers();
+        } else {
+            toast.error('Unable to accept player.');
+        }
+    };
+
+    const handleDenyPlayer = async (uuid: string) => {
+        if (socket && uuid && appState.table) {
+            denyPlayer(socket, uuid, appState.table);
+            loadPendingPlayers();
+        } else {
+            toast.error('Unable to kick player.');
+        }
+    };
+
+    const handleKickPlayer = async (uuid: string, seatId: number) => {
+        if (uuid && appState.table && socket) {
+            kickPlayer(socket, uuid, seatId, appState.table);
+        } else {
+            toast.error('Unable to kick player.');
+        }
+    };
+
+    useEffect(() => {
+        loadPendingPlayers();
+    }, [loadPendingPlayers]);
+
+    return (
+        <VStack gap={5}>
+            <PendingPlayers
+                pendingPlayers={pendingPlayers}
+                handleAcceptPlayer={handleAcceptPlayer}
+                handleDenyPlayer={handleDenyPlayer}
+            />
+            <AcceptedPlayers
+                acceptedPlayers={appState.game?.players}
+                handleKickPlayer={handleKickPlayer}
+            />
+        </VStack>
+    );
 };
 
 export default PlayerList;

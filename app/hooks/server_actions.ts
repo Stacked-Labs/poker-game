@@ -46,6 +46,42 @@ export function takeSeat(
     );
 }
 
+export function acceptPlayer(socket: WebSocket, uuid: string, tableName: string) {
+    socket.send(
+        JSON.stringify({
+            action: 'accept-player',
+            uuid: uuid,
+            tableName: tableName
+        })
+    );
+}
+
+export function denyPlayer(socket: WebSocket, uuid: string, tableName: string) {
+    socket.send(
+        JSON.stringify({
+            action: 'deny-player',
+            uuid: uuid,
+            tableName: tableName
+        })
+    );
+}
+
+export function kickPlayer(
+    socket: WebSocket,
+    uuid: string,
+    seatId: number,
+    tableName: string
+) {
+    socket.send(
+        JSON.stringify({
+            action: 'kick-player',
+            uuid: uuid,
+            seatId: seatId,
+            tableName: tableName,
+        })
+    );
+}
+
 export function startGame(socket: WebSocket) {
     socket.send(
         JSON.stringify({
@@ -190,6 +226,37 @@ export async function isTableExisting(table: string) {
         return await response.json();
     } catch (error) {
         console.error('Unable to check if table exists.', error);
+        throw error;
+    }
+}
+
+export async function getPendingPlayers(table: string) {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!backendUrl) {
+        throw new Error('Backend API URL is not defined');
+    }
+
+    if (!table) {
+        throw new Error('Table is not defined');
+    }
+
+    try {
+        const response = await fetch(`${backendUrl}/get-pending-players`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ table })
+        });
+
+        if (!response.ok) {
+            throw new Error('Error in getting pending players.');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to get pending players for the table.', error);
         throw error;
     }
 }

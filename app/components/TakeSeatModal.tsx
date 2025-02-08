@@ -72,7 +72,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             return;
         }
 
-        console.log('socket', socket);
         if (socket && name.length > 0 && seatId) {
             metaDispatch({ type: 'SET_IS_USER_SITTING', payload: true });
             metaDispatch({

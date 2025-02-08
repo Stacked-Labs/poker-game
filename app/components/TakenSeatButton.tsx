@@ -135,7 +135,7 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                         w={'fit-content'}
                         bg="amber.300"
                         fontWeight="semibold"
-                        color="zinc.900"
+                        color="white"
                         display="flex"
                         alignItems="center"
                         justifyContent="center"
@@ -150,15 +150,15 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
             <Flex
                 position={'absolute'}
                 justifyContent={'center'}
-                width={'100%'}
+                width={'90%'}
                 height={'100%'}
-                gap={1}
+                gap={0}
             >
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
                         return (
-                            <Box flex={1} key={index}>
-                                <CardComponent
+                            <Box flex={1} key={index} > 
+                                <CardComponent 
                                     card={card}
                                     hidden={appState.clientID !== player.uuid}
                                     placeholder={false}

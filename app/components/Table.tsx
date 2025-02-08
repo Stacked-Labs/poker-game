@@ -208,7 +208,7 @@ const Table = () => {
                             </GridItem>
                         );
                     })}
-                <GridItem height={'50%'} width={'90%'} area={'felt'}>
+                <GridItem height={'50%'} width={'70%'} area={'felt'}  justifyContent={'center'} >
                     <Felt />
                 </GridItem>
             </Grid>

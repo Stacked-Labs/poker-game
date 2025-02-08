@@ -3,11 +3,11 @@
 import {
     acceptPlayer,
     denyPlayer,
+    getPendingPlayers,
     kickPlayer,
 } from '@/app/hooks/server_actions';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import PendingPlayers from './PendingPlayers';
-import { fetchPendingPlayers } from '@/app/utils/fetchPlayers';
 import AcceptedPlayers from './AcceptedPlayers';
 import { VStack } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -21,8 +21,10 @@ const PlayerList = () => {
     const toast = useToastHelper();
 
     const loadPendingPlayers = useCallback(async () => {
-        const players = await fetchPendingPlayers();
-        setPendingPlayers(players);
+        if (appState.table) {
+            const players = await getPendingPlayers(appState.table);
+            setPendingPlayers(players);
+        }
     }, []);
 
     const handleAcceptPlayer = async (uuid: string) => {

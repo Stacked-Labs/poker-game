@@ -230,22 +230,33 @@ export async function isTableExisting(table: string) {
     }
 }
 
-export async function getPendingPlayers() {
+export async function getPendingPlayers(table: string) {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-
-    const response = await fetch(`${backendUrl}/getPendingPlayers`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error('Error in getting pending players.');
+    if (!backendUrl) {
+        throw new Error('Backend API URL is not defined');
     }
 
-    const data = await response.json();
+    if (!table) {
+        throw new Error('Table is not defined');
+    }
 
-    return data;
+    try {
+        const response = await fetch(`${backendUrl}/get-pending-players`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ table })
+        });
+
+        if (!response.ok) {
+            throw new Error('Error in getting pending players.');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to get pending players for the table.', error);
+        throw error;
+    }
 }

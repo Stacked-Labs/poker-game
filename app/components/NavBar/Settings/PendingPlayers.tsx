@@ -1,4 +1,4 @@
-import { PendingPlayer } from '@/app/utils/fetchPlayers';
+import { PendingPlayer } from '@/app/interfaces';
 import { Flex, Box, Button, Text } from '@chakra-ui/react';
 import React from 'react';
 import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';

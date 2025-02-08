@@ -16,7 +16,8 @@ export default function PlayTypeToggle({
     const borderColor = 'red';
 
     const handleToggle = () => {
-        setPlayType(playType === 'Free' ? 'Crypto' : 'Free');
+        const newType = playType === 'Free' ? 'Crypto' : 'Free';
+        setPlayType(newType);
     };
 
     return (
@@ -30,6 +31,7 @@ export default function PlayTypeToggle({
             alignItems="center"
             padding="4px"
             cursor="pointer"
+            as="switch"
             onClick={handleToggle}
         >
             <Box
@@ -65,15 +67,7 @@ export default function PlayTypeToggle({
             >
                 Crypto
             </Text>
-            <Switch
-                position="absolute"
-                width="100%"
-                height="100%"
-                opacity="0"
-                cursor="pointer"
-                onChange={handleToggle}
-                isChecked={playType === 'Crypto'}
-            />
+
         </Box>
     );
 }

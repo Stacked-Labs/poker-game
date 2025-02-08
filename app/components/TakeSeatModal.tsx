@@ -136,11 +136,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 onChange={(e) =>
                                     setBuyIn(parseFloat(e.target.value))
                                 }
-                                onKeyDown={(e) => {
-                                    if (e.key === 'e' || e.key === 'E' || e.key === '-' || e.key === '+') {
-                                        e.preventDefault();
-                                    }
-                                }} // User was able to enter e, E, -, + in the input field this is fixing that
                                 _placeholder={{ color: 'white' }}
                                 color="white"
                                 required

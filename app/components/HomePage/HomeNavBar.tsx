@@ -40,7 +40,7 @@ const HomeNavBar: React.FC = () => {
             <Button
                 variant={'navButton'}
                 as="a"
-                href="https://docs.stackedpoker.io"
+                href="https://docs.stackedpoker.io/docs/introduction"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Documentation"

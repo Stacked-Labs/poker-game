@@ -67,6 +67,13 @@ function handleWinner(game: GameType | null, socket: WebSocket | null) {
     }
     if (game && game.stage === 1 && game.pots.length !== 0) {
         const winningPlayer = getWinner(game);
+        if (
+            !winningPlayer ||
+            !game.players.some((p) => p && p.uuid === winningPlayer.uuid)
+        ) {
+            console.log('Winning player was kicked or left the game.');
+            return;
+        }
         const pot = game.pots[game.pots.length - 1].amount;
         const message = winningPlayer.username + ' wins ' + pot;
         sendLog(socket, message);
@@ -125,7 +132,7 @@ const Table = () => {
                 clearTimeout(timer);
             };
         }
-    }, [appState.game?.pots]);
+    }, [appState.game?.dealer]);
 
     return (
         <Flex

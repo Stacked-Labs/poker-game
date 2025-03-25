@@ -224,6 +224,10 @@ const components = {
                 border: 0,
                 fontSize: 'xl',
             },
+            settingsSmallButton: {
+                width: '50%',
+                border: 0,
+            },
         },
         defaultProps: {
             variant: 'base',

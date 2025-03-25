@@ -38,6 +38,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
         'checking'
     );
+
     const tableId = params.id;
 
     useEffect(() => {
@@ -86,7 +87,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
             </Box>
             <Box />
             <Flex flex={1} justifyContent={'center'} position={'relative'}>
-                <Table players={players} setPlayers={setPlayers} />
+                <Table />
             </Flex>
         </>
     );

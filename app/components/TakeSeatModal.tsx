@@ -55,7 +55,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const [buyIn, setBuyIn] = useState(
         appStore.appState.game?.config.maxBuyIn
             ? appStore.appState.game?.config.maxBuyIn
-            : 2000
+            : null
     );
     const { error } = useToastHelper();
 
@@ -72,7 +72,8 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             return;
         }
 
-        if (socket && name.length > 0 && seatId) {
+        console.log('socket', socket);
+        if (socket && name.length > 0 && seatId && buyIn) {
             metaDispatch({ type: 'SET_IS_USER_SITTING', payload: true });
             metaDispatch({
                 type: 'SET_USER',
@@ -133,7 +134,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 placeholder="Amount"
                                 type="number"
                                 onChange={(e) =>
-                                    setBuyIn(parseInt(e.target.value))
+                                    setBuyIn(parseFloat(e.target.value))
                                 }
                                 _placeholder={{ color: 'white' }}
                                 color="white"
@@ -169,7 +170,8 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 h={12}
                                 isDisabled={
                                     name === '' ||
-                                    buyIn === 0 ||
+                                    buyIn === null ||
+                                    isNaN(Number(buyIn)) ||
                                     address === null
                                 }
                                 bg="green.500"

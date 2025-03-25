@@ -12,7 +12,7 @@ import { useContext } from 'react';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Player } from '@/app/interfaces';
-import { Box, Flex, Spinner, Text } from '@chakra-ui/react';
+import { Box, Flex, Spinner, Text, VStack } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import useToastHelper from '@/app/hooks/useToastHelper';
 
@@ -73,7 +73,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     return (
         <>
             <Box
-                background={'rgba(7, 7, 7, 0.55)'}
+                background={'gray.200'}
                 width={'100vw'}
                 height={'100vh'}
                 position={'fixed'}
@@ -83,7 +83,17 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                 justifyContent={'center'}
                 alignItems={'center'}
             >
-                <Spinner size="xl" color="grey" borderWidth={'0.3rem'} />
+                <VStack spacing={4}>
+                    <Spinner
+                        size="xl"
+                        color="red"
+                        thickness="4px"
+                        speed="0.8s"
+                    />
+                    <Text color="white" fontSize="lg" fontWeight="bold">
+                        Connecting to game...
+                    </Text>
+                </VStack>
             </Box>
             <Box />
             <Flex flex={1} justifyContent={'center'} position={'relative'}>

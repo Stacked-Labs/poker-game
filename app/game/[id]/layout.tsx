@@ -2,7 +2,7 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import Navbar from '@/app/components/NavBar';
-import { CircularProgress, Flex } from '@chakra-ui/react';
+import { Flex, Spinner, Text, VStack } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 
@@ -11,30 +11,14 @@ const GameLayout: React.FC = ({
 }: React.PropsWithChildren<object>) => {
     useContext(AppContext);
     const [loading, setLoading] = useState(true);
-    const [progress, setProgress] = useState(0);
 
     useEffect(() => {
-        const startTime = Date.now();
-        const duration = 300;
+        // Simplified loading logic - just a short delay for better UX
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
 
-        const updateProgress = () => {
-            const currentTime = Date.now();
-            const elapsedTime = currentTime - startTime;
-
-            const newProgress = Math.min((elapsedTime / duration) * 100, 100);
-
-            setProgress(newProgress);
-
-            if (elapsedTime >= duration + 1000) {
-                setLoading(false);
-            } else {
-                requestAnimationFrame(updateProgress);
-            }
-        };
-
-        requestAnimationFrame(updateProgress);
-
-        return () => {};
+        return () => clearTimeout(timer);
     }, []);
 
     if (loading) {
@@ -45,15 +29,20 @@ const GameLayout: React.FC = ({
                 w="100vw"
                 h="100vh"
                 position="fixed"
-                backgroundColor="white"
+                backgroundColor="gray.200"
                 zIndex={999}
             >
-                <CircularProgress
-                    value={progress}
-                    isIndeterminate={false}
-                    color="grey"
-                    size="100px"
-                />
+                <VStack spacing={4}>
+                    <Spinner
+                        size="xl"
+                        color="red"
+                        thickness="4px"
+                        speed="0.8s"
+                    />
+                    <Text color="white" fontSize="lg" fontWeight="bold">
+                        Loading game...
+                    </Text>
+                </VStack>
             </Flex>
         );
     }

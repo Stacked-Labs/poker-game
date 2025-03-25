@@ -9,6 +9,7 @@ import {
     FormControl,
     FormLabel,
     Tooltip,
+    Spinner,
 } from '@chakra-ui/react';
 import { FaInfoCircle } from 'react-icons/fa';
 import PlayTypeToggle from './PlayTypeToggle';
@@ -151,13 +152,16 @@ const LeftSideContent: React.FC = () => {
                 // **Send Join-Table Message via WebSocket**
                 joinTable(socket, tableName);
 
+                // Don't set isLoading to false here - keep it loading until navigation completes
                 router.push(`/game/${tableName}`);
+                // We're not turning off the loading state as the page transition itself will unmount this component
             } else {
                 toast.error(
                     'Create Failed',
                     'Failed to create the game. Please try again. ' +
                         response.statusText
                 );
+                setIsLoading(false);
             }
         } catch (error) {
             console.error(error);
@@ -165,7 +169,6 @@ const LeftSideContent: React.FC = () => {
                 'Create Failed',
                 'Failed to create the game. Please try again.'
             );
-        } finally {
             setIsLoading(false);
         }
     };
@@ -337,7 +340,8 @@ const LeftSideContent: React.FC = () => {
                 width="200px"
                 fontSize={['xl']}
                 isLoading={isLoading}
-                loadingText="Creating..."
+                loadingText="Loading"
+                spinner={<Spinner size="md" color="white" />}
                 opacity={isFormValid ? 1 : 0.6}
                 cursor={isFormValid ? 'pointer' : 'not-allowed'}
                 disabled={!isFormValid}

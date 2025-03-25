@@ -11,10 +11,13 @@ import {
     TabPanels,
     Tabs,
     Box,
+    Text,
 } from '@chakra-ui/react';
 import { IoCaretBack } from 'react-icons/io5';
 import GameSettings from './GameSettings';
 import PlayerList from './PlayerList';
+import { useEffect } from 'react';
+import usePendingPlayers from '@/app/hooks/usePendingPlayers';
 
 const SettingsModal = ({
     isOpen,
@@ -23,6 +26,15 @@ const SettingsModal = ({
     isOpen: boolean;
     onClose: () => void;
 }) => {
+    const { refreshPendingPlayers } = usePendingPlayers();
+
+    // Refresh pending players when modal is opened
+    useEffect(() => {
+        if (isOpen) {
+            refreshPendingPlayers();
+        }
+    }, [isOpen, refreshPendingPlayers]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} size={'full'} isCentered>
             <ModalOverlay />
@@ -42,23 +54,23 @@ const SettingsModal = ({
                                 _focus={{ border: 0 }}
                             >
                                 <Box>
-                                    <IoCaretBack />
+                                    <IoCaretBack color="white" />
                                 </Box>
-                                Back
+                                <Text color="white">Back</Text>
                             </Tab>
                             <Tab
                                 _selected={{
                                     bg: 'green.500',
                                 }}
                             >
-                                Players
+                                <Text color="white">Players</Text>
                             </Tab>
                             <Tab
                                 _selected={{
                                     bg: 'green.500',
                                 }}
                             >
-                                Game
+                                <Text color="white">Game</Text>
                             </Tab>
                         </TabList>
 

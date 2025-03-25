@@ -38,7 +38,7 @@ const LeftSideContent: React.FC = () => {
     const address = useActiveAccount()?.address;
     const router = useRouter();
     const socket = useContext(SocketContext);
-    const { dispatch } = useContext(AppContext);
+    const { appState, dispatch } = useContext(AppContext);
     const toast = useToastHelper();
     const [smallBlind, setSmallBlind] = useState<number>(1);
     const [bigBlind, setBigBlind] = useState<number>(2);
@@ -131,6 +131,7 @@ const LeftSideContent: React.FC = () => {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
+                        uuid: appState.clientID,
                         tablename: tableName,
                         smallBlind: smallBlind,
                         bigBlind: bigBlind,

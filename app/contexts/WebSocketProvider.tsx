@@ -27,7 +27,7 @@ type SocketProviderProps = {
 export function SocketProvider(props: SocketProviderProps) {
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
     const [socket, setSocket] = useState<WebSocket | null>(null);
-    const { dispatch } = useContext(AppContext);
+    const { appState, dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
     const { error, success } = useToastHelper();
 
@@ -73,6 +73,11 @@ export function SocketProvider(props: SocketProviderProps) {
                             timestamp: event.timestamp,
                         };
                         dispatch({ type: 'addMessage', payload: newMessage });
+
+                        // Only increment unread count if chat isn't open
+                        if (!appState.isChatOpen) {
+                            dispatch({ type: 'incrementUnreadCount' });
+                        }
                         return;
                     }
                     case 'new-log': {

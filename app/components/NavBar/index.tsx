@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
     HStack,
     Flex,
@@ -17,6 +17,7 @@ import SideBarChat from './Chat/SideBarChat';
 import StartGameButton from '../StartGameButton';
 import VolumeButton from '../VolumeButton';
 import usePendingPlayers from '@/app/hooks/usePendingPlayers';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -30,6 +31,9 @@ const Navbar = () => {
     const { isOpen: isOpenChat, onToggle: onToggleChat } = useDisclosure();
     const { pendingCount } = usePendingPlayers();
     const [animateBadge, setAnimateBadge] = useState(false);
+    const [animateMsgBadge, setAnimateMsgBadge] = useState(false);
+    const { appState, dispatch } = useContext(AppContext);
+    const unreadMessageCount = appState.unreadMessageCount;
 
     // Trigger animation when pendingCount changes
     useEffect(() => {
@@ -41,6 +45,29 @@ const Navbar = () => {
             return () => clearTimeout(timer);
         }
     }, [pendingCount]);
+
+    // Trigger animation when unreadMessageCount changes
+    useEffect(() => {
+        if (unreadMessageCount > 0) {
+            setAnimateMsgBadge(true);
+            const timer = setTimeout(() => {
+                setAnimateMsgBadge(false);
+            }, 1000); // Animation duration
+            return () => clearTimeout(timer);
+        }
+    }, [unreadMessageCount]);
+
+    // Update chat open state and reset unread count when chat is opened
+    const handleChatToggle = () => {
+        // Toggle the chat state
+        const newChatState = !isOpenChat;
+
+        // Update the app state
+        dispatch({ type: 'setChatOpen', payload: newChatState });
+
+        // Toggle the UI
+        onToggleChat();
+    };
 
     return (
         <>
@@ -99,17 +126,45 @@ const Navbar = () => {
                 <HStack>
                     <Web3Button />
                     <VolumeButton />
-                    <IconButton
-                        icon={
-                            <Icon
-                                as={FiMessageSquare}
-                                boxSize={{ base: 5, md: 8 }}
-                            />
-                        }
-                        aria-label="Chat"
-                        size={'lg'}
-                        onClick={onToggleChat}
-                    />
+                    <Box position="relative">
+                        <IconButton
+                            icon={
+                                <Icon
+                                    as={FiMessageSquare}
+                                    boxSize={{ base: 5, md: 8 }}
+                                />
+                            }
+                            aria-label="Chat"
+                            size={'lg'}
+                            onClick={handleChatToggle}
+                        />
+                        {unreadMessageCount > 0 && (
+                            <Flex
+                                position="absolute"
+                                top="-5px"
+                                right="-5px"
+                                width="22px"
+                                height="22px"
+                                borderRadius="full"
+                                bg="red.500"
+                                color="white"
+                                justifyContent="center"
+                                alignItems="center"
+                                fontSize="xs"
+                                fontWeight="bold"
+                                zIndex={11}
+                                boxShadow="0px 0px 5px rgba(0, 0, 0, 0.3)"
+                                border="2px solid white"
+                                animation={
+                                    animateMsgBadge
+                                        ? `${pulseAnimation} 1s ease-in-out`
+                                        : undefined
+                                }
+                            >
+                                {unreadMessageCount}
+                            </Flex>
+                        )}
+                    </Box>
                 </HStack>
 
                 <SettingsModal isOpen={isOpen} onClose={onClose} />

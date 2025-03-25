@@ -146,14 +146,14 @@ const LeftSideContent: React.FC = () => {
                 const data = await response.json();
                 toast.success(
                     'Game Created',
-                    `You have successfully created the game: ${tableName}`
+                    `You have successfully created the game: ${data.tablename}`
                 );
 
                 // **Send Join-Table Message via WebSocket**
-                joinTable(socket, tableName);
+                joinTable(socket, data.tablename);
 
                 // Don't set isLoading to false here - keep it loading until navigation completes
-                router.push(`/game/${tableName}`);
+                router.push(`/game/${data.tablename}`);
                 // We're not turning off the loading state as the page transition itself will unmount this component
             } else {
                 toast.error(

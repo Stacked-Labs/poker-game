@@ -9,6 +9,7 @@ import {
     FormControl,
     FormLabel,
     Tooltip,
+    Spinner,
 } from '@chakra-ui/react';
 import { FaInfoCircle } from 'react-icons/fa';
 import PlayTypeToggle from './PlayTypeToggle';
@@ -145,19 +146,22 @@ const LeftSideContent: React.FC = () => {
                 const data = await response.json();
                 toast.success(
                     'Game Created',
-                    `You have successfully created the game: ${tableName}`
+                    `You have successfully created the game: ${data.tablename}`
                 );
 
                 // **Send Join-Table Message via WebSocket**
-                joinTable(socket, tableName);
+                joinTable(socket, data.tablename);
 
-                router.push(`/game/${tableName}`);
+                // Don't set isLoading to false here - keep it loading until navigation completes
+                router.push(`/game/${data.tablename}`);
+                // We're not turning off the loading state as the page transition itself will unmount this component
             } else {
                 toast.error(
                     'Create Failed',
                     'Failed to create the game. Please try again. ' +
                         response.statusText
                 );
+                setIsLoading(false);
             }
         } catch (error) {
             console.error(error);
@@ -165,7 +169,6 @@ const LeftSideContent: React.FC = () => {
                 'Create Failed',
                 'Failed to create the game. Please try again.'
             );
-        } finally {
             setIsLoading(false);
         }
     };
@@ -329,15 +332,16 @@ const LeftSideContent: React.FC = () => {
 
             <Button
                 variant="homeSectionButton"
-                bg={isFormValid ? 'green.500' : 'green.300'}
+                bg="green.500"
                 onClick={handleCreateGame}
-                _hover={{ bg: isFormValid ? 'green.600' : 'green.300' }}
+                _hover={{ bg: 'green.600' }}
                 size={['xl']}
                 py={4}
                 width="200px"
                 fontSize={['xl']}
                 isLoading={isLoading}
-                loadingText="Creating..."
+                loadingText="Loading"
+                spinner={<Spinner size="md" color="white" />}
                 opacity={isFormValid ? 1 : 0.6}
                 cursor={isFormValid ? 'pointer' : 'not-allowed'}
                 disabled={!isFormValid}

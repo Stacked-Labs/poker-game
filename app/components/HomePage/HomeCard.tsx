@@ -1,5 +1,6 @@
 'use client';
 import { Poppins } from 'next/font/google';
+import { useState } from 'react';
 
 const poppins = Poppins({
     weight: ['700'],
@@ -7,13 +8,30 @@ const poppins = Poppins({
     display: 'swap',
 });
 
-import { Flex, Button, IconButton, Text, Stack, Link } from '@chakra-ui/react';
+import {
+    Flex,
+    Button,
+    IconButton,
+    Text,
+    Stack,
+    Link,
+    Spinner,
+} from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord } from 'react-icons/fa';
 import { SiFarcaster } from 'react-icons/si'; // Imported SiFarcaster from react-icons/si
 import Web3Button from '@/app/components/Web3Button';
+import { useRouter } from 'next/navigation';
 
 const HomeCard = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+
+    const handlePlayNow = () => {
+        setIsLoading(true);
+        router.push('/create-game');
+    };
+
     return (
         <Flex
             justifyContent="center"
@@ -39,12 +57,12 @@ const HomeCard = () => {
                 <Stack gap={12} flex={1} justifyContent="flex-start">
                     <Text
                         className={poppins.className}
-                        fontSize={['3xl', '4xl', '6xl']}
+                        fontSize={['3xl', '3xl', '6xl']}
                         textAlign="center"
                         fontWeight={700}
                         color="white"
-                        width="100%"
-                        whiteSpace="nowrap"
+                        whiteSpace="nowrap" // Changed from "nowrap" to "normal"
+                        maxWidth="100%" // Ensure text takes full width
                     >
                         Stacked
                     </Text>
@@ -55,9 +73,11 @@ const HomeCard = () => {
                         _hover={{ bg: 'green.600' }}
                         size={['xl']}
                         py={8}
-                        as={'a'}
                         fontSize={['xl']}
-                        href="/create-game"
+                        onClick={handlePlayNow}
+                        isLoading={isLoading}
+                        loadingText="Loading"
+                        spinner={<Spinner size="md" color="white" />}
                     >
                         Play Now
                     </Button>

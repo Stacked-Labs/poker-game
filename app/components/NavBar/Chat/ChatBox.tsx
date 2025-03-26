@@ -10,13 +10,13 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
     const socket = useContext(SocketContext);
     const [message, setMessage] = useState('');
     const appState = useContext(AppContext);
-    const username = appState.appState.username;
+    const { username, clientID } = appState.appState;
 
     const handleSendMessage = () => {
         console.log(appState.appState);
 
-        if (socket && username && message != '') {
-            sendMessage(socket, username, message);
+        if (socket && message != '') {
+            sendMessage(socket, username || 'guest', message);
             setMessage('');
         }
     };
@@ -45,11 +45,19 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
             />
             <Box flex={1} height={'100%'} overflowY="auto" color={'lightGray'}>
                 {appState.appState.messages.map((msg, index) => (
-                    <Text key={index} whiteSpace={'break-spaces'}>
+                    <Text
+                        key={index}
+                        whiteSpace={'break-spaces'}
+                        fontSize={'lg'}
+                        mb={2}
+                        lineHeight="1.5"
+                        textStyle={'nowrap'}
+                    >
                         <Text
                             as={'span'}
                             color={'themeColor'}
                             fontWeight={'bold'}
+                            fontSize={'lg'}
                         >
                             {msg.name}
                         </Text>
@@ -66,9 +74,12 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                     _placeholder={{ opacity: 0.4, color: 'white' }}
                     focusBorderColor="themeColor"
                     placeholder="Enter message"
-                    marginRight={2}
+                    marginRight={3}
                     onKeyDown={handleKeyPress}
-                    disabled={username === null || username === ''}
+                    disabled={!username && !clientID}
+                    fontSize={'lg'}
+                    height={'50px'}
+                    padding={4}
                 />
                 <IconButton
                     icon={<IoIosSend />}
@@ -79,7 +90,10 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                     border={'none'}
                     _hover={{ color: 'themeColor' }}
                     fontSize={'3xl'}
-                    disabled={username === null || username === ''}
+                    size={'lg'}
+                    height={'50px'}
+                    width={'50px'}
+                    disabled={!username && !clientID}
                 />
             </Box>
         </Flex>

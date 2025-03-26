@@ -20,6 +20,8 @@ export type AppState = {
     table: string | null;
     game: Game | null;
     volume: number;
+    unreadMessageCount: number;
+    isChatOpen: boolean; // Track if chat is currently open
 };
 
 export type Player = {

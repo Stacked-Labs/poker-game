@@ -10,6 +10,8 @@ const initialState: AppState = {
     table: null,
     game: null,
     volume: 1,
+    unreadMessageCount: 0,
+    isChatOpen: false,
 };
 
 type ACTIONTYPE =
@@ -20,7 +22,10 @@ type ACTIONTYPE =
     | { type: 'resetGame' }
     | { type: 'updatePlayerID'; payload: string }
     | { type: 'setTablename'; payload: string }
-    | { type: 'setVolume'; payload: number };
+    | { type: 'setVolume'; payload: number }
+    | { type: 'incrementUnreadCount' }
+    | { type: 'resetUnreadCount' }
+    | { type: 'setChatOpen'; payload: boolean };
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
@@ -43,6 +48,22 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 localStorage.setItem('volume', action.payload.toString());
             }
             return { ...state, volume: action.payload };
+        case 'incrementUnreadCount':
+            return {
+                ...state,
+                unreadMessageCount: state.unreadMessageCount + 1,
+            };
+        case 'resetUnreadCount':
+            return { ...state, unreadMessageCount: 0 };
+        case 'setChatOpen':
+            if (action.payload === true) {
+                return {
+                    ...state,
+                    isChatOpen: action.payload,
+                    unreadMessageCount: 0,
+                };
+            }
+            return { ...state, isChatOpen: action.payload };
         default:
             throw new Error();
     }

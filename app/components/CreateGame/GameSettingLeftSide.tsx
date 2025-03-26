@@ -332,9 +332,9 @@ const LeftSideContent: React.FC = () => {
 
             <Button
                 variant="homeSectionButton"
-                bg={isFormValid ? 'green.500' : 'green.300'}
+                bg="green.500"
                 onClick={handleCreateGame}
-                _hover={{ bg: isFormValid ? 'green.600' : 'green.300' }}
+                _hover={{ bg: 'green.600' }}
                 size={['xl']}
                 py={4}
                 width="200px"

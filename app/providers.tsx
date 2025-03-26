@@ -4,7 +4,6 @@
 import { CacheProvider } from '@chakra-ui/next-js';
 import { ChakraProvider } from '@chakra-ui/react';
 import { theme } from './theme';
-import { StateProvider } from './state';
 import { AppStoreProvider } from '@/app/contexts/AppStoreProvider';
 import { UserProvider } from '@/app/contexts/CurrentUserProvider';
 import { SocketProvider } from '@/app/contexts/WebSocketProvider';
@@ -21,9 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     <AppStoreProvider>
                         <UserProvider>
                             <AuthProvider>
-                                <SocketProvider>
-                                    <StateProvider>{children}</StateProvider>
-                                </SocketProvider>
+                                <SocketProvider>{children}</SocketProvider>
                             </AuthProvider>
                         </UserProvider>
                     </AppStoreProvider>

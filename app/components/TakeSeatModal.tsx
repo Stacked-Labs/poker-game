@@ -21,7 +21,6 @@ import {
 import { motion, MotionStyle } from 'framer-motion';
 import { FaDiscord } from 'react-icons/fa';
 import Web3Button from './Web3Button';
-import { MetaDispatchContext } from '../state';
 import { newPlayer, sendLog, takeSeat } from '../hooks/server_actions';
 import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -47,7 +46,6 @@ const variants = {
 
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const address = useActiveWallet()?.getAccount()?.address;
-    const metaDispatch = useContext(MetaDispatchContext);
     const appStore = useContext(AppContext);
     const currentUser = useCurrentUser();
     const socket = useContext(SocketContext);
@@ -73,12 +71,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         }
 
         if (socket && name.length > 0 && seatId && buyIn) {
-            metaDispatch({ type: 'SET_IS_USER_SITTING', payload: true });
-            metaDispatch({
-                type: 'SET_USER',
-                payload: { address, username: name, buyIn },
-            });
-
             newPlayer(socket, name);
             takeSeat(socket, name, seatId, buyIn);
             appStore.dispatch({ type: 'setUsername', payload: name });

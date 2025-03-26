@@ -2,7 +2,7 @@
 
 import {
     createContext,
-    ReactChild,
+    ReactNode,
     useEffect,
     useState,
     useContext,
@@ -21,7 +21,7 @@ dispatches websocket messages to update the central state store.
 export const SocketContext = createContext<WebSocket | null>(null);
 
 type SocketProviderProps = {
-    children: ReactChild;
+    children: ReactNode;
 };
 
 export function SocketProvider(props: SocketProviderProps) {

@@ -20,6 +20,7 @@ const StartGameButton = () => {
                         appState.table,
                         appState.clientID
                     );
+                    console.log('isOwner: ', result.isTableOwner);
                     setIsOwner(result);
                 } catch (error) {
                     console.error('Error checking table ownership:', error);
@@ -28,7 +29,7 @@ const StartGameButton = () => {
             }
         };
         checkTableOwner();
-    }, [appState.table, appState.clientID]);
+    }, []);
 
     const onClickStartGame = (socket: WebSocket) => {
         if (socket) {
@@ -36,36 +37,34 @@ const StartGameButton = () => {
         }
     };
 
-    if (!socket || !game) {
+    if (!socket || !game || !isOwner) {
         return null;
     }
 
     if (isOwner) {
-        return null;
-    }
-
-    return (
-        <Tooltip
-            bg="red.600"
-            label={'Needs 2 or more players to start a game.'}
-            isDisabled={game.running || readyPlayers.length >= 2}
-            hasArrow
-        >
-            <Button
-                size="lg"
-                color={'white'}
-                borderColor={'white'}
-                paddingX={{ base: 8, md: 12 }}
-                onClick={() => onClickStartGame(socket)}
-                isDisabled={
-                    (!game.running && readyPlayers.length < 2) ||
-                    (game.running && readyPlayers.length >= 2)
-                }
+        return (
+            <Tooltip
+                bg="red.600"
+                label={'Needs 2 or more players to start a game.'}
+                isDisabled={game.running || readyPlayers.length >= 2}
+                hasArrow
             >
-                Start
-            </Button>
-        </Tooltip>
-    );
+                <Button
+                    size="lg"
+                    color={'white'}
+                    borderColor={'white'}
+                    paddingX={{ base: 8, md: 12 }}
+                    onClick={() => onClickStartGame(socket)}
+                    isDisabled={
+                        (!game.running && readyPlayers.length < 2) ||
+                        (game.running && readyPlayers.length >= 2)
+                    }
+                >
+                    Start
+                </Button>
+            </Tooltip>
+        );
+    }
 };
 
 export default StartGameButton;

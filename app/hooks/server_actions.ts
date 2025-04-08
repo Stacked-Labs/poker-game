@@ -1,3 +1,11 @@
+const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+
+function isBackendUrlValid() {
+    if (!backendUrl) {
+        throw new Error('Backend API URL is not defined');
+    }
+}
+
 export function joinTable(socket: WebSocket, tablename: string) {
     socket.send(
         JSON.stringify({
@@ -156,10 +164,8 @@ export async function authenticateUser(
     console.log('Authenticating user with address:', address);
     console.log('Signature:', signature);
     console.log('Message:', message);
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!backendUrl) {
-        throw new Error('Backend API URL is not defined');
-    }
+
+    isBackendUrlValid();
 
     const response = await fetch(`${backendUrl}/auth`, {
         method: 'POST',
@@ -178,10 +184,8 @@ export async function authenticateUser(
 }
 
 export async function isAuth() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!backendUrl) {
-        throw new Error('Backend API URL is not defined');
-    }
+
+    isBackendUrlValid();
 
     const response = await fetch(`${backendUrl}/isAuth`, {
         method: 'GET',
@@ -201,10 +205,8 @@ export async function isAuth() {
 }
 
 export async function isTableExisting(table: string) {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!backendUrl) {
-        throw new Error('Backend API URL is not defined');
-    }
+
+    isBackendUrlValid();
 
     if (!table) {
         throw new Error('Table is not defined');
@@ -230,11 +232,33 @@ export async function isTableExisting(table: string) {
     }
 }
 
-export async function getPendingPlayers(table: string) {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!backendUrl) {
-        throw new Error('Backend API URL is not defined');
+export async function isTableOwner(table: string, clientUuid: string) {
+    isBackendUrlValid();
+
+    if (!table || !clientUuid) {
+        throw new Error('Table/clientUuid is not defined');
     }
+
+    try {
+        const response = await fetch(`${backendUrl}/is-table-owner`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ table, clientUuid }),
+        })
+
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to check if player owns table.', error);
+        throw error;
+    }
+}
+
+
+export async function getPendingPlayers(table: string) {
+
+    isBackendUrlValid();
 
     if (!table) {
         throw new Error('Table is not defined');

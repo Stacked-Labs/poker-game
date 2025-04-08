@@ -1,6 +1,6 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { SocketContext } from '../contexts/WebSocketProvider';
-import { startGame } from '../hooks/server_actions';
+import { isTableOwner, startGame } from '../hooks/server_actions';
 import { AppContext } from '../contexts/AppStoreProvider';
 import { Button, Tooltip } from '@chakra-ui/react';
 
@@ -10,6 +10,25 @@ const StartGameButton = () => {
     const game = appState.game;
     const players = appState.game?.players || [];
     const readyPlayers = players.filter((player) => player != null);
+    const [isOwner, setIsOwner] = useState(false);
+
+    useEffect(() => {
+        const checkTableOwner = async () => {
+            if (appState.table && appState.clientID) {
+                try {
+                    const result = await isTableOwner(
+                        appState.table,
+                        appState.clientID
+                    );
+                    setIsOwner(result);
+                } catch (error) {
+                    console.error('Error checking table ownership:', error);
+                    setIsOwner(false);
+                }
+            }
+        };
+        checkTableOwner();
+    }, [appState.table, appState.clientID]);
 
     const onClickStartGame = (socket: WebSocket) => {
         if (socket) {
@@ -18,6 +37,10 @@ const StartGameButton = () => {
     };
 
     if (!socket || !game) {
+        return null;
+    }
+
+    if (isOwner) {
         return null;
     }
 

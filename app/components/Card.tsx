@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Flex, Image } from '@chakra-ui/react';
 import { Card as CardType } from '../interfaces';
-
+// hello
 type cardProps = {
     card: CardType;
     placeholder: boolean;

@@ -3,9 +3,10 @@
 import {
     acceptPlayer,
     denyPlayer,
+    isTableOwner,
     kickPlayer,
 } from '@/app/hooks/server_actions';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PendingPlayers from './PendingPlayers';
 import AcceptedPlayers from './AcceptedPlayers';
 import { VStack } from '@chakra-ui/react';
@@ -13,14 +14,24 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import usePendingPlayers from '@/app/hooks/usePendingPlayers';
+import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 
 const PlayerList = () => {
     const { pendingPlayers, refreshPendingPlayers } = usePendingPlayers();
     const { appState } = useContext(AppContext);
     const socket = useContext(SocketContext);
     const toast = useToastHelper();
+    const isOwner = useIsTableOwner();
 
     const handleAcceptPlayer = async (uuid: string) => {
+        if (!isOwner) {
+            toast.error(
+                'Unable to accept player',
+                'Only table owner can accept a player.'
+            );
+            return;
+        }
+
         if (socket && uuid && appState.table) {
             // Find player name from pending players list
             const player = pendingPlayers.find((p) => p.uuid === uuid);
@@ -42,6 +53,14 @@ const PlayerList = () => {
     };
 
     const handleDenyPlayer = async (uuid: string) => {
+        if (!isOwner) {
+            toast.error(
+                'Unable to deny player',
+                'Only table owner can deny a player.'
+            );
+            return;
+        }
+
         if (socket && uuid && appState.table) {
             // Find player name from pending players list
             const player = pendingPlayers.find((p) => p.uuid === uuid);
@@ -103,6 +122,7 @@ const PlayerList = () => {
             <AcceptedPlayers
                 acceptedPlayers={appState.game?.players}
                 handleKickPlayer={handleKickPlayer}
+                isOwner={isOwner}
             />
         </VStack>
     );

@@ -16,13 +16,19 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { GiBootKick } from 'react-icons/gi';
+import useToastHelper from '@/app/hooks/useToastHelper';
 
 interface Props {
     acceptedPlayers: Player[] | undefined;
     handleKickPlayer: (uuid: string, seatId: number) => void;
+    isOwner: boolean;
 }
 
-const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
+const AcceptedPlayers = ({
+    acceptedPlayers,
+    handleKickPlayer,
+    isOwner,
+}: Props) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedPlayer, setSelectedPlayer] = useState<{
         uuid: string;
@@ -32,8 +38,16 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     const [kickingInProgress, setKickingInProgress] = useState<string | null>(
         null
     );
+    const toast = useToastHelper();
 
     const confirmKick = (player: Player) => {
+        if (!isOwner) {
+            toast.error(
+                'Unable to kick player',
+                'Only table owner can kick a player.'
+            );
+            return;
+        }
         setSelectedPlayer({
             uuid: player.uuid,
             seatId: player.seatID,

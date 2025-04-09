@@ -115,6 +115,7 @@ const CardFront = ({
                 width={'100%'}
                 height="100%"
                 draggable="false"
+                ml={0}
                 style={{
                     objectFit: 'contain',
                     transform: 'rotateY(180deg)',

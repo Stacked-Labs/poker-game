@@ -62,7 +62,7 @@ const Pot = () => {
                                             <Box
                                                 bg={'green.700'}
                                                 paddingX={'2'}
-                                                borderRadius={99999}
+                                                borderRadius={999}
                                             >
                                                 <Text
                                                     fontSize={{
@@ -98,14 +98,14 @@ const Pot = () => {
                                             <Text>&nbsp;</Text>
                                         )}
                                     </Flex>
-                                    <Box paddingX={'16'}>
+                                    <Box paddingX={'14'}>
                                         <Text
                                             fontSize={{
                                                 base: '10px',
                                                 md: 'medium',
                                                 xl: 'xl',
                                                 '2xl': '2xl',
-                                            
+                                                color : 'white',
                                             }}
                                             color={'white'}
                                             fontWeight={'bolder'}

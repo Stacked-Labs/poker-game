@@ -70,17 +70,21 @@ const Pot = () => {
                                                         md: '10px',
                                                         xl: 'small',
                                                         '2xl': 'medium',
+                                                                                                                
                                                     }}
+                                                    color={'white'}
                                                 >
                                                     total{' '}
                                                     <Text
                                                         as={'span'}
+                                                        color={'white'}
                                                         fontWeight={'medium'}
                                                         fontSize={{
                                                             base: '10px',
                                                             md: 'small',
                                                             xl: 'medium',
                                                             '2xl': 'large',
+                                                        
                                                         }}
                                                     >
                                                         {
@@ -101,7 +105,9 @@ const Pot = () => {
                                                 md: 'medium',
                                                 xl: 'xl',
                                                 '2xl': '2xl',
+                                            
                                             }}
+                                            color={'white'}
                                             fontWeight={'bolder'}
                                         >
                                             {pot.amount}

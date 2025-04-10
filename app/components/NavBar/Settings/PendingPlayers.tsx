@@ -1,3 +1,4 @@
+import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { PendingPlayer } from '@/app/interfaces';
 import { Flex, Box, Button, Text } from '@chakra-ui/react';
 import React from 'react';
@@ -14,6 +15,8 @@ const PendingPlayers = ({
     handleAcceptPlayer,
     handleDenyPlayer,
 }: Props) => {
+    const isOwner = useIsTableOwner();
+
     if (pendingPlayers && pendingPlayers.length > 0) {
         return (
             <>
@@ -115,33 +118,35 @@ const PendingPlayers = ({
                                     </Flex>
                                 </Flex>
 
-                                <Flex
-                                    gap={{ base: 5, lg: 10 }}
-                                    py={{ base: 5, lg: 0 }}
-                                    width={'20%'}
-                                    justifyContent={'space-between'}
-                                >
-                                    <Button
-                                        variant={'settingsSmallButton'}
-                                        bg={'green.500'}
-                                        _hover={{ background: 'green' }}
-                                        onClick={() =>
-                                            handleAcceptPlayer(player.uuid)
-                                        }
+                                {isOwner && (
+                                    <Flex
+                                        gap={{ base: 5, lg: 10 }}
+                                        py={{ base: 5, lg: 0 }}
+                                        width={'20%'}
+                                        justifyContent={'space-between'}
                                     >
-                                        <FaCircleCheck />
-                                    </Button>
-                                    <Button
-                                        variant={'settingsSmallButton'}
-                                        bg={'red.500'}
-                                        _hover={{ background: 'red' }}
-                                        onClick={() =>
-                                            handleDenyPlayer(player.uuid)
-                                        }
-                                    >
-                                        <FaCircleXmark />
-                                    </Button>
-                                </Flex>
+                                        <Button
+                                            variant={'settingsSmallButton'}
+                                            bg={'green.500'}
+                                            _hover={{ background: 'green' }}
+                                            onClick={() =>
+                                                handleAcceptPlayer(player.uuid)
+                                            }
+                                        >
+                                            <FaCircleCheck />
+                                        </Button>
+                                        <Button
+                                            variant={'settingsSmallButton'}
+                                            bg={'red.500'}
+                                            _hover={{ background: 'red' }}
+                                            onClick={() =>
+                                                handleDenyPlayer(player.uuid)
+                                            }
+                                        >
+                                            <FaCircleXmark />
+                                        </Button>
+                                    </Flex>
+                                )}
                             </Flex>
                         );
                     }

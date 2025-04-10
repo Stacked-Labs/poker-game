@@ -17,18 +17,14 @@ import {
 import React, { useState } from 'react';
 import { GiBootKick } from 'react-icons/gi';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 
 interface Props {
     acceptedPlayers: Player[] | undefined;
     handleKickPlayer: (uuid: string, seatId: number) => void;
-    isOwner: boolean;
 }
 
-const AcceptedPlayers = ({
-    acceptedPlayers,
-    handleKickPlayer,
-    isOwner,
-}: Props) => {
+const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedPlayer, setSelectedPlayer] = useState<{
         uuid: string;
@@ -39,15 +35,9 @@ const AcceptedPlayers = ({
         null
     );
     const toast = useToastHelper();
+    const isOwner = useIsTableOwner();
 
     const confirmKick = (player: Player) => {
-        if (!isOwner) {
-            toast.error(
-                'Unable to kick player',
-                'Only table owner can kick a player.'
-            );
-            return;
-        }
         setSelectedPlayer({
             uuid: player.uuid,
             seatId: player.seatID,
@@ -190,25 +180,36 @@ const AcceptedPlayers = ({
                                         lg: 'flex-end',
                                     }}
                                 >
-                                    <Tooltip
-                                        label="Kick Player"
-                                        placement="top"
-                                    >
-                                        <Button
-                                            variant={'settingsSmallButton'}
-                                            bg={'red.500'}
-                                            _hover={{ background: 'red.600' }}
-                                            onClick={() => confirmKick(player)}
-                                            isLoading={isKicking}
-                                            loadingText="Kicking..."
-                                            width={{ base: '100%', lg: 'auto' }}
-                                            color="white"
-                                            rightIcon={<GiBootKick size={20} />}
-                                            px={4}
+                                    {isOwner && (
+                                        <Tooltip
+                                            label="Kick Player"
+                                            placement="top"
                                         >
-                                            Kick
-                                        </Button>
-                                    </Tooltip>
+                                            <Button
+                                                variant={'settingsSmallButton'}
+                                                bg={'red.500'}
+                                                _hover={{
+                                                    background: 'red.600',
+                                                }}
+                                                onClick={() =>
+                                                    confirmKick(player)
+                                                }
+                                                isLoading={isKicking}
+                                                loadingText="Kicking..."
+                                                width={{
+                                                    base: '100%',
+                                                    lg: 'auto',
+                                                }}
+                                                color="white"
+                                                rightIcon={
+                                                    <GiBootKick size={20} />
+                                                }
+                                                px={4}
+                                            >
+                                                Kick
+                                            </Button>
+                                        </Tooltip>
+                                    )}
                                 </Flex>
                             </Flex>
                         );

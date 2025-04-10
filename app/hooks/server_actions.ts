@@ -232,20 +232,21 @@ export async function isTableExisting(table: string) {
     }
 }
 
-export async function isTableOwner(table: string, clientUuid: string) {
+export async function isTableOwner(table: string) {
     isBackendUrlValid();
 
-    if (!table || !clientUuid) {
-        throw new Error('Table/clientUuid is not defined');
+    if (!table) {
+        throw new Error('Table is not defined');
     }
 
     try {
         const response = await fetch(`${backendUrl}/is-table-owner`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ table, clientUuid }),
+            body: JSON.stringify({ table }),
         })
 
         return await response.json();
@@ -254,7 +255,6 @@ export async function isTableOwner(table: string, clientUuid: string) {
         throw error;
     }
 }
-
 
 export async function getPendingPlayers(table: string) {
 

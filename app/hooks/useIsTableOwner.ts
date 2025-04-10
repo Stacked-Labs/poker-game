@@ -8,9 +8,9 @@ const useIsTableOwner = () => {
 
     useEffect(() => {
         const checkTableOwner = async () => {
-            if (appState.table && appState.clientID) {
+            if (appState.table) {
                 try {
-                    const result = await isTableOwner(appState.table, appState.clientID);
+                    const result = await isTableOwner(appState.table);
                     setIsOwner(result.isTableOwner);
                 } catch (error) {
                     console.error('Error checking table ownership:', error);

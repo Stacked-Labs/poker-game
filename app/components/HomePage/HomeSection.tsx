@@ -1,4 +1,10 @@
-import { Box, Flex, Text, VStack, useBreakpointValue } from '@chakra-ui/react';
+import {
+    Box,
+    Flex,
+    Text,
+    VStack,
+    useBreakpointValue,
+} from '@chakra-ui/react';
 import React from 'react';
 import HomeCard from './HomeCard';
 import { Poppins } from 'next/font/google';
@@ -36,7 +42,7 @@ const HomeSection = () => {
         <Box position="relative" width="100vw" minHeight="100vh">
             <Image
                 alt="Background Photo"
-                src="/bg.svg"
+                src="/bg.png"
                 layout="fill"
                 objectFit="cover"
                 priority

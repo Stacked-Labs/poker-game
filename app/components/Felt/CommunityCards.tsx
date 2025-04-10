@@ -12,7 +12,7 @@ const CommunityCards = () => {
 
     if (communityCards && isGameStarted) {
         return (
-            <Flex width={{ base: '100%', md: '90%' }} height={'100%'} gap={7} ml={1} justify={'center'}>
+            <Flex width={{ base: '100%', md: '85%' }} height={'100%'} gap={7} ml={1} justify={'center'}>
                 {cards.map((num, i) => (
                     <Box 
                         key={i} 

@@ -9,6 +9,7 @@ const Felt = () => {
             height={'100%'}
             width={'100%'}
             mr={0}
+            ml={85}
             alignItems={'center'}
             justifyContent={'center'}
             

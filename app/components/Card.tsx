@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Flex, Image } from '@chakra-ui/react';
 import { Card as CardType } from '../interfaces';
-
+//
 type cardProps = {
     card: CardType;
     placeholder: boolean;
@@ -115,6 +115,7 @@ const CardFront = ({
                 width={'100%'}
                 height="100%"
                 draggable="false"
+                ml={0}
                 style={{
                     objectFit: 'contain',
                     transform: 'rotateY(180deg)',

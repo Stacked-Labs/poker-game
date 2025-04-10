@@ -1,28 +1,32 @@
-import { Flex } from '@chakra-ui/react';
+import { Container } from '@chakra-ui/react';
 import React from 'react';
 import Pot from './Pot';
 import CommunityCards from './CommunityCards';
 
 const Felt = () => {
     return (
-        <Flex
-            direction={'column'}
+        <Container
             height={'100%'}
+            width={'100%'}
+            mr={0}
+            ml={85}
             alignItems={'center'}
             justifyContent={'center'}
-            gap={2}
+            
         >
-            <Flex
+            <Container
                 height="30px"
-                width={'100%'}
-                alignItems={'end'}
-                justifyContent={'center'}
+                width={'40%'}
+                alignItems={'left'}
+                justifyContent={'left'}
+                mb={4}
+                ml={130}
             >
                 <Pot />
-            </Flex>
+            </Container>
+            
             <CommunityCards />
-        </Flex>
+        </Container>
     );
 };
-
 export default Felt;

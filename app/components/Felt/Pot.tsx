@@ -62,7 +62,7 @@ const Pot = () => {
                                             <Box
                                                 bg={'green.700'}
                                                 paddingX={'2'}
-                                                borderRadius={99999}
+                                                borderRadius={999}
                                             >
                                                 <Text
                                                     fontSize={{
@@ -70,17 +70,21 @@ const Pot = () => {
                                                         md: '10px',
                                                         xl: 'small',
                                                         '2xl': 'medium',
+                                                                                                                
                                                     }}
+                                                    color={'white'}
                                                 >
                                                     total{' '}
                                                     <Text
                                                         as={'span'}
+                                                        color={'white'}
                                                         fontWeight={'medium'}
                                                         fontSize={{
                                                             base: '10px',
                                                             md: 'small',
                                                             xl: 'medium',
                                                             '2xl': 'large',
+                                                        
                                                         }}
                                                     >
                                                         {
@@ -94,14 +98,16 @@ const Pot = () => {
                                             <Text>&nbsp;</Text>
                                         )}
                                     </Flex>
-                                    <Box paddingX={'16'}>
+                                    <Box paddingX={'14'}>
                                         <Text
                                             fontSize={{
                                                 base: '10px',
                                                 md: 'medium',
                                                 xl: 'xl',
                                                 '2xl': '2xl',
+                                                color : 'white',
                                             }}
+                                            color={'white'}
                                             fontWeight={'bolder'}
                                         >
                                             {pot.amount}

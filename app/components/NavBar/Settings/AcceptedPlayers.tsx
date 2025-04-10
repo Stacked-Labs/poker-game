@@ -16,6 +16,8 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { GiBootKick } from 'react-icons/gi';
+import useToastHelper from '@/app/hooks/useToastHelper';
+import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 
 interface Props {
     acceptedPlayers: Player[] | undefined;
@@ -32,6 +34,8 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     const [kickingInProgress, setKickingInProgress] = useState<string | null>(
         null
     );
+    const toast = useToastHelper();
+    const isOwner = useIsTableOwner();
 
     const confirmKick = (player: Player) => {
         setSelectedPlayer({
@@ -176,25 +180,36 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                                         lg: 'flex-end',
                                     }}
                                 >
-                                    <Tooltip
-                                        label="Kick Player"
-                                        placement="top"
-                                    >
-                                        <Button
-                                            variant={'settingsSmallButton'}
-                                            bg={'red.500'}
-                                            _hover={{ background: 'red.600' }}
-                                            onClick={() => confirmKick(player)}
-                                            isLoading={isKicking}
-                                            loadingText="Kicking..."
-                                            width={{ base: '100%', lg: 'auto' }}
-                                            color="white"
-                                            rightIcon={<GiBootKick size={20} />}
-                                            px={4}
+                                    {isOwner && (
+                                        <Tooltip
+                                            label="Kick Player"
+                                            placement="top"
                                         >
-                                            Kick
-                                        </Button>
-                                    </Tooltip>
+                                            <Button
+                                                variant={'settingsSmallButton'}
+                                                bg={'red.500'}
+                                                _hover={{
+                                                    background: 'red.600',
+                                                }}
+                                                onClick={() =>
+                                                    confirmKick(player)
+                                                }
+                                                isLoading={isKicking}
+                                                loadingText="Kicking..."
+                                                width={{
+                                                    base: '100%',
+                                                    lg: 'auto',
+                                                }}
+                                                color="white"
+                                                rightIcon={
+                                                    <GiBootKick size={20} />
+                                                }
+                                                px={4}
+                                            >
+                                                Kick
+                                            </Button>
+                                        </Tooltip>
+                                    )}
                                 </Flex>
                             </Flex>
                         );

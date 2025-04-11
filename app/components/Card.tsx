@@ -117,7 +117,6 @@ const CardFront = ({
                 draggable="false"
                 style={{
                     objectFit: 'contain',
-                    transform: 'rotateY(180deg)',
                     filter: folded ? 'brightness(50%)' : 'none',
                 }}
             />
@@ -156,6 +155,8 @@ const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
                 '& > div': {
                     transition: 'transform 0.6s',
                     transformStyle: 'preserve-3d',
+                    WebkitTransformStyle: 'preserve-3d',
+                    MozTransformStyle: 'preserve-3d',
                 },
             }}
             width={'100%'}
@@ -169,6 +170,8 @@ const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
                 sx={{
                     transition: 'transform 0.6s',
                     transformStyle: 'preserve-3d',
+                    WebkitTransformStyle: 'preserve-3d',
+                    MozTransformStyle: 'preserve-3d',
                     transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
                 }}
             >
@@ -178,11 +181,29 @@ const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
                     height="100%"
                     sx={{
                         backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        MozBackfaceVisibility: 'hidden',
+                        transformStyle: 'preserve-3d',
+                        WebkitTransformStyle: 'preserve-3d',
+                        MozTransformStyle: 'preserve-3d',
                     }}
                 >
                     <CardBack folded={folded} />
                 </Box>
-                <Box position={'absolute'} width="100%" height="100%">
+                <Box
+                    position={'absolute'}
+                    width="100%"
+                    height="100%"
+                    sx={{
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        MozBackfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)',
+                        transformStyle: 'preserve-3d',
+                        WebkitTransformStyle: 'preserve-3d',
+                        MozTransformStyle: 'preserve-3d',
+                    }}
+                >
                     <CardFront
                         cardString={cardString}
                         cardPhoto={cardPhoto}

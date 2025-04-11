@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import {
     Flex,
     Grid,
@@ -13,6 +13,7 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog, dealGame } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
+import usePendingPlayers from '../hooks/usePendingPlayers';
 
 const initialPlayers: (Player | null)[] = [
     null,
@@ -97,8 +98,38 @@ const Table = () => {
     const { appState } = useContext(AppContext);
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
     const [players, setPlayers] = useState(initialPlayers);
+    const { pendingPlayers, isLoading } = usePendingPlayers();
 
     const shouldRotate = useBreakpointValue({ base: true, md: false }) ?? false;
+
+    const isClientInGame = useCallback(
+        (clientID: string | null) => {
+            if (!clientID || !appState.game?.players) return false;
+            return appState.game.players.some(
+                (player) => player.uuid === clientID
+            );
+        },
+        [appState.game?.players]
+    );
+
+    const isClientPending = useCallback(
+        (clientID: string | null) => {
+            if (!clientID || pendingPlayers.length === 0) return false;
+            return pendingPlayers.some((player) => player.uuid === clientID);
+        },
+        [pendingPlayers]
+    );
+
+    const isSeatDisabled = useCallback(
+        (clientID: string | null) => {
+            return (
+                isClientInGame(clientID) ||
+                isClientPending(clientID) ||
+                isLoading
+            );
+        },
+        [isClientInGame, isClientPending, isLoading]
+    );
 
     // map game players to their visual seats
     useEffect(() => {
@@ -202,7 +233,9 @@ const Table = () => {
                                 ) : (
                                     <EmptySeatButton
                                         seatId={seatId}
-                                        disabled={false}
+                                        disabled={isSeatDisabled(
+                                            appState.clientID
+                                        )}
                                     />
                                 )}
                             </GridItem>

@@ -10,16 +10,20 @@ import { SocketContext } from '@/app/contexts/WebSocketProvider';
  */
 const usePendingPlayers = () => {
     const [pendingPlayers, setPendingPlayers] = useState<PendingPlayer[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const { appState } = useContext(AppContext);
     const socket = useContext(SocketContext);
 
     const loadPendingPlayers = useCallback(async () => {
         if (appState.table) {
             try {
+                setIsLoading(true);
                 const players = await getPendingPlayers(appState.table);
                 setPendingPlayers(players);
             } catch (error) {
                 console.error('Error loading pending players:', error);
+            } finally {
+                setIsLoading(false);
             }
         }
     }, [appState.table]);
@@ -28,7 +32,6 @@ const usePendingPlayers = () => {
     useEffect(() => {
         if (!socket) return;
 
-        // Setup event listeners for player-related events
         const handleSocketMessage = (event: MessageEvent) => {
             try {
                 const data = JSON.parse(event.data);
@@ -43,6 +46,7 @@ const usePendingPlayers = () => {
                     data.action === 'player-kicked' ||
                     data.action === 'table-update'
                 ) {
+                    // Immediately update pending players on relevant events
                     loadPendingPlayers();
                 }
             } catch (e) {
@@ -50,24 +54,19 @@ const usePendingPlayers = () => {
             }
         };
 
-        // Add the event listener
         socket.addEventListener('message', handleSocketMessage);
 
-        // Cleanup function
         return () => {
-            // Remove the event listener
             socket.removeEventListener('message', handleSocketMessage);
         };
     }, [socket, loadPendingPlayers]);
 
-    // Load pending players on component mount and when table changes
+    // Initial load and periodic refresh
     useEffect(() => {
         loadPendingPlayers();
 
-        // Set up a polling interval to check for new pending players
-        const intervalId = setInterval(() => {
-            loadPendingPlayers();
-        }, 10000); // Check every 10 seconds
+        // Reduce polling interval to 5 seconds for more responsive updates
+        const intervalId = setInterval(loadPendingPlayers, 5000);
 
         return () => clearInterval(intervalId);
     }, [loadPendingPlayers]);
@@ -76,6 +75,7 @@ const usePendingPlayers = () => {
         pendingPlayers,
         pendingCount: pendingPlayers.length,
         refreshPendingPlayers: loadPendingPlayers,
+        isLoading,
     };
 };
 

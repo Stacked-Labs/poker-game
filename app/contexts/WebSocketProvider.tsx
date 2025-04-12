@@ -11,6 +11,7 @@ import {
 import { Message, Game, Log } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
+import { useAuth } from './AuthContext';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -30,7 +31,9 @@ export function SocketProvider(props: SocketProviderProps) {
     const { appState, dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
     const { error, success } = useToastHelper();
+    const { isAuthenticated } = useAuth();
 
+    // Connect to WebSocket immediately without authentication
     useEffect(() => {
         if (!WS_URL) return;
 
@@ -115,6 +118,15 @@ export function SocketProvider(props: SocketProviderProps) {
                         });
                         return;
                     }
+                    case 'auth-success': {
+                        // Handle successful authentication
+                        console.log(
+                            'Authentication successful for address:',
+                            event.address
+                        );
+                        success('Authentication successful');
+                        return;
+                    }
                     case 'error':
                         // Handle error
                         error(`Error ${event.code}: ${event.message}`);
@@ -127,7 +139,7 @@ export function SocketProvider(props: SocketProviderProps) {
             };
         };
 
-        // Attempt to connect if we think the user is authenticated
+        // Always try to connect, whether authenticated or not
         connectWebSocket();
 
         return () => {
@@ -138,6 +150,35 @@ export function SocketProvider(props: SocketProviderProps) {
             }
         };
     }, [WS_URL]);
+
+    // Handle authentication after connection is established
+    useEffect(() => {
+        if (
+            isAuthenticated &&
+            socketRef.current &&
+            socketRef.current.readyState === WebSocket.OPEN
+        ) {
+            // Get auth token from cookies
+            const getCookie = (name: string) => {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop()?.split(';').shift();
+                return undefined;
+            };
+
+            const authToken = getCookie('auth_token');
+            if (authToken) {
+                // Send authentication message to server
+                socketRef.current.send(
+                    JSON.stringify({
+                        action: 'authenticate',
+                        token: authToken,
+                    })
+                );
+                console.log('Sent authentication request to server');
+            }
+        }
+    }, [isAuthenticated, socket?.readyState]);
 
     // Update the socket state with the ref
     useEffect(() => {

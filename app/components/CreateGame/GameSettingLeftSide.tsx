@@ -29,8 +29,12 @@ const poppins = Poppins({
     display: 'swap',
 });
 
+// Helper function to generate a random string for table name
+const generateRandomTableName = () => {
+    return 'table_' + Math.random().toString(36).substring(2, 10);
+};
+
 const LeftSideContent: React.FC = () => {
-    const wallet = useActiveWallet();
     const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
@@ -61,35 +65,20 @@ const LeftSideContent: React.FC = () => {
             const isNetworkSelected =
                 playType === 'Free' ||
                 (playType === 'Crypto' && selectedNetwork !== '');
-            const isWalletConnected = !!wallet;
 
             setIsFormValid(
                 isSmallBlindValid &&
                     isBigBlindValid &&
                     isGameModeSelected &&
-                    isNetworkSelected &&
-                    isWalletConnected
+                    isNetworkSelected
             );
         };
 
         validateForm();
-    }, [
-        smallBlind,
-        bigBlind,
-        selectedGameMode,
-        playType,
-        selectedNetwork,
-        address,
-    ]);
+    }, [smallBlind, bigBlind, selectedGameMode, playType, selectedNetwork]);
 
     const handleCreateGame = async () => {
         if (!isFormValid) {
-            if (!address) {
-                toast.warning(
-                    'Wallet Not Connected',
-                    'Please connect your wallet first.'
-                );
-            }
             if (smallBlind === 0 || bigBlind === 0) {
                 toast.warning(
                     'Missing Blinds',
@@ -116,7 +105,8 @@ const LeftSideContent: React.FC = () => {
             return;
         }
 
-        const tableName = address!;
+        // Use wallet address if available, otherwise generate a random table name
+        const tableName = address || generateRandomTableName();
         setIsLoading(true);
         dispatch({ type: 'setTablename', payload: tableName });
 

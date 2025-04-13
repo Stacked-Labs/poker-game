@@ -22,6 +22,7 @@ export type AppState = {
     volume: number;
     unreadMessageCount: number;
     isChatOpen: boolean; // Track if chat is currently open
+    isSeatRequested: boolean;
 };
 
 export type Player = {

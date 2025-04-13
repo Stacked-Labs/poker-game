@@ -29,7 +29,12 @@ export function SocketProvider(props: SocketProviderProps) {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { appState, dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
+    const appStateRef = useRef(appState);
     const { error, success } = useToastHelper();
+
+    useEffect(() => {
+        appStateRef.current = appState;
+    }, [appState]);
 
     useEffect(() => {
         if (!WS_URL) return;
@@ -113,6 +118,15 @@ export function SocketProvider(props: SocketProviderProps) {
                             type: 'updatePlayerID',
                             payload: event.uuid,
                         });
+                        return;
+                    }
+                    case 'update-is-seat-requested': {
+                        if (event.uuid === appStateRef.current.clientID) {
+                            dispatch({
+                                type: 'setIsSeatRequested',
+                                payload: false,
+                            });
+                        }
                         return;
                     }
                     case 'error':

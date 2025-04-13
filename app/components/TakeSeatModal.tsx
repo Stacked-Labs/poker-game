@@ -72,7 +72,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             return;
         }
 
-        console.log('socket', socket);
         if (socket && name.length > 0 && seatId && buyIn) {
             metaDispatch({ type: 'SET_IS_USER_SITTING', payload: true });
             metaDispatch({
@@ -83,6 +82,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             newPlayer(socket, name);
             takeSeat(socket, name, seatId, buyIn);
             appStore.dispatch({ type: 'setUsername', payload: name });
+            appStore.dispatch({ type: 'setIsSeatRequested', payload: true });
             currentUser.setCurrentUser({ name, seatId });
             sendLog(socket, `${name} buys in for ${buyIn}`);
         }

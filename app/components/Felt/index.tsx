@@ -6,23 +6,24 @@ import CommunityCards from './CommunityCards';
 const Felt = () => {
     return (
         <Flex
-            direction={'column'}
             height={'100%'}
+            width={'100%'}
+            direction={'column'}
             alignItems={'center'}
             justifyContent={'center'}
-            gap={2}
         >
             <Flex
-                height="30px"
-                width={'100%'}
-                alignItems={'end'}
+                height={'30%'}
+                width={'40%'}
                 justifyContent={'center'}
+                alignItems={'center'}
+                mb={'2.4vh'}
             >
                 <Pot />
             </Flex>
+            
             <CommunityCards />
         </Flex>
     );
 };
-
 export default Felt;

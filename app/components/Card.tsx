@@ -109,11 +109,12 @@ const CardFront = ({
     return (
         <>
             <Image
+                borderRadius={'8%'}
                 position={'absolute'}
                 alt={`Card Front ${cardString}`}
                 src={cardPhoto}
                 width={'100%'}
-                height="100%"
+                height="fit-content"
                 draggable="false"
                 style={{
                     objectFit: 'contain',

@@ -8,7 +8,7 @@ import {
     useContext,
     useRef,
 } from 'react';
-import { Message, Game, Log } from '@/app/interfaces';
+import { Message, Game, Log, Player } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
 
@@ -111,6 +111,22 @@ export function SocketProvider(props: SocketProviderProps) {
                             readyCount: event.game.readyCount,
                         };
                         dispatch({ type: 'updateGame', payload: newGame });
+
+                        // If player was just successfully seated, reset the flag
+                        const isPlayerSeated = event.game.players?.some(
+                            (p: Player) => {
+                                return p.uuid === appStateRef.current.clientID;
+                            }
+                        );
+                        if (
+                            isPlayerSeated &&
+                            appStateRef.current.isSeatRequested
+                        ) {
+                            dispatch({
+                                type: 'setIsSeatRequested',
+                                payload: false,
+                            });
+                        }
                         return;
                     }
                     case 'update-player-uuid': {
@@ -120,19 +136,20 @@ export function SocketProvider(props: SocketProviderProps) {
                         });
                         return;
                     }
-                    case 'update-is-seat-requested': {
-                        if (event.uuid === appStateRef.current.clientID) {
+                    case 'error':
+                        // Handle error
+                        error(`Error ${event.code}: ${event.message}`);
+                        // If seat request was denied (message check), reset the flag
+                        if (
+                            event.message === 'Seat request denied.' &&
+                            appStateRef.current.isSeatRequested
+                        ) {
                             dispatch({
                                 type: 'setIsSeatRequested',
                                 payload: false,
                             });
                         }
                         return;
-                    }
-                    case 'error':
-                        // Handle error
-                        error(`Error ${event.code}: ${event.message}`);
-                        break;
                     default: {
                         console.warn(`Unhandled action type: ${event.action}`);
                         return;

@@ -8,7 +8,7 @@ import {
     useContext,
     useRef,
 } from 'react';
-import { Message, Game, Log } from '@/app/interfaces';
+import { Message, Game, Log, Player } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
 
@@ -29,7 +29,12 @@ export function SocketProvider(props: SocketProviderProps) {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { appState, dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
+    const appStateRef = useRef(appState);
     const { error, success } = useToastHelper();
+
+    useEffect(() => {
+        appStateRef.current = appState;
+    }, [appState]);
 
     useEffect(() => {
         if (!WS_URL) return;
@@ -106,6 +111,22 @@ export function SocketProvider(props: SocketProviderProps) {
                             readyCount: event.game.readyCount,
                         };
                         dispatch({ type: 'updateGame', payload: newGame });
+
+                        // If player was just successfully seated, reset the flag
+                        const isPlayerSeated = event.game.players?.some(
+                            (p: Player) => {
+                                return p.uuid === appStateRef.current.clientID;
+                            }
+                        );
+                        if (
+                            isPlayerSeated &&
+                            appStateRef.current.isSeatRequested
+                        ) {
+                            dispatch({
+                                type: 'setIsSeatRequested',
+                                payload: false,
+                            });
+                        }
                         return;
                     }
                     case 'update-player-uuid': {
@@ -118,7 +139,17 @@ export function SocketProvider(props: SocketProviderProps) {
                     case 'error':
                         // Handle error
                         error(`Error ${event.code}: ${event.message}`);
-                        break;
+                        // If seat request was denied (message check), reset the flag
+                        if (
+                            event.message === 'Seat request denied.' &&
+                            appStateRef.current.isSeatRequested
+                        ) {
+                            dispatch({
+                                type: 'setIsSeatRequested',
+                                payload: false,
+                            });
+                        }
+                        return;
                     default: {
                         console.warn(`Unhandled action type: ${event.action}`);
                         return;

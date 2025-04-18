@@ -12,6 +12,7 @@ const initialState: AppState = {
     volume: 1,
     unreadMessageCount: 0,
     isChatOpen: false,
+    isSeatRequested: false,
 };
 
 type ACTIONTYPE =
@@ -25,7 +26,8 @@ type ACTIONTYPE =
     | { type: 'setVolume'; payload: number }
     | { type: 'incrementUnreadCount' }
     | { type: 'resetUnreadCount' }
-    | { type: 'setChatOpen'; payload: boolean };
+    | { type: 'setChatOpen'; payload: boolean }
+    | { type: 'setIsSeatRequested'; payload: boolean };
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
@@ -64,6 +66,8 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 };
             }
             return { ...state, isChatOpen: action.payload };
+        case 'setIsSeatRequested':
+            return { ...state, isSeatRequested: action.payload };
         default:
             throw new Error();
     }

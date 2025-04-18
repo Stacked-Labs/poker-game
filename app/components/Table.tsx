@@ -202,7 +202,13 @@ const Table = () => {
                                 ) : (
                                     <EmptySeatButton
                                         seatId={seatId}
-                                        disabled={false}
+                                        disabled={
+                                            appState.game?.players?.some(
+                                                (player) =>
+                                                    player.uuid ===
+                                                    appState.clientID
+                                            ) || appState.isSeatRequested
+                                        }
                                     />
                                 )}
                             </GridItem>

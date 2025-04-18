@@ -61,7 +61,7 @@ const LeftSideContent: React.FC = () => {
             const isNetworkSelected =
                 playType === 'Free' ||
                 (playType === 'Crypto' && selectedNetwork !== '');
-            const isWalletConnected = !!wallet;
+            const isWalletConnected = playType === 'Free' || !!address;
 
             setIsFormValid(
                 isSmallBlindValid &&
@@ -84,45 +84,64 @@ const LeftSideContent: React.FC = () => {
 
     const handleCreateGame = async () => {
         if (!isFormValid) {
-            if (!address) {
+            if (playType === 'Crypto' && !address) {
                 toast.warning(
                     'Wallet Not Connected',
-                    'Please connect your wallet first.'
+                    'Please connect your wallet for Crypto play.'
+                );
+                return;
+            }
+            if (!address && playType === 'Free') {
+                toast.info(
+                    'Creating as Guest',
+                    'You are creating a free game without connecting a wallet.'
                 );
             }
-            if (smallBlind === 0 || bigBlind === 0) {
+            if (smallBlind <= 0 || bigBlind <= 0 || bigBlind < smallBlind) {
                 toast.warning(
-                    'Missing Blinds',
-                    'Please enter both small and big blinds.'
+                    'Invalid Blinds',
+                    'Please enter valid positive blinds (big >= small).'
                 );
+                return;
             }
             if (selectedGameMode === '') {
                 toast.warning(
                     'Game Mode Not Selected',
                     'Please select a game mode.'
                 );
+                return;
             }
             if (playType === 'Crypto' && selectedNetwork === '') {
                 toast.warning(
                     'Network Not Selected',
                     'Please select a network for crypto play.'
                 );
+                return;
             }
-            return;
+            if (!isFormValid) {
+                toast.error(
+                    'Validation Error',
+                    'Please check your game settings.'
+                );
+                return;
+            }
         }
 
         if (!socket) {
             toast.error('Connection Error', 'Unable to connect to the server.');
             return;
         }
+        if (!appState.clientID) {
+            toast.error(
+                'Connection Error',
+                'Client ID not available. Cannot create game.'
+            );
+            return;
+        }
 
-        const tableName = address!;
         setIsLoading(true);
-        dispatch({ type: 'setTablename', payload: tableName });
 
         try {
-            // Make a POST request to /create-table using fetch,
-            // passing tableName in the body, and including credentials:
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/create-table`,
                 {
@@ -132,42 +151,51 @@ const LeftSideContent: React.FC = () => {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        uuid: appState.clientID,
-                        tablename: tableName,
                         smallBlind: smallBlind,
                         bigBlind: bigBlind,
                         isCrypto: playType === 'Crypto',
-                        chain: selectedNetwork,
+                        chain: playType === 'Crypto' ? selectedNetwork : '',
                     }),
                 }
             );
             console.log('create response:', response);
+
             if (response.ok) {
                 const data = await response.json();
-                toast.success(
-                    'Game Created',
-                    `You have successfully created the game: ${data.tablename}`
-                );
+                if (data && data.tablename) {
+                    toast.success(
+                        'Game Created',
+                        `Successfully created game: ${data.tablename}`
+                    );
 
-                // **Send Join-Table Message via WebSocket**
-                joinTable(socket, data.tablename);
+                    dispatch({ type: 'setTablename', payload: data.tablename });
 
-                // Don't set isLoading to false here - keep it loading until navigation completes
-                router.push(`/game/${data.tablename}`);
-                // We're not turning off the loading state as the page transition itself will unmount this component
+                    joinTable(socket, data.tablename);
+                    router.push(`/game/${data.tablename}`);
+                } else {
+                    console.error(
+                        'Create response OK but missing tablename:',
+                        data
+                    );
+                    toast.error(
+                        'Create Error',
+                        'Received invalid response from server.'
+                    );
+                    setIsLoading(false);
+                }
             } else {
+                const errorData = await response.text();
                 toast.error(
                     'Create Failed',
-                    'Failed to create the game. Please try again. ' +
-                        response.statusText
+                    `Failed to create game: ${response.statusText} - ${errorData}`
                 );
                 setIsLoading(false);
             }
         } catch (error) {
-            console.error(error);
+            console.error('Error creating game:', error);
             toast.error(
                 'Create Failed',
-                'Failed to create the game. Please try again.'
+                `An error occurred: ${error instanceof Error ? error.message : String(error)}`
             );
             setIsLoading(false);
         }

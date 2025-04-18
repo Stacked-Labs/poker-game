@@ -151,7 +151,6 @@ const LeftSideContent: React.FC = () => {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        uuid: appState.clientID,
                         smallBlind: smallBlind,
                         bigBlind: bigBlind,
                         isCrypto: playType === 'Crypto',

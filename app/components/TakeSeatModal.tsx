@@ -62,6 +62,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     };
 
     const handleJoin = () => {
+        /* REMOVED Wallet Check
         if (!address) {
             error(
                 'Wallet Not Connected',
@@ -69,16 +70,34 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             );
             return;
         }
+        */
 
-        if (socket && name.length > 0 && seatId && buyIn) {
-            newPlayer(socket, name);
-            takeSeat(socket, name, seatId, buyIn);
-            appStore.dispatch({ type: 'setUsername', payload: name });
-            appStore.dispatch({ type: 'setIsSeatRequested', payload: true });
-            currentUser.setCurrentUser({ name, seatId });
-            sendLog(socket, `${name} buys in for ${buyIn}`);
+        // Basic validation for name, seatId, buyIn
+        if (!socket) {
+            error('Connection Error', 'Unable to connect to the server.');
+            return;
         }
-        onClose();
+        if (name.length === 0) {
+            error('Missing Information', 'Please enter a username.');
+            return;
+        }
+        if (!seatId) {
+            error('Missing Information', 'Seat ID is missing.'); // Should not happen
+            return;
+        }
+        if (buyIn === null || isNaN(Number(buyIn)) || buyIn <= 0) {
+            error('Invalid Amount', 'Please enter a valid buy-in amount.');
+            return;
+        }
+
+        // Proceed with sending messages
+        newPlayer(socket, name);
+        takeSeat(socket, name, seatId, buyIn);
+        appStore.dispatch({ type: 'setUsername', payload: name });
+        appStore.dispatch({ type: 'setIsSeatRequested', payload: true });
+        currentUser.setCurrentUser({ name, seatId });
+        sendLog(socket, `${name} buys in for ${buyIn}`);
+        onClose(); // Close modal after sending
     };
 
     return (
@@ -164,7 +183,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     name === '' ||
                                     buyIn === null ||
                                     isNaN(Number(buyIn)) ||
-                                    address === null
+                                    buyIn <= 0 // Allow join even if address is null
                                 }
                                 bg="green.500"
                                 color="white"

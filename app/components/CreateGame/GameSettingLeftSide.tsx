@@ -139,13 +139,9 @@ const LeftSideContent: React.FC = () => {
             return;
         }
 
-        const tableName = address ? address : appState.clientID;
         setIsLoading(true);
-        dispatch({ type: 'setTablename', payload: tableName });
 
         try {
-            // Make a POST request to /create-table using fetch,
-            // passing tableName in the body, and including credentials:
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/create-table`,
                 {
@@ -156,7 +152,6 @@ const LeftSideContent: React.FC = () => {
                     },
                     body: JSON.stringify({
                         uuid: appState.clientID,
-                        tablename: tableName,
                         smallBlind: smallBlind,
                         bigBlind: bigBlind,
                         isCrypto: playType === 'Crypto',
@@ -165,16 +160,30 @@ const LeftSideContent: React.FC = () => {
                 }
             );
             console.log('create response:', response);
+
             if (response.ok) {
                 const data = await response.json();
-                toast.success(
-                    'Game Created',
-                    `Successfully created game: ${data.tablename}`
-                );
+                if (data && data.tablename) {
+                    toast.success(
+                        'Game Created',
+                        `Successfully created game: ${data.tablename}`
+                    );
 
-                joinTable(socket, data.tablename);
+                    dispatch({ type: 'setTablename', payload: data.tablename });
 
-                router.push(`/game/${data.tablename}`);
+                    joinTable(socket, data.tablename);
+                    router.push(`/game/${data.tablename}`);
+                } else {
+                    console.error(
+                        'Create response OK but missing tablename:',
+                        data
+                    );
+                    toast.error(
+                        'Create Error',
+                        'Received invalid response from server.'
+                    );
+                    setIsLoading(false);
+                }
             } else {
                 const errorData = await response.text();
                 toast.error(

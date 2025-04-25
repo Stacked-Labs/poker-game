@@ -11,7 +11,6 @@ import {
 import { Message, Game, Log, Player } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
-import useAudio from '../hooks/useAudio';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -32,36 +31,6 @@ export function SocketProvider(props: SocketProviderProps) {
     const socketRef = useRef<WebSocket | null>(null);
     const appStateRef = useRef(appState);
     const { error, success } = useToastHelper();
-
-    const { play: playFlip, setVolume: setVolumeFlip } = useAudio(
-        '/sound/card_flip_1.mp3',
-        appState.volume
-    );
-    const { play: playCheck, setVolume: setVolumeCheck } = useAudio(
-        '/sound/check_1.mp3',
-        appState.volume
-    );
-    const { play: playChips, setVolume: setVolumeChips } = useAudio(
-        '/sound/chips_1.mp3',
-        appState.volume
-    );
-    const { play: playRaise, setVolume: setVolumeRaise } = useAudio(
-        '/sound/chips_allin.mp3',
-        appState.volume
-    );
-
-    useEffect(() => {
-        setVolumeFlip(appState.volume);
-        setVolumeCheck(appState.volume);
-        setVolumeChips(appState.volume);
-        setVolumeRaise(appState.volume);
-    }, [
-        appState.volume,
-        setVolumeFlip,
-        setVolumeCheck,
-        setVolumeChips,
-        setVolumeRaise,
-    ]);
 
     useEffect(() => {
         appStateRef.current = appState;
@@ -121,16 +90,6 @@ export function SocketProvider(props: SocketProviderProps) {
                             message: event.message,
                             timestamp: event.timestamp,
                         };
-
-                        if (newLog.message.includes('calls')) {
-                            playChips();
-                        } else if (newLog.message.includes('checks')) {
-                            playCheck();
-                        } else if (newLog.message.includes('folds')) {
-                            playFlip();
-                        } else if (newLog.message.includes('raises')) {
-                            playRaise();
-                        }
 
                         dispatch({ type: 'addLog', payload: newLog });
                         return;

@@ -7,6 +7,7 @@ import { theme } from './theme';
 import { AppStoreProvider } from '@/app/contexts/AppStoreProvider';
 import { UserProvider } from '@/app/contexts/CurrentUserProvider';
 import { SocketProvider } from '@/app/contexts/WebSocketProvider';
+import { SoundProvider } from '@/app/contexts/SoundProvider';
 import { AuthProvider } from '@/app/contexts/AuthContext';
 import { AutoConnect, ThirdwebProvider } from 'thirdweb/react';
 import { client } from './thirdwebclient';
@@ -20,7 +21,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     <AppStoreProvider>
                         <UserProvider>
                             <AuthProvider>
-                                <SocketProvider>{children}</SocketProvider>
+                                <SoundProvider>
+                                    <SocketProvider>{children}</SocketProvider>
+                                </SoundProvider>
                             </AuthProvider>
                         </UserProvider>
                     </AppStoreProvider>

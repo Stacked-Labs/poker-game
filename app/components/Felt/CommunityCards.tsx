@@ -12,12 +12,17 @@ const CommunityCards = () => {
 
     if (communityCards && isGameStarted) {
         return (
-            <Flex width={{ base: '100%', md: '85%' }} height={'80%'} gap={"8%"} justifyContent={'center'}>
+            <Flex
+                width={{ base: '100%', md: '85%' }}
+                height={'80%'}
+                gap={'8%'}
+                justifyContent={'center'}
+            >
                 {cards.map((num, i) => (
-                    <Box 
-                        key={i} 
-                        flex={1} 
-                        height={{ base: 50, md: 'auto' }} 
+                    <Box
+                        key={i}
+                        flex={1}
+                        height={{ base: 50, md: 'auto' }}
                         justifyContent={'center'}
                         transform="scale(1.5)"
                     >
@@ -26,14 +31,12 @@ const CommunityCards = () => {
                                 card={appState.game.communityCards[num]}
                                 placeholder={false}
                                 folded={false}
-                                hidden={false}
                             />
                         ) : (
                             <CardComponent
                                 card="placeholder"
                                 placeholder={true}
                                 folded={false}
-                                hidden={false}
                             />
                         )}
                     </Box>

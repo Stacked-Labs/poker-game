@@ -157,10 +157,9 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
                         return (
-                            <Box flex={1} key={index} > 
-                                <CardComponent 
+                            <Box flex={1} key={index}>
+                                <CardComponent
                                     card={card}
-                                    hidden={appState.clientID !== player.uuid}
                                     placeholder={false}
                                     folded={!player.in}
                                 />

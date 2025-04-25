@@ -6,7 +6,6 @@ type cardProps = {
     card: CardType;
     placeholder: boolean;
     folded: boolean;
-    hidden: boolean;
 };
 
 const cardToString = (card: string) => {
@@ -126,7 +125,7 @@ const CardFront = ({
     );
 };
 
-const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
+const Card = ({ card, placeholder, folded }: cardProps) => {
     const [isFlipped, setIsFlipped] = useState(false);
     const cardString = cardToString(card);
     const cardPhoto = getCardPhoto(cardString);
@@ -134,16 +133,16 @@ const Card = ({ card, placeholder, folded, hidden }: cardProps) => {
     useEffect(() => {
         setIsFlipped(false);
 
-        if (!placeholder && !hidden) {
+        if (!placeholder) {
             setTimeout(() => setIsFlipped(true), 300);
         }
-    }, [card, placeholder, hidden]);
+    }, [card, placeholder]);
 
-    if (cardString == '2\u0000' || card == '0') {
+    if (cardString == '2\u0000') {
         return null;
     }
 
-    if (hidden) {
+    if (card == '0') {
         return <CardBack folded={folded} />;
     }
 

@@ -90,6 +90,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             message: event.message,
                             timestamp: event.timestamp,
                         };
+
                         dispatch({ type: 'addLog', payload: newLog });
                         return;
                     }

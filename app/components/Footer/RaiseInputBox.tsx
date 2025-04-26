@@ -22,12 +22,10 @@ const RaiseInputBox = ({
     action,
     showRaise,
     setShowRaise,
-    raiseSound,
 }: {
     action: boolean;
     showRaise: boolean;
     setShowRaise: React.Dispatch<React.SetStateAction<boolean>>;
-    raiseSound: () => void;
 }) => {
     const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
@@ -85,12 +83,11 @@ const RaiseInputBox = ({
 
     const handleSubmitRaise = (user: string | null, amount: number) => {
         if (socket) {
-            const raiseMessage = `${user} bets ${amount}`;
+            const raiseMessage = `${user} raises ${amount}`;
             sendLog(socket, raiseMessage);
             playerRaise(socket, amount);
         }
         setShowRaise(!showRaise);
-        raiseSound();
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {

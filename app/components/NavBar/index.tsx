@@ -8,9 +8,10 @@ import {
     useDisclosure,
     Icon,
     Box,
+    Tooltip,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { FiSettings, FiMessageSquare } from 'react-icons/fi';
+import { FiSettings, FiMessageSquare, FiLogOut } from 'react-icons/fi';
 import Web3Button from '../Web3Button';
 import SettingsModal from './Settings/SettingsModal';
 import SideBarChat from './Chat/SideBarChat';
@@ -18,6 +19,9 @@ import StartGameButton from '../StartGameButton';
 import VolumeButton from '../VolumeButton';
 import usePendingPlayers from '@/app/hooks/usePendingPlayers';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import { requestLeave, sendLog } from '@/app/hooks/server_actions';
+import useToastHelper from '@/app/hooks/useToastHelper';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -33,7 +37,30 @@ const Navbar = () => {
     const [animateBadge, setAnimateBadge] = useState(false);
     const [animateMsgBadge, setAnimateMsgBadge] = useState(false);
     const { appState, dispatch } = useContext(AppContext);
+    const socket = useContext(SocketContext);
     const unreadMessageCount = appState.unreadMessageCount;
+    const { info } = useToastHelper();
+
+    // Check if the current user is seated at the table
+    const isUserSeated = appState.game?.players?.some(
+        (player) => player.uuid === appState.clientID
+    );
+
+    // Handle leave table request
+    const handleLeaveTable = () => {
+        if (socket) {
+            requestLeave(socket);
+            sendLog(
+                socket,
+                `${appState.username} requested to leave the table`
+            );
+            info(
+                'Leave request sent',
+                'You will be removed after this hand.',
+                5000
+            );
+        }
+    };
 
     // Trigger animation when pendingCount changes
     useEffect(() => {
@@ -126,6 +153,32 @@ const Navbar = () => {
                 <HStack>
                     <Web3Button />
                     <VolumeButton />
+                    {isUserSeated && (
+                        <Tooltip
+                            label={
+                                appState.isLeaveRequested
+                                    ? 'Leaving after this hand...'
+                                    : 'Leave Table'
+                            }
+                        >
+                            <IconButton
+                                icon={
+                                    <Icon
+                                        as={FiLogOut}
+                                        boxSize={{ base: 5, md: 8 }}
+                                    />
+                                }
+                                aria-label="Leave Table"
+                                size={'lg'}
+                                colorScheme={
+                                    appState.isLeaveRequested ? 'gray' : 'red'
+                                }
+                                onClick={handleLeaveTable}
+                                isDisabled={appState.isLeaveRequested}
+                                opacity={appState.isLeaveRequested ? 0.6 : 1}
+                            />
+                        </Tooltip>
+                    )}
                     <Box position="relative">
                         <IconButton
                             icon={

@@ -1,0 +1,114 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Poker Game Repository Structure
+
+## Overview
+This is a Next.js-based online poker game application with React and TypeScript. The application allows users to create and join poker games, with real-time gameplay facilitated through WebSockets.
+
+## Project Dependencies
+- **Next.js** (v13.5.4): React framework for the application
+- **React/React DOM** (v18): UI library
+- **Chakra UI**: Component library for styling
+- **Framer Motion**: Animation library
+- **Three.js/React Three Fiber**: 3D rendering for cards
+- **TypeScript**: For type safety
+- **WebSockets**: For real-time communication
+- **Ethers/Viem/Thirdweb**: Web3 integration components
+
+## Main Application Structure
+
+### `/app` - Core Application Directory
+Contains the main application code for the Next.js app router structure.
+
+#### Key Files in Root App Directory
+- `layout.tsx`: Root layout component for the application
+- `page.tsx`: Main landing page component
+- `providers.tsx`: Manages providers wrapping the application
+- `interfaces.tsx`: TypeScript interfaces for game objects (Player, Game, Card, etc.)
+- `theme.ts`: Chakra UI theme configuration
+- `globals.css`: Global CSS styles
+- `thirdwebclient.ts`: Configuration for Thirdweb integration
+
+#### `/app/components` - UI Components
+Core UI components used throughout the application:
+- `Table.tsx`: Main poker table component
+- `Card.tsx`: Playing card component with 3D rendering
+- `EmptySeatButton.tsx`/`TakenSeatButton.tsx`: Seat management at the table
+- `TakeSeatModal.tsx`: Modal for joining a game
+- `StartGameButton.tsx`: Button to initiate a game
+- `Web3Button.tsx`: Button for Web3 interactions
+- `VolumeButton.tsx`: Audio control component
+
+Component sub-directories:
+- `/Footer`: Footer components
+- `/Felt`: Poker table felt components (CommunityCards, Pot)
+- `/CreateGame`: Components for creating a new game
+- `/NavBar`: Navigation components
+- `/HomePage`: Landing page components
+
+#### `/app/contexts` - Application State Management
+React context providers for state management:
+- `AppStoreProvider.tsx`: Main application state
+- `AuthContext.tsx`: Authentication state
+- `WebSocketProvider.tsx`: WebSocket connection management
+- `SoundProvider.tsx`: Audio management
+- `CurrentUserProvider.tsx`: Current user state
+
+#### `/app/hooks` - Custom React Hooks
+Custom hooks for reusable logic:
+- `server_actions.ts`: Server-side actions for game functionality
+- `useAudio.ts`: Audio playback hook
+- `useIsTableOwner.ts`: Check if user owns current table
+- `usePendingPlayers.tsx`: Manage pending player requests
+- `useToastHelper.ts`: Toast notification helper
+
+#### `/app/utils` - Utility Functions
+Helper functions and constants:
+- `toastConfig.ts`: Toast notification configurations
+- `FAQsData.ts`: FAQ data for the application
+
+#### `/app/game` - Game-Related Pages
+- `/[id]`: Dynamic route for individual game tables
+  - `page.tsx`: Game table page
+  - `layout.tsx`: Layout for game pages
+
+#### `/app/create-game` - Game Creation
+- `page.tsx`: Game creation page
+- `gameOptions.json`: Configuration options for creating games
+
+### `/public` - Static Assets
+Public assets including images, sounds, and other static files.
+
+## Data Models
+
+### Key Interfaces
+- `Game`: Main game state including players, community cards, pots
+- `Player`: Individual player information (cards, chips, position)
+- `Card`: Representation of playing cards
+- `Pot`: Pot information including amounts and eligible players
+- `Config`: Game configuration options
+- `Message`/`Log`: Chat and game log entries
+
+### Game Flow
+The application uses a WebSocket connection to manage real-time game state updates:
+1. Players create or join a game table
+2. Players take seats and buy in with chips
+3. When enough players are ready, the game begins
+4. Turns progress through betting rounds, with UI updates reflecting the game state
+5. When a hand completes, winnings are distributed and a new hand begins
+
+## Configuration Files
+- `package.json`: Node.js dependencies and scripts
+- `tsconfig.json`: TypeScript configuration
+- `.eslintrc.json`/`.eslintrc`: ESLint configuration
+- `.prettierrc`: Prettier code formatting rules
+- `next.config.js`: Next.js configuration
+- `.env.local`: Environment variables
+
+## Development Tooling
+- ESLint and Prettier for code formatting and linting
+- Husky for git hooks
+- TypeScript for static type checking

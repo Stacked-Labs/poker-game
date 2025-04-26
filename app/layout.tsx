@@ -6,6 +6,7 @@ import '@fontsource/luckiest-guy';
 import '@fontsource/poppins';
 import '@fontsource/libre-barcode-39-text';
 import HomeNavBar from './components/HomePage/HomeNavBar';
+import React from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,13 +25,11 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en">
-            <body className={inter.className}>
-                <Providers>
-                    <HomeNavBar />
-                    <main>{children}</main>
-                </Providers>
-            </body>
-        </html>
+        <body className={inter.className}>
+            <Providers>
+                <HomeNavBar />
+                {children}
+            </Providers>
+        </body>
     );
 }

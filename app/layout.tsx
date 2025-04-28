@@ -25,11 +25,13 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <body className={inter.className}>
-            <Providers>
-                <HomeNavBar />
-                {children}
-            </Providers>
-        </body>
+        <html lang="en">
+            <body className={inter.className}>
+                <Providers>
+                    <HomeNavBar />
+                    <main>{children}</main>
+                </Providers>
+            </body>
+        </html>
     );
 }

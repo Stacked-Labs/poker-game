@@ -92,6 +92,17 @@ export function SocketProvider(props: SocketProviderProps) {
                         };
 
                         dispatch({ type: 'addLog', payload: newLog });
+
+                        // Check if the log message contains a confirmation of leave request
+                        if (
+                            event.message.includes('Request to leave table') &&
+                            event.message.includes('received')
+                        ) {
+                            dispatch({
+                                type: 'setIsLeaveRequested',
+                                payload: true,
+                            });
+                        }
                         return;
                     }
                     case 'update-game': {

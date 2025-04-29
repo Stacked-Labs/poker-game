@@ -54,12 +54,16 @@ export function takeSeat(
     );
 }
 
-export function acceptPlayer(socket: WebSocket, uuid: string, tableName: string) {
+export function acceptPlayer(
+    socket: WebSocket,
+    uuid: string,
+    tableName: string
+) {
     socket.send(
         JSON.stringify({
             action: 'accept-player',
             uuid: uuid,
-            tableName: tableName
+            tableName: tableName,
         })
     );
 }
@@ -69,7 +73,7 @@ export function denyPlayer(socket: WebSocket, uuid: string, tableName: string) {
         JSON.stringify({
             action: 'deny-player',
             uuid: uuid,
-            tableName: tableName
+            tableName: tableName,
         })
     );
 }
@@ -156,6 +160,14 @@ export function playerFold(socket: WebSocket) {
     );
 }
 
+export function requestLeave(socket: WebSocket) {
+    socket?.send(
+        JSON.stringify({
+            action: 'request-leave',
+        })
+    );
+}
+
 export async function authenticateUser(
     address: string,
     signature: string,
@@ -184,7 +196,6 @@ export async function authenticateUser(
 }
 
 export async function isAuth() {
-
     isBackendUrlValid();
 
     const response = await fetch(`${backendUrl}/isAuth`, {
@@ -205,7 +216,6 @@ export async function isAuth() {
 }
 
 export async function isTableExisting(table: string) {
-
     isBackendUrlValid();
 
     if (!table) {
@@ -247,7 +257,7 @@ export async function isTableOwner(table: string) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ table }),
-        })
+        });
 
         return await response.json();
     } catch (error) {
@@ -257,7 +267,6 @@ export async function isTableOwner(table: string) {
 }
 
 export async function getPendingPlayers(table: string) {
-
     isBackendUrlValid();
 
     if (!table) {
@@ -271,7 +280,7 @@ export async function getPendingPlayers(table: string) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ table })
+            body: JSON.stringify({ table }),
         });
 
         if (!response.ok) {

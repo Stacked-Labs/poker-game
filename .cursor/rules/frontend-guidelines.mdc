@@ -1,0 +1,170 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 🧠 Cursor Rules: Senior Frontend Engineer with Chakra UI Expertise
+
+##  Chakra UI Components Overview
+
+Chakra UI offers a rich set of accessible, modular, and customizable components. Key categories include:
+
+- **Disclosure**: Accordion, Tabs, Visually Hidden
+- **Feedback**: Alert, Circular Progress, Progress, Skeleton, Spinner, Toast
+- **Overlay**: AlertDialog, Drawer, Menu, Modal, Popover, Tooltip
+- **Media and Icons**: Avatar, Icon, Image
+- **Data Display**: Badge, Card, Code, Divider, Kbd, List, Stat, Table, Tag
+- **Navigation**: Breadcrumb, Link, LinkOverlay, SkipNav, Stepper
+- **Form**: Button, Checkbox, Editable, FormControl, IconButton, Input, NumberInput, PinInput, Radio, RangeSlider, Select, Slider, Switch, Textarea
+- **Typography**: Heading, Highlight, Text
+- **Other**: CloseButton, Portal, Show, Hide, Transitions
+
+*Reference: [Chakra UI Components](https://v2.chakra-ui.com/docs/components)*
+
+---
+
+## 🎨 Chakra UI Best Practices
+
+- **Theme Customization**: Leverage Chakra's theming capabilities to define colors, typography, and component styles globally.
+
+- **Responsive Design**: Utilize Chakra's responsive array syntax to apply styles across different breakpoints.
+
+```jsx
+<Box w={['100%', '50%', '25%']}>Responsive Box</Box>
+```
+
+- **Style Props**: Use Chakra's style props for rapid and consistent styling without external CSS.
+
+```jsx
+<Box p={4} bg="teal.500" color="white">Styled Box</Box>
+```
+
+- **Conditional Rendering**: Implement `useMediaQuery` for rendering components based on screen size.
+
+```jsx
+const [isLargerThan768] = useMediaQuery("(min-width: 768px)");
+```
+
+*Reference: [Chakra UI Tips and Tricks](https://www.ayrshare.com/the-top-5-chakra-ui-tips-and-tricks-for-react-developers/)*
+
+---
+
+## ⚛️ React Optimization Strategies
+
+- **Production Build**: Always deploy the production build of React to ensure optimal performance.
+
+```bash
+npm run build
+```
+
+- **Code Splitting and Lazy Loading**: Implement code splitting using `React.lazy` and `Suspense` to load components only when needed.
+
+```jsx
+const LazyComponent = React.lazy(() => import('./LazyComponent'));
+
+<Suspense fallback={<div>Loading...</div>}>
+  <LazyComponent />
+</Suspense>
+```
+
+- **Memoization**: Use `React.memo`, `useMemo`, and `useCallback` to prevent unnecessary re-renders.
+
+```jsx
+const MemoizedComponent = React.memo(Component);
+```
+
+- **Virtualize Long Lists**: For large datasets, use libraries like `react-window` to render only visible items.
+
+- **Avoid Reconciliation**: Implement `shouldComponentUpdate` or `React.memo` to prevent unnecessary DOM updates.
+
+*References: [React Performance Optimization](https://legacy.reactjs.org/docs/optimizing-performance.html), [SuperTokens Blog](https://supertokens.com/blog/5-tips-for-optimizing-your-react-apps-performance)*
+
+---
+
+## 🧩 Component Design Guidelines
+
+- **Accessibility**: Ensure all components are accessible, following WAI-ARIA standards.
+
+- **Modularity**: Design components to be reusable and composable.
+
+- **Theming**: Utilize Chakra's theming system for consistent styling across the application.
+
+- **Responsive Layouts**: Employ Chakra's responsive utilities to create layouts that adapt to various screen sizes.
+
+*Reference: [Chakra UI Design Patterns](https://daily.dev/blog/chakra-ui-design-patterns-basics)*
+
+---
+
+## 🔄 State Management in React
+
+- **Context API**: Use React Context for global state that changes infrequently.
+
+```jsx
+const MyContext = React.createContext();
+
+function MyProvider({ children }) {
+  const [state, setState] = useState(initialState);
+  return (
+    <MyContext.Provider value={{ state, setState }}>
+      {children}
+    </MyContext.Provider>
+  );
+}
+```
+
+- **Redux**: Consider Redux for complex state logic or when you need middleware support.
+
+- **Zustand**: A lightweight alternative to Redux with a simpler API.
+
+*Reference: [React State Management](https://react.dev/learn/managing-state)*
+
+---
+
+## 🚀 Performance Monitoring
+
+- **React DevTools Profiler**: Use the built-in profiler to identify component rendering issues.
+
+- **Lighthouse**: Run Lighthouse audits to identify performance bottlenecks.
+
+- **Web Vitals**: Monitor Core Web Vitals to ensure a good user experience.
+
+```jsx
+import { getCLS, getFID, getLCP } from 'web-vitals';
+
+function sendToAnalytics({ name, delta, id }) {
+  // Send metrics to your analytics service
+}
+
+getCLS(sendToAnalytics);
+getFID(sendToAnalytics);
+getLCP(sendToAnalytics);
+```
+
+*Reference: [Web Vitals](https://web.dev/vitals/)*
+
+<!-- ---
+
+## 🧪 Testing Strategies
+
+- **Jest and React Testing Library**: Use these tools for component testing.
+
+```jsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import Component from './Component';
+
+test('component renders correctly', () => {
+  render(<Component />);
+  expect(screen.getByText('Hello')).toBeInTheDocument();
+});
+```
+
+- **Cypress**: For end-to-end testing of your application.
+
+- **Storybook**: Use Storybook for visual testing and component documentation.
+
+*Reference: [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)* -->
+
+---
+
+This rules file serves as a comprehensive guide to building efficient, accessible, and responsive React applications using Chakra UI in the context of the Poker Game project.

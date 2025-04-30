@@ -203,18 +203,25 @@ const Table = () => {
                                     <EmptySeatButton
                                         seatId={seatId}
                                         disabled={
-                                            appState.game?.players?.some(
-                                                (player) =>
-                                                    player.uuid ===
-                                                    appState.clientID
-                                            ) || appState.isSeatRequested
+                                            (appState.game?.running &&
+                                                appState.game?.players?.some(
+                                                    (player) =>
+                                                        player.uuid ===
+                                                        appState.clientID
+                                                )) ||
+                                            appState.isSeatRequested
                                         }
                                     />
                                 )}
                             </GridItem>
                         );
                     })}
-                <GridItem height={'50%'} width={'70%'} area={'felt'}  justifyContent={'center'} >
+                <GridItem
+                    height={'50%'}
+                    width={'70%'}
+                    area={'felt'}
+                    justifyContent={'center'}
+                >
                     <Felt />
                 </GridItem>
             </Grid>

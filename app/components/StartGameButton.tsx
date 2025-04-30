@@ -41,6 +41,7 @@ const StartGameButton = () => {
                         (!game.running && readyPlayers.length < 2) ||
                         (game.running && readyPlayers.length >= 2)
                     }
+                    display={game.running ? 'none' : 'inline-flex'}
                 >
                     Start
                 </Button>

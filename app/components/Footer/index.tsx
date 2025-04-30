@@ -42,7 +42,11 @@ const Footer = () => {
         }
     };
 
-    if (!appState.game || appState.game.betting == false) {
+    if (
+        !appState.game ||
+        !appState.game.running ||
+        appState.game.betting == false
+    ) {
         return (
             <Flex
                 justifyContent={'end'}

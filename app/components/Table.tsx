@@ -208,13 +208,11 @@ const Table = () => {
                                     <EmptySeatButton
                                         seatId={seatId}
                                         disabled={
-                                            (appState.game?.running &&
-                                                appState.game?.players?.some(
-                                                    (player) =>
-                                                        player.uuid ===
-                                                        appState.clientID
-                                                )) ||
-                                            appState.isSeatRequested
+                                            appState.game?.players?.some(
+                                                (player) =>
+                                                    player.uuid ===
+                                                    appState.clientID
+                                            ) || appState.isSeatRequested
                                         }
                                     />
                                 )}

@@ -119,7 +119,12 @@ const Table = () => {
     useEffect(() => {
         const game = appState.game;
         // this effect triggers when betting is over
-        if (game && game.stage === 1 && game.pots.length !== 0) {
+        if (
+            game &&
+            game.stage === 1 &&
+            game.pots.length !== 0 &&
+            !game.betting
+        ) {
             setRevealedPlayers(getRevealedPlayers(game));
             handleWinner(game, socket);
             const timer = setTimeout(() => {
@@ -214,7 +219,12 @@ const Table = () => {
                             </GridItem>
                         );
                     })}
-                <GridItem height={'50%'} width={'70%'} area={'felt'}  justifyContent={'center'} >
+                <GridItem
+                    height={'50%'}
+                    width={'70%'}
+                    area={'felt'}
+                    justifyContent={'center'}
+                >
                     <Felt />
                 </GridItem>
             </Grid>

@@ -18,12 +18,12 @@ const initialPot: PotType[] = [
 
 const Pot = () => {
     const { appState } = useContext(AppContext);
-    const isGameStarted = appState.game?.running;
+    const isGameRunning = appState.game?.running;
     const game = appState.game;
     const [stage, setStage] = useState(game?.stage);
     const [pots, setPots] = useState(initialPot);
 
-    if (!game || !game.pots) {
+    if (!game || !game.pots || !isGameRunning) {
         return null;
     }
 
@@ -37,7 +37,7 @@ const Pot = () => {
         }
     }
 
-    if (isGameStarted) {
+    if (isGameRunning) {
         return (
             <Flex justifyContent={'flex'} textAlign={'justify'}>
                 {pots.map((pot, index) => {

@@ -42,10 +42,23 @@ const Footer = () => {
         }
     };
 
+    // Check if the current user is a spectator (not in the game)
+    const isSpectator = () => {
+        if (!appState.game || !appState.clientID) return true;
+
+        // Check if the user exists in the players array with a valid seat
+        const userInGame = appState.game.players.some(
+            (player) => player.uuid === appState.clientID && player.seatID > 0
+        );
+
+        return !userInGame;
+    };
+
     if (
         !appState.game ||
         !appState.game.running ||
-        appState.game.betting == false
+        appState.game.betting == false ||
+        isSpectator()
     ) {
         return (
             <Flex

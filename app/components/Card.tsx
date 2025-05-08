@@ -74,29 +74,9 @@ const getCardPhoto = (card: string) => {
     return `/cards/png/${rankStr}_of_${suitStr}.png`;
 };
 
-const CardBack = ({ folded }: { folded: boolean }) => {
-    const cardPhotoBack = '/cards/png/back_of_card.png';
+const cardPhotoBack = '/cards/png/back_of_card.png';
 
-    return (
-        <Box width={'100%'} height={'100%'} position={'relative'}>
-            <Image
-                position={'absolute'}
-                alt={`Card Back`}
-                src={cardPhotoBack}
-                width={'100%'}
-                height="100%"
-                sx={{
-                    objectFit: 'contain',
-                    filter: folded ? 'brightness(50%)' : 'none',
-                }}
-                draggable="false"
-                zIndex={1}
-            />
-        </Box>
-    );
-};
-
-const CardFront = ({
+const CardImage = ({
     cardString,
     cardPhoto,
     folded,
@@ -106,11 +86,11 @@ const CardFront = ({
     folded: boolean;
 }) => {
     return (
-        <>
+        <Box width={'100%'} height={'100%'} position={'relative'}>
             <Image
                 borderRadius={'8%'}
                 position={'absolute'}
-                alt={`Card Front ${cardString}`}
+                alt={`Card ${cardString}`}
                 src={cardPhoto}
                 width={'100%'}
                 height="fit-content"
@@ -120,8 +100,9 @@ const CardFront = ({
                     transform: 'rotateY(180deg)',
                     filter: folded ? 'brightness(50%)' : 'none',
                 }}
+                zIndex={String(cardPhoto).includes('back') ? 1 : 0}
             />
-        </>
+        </Box>
     );
 };
 
@@ -143,7 +124,13 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
     }
 
     if (card == '0') {
-        return <CardBack folded={folded} />;
+        return (
+            <CardImage
+                cardString={cardPhotoBack}
+                cardPhoto={cardPhotoBack}
+                folded={folded}
+            />
+        );
     }
 
     return (
@@ -180,10 +167,14 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                         backfaceVisibility: 'hidden',
                     }}
                 >
-                    <CardBack folded={folded} />
+                    <CardImage
+                        cardString={cardPhotoBack}
+                        cardPhoto={cardPhotoBack}
+                        folded={folded}
+                    />
                 </Box>
                 <Box position={'absolute'} width="100%" height="100%">
-                    <CardFront
+                    <CardImage
                         cardString={cardString}
                         cardPhoto={cardPhoto}
                         folded={folded}

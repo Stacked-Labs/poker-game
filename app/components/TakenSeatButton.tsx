@@ -92,8 +92,6 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
         return null;
     }
 
-    player.cards.map((c) => console.log(c));
-
     return (
         <Flex
             width={{ base: 100, lg: 150, '2xl': 250 }}
@@ -157,7 +155,7 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
                         return (
-                            <Box flex={1} key={index}>
+                            <Box flex={1} key={`${card}-${index}`}>
                                 <CardComponent
                                     card={card}
                                     placeholder={false}

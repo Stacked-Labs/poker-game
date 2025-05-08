@@ -74,54 +74,37 @@ const getCardPhoto = (card: string) => {
     return `/cards/png/${rankStr}_of_${suitStr}.png`;
 };
 
-const CardBack = ({ folded }: { folded: boolean }) => {
-    const cardPhotoBack = '/cards/png/back_of_card.png';
+const cardPhotoBack = '/cards/png/back_of_card.png';
 
+const CardImage = ({
+    cardPhoto,
+    folded,
+    altText,
+    isCardFrontFace,
+}: {
+    cardPhoto: string;
+    folded: boolean;
+    altText: string;
+    isCardFrontFace: boolean;
+}) => {
     return (
         <Box width={'100%'} height={'100%'} position={'relative'}>
             <Image
-                position={'absolute'}
-                alt={`Card Back`}
-                src={cardPhotoBack}
-                width={'100%'}
-                height="100%"
-                sx={{
-                    objectFit: 'contain',
-                    filter: folded ? 'brightness(50%)' : 'none',
-                }}
-                draggable="false"
-                zIndex={1}
-            />
-        </Box>
-    );
-};
-
-const CardFront = ({
-    cardString,
-    cardPhoto,
-    folded,
-}: {
-    cardString: string;
-    cardPhoto: string;
-    folded: boolean;
-}) => {
-    return (
-        <>
-            <Image
                 borderRadius={'8%'}
                 position={'absolute'}
-                alt={`Card Front ${cardString}`}
+                alt={altText}
                 src={cardPhoto}
                 width={'100%'}
                 height="fit-content"
                 draggable="false"
                 style={{
                     objectFit: 'contain',
-                    transform: 'rotateY(180deg)',
+                    transform: isCardFrontFace ? 'rotateY(180deg)' : 'none',
                     filter: folded ? 'brightness(50%)' : 'none',
                 }}
+                zIndex={String(cardPhoto).includes('back') ? 1 : 0}
             />
-        </>
+        </Box>
     );
 };
 
@@ -143,7 +126,14 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
     }
 
     if (card == '0') {
-        return <CardBack folded={folded} />;
+        return (
+            <CardImage
+                altText="Card Back"
+                cardPhoto={cardPhotoBack}
+                folded={folded}
+                isCardFrontFace={false}
+            />
+        );
     }
 
     return (
@@ -180,13 +170,19 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                         backfaceVisibility: 'hidden',
                     }}
                 >
-                    <CardBack folded={folded} />
+                    <CardImage
+                        altText="Card Back"
+                        cardPhoto={cardPhotoBack}
+                        folded={folded}
+                        isCardFrontFace={false}
+                    />
                 </Box>
                 <Box position={'absolute'} width="100%" height="100%">
-                    <CardFront
-                        cardString={cardString}
+                    <CardImage
+                        altText={`Card ${cardString}`}
                         cardPhoto={cardPhoto}
                         folded={folded}
+                        isCardFrontFace={true}
                     />
                 </Box>
             </Box>
@@ -194,4 +190,6 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
     );
 };
 
-export default Card;
+const MemoizedCard = React.memo(Card);
+
+export default MemoizedCard;

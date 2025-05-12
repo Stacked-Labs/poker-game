@@ -1,15 +1,9 @@
-import {
-    Box,
-    Flex,
-    Text,
-    VStack,
-    useBreakpointValue,
-} from '@chakra-ui/react';
+import { Box, Flex, Text, VStack, useBreakpointValue } from '@chakra-ui/react';
 import React from 'react';
 import HomeCard from './HomeCard';
 import { Poppins } from 'next/font/google';
 import Image from 'next/image';
-import { keyframes } from '@emotion/react'; // Import keyframes from @emotion/react
+import { keyframes } from '@emotion/react';
 
 const poppins = Poppins({
     weight: ['700'],
@@ -39,43 +33,40 @@ const HomeSection = () => {
     const words = React.useMemo(() => ['YOUR', 'CRYPTO', 'POKER', 'ARENA'], []);
 
     return (
-        <Box position="relative" width="100vw" minHeight="100vh">
-            <Image
-                alt="Background Photo"
-                src="/bg.png"
-                layout="fill"
-                objectFit="cover"
-                priority
-            />
+        <Box
+            position="relative"
+            width="100vw"
+            height={{ base: '100%', lg: '100vh' }}
+            bgAttachment="fixed"
+            bgSize="cover"
+            bgPosition={{ base: 'right', lg: 'center' }}
+            bgImage={'url("/bg.png")'}
+        >
             <Flex
                 position="relative"
                 width="100%"
-                minHeight="100%"
-                zIndex={1}
-                alignItems="center"
-                justifyContent="space-between"
-                flexWrap={{ base: 'wrap', lg: 'nowrap' }} // Wrap on mobile, nowrap on large screens
-                gap={{ base: 2, md: 4, lg: 6 }} // Responsive gap
+                flexWrap={{ base: 'wrap', lg: 'nowrap' }}
+                gap={{ base: 2, md: 4, lg: 6 }}
             >
-                <Box
-                    flex={{ base: '1 1 100%', lg: '1 1 0%' }} // Full width on mobile, equal width on large screens
-                    mb={{ base: 8, lg: 0 }} // Margin bottom on mobile
-                >
+                <Box width={{ base: '100%', lg: '40%' }}>
                     <HomeCard />
                 </Box>
-
-                <VStack
-                    flex={{ base: '1 1 100%', lg: '1 1 0%' }} // Full width on mobile, equal width on large screens
-                    justifyContent="center"
-                    alignItems={{ base: 'center', lg: 'flex-start' }} // Center align on mobile, start align on large screens
-                    spacing={0}
-                >
-                    {showArenaText && (
+                {showArenaText && (
+                    <VStack
+                        width={{ base: '100%', lg: '60%' }}
+                        justifyContent="center"
+                        alignItems={{ base: 'center', lg: 'flex-start' }}
+                        spacing={0}
+                    >
                         <>
                             {words.map((word, index) => (
                                 <Text
                                     key={index}
-                                    fontSize="9xl"
+                                    fontSize={{
+                                        base: '3xl',
+                                        lg: '8xl',
+                                        xl: '9xl',
+                                    }}
                                     fontWeight="extrabold"
                                     color="white"
                                     lineHeight={1.1}
@@ -98,13 +89,8 @@ const HomeSection = () => {
                                 HOST AND PLAY FOR ANY ERC20
                             </Text>
                         </>
-                    )}
-                </VStack>
-
-                <Box
-                    flex={['1 1 100%', '1 1 100%', '1']}
-                    display={['none', 'none', 'block']}
-                />
+                    </VStack>
+                )}
             </Flex>
         </Box>
     );

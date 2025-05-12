@@ -148,8 +148,8 @@ const Table = () => {
             <Image
                 src={
                     !shouldRotate
-                        ? '/table-horizontal.png'
-                        : '/table-vertical.png'
+                        ? '/table-horizontal.webp'
+                        : '/table-vertical.webp'
                 }
                 objectFit={'contain'}
                 width={'80%'}
@@ -214,7 +214,12 @@ const Table = () => {
                             </GridItem>
                         );
                     })}
-                <GridItem height={'50%'} width={'70%'} area={'felt'}  justifyContent={'center'} >
+                <GridItem
+                    height={'50%'}
+                    width={'70%'}
+                    area={'felt'}
+                    justifyContent={'center'}
+                >
                     <Felt />
                 </GridItem>
             </Grid>

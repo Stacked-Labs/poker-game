@@ -49,7 +49,6 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
     return (
         <Button
             variant={'homeSectionButton'}
-            border={0}
             leftIcon={
                 <Icon
                     as={FaWallet}
@@ -67,8 +66,6 @@ const Web3Button: React.FC<Web3ButtonProps> = (props) => {
             onMouseLeave={() => setIsHovered(false)}
             onClick={accountAddress ? handleDisconnect : handleConnect}
             fontSize={{ base: 'sm', md: 'md' }}
-            px={{ base: 2, md: 3 }}
-            py={{ base: '1.5rem', md: '2rem' }}
             aria-label={accountAddress ? 'Disconnect Wallet' : 'Connect Wallet'}
             {...props}
         >

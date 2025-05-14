@@ -38,12 +38,9 @@ const HomeCard = () => {
             alignItems="center"
             minHeight="100vh"
             width="100%"
-            p={4}
+            p={2}
         >
             <Flex
-                flexDirection="column"
-                justifyContent="space-between"
-                gap={[6, 6, 8]}
                 borderRadius={['40px']}
                 width={['100%', '90%', '80%', '70%']}
                 maxWidth="600px"
@@ -51,77 +48,98 @@ const HomeCard = () => {
                 minHeight="300px"
                 height="fit-content"
                 bgColor="gray.100"
-                padding={[8, 12, 16]}
                 boxShadow="xl"
             >
-                <Stack gap={12} flex={1} justifyContent="flex-start">
+                <Stack
+                    gap={12}
+                    flex={1}
+                    justifyContent="center"
+                    alignItems={'center'}
+                    paddingY={[8, 12, 16]}
+                >
                     <Text
                         className={poppins.className}
-                        fontSize={['3xl', '3xl', '6xl']}
+                        fontSize={{ base: '5xl', lg: '4xl', xl: '5xl' }}
                         textAlign="center"
                         fontWeight={700}
                         color="white"
-                        whiteSpace="nowrap" // Changed from "nowrap" to "normal"
-                        maxWidth="100%" // Ensure text takes full width
+                        whiteSpace="nowrap"
+                        maxWidth="100%"
                     >
                         Stacked
                     </Text>
 
-                    <Button
-                        variant="homeSectionButton"
-                        bg="green.500"
-                        _hover={{ bg: 'green.600' }}
-                        size={['xl']}
-                        py={8}
-                        fontSize={['xl']}
-                        onClick={handlePlayNow}
-                        isLoading={isLoading}
-                        loadingText="Loading"
-                        spinner={<Spinner size="md" color="white" />}
+                    <Stack
+                        gap={12}
+                        paddingX={[8, 12, 16]}
+                        width={'100%'}
+                        alignItems={'center'}
                     >
-                        Play Now
-                    </Button>
+                        <Stack
+                            gap={8}
+                            width={{ sm: '70%', base: '60%', lg: '100%' }}
+                        >
+                            <Button
+                                variant="homeSectionButton"
+                                bg="green.500"
+                                _hover={{ bg: 'green.600' }}
+                                fontSize={{ base: 'sm', md: 'md' }}
+                                onClick={handlePlayNow}
+                                isLoading={isLoading}
+                                loadingText="Loading"
+                                spinner={<Spinner size="md" color="white" />}
+                            >
+                                Play Now
+                            </Button>
 
-                    <Web3Button size={['xl']} />
+                            <Web3Button />
+                        </Stack>
+
+                        <Flex
+                            direction="row"
+                            justify="space-evenly"
+                            align="center"
+                            width="100%"
+                        >
+                            <Link href="https://x.com/stacked_poker" isExternal>
+                                <IconButton
+                                    aria-label="X"
+                                    variant="social"
+                                    icon={<RiTwitterXLine size={36} />}
+                                    size="lg"
+                                    transition="transform 0.2s"
+                                    _hover={{ transform: 'scale(1.1)' }}
+                                />
+                            </Link>
+                            <Link
+                                href="https://discord.gg/896EhkVYbd"
+                                isExternal
+                            >
+                                <IconButton
+                                    aria-label="Discord"
+                                    variant="social"
+                                    icon={<FaDiscord size={36} />}
+                                    size="lg"
+                                    transition="transform 0.2s"
+                                    _hover={{ transform: 'scale(1.1)' }}
+                                />
+                            </Link>
+                            <Link
+                                href="https://warpcast.com/stackedpoker"
+                                isExternal
+                            >
+                                <IconButton
+                                    aria-label="Warpcast"
+                                    variant="social"
+                                    icon={<SiFarcaster size={36} />}
+                                    size="lg"
+                                    transition="transform 0.2s"
+                                    _hover={{ transform: 'scale(1.1)' }}
+                                />
+                            </Link>
+                        </Flex>
+                    </Stack>
                 </Stack>
-
-                <Flex
-                    direction="row"
-                    justify="space-evenly" // Evenly distribute the icons
-                    align="center"
-                    width="100%"
-                >
-                    <Link href="https://x.com/stacked_poker" isExternal>
-                        <IconButton
-                            aria-label="X"
-                            variant="social"
-                            icon={<RiTwitterXLine size={36} />}
-                            size="lg"
-                            transition="transform 0.2s"
-                            _hover={{ transform: 'scale(1.1)' }}
-                        />
-                    </Link>
-                    <Link href="https://discord.gg/896EhkVYbd" isExternal>
-                        <IconButton
-                            aria-label="Discord"
-                            variant="social"
-                            icon={<FaDiscord size={36} />}
-                            size="lg"
-                            transition="transform 0.2s"
-                            _hover={{ transform: 'scale(1.1)' }}
-                        />
-                    </Link>
-                    <Link href="https://warpcast.com/stackedpoker" isExternal>
-                        <IconButton
-                            aria-label="Warpcast"
-                            variant="social"
-                            icon={<SiFarcaster size={36} />} // Using SiFarcaster icon
-                            size="lg"
-                            transition="transform 0.2s"
-                            _hover={{ transform: 'scale(1.1)' }}
-                        />
-                    </Link>
-                </Flex>
             </Flex>
         </Flex>
     );

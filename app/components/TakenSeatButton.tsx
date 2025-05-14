@@ -7,11 +7,32 @@ import {
     PositionProps,
     HStack,
 } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import CardComponent from './Card';
 
-const TakenSeatButton = ({ player }: { player: Player }) => {
+const pulseWhiteGlow = keyframes`
+  0% { box-shadow: 0 0 8px 3px rgba(255, 255, 255, 0.8); }
+  50% { box-shadow: 0 0 16px 8px rgba(255, 255, 255, 0.8); }
+  100% { box-shadow: 0 0 8px 3px rgba(255, 255, 255, 0.8); }
+`;
+
+const pulseGoldGlow = keyframes`
+  0% { box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.7); }
+  50% { box-shadow: 0 0 16px 8px rgba(255, 215, 0, 0.7); }
+  100% { box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.7); }
+`;
+
+const TakenSeatButton = ({
+    player,
+    isCurrentTurn,
+    isWinner,
+}: {
+    player: Player;
+    isCurrentTurn: boolean;
+    isWinner: boolean;
+}) => {
     const { appState } = useContext(AppContext);
     const address = player?.address;
     const shortEthAddress = address
@@ -87,6 +108,18 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
 
     const defaultPosition = { top: '100%', flexDirection: 'row' };
     const chipPosition = chipPositions[player?.seatID || 4] || defaultPosition;
+
+    const glowAnimation = isCurrentTurn
+        ? `${pulseWhiteGlow} 2s ease-in-out infinite`
+        : isWinner
+          ? `${pulseGoldGlow} 2s ease-in-out infinite`
+          : 'none';
+
+    const boxShadow = isCurrentTurn
+        ? '0 0 25px 10px rgba(255, 255, 255, 1)'
+        : isWinner
+          ? '0 0 10px 3px rgba(255, 215, 0, 0.7)'
+          : 'none';
 
     if (!appState.game) {
         return null;
@@ -177,6 +210,9 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 justifyContent={'center'}
                 alignItems={'center'}
                 alignSelf={'flex-end'}
+                boxShadow={boxShadow}
+                animation={glowAnimation}
+                transition="all 0.5s ease-in-out"
             >
                 <HStack spacing={2}>
                     <Text

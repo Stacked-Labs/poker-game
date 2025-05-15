@@ -13,15 +13,15 @@ import { AppContext } from '../contexts/AppStoreProvider';
 import CardComponent from './Card';
 
 const pulseWhiteGlow = keyframes`
-  0% { box-shadow: 0 0 8px 3px rgba(255, 255, 255, 0.8); }
-  50% { box-shadow: 0 0 16px 8px rgba(255, 255, 255, 0.8); }
-  100% { box-shadow: 0 0 8px 3px rgba(255, 255, 255, 0.8); }
+  0% { box-shadow: 0 0 6px 5px rgba(255, 255, 255, 0.6); }
+  50% { box-shadow: 0 0 9px 6px rgba(255, 255, 255, 0.6); }
+  100% { box-shadow: 0 0 6px 5px rgba(255, 255, 255, 0.6); }
 `;
 
 const pulseGoldGlow = keyframes`
-  0% { box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.7); }
-  50% { box-shadow: 0 0 16px 8px rgba(255, 215, 0, 0.7); }
-  100% { box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.7); }
+  0% { box-shadow: 0 0 6px 5px rgba(255, 215, 0, 0.6); }
+  50% { box-shadow: 0 0 9px 6px rgba(255, 215, 0, 0.6); }
+  100% { box-shadow: 0 0 6px 5px rgba(255, 215, 0, 0.6); }
 `;
 
 const TakenSeatButton = ({
@@ -110,15 +110,9 @@ const TakenSeatButton = ({
     const chipPosition = chipPositions[player?.seatID || 4] || defaultPosition;
 
     const glowAnimation = isCurrentTurn
-        ? `${pulseWhiteGlow} 2s ease-in-out infinite`
+        ? `${pulseWhiteGlow} 2s ease-in-out 0.2s infinite`
         : isWinner
-          ? `${pulseGoldGlow} 2s ease-in-out infinite`
-          : 'none';
-
-    const boxShadow = isCurrentTurn
-        ? '0 0 25px 10px rgba(255, 255, 255, 1)'
-        : isWinner
-          ? '0 0 10px 3px rgba(255, 215, 0, 0.7)'
+          ? `${pulseGoldGlow} 2s ease-in-out 0.5s infinite`
           : 'none';
 
     if (!appState.game) {
@@ -200,7 +194,7 @@ const TakenSeatButton = ({
             </Flex>
             <Flex
                 direction={'column'}
-                bg={'gray.50'}
+                bg={isCurrentTurn || isWinner ? 'white' : 'gray.50'}
                 borderRadius={12}
                 width={'110%'}
                 paddingX={4}
@@ -210,23 +204,32 @@ const TakenSeatButton = ({
                 justifyContent={'center'}
                 alignItems={'center'}
                 alignSelf={'flex-end'}
-                boxShadow={boxShadow}
                 animation={glowAnimation}
-                transition="all 0.5s ease-in-out"
+                transition={'all 0.5s ease-in-out'}
             >
                 <HStack spacing={2}>
                     <Text
                         variant={'seatText'}
                         fontWeight={'bold'}
-                        color={'gray.300'}
+                        color={
+                            isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'
+                        }
                     >
                         {player.username}
                     </Text>
-                    <Text variant={'seatText'} color={'gray.300'}>
+                    <Text
+                        variant={'seatText'}
+                        color={
+                            isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'
+                        }
+                    >
                         {shortEthAddress}
                     </Text>
                 </HStack>
-                <Text color={'gray.300'} variant={'seatText'}>
+                <Text
+                    color={isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'}
+                    variant={'seatText'}
+                >
                     {player.stack}
                 </Text>
             </Flex>

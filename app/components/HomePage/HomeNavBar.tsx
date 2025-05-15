@@ -99,7 +99,7 @@ const HomeNavBar: React.FC = () => {
 
             {/* Desktop Navigation */}
             <Flex
-                display={{ base: 'none', md: 'flex' }}
+                display={{ base: 'none', lg: 'flex' }}
                 bg={'gray.200'}
                 textTransform={'uppercase'}
                 gap={10}
@@ -113,7 +113,7 @@ const HomeNavBar: React.FC = () => {
                 aria-label="Open menu"
                 icon={<RiMenu3Line />}
                 onClick={onOpen}
-                display={{ base: 'flex', md: 'none' }} //this causes it to appear on mobile?
+                display={{ base: 'flex', lg: 'none' }}
             />
 
             <Drawer placement="right" onClose={onClose} isOpen={isOpen}>

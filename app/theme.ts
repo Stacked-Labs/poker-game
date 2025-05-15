@@ -222,7 +222,6 @@ const components = {
             homeSectionButton: {
                 paddingY: 8,
                 border: 0,
-                fontSize: 'xl',
             },
             settingsSmallButton: {
                 width: '50%',

@@ -97,6 +97,7 @@ const Table = () => {
     const { appState } = useContext(AppContext);
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
     const [players, setPlayers] = useState(initialPlayers);
+    const [winningPlayer, setWinningPlayer] = useState<Player | null>(null);
 
     const shouldRotate = useBreakpointValue({ base: true, md: false }) ?? false;
 
@@ -122,8 +123,19 @@ const Table = () => {
         if (game && game.stage === 1 && game.pots.length !== 0) {
             setRevealedPlayers(getRevealedPlayers(game));
             handleWinner(game, socket);
+
+            // set winning player
+            if (
+                game.pots.length > 0 &&
+                game.pots[game.pots.length - 1].winningPlayerNums.length > 0
+            ) {
+                const winner = getWinner(game);
+                setWinningPlayer(winner);
+            }
+
             const timer = setTimeout(() => {
                 setRevealedPlayers([]);
+                setWinningPlayer(null);
                 if (socket) {
                     dealGame(socket);
                 }
@@ -133,6 +145,22 @@ const Table = () => {
             };
         }
     }, [appState.game?.dealer]);
+
+    const isPlayerTurn = (player: Player): boolean => {
+        if (
+            !appState.game ||
+            !appState.game.running ||
+            !appState.game.betting
+        ) {
+            return false;
+        }
+        return player.position === appState.game.action;
+    };
+
+    const isPlayerWinner = (player: Player): boolean => {
+        if (!winningPlayer) return false;
+        return player.uuid === winningPlayer.uuid;
+    };
 
     return (
         <Flex
@@ -198,7 +226,11 @@ const Table = () => {
                                 height={'100%'}
                             >
                                 {player && player !== null ? (
-                                    <TakenSeatButton player={player} />
+                                    <TakenSeatButton
+                                        player={player}
+                                        isCurrentTurn={isPlayerTurn(player)}
+                                        isWinner={isPlayerWinner(player)}
+                                    />
                                 ) : (
                                     <EmptySeatButton
                                         seatId={seatId}

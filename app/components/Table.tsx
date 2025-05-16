@@ -120,7 +120,12 @@ const Table = () => {
     useEffect(() => {
         const game = appState.game;
         // this effect triggers when betting is over
-        if (game && game.stage === 1 && game.pots.length !== 0) {
+        if (
+            game &&
+            game.stage === 1 &&
+            game.pots.length !== 0 &&
+            !game.betting
+        ) {
             setRevealedPlayers(getRevealedPlayers(game));
             handleWinner(game, socket);
 

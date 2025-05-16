@@ -6,11 +6,15 @@ import CardComponent from '../Card';
 const CommunityCards = () => {
     const { appState } = useContext(AppContext);
     const communityCards = appState.game?.communityCards;
-    const isGameStarted = appState.game?.running;
+    const isGameRunning = appState.game?.running;
 
     const cards = [0, 1, 2, 3, 4];
 
-    if (communityCards && isGameStarted) {
+    if (!isGameRunning) {
+        return null;
+    }
+
+    if (communityCards && isGameRunning) {
         return (
             <Flex
                 width={{ base: '100%', md: '85%' }}

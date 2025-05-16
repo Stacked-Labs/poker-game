@@ -7,6 +7,7 @@ import {
     useState,
     useContext,
     useRef,
+    useCallback,
 } from 'react';
 import { Message, Game, Log, Player } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
@@ -30,157 +31,228 @@ export function SocketProvider(props: SocketProviderProps) {
     const { appState, dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
     const appStateRef = useRef(appState);
-    const { error, success } = useToastHelper();
+    const { error, success, info, warning } = useToastHelper();
+
+    const [isReconnecting, setIsReconnecting] = useState(false);
+    const [reconnectionAttempts, setReconnectionAttempts] = useState(0);
+    const maxReconnectionAttempts = 5;
+    const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         appStateRef.current = appState;
     }, [appState]);
 
-    useEffect(() => {
+    const getReconnectDelay = useCallback((attempt: number) => {
+        const baseDelay = 1000;
+        const maxDelay = 16000;
+        const exponentialDelay = baseDelay * Math.pow(2, attempt); // 1s, 2s, 4s, 8s, 16s (max)
+        return Math.min(exponentialDelay, maxDelay);
+    }, []);
+
+    const attemptReconnection = useCallback(() => {
+        if (!WS_URL || reconnectionAttempts >= maxReconnectionAttempts) {
+            if (reconnectionAttempts >= maxReconnectionAttempts) {
+                setIsReconnecting(false);
+                error(
+                    'Connection failed',
+                    'Maximum reconnection attempts reached. Please refresh the page.',
+                    10000
+                );
+            }
+            return;
+        }
+
+        setIsReconnecting(true);
+        const nextAttempt = reconnectionAttempts + 1;
+        setReconnectionAttempts(nextAttempt);
+
+        const delay = getReconnectDelay(reconnectionAttempts);
+
+        info(
+            'Attempting to reconnect',
+            `Reconnection attempt ${nextAttempt}/${maxReconnectionAttempts} in ${delay / 1000}s`,
+            5000
+        );
+
+        if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+        }
+
+        reconnectTimeoutRef.current = setTimeout(() => {
+            connectWebSocket();
+        }, delay);
+    }, [WS_URL, reconnectionAttempts, maxReconnectionAttempts]);
+
+    const connectWebSocket = useCallback(() => {
         if (!WS_URL) return;
 
-        const connectWebSocket = () => {
-            if (socketRef.current) {
-                console.log('WebSocket already connected');
-                return;
-            }
+        if (socketRef.current) {
+            console.log('WebSocket already connected');
+            return;
+        }
 
-            const _socket = new WebSocket(WS_URL);
+        const _socket = new WebSocket(WS_URL);
 
-            socketRef.current = _socket;
-            setSocket(_socket);
+        socketRef.current = _socket;
+        setSocket(_socket);
 
-            _socket.onopen = () => {
-                console.log('WebSocket connected');
+        _socket.onopen = () => {
+            console.log('WebSocket connected');
+
+            if (isReconnecting) {
+                success('Reconnected successfully', 'Connection restored');
+                setIsReconnecting(false);
+                setReconnectionAttempts(0);
+
+                if (appStateRef.current.game) {
+                    const joinMessage = {
+                        action: 'join-game',
+                        gameID: appStateRef.current.table,
+                    };
+                    _socket.send(JSON.stringify(joinMessage));
+                }
+            } else {
                 success('WebSocket connected');
-            };
+            }
+        };
 
-            _socket.onclose = (event) => {
-                console.log('WebSocket disconnected');
+        _socket.onclose = (event) => {
+            console.log('WebSocket disconnected', event);
+
+            if (!event.wasClean) {
+                error('Connection lost', 'Attempting to reconnect...', 3000);
+                socketRef.current = null;
+                setSocket(null);
+                attemptReconnection();
+            } else {
                 error('WebSocket disconnected');
                 socketRef.current = null;
                 setSocket(null);
-            };
-
-            _socket.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                socketRef.current = null;
-                setSocket(null);
-            };
-
-            _socket.onmessage = (e) => {
-                const event = JSON.parse(e.data);
-                switch (event.action) {
-                    case 'new-message': {
-                        const newMessage: Message = {
-                            name: event.username,
-                            message: event.message,
-                            timestamp: event.timestamp,
-                        };
-                        dispatch({ type: 'addMessage', payload: newMessage });
-
-                        // Only increment unread count if chat isn't open
-                        if (!appState.isChatOpen) {
-                            dispatch({ type: 'incrementUnreadCount' });
-                        }
-                        return;
-                    }
-                    case 'new-log': {
-                        const newLog: Log = {
-                            message: event.message,
-                            timestamp: event.timestamp,
-                        };
-
-                        dispatch({ type: 'addLog', payload: newLog });
-
-                        // Check if the log message contains a confirmation of leave request
-                        if (
-                            event.message.includes('Request to leave table') &&
-                            event.message.includes('received')
-                        ) {
-                            dispatch({
-                                type: 'setIsLeaveRequested',
-                                payload: true,
-                            });
-                        }
-                        return;
-                    }
-                    case 'update-game': {
-                        const newGame: Game = {
-                            running: event.game.running,
-                            dealer: event.game.dealer,
-                            action: event.game.action,
-                            utg: event.game.utg,
-                            sb: event.game.sb,
-                            bb: event.game.bb,
-                            communityCards: event.game.communityCards,
-                            stage: event.game.stage,
-                            betting: event.game.betting,
-                            config: event.game.config,
-                            players: event.game.players,
-                            pots: event.game.pots,
-                            minRaise: event.game.minRaise,
-                            readyCount: event.game.readyCount,
-                        };
-                        dispatch({ type: 'updateGame', payload: newGame });
-
-                        // If player was just successfully seated, reset the flag
-                        const isPlayerSeated = event.game.players?.some(
-                            (p: Player) => {
-                                return p.uuid === appStateRef.current.clientID;
-                            }
-                        );
-                        if (
-                            isPlayerSeated &&
-                            appStateRef.current.isSeatRequested
-                        ) {
-                            dispatch({
-                                type: 'setIsSeatRequested',
-                                payload: false,
-                            });
-                        }
-                        return;
-                    }
-                    case 'update-player-uuid': {
-                        dispatch({
-                            type: 'updatePlayerID',
-                            payload: event.uuid,
-                        });
-                        return;
-                    }
-                    case 'error':
-                        // Handle error
-                        error(`Error ${event.code}: ${event.message}`);
-                        // If seat request was denied (message check), reset the flag
-                        if (
-                            event.message === 'Seat request denied.' &&
-                            appStateRef.current.isSeatRequested
-                        ) {
-                            dispatch({
-                                type: 'setIsSeatRequested',
-                                payload: false,
-                            });
-                        }
-                        return;
-                    default: {
-                        console.warn(`Unhandled action type: ${event.action}`);
-                        return;
-                    }
-                }
-            };
+            }
         };
 
-        // Attempt to connect if we think the user is authenticated
+        _socket.onerror = (err) => {
+            console.error('WebSocket error:', err);
+            error('Connection error', 'Attempting to reconnect...', 3000);
+            socketRef.current = null;
+            setSocket(null);
+            attemptReconnection();
+        };
+
+        _socket.onmessage = (e) => {
+            const event = JSON.parse(e.data);
+            switch (event.action) {
+                case 'new-message': {
+                    const newMessage: Message = {
+                        name: event.username,
+                        message: event.message,
+                        timestamp: event.timestamp,
+                    };
+                    dispatch({ type: 'addMessage', payload: newMessage });
+
+                    // Only increment unread count if chat isn't open
+                    if (!appState.isChatOpen) {
+                        dispatch({ type: 'incrementUnreadCount' });
+                    }
+                    return;
+                }
+                case 'new-log': {
+                    const newLog: Log = {
+                        message: event.message,
+                        timestamp: event.timestamp,
+                    };
+
+                    dispatch({ type: 'addLog', payload: newLog });
+
+                    // Check if the log message contains a confirmation of leave request
+                    if (
+                        event.message.includes('Request to leave table') &&
+                        event.message.includes('received')
+                    ) {
+                        dispatch({
+                            type: 'setIsLeaveRequested',
+                            payload: true,
+                        });
+                    }
+                    return;
+                }
+                case 'update-game': {
+                    const newGame: Game = {
+                        running: event.game.running,
+                        dealer: event.game.dealer,
+                        action: event.game.action,
+                        utg: event.game.utg,
+                        sb: event.game.sb,
+                        bb: event.game.bb,
+                        communityCards: event.game.communityCards,
+                        stage: event.game.stage,
+                        betting: event.game.betting,
+                        config: event.game.config,
+                        players: event.game.players,
+                        pots: event.game.pots,
+                        minRaise: event.game.minRaise,
+                        readyCount: event.game.readyCount,
+                    };
+                    dispatch({ type: 'updateGame', payload: newGame });
+
+                    // If player was just successfully seated, reset the flag
+                    const isPlayerSeated = event.game.players?.some(
+                        (p: Player) => {
+                            return p.uuid === appStateRef.current.clientID;
+                        }
+                    );
+                    if (isPlayerSeated && appStateRef.current.isSeatRequested) {
+                        dispatch({
+                            type: 'setIsSeatRequested',
+                            payload: false,
+                        });
+                    }
+                    return;
+                }
+                case 'update-player-uuid': {
+                    dispatch({
+                        type: 'updatePlayerID',
+                        payload: event.uuid,
+                    });
+                    return;
+                }
+                case 'error':
+                    // Handle error
+                    error(`Error ${event.code}: ${event.message}`);
+                    // If seat request was denied (message check), reset the flag
+                    if (
+                        event.message === 'Seat request denied.' &&
+                        appStateRef.current.isSeatRequested
+                    ) {
+                        dispatch({
+                            type: 'setIsSeatRequested',
+                            payload: false,
+                        });
+                    }
+                    return;
+                default: {
+                    console.warn(`Unhandled action type: ${event.action}`);
+                    return;
+                }
+            }
+        };
+    }, [WS_URL, isReconnecting, attemptReconnection]);
+
+    useEffect(() => {
         connectWebSocket();
 
         return () => {
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+            }
+
             if (socketRef.current) {
                 socketRef.current.close();
                 socketRef.current = null;
                 setSocket(null);
             }
         };
-    }, [WS_URL]);
+    }, [connectWebSocket]);
 
     // Update the socket state with the ref
     useEffect(() => {

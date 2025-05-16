@@ -10,6 +10,7 @@ import {
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import CardComponent from './Card';
+import PlayerTimer from './Felt/PlayerTimer';
 
 const TakenSeatButton = ({ player }: { player: Player }) => {
     const { appState } = useContext(AppContext);
@@ -91,6 +92,9 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
     if (!appState.game) {
         return null;
     }
+
+    const isActivePlayer =
+        appState.game.action === player.position && player.in;
 
     player.cards.map((c) => console.log(c));
 
@@ -180,6 +184,12 @@ const TakenSeatButton = ({ player }: { player: Player }) => {
                 alignItems={'center'}
                 alignSelf={'flex-end'}
             >
+                {isActivePlayer && appState.game.actionDeadline > 0 && (
+                    <PlayerTimer
+                        actionDeadline={appState.game.actionDeadline}
+                        isActivePlayer={isActivePlayer}
+                    />
+                )}
                 <HStack spacing={2}>
                     <Text
                         variant={'seatText'}

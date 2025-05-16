@@ -58,6 +58,7 @@ export type Game = {
     pots: Pot[];
     minRaise: number;
     readyCount: number;
+    actionDeadline: number;
 };
 
 export type Config = {

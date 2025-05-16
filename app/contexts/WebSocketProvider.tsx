@@ -121,6 +121,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             pots: event.game.pots,
                             minRaise: event.game.minRaise,
                             readyCount: event.game.readyCount,
+                            actionDeadline: event.game.ActionDeadline,
                         };
                         dispatch({ type: 'updateGame', payload: newGame });
 

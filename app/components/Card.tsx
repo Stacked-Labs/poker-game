@@ -146,6 +146,8 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                 '& > div': {
                     transition: 'transform 0.6s',
                     transformStyle: 'preserve-3d',
+                    WebkitTransformStyle: 'preserve-3d',
+                    MozTransformStyle: 'preserve-3d',
                 },
             }}
             width={'100%'}
@@ -159,6 +161,8 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                 sx={{
                     transition: 'transform 0.6s',
                     transformStyle: 'preserve-3d',
+                    WebkitTransformStyle: 'preserve-3d',
+                    MozTransformStyle: 'preserve-3d',
                     transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
                 }}
             >
@@ -168,6 +172,11 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                     height="100%"
                     sx={{
                         backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        MozBackfaceVisibility: 'hidden',
+                        transformStyle: 'preserve-3d',
+                        WebkitTransformStyle: 'preserve-3d',
+                        MozTransformStyle: 'preserve-3d',
                     }}
                 >
                     <CardImage

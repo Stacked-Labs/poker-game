@@ -25,6 +25,9 @@ type SocketProviderProps = {
     children: ReactNode;
 };
 
+const TOAST_ID_RECONNECTING = 'attemptReconnection';
+const TOAST_ID_RECONNECTED = 'isReconnected';
+
 export function SocketProvider(props: SocketProviderProps) {
     const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
     const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -56,7 +59,7 @@ export function SocketProvider(props: SocketProviderProps) {
                 error(
                     'Connection failed',
                     'Maximum reconnection attempts reached. Please refresh the page.',
-                    10000
+                    2000
                 );
             }
             return;
@@ -71,7 +74,8 @@ export function SocketProvider(props: SocketProviderProps) {
         info(
             'Attempting to reconnect',
             `Reconnection attempt ${nextAttempt}/${maxReconnectionAttempts} in ${delay / 1000}s`,
-            5000
+            delay,
+            TOAST_ID_RECONNECTING
         );
 
         if (reconnectTimeoutRef.current) {
@@ -100,7 +104,12 @@ export function SocketProvider(props: SocketProviderProps) {
             console.log('WebSocket connected');
 
             if (isReconnecting) {
-                success('Reconnected successfully', 'Connection restored');
+                success(
+                    'Reconnected successfully',
+                    'Connection restored',
+                    2000,
+                    TOAST_ID_RECONNECTED
+                );
                 setIsReconnecting(false);
                 setReconnectionAttempts(0);
 
@@ -117,15 +126,13 @@ export function SocketProvider(props: SocketProviderProps) {
         };
 
         _socket.onclose = (event) => {
-            console.log('WebSocket disconnected', event);
-
             if (!event.wasClean) {
-                error('Connection lost', 'Attempting to reconnect...', 3000);
                 socketRef.current = null;
                 setSocket(null);
                 attemptReconnection();
             } else {
                 error('WebSocket disconnected');
+                console.log('WebSocket disconnected', event);
                 socketRef.current = null;
                 setSocket(null);
             }
@@ -133,7 +140,6 @@ export function SocketProvider(props: SocketProviderProps) {
 
         _socket.onerror = (err) => {
             console.error('WebSocket error:', err);
-            error('Connection error', 'Attempting to reconnect...', 3000);
             socketRef.current = null;
             setSocket(null);
             attemptReconnection();

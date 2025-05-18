@@ -110,13 +110,13 @@ export function resetGame(socket: WebSocket) {
     );
 }
 
-export function dealGame(socket: WebSocket) {
-    socket.send(
-        JSON.stringify({
-            action: 'deal-game',
-        })
-    );
-}
+// export function dealGame(socket: WebSocket) {
+//     socket.send(
+//         JSON.stringify({
+//             action: 'deal-game',
+//         })
+//     );
+// }
 
 export function newPlayer(socket: WebSocket, username: string) {
     socket?.send(

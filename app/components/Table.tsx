@@ -10,7 +10,7 @@ import EmptySeatButton from './EmptySeatButton';
 import TakenSeatButton from './TakenSeatButton';
 import { Player, Game as GameType } from '../interfaces';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { sendLog, dealGame } from '../hooks/server_actions';
+import { sendLog } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
 

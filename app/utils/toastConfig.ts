@@ -32,7 +32,7 @@ export const showToast = (
         status: statusMap[type],
         duration,
         isClosable: true,
-        position: 'bottom-right',
+        position: 'top-right',
     });
 };
 

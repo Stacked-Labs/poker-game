@@ -20,8 +20,15 @@ import VolumeButton from '../VolumeButton';
 import usePendingPlayers from '@/app/hooks/usePendingPlayers';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
-import { requestLeave, sendLog } from '@/app/hooks/server_actions';
+import {
+    requestLeave,
+    sendLog,
+    sendPauseGameCommand,
+    sendResumeGameCommand,
+} from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import useIsTableOwner from '@/app/hooks/useIsTableOwner';
+import { FaPlay, FaPause } from 'react-icons/fa';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -40,6 +47,7 @@ const Navbar = () => {
     const socket = useContext(SocketContext);
     const unreadMessageCount = appState.unreadMessageCount;
     const { info } = useToastHelper();
+    const isOwner = useIsTableOwner();
 
     // Check if the current user is seated at the table
     const isUserSeated = appState.game?.players?.some(
@@ -149,6 +157,46 @@ const Navbar = () => {
                         )}
                     </Box>
                     <StartGameButton />
+                    {isOwner && appState.game?.running && socket && (
+                        <Tooltip
+                            label={
+                                appState.game?.paused
+                                    ? 'Resume Game'
+                                    : 'Pause Game'
+                            }
+                            aria-label={
+                                appState.game?.paused
+                                    ? 'Resume game tooltip'
+                                    : 'Pause game tooltip'
+                            }
+                        >
+                            <IconButton
+                                icon={
+                                    appState.game?.paused ? (
+                                        <FaPlay />
+                                    ) : (
+                                        <FaPause />
+                                    )
+                                }
+                                aria-label={
+                                    appState.game?.paused
+                                        ? 'Resume Game'
+                                        : 'Pause Game'
+                                }
+                                size={'lg'}
+                                onClick={() => {
+                                    if (appState.game?.paused) {
+                                        sendResumeGameCommand(socket);
+                                    } else {
+                                        sendPauseGameCommand(socket);
+                                    }
+                                }}
+                                colorScheme={
+                                    appState.game?.paused ? 'green' : 'yellow'
+                                }
+                            />
+                        </Tooltip>
+                    )}
                 </HStack>
                 <HStack>
                     <Web3Button />

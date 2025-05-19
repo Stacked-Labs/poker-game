@@ -198,6 +198,7 @@ export function SocketProvider(props: SocketProviderProps) {
                         pots: event.game.pots,
                         minRaise: event.game.minRaise,
                         readyCount: event.game.readyCount,
+                        paused: event.game.paused,
                     };
                     dispatch({ type: 'updateGame', payload: newGame });
 
@@ -212,6 +213,38 @@ export function SocketProvider(props: SocketProviderProps) {
                             type: 'setIsSeatRequested',
                             payload: false,
                         });
+                    }
+                    return;
+                }
+                case 'game-paused': {
+                    info(
+                        'Game Paused',
+                        `Game paused by ${event.pausedBy || 'table owner'}.`,
+                        5000
+                    );
+                    // The backend will also send a full 'update-game'.
+                    // For immediate UI update, we can dispatch an update to the game state here.
+                    if (appStateRef.current.game) {
+                        const updatedGame = {
+                            ...appStateRef.current.game,
+                            paused: true,
+                        };
+                        dispatch({ type: 'updateGame', payload: updatedGame });
+                    }
+                    return;
+                }
+                case 'game-resumed': {
+                    success(
+                        'Game Resumed',
+                        `Game resumed by ${event.resumedBy || 'table owner'}.`,
+                        5000
+                    );
+                    if (appStateRef.current.game) {
+                        const updatedGame = {
+                            ...appStateRef.current.game,
+                            paused: false,
+                        };
+                        dispatch({ type: 'updateGame', payload: updatedGame });
                     }
                     return;
                 }

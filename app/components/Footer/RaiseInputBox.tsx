@@ -29,6 +29,7 @@ const RaiseInputBox = ({
 }) => {
     const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
+    const gameIsPaused = appState.game?.paused || false;
 
     const maxRaise = 100;
 
@@ -114,7 +115,7 @@ const RaiseInputBox = ({
                     text={'Back'}
                     color="white"
                     clickHandler={() => setShowRaise(false)}
-                    isDisabled={!action}
+                    isDisabled={!action || gameIsPaused}
                 />
                 <ActionButton
                     text={'Raise'}
@@ -126,6 +127,8 @@ const RaiseInputBox = ({
                         )
                     }
                     isDisabled={
+                        gameIsPaused ||
+                        !action ||
                         inputValue < minRaise ||
                         inputValue > currentStack + currentBet
                     }
@@ -193,6 +196,7 @@ const RaiseInputBox = ({
                     <Flex flex={1} gap={2} p={2}>
                         <Button
                             variant={'raiseActionButton'}
+                            isDisabled={gameIsPaused || !action}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -207,6 +211,7 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            isDisabled={gameIsPaused || !action}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -221,6 +226,7 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            isDisabled={gameIsPaused || !action}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -235,6 +241,7 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            isDisabled={gameIsPaused || !action}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -249,6 +256,7 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            isDisabled={gameIsPaused || !action}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -287,7 +295,7 @@ const RaiseInputBox = ({
                             onChange={(value: number) =>
                                 handleSliderChange(value)
                             }
-                            isDisabled={!action}
+                            isDisabled={!action || gameIsPaused}
                         >
                             <SliderTrack>
                                 <SliderFilledTrack />

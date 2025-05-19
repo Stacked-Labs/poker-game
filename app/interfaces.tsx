@@ -58,6 +58,7 @@ export type Game = {
     pots: Pot[];
     minRaise: number;
     readyCount: number;
+    paused?: boolean; // Whether the game is currently paused
 };
 
 export type Config = {

@@ -12,7 +12,16 @@ import { useContext } from 'react';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Player } from '@/app/interfaces';
-import { Box, Flex, Spinner, Text, VStack } from '@chakra-ui/react';
+import {
+    Box,
+    Flex,
+    Spinner,
+    Text,
+    VStack,
+    Heading,
+    Center,
+    useStyleConfig,
+} from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import useToastHelper from '@/app/hooks/useToastHelper';
 
@@ -33,7 +42,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     const router = useRouter();
     const toast = useToastHelper();
     const socket = useContext(SocketContext);
-    const { dispatch } = useContext(AppContext);
+    const { appState, dispatch } = useContext(AppContext);
     const [players, setPlayers] = useState(initialPlayers);
     const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
         'checking'
@@ -95,8 +104,33 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                     </Text>
                 </VStack>
             </Box>
-            <Box />
-            <Flex flex={1} justifyContent={'center'} position={'relative'}>
+            {appState.game?.paused && (
+                <Box
+                    position="fixed"
+                    top="80px"
+                    left="50%"
+                    transform="translateX(-50%)"
+                    bg="yellow.400"
+                    color="black"
+                    px={6}
+                    py={3}
+                    borderRadius="md"
+                    boxShadow="lg"
+                    zIndex={990}
+                    textAlign="center"
+                >
+                    <Heading size="md">Game Paused</Heading>
+                </Box>
+            )}
+            <Flex
+                flex={1}
+                justifyContent={'center'}
+                position={'relative'}
+                style={{
+                    filter: appState.game?.paused ? 'blur(4px)' : 'none',
+                    transition: 'filter 0.3s ease-in-out',
+                }}
+            >
                 <Table />
             </Flex>
         </>

@@ -168,6 +168,32 @@ export function requestLeave(socket: WebSocket) {
     );
 }
 
+export function sendPauseGameCommand(socket: WebSocket) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+            JSON.stringify({
+                action: 'pause-game',
+            })
+        );
+    } else {
+        console.error('Cannot send pause-game: WebSocket is not open.');
+        // Optionally, notify the user or attempt to handle the error
+    }
+}
+
+export function sendResumeGameCommand(socket: WebSocket) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+            JSON.stringify({
+                action: 'resume-game',
+            })
+        );
+    } else {
+        console.error('Cannot send resume-game: WebSocket is not open.');
+        // Optionally, notify the user or attempt to handle the error
+    }
+}
+
 export async function authenticateUser(
     address: string,
     signature: string,

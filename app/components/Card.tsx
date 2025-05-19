@@ -80,12 +80,10 @@ const CardImage = ({
     cardPhoto,
     folded,
     altText,
-    isCardFrontFace,
 }: {
     cardPhoto: string;
     folded: boolean;
     altText: string;
-    isCardFrontFace: boolean;
 }) => {
     return (
         <Box width={'100%'} height={'100%'} position={'relative'}>
@@ -99,10 +97,8 @@ const CardImage = ({
                 draggable="false"
                 style={{
                     objectFit: 'contain',
-                    transform: isCardFrontFace ? 'rotateY(180deg)' : 'none',
                     filter: folded ? 'brightness(50%)' : 'none',
                 }}
-                zIndex={String(cardPhoto).includes('back') ? 1 : 0}
             />
         </Box>
     );
@@ -131,7 +127,6 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                 altText="Card Back"
                 cardPhoto={cardPhotoBack}
                 folded={folded}
-                isCardFrontFace={false}
             />
         );
     }
@@ -174,24 +169,29 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                         backfaceVisibility: 'hidden',
                         WebkitBackfaceVisibility: 'hidden',
                         MozBackfaceVisibility: 'hidden',
-                        transformStyle: 'preserve-3d',
-                        WebkitTransformStyle: 'preserve-3d',
-                        MozTransformStyle: 'preserve-3d',
                     }}
                 >
                     <CardImage
                         altText="Card Back"
                         cardPhoto={cardPhotoBack}
                         folded={folded}
-                        isCardFrontFace={false}
                     />
                 </Box>
-                <Box position={'absolute'} width="100%" height="100%">
+                <Box
+                    position={'absolute'}
+                    width="100%"
+                    height="100%"
+                    sx={{
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        MozBackfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)',
+                    }}
+                >
                     <CardImage
                         altText={`Card ${cardString}`}
                         cardPhoto={cardPhoto}
                         folded={folded}
-                        isCardFrontFace={true}
                     />
                 </Box>
             </Box>

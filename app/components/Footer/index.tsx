@@ -17,6 +17,7 @@ const Footer = () => {
     const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
     const [showRaise, setShowRaise] = useState<boolean>(false);
+    const gameIsPaused = appState.game?.paused || false;
 
     const handleCall = (user: string | null, amount: number) => {
         if (socket) {
@@ -112,25 +113,25 @@ const Footer = () => {
                             clickHandler={() =>
                                 handleCall(appState.username, callAmount)
                             }
-                            isDisabled={!action || canCall}
+                            isDisabled={!action || canCall || gameIsPaused}
                         />
                         <ActionButton
                             text={'Raise'}
                             color="green"
                             clickHandler={() => setShowRaise(true)}
-                            isDisabled={!action}
+                            isDisabled={!action || gameIsPaused}
                         />
                         <ActionButton
                             text={'Check'}
                             color="green"
                             clickHandler={() => handleCheck(appState.username)}
-                            isDisabled={!action || !canCheck}
+                            isDisabled={!action || !canCheck || gameIsPaused}
                         />
                         <ActionButton
                             text={'Fold'}
                             color="red"
                             clickHandler={() => handleFold(appState.username)}
-                            isDisabled={!action}
+                            isDisabled={!action || gameIsPaused}
                         />
                     </>
                 )}

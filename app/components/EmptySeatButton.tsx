@@ -34,14 +34,25 @@ const EmptySeatButton = ({
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 isDisabled={disabled}
+                position="relative"
             >
+                <Text
+                    position="absolute"
+                    top="2"
+                    left="2"
+                    fontSize="sm"
+                    color="white"
+                >
+                    {seatId}
+                </Text>
                 {isHovered ? (
                     <Text
                         color="white"
-                        fontFamily="Pacifico, cursive"
+                        fontFamily="Poppins, sans-serif"
+                        fontWeight="700"
                         opacity="0.7"
                     >
-                        Sit
+                        SIT
                     </Text>
                 ) : (
                     ''

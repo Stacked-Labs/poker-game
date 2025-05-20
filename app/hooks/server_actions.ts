@@ -291,31 +291,3 @@ export async function isTableOwner(table: string) {
         throw error;
     }
 }
-
-export async function getPendingPlayers(table: string) {
-    isBackendUrlValid();
-
-    if (!table) {
-        throw new Error('Table is not defined');
-    }
-
-    try {
-        const response = await fetch(`${backendUrl}/get-pending-players`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ table }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Error in getting pending players.');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Unable to get pending players for the table.', error);
-        throw error;
-    }
-}

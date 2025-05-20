@@ -16,8 +16,6 @@ import {
 import { IoCaretBack } from 'react-icons/io5';
 import GameSettings from './GameSettings';
 import PlayerList from './PlayerList';
-import { useEffect } from 'react';
-import usePendingPlayers from '@/app/hooks/usePendingPlayers';
 
 const SettingsModal = ({
     isOpen,
@@ -26,15 +24,6 @@ const SettingsModal = ({
     isOpen: boolean;
     onClose: () => void;
 }) => {
-    const { refreshPendingPlayers } = usePendingPlayers();
-
-    // Refresh pending players when modal is opened
-    useEffect(() => {
-        if (isOpen) {
-            refreshPendingPlayers();
-        }
-    }, [isOpen, refreshPendingPlayers]);
-
     return (
         <Modal isOpen={isOpen} onClose={onClose} size={'full'} isCentered>
             <ModalOverlay />

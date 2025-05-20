@@ -12,25 +12,20 @@ import { VStack } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
-import usePendingPlayers from '@/app/hooks/usePendingPlayers';
 
 const PlayerList = () => {
-    const { pendingPlayers, refreshPendingPlayers } = usePendingPlayers();
     const { appState } = useContext(AppContext);
+    const pendingPlayers = appState.pendingPlayers || [];
     const socket = useContext(SocketContext);
     const toast = useToastHelper();
 
     const handleAcceptPlayer = async (uuid: string) => {
         if (socket && uuid && appState.table) {
-            // Find player name from pending players list
             const player = pendingPlayers.find((p) => p.uuid === uuid);
             const playerIdentifier = player?.username || uuid.substring(0, 8);
 
-            // Send accept request to server
             acceptPlayer(socket, uuid, appState.table);
-            refreshPendingPlayers();
 
-            // Show success toast
             toast.success(
                 `Player ${playerIdentifier} accepted`,
                 'Player will now be seated at the table',
@@ -43,15 +38,11 @@ const PlayerList = () => {
 
     const handleDenyPlayer = async (uuid: string) => {
         if (socket && uuid && appState.table) {
-            // Find player name from pending players list
             const player = pendingPlayers.find((p) => p.uuid === uuid);
             const playerIdentifier = player?.username || uuid.substring(0, 8);
 
-            // Send deny request to server
             denyPlayer(socket, uuid, appState.table);
-            refreshPendingPlayers();
 
-            // Show info toast
             toast.info(
                 `Player ${playerIdentifier} request denied`,
                 'Player has been removed from the queue',
@@ -65,21 +56,18 @@ const PlayerList = () => {
     const handleKickPlayer = async (uuid: string, seatId: number) => {
         try {
             if (uuid && appState.table && socket) {
-                // Find player's display name or ID to show in toast
                 const kickedPlayer = appState.game?.players?.find(
                     (player) => player.uuid === uuid
                 );
                 const playerIdentifier =
                     kickedPlayer?.username || uuid.substring(0, 8);
 
-                // Show initial "kicking" toast
                 toast.warning(
                     `Kicking player ${playerIdentifier}...`,
                     'Please wait while we remove the player',
                     2000
                 );
 
-                // Send kick request to server
                 kickPlayer(socket, uuid, seatId, appState.table);
             } else {
                 toast.error('Unable to kick player', 'Please try again');

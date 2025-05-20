@@ -1,5 +1,5 @@
 import React, { createContext, useReducer, ReactChild, useEffect } from 'react';
-import { AppState, Message, Game, Log } from '@/app/interfaces';
+import { AppState, Message, Game, Log, PendingPlayer } from '@/app/interfaces';
 
 const initialState: AppState = {
     messages: [],
@@ -14,6 +14,7 @@ const initialState: AppState = {
     isChatOpen: false,
     isSeatRequested: false,
     isLeaveRequested: false,
+    pendingPlayers: [],
 };
 
 type ACTIONTYPE =
@@ -29,7 +30,8 @@ type ACTIONTYPE =
     | { type: 'resetUnreadCount' }
     | { type: 'setChatOpen'; payload: boolean }
     | { type: 'setIsSeatRequested'; payload: boolean }
-    | { type: 'setIsLeaveRequested'; payload: boolean };
+    | { type: 'setIsLeaveRequested'; payload: boolean }
+    | { type: 'setPendingPlayers'; payload: PendingPlayer[] };
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
@@ -42,7 +44,13 @@ function reducer(state: AppState, action: ACTIONTYPE) {
         case 'updateGame':
             return { ...state, game: action.payload };
         case 'resetGame':
-            return { ...state, clientID: null, username: null, game: null };
+            return {
+                ...state,
+                clientID: null,
+                username: null,
+                game: null,
+                pendingPlayers: [],
+            };
         case 'updatePlayerID':
             return { ...state, clientID: action.payload };
         case 'setTablename':
@@ -72,8 +80,12 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, isSeatRequested: action.payload };
         case 'setIsLeaveRequested':
             return { ...state, isLeaveRequested: action.payload };
-        default:
-            throw new Error();
+        case 'setPendingPlayers':
+            return { ...state, pendingPlayers: action.payload };
+        default: {
+            const exhaustiveCheck: never = action;
+            throw new Error(`Unhandled action type: ${exhaustiveCheck}`);
+        }
     }
 }
 

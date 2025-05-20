@@ -17,7 +17,6 @@ import SettingsModal from './Settings/SettingsModal';
 import SideBarChat from './Chat/SideBarChat';
 import StartGameButton from '../StartGameButton';
 import VolumeButton from '../VolumeButton';
-import usePendingPlayers from '@/app/hooks/usePendingPlayers';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import {
@@ -40,10 +39,10 @@ const pulseAnimation = keyframes`
 const Navbar = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { isOpen: isOpenChat, onToggle: onToggleChat } = useDisclosure();
-    const { pendingCount } = usePendingPlayers();
+    const { appState, dispatch } = useContext(AppContext);
+    const pendingCount = appState.pendingPlayers?.length || 0;
     const [animateBadge, setAnimateBadge] = useState(false);
     const [animateMsgBadge, setAnimateMsgBadge] = useState(false);
-    const { appState, dispatch } = useContext(AppContext);
     const socket = useContext(SocketContext);
     const unreadMessageCount = appState.unreadMessageCount;
     const { info } = useToastHelper();

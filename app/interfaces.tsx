@@ -24,6 +24,7 @@ export type AppState = {
     isChatOpen: boolean; // Track if chat is currently open
     isSeatRequested: boolean;
     isLeaveRequested: boolean;
+    pendingPlayers: PendingPlayer[]; // Added for storing pending players
 };
 
 export type Player = {

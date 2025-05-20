@@ -147,6 +147,25 @@ export function SocketProvider(props: SocketProviderProps) {
 
         _socket.onmessage = (e) => {
             const event = JSON.parse(e.data);
+
+            // Handle pending_players_update first as it uses event.type
+            if (event.type === 'pending_players_update') {
+                if (Array.isArray(event.payload)) {
+                    dispatch({
+                        type: 'setPendingPlayers',
+                        payload: event.payload,
+                    });
+                } else {
+                    console.error(
+                        'pending_players_update payload is not an array:',
+                        event.payload
+                    );
+                    // Optionally dispatch with empty array or handle error
+                    dispatch({ type: 'setPendingPlayers', payload: [] });
+                }
+                return; // Message handled
+            }
+
             switch (event.action) {
                 case 'new-message': {
                     const newMessage: Message = {

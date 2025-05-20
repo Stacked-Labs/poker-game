@@ -62,7 +62,6 @@ Custom hooks for reusable logic:
 - `server_actions.ts`: Server-side actions for game functionality
 - `useAudio.ts`: Audio playback hook
 - `useIsTableOwner.ts`: Check if user owns current table
-- `usePendingPlayers.tsx`: Manage pending player requests
 - `useToastHelper.ts`: Toast notification helper
 
 #### `/app/utils` - Utility Functions

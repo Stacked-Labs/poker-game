@@ -6,6 +6,59 @@ import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { sendMessage } from '@/app/hooks/server_actions';
 import { IoClose } from 'react-icons/io5';
 
+function hexToRgb(hex: string): [number, number, number] {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+        hex = hex
+            .split('')
+            .map((c) => c + c)
+            .join('');
+    }
+    const num = parseInt(hex, 16);
+    return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+}
+
+function colorDistance(
+    rgb1: [number, number, number],
+    rgb2: [number, number, number]
+): number {
+    return Math.sqrt(
+        Math.pow(rgb1[0] - rgb2[0], 2) +
+            Math.pow(rgb1[1] - rgb2[1], 2) +
+            Math.pow(rgb1[2] - rgb2[2], 2)
+    );
+}
+
+function getRandomHexColor(): string {
+    const forbiddenColors = ['#121212', '#ffffff']; // background
+    const forbiddenRGBs = forbiddenColors.map(hexToRgb);
+    const minDistance = 80; // tweak as needed for contrast
+    let color = '';
+    let attempts = 0;
+    do {
+        const hex = Math.floor(Math.random() * 0xffffff).toString(16);
+        color = `#${hex.padStart(6, '0')}`;
+        const rgb = hexToRgb(color);
+        attempts++;
+        // forbidden colors and those too close to each other
+    } while (
+        forbiddenRGBs.some(
+            (forbidden) =>
+                colorDistance(hexToRgb(color), forbidden) < minDistance
+        ) &&
+        attempts < 20
+    );
+    return color;
+}
+
+const usernameColorMap: Record<string, string> = {};
+function getColorForUsername(username: string): string {
+    if (!usernameColorMap[username]) {
+        usernameColorMap[username] = getRandomHexColor();
+    }
+    return usernameColorMap[username];
+}
+
 const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
     const socket = useContext(SocketContext);
     const [message, setMessage] = useState('');
@@ -55,7 +108,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                     >
                         <Text
                             as={'span'}
-                            color={'themeColor'}
+                            color={getColorForUsername(msg.name)}
                             fontWeight={'bold'}
                             fontSize={'lg'}
                         >

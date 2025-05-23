@@ -40,7 +40,7 @@ const motionStyle: MotionStyle = {
 };
 
 const variants = {
-    hover: { scale: 1.5, transition: { duration: 0.3 } },
+    hover: { scale: 1.1, transition: { duration: 0.3 } },
     initial: { scale: 1 },
 };
 
@@ -56,10 +56,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             : null
     );
     const { error } = useToastHelper();
-
-    const connectDiscord = () => {
-        // Implement Discord connection logic
-    };
 
     const handleJoin = () => {
         /* REMOVED Wallet Check
@@ -103,7 +99,12 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
             <ModalOverlay />
-            <ModalContent bgColor="gray.100" zIndex={'base'}>
+            <ModalContent
+                bgColor="gray.100"
+                zIndex={'base'}
+                borderRadius="3xl"
+                maxWidth="350px"
+            >
                 <ModalHeader color="#f2f2f2" textAlign="center" p={0}>
                     <Tooltip
                         label="All you need is a chip and a chair - Jack  Straus"
@@ -156,22 +157,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                 </ModalBody>
                 <ModalFooter>
                     <VStack w={'100%'}>
-                        <Button
-                            size="lg"
-                            mb={4}
-                            w={'80%'}
-                            h={12}
-                            leftIcon={<FaDiscord />}
-                            bg="#7289DA"
-                            color="white"
-                            _hover={{
-                                borderColor: 'white',
-                                borderWidth: '2px',
-                            }}
-                            type="submit"
-                        >
-                            Discord
-                        </Button>
                         <Web3Button w={'80%'} />
                         <HStack width="80%" justifyContent={'flex-end'} mt={4}>
                             <Button

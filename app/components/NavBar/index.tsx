@@ -115,7 +115,7 @@ const Navbar = () => {
                 color="white"
                 zIndex={10}
             >
-                <HStack>
+                <HStack spacing={{ base: 2, md: 4 }} alignItems="stretch">
                     <Box position="relative">
                         <IconButton
                             icon={
@@ -197,8 +197,7 @@ const Navbar = () => {
                         </Tooltip>
                     )}
                 </HStack>
-                <HStack>
-                    <Web3Button />
+                <HStack spacing={{ base: 2, md: 4 }} alignItems="center">
                     <VolumeButton />
                     {isUserSeated && (
                         <Tooltip
@@ -265,6 +264,7 @@ const Navbar = () => {
                             </Flex>
                         )}
                     </Box>
+                    <Web3Button size="lg" paddingX={{ base: 8, md: 12 }} />
                 </HStack>
 
                 <SettingsModal isOpen={isOpen} onClose={onClose} />

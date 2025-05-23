@@ -46,7 +46,7 @@ const HomeSection = () => {
                 position="relative"
                 width="100%"
                 flexWrap={{ base: 'wrap', lg: 'nowrap' }}
-                gap={{ base: 2, md: 4, lg: 6 }}
+                gap={0}
             >
                 <Box width={{ base: '100%', lg: '40%' }}>
                     <HomeCard />

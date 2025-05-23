@@ -43,7 +43,7 @@ const HomeCard = () => {
             <Flex
                 borderRadius={['40px']}
                 width={['100%', '90%', '80%', '70%']}
-                maxWidth="600px"
+                maxWidth="400px"
                 minWidth="250px"
                 minHeight="300px"
                 height="fit-content"

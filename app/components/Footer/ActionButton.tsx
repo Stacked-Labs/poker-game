@@ -31,7 +31,18 @@ const ActionButton = ({
                 '2xl': 'large',
             }}
             flex={1}
+            position={'relative'}
         >
+            <Box
+                position={'absolute'}
+                top={1}
+                left={1}
+                fontSize={'small'}
+                opacity={'60%'}
+                textTransform={'uppercase'}
+            >
+                {hotkey}
+            </Box>
             {text}
         </Button>
     );

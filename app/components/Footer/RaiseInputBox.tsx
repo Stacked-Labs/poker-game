@@ -17,13 +17,14 @@ import ActionButton from './ActionButton';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { sendLog, playerRaise } from '@/app/hooks/server_actions';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { HOTKEY_BACK, HOTKEY_RAISE } from './constants';
 
 const RaiseInputBox = ({
-    action,
+    isCurrentTurn,
     showRaise,
     setShowRaise,
 }: {
-    action: boolean;
+    isCurrentTurn: boolean | null;
     showRaise: boolean;
     setShowRaise: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
@@ -35,6 +36,45 @@ const RaiseInputBox = ({
 
     const [inputValue, setInputValue] = useState<number>(0);
     const [sliderValue, setSliderValue] = useState<number>(0);
+
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            const active = document.activeElement;
+            if (
+                (active &&
+                    (active.tagName === 'INPUT' ||
+                        active.tagName === 'TEXTAREA' ||
+                        (active as HTMLElement).isContentEditable)) ||
+                gameIsPaused ||
+                !isCurrentTurn
+            ) {
+                return;
+            }
+            const key = e.key.toLowerCase();
+            console.log('index.tsx: ' + key);
+
+            if (key === HOTKEY_BACK) {
+                setShowRaise(false);
+                e.preventDefault();
+            }
+            if (key === HOTKEY_RAISE) {
+                if (
+                    !gameIsPaused &&
+                    isCurrentTurn &&
+                    inputValue >= minRaise &&
+                    inputValue <= currentStack + currentBet
+                ) {
+                    handleSubmitRaise(
+                        appState.username,
+                        inputValue - currentBet
+                    );
+                    e.preventDefault();
+                }
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [gameIsPaused, appState.clientID, appState.game?.action]);
 
     if (!appState.game) {
         return null;
@@ -115,7 +155,8 @@ const RaiseInputBox = ({
                     text={'Back'}
                     color="white"
                     clickHandler={() => setShowRaise(false)}
-                    isDisabled={!action || gameIsPaused}
+                    isDisabled={!isCurrentTurn || gameIsPaused}
+                    hotkey={HOTKEY_BACK.slice(0, 3)}
                 />
                 <ActionButton
                     text={'Raise'}
@@ -128,10 +169,11 @@ const RaiseInputBox = ({
                     }
                     isDisabled={
                         gameIsPaused ||
-                        !action ||
+                        !isCurrentTurn ||
                         inputValue < minRaise ||
                         inputValue > currentStack + currentBet
                     }
+                    hotkey={HOTKEY_RAISE}
                 />
             </Flex>
         );
@@ -196,7 +238,7 @@ const RaiseInputBox = ({
                     <Flex flex={1} gap={2} p={2}>
                         <Button
                             variant={'raiseActionButton'}
-                            isDisabled={gameIsPaused || !action}
+                            isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -211,7 +253,7 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
-                            isDisabled={gameIsPaused || !action}
+                            isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -226,7 +268,7 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
-                            isDisabled={gameIsPaused || !action}
+                            isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -241,7 +283,7 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
-                            isDisabled={gameIsPaused || !action}
+                            isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -256,7 +298,7 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
-                            isDisabled={gameIsPaused || !action}
+                            isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setInputValue(
                                     betValidator(
@@ -295,7 +337,7 @@ const RaiseInputBox = ({
                             onChange={(value: number) =>
                                 handleSliderChange(value)
                             }
-                            isDisabled={!action || gameIsPaused}
+                            isDisabled={!isCurrentTurn || gameIsPaused}
                         >
                             <SliderTrack>
                                 <SliderFilledTrack />

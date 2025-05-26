@@ -28,16 +28,16 @@ const initialPlayers: (Player | null)[] = [
 ];
 
 const seatIndices = [
-    { id: 'one', value: 1 },
-    { id: 'two', value: 2 },
-    { id: 'three', value: 3 },
-    { id: 'four', value: 4 },
-    { id: 'five', value: 5 },
-    { id: 'six', value: 6 },
-    { id: 'seven', value: 7 },
-    { id: 'eight', value: 8 },
-    { id: 'nine', value: 9 },
-    { id: 'ten', value: 10 },
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
 ];
 
 const templateGridLarge = `"a five six seven b"
@@ -49,32 +49,9 @@ const templateGridSmall = `"a six b"
                         "five c seven"
                         "four d eight"
                         "felt felt felt"
-                        "three e nine"
-                        "two f ten"
-                        "g one h"`;
-
-function getWinners(game: GameType): Player[] {
-    const winners: Player[] = [];
-
-    // Get all winners from all pots
-    game.pots.forEach((pot) => {
-        if (pot.winningPlayerNums.length > 0) {
-            pot.winningPlayerNums.forEach((winnerNum) => {
-                const winningPlayer = game.players.find(
-                    (player) => player.position === winnerNum
-                );
-                if (
-                    winningPlayer &&
-                    !winners.some((w) => w.uuid === winningPlayer.uuid)
-                ) {
-                    winners.push(winningPlayer);
-                }
-            });
-        }
-    });
-
-    return winners;
-}
+                        "six e seven"
+                        "eight f nine"
+                        "g ten h"`;
 
 function getWinner(game: GameType) {
     // For backward compatibility, return the first winner

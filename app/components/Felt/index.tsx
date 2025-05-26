@@ -18,6 +18,7 @@ const Felt = () => {
                 justifyContent={'center'}
                 alignItems={'center'}
                 mb={'2.4vh'}
+                
             >
                 <Pot />
             </Flex>

@@ -37,13 +37,13 @@ const seatIndices = [
     'seven',
     'eight',
     'nine',
-    'current',
+    'ten',
 ];
 
-const templateGridLarge = `"a one two three b"
-                        "four felt felt felt five"
-                        "six felt felt felt seven"
-                        "c eight current nine d"`;
+const templateGridLarge = `"a five six seven b"
+                        "four felt felt felt eight"
+                        "three felt felt felt nine"
+                        "c two one ten d"`;
 
 const templateGridSmall = `"a one b"
                         "two c three"
@@ -51,7 +51,7 @@ const templateGridSmall = `"a one b"
                         "felt felt felt"
                         "six e seven"
                         "eight f nine"
-                        "g current h"`;
+                        "g ten h"`;
 
 function getWinner(game: GameType) {
     const winnerNum = game.pots[game.pots.length - 1].winningPlayerNums[0];

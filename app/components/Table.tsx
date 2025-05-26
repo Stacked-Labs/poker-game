@@ -46,12 +46,10 @@ const templateGridLarge = `"a one two three b"
                         "c eight current nine d"`;
 
 const templateGridSmall = `"a one b"
-                        "two c three"
-                        "four d five"
-                        "felt felt felt"
-                        "six e seven"
-                        "eight f nine"
-                        "g current h"`;
+                        "two felt three"
+                        "four felt five"
+                        "six felt seven"
+                        "eight current nine"`;
 
 function getWinner(game: GameType) {
     const winnerNum = game.pots[game.pots.length - 1].winningPlayerNums[0];
@@ -173,38 +171,51 @@ const Table = () => {
             justify={'center'}
             width={{
                 base: '100vw',
+                sm: '95vw',
+                md: '90vw',
                 lg: '80vw',
                 xl: '70vw',
                 '2xl': '70vw',
             }}
+            height={{
+                base: '100vh',
+                md: '90vh',
+                lg: '85vh',
+                xl: '80vh',
+            }}
+            overflow="hidden"
         >
             <Image
-                src={
-                    !shouldRotate
-                        ? '/table-horizontal.webp'
-                        : '/table-vertical.webp'
-                }
+                src={!shouldRotate ? '/table-horizontal.webp' : '/table-vertical.webp'}
                 objectFit={'contain'}
-                width={'80%'}
+                width={{
+                    base: '95%',
+                    sm: '90%',
+                    md: '85%',
+                    lg: '80%',
+                }}
+                height="100%"
             />
             <Grid
-                px={4}
-                py={4}
+                px={{ base: 2, sm: 3, md: 4 }}
+                py={{ base: 2, sm: 3, md: 4 }}
                 position={'absolute'}
                 width={'100%'}
                 height={'100%'}
                 top={0}
                 left={0}
-                templateAreas={
-                    !shouldRotate ? templateGridLarge : templateGridSmall
-                }
+                templateAreas={!shouldRotate ? templateGridLarge : templateGridSmall}
                 gridTemplateRows={
-                    !shouldRotate ? 'repeat(4, 1fr)' : 'repeat(7, 1fr)'
+                    !shouldRotate 
+                        ? 'repeat(4, 1fr)' 
+                        : 'repeat(5, 1fr)'
                 }
                 gridTemplateColumns={
-                    !shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'
+                    !shouldRotate 
+                        ? 'repeat(5, 1fr)' 
+                        : 'repeat(3, 1fr)'
                 }
-                gap={4}
+                gap={{ base: 2, sm: 3, md: 4 }}
                 placeItems="center"
                 justifyContent={'center'}
             >
@@ -220,15 +231,21 @@ const Table = () => {
                                 justifyContent={'center'}
                                 alignItems={
                                     shouldRotate
-                                        ? seatId == 1
+                                        ? seatId === 1
                                             ? 'end'
-                                            : seatId == 10
-                                              ? 'top'
-                                              : 'center'
+                                            : seatId === 10
+                                                ? 'start'
+                                                : 'center'
                                         : 'center'
                                 }
                                 width={'100%'}
                                 height={'100%'}
+                                transform={{
+                                    base: shouldRotate && (seatId === 1 || seatId === 10) 
+                                        ? 'scale(0.8)' 
+                                        : 'none',
+                                    md: 'none'
+                                }}
                             >
                                 {player && player !== null ? (
                                     <TakenSeatButton
@@ -242,8 +259,7 @@ const Table = () => {
                                         disabled={
                                             appState.game?.players?.some(
                                                 (player) =>
-                                                    player.uuid ===
-                                                    appState.clientID
+                                                    player.uuid === appState.clientID
                                             ) || appState.isSeatRequested
                                         }
                                     />
@@ -252,8 +268,8 @@ const Table = () => {
                         );
                     })}
                 <GridItem
-                    height={'50%'}
-                    width={'70%'}
+                    height={{ base: '60%', md: '50%' }}
+                    width={{ base: '80%', md: '70%' }}
                     area={'felt'}
                     justifyContent={'center'}
                 >

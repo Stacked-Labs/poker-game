@@ -17,18 +17,45 @@ const CommunityCards = () => {
     if (communityCards && isGameRunning) {
         return (
             <Flex
-                width={{ base: '100%', md: '85%' }}
-                height={'80%'}
-                gap={'8%'}
+                width={{ 
+                    base: '100%', 
+                    sm: '95%', 
+                    md: '90%', 
+                    lg: '85%' 
+                }}
+                height={{
+                    base: '70%',
+                    sm: '75%',
+                    md: '80%',
+                    lg: '85%'
+                }}
+                gap={{
+                    base: '4%',
+                    sm: '5%',
+                    md: '6%',
+                    lg: '8%'
+                }}
                 justifyContent={'center'}
+                alignItems="center"
             >
                 {cards.map((num, i) => (
                     <Box
                         key={i}
                         flex={1}
-                        height={{ base: 50, md: 'auto' }}
+                        height={{
+                            base: '40px',
+                            sm: '45px',
+                            md: '50px',
+                            lg: 'auto'
+                        }}
                         justifyContent={'center'}
-                        transform="scale(1.5)"
+                        transform={{
+                            base: 'scale(1.2)',
+                            sm: 'scale(1.3)',
+                            md: 'scale(1.4)',
+                            lg: 'scale(1.5)'
+                        }}
+                        transition="transform 0.2s ease-in-out"
                     >
                         {appState.game?.communityCards[num] ? (
                             <CardComponent

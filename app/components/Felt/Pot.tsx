@@ -39,89 +39,97 @@ const Pot = () => {
 
     if (isGameRunning) {
         return (
-            <Flex justifyContent={'flex'} textAlign={'justify'}>
+            <Flex 
+                justifyContent={'flex'} 
+                textAlign={'justify'}
+                gap={{ base: 1, sm: 2, md: 3 }}
+            >
                 {pots.map((pot, index) => {
                     if (pot.amount !== 0) {
                         return (
                             <Flex
                                 bg={'green.600'}
-                                padding={2}
+                                padding={{
+                                    base: 1,
+                                    sm: 1.5,
+                                    md: 2
+                                }}
                                 width={{
-                                    xl: '140px',
-                                    lg: '115px',
+                                    base: '54px',
+                                    sm: '64px',
                                     md: '90px',
-                                    base: '64px',
+                                    lg: '115px',
+                                    xl: '140px'
                                 }}
                                 height={{
-                                    xl: '36px',
-                                    lg: '32px',
+                                    base: '20px',
+                                    sm: '24px',
                                     md: '28px',
-                                    base: '24px',
+                                    lg: '32px',
+                                    xl: '36px'
                                 }}
                                 borderRadius={999}
                                 key={index}
                                 justifyContent={'center'}
+                                alignItems="center"
+                                position="relative"
                             >
                                 <Flex position={'relative'} gap={1}>
                                     <Flex
                                         position={'absolute'}
-                                        top={{ base: -3, lg: -4, '2xl': -6 }}
+                                        top={{
+                                            base: -2,
+                                            sm: -2.5,
+                                            md: -3,
+                                            lg: -4,
+                                            xl: -6
+                                        }}
                                         right={-2}
                                     >
                                         {game.pots[index] &&
-                                        game.pots[index].amount !=
-                                            pot.amount ? (
+                                        game.pots[index].amount != pot.amount ? (
                                             <Box
                                                 bg={'green.700'}
-                                                paddingX={'2'}
+                                                paddingX={{
+                                                    base: 1,
+                                                    sm: 1.5,
+                                                    md: 2
+                                                }}
                                                 borderRadius={999}
+                                                fontSize={{
+                                                    base: '8px',
+                                                    sm: '9px',
+                                                    md: '10px',
+                                                    lg: '11px',
+                                                    xl: '12px'
+                                                }}
                                             >
-                                                <Text
-                                                    fontSize={{
-                                                        xl: '14px',
-                                                        lg: '13px',
-                                                        md: '12px',
-                                                        base: '10px',
-                                                    }}
-                                                    color={'white'}
-                                                >
-                                                    total{' '}
-                                                    <Text
-                                                        as={'span'}
-                                                        color={'blue'}
-                                                        fontWeight={'medium'}
-                                                        fontSize={{
-                                                            xl: '17px',
-                                                            lg: '16px',
-                                                            md: '14px',
-                                                            base: '13px',
-                                                        }}
-                                                    >
-                                                        {
-                                                            game.pots[index]
-                                                                .amount
-                                                        }
-                                                    </Text>
-                                                </Text>
+                                                {game.pots[index].amount - pot.amount}
                                             </Box>
-                                        ) : (
-                                            <Text>&nbsp;</Text>
-                                        )}
+                                        ) : null}
                                     </Flex>
                                     <Flex
-                                        paddingX={'14'}
+                                        paddingX={{
+                                            base: '8',
+                                            sm: '10',
+                                            md: '12',
+                                            lg: '14'
+                                        }}
                                         justifyContent={'center'}
-                                        mb={'10%'}
+                                        alignItems="center"
+                                        width="100%"
                                     >
                                         <Text
                                             fontSize={{
-                                                xl: '17px',
-                                                lg: '16px',
+                                                base: '8px',
+                                                sm: '9px',
                                                 md: '12px',
-                                                base: '9px',
+                                                lg: '16px',
+                                                xl: '17px'
                                             }}
                                             color={'white'}
                                             fontWeight={'bold'}
+                                            lineHeight="1"
                                         >
                                             {pot.amount}
                                         </Text>

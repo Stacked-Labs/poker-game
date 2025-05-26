@@ -8,7 +8,7 @@
         "start": "next start",
         "lint": "next lint --fix",
         "test": "",
-        "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
+        "prepare": "node -e \"if (process.env.NODE_ENV !== 'production') require('husky').install()\"",
         "format": "prettier --write '*/**/*.{js,jsx,ts,tsx,json,css,scss,md}'"
     },
     "dependencies": {

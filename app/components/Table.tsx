@@ -28,16 +28,16 @@ const initialPlayers: (Player | null)[] = [
 ];
 
 const seatIndices = [
-    'one',
-    'two',
-    'three',
-    'four',
-    'five',
-    'six',
-    'seven',
-    'eight',
-    'nine',
-    'ten',
+    { id: 'one', value: 1 },
+    { id: 'two', value: 2 },
+    { id: 'three', value: 3 },
+    { id: 'four', value: 4 },
+    { id: 'five', value: 5 },
+    { id: 'six', value: 6 },
+    { id: 'seven', value: 7 },
+    { id: 'eight', value: 8 },
+    { id: 'nine', value: 9 },
+    { id: 'ten', value: 10 },
 ];
 
 const templateGridLarge = `"a five six seven b"
@@ -209,20 +209,19 @@ const Table = () => {
                 justifyContent={'center'}
             >
                 {players &&
-                    seatIndices.map((gridIndex: string, index: number) => {
-                        const player: Player | null = players[index];
-                        const seatId = index + 1;
+                    seatIndices.map(({ id, value }) => {
+                        const player: Player | null = players[value - 1];
                         return (
                             <GridItem
-                                key={index}
-                                area={gridIndex}
+                                key={value}
+                                area={id}
                                 display={'flex'}
                                 justifyContent={'center'}
                                 alignItems={
                                     shouldRotate
-                                        ? seatId == 1
+                                        ? value === 1
                                             ? 'end'
-                                            : seatId == 10
+                                            : value === 10
                                               ? 'top'
                                               : 'center'
                                         : 'center'
@@ -238,7 +237,7 @@ const Table = () => {
                                     />
                                 ) : (
                                     <EmptySeatButton
-                                        seatId={seatId}
+                                        seatId={value}
                                         disabled={
                                             appState.game?.players?.some(
                                                 (player) =>

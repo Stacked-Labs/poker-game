@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@chakra-ui/react';
+import { Box, Button } from '@chakra-ui/react';
 import React from 'react';
 
 const ActionButton = ({
@@ -8,11 +8,13 @@ const ActionButton = ({
     color,
     clickHandler,
     isDisabled,
+    hotkey,
 }: {
     text: string;
     color: string;
     clickHandler: () => void;
     isDisabled: boolean;
+    hotkey: String;
 }) => {
     return (
         <Button
@@ -31,7 +33,18 @@ const ActionButton = ({
                 '2xl': 'large',
             }}
             flex={1}
+            position={'relative'}
         >
+            <Box
+                position={'absolute'}
+                top={1}
+                left={1}
+                fontSize={'small'}
+                opacity={'60%'}
+                textTransform={'uppercase'}
+            >
+                {hotkey}
+            </Box>
             {text}
         </Button>
     );

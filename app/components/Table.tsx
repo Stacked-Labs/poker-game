@@ -13,7 +13,6 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
-import LobbyBanner from './LobbyBanner';
 
 const initialPlayers: (Player | null)[] = [
     null,
@@ -280,12 +279,12 @@ const Table = () => {
                         );
                     })}
                 <GridItem
-                    height={appState.game?.running ? '50%' : '100%'}
-                    width={appState.game?.running ? '70%' : '80%'}
+                    height={'50%'}
+                    width={'70%'}
                     area={'felt'}
                     justifyContent={'center'}
                 >
-                    {appState.game?.running ? <Felt /> : <LobbyBanner />}
+                    <Felt />
                 </GridItem>
             </Grid>
         </Flex>

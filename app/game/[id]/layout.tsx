@@ -2,24 +2,40 @@
 
 import React, { useContext, useEffect, useState } from 'react';
 import Navbar from '@/app/components/NavBar';
-import { Flex, Spinner, Text, VStack } from '@chakra-ui/react';
+import {
+    Flex,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalHeader,
+    ModalOverlay,
+    Spinner,
+    Text,
+    useDisclosure,
+    VStack,
+} from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import LobbyBanner from '@/app/components/LobbyBanner';
 
 const GameLayout: React.FC = ({
     children,
 }: React.PropsWithChildren<object>) => {
     useContext(AppContext);
     const [loading, setLoading] = useState(true);
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
     useEffect(() => {
         // Simplified loading logic - just a short delay for better UX
+        onOpen();
+
         const timer = setTimeout(() => {
             setLoading(false);
         }, 1000);
 
         return () => clearTimeout(timer);
-    }, []);
+    }, [onOpen]);
 
     if (loading) {
         return (
@@ -59,6 +75,10 @@ const GameLayout: React.FC = ({
             <Navbar />
             {children}
             <Footer />
+
+            <Modal isOpen={isOpen} onClose={() => {}} isCentered size={'sm'}>
+                <LobbyBanner />
+            </Modal>
         </Flex>
     );
 };

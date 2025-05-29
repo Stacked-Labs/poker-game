@@ -5,6 +5,7 @@ import {
     Flex,
     IconButton,
     Link,
+    ModalContent,
     Stack,
     Text,
     Tooltip,
@@ -22,17 +23,6 @@ const pulse = keyframes`
   50% { transform: scale(1.2); opacity: 0.3; }
   100% { transform: scale(1); opacity: 0.8; }
 `;
-
-const BannerDivider = () => {
-    return (
-        <Box position="relative" px="10" py={3}>
-            <Divider color={'whitesmoke'} />
-            <AbsoluteCenter bg={'white'} color={'green.500'} px="4">
-                OR
-            </AbsoluteCenter>
-        </Box>
-    );
-};
 
 const CopyLinkButton = ({ link }: { link: string | null }) => {
     if (!link) {
@@ -101,50 +91,47 @@ const LobbyBanner = () => {
     const { appState } = useContext(AppContext);
 
     return (
-        <Box
-            flex={1}
-            height="100%"
-            bg="white"
-            borderRadius="lg"
-            overflow="hidden"
-            boxShadow="xl"
-            display="flex"
-            flexDirection="column"
-        >
-            <Flex
-                justifyContent="space-between"
-                alignItems="center"
-                p={3}
-                color="white"
-                bg="green.500"
+        <ModalContent>
+            <Box
+                bg="white"
+                borderRadius="lg"
+                overflow="hidden"
+                boxShadow="xl"
+                display="flex"
+                flexDirection="column"
             >
-                <Text fontWeight={'extrabold'}>Game Lobby</Text>
-                <Flex gap={2} alignItems={'center'}>
-                    <Box
-                        height={1.5}
-                        width={1.5}
-                        bg={'white'}
-                        borderRadius={'full'}
-                        animation={`${pulse} 2s ease-in-out infinite`}
-                    />
-                    <Text fontSize={'sm'} color={'whiteAlpha.700'}>
-                        Waiting for players
-                    </Text>
+                <Flex
+                    justifyContent="space-between"
+                    alignItems="center"
+                    p={3}
+                    color="white"
+                    bg="green.500"
+                >
+                    <Text fontWeight={'extrabold'}>Game Lobby</Text>
+                    <Flex gap={2} alignItems={'center'}>
+                        <Box
+                            height={1.5}
+                            width={1.5}
+                            bg={'white'}
+                            borderRadius={'full'}
+                            animation={`${pulse} 2s ease-in-out infinite`}
+                        />
+                        <Text fontSize={'sm'} color={'whiteAlpha.700'}>
+                            Waiting for players
+                        </Text>
+                    </Flex>
                 </Flex>
-            </Flex>
-            <Stack py={4} gap={5} overflow="auto" flex={1} minHeight={0}>
-                <Stack justifyContent={'center'} alignItems={'center'} gap={5}>
-                    <Text fontWeight={'medium'}>
-                        Share this link with friends!
-                    </Text>
+                <Stack
+                    py={4}
+                    gap={5}
+                    overflow="auto"
+                    flex={1}
+                    minHeight={0}
+                    alignItems={'center'}
+                    bg={'white'}
+                >
                     <LinkBox link={appState.table} />
-                </Stack>
-                <BannerDivider />
-                <Stack justifyContent={'center'} alignItems={'center'} gap={5}>
-                    <Text fontWeight={'medium'}>
-                        Play with Stacked community
-                    </Text>
-                    <Flex gap={5} alignItems="center" justifyContent={'center'}>
+                    <Flex gap={5} alignItems="center">
                         <Link href="https://x.com/stacked_poker" isExternal>
                             <SocialButton icon={<RiTwitterXLine />} />
                         </Link>
@@ -159,8 +146,8 @@ const LobbyBanner = () => {
                         </Link>
                     </Flex>
                 </Stack>
-            </Stack>
-        </Box>
+            </Box>
+        </ModalContent>
     );
 };
 

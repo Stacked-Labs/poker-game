@@ -45,13 +45,13 @@ const templateGridLarge = `"a five six seven b"
                         "three felt felt felt nine"
                         "c two one ten d"`;
 
-const templateGridSmall = `"a one b"
-                        "two c three"
-                        "four d five"
+const templateGridSmall = `"a six b"
+                        "five c seven"
+                        "four d eight"
                         "felt felt felt"
-                        "six e seven"
-                        "eight f nine"
-                        "g ten h"`;
+                        "three e nine"
+                        "two f ten"
+                        "g one h"`;
 
 function getWinner(game: GameType) {
     const winnerNum = game.pots[game.pots.length - 1].winningPlayerNums[0];

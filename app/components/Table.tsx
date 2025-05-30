@@ -49,9 +49,9 @@ const templateGridSmall = `"a six b"
                         "five c seven"
                         "four d eight"
                         "felt felt felt"
-                        "six e seven"
-                        "eight f nine"
-                        "g ten h"`;
+                        "three e nine"
+                        "two f ten"
+                        "g one h"`;
 
 function getWinner(game: GameType) {
     // For backward compatibility, return the first winner

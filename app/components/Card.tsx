@@ -14,6 +14,12 @@ const cardToString = (card: string) => {
     }
 
     const c = parseInt(card);
+
+    // Return early if parsing fails
+    if (isNaN(c)) {
+        return '?';
+    }
+
     const rank = (c >> 8) & 0x0f;
     const suit = c & 0xf000;
 
@@ -38,10 +44,23 @@ const cardToString = (card: string) => {
     numToCharSuits.set(0x2000, 'H');
     numToCharSuits.set(0x1000, 'S');
 
-    return numToCharRanks[rank] + numToCharSuits.get(suit);
+    const rankChar = numToCharRanks[rank];
+    const suitChar = numToCharSuits.get(suit);
+
+    // Return '?' if either rank or suit is invalid
+    if (!rankChar || !suitChar) {
+        return '?';
+    }
+
+    return rankChar + suitChar;
 };
 
-const getCardPhoto = (card: string) => {
+const getCardPhoto = (card: string): string | null => {
+    // Return null for placeholder or invalid cards
+    if (card === '?' || card.length < 2) {
+        return null;
+    }
+
     const rankMap: { [key: string]: string } = {
         '2': '2',
         '3': '3',
@@ -70,6 +89,11 @@ const getCardPhoto = (card: string) => {
 
     const rankStr = rankMap[rank];
     const suitStr = suitMap[suit];
+
+    // Return null if either rank or suit is undefined/invalid
+    if (!rankStr || !suitStr) {
+        return null;
+    }
 
     return `/cards/png/${rankStr}_of_${suitStr}.png`;
 };

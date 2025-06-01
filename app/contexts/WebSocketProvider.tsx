@@ -146,6 +146,14 @@ export function SocketProvider(props: SocketProviderProps) {
                         action: 'join-game',
                         gameID: appStateRef.current.table,
                     };
+
+                    // Log outgoing WebSocket message for debugging
+                    console.log('🔼 WebSocket Message Sent:', {
+                        timestamp: new Date().toISOString(),
+                        message: joinMessage,
+                        stringified: JSON.stringify(joinMessage),
+                    });
+
                     _socket.send(JSON.stringify(joinMessage));
                     console.log('Sent join-game message after connection.');
                 }
@@ -177,6 +185,22 @@ export function SocketProvider(props: SocketProviderProps) {
             };
 
             _socket.onmessage = (e) => {
+                // Log all incoming WebSocket messages for debugging
+                console.log('🔽 WebSocket Message Received:', {
+                    timestamp: new Date().toISOString(),
+                    rawData: e.data,
+                    parsedData: (() => {
+                        try {
+                            return JSON.parse(e.data);
+                        } catch (error) {
+                            return {
+                                error: 'Failed to parse JSON',
+                                data: e.data,
+                            };
+                        }
+                    })(),
+                });
+
                 const eventData = JSON.parse(e.data);
                 // Handle pending_players_update first as it uses event.type
                 if (eventData.type === 'pending_players_update') {

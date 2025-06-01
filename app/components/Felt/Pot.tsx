@@ -88,7 +88,7 @@ const Pot = () => {
                                                     total{' '}
                                                     <Text
                                                         as={'span'}
-                                                        color={'blue'}
+                                                        color={'white'}
                                                         fontWeight={'medium'}
                                                         fontSize={{
                                                             xl: '17px',

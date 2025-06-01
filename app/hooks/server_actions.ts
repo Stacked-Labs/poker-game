@@ -6,13 +6,25 @@ function isBackendUrlValid() {
     }
 }
 
+// Helper function to log and send WebSocket messages
+function sendWebSocketMessage(socket: WebSocket, message: object) {
+    const stringifiedMessage = JSON.stringify(message);
+
+    // Log outgoing WebSocket message for debugging
+    console.log('🔼 WebSocket Message Sent:', {
+        timestamp: new Date().toISOString(),
+        message: message,
+        stringified: stringifiedMessage,
+    });
+
+    socket.send(stringifiedMessage);
+}
+
 export function joinTable(socket: WebSocket, tablename: string) {
-    socket.send(
-        JSON.stringify({
-            action: 'join-table',
-            tablename: tablename,
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'join-table',
+        tablename: tablename,
+    });
 }
 
 export function sendMessage(
@@ -20,22 +32,18 @@ export function sendMessage(
     username: string,
     message: string
 ) {
-    socket.send(
-        JSON.stringify({
-            action: 'send-message',
-            username: username,
-            message: message,
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'send-message',
+        username: username,
+        message: message,
+    });
 }
 
 export function sendLog(socket: WebSocket, message: string) {
-    socket.send(
-        JSON.stringify({
-            action: 'send-log',
-            message: message,
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'send-log',
+        message: message,
+    });
 }
 
 export function takeSeat(
@@ -44,14 +52,12 @@ export function takeSeat(
     seatID: number,
     buyIn: number
 ) {
-    socket.send(
-        JSON.stringify({
-            action: 'take-seat',
-            username: username,
-            seatID: seatID,
-            buyIn: buyIn,
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'take-seat',
+        username: username,
+        seatID: seatID,
+        buyIn: buyIn,
+    });
 }
 
 export function acceptPlayer(
@@ -59,23 +65,19 @@ export function acceptPlayer(
     uuid: string,
     tableName: string
 ) {
-    socket.send(
-        JSON.stringify({
-            action: 'accept-player',
-            uuid: uuid,
-            tableName: tableName,
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'accept-player',
+        uuid: uuid,
+        tableName: tableName,
+    });
 }
 
 export function denyPlayer(socket: WebSocket, uuid: string, tableName: string) {
-    socket.send(
-        JSON.stringify({
-            action: 'deny-player',
-            uuid: uuid,
-            tableName: tableName,
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'deny-player',
+        uuid: uuid,
+        tableName: tableName,
+    });
 }
 
 export function kickPlayer(
@@ -84,30 +86,24 @@ export function kickPlayer(
     seatId: number,
     tableName: string
 ) {
-    socket.send(
-        JSON.stringify({
-            action: 'kick-player',
-            uuid: uuid,
-            seatId: seatId,
-            tableName: tableName,
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'kick-player',
+        uuid: uuid,
+        seatId: seatId,
+        tableName: tableName,
+    });
 }
 
 export function startGame(socket: WebSocket) {
-    socket.send(
-        JSON.stringify({
-            action: 'start-game',
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'start-game',
+    });
 }
 
 export function resetGame(socket: WebSocket) {
-    socket.send(
-        JSON.stringify({
-            action: 'reset-game',
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'reset-game',
+    });
 }
 
 // export function dealGame(socket: WebSocket) {
@@ -119,62 +115,48 @@ export function resetGame(socket: WebSocket) {
 // }
 
 export function newPlayer(socket: WebSocket, username: string) {
-    socket?.send(
-        JSON.stringify({
-            action: 'new-player',
-            username: username,
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'new-player',
+        username: username,
+    });
 }
 
 export function playerCall(socket: WebSocket) {
-    socket?.send(
-        JSON.stringify({
-            action: 'player-call',
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'player-call',
+    });
 }
 
 export function playerCheck(socket: WebSocket) {
-    socket?.send(
-        JSON.stringify({
-            action: 'player-check',
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'player-check',
+    });
 }
 
 export function playerRaise(socket: WebSocket, amount: number) {
-    socket?.send(
-        JSON.stringify({
-            action: 'player-raise',
-            amount: amount,
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'player-raise',
+        amount: amount,
+    });
 }
 
 export function playerFold(socket: WebSocket) {
-    socket?.send(
-        JSON.stringify({
-            action: 'player-fold',
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'player-fold',
+    });
 }
 
 export function requestLeave(socket: WebSocket) {
-    socket?.send(
-        JSON.stringify({
-            action: 'request-leave',
-        })
-    );
+    sendWebSocketMessage(socket, {
+        action: 'request-leave',
+    });
 }
 
 export function sendPauseGameCommand(socket: WebSocket) {
     if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(
-            JSON.stringify({
-                action: 'pause-game',
-            })
-        );
+        sendWebSocketMessage(socket, {
+            action: 'pause-game',
+        });
     } else {
         console.error('Cannot send pause-game: WebSocket is not open.');
         // Optionally, notify the user or attempt to handle the error
@@ -183,11 +165,9 @@ export function sendPauseGameCommand(socket: WebSocket) {
 
 export function sendResumeGameCommand(socket: WebSocket) {
     if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(
-            JSON.stringify({
-                action: 'resume-game',
-            })
-        );
+        sendWebSocketMessage(socket, {
+            action: 'resume-game',
+        });
     } else {
         console.error('Cannot send resume-game: WebSocket is not open.');
         // Optionally, notify the user or attempt to handle the error

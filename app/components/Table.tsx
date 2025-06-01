@@ -53,12 +53,33 @@ const templateGridSmall = `"a one b"
                         "eight f nine"
                         "g current h"`;
 
+function getWinners(game: GameType): Player[] {
+    const winners: Player[] = [];
+
+    // Get all winners from all pots
+    game.pots.forEach((pot) => {
+        if (pot.winningPlayerNums.length > 0) {
+            pot.winningPlayerNums.forEach((winnerNum) => {
+                const winningPlayer = game.players.find(
+                    (player) => player.position === winnerNum
+                );
+                if (
+                    winningPlayer &&
+                    !winners.some((w) => w.uuid === winningPlayer.uuid)
+                ) {
+                    winners.push(winningPlayer);
+                }
+            });
+        }
+    });
+
+    return winners;
+}
+
 function getWinner(game: GameType) {
-    const winnerNum = game.pots[game.pots.length - 1].winningPlayerNums[0];
-    const winningPlayer = game.players.filter(
-        (player) => player.position == winnerNum
-    )[0];
-    return winningPlayer;
+    // For backward compatibility, return the first winner
+    const winners = getWinners(game);
+    return winners.length > 0 ? winners[0] : null;
 }
 
 function handleWinner(game: GameType | null, socket: WebSocket | null) {
@@ -97,7 +118,7 @@ const Table = () => {
     const { appState } = useContext(AppContext);
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
     const [players, setPlayers] = useState(initialPlayers);
-    const [winningPlayer, setWinningPlayer] = useState<Player | null>(null);
+    const [winningPlayers, setWinningPlayers] = useState<Player[]>([]);
 
     const shouldRotate = useBreakpointValue({ base: true, md: false }) ?? false;
 
@@ -119,28 +140,31 @@ const Table = () => {
 
     useEffect(() => {
         const game = appState.game;
-        // this effect triggers when betting is over
+
+        // Clear winners immediately if game conditions indicate we should reset
         if (
-            game &&
-            game.stage === 1 &&
-            game.pots.length !== 0 &&
-            !game.betting
+            !game ||
+            !game.running ||
+            (game.stage === 2 && game.betting) ||
+            game.pots.length === 0
         ) {
+            setWinningPlayers([]);
+            setRevealedPlayers([]);
+            return;
+        }
+
+        // Show winners when hand is over
+        if (game.stage === 1 && game.pots.length !== 0 && !game.betting) {
             setRevealedPlayers(getRevealedPlayers(game));
             handleWinner(game, socket);
 
-            // set winning player
-            if (
-                game.pots.length > 0 &&
-                game.pots[game.pots.length - 1].winningPlayerNums.length > 0
-            ) {
-                const winner = getWinner(game);
-                setWinningPlayer(winner);
-            }
+            // set winning players
+            const winners = getWinners(game);
+            setWinningPlayers(winners);
 
             const timer = setTimeout(() => {
                 setRevealedPlayers([]);
-                setWinningPlayer(null);
+                setWinningPlayers([]);
                 if (socket) {
                     //dealGame(socket);
                 }
@@ -149,7 +173,12 @@ const Table = () => {
                 clearTimeout(timer);
             };
         }
-    }, [appState.game?.dealer]);
+    }, [
+        appState.game?.stage,
+        appState.game?.betting,
+        appState.game?.pots,
+        appState.game?.running,
+    ]);
 
     const isPlayerTurn = (player: Player): boolean => {
         if (
@@ -163,8 +192,7 @@ const Table = () => {
     };
 
     const isPlayerWinner = (player: Player): boolean => {
-        if (!winningPlayer) return false;
-        return player.uuid === winningPlayer.uuid;
+        return winningPlayers.some((winner) => winner.uuid === player.uuid);
     };
 
     return (

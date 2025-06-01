@@ -7,13 +7,8 @@ import '@fontsource/poppins';
 import '@fontsource/libre-barcode-39-text';
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import React from 'react';
-import { StagewiseToolbar } from '@stagewise/toolbar-next';
 
 const inter = Inter({ subsets: ['latin'] });
-
-const stagewiseConfig = {
-    plugins: [],
-};
 
 export const metadata: Metadata = {
     title: 'Stacked Poker',
@@ -36,9 +31,6 @@ export default function RootLayout({
                     <HomeNavBar />
                     <main>{children}</main>
                 </Providers>
-                {process.env.NODE_ENV === 'development' && (
-                    <StagewiseToolbar config={stagewiseConfig} />
-                )}
             </body>
         </html>
     );

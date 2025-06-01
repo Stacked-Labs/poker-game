@@ -53,6 +53,29 @@ const templateGridSmall = `"a six b"
                         "two f ten"
                         "g one h"`;
 
+function getWinners(game: GameType): Player[] {
+    const winners: Player[] = [];
+
+    // Get all winners from all pots
+    game.pots.forEach((pot) => {
+        if (pot.winningPlayerNums.length > 0) {
+            pot.winningPlayerNums.forEach((winnerNum) => {
+                const winningPlayer = game.players.find(
+                    (player) => player.position === winnerNum
+                );
+                if (
+                    winningPlayer &&
+                    !winners.some((w) => w.uuid === winningPlayer.uuid)
+                ) {
+                    winners.push(winningPlayer);
+                }
+            });
+        }
+    });
+
+    return winners;
+}
+
 function getWinner(game: GameType) {
     // For backward compatibility, return the first winner
     const winners = getWinners(game);

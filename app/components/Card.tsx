@@ -214,7 +214,7 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                 >
                     <CardImage
                         altText={`Card ${cardString}`}
-                        cardPhoto={cardPhoto}
+                        cardPhoto={cardPhoto ?? ''}
                         folded={folded}
                     />
                 </Box>

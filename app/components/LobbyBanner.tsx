@@ -1,7 +1,6 @@
 import {
-    AbsoluteCenter,
     Box,
-    Divider,
+    CloseButton,
     Flex,
     IconButton,
     Link,
@@ -57,7 +56,7 @@ const LinkBox = ({ link }: { link: string | null }) => {
     return (
         <Flex width={'70%'} borderRadius={'xl'} overflow="hidden">
             <Box width={'85%'} bg={'whitesmoke'} p={3} alignContent={'center'}>
-                <Text isTruncated fontSize={'smaller'}>
+                <Text isTruncated color={'gray'} fontSize={'smaller'}>
                     {link}
                 </Text>
             </Box>
@@ -87,7 +86,7 @@ const SocialButton = ({
     );
 };
 
-const LobbyBanner = () => {
+const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
     const { appState } = useContext(AppContext);
 
     return (
@@ -103,23 +102,29 @@ const LobbyBanner = () => {
                 <Flex
                     justifyContent="space-between"
                     alignItems="center"
-                    p={3}
+                    py={2}
+                    px={3}
                     color="white"
                     bg="green.500"
                 >
-                    <Text fontWeight={'extrabold'}>Game Lobby</Text>
-                    <Flex gap={2} alignItems={'center'}>
-                        <Box
-                            height={1.5}
-                            width={1.5}
-                            bg={'white'}
-                            borderRadius={'full'}
-                            animation={`${pulse} 2s ease-in-out infinite`}
-                        />
-                        <Text fontSize={'sm'} color={'whiteAlpha.700'}>
-                            Waiting for players
+                    <Stack gap={-2}>
+                        <Text fontWeight={'extrabold'} p={0}>
+                            Lobby
                         </Text>
-                    </Flex>
+                        <Flex gap={2} alignItems={'center'}>
+                            <Box
+                                height={1.5}
+                                width={1.5}
+                                bg={'white'}
+                                borderRadius={'full'}
+                                animation={`${pulse} 2s ease-in-out infinite`}
+                            />
+                            <Text fontSize={'sm'} color={'whiteAlpha.700'}>
+                                Waiting for players
+                            </Text>
+                        </Flex>
+                    </Stack>
+                    <CloseButton onClick={onClose} fontWeight={'bolder'} />
                 </Flex>
                 <Stack
                     py={4}

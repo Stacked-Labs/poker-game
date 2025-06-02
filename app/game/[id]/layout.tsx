@@ -5,11 +5,6 @@ import Navbar from '@/app/components/NavBar';
 import {
     Flex,
     Modal,
-    ModalBody,
-    ModalCloseButton,
-    ModalContent,
-    ModalHeader,
-    ModalOverlay,
     Spinner,
     Text,
     useDisclosure,
@@ -22,12 +17,11 @@ import LobbyBanner from '@/app/components/LobbyBanner';
 const GameLayout: React.FC = ({
     children,
 }: React.PropsWithChildren<object>) => {
-    useContext(AppContext);
+    const { appState } = useContext(AppContext);
     const [loading, setLoading] = useState(true);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     useEffect(() => {
-        // Simplified loading logic - just a short delay for better UX
         onOpen();
 
         const timer = setTimeout(() => {
@@ -36,6 +30,12 @@ const GameLayout: React.FC = ({
 
         return () => clearTimeout(timer);
     }, [onOpen]);
+
+    useEffect(() => {
+        if (appState.game?.players && appState.game?.players.length > 1) {
+            onClose();
+        }
+    }, [appState.game?.players]);
 
     if (loading) {
         return (
@@ -76,8 +76,8 @@ const GameLayout: React.FC = ({
             {children}
             <Footer />
 
-            <Modal isOpen={isOpen} onClose={() => {}} isCentered size={'sm'}>
-                <LobbyBanner />
+            <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
+                <LobbyBanner onClose={onClose} />
             </Modal>
         </Flex>
     );

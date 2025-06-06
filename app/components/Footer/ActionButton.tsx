@@ -14,7 +14,7 @@ const ActionButton = ({
     color: string;
     clickHandler: () => void;
     isDisabled: boolean;
-    hotkey: String;
+    hotkey: string;
 }) => {
     return (
         <Button

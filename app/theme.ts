@@ -1,12 +1,12 @@
 import { extendTheme } from '@chakra-ui/react';
 
 const breakpoints = {
-    sm: "30em",
-    md: "48em",
-    lg: "62em",
-    xl: "80em",
-    "2xl": "96em",
-}
+    sm: '30em',
+    md: '48em',
+    lg: '62em',
+    xl: '80em',
+    '2xl': '96em',
+};
 
 const tokens = {
     colors: {
@@ -22,7 +22,7 @@ const tokens = {
             'btn-hover': '#424242',
             'btn-empty': 'transparent',
             'btn-dark': '#101010',
-            'charcoal': '#171717',
+            charcoal: '#171717',
             'gray.50': '#212121', // Lightest gray
             'gray.100': '#191414',
             'gray.200': '#121212', // Darkest gray
@@ -164,8 +164,8 @@ const components = {
                     lg: 'small',
                     xl: 'medium',
                     '2xl': 'large',
-                }
-            }
+                },
+            },
         },
     },
     Button: {

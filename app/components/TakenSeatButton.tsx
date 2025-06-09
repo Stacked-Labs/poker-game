@@ -47,23 +47,19 @@ const TakenSeatButton = ({
         };
     } = {
         1: {
-            bottom: { base: '-70%', md: '-35%', '2xl': '-30%' },
-            flexDirection: { base: 'column', md: 'row' },
-            alignItems: { base: 'center', md: 'start' },
+            top: { base: '-45%', md: '-25%', '2xl': '-28%' },
             justifyContent: { base: 'center' },
         },
         2: {
-            bottom: { base: '0%', md: '-35%', '2xl': '-30%' },
+            top: { base: '0%', md: '-25%', '2xl': '-28%' },
             right: { base: '-110%', md: '0', '2xl': '0' },
             flexDirection: { base: 'column', md: 'row' },
             justifyContent: { base: 'center' },
         },
         3: {
-            bottom: { base: '0%', md: '-35%', '2xl': '-30%' },
-            left: { base: '-110%', md: '0', '2xl': '0' },
+            bottom: { base: '0%', md: '40%', lg: '23%' },
+            right: { base: '-110%', md: '-110%', lg: '-110%' },
             flexDirection: { base: 'column', md: 'row' },
-            alignItems: { base: 'end', md: 'start' },
-            justifyContent: { base: 'center' },
         },
         4: {
             top: { base: '0%', md: '40%', lg: '30%' },
@@ -71,37 +67,41 @@ const TakenSeatButton = ({
             flexDirection: { base: 'column', md: 'row' },
         },
         5: {
-            top: { base: '0%', md: '40%', lg: '30%' },
-            left: { base: '-110%', md: '-110%', lg: '-110%' },
-            flexDirection: { base: 'column', md: 'row-reverse' },
-            alignItems: { base: 'end', md: 'start' },
+            bottom: { base: '-70%', md: '-35%', '2xl': '-30%' },
+            flexDirection: { base: 'column', md: 'row' },
+            alignItems: { base: 'center', md: 'start' },
+            justifyContent: { base: 'center' },
         },
         6: {
-            bottom: { base: '0%', md: '40%', lg: '23%' },
-            right: { base: '-110%', md: '-110%', lg: '-110%' },
-            flexDirection: { base: 'column', md: 'row' },
-        },
-        7: {
-            bottom: { base: '0%', md: '40%', lg: '23%' },
-            left: { base: '-110%', md: '-110%', lg: '-110%' },
-            flexDirection: { base: 'column', md: 'row-reverse' },
-            alignItems: { base: 'end', md: 'start' },
-        },
-        8: {
-            top: { base: '0%', md: '-25%', '2xl': '-28%' },
+            bottom: { base: '0%', md: '-35%', '2xl': '-30%' },
             right: { base: '-110%', md: '0', '2xl': '0' },
             flexDirection: { base: 'column', md: 'row' },
             justifyContent: { base: 'center' },
         },
-        9: {
-            top: { base: '0%', md: '-25%', '2xl': '-28%' },
+        7: {
+            bottom: { base: '0%', md: '-35%', '2xl': '-30%' },
             left: { base: '-110%', md: '0', '2xl': '0' },
             flexDirection: { base: 'column', md: 'row' },
             alignItems: { base: 'end', md: 'start' },
             justifyContent: { base: 'center' },
         },
+        8: {
+            top: { base: '0%', md: '40%', lg: '30%' },
+            left: { base: '-110%', md: '-110%', lg: '-110%' },
+            flexDirection: { base: 'column', md: 'row-reverse' },
+            alignItems: { base: 'end', md: 'start' },
+        },
+        9: {
+            bottom: { base: '0%', md: '40%', lg: '23%' },
+            left: { base: '-110%', md: '-110%', lg: '-110%' },
+            flexDirection: { base: 'column', md: 'row-reverse' },
+            alignItems: { base: 'end', md: 'start' },
+        },
         10: {
-            top: { base: '-45%', md: '-25%', '2xl': '-28%' },
+            top: { base: '0%', md: '-25%', '2xl': '-28%' },
+            left: { base: '-110%', md: '0', '2xl': '0' },
+            flexDirection: { base: 'column', md: 'row' },
+            alignItems: { base: 'end', md: 'start' },
             justifyContent: { base: 'center' },
         },
     };

@@ -9,9 +9,15 @@ import {
     Icon,
     Box,
     Tooltip,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+    useBreakpointValue,
+    VStack,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { FiSettings, FiMessageSquare, FiLogOut } from 'react-icons/fi';
+import { FiSettings, FiMessageSquare, FiLogOut, FiMenu } from 'react-icons/fi';
 import Web3Button from '../Web3Button';
 import SettingsModal from './Settings/SettingsModal';
 import SideBarChat from './Chat/SideBarChat';
@@ -47,6 +53,7 @@ const Navbar = () => {
     const unreadMessageCount = appState.unreadMessageCount;
     const { info } = useToastHelper();
     const isOwner = useIsTableOwner();
+    const isMobile = useBreakpointValue({ base: true, md: false });
 
     // Check if the current user is seated at the table
     const isUserSeated = appState.game?.players?.some(
@@ -103,6 +110,109 @@ const Navbar = () => {
         onToggleChat();
     };
 
+    const NavItems = () => (
+        <>
+            <Box position="relative">
+                <IconButton
+                    icon={<Icon as={FiSettings} boxSize={{ base: 5, md: 8 }} />}
+                    aria-label="Settings"
+                    size={'lg'}
+                    onClick={onOpen}
+                />
+                {pendingCount > 0 && (
+                    <Flex
+                        position="absolute"
+                        top="-5px"
+                        right="-5px"
+                        width="22px"
+                        height="22px"
+                        borderRadius="full"
+                        bg="red.500"
+                        color="white"
+                        justifyContent="center"
+                        alignItems="center"
+                        fontSize="xs"
+                        fontWeight="bold"
+                        zIndex={11}
+                        boxShadow="0px 0px 5px rgba(0, 0, 0, 0.3)"
+                        border="2px solid white"
+                        animation={animateBadge ? `${pulseAnimation} 1s ease-in-out` : undefined}
+                    >
+                        {pendingCount}
+                    </Flex>
+                )}
+            </Box>
+            <StartGameButton />
+            {isOwner && appState.game?.running && socket && (
+                <Tooltip
+                    label={appState.game?.paused ? 'Resume Game' : 'Pause Game'}
+                    aria-label={appState.game?.paused ? 'Resume game tooltip' : 'Pause game tooltip'}
+                >
+                    <IconButton
+                        icon={appState.game?.paused ? <FaPlay /> : <FaPause />}
+                        aria-label={appState.game?.paused ? 'Resume Game' : 'Pause Game'}
+                        size={'lg'}
+                        onClick={() => {
+                            if (appState.game?.paused) {
+                                sendResumeGameCommand(socket);
+                            } else {
+                                sendPauseGameCommand(socket);
+                            }
+                        }}
+                        colorScheme={appState.game?.paused ? 'green' : 'yellow'}
+                    />
+                </Tooltip>
+            )}
+            <VolumeButton />
+            {isUserSeated && (
+                <Tooltip
+                    label={appState.isLeaveRequested ? 'Leaving after this hand...' : 'Leave Table'}
+                >
+                    <IconButton
+                        icon={<Icon as={FiLogOut} boxSize={{ base: 5, md: 8 }} />}
+                        aria-label="Leave Table"
+                        size={'lg'}
+                        colorScheme={appState.isLeaveRequested ? 'gray' : 'red'}
+                        onClick={handleLeaveTable}
+                        isDisabled={appState.isLeaveRequested}
+                        opacity={appState.isLeaveRequested ? 0.6 : 1}
+                    />
+                </Tooltip>
+            )}
+            <Box position="relative">
+                <IconButton
+                    icon={<Icon as={FiMessageSquare} boxSize={{ base: 5, md: 8 }} />}
+                    aria-label="Chat"
+                    size={'lg'}
+                    onClick={handleChatToggle}
+                />
+                {unreadMessageCount > 0 && (
+                    <Flex
+                        position="absolute"
+                        top="-5px"
+                        right="-5px"
+                        width="22px"
+                        height="22px"
+                        borderRadius="full"
+                        bg="red.500"
+                        color="white"
+                        justifyContent="center"
+                        alignItems="center"
+                        fontSize="xs"
+                        fontWeight="bold"
+                        zIndex={11}
+                        boxShadow="0px 0px 5px rgba(0, 0, 0, 0.3)"
+                        border="2px solid white"
+                        animation={animateMsgBadge ? `${pulseAnimation} 1s ease-in-out` : undefined}
+                    >
+                        {unreadMessageCount}
+                    </Flex>
+                )}
+            </Box>
+            <Web3Button size="lg" paddingX={{ base: 8, md: 12 }} />
+        </>
+    );
+
     return (
         <>
             <Flex
@@ -115,160 +225,32 @@ const Navbar = () => {
                 color="white"
                 zIndex={10}
             >
-                <HStack spacing={{ base: 2, md: 4 }} alignItems="stretch">
-                    <Box position="relative">
-                        <IconButton
-                            icon={
-                                <Icon
-                                    as={FiSettings}
-                                    boxSize={{ base: 5, md: 8 }}
-                                />
-                            }
-                            aria-label="Settings"
-                            size={'lg'}
-                            onClick={onOpen}
-                        />
-                        {pendingCount > 0 && (
-                            <Flex
-                                position="absolute"
-                                top="-5px"
-                                right="-5px"
-                                width="22px"
-                                height="22px"
-                                borderRadius="full"
-                                bg="red.500"
-                                color="white"
-                                justifyContent="center"
-                                alignItems="center"
-                                fontSize="xs"
-                                fontWeight="bold"
-                                zIndex={11}
-                                boxShadow="0px 0px 5px rgba(0, 0, 0, 0.3)"
-                                border="2px solid white"
-                                animation={
-                                    animateBadge
-                                        ? `${pulseAnimation} 1s ease-in-out`
-                                        : undefined
-                                }
-                            >
-                                {pendingCount}
-                            </Flex>
-                        )}
-                    </Box>
-                    <StartGameButton />
-                    {isOwner && appState.game?.running && socket && (
-                        <Tooltip
-                            label={
-                                appState.game?.paused
-                                    ? 'Resume Game'
-                                    : 'Pause Game'
-                            }
-                            aria-label={
-                                appState.game?.paused
-                                    ? 'Resume game tooltip'
-                                    : 'Pause game tooltip'
-                            }
-                        >
-                            <IconButton
-                                icon={
-                                    appState.game?.paused ? (
-                                        <FaPlay />
-                                    ) : (
-                                        <FaPause />
-                                    )
-                                }
-                                aria-label={
-                                    appState.game?.paused
-                                        ? 'Resume Game'
-                                        : 'Pause Game'
-                                }
-                                size={'lg'}
-                                onClick={() => {
-                                    if (appState.game?.paused) {
-                                        sendResumeGameCommand(socket);
-                                    } else {
-                                        sendPauseGameCommand(socket);
-                                    }
-                                }}
-                                colorScheme={
-                                    appState.game?.paused ? 'green' : 'yellow'
-                                }
+                {isMobile ? (
+                    <Flex width="100%" justify="space-between" align="center">
+                        <Menu>
+                            <MenuButton
+                                as={IconButton}
+                                icon={<FiMenu />}
+                                variant="outline"
+                                aria-label="Navigation menu"
+                                size="lg"
                             />
-                        </Tooltip>
-                    )}
-                </HStack>
-                <HStack spacing={{ base: 2, md: 4 }} alignItems="center">
-                    <VolumeButton />
-                    {isUserSeated && (
-                        <Tooltip
-                            label={
-                                appState.isLeaveRequested
-                                    ? 'Leaving after this hand...'
-                                    : 'Leave Table'
-                            }
-                        >
-                            <IconButton
-                                icon={
-                                    <Icon
-                                        as={FiLogOut}
-                                        boxSize={{ base: 5, md: 8 }}
-                                    />
-                                }
-                                aria-label="Leave Table"
-                                size={'lg'}
-                                colorScheme={
-                                    appState.isLeaveRequested ? 'gray' : 'red'
-                                }
-                                onClick={handleLeaveTable}
-                                isDisabled={appState.isLeaveRequested}
-                                opacity={appState.isLeaveRequested ? 0.6 : 1}
-                            />
-                        </Tooltip>
-                    )}
-                    <Box position="relative">
-                        <IconButton
-                            icon={
-                                <Icon
-                                    as={FiMessageSquare}
-                                    boxSize={{ base: 5, md: 8 }}
-                                />
-                            }
-                            aria-label="Chat"
-                            size={'lg'}
-                            onClick={handleChatToggle}
-                        />
-                        {unreadMessageCount > 0 && (
-                            <Flex
-                                position="absolute"
-                                top="-5px"
-                                right="-5px"
-                                width="22px"
-                                height="22px"
-                                borderRadius="full"
-                                bg="red.500"
-                                color="white"
-                                justifyContent="center"
-                                alignItems="center"
-                                fontSize="xs"
-                                fontWeight="bold"
-                                zIndex={11}
-                                boxShadow="0px 0px 5px rgba(0, 0, 0, 0.3)"
-                                border="2px solid white"
-                                animation={
-                                    animateMsgBadge
-                                        ? `${pulseAnimation} 1s ease-in-out`
-                                        : undefined
-                                }
-                            >
-                                {unreadMessageCount}
-                            </Flex>
-                        )}
-                    </Box>
-                    <Web3Button size="lg" paddingX={{ base: 8, md: 12 }} />
-                </HStack>
-
-                <SettingsModal isOpen={isOpen} onClose={onClose} />
+                            <MenuList bg="gray.200" p={2}>
+                                <VStack spacing={2} align="stretch">
+                                    <NavItems />
+                                </VStack>
+                            </MenuList>
+                        </Menu>
+                    </Flex>
+                ) : (
+                    <>
+                        <HStack spacing={{ base: 2, md: 4 }} alignItems="stretch">
+                            <NavItems />
+                        </HStack>
+                    </>
+                )}
             </Flex>
+            <SettingsModal isOpen={isOpen} onClose={onClose} />
             <Flex
                 height={'100vh'}
                 width={'100vw'}

@@ -37,6 +37,9 @@ const HomeNavBar: React.FC = () => {
 
     const NavButtons = React.memo(() => (
         <>
+            <Button variant={'navButton'} as="a" href="/leaderboard">
+                <Text className={poppins.className}>Leaderboard</Text>
+            </Button>
             <Button
                 variant={'navButton'}
                 as="a"
@@ -55,9 +58,6 @@ const HomeNavBar: React.FC = () => {
                 rel="noopener noreferrer"
             >
                 <Text className={poppins.className}>Support</Text>
-            </Button>
-            <Button variant={'navButton'} as="a" href="/leaderboard">
-                <Text className={poppins.className}>Leaderboard</Text>
             </Button>
             <Web3Button width="200px" />
         </>

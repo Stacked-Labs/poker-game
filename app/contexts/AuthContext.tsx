@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import React, {
+    createContext,
+    useContext,
+    ReactNode,
+    useEffect,
+    useState,
+} from 'react';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import {
     useActiveAccount,
@@ -34,6 +40,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const wallet = useActiveWallet();
     const account = useActiveAccount();
     const { disconnect } = useDisconnect();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userAddress, setUserAddress] = useState<string | null>(null);
+
+    // Initialize state from cookie on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const address = getCookie('address');
+            setIsAuthenticated(!!address);
+            setUserAddress(address || null);
+        }
+    }, []);
 
     const authenticate = async (account: Account, wallet: Wallet) => {
         try {
@@ -62,6 +79,9 @@ Timestamp: ${Date.now()}`;
 
             if (response?.success) {
                 setCookie('address', account.address, false);
+                // Update state immediately after successful authentication
+                setIsAuthenticated(true);
+                setUserAddress(account.address);
                 success(
                     'Authentication Successful',
                     'You have been successfully authenticated.'
@@ -72,6 +92,8 @@ Timestamp: ${Date.now()}`;
         } catch (err) {
             console.error(err);
             disconnect(wallet);
+            setIsAuthenticated(false);
+            setUserAddress(null);
             error(
                 'Authentication Failed',
                 'There was an error during authentication. Please try again.'
@@ -81,30 +103,44 @@ Timestamp: ${Date.now()}`;
 
     useEffect(() => {
         const checkAuthentication = async () => {
-            if (!account || !wallet) return;
+            if (!account || !wallet) {
+                setIsAuthenticated(false);
+                setUserAddress(null);
+                return;
+            }
 
             try {
                 const address = getCookie('address');
-                const isAuthenticated = await isAuth();
+                const backendAuth = await isAuth();
 
-                if (!isAuthenticated || address !== account.address) {
+                if (!backendAuth || address !== account.address) {
                     await authenticate(account, wallet);
+                } else {
+                    // User is already authenticated
+                    setIsAuthenticated(true);
+                    setUserAddress(address || null);
                 }
             } catch (error) {
                 console.error('Error during authentication check:', error);
+                setIsAuthenticated(false);
+                setUserAddress(null);
             }
         };
 
         checkAuthentication();
     }, [account?.address, account, wallet]);
 
+    // Clear auth state when wallet disconnects
+    useEffect(() => {
+        if (!account) {
+            setIsAuthenticated(false);
+            setUserAddress(null);
+        }
+    }, [account]);
+
     const value: AuthContextProps = {
-        isAuthenticated:
-            typeof window !== 'undefined' && !!getCookie('address'),
-        userAddress:
-            typeof window !== 'undefined' && getCookie('address')
-                ? getCookie('address') || null
-                : null,
+        isAuthenticated,
+        userAddress,
         authenticate,
     };
 

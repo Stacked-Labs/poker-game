@@ -1,7 +1,16 @@
 'use client';
 
 import React, { useContext } from 'react';
-import { Box, Heading, SimpleGrid, Text } from '@chakra-ui/react';
+import {
+    Box,
+    Heading,
+    SimpleGrid,
+    Text,
+    VStack,
+    HStack,
+    Icon,
+} from '@chakra-ui/react';
+import { FaGamepad, FaPlus } from 'react-icons/fa';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 export interface UserStats {
@@ -19,20 +28,44 @@ const StatsSection = ({ stats = defaultStats }: { stats?: UserStats }) => {
 
     return (
         <Box width="100%">
-            <Heading size="md" mb={4} color="white">
+            <Heading size="md" mb={4} color="white" textAlign="center">
                 {appState.username
                     ? `${appState.username}'s Stats`
-                    : 'Your Stats'}
+                    : 'Game Statistics'}
             </Heading>
-            <SimpleGrid columns={{ base: 2, md: 2 }} spacing={4} color="white">
-                <Box>
-                    <Text fontWeight="bold">Games Created</Text>
-                    <Text>{stats.gamesCreated}</Text>
-                </Box>
-                <Box>
-                    <Text fontWeight="bold">Games Played</Text>
-                    <Text>{stats.gamesPlayed}</Text>
-                </Box>
+            <SimpleGrid columns={2} spacing={4}>
+                <VStack
+                    p={4}
+                    bgColor="charcoal.600"
+                    borderRadius="lg"
+                    spacing={2}
+                >
+                    <HStack spacing={2}>
+                        <Icon as={FaPlus} color="green.400" />
+                        <Text fontWeight="bold" color="white" fontSize="sm">
+                            Created
+                        </Text>
+                    </HStack>
+                    <Text fontSize="2xl" fontWeight="bold" color="green.400">
+                        {stats.gamesCreated}
+                    </Text>
+                </VStack>
+                <VStack
+                    p={4}
+                    bgColor="charcoal.600"
+                    borderRadius="lg"
+                    spacing={2}
+                >
+                    <HStack spacing={2}>
+                        <Icon as={FaGamepad} color="blue.400" />
+                        <Text fontWeight="bold" color="white" fontSize="sm">
+                            Played
+                        </Text>
+                    </HStack>
+                    <Text fontSize="2xl" fontWeight="bold" color="blue.400">
+                        {stats.gamesPlayed}
+                    </Text>
+                </VStack>
             </SimpleGrid>
         </Box>
     );

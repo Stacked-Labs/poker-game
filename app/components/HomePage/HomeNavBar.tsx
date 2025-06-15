@@ -56,6 +56,9 @@ const HomeNavBar: React.FC = () => {
             >
                 <Text className={poppins.className}>Support</Text>
             </Button>
+            <Button variant={'navButton'} as="a" href="/leaderboard">
+                <Text className={poppins.className}>Leaderboard</Text>
+            </Button>
             <Web3Button width="200px" />
         </>
     ));

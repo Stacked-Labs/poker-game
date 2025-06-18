@@ -37,150 +37,146 @@ const Pot = () => {
         }
     }
 
-    if (!isGameRunning) {
-        return null;
+    if (isGameRunning) {
+        return (
+            <Flex justifyContent={'flex'} textAlign={'justify'}>
+                {pots.map((pot, index) => {
+                    if (pot.amount !== 0) {
+                        return (
+                            <Flex
+                                bg={'green.600'}
+                                padding={2}
+                                width={{
+                                    xl: '140px',
+                                    lg: '115px',
+                                    md: '90px',
+                                    base: '64px',
+                                }}
+                                height={{
+                                    xl: '36px',
+                                    lg: '32px',
+                                    md: '28px',
+                                    base: '24px',
+                                }}
+                                borderRadius={999}
+                                key={index}
+                                justifyContent={'center'}
+                                position="relative"
+                            >
+                                {game.pots[index] &&
+                                game.pots[index].amount != pot.amount ? (
+                                    <Flex
+                                        bg="green.700"
+                                        px={2}
+                                        borderRadius={999}
+                                        alignItems="flex-end"
+                                        position="absolute"
+                                        top={{ base: -2, lg: -2 }}
+                                        left={{
+                                            base: '50%',
+                                            md: 'auto',
+                                        }}
+                                        right={{ base: 'auto', md: -2 }}
+                                        transform={{
+                                            base: 'translateX(-50%)',
+                                            md: 'none',
+                                        }}
+                                        gap={1}
+                                        width="fit-content"
+                                        zIndex={1}
+                                    >
+                                        <Text
+                                            fontSize={{
+                                                base: '8px',
+                                                lg: '10px',
+                                            }}
+                                            color="white"
+                                        >
+                                            total
+                                        </Text>
+                                        <Text
+                                            as="span"
+                                            color="white"
+                                            fontWeight="medium"
+                                            fontSize={{
+                                                base: '10px',
+                                                lg: '12px',
+                                            }}
+                                            pb={0}
+                                        >
+                                            {game.pots[0].amount}
+                                        </Text>
+                                    </Flex>
+                                ) : (
+                                    <Text>&nbsp;</Text>
+                                )}
+                                {index < 1 && (
+                                    <Flex
+                                        paddingX={'14'}
+                                        justifyContent={'center'}
+                                        mb={'10%'}
+                                    >
+                                        <Text
+                                            fontSize={{
+                                                xl: '17px',
+                                                lg: '16px',
+                                                md: '12px',
+                                                base: '9px',
+                                            }}
+                                            color={'white'}
+                                            fontWeight={'bold'}
+                                        >
+                                            {pot.amount}
+                                        </Text>
+                                    </Flex>
+                                )}
+                                {index > 0 && (
+                                    <Flex
+                                        bg="yellow.400"
+                                        px={2}
+                                        borderRadius={999}
+                                        alignItems="center"
+                                        position="absolute"
+                                        bottom={{
+                                            base: '-20px',
+                                            lg: '-22px',
+                                            xl: '-24px',
+                                        }}
+                                        left={{
+                                            base: '50%',
+                                            md: 'auto',
+                                        }}
+                                        right={{ base: 'auto', md: 2 }}
+                                        transform={{
+                                            base: 'translateX(-50%)',
+                                            md: 'none',
+                                        }}
+                                        gap={1}
+                                        width="fit-content"
+                                        zIndex={3}
+                                        marginBottom={1}
+                                    >
+                                        <Text
+                                            fontSize={{
+                                                base: '9px',
+                                                lg: '11px',
+                                            }}
+                                            fontWeight="bold"
+                                            color="black"
+                                        >
+                                            {pot.amount}
+                                        </Text>
+                                    </Flex>
+                                )}
+                            </Flex>
+                        );
+                    }
+                })}
+            </Flex>
+        );
     }
 
-    const hasTotal = game.pots[0]?.amount > 0;
-    const hasSidepot = pots[1]?.amount > 0;
-
-    return (
-        <Flex justifyContent="flex" textAlign="justify" position="relative">
-            {/* Both the total and sidepot pill exists */}
-            {hasTotal && hasSidepot && (
-                <>
-                    <Flex
-                        bg="green.700"
-                        px={2}
-                        borderRadius={999}
-                        alignItems="flex-end"
-                        position="absolute"
-                        top={{ base: -2, lg: -3 }}
-                        left={{ base: '50%', md: 'auto' }}
-                        right={{ base: 'auto', md: -2 }}
-                        transform={{ base: 'translateX(-50%)', md: 'none' }}
-                        gap={1}
-                        width="fit-content"
-                        zIndex={1}
-                    >
-                        <Text
-                            fontSize={{ base: '8px', lg: '10px' }}
-                            color="white"
-                        >
-                            total
-                        </Text>
-                        <Text
-                            as="span"
-                            color="white"
-                            fontWeight="medium"
-                            fontSize={{ base: '10px', lg: '12px' }}
-                            pb={0}
-                        >
-                            {game.pots[0].amount}
-                        </Text>
-                    </Flex>
-
-                    <Flex
-                        position="absolute"
-                        top={{ base: -9, lg: -10 }}
-                        left={{ base: '50%', md: 'auto' }}
-                        right={{ base: 'auto', md: -2 }}
-                        transform={{ base: 'translateX(-50%)', md: 'none' }}
-                        bg="yellow.400"
-                        p={2}
-                        borderRadius="full"
-                        alignItems="center"
-                        justifyContent="center"
-                    >
-                        <Text
-                            fontSize={{ base: '10px', lg: '12px' }}
-                            fontWeight="bold"
-                            color="black"
-                            lineHeight="1"
-                        >
-                            {pots[1].amount}
-                        </Text>
-                    </Flex>
-                </>
-            )}
-
-            {/* Only the sidepot pill exists */}
-            {!hasTotal && hasSidepot && (
-                <Flex
-                    bg="yellow.400"
-                    px={2}
-                    borderRadius={999}
-                    alignItems="center"
-                    position="absolute"
-                    top={{ base: -2, lg: -3 }}
-                    left={{ base: '50%', md: 'auto' }}
-                    right={{ base: 'auto', md: -2 }}
-                    transform={{ base: 'translateX(-50%)', md: 'none' }}
-                    gap={1}
-                    width="fit-content"
-                    zIndex={1}
-                >
-                    <Text
-                        fontSize={{ base: '10px', lg: '12px' }}
-                        fontWeight="bold"
-                        color="black"
-                    >
-                        {pots[1].amount}
-                    </Text>
-                </Flex>
-            )}
-
-            {/* Only the total pill exists */}
-            {hasTotal && !hasSidepot && (
-                <Flex
-                    bg="green.700"
-                    px={2}
-                    borderRadius={999}
-                    alignItems="flex-end"
-                    position="absolute"
-                    top={{ base: -2, lg: -3 }}
-                    left={{ base: '50%', md: 'auto' }}
-                    right={{ base: 'auto', md: -2 }}
-                    transform={{ base: 'translateX(-50%)', md: 'none' }}
-                    gap={1}
-                    width="fit-content"
-                    zIndex={1}
-                >
-                    <Text fontSize={{ base: '8px', lg: '10px' }} color="white">
-                        total
-                    </Text>
-                    <Text
-                        as="span"
-                        color="white"
-                        fontWeight="medium"
-                        fontSize={{ base: '10px', lg: '12px' }}
-                        pb={0}
-                    >
-                        {game.pots[0].amount}
-                    </Text>
-                </Flex>
-            )}
-
-            {pots[0] && (
-                <Flex
-                    bg="green.600"
-                    width={{ xl: '140px', lg: '115px', base: '90px' }}
-                    borderRadius={999}
-                    justifyContent="center"
-                >
-                    <Text
-                        fontSize={{ lg: 'lg', md: 'm', base: 'xs' }}
-                        color="white"
-                        fontWeight="bold"
-                        zIndex={3}
-                        py={1.5}
-                    >
-                        {pots[0].amount}
-                    </Text>
-                </Flex>
-            )}
-        </Flex>
-    );
+    return null;
 };
 
 export default Pot;

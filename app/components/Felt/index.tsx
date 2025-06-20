@@ -11,6 +11,7 @@ const Felt = () => {
             direction={'column'}
             alignItems={'center'}
             justifyContent={'center'}
+            gap={2}
         >
             <Flex
                 height={'30%'}

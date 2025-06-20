@@ -11,6 +11,7 @@ const Felt = () => {
             direction={'column'}
             alignItems={'center'}
             justifyContent={'center'}
+            gap={2}
         >
             <Flex
                 height={'30%'}
@@ -18,10 +19,11 @@ const Felt = () => {
                 justifyContent={'center'}
                 alignItems={'center'}
                 mb={'2.4vh'}
+                py={2}
             >
                 <Pot />
             </Flex>
-            
+
             <CommunityCards />
         </Flex>
     );

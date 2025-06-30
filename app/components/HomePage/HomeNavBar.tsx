@@ -37,6 +37,9 @@ const HomeNavBar: React.FC = () => {
 
     const NavButtons = React.memo(() => (
         <>
+            <Button variant={'navButton'} as="a" href="/leaderboard">
+                <Text className={poppins.className}>Leaderboard</Text>
+            </Button>
             <Button
                 variant={'navButton'}
                 as="a"

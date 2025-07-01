@@ -121,8 +121,8 @@ const TakenSeatButton = ({
 
     return (
         <Flex
-            width={{ base: '26vw', sm: '23.5vw', md: '19.5vw', lg: '15.5vw', xl: '13vw', '2xl': '10.5vw' }}
-            height={{ base: '100%', md: '100%' }}
+            width={{ base: 90, lg: 135, '2xl': 225 }}
+            height={'100%'}
             position={'relative'}
             direction={'column'}
             alignItems={'center'}
@@ -150,6 +150,7 @@ const TakenSeatButton = ({
                             fontSize={{ base: '0.6rem', sm: '0.7rem', md: '0.8rem', lg: '0.9rem', xl: '1rem' }}
                             variant={'seatText'}
                             zIndex={3}
+                            
                         >
                             D
                         </Text>
@@ -170,6 +171,7 @@ const TakenSeatButton = ({
                         fontSize={{ base: '0.6rem', sm: '0.7rem', md: '0.8rem', lg: '0.9rem', xl: '1rem' }}
                         variant={'seatText'}
                         zIndex={3}
+                        
                     >
                         {player.bet}
                     </Text>
@@ -184,7 +186,7 @@ const TakenSeatButton = ({
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
                         return (
-                            <Box flex={1} key={`${card}-${index}`} width={'50%'} maxW={'7.6rem'} aspectRatio={7/10}>
+                            <Box flex={1} key={`${card}-${index}`} width="90%" height="90%">
                                 <CardComponent
                                     card={card}
                                     placeholder={false}
@@ -213,7 +215,7 @@ const TakenSeatButton = ({
                     <Text
                         variant={'seatText'}
                         fontWeight={'bold'}
-                        fontSize={{ base: '0.6rem', sm: '0.7rem', md: '0.8rem', lg: '0.9rem', xl: '1rem' }}
+                        fontSize={{ base: '0.5rem', sm: '0.6rem', md: '0.7rem', lg: '0.8rem', xl: '0.85rem' }}
                         color={
                             isCurrentTurn || isWinner ? 'gray.700' : 'gray.50'
                         }
@@ -222,12 +224,21 @@ const TakenSeatButton = ({
                     </Text>
                     <Text
                         variant={'seatText'}
-                        fontSize={{ base: '0.7rem', sm: '0.8rem', md: '0.9rem', lg: '1rem', xl: '1.1rem' }}
-                        color={isCurrentTurn || isWinner ? 'gray.700' : 'gray.50'}
+                        color={
+                            isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'
+                        }
+                        fontSize="90%"
                     >
                        {player.stack}
                     </Text>
                 </HStack>
+                <Text
+                    color={isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'}
+                    variant={'seatText'}
+                    fontSize="90%"
+                >
+                    {player.stack}
+                </Text>
             </Flex>
         </Flex>
     );

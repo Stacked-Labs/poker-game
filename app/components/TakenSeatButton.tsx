@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
     Box,
     Flex,
@@ -6,6 +6,7 @@ import {
     ResponsiveValue,
     PositionProps,
     HStack,
+    Progress,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { Card, Player } from '../interfaces';
@@ -114,6 +115,72 @@ const TakenSeatButton = ({
         : isWinner
           ? `${pulseGoldGlow} 2s ease-in-out 0.5s infinite`
           : 'none';
+
+    // Countdown timer logic
+    const deadline = appState.game?.actionDeadline ?? 0;
+    const [remaining, setRemaining] = useState<number>(0);
+    const [initialDuration, setInitialDuration] = useState<number>(0); // ms
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const actionIndex = appState.game?.action;
+
+    useEffect(() => {
+        // Stop any timer if this seat is not the current turn
+        if (!isCurrentTurn) {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+            setRemaining(0);
+            return;
+        }
+
+        // For the active player, (re)start the timer whenever deadline changes
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+
+        if (!deadline || deadline === 0) {
+            setRemaining(0);
+            return;
+        }
+
+        const calcAndSet = () => {
+            const diff = Math.max(deadline - Date.now(), 0);
+            setRemaining(diff);
+        };
+
+        const initial = Math.max(deadline - Date.now(), 0);
+        setInitialDuration(initial);
+
+        // Debug log
+        console.log(
+            `⏱️ Seat ${player.seatID} timer start: now=${Date.now()} deadline=${deadline} (duration=${initial}ms, seconds=${Math.ceil(initial / 1000)})`
+        );
+
+        calcAndSet();
+        intervalRef.current = setInterval(calcAndSet, 250);
+
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+
+            // Debug log for cleanup
+            console.log(`⏹️ Seat ${player.seatID} timer cleared`);
+        };
+    }, [deadline, actionIndex, isCurrentTurn]);
+
+    const total = initialDuration || 1; // avoid divide by zero
+    const progress = Math.min((remaining / total) * 100, 100);
+    const seconds = Math.ceil(remaining / 1000);
+    const secondsText = seconds.toString().padStart(2, '0');
+    const barScheme: 'green' | 'yellow' | 'red' | 'gray' = isCurrentTurn
+        ? remaining <= 5000
+            ? 'red'
+            : remaining <= 10000
+              ? 'yellow'
+              : 'green'
+        : 'gray';
 
     if (!appState.game) {
         return null;
@@ -232,6 +299,36 @@ const TakenSeatButton = ({
                 >
                     {player.stack}
                 </Text>
+
+                {/* Countdown timer – only for active player */}
+                {isCurrentTurn && deadline > 0 && remaining > 0 && (
+                    <Box
+                        width="100%"
+                        display="flex"
+                        flexDirection="row"
+                        alignItems="center"
+                        alignSelf="stretch"
+                    >
+                        {/* Numeric time above – hidden on small screens */}
+                        <Text
+                            fontSize={{ base: 'xs', md: 'sm' }}
+                            textAlign="center"
+                            color={`${barScheme}.700`}
+                            display={{ base: 'none', md: 'block' }}
+                            mr={2}
+                        >
+                            {`00:${secondsText}`}
+                        </Text>
+                        {/* Thicker progress bar flush bottom */}
+                        <Progress
+                            value={progress}
+                            height={{ base: 1, md: 2 }}
+                            width="100%"
+                            colorScheme={barScheme}
+                            borderRadius="md"
+                        />
+                    </Box>
+                )}
             </Flex>
         </Flex>
     );

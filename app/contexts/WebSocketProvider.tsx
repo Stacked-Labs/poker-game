@@ -273,6 +273,10 @@ export function SocketProvider(props: SocketProviderProps) {
                             minRaise: eventData.game.minRaise,
                             readyCount: eventData.game.readyCount,
                             paused: eventData.game.paused,
+                            actionDeadline:
+                                eventData.game?.actionDeadline ??
+                                eventData.actionDeadline ??
+                                0,
                         };
                         dispatch({ type: 'updateGame', payload: newGame });
 

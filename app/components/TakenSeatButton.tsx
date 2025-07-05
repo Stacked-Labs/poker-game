@@ -124,16 +124,20 @@ const TakenSeatButton = ({
             width={{ base: 90, lg: 135, '2xl': 225 }}
             height={'100%'}
             position={'relative'}
-            direction={'column'}
+            direction={{ base: 'column', md: 'column' }}
             alignItems={'center'}
             justifyContent={'flex-end'}
+            gap={{ base: 1, md: 0 }}
         >
             <Flex
-                position={'absolute'}
+                position={{ base: 'static', md: 'absolute' }}
                 key="betbox"
-                {...chipPosition}
+                {...(chipPosition && typeof chipPosition === 'object' ? chipPosition : {})}
                 width={'100%'}
-                gap={{ base: '0.5rem', sm: '0.75rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
+                gap={{ base: '0.25rem', sm: '0.5rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
+                mb={{ base: 1, md: 0 }}
+                mt={{ base: 1, md: 0 }}
+                zIndex={3}
             >
                 {appState.game.running &&
                     appState.game.dealer == player.position && (
@@ -150,16 +154,15 @@ const TakenSeatButton = ({
                             fontSize={{ base: '0.6rem', sm: '0.7rem', md: '0.8rem', lg: '0.9rem', xl: '1rem' }}
                             variant={'seatText'}
                             zIndex={3}
-                            
                         >
                             D
                         </Text>
                     )}
                 {player.bet !== 0 && (
                     <Text
-                        borderRadius={{ base: '0.5rem', sm: '0.75rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
-                        px={{ base: '0.5rem', sm: '0.75rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
-                        py={{ base: '0.25rem', sm: '0.35rem', md: '0.4rem', lg: '0.5rem', xl: '0.6rem' }}
+                        borderRadius={{ base: '0.3rem', sm: '0.5rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
+                        px={{ base: '0.3rem', sm: '0.5rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
+                        py={{ base: '0.15rem', sm: '0.25rem', md: '0.4rem', lg: '0.5rem', xl: '0.6rem' }}
                         w={'fit-content'}
                         bg="amber.300"
                         fontWeight="semibold"
@@ -171,7 +174,6 @@ const TakenSeatButton = ({
                         fontSize={{ base: '0.6rem', sm: '0.7rem', md: '0.8rem', lg: '0.9rem', xl: '1rem' }}
                         variant={'seatText'}
                         zIndex={3}
-                        
                     >
                         {player.bet}
                     </Text>
@@ -180,8 +182,9 @@ const TakenSeatButton = ({
             <Flex
                 justifyContent={'center'}
                 width={'100%'}
-                gap={{ base: '0.15rem', sm: '0.3rem', md: '0.4rem', lg: '0.5rem', xl: '0.7rem' }}
+                gap={{ base: '0.1rem', sm: '0.2rem', md: '0.4rem', lg: '0.5rem', xl: '0.7rem' }}
                 flex={1}
+                mb={{ base: 2, md: 0 }}
             >
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
@@ -199,19 +202,20 @@ const TakenSeatButton = ({
             <Flex
                 direction={'column'}
                 bg={isCurrentTurn || isWinner ? 'white' : 'gray.800'}
-                borderRadius={{ base: '0.5rem', sm: '0.75rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
+                borderRadius={{ base: '0.3rem', sm: '0.5rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
                 width={'100%'}
-                paddingX={{ base: '0.5rem', sm: '0.75rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
-                paddingY={{ base: '0.25rem', sm: '0.35rem', md: '0.4rem', lg: '0.5rem', xl: '0.6rem' }}
+                paddingX={{ base: '0.3rem', sm: '0.5rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' }}
+                paddingY={{ base: '0.15rem', sm: '0.25rem', md: '0.4rem', lg: '0.5rem', xl: '0.6rem' }}
                 zIndex={2}
-                position={'absolute'}
-                bottom={0}
+                position={{ base: 'static', md: 'absolute' }}
+                bottom={{ base: 'unset', md: 0 }}
                 justifyContent={'center'}
                 alignItems={'center'}
                 animation={glowAnimation}
                 transition={'all 0.5s ease-in-out'}
+                mt={{ base: 2, md: 0 }}
             >
-                <HStack spacing={{ base: '0.25rem', sm: '0.5rem', md: '0.75rem', lg: '1rem', xl: '1.25rem' }}>
+                <HStack spacing={{ base: '0.15rem', sm: '0.25rem', md: '0.75rem', lg: '1rem', xl: '1.25rem' }}>
                     <Text
                         variant={'seatText'}
                         fontWeight={'bold'}

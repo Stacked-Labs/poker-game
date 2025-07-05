@@ -264,7 +264,19 @@ const Navbar = () => {
                             </Flex>
                         )}
                     </Box>
-                    <Web3Button size="lg" paddingX={{ base: 8, md: 12 }} />
+                    {/* Wallet button: icon-only on mobile, full on larger screens */}
+                    <Web3Button
+                        compact
+                        size="lg"
+                        display={{ base: 'inline-flex', md: 'none' }}
+                    />
+                    <Web3Button
+                        size="lg"
+                        variant="white"
+                        colorScheme="white"
+                        paddingX={{ md: 12 }}
+                        display={{ base: 'none', md: 'inline-flex' }}
+                    />
                 </HStack>
 
                 <SettingsModal isOpen={isOpen} onClose={onClose} />

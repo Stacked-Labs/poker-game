@@ -227,7 +227,9 @@ const Table = () => {
                     !shouldRotate ? templateGridLarge : templateGridSmall
                 }
                 gridTemplateRows={
-                    !shouldRotate ? 'repeat(4, 1fr)' : 'repeat(7, 1fr)'
+                    !shouldRotate
+                        ? 'repeat(4, minmax(0, 1fr))'
+                        : 'repeat(7, minmax(0, 1fr))'
                 }
                 gridTemplateColumns={
                     !shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'
@@ -279,9 +281,10 @@ const Table = () => {
                         );
                     })}
                 <GridItem
-                    height={'50%'}
-                    width={'70%'}
+                    height={{ base: '100%', md: '70%', lg: '60%' }}
+                    width={'80%'}
                     area={'felt'}
+                    className="grid-felt"
                     justifyContent={'center'}
                 >
                     <Felt />

@@ -6,24 +6,15 @@ import CommunityCards from './CommunityCards';
 const Felt = () => {
     return (
         <Flex
+            className="community-cards"
             height={'100%'}
             width={'100%'}
-            direction={'column'}
             alignItems={'center'}
             justifyContent={'center'}
-            gap={2}
+            position={'relative'}
+            gap={{ base: 1, md: 2, lg: 3 }}
         >
-            <Flex
-                height={'30%'}
-                width={'40%'}
-                justifyContent={'center'}
-                alignItems={'center'}
-                mb={'2.4vh'}
-                py={2}
-            >
-                <Pot />
-            </Flex>
-
+            <Pot />
             <CommunityCards />
         </Flex>
     );

@@ -7,6 +7,7 @@ import {
     PositionProps,
     HStack,
     Progress,
+    Tooltip,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { Card, Player } from '../interfaces';
@@ -242,14 +243,25 @@ const TakenSeatButton = ({
             <Flex
                 position={'absolute'}
                 justifyContent={'center'}
-                width={'90%'}
+                width={'fit-content'}
                 height={'100%'}
                 gap={0}
+                left="50%"
+                transform="translateX(-50%)"
             >
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
                         return (
-                            <Box flex={1} key={`${card}-${index}`}>
+                            <Box
+                                key={`${card}-${index}`}
+                                width={{
+                                    base: '40px',
+                                    md: '72px',
+                                    lg: '84px',
+                                    '2xl': '120px',
+                                }}
+                                display="flex"
+                            >
                                 <CardComponent
                                     card={card}
                                     placeholder={false}
@@ -275,60 +287,64 @@ const TakenSeatButton = ({
                 transition={'all 0.5s ease-in-out'}
             >
                 <HStack spacing={2}>
+                    <Tooltip label={shortEthAddress} hasArrow>
+                        <Text
+                            variant={'seatText'}
+                            fontWeight={'bold'}
+                            color={
+                                isCurrentTurn || isWinner
+                                    ? 'gray.700'
+                                    : 'gray.300'
+                            }
+                            cursor="pointer"
+                        >
+                            {player.username}
+                        </Text>
+                    </Tooltip>
                     <Text
                         variant={'seatText'}
-                        fontWeight={'bold'}
                         color={
                             isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'
                         }
                     >
-                        {player.username}
-                    </Text>
-                    <Text
-                        variant={'seatText'}
-                        color={
-                            isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'
-                        }
-                    >
-                        {shortEthAddress}
+                        {player.stack}
                     </Text>
                 </HStack>
-                <Text
-                    color={isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'}
-                    variant={'seatText'}
-                >
-                    {player.stack}
-                </Text>
 
-                {/* Countdown timer – only for active player */}
-                {isCurrentTurn && deadline > 0 && remaining > 0 && (
-                    <Box
-                        width="100%"
-                        display="flex"
-                        flexDirection="row"
-                        alignItems="center"
-                        alignSelf="stretch"
-                    >
-                        {/* Numeric time above – hidden on small screens */}
-                        <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            textAlign="center"
-                            color={`${barScheme}.700`}
-                            display={{ base: 'none', md: 'block' }}
-                            mr={2}
-                        >
-                            {`00:${secondsText}`}
-                        </Text>
-                        {/* Thicker progress bar flush bottom */}
-                        <Progress
-                            value={progress}
-                            height={{ base: 1, md: 2 }}
+                {/* Countdown timer – keep box rendered for consistent height */}
+                {(() => {
+                    const timerVisible =
+                        isCurrentTurn && deadline > 0 && remaining > 0;
+                    return (
+                        <Box
                             width="100%"
-                            colorScheme={barScheme}
-                            borderRadius="md"
-                        />
-                    </Box>
-                )}
+                            display="flex"
+                            flexDirection="row"
+                            alignItems="center"
+                            alignSelf="stretch"
+                            visibility={timerVisible ? 'visible' : 'hidden'}
+                        >
+                            {/* Numeric time – hidden on small screens */}
+                            <Text
+                                fontSize={{ base: 'xs', md: 'sm' }}
+                                textAlign="center"
+                                color={`${barScheme}.700`}
+                                display={{ base: 'none', md: 'block' }}
+                                mr={2}
+                            >
+                                {`00:${secondsText}`}
+                            </Text>
+                            {/* Progress bar */}
+                            <Progress
+                                value={progress}
+                                height={{ base: 1, md: 2 }}
+                                width="100%"
+                                colorScheme={barScheme}
+                                borderRadius="md"
+                            />
+                        </Box>
+                    );
+                })()}
             </Flex>
         </Flex>
     );

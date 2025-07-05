@@ -110,14 +110,22 @@ const CardImage = ({
     altText: string;
 }) => {
     return (
-        <Box width={'100%'} height={'100%'} position={'relative'}>
+        <Box
+            width={'100%'}
+            height={'100%'}
+            position={'relative'}
+            className="card-image-box"
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+        >
             <Image
-                borderRadius={'8%'}
+                borderRadius={'10%'}
                 position={'absolute'}
                 alt={altText}
                 src={cardPhoto}
-                width={'100%'}
-                height="fit-content"
+                height="100%"
+                width="auto"
                 draggable="false"
                 style={{
                     objectFit: 'contain',

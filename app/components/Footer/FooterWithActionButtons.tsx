@@ -115,63 +115,52 @@ const FooterWithActionButtons = ({
     return (
         <Flex
             justifyContent={'end'}
-            gap={3}
+            gap={2}
             p={2}
-            height={180}
+            height={{ base: '120px', md: '180px' }}
             overflow={'hidden'}
+            alignItems={'center'}
         >
-            <Flex
-                gap={2}
-                alignItems={'center'}
-                width={{ base: '100%', md: 'fit-content' }}
-            >
-                {showRaise && isCurrentTurn ? (
-                    <RaiseInputBox
-                        isCurrentTurn={isCurrentTurn}
-                        setShowRaise={setShowRaise}
-                        showRaise={showRaise}
+            {showRaise && isCurrentTurn ? (
+                <RaiseInputBox
+                    isCurrentTurn={isCurrentTurn}
+                    setShowRaise={setShowRaise}
+                    showRaise={showRaise}
+                />
+            ) : (
+                <>
+                    <ActionButton
+                        text={canCall ? 'call' : 'call (' + callAmount + ')'}
+                        color="green"
+                        clickHandler={() =>
+                            handleCall(appState.username, callAmount)
+                        }
+                        isDisabled={!isCurrentTurn || canCall || gameIsPaused}
+                        hotkey={HOTKEY_CALL}
                     />
-                ) : (
-                    <>
-                        <ActionButton
-                            text={
-                                canCall ? 'call' : 'call (' + callAmount + ')'
-                            }
-                            color="green"
-                            clickHandler={() =>
-                                handleCall(appState.username, callAmount)
-                            }
-                            isDisabled={
-                                !isCurrentTurn || canCall || gameIsPaused
-                            }
-                            hotkey={HOTKEY_CALL}
-                        />
-                        <ActionButton
-                            text={'Raise'}
-                            color="green"
-                            clickHandler={() => setShowRaise(true)}
-                            isDisabled={!isCurrentTurn || gameIsPaused}
-                            hotkey={HOTKEY_RAISE}
-                        />
-                        <ActionButton
-                            text={'Check'}
-                            color="green"
-                            clickHandler={() => handleCheck(appState.username)}
-                            isDisabled={
-                                !isCurrentTurn || !canCheck || gameIsPaused
-                            }
-                            hotkey={HOTKEY_CHECK}
-                        />
-                        <ActionButton
-                            text={'Fold'}
-                            color="red"
-                            clickHandler={() => handleFold(appState.username)}
-                            isDisabled={!isCurrentTurn || gameIsPaused}
-                            hotkey={HOTKEY_FOLD}
-                        />
-                    </>
-                )}
-            </Flex>
+                    <ActionButton
+                        text={'Raise'}
+                        color="green"
+                        clickHandler={() => setShowRaise(true)}
+                        isDisabled={!isCurrentTurn || gameIsPaused}
+                        hotkey={HOTKEY_RAISE}
+                    />
+                    <ActionButton
+                        text={'Check'}
+                        color="green"
+                        clickHandler={() => handleCheck(appState.username)}
+                        isDisabled={!isCurrentTurn || !canCheck || gameIsPaused}
+                        hotkey={HOTKEY_CHECK}
+                    />
+                    <ActionButton
+                        text={'Fold'}
+                        color="red"
+                        clickHandler={() => handleFold(appState.username)}
+                        isDisabled={!isCurrentTurn || gameIsPaused}
+                        hotkey={HOTKEY_FOLD}
+                    />
+                </>
+            )}
         </Flex>
     );
 };

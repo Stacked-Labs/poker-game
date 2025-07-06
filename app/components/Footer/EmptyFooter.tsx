@@ -6,7 +6,7 @@ const EmptyFooter = () => {
             justifyContent={'end'}
             gap={3}
             p={2}
-            height={180}
+            height={{ base: '120px', md: '180px' }}
             overflow={'hidden'}
         />
     );

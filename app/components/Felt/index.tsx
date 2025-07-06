@@ -6,7 +6,7 @@ import CommunityCards from './CommunityCards';
 const Felt = () => {
     return (
         <Flex
-            className="community-cards"
+            className="felt-container"
             height={'100%'}
             width={'100%'}
             alignItems={'center'}

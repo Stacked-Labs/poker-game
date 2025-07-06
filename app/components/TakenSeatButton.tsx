@@ -189,6 +189,7 @@ const TakenSeatButton = ({
 
     return (
         <Flex
+            className="taken-seat-button"
             width={{ base: 100, lg: 150, '2xl': 250 }}
             height={'100%'}
             position={'relative'}
@@ -241,9 +242,10 @@ const TakenSeatButton = ({
                 )}
             </Flex>
             <Flex
+                className="player-cards-container"
                 position={'absolute'}
                 justifyContent={'center'}
-                width={'fit-content'}
+                width={'100%'}
                 height={'100%'}
                 gap={0}
                 left="50%"
@@ -254,12 +256,8 @@ const TakenSeatButton = ({
                         return (
                             <Box
                                 key={`${card}-${index}`}
-                                width={{
-                                    base: '40px',
-                                    md: '72px',
-                                    lg: '84px',
-                                    '2xl': '120px',
-                                }}
+                                className={`player-card seat-${player.seatID}-card-${index}`}
+                                width="100%"
                                 display="flex"
                             >
                                 <CardComponent
@@ -272,9 +270,10 @@ const TakenSeatButton = ({
                     })}
             </Flex>
             <Flex
+                className="player-info-container"
                 direction={'column'}
                 bg={isCurrentTurn || isWinner ? 'white' : 'gray.50'}
-                borderRadius={12}
+                borderRadius={{ base: 4, md: 8, lg: 12, xl: 12, '2xl': 12 }}
                 width={'110%'}
                 paddingX={4}
                 paddingY={1}
@@ -286,9 +285,10 @@ const TakenSeatButton = ({
                 animation={glowAnimation}
                 transition={'all 0.5s ease-in-out'}
             >
-                <HStack spacing={2}>
+                <HStack spacing={2} className="player-info-header">
                     <Tooltip label={shortEthAddress} hasArrow>
                         <Text
+                            className="player-username"
                             variant={'seatText'}
                             fontWeight={'bold'}
                             color={
@@ -302,6 +302,7 @@ const TakenSeatButton = ({
                         </Text>
                     </Tooltip>
                     <Text
+                        className="player-stack"
                         variant={'seatText'}
                         color={
                             isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'
@@ -317,6 +318,7 @@ const TakenSeatButton = ({
                         isCurrentTurn && deadline > 0 && remaining > 0;
                     return (
                         <Box
+                            className="player-timer-container"
                             width="100%"
                             display="flex"
                             flexDirection="row"
@@ -326,6 +328,7 @@ const TakenSeatButton = ({
                         >
                             {/* Numeric time – hidden on small screens */}
                             <Text
+                                className="player-timer-count"
                                 fontSize={{ base: 'xs', md: 'sm' }}
                                 textAlign="center"
                                 color={`${barScheme}.700`}
@@ -336,6 +339,7 @@ const TakenSeatButton = ({
                             </Text>
                             {/* Progress bar */}
                             <Progress
+                                className="player-timer-bar"
                                 value={progress}
                                 height={{ base: 1, md: 2 }}
                                 width="100%"

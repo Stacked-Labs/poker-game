@@ -3,25 +3,29 @@
 import { Box, Button } from '@chakra-ui/react';
 import React from 'react';
 
+interface ActionButtonProps {
+    text: string;
+    color: string;
+    clickHandler: () => void;
+    isDisabled: boolean;
+    hotkey: string;
+    className?: string;
+}
+
 const ActionButton = ({
     text,
     color,
     clickHandler,
     isDisabled,
     hotkey,
-}: {
-    text: string;
-    color: string;
-    clickHandler: () => void;
-    isDisabled: boolean;
-    hotkey: string;
-}) => {
+    className = '',
+}: ActionButtonProps) => {
     return (
         <Button
             color={`${color}.500`}
             borderColor={`${color}.500`}
             borderBottomWidth={4}
-            padding={{ sm: 2, md: 8 }}
+            padding={{ sm: 6, md: 10 }}
             textTransform={'uppercase'}
             onClick={clickHandler}
             isDisabled={isDisabled}
@@ -32,8 +36,10 @@ const ActionButton = ({
                 xl: 'large',
                 '2xl': 'large',
             }}
-            flex={1}
+            maxW={{ base: '100px', md: '100px', lg: '120px' }}
+            flexShrink={0}
             position={'relative'}
+            className={`action-button ${text.toLowerCase()}-button ${className}`.trim()}
         >
             <Box
                 position={'absolute'}
@@ -42,6 +48,7 @@ const ActionButton = ({
                 fontSize={'small'}
                 opacity={'60%'}
                 textTransform={'uppercase'}
+                display={{ base: 'none', md: 'block' }}
             >
                 {hotkey}
             </Box>

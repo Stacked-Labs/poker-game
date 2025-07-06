@@ -150,7 +150,7 @@ const RaiseInputBox = ({
 
     const actionButtons = () => {
         return (
-            <Flex flex={1} gap={2}>
+            <Flex flex={1} gap={2} justifyContent={'flex-end'}>
                 <ActionButton
                     text={'Back'}
                     color="white"
@@ -185,6 +185,7 @@ const RaiseInputBox = ({
             direction={{ base: 'column', md: 'row' }}
             alignItems={'center'}
             color={'white'}
+            className="raise-input-box"
         >
             <Flex
                 direction={{
@@ -192,7 +193,7 @@ const RaiseInputBox = ({
                     md: 'column-reverse',
                     lg: 'row',
                 }}
-                gap={2}
+                gap={1}
             >
                 <Flex gap={2} justifyContent={{ base: 'end' }}>
                     <Box
@@ -203,15 +204,22 @@ const RaiseInputBox = ({
                         px={1}
                         flex={1}
                         height={'100%'}
+                        className="raise-bet-container"
                     >
-                        <Text whiteSpace={'nowrap'} p={1} fontSize={'sm'}>
+                        <Text
+                            whiteSpace={'nowrap'}
+                            p={1}
+                            fontSize={{ base: 'xs', md: 'sm' }}
+                            display={{ base: 'none', md: 'block' }}
+                        >
                             Your Bet
                         </Text>
                         <Input
                             bg={'charcoal.600'}
                             border={'white'}
-                            fontSize={{ base: 'small', md: 'xl' }}
+                            fontSize={{ base: 'xs', md: 'xl' }}
                             mb={1}
+                            size={{ base: 'xs', md: 'md' }}
                             type="number"
                             value={inputValue}
                             min={minRaise}
@@ -220,6 +228,7 @@ const RaiseInputBox = ({
                             focusBorderColor={'gray.300'}
                             textAlign={'center'}
                             onBlur={handleInputOnBlur}
+                            className="raise-bet-input"
                         />
                     </Box>
                     <Box display={{ base: 'inline-flex', lg: 'none' }} flex={2}>
@@ -232,8 +241,9 @@ const RaiseInputBox = ({
                     rounded={'lg'}
                     flex={1}
                     justifyContent={'center'}
-                    overflow={'hdden'}
+                    overflow={'hidden'}
                     maxW={'95vw'}
+                    className="raise-slider-container"
                 >
                     <Flex flex={1} gap={2} p={2}>
                         <Button
@@ -355,7 +365,7 @@ const RaiseInputBox = ({
                     </Flex>
                 </Flex>
             </Flex>
-            <Box display={{ base: 'none', lg: 'inline-flex' }}>
+            <Box display={{ base: 'none', lg: 'inline-flex' }} ml={'auto'}>
                 {actionButtons()}
             </Box>
         </Flex>

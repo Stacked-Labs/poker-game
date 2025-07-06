@@ -82,6 +82,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     return (
         <>
             <Box
+                className="loading-overlay"
                 background={'gray.200'}
                 width={'100vw'}
                 height={'100vh'}
@@ -106,6 +107,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
             </Box>
             {appState.game?.paused && (
                 <Box
+                    className="pause-banner"
                     position="fixed"
                     top="80px"
                     left="50%"
@@ -123,6 +125,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                 </Box>
             )}
             <Flex
+                className="game-page-container"
                 flex={1}
                 justifyContent={'center'}
                 position={'relative'}

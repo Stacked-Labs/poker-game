@@ -90,7 +90,7 @@ const Pot = () => {
                                                 }}
                                                 color={'white'}
                                             >
-                                                total
+                                                total{' '}
                                                 <Text
                                                     as={'span'}
                                                     fontWeight={'medium'}
@@ -98,7 +98,7 @@ const Pot = () => {
                                                         xl: '17px',
                                                         lg: '16px',
                                                         md: '14px',
-                                                        base: '13px',
+                                                        base: '10px',
                                                     }}
                                                 >
                                                     {game.pots[index].amount}

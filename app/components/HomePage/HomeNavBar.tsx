@@ -69,6 +69,7 @@ const HomeNavBar: React.FC = () => {
             justifyContent={'space-between'}
             alignItems={'center'}
             position={'fixed'}
+            height={'80px'}
             zIndex={99}
             as="nav"
             bg={'gray.200'}

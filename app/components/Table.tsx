@@ -197,6 +197,7 @@ const Table = () => {
 
     return (
         <Flex
+            className="table-container"
             position={'relative'}
             justify={'center'}
             width={{
@@ -207,17 +208,18 @@ const Table = () => {
             }}
         >
             <Image
+                className="table-image"
                 src={
                     !shouldRotate
                         ? '/table-horizontal.webp'
                         : '/table-vertical.webp'
                 }
                 objectFit={'contain'}
-                width={'80%'}
+                width={'fit-content'}
             />
             <Grid
-                px={4}
-                py={4}
+                className="table-grid"
+                p={1}
                 position={'absolute'}
                 width={'100%'}
                 height={'100%'}
@@ -227,12 +229,14 @@ const Table = () => {
                     !shouldRotate ? templateGridLarge : templateGridSmall
                 }
                 gridTemplateRows={
-                    !shouldRotate ? 'repeat(4, 1fr)' : 'repeat(7, 1fr)'
+                    !shouldRotate
+                        ? 'repeat(4, minmax(0, 1fr))'
+                        : 'repeat(7, minmax(0, 1fr))'
                 }
                 gridTemplateColumns={
                     !shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'
                 }
-                gap={4}
+                gap={{ base: 2, md: 2, lg: 4 }}
                 placeItems="center"
                 justifyContent={'center'}
             >
@@ -242,6 +246,7 @@ const Table = () => {
                         return (
                             <GridItem
                                 key={value}
+                                className={`seat seat-${value}`}
                                 area={id}
                                 display={'flex'}
                                 justifyContent={'center'}
@@ -279,9 +284,10 @@ const Table = () => {
                         );
                     })}
                 <GridItem
-                    height={'50%'}
-                    width={'70%'}
+                    height={{ base: '100%', md: '70%', lg: '60%' }}
+                    width={'80%'}
                     area={'felt'}
+                    className="grid-felt"
                     justifyContent={'center'}
                 >
                     <Felt />

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import Head from 'next/head';
+import Script from 'next/script';
 
 const HomePage: React.FC = () => {
     const router = useRouter();
@@ -32,6 +33,25 @@ const HomePage: React.FC = () => {
                     content="poker, online poker, Texas Hold'em, card game, multiplayer"
                 />
             </Head>
+            {/* Load CoinGecko widget script */}
+            <Script
+                src="https://widgets.coingecko.com/gecko-coin-price-marquee-widget.js"
+                strategy="afterInteractive"
+            />
+            {/* CoinGecko price marquee placed directly under the navbar */}
+            <Box
+                width="100%"
+                bgColor={'gray.200'}
+                display="flex"
+                justifyContent="center"
+                position="fixed"
+                top="80px"
+                left={0}
+                zIndex={98}
+                dangerouslySetInnerHTML={{
+                    __html: `<gecko-coin-price-marquee-widget dark-mode="true" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
+                }}
+            />
             <Box w="100vw" bgColor={'gray.200'}>
                 <VStack height={'fit-content'}>
                     <Flex alignItems={'center'} height={'100vh'}>

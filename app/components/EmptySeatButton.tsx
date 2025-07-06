@@ -19,6 +19,7 @@ const EmptySeatButton = ({
     return (
         <>
             <MotionButton
+                className="empty-seat-button"
                 width={'100%'}
                 height={'100%'}
                 bgColor="transparent"

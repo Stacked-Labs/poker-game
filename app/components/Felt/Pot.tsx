@@ -56,8 +56,14 @@ const Pot = () => {
                 }}
                 borderRadius={999}
                 justifyContent={'center'}
-                position={'relative'}
+                alignItems={'center'}
                 gap={1}
+                position={'absolute'}
+                top={{ base: '-8', md: '-6', lg: '-6' }}
+                left={'50%'}
+                transform={'translateX(-50%)'}
+                pointerEvents={'none'}
+                zIndex={999}
             >
                 {pots.map((pot, index) => {
                     if (pot.amount !== 0) {
@@ -103,25 +109,20 @@ const Pot = () => {
                                         <Text>&nbsp;</Text>
                                     )}
                                 </Flex>
-                                {index == 0 && (
-                                    <Flex
-                                        paddingX={'14'}
-                                        justifyContent={'center'}
-                                        mb={'10%'}
+                                {index === 0 && (
+                                    <Text
+                                        fontSize={{
+                                            xl: '22px',
+                                            lg: '20px',
+                                            md: '16px',
+                                            base: '12px',
+                                        }}
+                                        fontWeight="extrabold"
+                                        color="white"
+                                        textAlign="center"
                                     >
-                                        <Text
-                                            fontSize={{
-                                                xl: '17px',
-                                                lg: '16px',
-                                                md: '12px',
-                                                base: '9px',
-                                            }}
-                                            color={'white'}
-                                            fontWeight={'bold'}
-                                        >
-                                            {pot.amount}
-                                        </Text>
-                                    </Flex>
+                                        {pot.amount}
+                                    </Text>
                                 )}
                             </>
                         );

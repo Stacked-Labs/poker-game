@@ -190,7 +190,7 @@ const TakenSeatButton = ({
     return (
         <Flex
             className="taken-seat-button"
-            width={{ base: 100, lg: 150, '2xl': 250 }}
+            width={'100%'}
             height={'100%'}
             position={'relative'}
             alignItems={'center'}
@@ -257,8 +257,10 @@ const TakenSeatButton = ({
                             <Box
                                 key={`${card}-${index}`}
                                 className={`player-card seat-${player.seatID}-card-${index}`}
-                                width="100%"
+                                width="50%"
                                 display="flex"
+                                ml={index === 1 ? '-2%' : '0'}
+                                mr={index === 0 ? '-2%' : '0'}
                             >
                                 <CardComponent
                                     card={card}

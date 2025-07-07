@@ -124,8 +124,8 @@ const CardImage = ({
                 position={'absolute'}
                 alt={altText}
                 src={cardPhoto}
-                height="auto"
-                width="auto"
+                height="100%"
+                width="100%"
                 draggable="false"
                 style={{
                     objectFit: 'contain',

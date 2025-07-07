@@ -54,7 +54,7 @@ const HomePage: React.FC = () => {
             />
             <Box w="100vw" bgColor={'gray.200'}>
                 <VStack height={'fit-content'}>
-                    <Flex alignItems={'center'} height={'100vh'}>
+                    <Flex alignItems={'center'} height={'var(--full-vh)'}>
                         <HomeSection />
                     </Flex>
                 </VStack>

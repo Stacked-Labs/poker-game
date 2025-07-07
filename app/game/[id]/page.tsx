@@ -85,7 +85,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                 className="loading-overlay"
                 background={'gray.200'}
                 width={'100vw'}
-                height={'100vh'}
+                height={'var(--full-vh)'}
                 position={'fixed'}
                 zIndex={999}
                 hidden={tableStatus !== 'checking'}

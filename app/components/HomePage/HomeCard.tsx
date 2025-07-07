@@ -36,7 +36,7 @@ const HomeCard = () => {
         <Flex
             justifyContent="center"
             alignItems="center"
-            minHeight="100vh"
+            minHeight="var(--full-vh)"
             width="100%"
             p={2}
         >

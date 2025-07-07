@@ -36,7 +36,7 @@ const HomeSection = () => {
         <Box
             position="relative"
             width="100vw"
-            height={{ base: '100%', lg: '100vh' }}
+            height={{ base: '100%', lg: 'var(--full-vh)' }}
             bgAttachment="fixed"
             bgSize="cover"
             bgPosition={{ base: 'right', lg: 'center' }}

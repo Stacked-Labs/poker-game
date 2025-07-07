@@ -43,7 +43,7 @@ const GameLayout: React.FC = ({
                 justify="center"
                 align="center"
                 w="100vw"
-                h="100vh"
+                h="var(--full-vh)"
                 position="fixed"
                 backgroundColor="gray.200"
                 zIndex={999}
@@ -67,7 +67,7 @@ const GameLayout: React.FC = ({
         <Flex
             direction="column"
             w="100vw"
-            h="100vh"
+            h="var(--full-vh)"
             zIndex="auto"
             transformOrigin="center center"
             bg={'gray.200'}

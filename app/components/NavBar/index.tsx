@@ -282,7 +282,7 @@ const Navbar = () => {
                 <SettingsModal isOpen={isOpen} onClose={onClose} />
             </Flex>
             <Flex
-                height={'100vh'}
+                height={'var(--full-vh)'}
                 width={'100vw'}
                 position={'absolute'}
                 zIndex={999}

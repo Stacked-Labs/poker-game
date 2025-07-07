@@ -206,6 +206,10 @@ const Table = () => {
                 xl: '70vw',
                 '2xl': '70vw',
             }}
+            height="100%"
+            maxHeight="100%"
+            maxWidth="100%"
+            overflow="hidden"
         >
             <Image
                 className="table-image"
@@ -214,8 +218,11 @@ const Table = () => {
                         ? '/table-horizontal.webp'
                         : '/table-vertical.webp'
                 }
-                objectFit={'contain'}
-                width={'fit-content'}
+                objectFit="contain"
+                height="100%"
+                width="auto"
+                maxWidth="100%"
+                maxHeight="100%"
             />
             <Grid
                 className="table-grid"

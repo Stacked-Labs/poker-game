@@ -127,6 +127,8 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
             <Flex
                 className="game-page-container"
                 flex={1}
+                minHeight={0}
+                overflow="hidden"
                 justifyContent={'center'}
                 position={'relative'}
                 style={{

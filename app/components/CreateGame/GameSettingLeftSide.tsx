@@ -22,6 +22,7 @@ import { joinTable, sendLog } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { Poppins } from 'next/font/google';
 import { useActiveAccount, useActiveWallet } from 'thirdweb/react';
+import Turnstile from 'react-turnstile';
 
 const poppins = Poppins({
     weight: ['700'],
@@ -44,6 +45,7 @@ const LeftSideContent: React.FC = () => {
     const [smallBlind, setSmallBlind] = useState<number>(1);
     const [bigBlind, setBigBlind] = useState<number>(2);
     const [isFormValid, setIsFormValid] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
     const { gameModes, networks } = gameData;
 
@@ -83,6 +85,14 @@ const LeftSideContent: React.FC = () => {
     ]);
 
     const handleCreateGame = async () => {
+        if (!turnstileToken) {
+            toast.warning(
+                'Verification Required',
+                'Please complete the human verification challenge.'
+            );
+            return;
+        }
+
         if (!isFormValid) {
             if (playType === 'Crypto' && !address) {
                 toast.warning(
@@ -155,6 +165,7 @@ const LeftSideContent: React.FC = () => {
                         bigBlind: bigBlind,
                         isCrypto: playType === 'Crypto',
                         chain: playType === 'Crypto' ? selectedNetwork : '',
+                        cfTurnstileToken: turnstileToken,
                     }),
                 }
             );
@@ -191,12 +202,15 @@ const LeftSideContent: React.FC = () => {
                 );
                 setIsLoading(false);
             }
+
+            setTurnstileToken(null);
         } catch (error) {
             console.error('Error creating game:', error);
             toast.error(
                 'Create Failed',
                 `An error occurred: ${error instanceof Error ? error.message : String(error)}`
             );
+            setTurnstileToken(null);
             setIsLoading(false);
         }
     };
@@ -358,6 +372,13 @@ const LeftSideContent: React.FC = () => {
                 )}
             </VStack>
 
+            <Turnstile
+                sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
+                onSuccess={(token: string) => setTurnstileToken(token)}
+                onExpire={() => setTurnstileToken(null)}
+                theme="dark"
+            />
+
             <Button
                 variant="homeSectionButton"
                 bg="green.500"
@@ -370,9 +391,11 @@ const LeftSideContent: React.FC = () => {
                 isLoading={isLoading}
                 loadingText="Loading"
                 spinner={<Spinner size="md" color="white" />}
-                opacity={isFormValid ? 1 : 0.6}
-                cursor={isFormValid ? 'pointer' : 'not-allowed'}
-                disabled={!isFormValid}
+                opacity={isFormValid && !!turnstileToken ? 1 : 0.6}
+                cursor={
+                    isFormValid && !!turnstileToken ? 'pointer' : 'not-allowed'
+                }
+                disabled={!isFormValid || !turnstileToken}
             >
                 Create Game
             </Button>

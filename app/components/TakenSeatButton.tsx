@@ -257,10 +257,18 @@ const TakenSeatButton = ({
                             <Box
                                 key={`${card}-${index}`}
                                 className={`player-card seat-${player.seatID}-card-${index}`}
-                                width="50%"
+                                width="40%" // narrower than 50% so the pair is centred
                                 display="flex"
-                                ml={index === 1 ? '-2%' : '0'}
-                                mr={index === 0 ? '-2%' : '0'}
+                                ml={
+                                    index === 1
+                                        ? { base: '0%', md: '-2%', lg: '0%' }
+                                        : '0'
+                                }
+                                mr={
+                                    index === 0
+                                        ? { base: '0%', md: '-2%', lg: '0%' }
+                                        : '0'
+                                }
                             >
                                 <CardComponent
                                     card={card}

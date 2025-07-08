@@ -114,11 +114,11 @@ const FooterWithActionButtons = ({
 
     return (
         <Flex
-            justifyContent={'end'}
-            gap={2}
+            justifyContent={{ base: 'space-between', md: 'end' }}
+            gap={{ base: 1, md: 2 }}
             p={2}
-            height={{ base: '120px', md: '180px' }}
-            overflow={'hidden'}
+            height={{ base: '100px', md: '150px' }}
+            overflow={'visible'}
             alignItems={'center'}
         >
             {showRaise && isCurrentTurn ? (
@@ -129,15 +129,17 @@ const FooterWithActionButtons = ({
                 />
             ) : (
                 <>
-                    <ActionButton
-                        text={canCall ? 'call' : 'call (' + callAmount + ')'}
-                        color="green"
-                        clickHandler={() =>
-                            handleCall(appState.username, callAmount)
-                        }
-                        isDisabled={!isCurrentTurn || canCall || gameIsPaused}
-                        hotkey={HOTKEY_CALL}
-                    />
+                    {isCurrentTurn && !canCall && !gameIsPaused && (
+                        <ActionButton
+                            text={'Call (' + callAmount + ')'}
+                            color="green"
+                            clickHandler={() =>
+                                handleCall(appState.username, callAmount)
+                            }
+                            isDisabled={false}
+                            hotkey={HOTKEY_CALL}
+                        />
+                    )}
                     <ActionButton
                         text={'Raise'}
                         color="green"
@@ -145,13 +147,15 @@ const FooterWithActionButtons = ({
                         isDisabled={!isCurrentTurn || gameIsPaused}
                         hotkey={HOTKEY_RAISE}
                     />
-                    <ActionButton
-                        text={'Check'}
-                        color="green"
-                        clickHandler={() => handleCheck(appState.username)}
-                        isDisabled={!isCurrentTurn || !canCheck || gameIsPaused}
-                        hotkey={HOTKEY_CHECK}
-                    />
+                    {isCurrentTurn && canCheck && !gameIsPaused && (
+                        <ActionButton
+                            text={'Check'}
+                            color="green"
+                            clickHandler={() => handleCheck(appState.username)}
+                            isDisabled={false}
+                            hotkey={HOTKEY_CHECK}
+                        />
+                    )}
                     <ActionButton
                         text={'Fold'}
                         color="red"

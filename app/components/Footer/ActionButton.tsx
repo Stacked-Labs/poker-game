@@ -25,7 +25,7 @@ const ActionButton = ({
             color={`${color}.500`}
             borderColor={`${color}.500`}
             borderBottomWidth={4}
-            padding={{ sm: 6, md: 10 }}
+            padding={{ base: 4, sm: 6, md: 10 }}
             textTransform={'uppercase'}
             onClick={clickHandler}
             isDisabled={isDisabled}
@@ -36,8 +36,11 @@ const ActionButton = ({
                 xl: 'large',
                 '2xl': 'large',
             }}
-            maxW={{ base: '100px', md: '100px', lg: '120px' }}
-            flexShrink={0}
+            maxW={{ base: 'unset', md: '180px', lg: '200px' }}
+            width={{ base: '100%', md: 'auto' }}
+            flex={{ base: 1, md: '0 0 auto' }}
+            height={{ base: '100%', md: 'auto' }}
+            flexShrink={{ base: 1, md: 0 }}
             position={'relative'}
             className={`action-button ${text.toLowerCase()}-button ${className}`.trim()}
         >

@@ -187,6 +187,223 @@ const RaiseInputBox = ({
             color={'white'}
             className="raise-input-box"
         >
+            {/* ======= MOBILE / TABLET LAYOUT (≤ lg) ======= */}
+            <Flex
+                direction="column"
+                gap={2}
+                width="100%"
+                display={{ base: 'flex', lg: 'none' }}
+                position="relative"
+                className="raise-mobile-wrapper"
+            >
+                {/* Row 1 – pot-size quick buttons */}
+                <Flex
+                    gap={2}
+                    wrap="wrap"
+                    justifyContent="space-between"
+                    className="raise-pot-buttons-row"
+                >
+                    <Button
+                        variant={'raiseActionButton'}
+                        flex={1}
+                        minW={0}
+                        isDisabled={gameIsPaused || !isCurrentTurn}
+                        onClick={() =>
+                            setInputValue(
+                                betValidator(
+                                    minRaise,
+                                    minRaise,
+                                    currentStack + currentBet
+                                )
+                            )
+                        }
+                    >
+                        Min
+                    </Button>
+                    <Button
+                        variant={'raiseActionButton'}
+                        flex={1}
+                        minW={0}
+                        isDisabled={gameIsPaused || !isCurrentTurn}
+                        onClick={() =>
+                            setInputValue(
+                                betValidator(
+                                    half,
+                                    minRaise,
+                                    currentStack + currentBet
+                                )
+                            )
+                        }
+                    >
+                        1/2 Pot
+                    </Button>
+                    <Button
+                        variant={'raiseActionButton'}
+                        flex={1}
+                        minW={0}
+                        isDisabled={gameIsPaused || !isCurrentTurn}
+                        onClick={() =>
+                            setInputValue(
+                                betValidator(
+                                    threeQuarter,
+                                    minRaise,
+                                    currentStack + currentBet
+                                )
+                            )
+                        }
+                    >
+                        3/4 Pot
+                    </Button>
+                    <Button
+                        variant={'raiseActionButton'}
+                        flex={1}
+                        minW={0}
+                        isDisabled={gameIsPaused || !isCurrentTurn}
+                        onClick={() =>
+                            setInputValue(
+                                betValidator(
+                                    full,
+                                    minRaise,
+                                    currentStack + currentBet
+                                )
+                            )
+                        }
+                    >
+                        Pot
+                    </Button>
+                    <Button
+                        variant={'raiseActionButton'}
+                        flex={1}
+                        minW={0}
+                        isDisabled={gameIsPaused || !isCurrentTurn}
+                        onClick={() =>
+                            setInputValue(
+                                betValidator(
+                                    allIn,
+                                    minRaise,
+                                    currentStack + currentBet
+                                )
+                            )
+                        }
+                    >
+                        All In
+                    </Button>
+                </Flex>
+
+                {/* Row 2 – amount display + Back + Raise buttons */}
+                <Flex gap={2} width="100%" className="raise-actions-row">
+                    {/* Amount */}
+                    <Box
+                        bg={'charcoal.800'}
+                        rounded={'lg'}
+                        flex={1}
+                        p={1}
+                        textAlign="center"
+                        overflow={'hidden'}
+                    >
+                        <Input
+                            bg={'charcoal.600'}
+                            border={'none'}
+                            fontSize={{ base: 'xl', sm: '2xl' }}
+                            size={'sm'}
+                            width={'100%'}
+                            height={'100%'}
+                            type="number"
+                            value={inputValue}
+                            min={minRaise}
+                            max={maxRaise}
+                            onChange={handleInputChange}
+                            focusBorderColor={'gray.300'}
+                            textAlign={'center'}
+                            onBlur={handleInputOnBlur}
+                        />
+                    </Box>
+
+                    {/* Back */}
+                    <Flex flex={1}>
+                        <ActionButton
+                            text={'Back'}
+                            color="white"
+                            clickHandler={() => setShowRaise(false)}
+                            isDisabled={!isCurrentTurn || gameIsPaused}
+                            hotkey={HOTKEY_BACK.slice(0, 3)}
+                            className="mobile-back"
+                        />
+                    </Flex>
+
+                    {/* Raise */}
+                    <Flex flex={1}>
+                        <ActionButton
+                            text={'Raise'}
+                            color="green"
+                            clickHandler={() =>
+                                handleSubmitRaise(
+                                    appState.username,
+                                    inputValue - currentBet
+                                )
+                            }
+                            isDisabled={
+                                gameIsPaused ||
+                                !isCurrentTurn ||
+                                inputValue < minRaise ||
+                                inputValue > currentStack + currentBet
+                            }
+                            hotkey={HOTKEY_RAISE}
+                            className="mobile-raise"
+                        />
+                    </Flex>
+                </Flex>
+
+                {/* Vertical slider overlay – absolute positioned */}
+                <Box
+                    position="absolute"
+                    bottom="100px"
+                    right={0}
+                    height={{ base: '400px', sm: '260px' }}
+                    width={{ base: '60px', sm: '70px' }}
+                    display={{ base: 'flex', lg: 'none' }}
+                    flexDirection="column"
+                    bg={'charcoal.600'}
+                    rounded={'lg'}
+                    overflow={'hidden'}
+                    zIndex={20}
+                    className="raise-vertical-slider"
+                >
+                    <Flex
+                        bg={'charcoal.400'}
+                        p={1}
+                        alignItems="center"
+                        justifyContent="center"
+                    >
+                        <LuPlus />
+                    </Flex>
+                    <Slider
+                        orientation="vertical"
+                        aria-label="raise-slider-mobile-vertical"
+                        flex={1}
+                        size="lg"
+                        value={sliderValue}
+                        max={maxRaise}
+                        min={minRaise}
+                        onChange={handleSliderChange}
+                        isDisabled={!isCurrentTurn || gameIsPaused}
+                    >
+                        <SliderTrack>
+                            <SliderFilledTrack />
+                        </SliderTrack>
+                        <SliderThumb />
+                    </Slider>
+                    <Flex
+                        bg={'charcoal.400'}
+                        p={1}
+                        alignItems="center"
+                        justifyContent="center"
+                    >
+                        <LuMinus />
+                    </Flex>
+                </Box>
+            </Flex>
+
             <Flex
                 direction={{
                     base: 'column-reverse',
@@ -194,6 +411,7 @@ const RaiseInputBox = ({
                     lg: 'row',
                 }}
                 gap={1}
+                display={{ base: 'none', lg: 'flex' }}
             >
                 <Flex gap={2} justifyContent={{ base: 'end' }}>
                     <Box

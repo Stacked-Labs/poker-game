@@ -349,7 +349,9 @@ export function SocketProvider(props: SocketProviderProps) {
                         );
                         // If seat request was denied (message check), reset the flag
                         if (
-                            eventData.message === 'Seat request denied.' &&
+                            (eventData.message === 'Seat request denied.' ||
+                                eventData.message ===
+                                    'A player is already requesting for this seat.') &&
                             appStateRef.current.isSeatRequested
                         ) {
                             dispatch({

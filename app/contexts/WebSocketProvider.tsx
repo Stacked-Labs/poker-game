@@ -219,6 +219,26 @@ export function SocketProvider(props: SocketProviderProps) {
                     return; // Message handled
                 }
 
+                if (eventData.type === 'is_pending_player') {
+                    // Handle is_pending_player message
+                    if (eventData.payload !== undefined) {
+                        dispatch({
+                            type: 'setIsSeatRequested',
+                            payload: eventData.payload, // true if the player is pending, false otherwise
+                        });
+                    } else {
+                        console.error(
+                            'is_pending_player is undefined',
+                            eventData.payload
+                        );
+                        dispatch({
+                            type: 'setIsSeatRequested',
+                            payload: false,
+                        });
+                        return; // Message handled
+                    }
+                }
+
                 switch (eventData.action) {
                     case 'new-message': {
                         const newMessage: Message = {

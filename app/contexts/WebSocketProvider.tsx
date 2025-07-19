@@ -201,7 +201,18 @@ export function SocketProvider(props: SocketProviderProps) {
                     })(),
                 });
 
-                const eventData = JSON.parse(e.data);
+                let eventData;
+                try {
+                    eventData = JSON.parse(e.data);
+                } catch (error) {
+                    console.error(
+                        'Failed to parse WebSocket message as JSON:',
+                        error
+                    );
+                    console.error('Raw WebSocket data:', e.data);
+                    return; // Stop processing if JSON is invalid
+                }
+
                 // Handle pending_players_update first as it uses event.type
                 if (eventData.type === 'pending_players_update') {
                     if (Array.isArray(eventData.payload)) {

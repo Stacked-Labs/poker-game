@@ -37,6 +37,20 @@ const GameLayout: React.FC = ({
         }
     }, [appState.game?.players]);
 
+    const [orientation, setOrientation] = useState('');
+
+    useEffect(() => {
+        function updateOrientation() {
+            setOrientation(screen.orientation.type);
+        }
+
+        updateOrientation();
+        window.addEventListener('orientationchange', updateOrientation);
+        return () => {
+            window.removeEventListener('orientationchange', updateOrientation);
+        };
+    }, [screen.orientation.type]);
+
     if (loading) {
         return (
             <Flex
@@ -64,22 +78,46 @@ const GameLayout: React.FC = ({
     }
 
     return (
-        <Flex
-            direction="column"
-            w="100vw"
-            h="var(--full-vh)"
-            zIndex="auto"
-            transformOrigin="center center"
-            bg={'gray.200'}
-        >
-            <Navbar />
-            {children}
-            <Footer />
+        <>
+            {orientation.includes('landscape') && (
+                <Flex
+                    justify="center"
+                    align="center"
+                    w="100vw"
+                    h="100vh"
+                    backgroundColor="gray"
+                    px={4}
+                    position={'fixed'}
+                    zIndex={999999}
+                >
+                    <Text
+                        color="white    "
+                        size="xl"
+                        fontWeight="bold"
+                        align={'center'}
+                    >
+                        Please rotate your device to portrait mode to play the
+                        game.
+                    </Text>
+                </Flex>
+            )}
+            <Flex
+                direction="column"
+                w="100vw"
+                h="var(--full-vh)"
+                zIndex="auto"
+                transformOrigin="center center"
+                bg={'gray.200'}
+            >
+                <Navbar />
+                {children}
+                <Footer />
 
-            <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
-                <LobbyBanner onClose={onClose} />
-            </Modal>
-        </Flex>
+                <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
+                    <LobbyBanner onClose={onClose} />
+                </Modal>
+            </Flex>
+        </>
     );
 };
 

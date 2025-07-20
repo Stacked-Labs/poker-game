@@ -59,12 +59,12 @@ export type Game = {
     pots: Pot[];
     minRaise: number;
     readyCount: number;
-    paused?: boolean; // Whether the game is currently paused
+    paused: boolean; // Whether the game is currently paused
     /**
      * Unix epoch in milliseconds indicating when the current player's action window ends.
      * A value of 0 means no active timer.
      */
-    actionDeadline?: number;
+    actionDeadline: number;
 };
 
 export type Config = {

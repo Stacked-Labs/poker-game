@@ -57,7 +57,6 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                     const result = await isTableExisting(tableId);
                     if (result.status === 'success') {
                         joinTable(socket, tableId);
-                        newPlayer(socket, '');
                         dispatch({ type: 'setTablename', payload: tableId });
                         sendLog(socket, `Joined table ${tableId}`);
                         setTableStatus('success');

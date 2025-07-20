@@ -69,7 +69,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
         console.log(appState.appState);
 
         if (socket && message != '') {
-            sendMessage(socket, username || 'guest', message);
+            sendMessage(socket, message);
             setMessage('');
         }
     };

@@ -27,14 +27,9 @@ export function joinTable(socket: WebSocket, tablename: string) {
     });
 }
 
-export function sendMessage(
-    socket: WebSocket,
-    username: string,
-    message: string
-) {
+export function sendMessage(socket: WebSocket, message: string) {
     sendWebSocketMessage(socket, {
         action: 'send-message',
-        username: username,
         message: message,
     });
 }

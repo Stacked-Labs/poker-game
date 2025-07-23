@@ -13,6 +13,7 @@ import {
 import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
+import LandscapeScreen from '@/app/components/LandscapeScreen';
 
 const GameLayout: React.FC = ({
     children,
@@ -36,20 +37,6 @@ const GameLayout: React.FC = ({
             onClose();
         }
     }, [appState.game?.players]);
-
-    const [orientation, setOrientation] = useState('');
-
-    useEffect(() => {
-        function updateOrientation() {
-            setOrientation(screen.orientation.type);
-        }
-
-        updateOrientation();
-        window.addEventListener('orientationchange', updateOrientation);
-        return () => {
-            window.removeEventListener('orientationchange', updateOrientation);
-        };
-    }, [screen.orientation.type]);
 
     if (loading) {
         return (
@@ -79,28 +66,7 @@ const GameLayout: React.FC = ({
 
     return (
         <>
-            {orientation.includes('landscape') && (
-                <Flex
-                    justify="center"
-                    align="center"
-                    w="100vw"
-                    h="100vh"
-                    backgroundColor="gray"
-                    px={4}
-                    position={'fixed'}
-                    zIndex={999999}
-                >
-                    <Text
-                        color="white    "
-                        size="xl"
-                        fontWeight="bold"
-                        align={'center'}
-                    >
-                        Please rotate your device to portrait mode to play the
-                        game.
-                    </Text>
-                </Flex>
-            )}
+            <LandscapeScreen />
             <Flex
                 direction="column"
                 w="100vw"

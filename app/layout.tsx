@@ -7,6 +7,7 @@ import '@fontsource/poppins';
 import '@fontsource/libre-barcode-39-text';
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import React from 'react';
+import LandscapeScreen from './components/LandscapeScreen';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
         <html lang="en">
             <body className={inter.className}>
                 <Providers>
+                    <LandscapeScreen />
                     <HomeNavBar />
                     <main>{children}</main>
                 </Providers>

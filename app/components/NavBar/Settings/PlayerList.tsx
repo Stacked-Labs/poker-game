@@ -53,7 +53,7 @@ const PlayerList = () => {
         }
     };
 
-    const handleKickPlayer = async (uuid: string, seatId: number) => {
+    const handleKickPlayer = async (uuid: string) => {
         try {
             if (uuid && appState.table && socket) {
                 const kickedPlayer = appState.game?.players?.find(
@@ -68,7 +68,7 @@ const PlayerList = () => {
                     2000
                 );
 
-                kickPlayer(socket, uuid, seatId, appState.table);
+                kickPlayer(socket, uuid, appState.table);
             } else {
                 toast.error('Unable to kick player', 'Please try again');
             }

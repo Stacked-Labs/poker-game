@@ -21,14 +21,13 @@ import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 
 interface Props {
     acceptedPlayers: Player[] | undefined;
-    handleKickPlayer: (uuid: string, seatId: number) => void;
+    handleKickPlayer: (uuid: string) => void;
 }
 
 const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedPlayer, setSelectedPlayer] = useState<{
         uuid: string;
-        seatId: number;
         name?: string;
     } | null>(null);
     const [kickingInProgress, setKickingInProgress] = useState<string | null>(
@@ -40,7 +39,6 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     const confirmKick = (player: Player) => {
         setSelectedPlayer({
             uuid: player.uuid,
-            seatId: player.seatID,
             name: player.username || player.uuid.substring(0, 8),
         });
         onOpen();
@@ -49,7 +47,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     const handleConfirmKick = () => {
         if (selectedPlayer) {
             setKickingInProgress(selectedPlayer.uuid);
-            handleKickPlayer(selectedPlayer.uuid, selectedPlayer.seatId);
+            handleKickPlayer(selectedPlayer.uuid);
 
             // Reset kicking state after a delay to show visual feedback
             setTimeout(() => {

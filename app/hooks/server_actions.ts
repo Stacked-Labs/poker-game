@@ -75,16 +75,10 @@ export function denyPlayer(socket: WebSocket, uuid: string, tableName: string) {
     });
 }
 
-export function kickPlayer(
-    socket: WebSocket,
-    uuid: string,
-    seatId: number,
-    tableName: string
-) {
+export function kickPlayer(socket: WebSocket, uuid: string, tableName: string) {
     sendWebSocketMessage(socket, {
         action: 'kick-player',
         uuid: uuid,
-        seatId: seatId,
         tableName: tableName,
     });
 }

@@ -10,7 +10,7 @@ import {
 import { signMessage } from 'thirdweb/utils';
 import { Account, Wallet } from 'thirdweb/dist/types/exports/wallets.native';
 import { authenticateUser, isAuth } from '../hooks/server_actions';
-
+import { useRouter } from 'next/navigation';
 interface AuthContextProps {
     isAuthenticated: boolean;
     userAddress: string | null;
@@ -34,6 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const wallet = useActiveWallet();
     const account = useActiveAccount();
     const { disconnect } = useDisconnect();
+    const router = useRouter();
 
     const authenticate = async (account: Account, wallet: Wallet) => {
         try {
@@ -66,6 +67,7 @@ Timestamp: ${Date.now()}`;
                     'Authentication Successful',
                     'You have been successfully authenticated.'
                 );
+                router.refresh();
             } else {
                 throw new Error('No success response');
             }
@@ -77,6 +79,7 @@ Timestamp: ${Date.now()}`;
                 'There was an error during authentication. Please try again.'
             );
         }
+        router.refresh();
     };
 
     useEffect(() => {

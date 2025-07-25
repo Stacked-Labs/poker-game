@@ -7,8 +7,16 @@ import {
     Icon,
     Spinner,
     IconButton,
+    Menu,
+    MenuButton,
+    MenuDivider,
+    MenuItem,
+    MenuList,
+    useClipboard,
+    Tooltip,
+    Flex,
 } from '@chakra-ui/react';
-import { FaWallet } from 'react-icons/fa';
+import { FaChevronDown, FaCopy, FaWallet } from 'react-icons/fa';
 import {
     useActiveWallet,
     useActiveAccount,
@@ -41,8 +49,10 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
     const isAutoConnecting = useIsAutoConnecting();
     const { disconnect } = useDisconnect();
     const { warning, error } = useToastHelper();
+    const { hasCopied, onCopy } = useClipboard(accountAddress || '');
 
-    useAuth(); // TODO: is this the best place for this?
+    const auth = useAuth();
+    const isAuth = auth.isAuthenticated;
 
     const handleConnect = async () => {
         const currentWallet = await connect({ client });
@@ -89,9 +99,52 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
         );
     }
 
+    if (accountAddress && isAuth) {
+        const address = accountAddress
+            ? `${accountAddress.substring(0, 4)}...${accountAddress.substring(accountAddress.length - 4)}`
+            : '';
+
+        return (
+            <Menu closeOnSelect={false} colorScheme="charcoal">
+                <MenuButton
+                    as={Button}
+                    rightIcon={<FaChevronDown />}
+                    variant={props.variant ?? 'connectButton'}
+                >
+                    {address}
+                </MenuButton>
+                <MenuList bg={'charcoal.800'} color={'white'} width={'100%'}>
+                    <MenuItem bg={'charcoal.800'}>
+                        <Flex alignItems={'center'} gap={2}>
+                            {address}
+                            <Tooltip
+                                label={
+                                    hasCopied ? 'Copied!' : 'Copy to clipboard'
+                                }
+                            >
+                                <FaCopy onClick={onCopy} />
+                            </Tooltip>
+                        </Flex>
+                    </MenuItem>
+                    <MenuDivider />
+                    <MenuItem
+                        bg={'charcoal.800'}
+                        _hover={{
+                            bg: 'charcoal',
+                            color: 'white',
+                        }}
+                        onClick={handleDisconnect}
+                    >
+                        Disconnect
+                    </MenuItem>
+                </MenuList>
+            </Menu>
+        );
+    }
+
     return (
         <Button
-            variant={props.variant ?? 'homeSectionButton'}
+            variant={props.variant ?? 'connectButton'}
             leftIcon={
                 <Icon
                     as={FaWallet}
@@ -99,9 +152,7 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
                     boxSize={{ base: 5, md: 6 }}
                 />
             }
-            bg={'#2D2D2D'}
             borderColor={connected ? 'green.100' : 'white'}
-            borderWidth="2px"
             color={connected && !isHovered ? 'green.100' : 'white'}
             _hover={{
                 borderColor: connected ? 'green.100' : 'white',
@@ -111,21 +162,13 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            onClick={accountAddress ? handleDisconnect : handleConnect}
+            onClick={handleConnect}
             fontSize={{ base: 'sm', md: 'md' }}
             aria-label={accountAddress ? 'Disconnect Wallet' : 'Connect Wallet'}
             {...props}
         >
-            {isConnecting || isAutoConnecting ? (
+            {isConnecting || isAutoConnecting || (accountAddress && !isAuth) ? (
                 <Spinner />
-            ) : accountAddress ? (
-                isHovered ? (
-                    'Disconnect'
-                ) : (
-                    `${accountAddress.substring(0, 4)}...${accountAddress.substring(
-                        accountAddress.length - 4
-                    )}`
-                )
             ) : (
                 'Connect'
             )}

@@ -67,7 +67,6 @@ Timestamp: ${Date.now()}`;
                     'Authentication Successful',
                     'You have been successfully authenticated.'
                 );
-                router.refresh();
             } else {
                 throw new Error('No success response');
             }

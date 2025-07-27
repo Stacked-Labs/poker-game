@@ -44,7 +44,13 @@ const LinkBox = () => {
                     cursor="text"
                 />
             </Box>
-            <Box width={'15%'}>
+            <Box
+                width={'15%'}
+                bg={'green.500'}
+                _hover={{
+                    bg: 'green.400',
+                }}
+            >
                 <CopyLinkButton link={currentUrl} />
             </Box>
         </Flex>

@@ -1,7 +1,13 @@
 import { Flex, Tooltip, useClipboard } from '@chakra-ui/react';
 import { FaCopy } from 'react-icons/fa';
 
-const CopyLinkButton = ({ link }: { link: string | null }) => {
+const CopyLinkButton = ({
+    link,
+    // bg,
+}: {
+    link: string | null;
+    // bg: string | null;
+}) => {
     const { hasCopied, onCopy } = useClipboard(link || '');
 
     if (!link) {
@@ -15,18 +21,17 @@ const CopyLinkButton = ({ link }: { link: string | null }) => {
             height={'100%'}
         >
             <Flex
-                bg="green.500"
                 onClick={onCopy}
                 height={'100%'}
                 cursor={'pointer'}
                 justifyContent={'center'}
                 alignItems={'center'}
+                color="white"
                 _hover={{
-                    bg: 'green.400',
+                    color: 'lightgrey',
                 }}
-                transition="all 0.2s"
             >
-                <FaCopy color="white" />
+                <FaCopy />
             </Flex>
         </Tooltip>
     );

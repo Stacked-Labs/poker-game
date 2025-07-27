@@ -12,11 +12,9 @@ import {
     MenuDivider,
     MenuItem,
     MenuList,
-    useClipboard,
-    Tooltip,
     Flex,
 } from '@chakra-ui/react';
-import { FaChevronDown, FaCopy, FaWallet } from 'react-icons/fa';
+import { FaChevronDown, FaWallet } from 'react-icons/fa';
 import {
     useActiveWallet,
     useActiveAccount,
@@ -28,6 +26,7 @@ import {
 import { client } from '../thirdwebclient';
 import useToastHelper from '../hooks/useToastHelper';
 import { useAuth, logoutUser } from '../contexts/AuthContext';
+import CopyLinkButton from './CopyLinkButton';
 
 interface Web3ButtonProps extends ButtonProps {
     /**
@@ -49,7 +48,6 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
     const isAutoConnecting = useIsAutoConnecting();
     const { disconnect } = useDisconnect();
     const { warning, error } = useToastHelper();
-    const { hasCopied, onCopy } = useClipboard(accountAddress || '');
 
     const auth = useAuth();
     const isAuth = auth.isAuthenticated;
@@ -117,13 +115,7 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
                     <MenuItem bg={'charcoal.800'}>
                         <Flex alignItems={'center'} gap={2}>
                             {address}
-                            <Tooltip
-                                label={
-                                    hasCopied ? 'Copied!' : 'Copy to clipboard'
-                                }
-                            >
-                                <FaCopy onClick={onCopy} />
-                            </Tooltip>
+                            <CopyLinkButton link={accountAddress} />
                         </Flex>
                     </MenuItem>
                     <MenuDivider />

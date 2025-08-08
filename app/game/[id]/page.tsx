@@ -1,49 +1,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-    isTableExisting,
-    joinTable,
-    newPlayer,
-    sendLog,
-} from '@/app/hooks/server_actions';
+import { isTableExisting } from '@/app/hooks/server_actions';
 import Table from '@/app/components/Table';
 import { useContext } from 'react';
-import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { Player } from '@/app/interfaces';
-import {
-    Box,
-    Flex,
-    Spinner,
-    Text,
-    VStack,
-    Heading,
-    Center,
-    useStyleConfig,
-} from '@chakra-ui/react';
+import { Box, Flex, Spinner, Text, VStack, Heading } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import useToastHelper from '@/app/hooks/useToastHelper';
 
-const initialPlayers: (Player | null)[] = [
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-];
+// no local players state; rely on global game state
 
 const MainGamePage = ({ params }: { params: { id: string } }) => {
     const router = useRouter();
     const toast = useToastHelper();
-    const socket = useContext(SocketContext);
+    // Socket is provided at layout level for this route, not needed for initial join
     const { appState, dispatch } = useContext(AppContext);
-    const [players, setPlayers] = useState(initialPlayers);
+    // local players state unused; rely on global game state
     const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
         'checking'
     );
@@ -52,13 +25,11 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
 
     useEffect(() => {
         const verifyAndJoinTable = async () => {
-            if (socket && tableId) {
+            if (tableId) {
                 try {
                     const result = await isTableExisting(tableId);
                     if (result.status === 'success') {
-                        joinTable(socket, tableId);
                         dispatch({ type: 'setTablename', payload: tableId });
-                        sendLog(socket, `Joined table ${tableId}`);
                         setTableStatus('success');
                     } else {
                         await new Promise((resolve) =>
@@ -76,7 +47,8 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
         };
 
         verifyAndJoinTable();
-    }, [socket, tableId, dispatch, router]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tableId]);
 
     return (
         <>

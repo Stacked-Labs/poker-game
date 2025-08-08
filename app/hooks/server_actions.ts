@@ -163,6 +163,21 @@ export function sendResumeGameCommand(socket: WebSocket) {
     }
 }
 
+// Initialize/confirm an HTTP session so cookies are set before subsequent requests
+export async function initSession() {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/init-session`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        return response.ok;
+    } catch (e) {
+        console.error('Failed to initialize session:', e);
+        return false;
+    }
+}
+
 export async function authenticateUser(
     address: string,
     signature: string,

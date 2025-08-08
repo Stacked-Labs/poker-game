@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useContext, useEffect, useState } from 'react';
+import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import Navbar from '@/app/components/NavBar';
 import {
     Flex,
@@ -14,9 +15,10 @@ import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
 
-const GameLayout: React.FC = ({
+const GameLayout: React.FC<{ params: { id: string } }> = ({
     children,
-}: React.PropsWithChildren<object>) => {
+    params,
+}: React.PropsWithChildren<{ params: { id: string } }>) => {
     const { appState } = useContext(AppContext);
     const [loading, setLoading] = useState(true);
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -72,9 +74,11 @@ const GameLayout: React.FC = ({
             transformOrigin="center center"
             bg={'gray.200'}
         >
-            <Navbar />
-            {children}
-            <Footer />
+            <SocketProvider tableId={params.id}>
+                <Navbar />
+                {children}
+                <Footer />
+            </SocketProvider>
 
             <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
                 <LobbyBanner onClose={onClose} />

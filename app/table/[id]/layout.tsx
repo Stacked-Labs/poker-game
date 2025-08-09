@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useContext, useEffect, useState } from 'react';
+import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import Navbar from '@/app/components/NavBar';
 import {
     Flex,
@@ -14,9 +15,10 @@ import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
 
-const GameLayout: React.FC = ({
+const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
-}: React.PropsWithChildren<object>) => {
+    params,
+}: React.PropsWithChildren<{ params: { id: string } }>) => {
     const { appState } = useContext(AppContext);
     const [loading, setLoading] = useState(true);
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -35,7 +37,7 @@ const GameLayout: React.FC = ({
         if (appState.game?.players && appState.game?.players.length > 1) {
             onClose();
         }
-    }, [appState.game?.players]);
+    }, [appState.game?.players, onClose]);
 
     if (loading) {
         return (
@@ -56,7 +58,7 @@ const GameLayout: React.FC = ({
                         speed="0.8s"
                     />
                     <Text color="white" fontSize="lg" fontWeight="bold">
-                        Loading game...
+                        Loading table...
                     </Text>
                 </VStack>
             </Flex>
@@ -72,9 +74,11 @@ const GameLayout: React.FC = ({
             transformOrigin="center center"
             bg={'gray.200'}
         >
-            <Navbar />
-            {children}
-            <Footer />
+            <SocketProvider tableId={params.id}>
+                <Navbar />
+                {children}
+                <Footer />
+            </SocketProvider>
 
             <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
                 <LobbyBanner onClose={onClose} />
@@ -83,4 +87,4 @@ const GameLayout: React.FC = ({
     );
 };
 
-export default GameLayout;
+export default TableLayout;

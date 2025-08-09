@@ -20,11 +20,11 @@ const PlayerList = () => {
     const toast = useToastHelper();
 
     const handleAcceptPlayer = async (uuid: string) => {
-        if (socket && uuid && appState.table) {
+        if (socket && uuid) {
             const player = pendingPlayers.find((p) => p.uuid === uuid);
             const playerIdentifier = player?.username || uuid.substring(0, 8);
 
-            acceptPlayer(socket, uuid, appState.table);
+            acceptPlayer(socket, uuid);
 
             toast.success(
                 `Player ${playerIdentifier} accepted`,
@@ -37,11 +37,11 @@ const PlayerList = () => {
     };
 
     const handleDenyPlayer = async (uuid: string) => {
-        if (socket && uuid && appState.table) {
+        if (socket && uuid) {
             const player = pendingPlayers.find((p) => p.uuid === uuid);
             const playerIdentifier = player?.username || uuid.substring(0, 8);
 
-            denyPlayer(socket, uuid, appState.table);
+            denyPlayer(socket, uuid);
 
             toast.info(
                 `Player ${playerIdentifier} request denied`,
@@ -55,7 +55,7 @@ const PlayerList = () => {
 
     const handleKickPlayer = async (uuid: string) => {
         try {
-            if (uuid && appState.table && socket) {
+            if (uuid && socket) {
                 const kickedPlayer = appState.game?.players?.find(
                     (player) => player.uuid === uuid
                 );
@@ -68,7 +68,7 @@ const PlayerList = () => {
                     2000
                 );
 
-                kickPlayer(socket, uuid, appState.table);
+                kickPlayer(socket, uuid);
             } else {
                 toast.error('Unable to kick player', 'Please try again');
             }

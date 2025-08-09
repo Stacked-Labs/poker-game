@@ -20,12 +20,7 @@ function sendWebSocketMessage(socket: WebSocket, message: object) {
     socket.send(stringifiedMessage);
 }
 
-export function joinTable(socket: WebSocket, tablename: string) {
-    sendWebSocketMessage(socket, {
-        action: 'join-table',
-        tablename: tablename,
-    });
-}
+// joinTable helper is obsolete in per-table socket model; handshake happens on socket open
 
 export function sendMessage(socket: WebSocket, message: string) {
     sendWebSocketMessage(socket, {
@@ -55,31 +50,24 @@ export function takeSeat(
     });
 }
 
-export function acceptPlayer(
-    socket: WebSocket,
-    uuid: string,
-    tableName: string
-) {
+export function acceptPlayer(socket: WebSocket, uuid: string) {
     sendWebSocketMessage(socket, {
         action: 'accept-player',
         uuid: uuid,
-        tableName: tableName,
     });
 }
 
-export function denyPlayer(socket: WebSocket, uuid: string, tableName: string) {
+export function denyPlayer(socket: WebSocket, uuid: string) {
     sendWebSocketMessage(socket, {
         action: 'deny-player',
         uuid: uuid,
-        tableName: tableName,
     });
 }
 
-export function kickPlayer(socket: WebSocket, uuid: string, tableName: string) {
+export function kickPlayer(socket: WebSocket, uuid: string) {
     sendWebSocketMessage(socket, {
         action: 'kick-player',
         uuid: uuid,
-        tableName: tableName,
     });
 }
 
@@ -160,6 +148,21 @@ export function sendResumeGameCommand(socket: WebSocket) {
     } else {
         console.error('Cannot send resume-game: WebSocket is not open.');
         // Optionally, notify the user or attempt to handle the error
+    }
+}
+
+// Initialize/confirm an HTTP session so cookies are set before subsequent requests
+export async function initSession() {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/init-session`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        return response.ok;
+    } catch (e) {
+        console.error('Failed to initialize session:', e);
+        return false;
     }
 }
 

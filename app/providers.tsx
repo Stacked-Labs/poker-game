@@ -6,7 +6,6 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { theme } from './theme';
 import { AppStoreProvider } from '@/app/contexts/AppStoreProvider';
 import { UserProvider } from '@/app/contexts/CurrentUserProvider';
-import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import { SoundProvider } from '@/app/contexts/SoundProvider';
 import { AuthProvider } from '@/app/contexts/AuthContext';
 import { AutoConnect, ThirdwebProvider } from 'thirdweb/react';
@@ -21,9 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     <AppStoreProvider>
                         <UserProvider>
                             <AuthProvider>
-                                <SoundProvider>
-                                    <SocketProvider>{children}</SocketProvider>
-                                </SoundProvider>
+                                <SoundProvider>{children}</SoundProvider>
                             </AuthProvider>
                         </UserProvider>
                     </AppStoreProvider>

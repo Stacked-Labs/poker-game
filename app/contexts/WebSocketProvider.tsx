@@ -25,13 +25,15 @@ export const SocketContext: Context<WebSocket | null> =
 
 type SocketProviderProps = {
     children: ReactNode;
+    tableId: string;
 };
 
 const TOAST_ID_RECONNECTING = 'attemptReconnection';
 const TOAST_ID_RECONNECTED = 'isReconnected';
 
 export function SocketProvider(props: SocketProviderProps) {
-    const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
+    const { tableId } = props;
+    const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL; // expected to point to /ws base
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { appState, dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
@@ -71,7 +73,7 @@ export function SocketProvider(props: SocketProviderProps) {
     const connectWebSocket = useCallback(async () => {
         const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-        if (!WS_URL || !API_URL) {
+        if (!WS_BASE_URL || !API_URL) {
             console.error('WebSocket URL or API URL is not defined.');
             toastErrorRef.current(
                 'Configuration Error',
@@ -117,9 +119,13 @@ export function SocketProvider(props: SocketProviderProps) {
                 'Session initialization/confirmation successful:',
                 sessionData
             );
-
-            console.log(`Attempting to connect WebSocket to ${WS_URL}`);
-            const _socket = new WebSocket(WS_URL);
+            // Build per-table WS URL: `${WS_BASE_URL}/table/${tableId}`
+            const trimmed = WS_BASE_URL.endsWith('/')
+                ? WS_BASE_URL.slice(0, -1)
+                : WS_BASE_URL;
+            const perTableUrl = `${trimmed}/table/${tableId}`;
+            console.log(`Attempting to connect WebSocket to ${perTableUrl}`);
+            const _socket = new WebSocket(perTableUrl);
 
             socketRef.current = _socket;
             setSocket(_socket);
@@ -140,23 +146,15 @@ export function SocketProvider(props: SocketProviderProps) {
                 } else {
                     toastSuccessRef.current('WebSocket connected');
                 }
-                // Send join-game message if applicable (moved out of isReconnecting block)
-                if (appStateRef.current.game && appStateRef.current.table) {
-                    const joinMessage = {
-                        action: 'join-game',
-                        gameID: appStateRef.current.table,
-                    };
-
-                    // Log outgoing WebSocket message for debugging
-                    console.log('🔼 WebSocket Message Sent:', {
-                        timestamp: new Date().toISOString(),
-                        message: joinMessage,
-                        stringified: JSON.stringify(joinMessage),
-                    });
-
-                    _socket.send(JSON.stringify(joinMessage));
-                    console.log('Sent join-game message after connection.');
-                }
+                // Always send join-table on open
+                const joinMessage = { action: 'join-table' } as const;
+                console.log('🔼 WebSocket Message Sent:', {
+                    timestamp: new Date().toISOString(),
+                    message: joinMessage,
+                    stringified: JSON.stringify(joinMessage),
+                });
+                _socket.send(JSON.stringify(joinMessage));
+                console.log('Sent join-table message after connection.');
             };
 
             _socket.onclose = (event) => {
@@ -409,7 +407,8 @@ export function SocketProvider(props: SocketProviderProps) {
             attemptReconnection(); // Safe to call here
         }
     }, [
-        WS_URL,
+        WS_BASE_URL,
+        tableId,
         appStateRef, // Added appStateRef to deps as it's used in onopen
         dispatch,
         isReconnecting, // Added isReconnecting
@@ -417,7 +416,7 @@ export function SocketProvider(props: SocketProviderProps) {
     ]);
 
     const attemptReconnection = useCallback(() => {
-        if (!WS_URL || reconnectionAttempts >= maxReconnectionAttempts) {
+        if (!WS_BASE_URL || reconnectionAttempts >= maxReconnectionAttempts) {
             if (reconnectionAttempts >= maxReconnectionAttempts) {
                 setIsReconnecting(false);
                 toastErrorRef.current(
@@ -449,7 +448,7 @@ export function SocketProvider(props: SocketProviderProps) {
             connectWebSocket();
         }, delay);
     }, [
-        WS_URL,
+        WS_BASE_URL,
         reconnectionAttempts,
         maxReconnectionAttempts,
         getReconnectDelay,

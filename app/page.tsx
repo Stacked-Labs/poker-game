@@ -5,20 +5,18 @@ import { Box, Flex, VStack } from '@chakra-ui/react';
 import HomeSection from './components/HomePage/HomeSection';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import Head from 'next/head';
 import Script from 'next/script';
 
 const HomePage: React.FC = () => {
     const router = useRouter();
-    const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
 
     useEffect(() => {
-        if (appState.table && socket) {
-            router.push(`/game/${appState.table}`);
+        if (appState.table) {
+            router.push(`/table/${appState.table}`);
         }
-    }, [appState.table, socket, router]);
+    }, [appState.table, router]);
 
     return (
         <>

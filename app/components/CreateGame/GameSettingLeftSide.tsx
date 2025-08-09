@@ -16,12 +16,11 @@ import PlayTypeToggle from './PlayTypeToggle';
 import OptionCard from './OptionCard';
 import gameData from '../../create-game/gameOptions.json';
 import { useRouter } from 'next/navigation';
-import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { joinTable, sendLog } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { initSession } from '@/app/hooks/server_actions';
 import { Poppins } from 'next/font/google';
-import { useActiveAccount, useActiveWallet } from 'thirdweb/react';
+import { useActiveAccount } from 'thirdweb/react';
 import Turnstile from 'react-turnstile';
 
 const poppins = Poppins({
@@ -31,7 +30,7 @@ const poppins = Poppins({
 });
 
 const LeftSideContent: React.FC = () => {
-    const wallet = useActiveWallet();
+    // const wallet = useActiveWallet();
     const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
@@ -39,8 +38,7 @@ const LeftSideContent: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const address = useActiveAccount()?.address;
     const router = useRouter();
-    const socket = useContext(SocketContext);
-    const { appState, dispatch } = useContext(AppContext);
+    const { dispatch } = useContext(AppContext);
     const toast = useToastHelper();
     const [smallBlind, setSmallBlind] = useState<number>(1);
     const [bigBlind, setBigBlind] = useState<number>(2);
@@ -137,19 +135,10 @@ const LeftSideContent: React.FC = () => {
             }
         }
 
-        if (!socket) {
-            toast.error('Connection Error', 'Unable to connect to the server.');
-            return;
-        }
-        if (!appState.clientID) {
-            toast.error(
-                'Connection Error',
-                'Client ID not available. Cannot create game.'
-            );
-            return;
-        }
-
         setIsLoading(true);
+
+        // Ensure HTTP session is initialized so `credentials: include` works as expected
+        await initSession();
 
         try {
             const response = await fetch(
@@ -180,9 +169,7 @@ const LeftSideContent: React.FC = () => {
                     );
 
                     dispatch({ type: 'setTablename', payload: data.tablename });
-
-                    joinTable(socket, data.tablename);
-                    router.push(`/game/${data.tablename}`);
+                    router.push(`/table/${data.tablename}`);
                 } else {
                     console.error(
                         'Create response OK but missing tablename:',

@@ -13,8 +13,10 @@ import {
     MenuItem,
     MenuList,
     Flex,
+    Tooltip,
+    useClipboard,
 } from '@chakra-ui/react';
-import { FaChevronDown, FaWallet, FaSignOutAlt } from 'react-icons/fa';
+import { FaChevronDown, FaWallet, FaSignOutAlt, FaCopy } from 'react-icons/fa';
 import {
     useActiveWallet,
     useActiveAccount,
@@ -26,7 +28,7 @@ import {
 import { client } from '../thirdwebclient';
 import useToastHelper from '../hooks/useToastHelper';
 import { useAuth, logoutUser } from '../contexts/AuthContext';
-import CopyLinkButton from './CopyLinkButton';
+// removed CopyLinkButton; inlining copy logic
 
 interface Web3ButtonProps extends ButtonProps {
     /**
@@ -48,6 +50,11 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
     const isAutoConnecting = useIsAutoConnecting();
     const { disconnect } = useDisconnect();
     const { warning, error } = useToastHelper();
+
+    // Clipboard for account address (so clicking the address also copies)
+    const { hasCopied: hasCopiedAddress, onCopy: onCopyAddress } = useClipboard(
+        accountAddress || ''
+    );
 
     const auth = useAuth();
     const isAuth = auth.isAuthenticated;
@@ -127,15 +134,29 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
                         textAlign="right"
                         fontWeight="bold"
                     >
-                        <Flex
-                            alignItems={'center'}
-                            justifyContent={'flex-end'}
-                            gap={2}
-                            w="100%"
+                        <Tooltip
+                            label={
+                                hasCopiedAddress
+                                    ? 'Copied!'
+                                    : 'Copy to clipboard'
+                            }
+                            closeOnClick={false}
+                            height={'100%'}
                         >
-                            {address}
-                            <CopyLinkButton link={accountAddress} />
-                        </Flex>
+                            <Flex
+                                onClick={onCopyAddress}
+                                alignItems={'center'}
+                                justifyContent={'flex-end'}
+                                gap={2}
+                                w="100%"
+                                cursor={'pointer'}
+                                color="white"
+                                _hover={{ color: 'lightgrey' }}
+                            >
+                                {address}
+                                <Icon as={FaCopy} />
+                            </Flex>
+                        </Tooltip>
                     </MenuItem>
                     <MenuDivider />
                     <MenuItem

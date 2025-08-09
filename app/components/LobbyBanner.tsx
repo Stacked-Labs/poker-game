@@ -8,13 +8,15 @@ import {
     ModalContent,
     Stack,
     Text,
+    Tooltip,
+    useClipboard,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { ReactElement } from 'react';
-import { FaDiscord } from 'react-icons/fa';
+import { FaDiscord, FaCopy } from 'react-icons/fa';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { SiFarcaster } from 'react-icons/si';
-import CopyLinkButton from './CopyLinkButton';
+// removed CopyLinkButton; inlining copy logic
 
 const pulse = keyframes`
   0% { transform: scale(1); opacity: 0.8; }
@@ -25,6 +27,7 @@ const pulse = keyframes`
 const LinkBox = () => {
     const currentUrl =
         typeof window !== 'undefined' ? window.location.href : '';
+    const { hasCopied, onCopy } = useClipboard(currentUrl || '');
 
     return (
         <Flex width={'80%'} borderRadius={'xl'} overflow="hidden">
@@ -51,7 +54,23 @@ const LinkBox = () => {
                     bg: 'green.400',
                 }}
             >
-                <CopyLinkButton link={currentUrl} />
+                <Tooltip
+                    label={hasCopied ? 'Copied!' : 'Copy to clipboard'}
+                    closeOnClick={false}
+                    height={'100%'}
+                >
+                    <Flex
+                        onClick={onCopy}
+                        height={'100%'}
+                        cursor={'pointer'}
+                        justifyContent={'center'}
+                        alignItems={'center'}
+                        color="white"
+                        _hover={{ color: 'lightgrey' }}
+                    >
+                        <FaCopy />
+                    </Flex>
+                </Tooltip>
             </Box>
         </Flex>
     );

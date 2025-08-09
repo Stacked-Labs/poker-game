@@ -14,7 +14,7 @@ import {
     MenuList,
     Flex,
 } from '@chakra-ui/react';
-import { FaChevronDown, FaWallet } from 'react-icons/fa';
+import { FaChevronDown, FaWallet, FaSignOutAlt } from 'react-icons/fa';
 import {
     useActiveWallet,
     useActiveAccount,
@@ -103,7 +103,11 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
             : '';
 
         return (
-            <Menu closeOnSelect={false} colorScheme="charcoal">
+            <Menu
+                closeOnSelect={false}
+                colorScheme="charcoal"
+                placement="bottom-end"
+            >
                 <MenuButton
                     as={Button}
                     rightIcon={<FaChevronDown />}
@@ -111,9 +115,24 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
                 >
                     {address}
                 </MenuButton>
-                <MenuList bg={'charcoal.800'} color={'white'} width={'100%'}>
-                    <MenuItem bg={'charcoal.800'}>
-                        <Flex alignItems={'center'} gap={2}>
+                <MenuList
+                    bg={'charcoal.800'}
+                    color={'white'}
+                    width={'fit-content'}
+                    textAlign="right"
+                    fontWeight="bold"
+                >
+                    <MenuItem
+                        bg={'charcoal.800'}
+                        textAlign="right"
+                        fontWeight="bold"
+                    >
+                        <Flex
+                            alignItems={'center'}
+                            justifyContent={'flex-end'}
+                            gap={2}
+                            w="100%"
+                        >
                             {address}
                             <CopyLinkButton link={accountAddress} />
                         </Flex>
@@ -121,13 +140,23 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
                     <MenuDivider />
                     <MenuItem
                         bg={'charcoal.800'}
+                        color={'red.400'}
                         _hover={{
                             bg: 'charcoal',
-                            color: 'white',
+                            color: 'red.300',
                         }}
                         onClick={handleDisconnect}
+                        fontWeight="bold"
                     >
-                        Disconnect
+                        <Flex
+                            alignItems={'center'}
+                            justifyContent={'flex-end'}
+                            gap={2}
+                            w="100%"
+                        >
+                            Disconnect
+                            <Icon as={FaSignOutAlt} />
+                        </Flex>
                     </MenuItem>
                 </MenuList>
             </Menu>

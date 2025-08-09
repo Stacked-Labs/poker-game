@@ -1,22 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { isTableExisting } from '@/app/hooks/server_actions';
 import Table from '@/app/components/Table';
-import { useContext } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Box, Flex, Spinner, Text, VStack, Heading } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import useToastHelper from '@/app/hooks/useToastHelper';
 
-// no local players state; rely on global game state
-
-const MainGamePage = ({ params }: { params: { id: string } }) => {
+const TablePage = ({ params }: { params: { id: string } }) => {
     const router = useRouter();
     const toast = useToastHelper();
-    // Socket is provided at layout level for this route, not needed for initial join
     const { appState, dispatch } = useContext(AppContext);
-    // local players state unused; rely on global game state
     const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
         'checking'
     );
@@ -72,7 +67,7 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
                         speed="0.8s"
                     />
                     <Text color="white" fontSize="lg" fontWeight="bold">
-                        Connecting to game...
+                        Connecting to table...
                     </Text>
                 </VStack>
             </Box>
@@ -113,4 +108,4 @@ const MainGamePage = ({ params }: { params: { id: string } }) => {
     );
 };
 
-export default MainGamePage;
+export default TablePage;

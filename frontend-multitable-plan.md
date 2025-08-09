@@ -4,7 +4,7 @@ This plan enumerates all frontend edits needed to support one WebSocket connecti
 
 ### 1) Connection architecture: only on table pages (one socket per visible table)
 
-Goal: Only render a WebSocket on `/game/[id]` routes. Each table view owns its own WebSocket connected to `wss://<host>/ws/table/{tableID}`. Open on mount, close on unmount. No multiplexing across tables or non-game pages.
+Goal: Only render a WebSocket on `/table/[id]` routes. Each table view owns its own WebSocket connected to `wss://<host>/ws/table/{tableID}`. Open on mount, close on unmount. No multiplexing across tables or non-game pages.
 
 - Files to change
 
@@ -16,20 +16,20 @@ Goal: Only render a WebSocket on `/game/[id]` routes. Each table view owns its o
         - Ensure cleanup closes the socket when the provider unmounts.
     - `app/providers.tsx`
         - Remove the global `<SocketProvider>` wrapper so Home/Create-Game pages do not create any WebSocket connection.
-    - `app/game/[id]/layout.tsx` (or `page.tsx`)
+    - `app/table/[id]/layout.tsx` (or `page.tsx`)
 
         - Wrap the game route children with the per-table socket provider, passing the route `id` as `tableId`.
         - Example: `<SocketProvider tableId={params.id}>{children}</SocketProvider>`.
 
     - `app/page.tsx` (Home)
-        - Remove dependency on `SocketContext`. The redirect should not depend on a socket being present. Use only `appState.table` → `router.push(/game/${appState.table})`.
+        - Remove dependency on `SocketContext`. The redirect should not depend on a socket being present. Use only `appState.table` → `router.push(/table/${appState.table})`.
     - `app/create-game/page.tsx`
         - Confirm no socket usage. Keep it socket-free; use HTTP only for creation/auth flows.
 
 Notes
 
 - This reduces unnecessary connections on Home/Create-Game and aligns with backend guidance: one connection per visible table view.
-- If you prefer not to change the global provider signature, create a new `app/contexts/TableSocketProvider.tsx` and use it only under `app/game/[id]/` while leaving the old provider unused/removed at root.
+- If you prefer not to change the global provider signature, create a new `app/contexts/TableSocketProvider.tsx` and use it only under `app/table/[id]/` while leaving the old provider unused/removed at root.
 - Preserve reconnection logic; it should reopen the same table URL and resend `join-table` on `onopen`.
 
 ### 2) Initial handshake and reconnect flow
@@ -39,7 +39,7 @@ Goal: On socket open, send `{ action: "join-table" }`. On reconnect, do the same
 - Files to change
     - `app/contexts/WebSocketProvider.tsx`
         - Replace the `join-game` send with `join-table` (no `gameID`/`tableName`).
-    - `app/game/[id]/page.tsx`
+    - `app/table/[id]/page.tsx`
         - Remove the explicit `joinTable(socket, tableId)` call. The provider handles the handshake.
         - Keep `dispatch({ type: 'setTablename', payload: tableId })` so HTTP endpoints (e.g., owner checks) can still reference table ID via state.
 
@@ -59,7 +59,7 @@ Goal: No outbound payload includes `tableName`/`tablename`. The connection conte
     - Call sites
         - `app/components/NavBar/Settings/PlayerList.tsx`
             - Update calls to `acceptPlayer/denyPlayer/kickPlayer` to only pass `(socket, uuid)`.
-        - `app/game/[id]/page.tsx`
+        - `app/table/[id]/page.tsx`
             - Remove `joinTable(socket, tableId)` invocation.
 
 ### 4) Inbound message handling and state updates
@@ -114,7 +114,7 @@ Goal: No client code routes messages by table name; the connection defines the c
 - Files to clean up
     - `app/hooks/server_actions.ts`
         - Remove `tableName` payload fields and extra parameters from moderation helpers.
-    - `app/game/[id]/page.tsx`
+    - `app/table/[id]/page.tsx`
         - Delete legacy `joinTable` call and any reliance on `tableName` in WS payloads.
 
 ### 9) Reconnection semantics
@@ -142,9 +142,9 @@ Goal: If the socket drops, the provider should reconnect to the same table URL a
     - [ ] Ensure cleanup closes per-table socket
 - `app/providers.tsx`
     - [ ] Remove global `<SocketProvider>`
-- `app/game/[id]/layout.tsx`
+- `app/table/[id]/layout.tsx`
     - [ ] Wrap route with per-table socket provider
-- `app/game/[id]/page.tsx`
+- `app/table/[id]/page.tsx`
     - [ ] Remove `joinTable(socket, tableId)` call
     - [ ] Keep `setTablename` dispatch for HTTP-only flows
 - `app/hooks/server_actions.ts`

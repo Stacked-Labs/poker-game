@@ -14,7 +14,7 @@ const HomePage: React.FC = () => {
 
     useEffect(() => {
         if (appState.table) {
-            router.push(`/game/${appState.table}`);
+            router.push(`/table/${appState.table}`);
         }
     }, [appState.table, router]);
 

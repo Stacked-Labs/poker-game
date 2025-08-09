@@ -15,7 +15,7 @@ import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
 
-const GameLayout: React.FC<{ params: { id: string } }> = ({
+const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
     params,
 }: React.PropsWithChildren<{ params: { id: string } }>) => {
@@ -37,7 +37,7 @@ const GameLayout: React.FC<{ params: { id: string } }> = ({
         if (appState.game?.players && appState.game?.players.length > 1) {
             onClose();
         }
-    }, [appState.game?.players]);
+    }, [appState.game?.players, onClose]);
 
     if (loading) {
         return (
@@ -58,7 +58,7 @@ const GameLayout: React.FC<{ params: { id: string } }> = ({
                         speed="0.8s"
                     />
                     <Text color="white" fontSize="lg" fontWeight="bold">
-                        Loading game...
+                        Loading table...
                     </Text>
                 </VStack>
             </Flex>
@@ -87,4 +87,4 @@ const GameLayout: React.FC<{ params: { id: string } }> = ({
     );
 };
 
-export default GameLayout;
+export default TableLayout;

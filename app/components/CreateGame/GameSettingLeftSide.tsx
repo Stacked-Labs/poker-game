@@ -169,7 +169,7 @@ const LeftSideContent: React.FC = () => {
                     );
 
                     dispatch({ type: 'setTablename', payload: data.tablename });
-                    router.push(`/game/${data.tablename}`);
+                    router.push(`/table/${data.tablename}`);
                 } else {
                     console.error(
                         'Create response OK but missing tablename:',

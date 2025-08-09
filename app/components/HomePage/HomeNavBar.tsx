@@ -30,9 +30,9 @@ const HomeNavBar: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const pathname = usePathname();
-    const showHomeNavBar = !pathname.startsWith('/game');
+    const showHomeNavBar = !pathname.startsWith('/table');
     if (!showHomeNavBar) {
-        return null; // Do not render the navbar on /game pages
+        return null; // Do not render the navbar on /table pages
     }
 
     const NavButtons = React.memo(() => (

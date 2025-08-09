@@ -227,6 +227,11 @@ const components = {
                 width: '50%',
                 border: 0,
             },
+            connectButton: {
+                paddingY: 8,
+                border: '2px',
+                bg: '#2D2D2D',
+            },
         },
         defaultProps: {
             variant: 'base',

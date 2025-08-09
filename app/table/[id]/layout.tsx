@@ -14,6 +14,7 @@ import {
 import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
+import LandscapeScreen from '@/app/components/LandscapeScreen';
 
 const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
@@ -83,6 +84,8 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
             <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
                 <LobbyBanner onClose={onClose} />
             </Modal>
+
+            <LandscapeScreen />
         </Flex>
     );
 };

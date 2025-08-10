@@ -168,7 +168,7 @@ const Table = () => {
                 if (socket) {
                     //dealGame(socket);
                 }
-            }, 5000);
+            }, 6500);
             return () => {
                 clearTimeout(timer);
             };
@@ -193,6 +193,10 @@ const Table = () => {
 
     const isPlayerWinner = (player: Player): boolean => {
         return winningPlayers.some((winner) => winner.uuid === player.uuid);
+    };
+
+    const isPlayerRevealed = (player: Player): boolean => {
+        return revealedPlayers.some((p) => p.uuid === player.uuid);
     };
 
     return (
@@ -274,6 +278,7 @@ const Table = () => {
                                         player={player}
                                         isCurrentTurn={isPlayerTurn(player)}
                                         isWinner={isPlayerWinner(player)}
+                                        isRevealed={isPlayerRevealed(player)}
                                     />
                                 ) : (
                                     <EmptySeatButton

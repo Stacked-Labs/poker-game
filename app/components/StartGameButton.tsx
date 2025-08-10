@@ -12,7 +12,9 @@ const StartGameButton = () => {
     const { appState } = useContext(AppContext);
     const game = appState.game;
     const players = appState.game?.players || [];
-    const readyPlayers = players.filter((player) => player != null);
+    // Prefer backend-provided readyCount; fallback to counting ready flags
+    const readyPlayersCount =
+        game?.readyCount ?? players.filter((p) => p && p.ready).length;
     const isOwner = useIsTableOwner();
 
     const onClickStartGame = (socket: WebSocket) => {
@@ -35,14 +37,12 @@ const StartGameButton = () => {
     }
 
     if (isOwner && !game.running) {
-        const isDisabled =
-            (!game.running && readyPlayers.length < 2) ||
-            (game.running && readyPlayers.length >= 2);
+        const isDisabled = !game.running && readyPlayersCount < 2;
         return (
             <Tooltip
                 bg="red.600"
-                label={'Needs 2 or more players to start a game.'}
-                isDisabled={game.running || readyPlayers.length >= 2}
+                label={'Needs 2 or more ready players to start a game.'}
+                isDisabled={game.running || readyPlayersCount >= 2}
                 hasArrow
             >
                 {/* Icon button for mobile */}

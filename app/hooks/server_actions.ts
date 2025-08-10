@@ -129,6 +129,21 @@ export function requestLeave(socket: WebSocket) {
     });
 }
 
+// Sit out next hand; if mid-hand, server defers until hand ends
+export function playerSitOutNext(socket: WebSocket) {
+    sendWebSocketMessage(socket, {
+        action: 'player-sit-out-next',
+    });
+}
+
+// Set readiness; typically used to return from away between hands
+export function playerSetReady(socket: WebSocket, ready: boolean) {
+    sendWebSocketMessage(socket, {
+        action: 'player-set-ready',
+        ready,
+    });
+}
+
 export function sendPauseGameCommand(socket: WebSocket) {
     if (socket && socket.readyState === WebSocket.OPEN) {
         sendWebSocketMessage(socket, {

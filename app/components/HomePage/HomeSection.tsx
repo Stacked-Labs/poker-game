@@ -40,7 +40,7 @@ const HomeSection = () => {
             bgAttachment="fixed"
             bgSize="cover"
             bgPosition={{ base: 'right', lg: 'center' }}
-            bgImage={'url("/bg.png")'}
+            bgImage={'url("/bg.webp")'}
         >
             <Flex
                 position="relative"

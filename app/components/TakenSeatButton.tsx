@@ -8,6 +8,7 @@ import {
     HStack,
     Progress,
     Tooltip,
+    Tag,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { Card, Player } from '../interfaces';
@@ -30,10 +31,12 @@ const TakenSeatButton = ({
     player,
     isCurrentTurn,
     isWinner,
+    isRevealed,
 }: {
     player: Player;
     isCurrentTurn: boolean;
     isWinner: boolean;
+    isRevealed: boolean;
 }) => {
     const { appState } = useContext(AppContext);
     const address = player?.address;
@@ -197,6 +200,7 @@ const TakenSeatButton = ({
             alignItems={'center'}
             justifyContent={'center'}
         >
+            {/* Away badge moved into player info container below */}
             <Flex
                 position={'absolute'}
                 key="betbox"
@@ -254,6 +258,9 @@ const TakenSeatButton = ({
             >
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
+                        // During showdown reveal, only losers should appear dimmed.
+                        // Otherwise, fall back to whether the player folded this hand.
+                        const shouldDim = isRevealed ? !isWinner : !player.in;
                         return (
                             <Box
                                 key={`${card}-${index}`}
@@ -274,7 +281,7 @@ const TakenSeatButton = ({
                                 <CardComponent
                                     card={card}
                                     placeholder={false}
-                                    folded={!player.in}
+                                    folded={shouldDim}
                                 />
                             </Box>
                         );
@@ -295,7 +302,25 @@ const TakenSeatButton = ({
                 alignSelf={'flex-end'}
                 animation={glowAnimation}
                 transition={'all 0.5s ease-in-out'}
+                position={'relative'}
             >
+                {/* Away badge rendered above the container without affecting layout */}
+                {player.stack > 0 && !player.ready && (
+                    <Tag
+                        position="absolute"
+                        top={-3}
+                        right={1}
+                        colorScheme="yellow"
+                        variant="subtle"
+                        size={{ base: 'xs', md: 'sm' }}
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        px={{ base: 0.5, md: 2 }}
+                        py={{ base: 0, md: 0.5 }}
+                        zIndex={3}
+                    >
+                        Away
+                    </Tag>
+                )}
                 <HStack spacing={2} className="player-info-header">
                     <Tooltip label={shortEthAddress} hasArrow>
                         <Text

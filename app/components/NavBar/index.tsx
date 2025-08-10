@@ -24,10 +24,12 @@ import {
     sendLog,
     sendPauseGameCommand,
     sendResumeGameCommand,
+    playerSitOutNext,
+    playerSetReady,
 } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
-import { FaPlay, FaPause } from 'react-icons/fa';
+import { FaPlay, FaPause, FaCoffee, FaUserCheck } from 'react-icons/fa';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -68,6 +70,36 @@ const Navbar = () => {
             );
         }
     };
+
+    // Local player state
+    const localPlayer = appState.game?.players?.find(
+        (p) => p.uuid === appState.clientID
+    );
+    const isAway = !!localPlayer && localPlayer.stack > 0 && !localPlayer.ready;
+    const [sitOutPending, setSitOutPending] = useState<boolean>(false);
+
+    const handleSitOutNext = () => {
+        if (!socket) return;
+        playerSitOutNext(socket);
+        info('Sit out requested', 'Takes effect next hand.', 3000);
+        setSitOutPending(true);
+    };
+
+    const handleReturnReady = () => {
+        if (!socket) return;
+        playerSetReady(socket, true);
+        info('Returning', 'You will be dealt next hand.', 3000);
+    };
+
+    // Reset pending flag once away state takes effect or player leaves seat
+    useEffect(() => {
+        if (isAway && sitOutPending) {
+            setSitOutPending(false);
+        }
+        if (!localPlayer && sitOutPending) {
+            setSitOutPending(false);
+        }
+    }, [isAway, localPlayer, sitOutPending]);
 
     // Trigger animation when pendingCount changes
     useEffect(() => {
@@ -115,7 +147,7 @@ const Navbar = () => {
                 color="white"
                 zIndex={10}
             >
-                <HStack spacing={{ base: 2, md: 4 }} alignItems="stretch">
+                <HStack spacing={{ base: 1, md: 2 }} alignItems="stretch">
                     <Box position="relative">
                         <IconButton
                             icon={
@@ -155,6 +187,38 @@ const Navbar = () => {
                             </Flex>
                         )}
                     </Box>
+                    {isUserSeated && (
+                        <Tooltip
+                            label={
+                                isAway
+                                    ? "I'm back"
+                                    : sitOutPending
+                                      ? 'Sit out requested – will apply next hand'
+                                      : 'Sit out next hand'
+                            }
+                            aria-label="Away toggle"
+                        >
+                            <IconButton
+                                icon={
+                                    <Icon
+                                        as={isAway ? FaUserCheck : FaCoffee}
+                                        boxSize={{ base: 5, md: 8 }}
+                                    />
+                                }
+                                aria-label={
+                                    isAway ? "I'm back" : 'Sit out next hand'
+                                }
+                                size={'lg'}
+                                onClick={
+                                    isAway
+                                        ? handleReturnReady
+                                        : handleSitOutNext
+                                }
+                                isDisabled={!isAway && sitOutPending}
+                                colorScheme={isAway ? 'green' : undefined}
+                            />
+                        </Tooltip>
+                    )}
                     <StartGameButton />
                     {isOwner && appState.game?.running && socket && (
                         <Tooltip
@@ -197,8 +261,9 @@ const Navbar = () => {
                         </Tooltip>
                     )}
                 </HStack>
-                <HStack spacing={{ base: 2, md: 4 }} alignItems="center">
+                <HStack spacing={{ base: 1, md: 2 }} alignItems="center">
                     <VolumeButton />
+                    {/* Away toggle is now placed on the left next to Settings */}
                     {isUserSeated && (
                         <Tooltip
                             label={

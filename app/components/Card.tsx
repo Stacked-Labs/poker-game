@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Box, Flex, Image } from '@chakra-ui/react';
-import { Card as CardType } from '../interfaces';
+import type { Card as CardType } from '../interfaces';
 
 type cardProps = {
     card: CardType;
@@ -13,17 +15,13 @@ const cardToString = (card: string) => {
     if (card === '?') {
         return '?';
     }
-
-    const c = parseInt(card);
-
+    const c = Number.parseInt(card);
     // Return early if parsing fails
     if (isNaN(c)) {
         return '?';
     }
-
     const rank = (c >> 8) & 0x0f;
     const suit = c & 0xf000;
-
     const numToCharRanks = [
         '2',
         '3',
@@ -44,15 +42,12 @@ const cardToString = (card: string) => {
     numToCharSuits.set(0x4000, 'D');
     numToCharSuits.set(0x2000, 'H');
     numToCharSuits.set(0x1000, 'S');
-
     const rankChar = numToCharRanks[rank];
     const suitChar = numToCharSuits.get(suit);
-
     // Return '?' if either rank or suit is invalid
     if (!rankChar || !suitChar) {
         return '?';
     }
-
     return rankChar + suitChar;
 };
 
@@ -61,7 +56,6 @@ const getCardPhoto = (card: string): string | null => {
     if (card === '?' || card.length < 2) {
         return null;
     }
-
     const rankMap: { [key: string]: string } = {
         '2': '2',
         '3': '3',
@@ -77,25 +71,20 @@ const getCardPhoto = (card: string): string | null => {
         K: 'king',
         A: 'ace',
     };
-
     const suitMap: { [key: string]: string } = {
         C: 'clubs',
         D: 'diamonds',
         H: 'hearts',
         S: 'spades',
     };
-
     const rank = card[0];
     const suit = card[1];
-
     const rankStr = rankMap[rank];
     const suitStr = suitMap[suit];
-
     // Return null if either rank or suit is undefined/invalid
     if (!rankStr || !suitStr) {
         return null;
     }
-
     return `/cards/png/${rankStr}_of_${suitStr}.png`;
 };
 
@@ -148,15 +137,24 @@ const Card = ({
     folded,
     highlighted = false,
 }: cardProps) => {
-    const [isFlipped, setIsFlipped] = useState(false);
+    const [flipState, setFlipState] = useState<'back' | 'flipping' | 'front'>(
+        'back'
+    );
     const cardString = cardToString(card);
     const cardPhoto = getCardPhoto(cardString);
 
     useEffect(() => {
-        setIsFlipped(false);
+        setFlipState('back');
 
         if (!placeholder) {
-            setTimeout(() => setIsFlipped(true), 300);
+            // Start the flip animation
+            setTimeout(() => {
+                setFlipState('flipping');
+                // Switch to front face at the perfect midpoint
+                setTimeout(() => {
+                    setFlipState('front');
+                }, 150); // Midpoint of 300ms animation
+            }, 300);
         }
     }, [card, placeholder]);
 
@@ -175,76 +173,57 @@ const Card = ({
         );
     }
 
+    const getTransform = () => {
+        switch (flipState) {
+            case 'back':
+                return 'scaleX(1) rotateY(0deg)';
+            case 'flipping':
+                return 'scaleX(0.05) rotateY(-90deg)';
+            case 'front':
+                return 'scaleX(1) rotateY(0deg)';
+            default:
+                return 'scaleX(1) rotateY(0deg)';
+        }
+    };
+
     return (
         <Flex
             justifyContent="center"
             position="relative"
             cursor={placeholder ? 'pointer' : 'default'}
-            sx={{
-                perspective: '500px',
-                '& > div': {
-                    transition: 'transform 0.6s',
-                    transformStyle: 'preserve-3d',
-                    WebkitTransformStyle: 'preserve-3d',
-                    MozTransformStyle: 'preserve-3d',
-                },
-            }}
             width={'100%'}
             height={'100%'}
             opacity={placeholder ? 0 : 1}
         >
             <Box
-                width={'100%'}
-                height={'100%'}
-                position={'relative'}
+                width="100%"
+                height="100%"
                 sx={{
-                    transition: 'transform 0.6s',
-                    transformStyle: 'preserve-3d',
-                    WebkitTransformStyle: 'preserve-3d',
-                    MozTransformStyle: 'preserve-3d',
-                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    transform: getTransform(),
+                    transition:
+                        'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    transformOrigin: 'center',
                 }}
             >
-                <Box
-                    position={'absolute'}
-                    width="100%"
-                    height="100%"
-                    sx={{
-                        backfaceVisibility: 'hidden',
-                        WebkitBackfaceVisibility: 'hidden',
-                        MozBackfaceVisibility: 'hidden',
-                    }}
-                >
-                    <CardImage
-                        altText="Card Back"
-                        cardPhoto={cardPhotoBack}
-                        folded={folded}
-                        highlighted={highlighted}
-                    />
-                </Box>
-                <Box
-                    position={'absolute'}
-                    width="100%"
-                    height="100%"
-                    sx={{
-                        backfaceVisibility: 'hidden',
-                        WebkitBackfaceVisibility: 'hidden',
-                        MozBackfaceVisibility: 'hidden',
-                        transform: 'rotateY(180deg)',
-                    }}
-                >
+                {flipState === 'front' ? (
                     <CardImage
                         altText={`Card ${cardString}`}
                         cardPhoto={cardPhoto ?? ''}
                         folded={folded}
                         highlighted={highlighted}
                     />
-                </Box>
+                ) : (
+                    <CardImage
+                        altText="Card Back"
+                        cardPhoto={cardPhotoBack}
+                        folded={folded}
+                        highlighted={highlighted}
+                    />
+                )}
             </Box>
         </Flex>
     );
 };
 
 const MemoizedCard = React.memo(Card);
-
 export default MemoizedCard;

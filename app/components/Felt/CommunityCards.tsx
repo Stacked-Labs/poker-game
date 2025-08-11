@@ -1,6 +1,6 @@
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Box, Flex } from '@chakra-ui/react';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import CardComponent from '../Card';
 
 const CommunityCards = () => {
@@ -14,6 +14,89 @@ const CommunityCards = () => {
     const isGameRunning = appState.game?.running;
 
     const cards = [0, 1, 2, 3, 4];
+
+    // Local reveal state to stagger community cards on the flop
+    const [revealed, setRevealed] = useState<boolean[]>([
+        false,
+        false,
+        false,
+        false,
+        false,
+    ]);
+    const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const flopScheduledRef = useRef<boolean>(false);
+
+    useEffect(() => {
+        // Cleanup any queued timers on unmount or when new hand resets
+        return () => {
+            timersRef.current.forEach(clearTimeout);
+            timersRef.current = [];
+        };
+    }, []);
+
+    useEffect(() => {
+        const isPresent = (idx: number) =>
+            Boolean(communityCards && communityCards[idx]);
+
+        const nonePresent = [0, 1, 2, 3, 4].every((i) => !isPresent(i));
+
+        // If a new hand starts (no community cards), reset reveal state and flags
+        if (nonePresent) {
+            timersRef.current.forEach(clearTimeout);
+            timersRef.current = [];
+            flopScheduledRef.current = false;
+            setRevealed([false, false, false, false, false]);
+            return;
+        }
+
+        // Flop: reveal indices 0,1,2 sequentially if all three are present
+        if (
+            isPresent(0) &&
+            isPresent(1) &&
+            isPresent(2) &&
+            !flopScheduledRef.current
+        ) {
+            flopScheduledRef.current = true;
+
+            // Reveal first immediately, second after 300ms, third after 600ms
+            timersRef.current.push(
+                setTimeout(() => {
+                    setRevealed((prev) => [
+                        true,
+                        prev[1],
+                        prev[2],
+                        prev[3],
+                        prev[4],
+                    ]);
+                }, 0)
+            );
+            timersRef.current.push(
+                setTimeout(() => {
+                    setRevealed((prev) => [
+                        true,
+                        true,
+                        prev[2],
+                        prev[3],
+                        prev[4],
+                    ]);
+                }, 300)
+            );
+            timersRef.current.push(
+                setTimeout(() => {
+                    setRevealed((prev) => [true, true, true, prev[3], prev[4]]);
+                }, 600)
+            );
+        }
+
+        // Turn and River: reveal immediately when present
+        if (isPresent(3)) {
+            setRevealed((prev) => [prev[0], prev[1], prev[2], true, prev[4]]);
+        }
+        if (isPresent(4)) {
+            setRevealed((prev) => [prev[0], prev[1], prev[2], prev[3], true]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [communityCards]);
 
     if (!isGameRunning) {
         return null;
@@ -30,7 +113,7 @@ const CommunityCards = () => {
                         display="flex"
                         height="100%"
                     >
-                        {appState.game?.communityCards[num] ? (
+                        {appState.game?.communityCards[num] && revealed[num] ? (
                             <CardComponent
                                 card={appState.game.communityCards[num]}
                                 placeholder={false}

@@ -178,6 +178,8 @@ const Table = () => {
         appState.game?.betting,
         appState.game?.pots,
         appState.game?.running,
+        appState.game,
+        socket,
     ]);
 
     const isPlayerTurn = (player: Player): boolean => {
@@ -198,6 +200,32 @@ const Table = () => {
     const isPlayerRevealed = (player: Player): boolean => {
         return revealedPlayers.some((p) => p.uuid === player.uuid);
     };
+
+    const getPlayerWinnings = (player: Player): number => {
+        const game = appState.game;
+        if (
+            !game ||
+            game.pots.length === 0 ||
+            game.betting ||
+            game.stage !== 1
+        ) {
+            return 0;
+        }
+        let total = 0;
+        for (const pot of game.pots) {
+            if (pot.winningPlayerNums && pot.winningPlayerNums.length > 0) {
+                if (pot.winningPlayerNums.includes(player.position)) {
+                    const share =
+                        pot.amount / Math.max(pot.winningPlayerNums.length, 1);
+                    total += share;
+                }
+            }
+        }
+        return total;
+    };
+
+    // Build winning card set to be used by children for highlighting if needed
+    // no-op local computation reserved for future selection logic
 
     return (
         <Flex
@@ -227,6 +255,7 @@ const Table = () => {
                 width="auto"
                 maxWidth="100%"
                 maxHeight="100%"
+                alt="Poker table"
             />
             <Grid
                 className="table-grid"
@@ -279,6 +308,7 @@ const Table = () => {
                                         isCurrentTurn={isPlayerTurn(player)}
                                         isWinner={isPlayerWinner(player)}
                                         isRevealed={isPlayerRevealed(player)}
+                                        winnings={getPlayerWinnings(player)}
                                     />
                                 ) : (
                                     <EmptySeatButton

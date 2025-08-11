@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Box,
     Flex,
@@ -14,6 +14,7 @@ import { keyframes } from '@emotion/react';
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import CardComponent from './Card';
+import { currentHandLabel } from '@/app/lib/poker/pokerHandEval';
 
 const pulseWhiteGlow = keyframes`
   0% { box-shadow: 0 0 6px 5px rgba(255, 255, 255, 0.6); }
@@ -32,11 +33,13 @@ const TakenSeatButton = ({
     isCurrentTurn,
     isWinner,
     isRevealed,
+    winnings,
 }: {
     player: Player;
     isCurrentTurn: boolean;
     isWinner: boolean;
     isRevealed: boolean;
+    winnings: number;
 }) => {
     const { appState } = useContext(AppContext);
     const address = player?.address;
@@ -173,7 +176,7 @@ const TakenSeatButton = ({
             // Debug log for cleanup
             console.log(`⏹️ Seat ${player.seatID} timer cleared`);
         };
-    }, [deadline, actionIndex, isCurrentTurn]);
+    }, [deadline, actionIndex, isCurrentTurn, player.seatID]);
 
     const total = initialDuration || 1; // avoid divide by zero
     const progress = Math.min((remaining / total) * 100, 100);
@@ -186,6 +189,41 @@ const TakenSeatButton = ({
               ? 'yellow'
               : 'green'
         : 'gray';
+
+    // Build a set of winning cards from the latest pot to drive highlights
+    const lastPot = appState.game?.pots?.[appState.game.pots.length - 1];
+    const winningSet = new Set<number>(
+        (lastPot?.winningHand ?? []).map((c: number | string) => Number(c))
+    );
+
+    // Compute hand strength label per display rules
+    const strengthLabel: string | null = useMemo(() => {
+        const game = appState.game;
+        if (!game) return null;
+        const board = (game.communityCards || [])
+            .map((c) => Number(c))
+            .filter(Boolean);
+        const hole = (player.cards || []).map((c) => Number(c)).filter(Boolean);
+
+        // Visibility rules:
+        // - Self or any player: only show once board has at least the flop (3 cards)
+        // - Others: additionally require both hole cards to be non-zero (visible)
+        const boardHasFlop = board.length >= 3;
+        if (!boardHasFlop) return null;
+
+        const bothHoleVisible =
+            hole.length >= 2 && hole[0] !== 0 && hole[1] !== 0;
+
+        // Determine if this seat is "self" by matching uuid against clientID when available
+        const isSelf = appState.clientID
+            ? player.uuid === appState.clientID
+            : false;
+
+        if (!isSelf && !bothHoleVisible) return null;
+
+        const label = currentHandLabel(hole as number[], board as number[]);
+        return label ?? null;
+    }, [appState.clientID, appState.game, player.cards, player.uuid]);
 
     if (!appState.game) {
         return null;
@@ -282,6 +320,9 @@ const TakenSeatButton = ({
                                     card={card}
                                     placeholder={false}
                                     folded={shouldDim}
+                                    highlighted={
+                                        isWinner && winningSet.has(Number(card))
+                                    }
                                 />
                             </Box>
                         );
@@ -313,12 +354,31 @@ const TakenSeatButton = ({
                         colorScheme="yellow"
                         variant="subtle"
                         size={{ base: 'xs', md: 'sm' }}
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        px={{ base: 0.5, md: 2 }}
-                        py={{ base: 0, md: 0.5 }}
+                        fontSize={{ base: '8px', md: 'sm' }}
+                        px={{ base: 1, md: 2 }}
+                        py={{ base: 0.5, md: 0 }}
                         zIndex={3}
                     >
                         Away
+                    </Tag>
+                )}
+                {strengthLabel && (
+                    <Tag
+                        position="absolute"
+                        top={{ base: -2, md: -3 }}
+                        left={'50%'}
+                        transform={'translateX(-50%)'}
+                        colorScheme={'teal'}
+                        variant="solid"
+                        size={{ base: 'xs', md: 'sm' }}
+                        fontSize={{ base: '8px', md: 'sm' }}
+                        px={{ base: 1, md: 2 }}
+                        py={{ base: 0, md: 0.5 }}
+                        whiteSpace="nowrap"
+                        pointerEvents="none"
+                        zIndex={4}
+                    >
+                        {strengthLabel}
                     </Tag>
                 )}
                 <HStack spacing={2} className="player-info-header">
@@ -337,15 +397,37 @@ const TakenSeatButton = ({
                             {player.username}
                         </Text>
                     </Tooltip>
-                    <Text
-                        className="player-stack"
-                        variant={'seatText'}
-                        color={
-                            isCurrentTurn || isWinner ? 'gray.700' : 'gray.300'
-                        }
+                    <Box
+                        position={'relative'}
+                        display={'inline-flex'}
+                        alignItems={'center'}
                     >
-                        {player.stack}
-                    </Text>
+                        <Text
+                            className="player-stack"
+                            variant={'seatText'}
+                            color={
+                                isCurrentTurn || isWinner
+                                    ? 'gray.700'
+                                    : 'gray.300'
+                            }
+                        >
+                            {player.stack}
+                        </Text>
+                        {/* Winnings overlay – positioned next to the stack on the same line */}
+                        <Text
+                            className="player-winnings-overlay"
+                            variant={'seatText'}
+                            color={'green.600'}
+                            fontWeight={'bold'}
+                            position={'absolute'}
+                            left={'110%'}
+                            pointerEvents={'none'}
+                            zIndex={2}
+                            opacity={isWinner && winnings > 0 ? 1 : 0}
+                        >
+                            {`+${Math.round(winnings)}`}
+                        </Text>
+                    </Box>
                 </HStack>
 
                 {/* Countdown timer – keep box rendered for consistent height */}

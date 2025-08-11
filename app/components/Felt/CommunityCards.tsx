@@ -6,6 +6,11 @@ import CardComponent from '../Card';
 const CommunityCards = () => {
     const { appState } = useContext(AppContext);
     const communityCards = appState.game?.communityCards;
+    const winningHand =
+        appState.game?.pots?.[appState.game.pots.length - 1]?.winningHand ?? [];
+    const winningSet = new Set<number>(
+        winningHand.map((c: number | string) => Number(c))
+    );
     const isGameRunning = appState.game?.running;
 
     const cards = [0, 1, 2, 3, 4];
@@ -30,6 +35,13 @@ const CommunityCards = () => {
                                 card={appState.game.communityCards[num]}
                                 placeholder={false}
                                 folded={false}
+                                highlighted={winningSet.has(
+                                    Number(
+                                        appState.game.communityCards[
+                                            num
+                                        ] as unknown as number
+                                    )
+                                )}
                             />
                         ) : (
                             <CardComponent

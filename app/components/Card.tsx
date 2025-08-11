@@ -6,6 +6,7 @@ type cardProps = {
     card: CardType;
     placeholder: boolean;
     folded: boolean;
+    highlighted?: boolean;
 };
 
 const cardToString = (card: string) => {
@@ -104,10 +105,12 @@ const CardImage = ({
     cardPhoto,
     folded,
     altText,
+    highlighted = false,
 }: {
     cardPhoto: string;
     folded: boolean;
     altText: string;
+    highlighted?: boolean;
 }) => {
     return (
         <Box
@@ -118,25 +121,33 @@ const CardImage = ({
             display="flex"
             justifyContent="center"
             alignItems="center"
+            borderRadius={'10%'}
         >
             <Image
                 borderRadius={'10%'}
                 position={'absolute'}
                 alt={altText}
                 src={cardPhoto}
-                height="100%"
                 width="100%"
                 draggable="false"
                 style={{
                     objectFit: 'contain',
                     filter: folded ? 'brightness(50%)' : 'none',
+                    boxShadow: highlighted
+                        ? '0 0 3px 2px rgba(255, 215, 0, 0.9), 0 0 10px rgba(255, 215, 0, 0.85)'
+                        : 'none',
                 }}
             />
         </Box>
     );
 };
 
-const Card = ({ card, placeholder, folded }: cardProps) => {
+const Card = ({
+    card,
+    placeholder,
+    folded,
+    highlighted = false,
+}: cardProps) => {
     const [isFlipped, setIsFlipped] = useState(false);
     const cardString = cardToString(card);
     const cardPhoto = getCardPhoto(cardString);
@@ -159,6 +170,7 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                 altText="Card Back"
                 cardPhoto={cardPhotoBack}
                 folded={folded}
+                highlighted={highlighted}
             />
         );
     }
@@ -207,6 +219,7 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                         altText="Card Back"
                         cardPhoto={cardPhotoBack}
                         folded={folded}
+                        highlighted={highlighted}
                     />
                 </Box>
                 <Box
@@ -224,6 +237,7 @@ const Card = ({ card, placeholder, folded }: cardProps) => {
                         altText={`Card ${cardString}`}
                         cardPhoto={cardPhoto ?? ''}
                         folded={folded}
+                        highlighted={highlighted}
                     />
                 </Box>
             </Box>

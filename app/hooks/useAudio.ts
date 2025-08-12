@@ -4,11 +4,15 @@ const useAudio = (src: string) => {
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
-        audioRef.current = new Audio(src);
+        const audio = new Audio(src);
+        // Hint browser to preload metadata to avoid first-play lag
+        audio.preload = 'auto';
+        audioRef.current = audio;
 
         return () => {
             if (audioRef.current) {
                 audioRef.current.pause();
+                audioRef.current.src = '';
                 audioRef.current = null;
             }
         };

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Flex, Image } from '@chakra-ui/react';
 import type { Card as CardType } from '../interfaces';
 
@@ -117,6 +117,8 @@ const CardImage = ({
                 position={'absolute'}
                 alt={altText}
                 src={cardPhoto}
+                loading="eager"
+                decoding="async"
                 width="100%"
                 draggable="false"
                 style={{
@@ -125,6 +127,8 @@ const CardImage = ({
                     boxShadow: highlighted
                         ? '0 0 3px 2px rgba(255, 215, 0, 0.9), 0 0 10px rgba(255, 215, 0, 0.85)'
                         : 'none',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
                 }}
             />
         </Box>
@@ -142,21 +146,84 @@ const Card = ({
     );
     const cardString = cardToString(card);
     const cardPhoto = getCardPhoto(cardString);
+    const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
     useEffect(() => {
+        // Reset and clear any queued timeouts when card/placeholder changes
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
         setFlipState('back');
 
-        if (!placeholder) {
-            // Start the flip animation
-            setTimeout(() => {
-                setFlipState('flipping');
-                // Switch to front face at the perfect midpoint
-                setTimeout(() => {
-                    setFlipState('front');
-                }, 150); // Midpoint of 300ms animation
-            }, 300);
+        if (placeholder) {
+            return;
         }
-    }, [card, placeholder]);
+
+        const startFlip = () => {
+            // Start the flip animation after 300ms
+            timersRef.current.push(
+                setTimeout(() => {
+                    setFlipState('flipping');
+                    // Switch to front face at the perfect midpoint (150ms)
+                    timersRef.current.push(
+                        setTimeout(() => {
+                            setFlipState('front');
+                        }, 150)
+                    );
+                }, 300)
+            );
+        };
+
+        // Preload and decode the front image before flipping, with a safe fallback
+        if (cardPhoto) {
+            let started = false;
+            const fallbackId = setTimeout(() => {
+                if (!started) {
+                    startFlip();
+                    started = true;
+                }
+            }, 700);
+            timersRef.current.push(fallbackId);
+
+            const img: HTMLImageElement | null =
+                typeof window !== 'undefined' ? new window.Image() : null;
+            if (img) {
+                img.src = cardPhoto;
+                const maybeDecode = img as HTMLImageElement as unknown as {
+                    decode?: () => Promise<void>;
+                };
+                if (typeof maybeDecode.decode === 'function') {
+                    maybeDecode.decode!()
+                        .then(() => {
+                            if (!started) {
+                                clearTimeout(fallbackId);
+                                startFlip();
+                                started = true;
+                            }
+                        })
+                        .catch(() => {
+                            if (!started) {
+                                startFlip();
+                                started = true;
+                            }
+                        });
+                } else {
+                    startFlip();
+                }
+            } else {
+                if (!started) {
+                    startFlip();
+                    started = true;
+                }
+            }
+        } else {
+            startFlip();
+        }
+
+        return () => {
+            timersRef.current.forEach(clearTimeout);
+            timersRef.current = [];
+        };
+    }, [card, placeholder, cardPhoto]);
 
     if (cardString == '2\u0000') {
         return null;
@@ -194,6 +261,11 @@ const Card = ({
             width={'100%'}
             height={'100%'}
             opacity={placeholder ? 0 : 1}
+            sx={{
+                perspective: '1000px',
+                isolation: 'isolate',
+                contain: 'layout paint',
+            }}
         >
             <Box
                 width="100%"
@@ -203,6 +275,9 @@ const Card = ({
                     transition:
                         'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                     transformOrigin: 'center',
+                    willChange: 'transform',
+                    transformStyle: 'preserve-3d',
+                    WebkitTransformStyle: 'preserve-3d',
                 }}
             >
                 {flipState === 'front' ? (
@@ -217,7 +292,7 @@ const Card = ({
                         altText="Card Back"
                         cardPhoto={cardPhotoBack}
                         folded={folded}
-                        highlighted={highlighted}
+                        highlighted={false}
                     />
                 )}
             </Box>

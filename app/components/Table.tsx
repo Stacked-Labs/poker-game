@@ -1,11 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {
-    Flex,
-    Grid,
-    GridItem,
-    Image,
-    useBreakpointValue,
-} from '@chakra-ui/react';
+import { Box, Flex, Grid, GridItem } from '@chakra-ui/react';
 import EmptySeatButton from './EmptySeatButton';
 import TakenSeatButton from './TakenSeatButton';
 import { Player, Game as GameType } from '../interfaces';
@@ -120,14 +114,7 @@ const Table = () => {
     const [players, setPlayers] = useState(initialPlayers);
     const [winningPlayers, setWinningPlayers] = useState<Player[]>([]);
 
-    const breakpointRotate = useBreakpointValue({ base: true, md: false });
-    const [shouldRotate, setShouldRotate] = useState(false);
-
-    useEffect(() => {
-        if (breakpointRotate !== undefined) {
-            setShouldRotate(breakpointRotate);
-        }
-    }, [breakpointRotate]);
+    // Use CSS media queries for orientation to avoid SSR/CSR mismatch
 
     // map game players to their visual seats
     useEffect(() => {
@@ -250,20 +237,30 @@ const Table = () => {
             maxWidth="100%"
             overflow="hidden"
         >
-            <Image
+            <Box
+                as="picture"
                 className="table-image"
-                src={
-                    !shouldRotate
-                        ? '/table-horizontal.webp'
-                        : '/table-vertical.webp'
-                }
-                objectFit="contain"
                 height="100%"
                 width="auto"
-                maxWidth="100%"
-                maxHeight="100%"
-                alt="Poker table"
-            />
+                maxW="100%"
+                maxH="100%"
+            >
+                <source
+                    media="(orientation: portrait)"
+                    srcSet="/table-vertical.webp"
+                />
+                <img
+                    src="/table-horizontal.webp"
+                    alt="Poker table"
+                    style={{
+                        objectFit: 'contain',
+                        height: '100%',
+                        width: 'auto',
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                    }}
+                />
+            </Box>
             <Grid
                 className="table-grid"
                 p={1}
@@ -272,17 +269,16 @@ const Table = () => {
                 height={'100%'}
                 top={0}
                 left={0}
-                templateAreas={
-                    !shouldRotate ? templateGridLarge : templateGridSmall
-                }
-                gridTemplateRows={
-                    !shouldRotate
-                        ? 'repeat(4, minmax(0, 1fr))'
-                        : 'repeat(7, minmax(0, 1fr))'
-                }
-                gridTemplateColumns={
-                    !shouldRotate ? 'repeat(5, 1fr)' : 'repeat(3, 1fr)'
-                }
+                templateAreas={templateGridLarge}
+                gridTemplateRows={'repeat(4, minmax(0, 1fr))'}
+                gridTemplateColumns={'repeat(5, 1fr)'}
+                sx={{
+                    '@media (orientation: portrait)': {
+                        gridTemplateAreas: templateGridSmall,
+                        gridTemplateRows: 'repeat(7, minmax(0, 1fr))',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                    },
+                }}
                 gap={{ base: 2, md: 2, lg: 4 }}
                 placeItems="center"
                 justifyContent={'center'}
@@ -297,15 +293,17 @@ const Table = () => {
                                 area={id}
                                 display={'flex'}
                                 justifyContent={'center'}
-                                alignItems={
-                                    shouldRotate
-                                        ? value === 1
-                                            ? 'end'
-                                            : value === 10
-                                              ? 'top'
-                                              : 'center'
-                                        : 'center'
-                                }
+                                alignItems={'center'}
+                                sx={{
+                                    '@media (orientation: portrait)': {
+                                        alignItems:
+                                            value === 1
+                                                ? 'end'
+                                                : value === 10
+                                                  ? 'top'
+                                                  : 'center',
+                                    },
+                                }}
                                 width={'100%'}
                                 height={'100%'}
                             >

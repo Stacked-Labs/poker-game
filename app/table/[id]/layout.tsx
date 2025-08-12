@@ -47,7 +47,6 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                             justify="center"
                             align="center"
                             w="100vw"
-                            bottom={'4%'}
                             h="var(--full-vh)"
                             position="fixed"
                             zIndex={9999}
@@ -61,7 +60,12 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                         >
                             <MotionText
                                 color="white"
-                                fontSize={{ base: '150px' }}
+                                fontSize={{
+                                    base: '50px',
+                                    md: '120px',
+                                    lg: '150px',
+                                }}
+                                mb={{ base: '10%', md: '4%' }}
                                 fontWeight="extrabold"
                                 lineHeight={1.1}
                                 letterSpacing={{ base: '0.05em' }}

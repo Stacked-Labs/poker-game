@@ -120,7 +120,14 @@ const Table = () => {
     const [players, setPlayers] = useState(initialPlayers);
     const [winningPlayers, setWinningPlayers] = useState<Player[]>([]);
 
-    const shouldRotate = useBreakpointValue({ base: true, md: false }) ?? false;
+    const breakpointRotate = useBreakpointValue({ base: true, md: false });
+    const [shouldRotate, setShouldRotate] = useState(false);
+
+    useEffect(() => {
+        if (breakpointRotate !== undefined) {
+            setShouldRotate(breakpointRotate);
+        }
+    }, [breakpointRotate]);
 
     // map game players to their visual seats
     useEffect(() => {

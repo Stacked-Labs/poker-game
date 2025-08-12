@@ -38,7 +38,7 @@ const pulseAnimation = keyframes`
   100% { transform: scale(1); }
 `;
 
-const Navbar = () => {
+const Navbar = ({ isLoading }: { isLoading: boolean }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { isOpen: isOpenChat, onToggle: onToggleChat } = useDisclosure();
     const { appState, dispatch } = useContext(AppContext);
@@ -146,6 +146,7 @@ const Navbar = () => {
                 bg="gray.200"
                 color="white"
                 zIndex={10}
+                opacity={isLoading ? 0 : 1}
             >
                 <HStack spacing={{ base: 1, md: 2 }} alignItems="stretch">
                     <Box position="relative">
@@ -353,6 +354,7 @@ const Navbar = () => {
                 zIndex={999}
                 onClick={onToggleChat}
                 display={isOpenChat ? 'block' : 'none'}
+                opacity={isLoading ? 0 : 1}
             ></Flex>
             <SideBarChat isOpen={isOpenChat} onToggle={onToggleChat} />
         </>

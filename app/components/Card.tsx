@@ -85,10 +85,11 @@ const getCardPhoto = (card: string): string | null => {
     if (!rankStr || !suitStr) {
         return null;
     }
-    return `/cards/png/${rankStr}_of_${suitStr}.png`;
+    // Prefer WebP for drastic size reduction; PNG remains as fallback if needed elsewhere
+    return `/cards/webp/${rankStr}_of_${suitStr}.webp`;
 };
 
-const cardPhotoBack = '/cards/png/back_of_card.png';
+const cardPhotoBack = '/cards/webp/back_of_card.webp';
 
 const CardImage = ({
     cardPhoto,

@@ -8,7 +8,7 @@ import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
 import LandscapeScreen from '@/app/components/LandscapeScreen';
-import { AnimatePresence, motion, MotionContext } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const MotionFlex = motion(Flex);
 const MotionText = motion(Text);
@@ -40,42 +40,44 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
     return (
         <>
             {loading && (
-                <AnimatePresence initial={false}>
+                <AnimatePresence>
                     {loading && (
                         <MotionFlex
                             key="loading-screen"
                             justify="center"
                             align="center"
                             w="100vw"
+                            bottom={'4%'}
                             h="var(--full-vh)"
                             position="fixed"
                             zIndex={9999}
-                            backdropFilter="blur(3px)"
+                            backdropFilter="blur(10px)"
                             sx={{
-                                backdropFilter: 'blur(3px)',
-                                WebkitBackdropFilter: 'blur(3px)',
+                                backdropFilter: 'blur(10px)',
+                                WebkitBackdropFilter: 'blur(10px)',
                             }}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            transition={{
-                                duration: 0.4,
-                                ease: 'easeInOut',
-                                delayChildren: 0,
-                            }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
                         >
                             <MotionText
                                 color="white"
-                                fontSize={{ base: '6xl', lg: '8xl' }}
+                                fontSize={{ base: '150px' }}
                                 fontWeight="extrabold"
                                 lineHeight={1.1}
+                                letterSpacing={{ base: '0.05em' }}
                                 textShadow="2px 2px 10px rgba(0,0,0,0.5)"
-                                initial={{ opacity: 0, y: 5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -5 }}
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
                             >
-                                Loading...
+                                {'LOADING'.split('').map((char, index) => (
+                                    <span
+                                        key={`${char}-${index}`}
+                                        className={`loading-letter loading-variant-${index % 8}`}
+                                        style={{
+                                            animationDelay: `${index * 700}ms`,
+                                        }}
+                                    >
+                                        {char}
+                                    </span>
+                                ))}
                             </MotionText>
                         </MotionFlex>
                     )}

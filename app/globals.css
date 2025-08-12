@@ -116,3 +116,99 @@ a {
         color-scheme: dark;
     }
 }
+
+/* Loading text floating animation that works before hydration */
+@keyframes loading-float-vars {
+    0% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate3d(var(--lf-x1, 4px), var(--lf-y1, -12px), 0)
+            rotate(var(--lf-r1, -3deg));
+    }
+    50% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    75% {
+        transform: translate3d(var(--lf-x2, -4px), var(--lf-y2, 10px), 0)
+            rotate(var(--lf-r2, 3deg));
+    }
+    100% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+}
+
+.loading-letter {
+    display: inline-block;
+    animation-name: loading-float-vars;
+    animation-duration: 6s; /* slower (half speed) */
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    will-change: transform;
+}
+
+/* Variants to simulate different/random directions */
+.loading-variant-0 {
+    --lf-x1: 6px;
+    --lf-y1: -12px;
+    --lf-r1: -3deg;
+    --lf-x2: -5px;
+    --lf-y2: 10px;
+    --lf-r2: 3deg;
+}
+.loading-variant-1 {
+    --lf-x1: -5px;
+    --lf-y1: -9px;
+    --lf-r1: 2deg;
+    --lf-x2: 6px;
+    --lf-y2: 11px;
+    --lf-r2: -2deg;
+}
+.loading-variant-2 {
+    --lf-x1: 8px;
+    --lf-y1: -6px;
+    --lf-r1: -2deg;
+    --lf-x2: -7px;
+    --lf-y2: 9px;
+    --lf-r2: 2deg;
+}
+.loading-variant-3 {
+    --lf-x1: -6px;
+    --lf-y1: -14px;
+    --lf-r1: 3deg;
+    --lf-x2: 5px;
+    --lf-y2: 8px;
+    --lf-r2: -3deg;
+}
+.loading-variant-4 {
+    --lf-x1: 4px;
+    --lf-y1: -10px;
+    --lf-r1: -2deg;
+    --lf-x2: -4px;
+    --lf-y2: 12px;
+    --lf-r2: 2deg;
+}
+.loading-variant-5 {
+    --lf-x1: -7px;
+    --lf-y1: -8px;
+    --lf-r1: 2deg;
+    --lf-x2: 7px;
+    --lf-y2: 10px;
+    --lf-r2: -2deg;
+}
+.loading-variant-6 {
+    --lf-x1: 5px;
+    --lf-y1: -13px;
+    --lf-r1: -3deg;
+    --lf-x2: -6px;
+    --lf-y2: 7px;
+    --lf-r2: 3deg;
+}
+.loading-variant-7 {
+    --lf-x1: -4px;
+    --lf-y1: -11px;
+    --lf-r1: 3deg;
+    --lf-x2: 6px;
+    --lf-y2: 9px;
+    --lf-r2: -3deg;
+}

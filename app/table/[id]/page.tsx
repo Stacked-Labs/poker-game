@@ -4,7 +4,7 @@ import { useEffect, useState, useContext } from 'react';
 import { isTableExisting } from '@/app/hooks/server_actions';
 import Table from '@/app/components/Table';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { Box, Flex, Spinner, Text, VStack, Heading } from '@chakra-ui/react';
+import { Box, Flex, Heading } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import useToastHelper from '@/app/hooks/useToastHelper';
 
@@ -47,30 +47,6 @@ const TablePage = ({ params }: { params: { id: string } }) => {
 
     return (
         <>
-            <Box
-                className="loading-overlay"
-                background={'gray.200'}
-                width={'100vw'}
-                height={'var(--full-vh)'}
-                position={'fixed'}
-                zIndex={999}
-                hidden={tableStatus !== 'checking'}
-                display={'flex'}
-                justifyContent={'center'}
-                alignItems={'center'}
-            >
-                <VStack spacing={4}>
-                    <Spinner
-                        size="xl"
-                        color="red"
-                        thickness="4px"
-                        speed="0.8s"
-                    />
-                    <Text color="white" fontSize="lg" fontWeight="bold">
-                        Connecting to table...
-                    </Text>
-                </VStack>
-            </Box>
             {appState.game?.paused && (
                 <Box
                     className="pause-banner"

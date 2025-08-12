@@ -131,6 +131,7 @@ const CardImage = ({
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
                 }}
+                sizes="(max-width: 768px) 15vw, 10vw"
             />
         </Box>
     );

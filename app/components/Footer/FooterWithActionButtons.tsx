@@ -1,6 +1,6 @@
 'use client';
 
-import { Flex } from '@chakra-ui/react';
+import { Flex, Modal, useDisclosure } from '@chakra-ui/react';
 import React, { useState, useContext, useEffect } from 'react';
 import ActionButton from './ActionButton';
 import { AppContext } from '../../contexts/AppStoreProvider';
@@ -18,6 +18,7 @@ import {
     HOTKEY_FOLD,
     HOTKEY_RAISE,
 } from './constants';
+import GuardModal from '../GuardModal';
 
 const FooterWithActionButtons = ({
     isCurrentTurn,
@@ -28,6 +29,7 @@ const FooterWithActionButtons = ({
     const { appState } = useContext(AppContext);
     const [showRaise, setShowRaise] = useState<boolean>(false);
     const gameIsPaused = appState.game?.paused || false;
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
@@ -113,59 +115,74 @@ const FooterWithActionButtons = ({
         maxBet - player.bet < player.stack ? maxBet - player.bet : player.stack;
 
     return (
-        <Flex
-            justifyContent={{ base: 'space-between', md: 'end' }}
-            gap={{ base: 1, md: 2 }}
-            p={2}
-            height={{ base: '100px', md: '150px' }}
-            overflow={'visible'}
-            alignItems={'center'}
-        >
-            {showRaise && isCurrentTurn ? (
-                <RaiseInputBox
-                    isCurrentTurn={isCurrentTurn}
-                    setShowRaise={setShowRaise}
-                    showRaise={showRaise}
+        <>
+            <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
+                <GuardModal
+                    handleFold={handleFold}
+                    username={appState.username}
+                    onClose={onClose}
                 />
-            ) : (
-                <>
-                    {isCurrentTurn && !canCall && !gameIsPaused && (
+            </Modal>
+            <Flex
+                justifyContent={{ base: 'space-between', md: 'end' }}
+                gap={{ base: 1, md: 2 }}
+                p={2}
+                height={{ base: '100px', md: '150px' }}
+                overflow={'visible'}
+                alignItems={'center'}
+            >
+                {showRaise && isCurrentTurn ? (
+                    <RaiseInputBox
+                        isCurrentTurn={isCurrentTurn}
+                        setShowRaise={setShowRaise}
+                        showRaise={showRaise}
+                    />
+                ) : (
+                    <>
+                        {isCurrentTurn && !canCall && !gameIsPaused && (
+                            <ActionButton
+                                text={'Call (' + callAmount + ')'}
+                                color="green"
+                                clickHandler={() =>
+                                    handleCall(appState.username, callAmount)
+                                }
+                                isDisabled={false}
+                                hotkey={HOTKEY_CALL}
+                            />
+                        )}
                         <ActionButton
-                            text={'Call (' + callAmount + ')'}
+                            text={'Raise'}
                             color="green"
+                            clickHandler={() => setShowRaise(true)}
+                            isDisabled={!isCurrentTurn || gameIsPaused}
+                            hotkey={HOTKEY_RAISE}
+                        />
+                        {isCurrentTurn && canCheck && !gameIsPaused && (
+                            <ActionButton
+                                text={'Check'}
+                                color="green"
+                                clickHandler={() =>
+                                    handleCheck(appState.username)
+                                }
+                                isDisabled={false}
+                                hotkey={HOTKEY_CHECK}
+                            />
+                        )}
+                        <ActionButton
+                            text={'Fold'}
+                            color="red"
                             clickHandler={() =>
-                                handleCall(appState.username, callAmount)
+                                canCheck
+                                    ? onOpen()
+                                    : handleFold(appState.username)
                             }
-                            isDisabled={false}
-                            hotkey={HOTKEY_CALL}
+                            isDisabled={!isCurrentTurn || gameIsPaused}
+                            hotkey={HOTKEY_FOLD}
                         />
-                    )}
-                    <ActionButton
-                        text={'Raise'}
-                        color="green"
-                        clickHandler={() => setShowRaise(true)}
-                        isDisabled={!isCurrentTurn || gameIsPaused}
-                        hotkey={HOTKEY_RAISE}
-                    />
-                    {isCurrentTurn && canCheck && !gameIsPaused && (
-                        <ActionButton
-                            text={'Check'}
-                            color="green"
-                            clickHandler={() => handleCheck(appState.username)}
-                            isDisabled={false}
-                            hotkey={HOTKEY_CHECK}
-                        />
-                    )}
-                    <ActionButton
-                        text={'Fold'}
-                        color="red"
-                        clickHandler={() => handleFold(appState.username)}
-                        isDisabled={!isCurrentTurn || gameIsPaused}
-                        hotkey={HOTKEY_FOLD}
-                    />
-                </>
-            )}
-        </Flex>
+                    </>
+                )}
+            </Flex>
+        </>
     );
 };
 

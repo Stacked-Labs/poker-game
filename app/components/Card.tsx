@@ -1,27 +1,52 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Flex, Image } from '@chakra-ui/react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Box, Flex } from '@chakra-ui/react';
 import type { Card as CardType } from '../interfaces';
 
-type cardProps = {
+type CardProps = {
     card: CardType;
     placeholder: boolean;
     folded: boolean;
     highlighted?: boolean;
 };
 
+// Card rank mapping
+const rankMap: { [key: string]: string } = {
+    '2': '2',
+    '3': '3',
+    '4': '4',
+    '5': '5',
+    '6': '6',
+    '7': '7',
+    '8': '8',
+    '9': '9',
+    T: '10',
+    J: 'J',
+    Q: 'Q',
+    K: 'K',
+    A: 'A',
+};
+
+// Suit symbols and colors
+const suitConfig = {
+    C: { symbol: '♣', color: '#000000' }, // Clubs - Black
+    D: { symbol: '♦', color: '#FF0000' }, // Diamonds - Red
+    H: { symbol: '♥', color: '#FF0000' }, // Hearts - Red
+    S: { symbol: '♠', color: '#000000' }, // Spades - Black
+};
+
+// (Suit paths not needed currently since we render suit symbols as text)
+
 const cardToString = (card: string) => {
-    if (card === '?') {
-        return '?';
-    }
+    if (card === '?') return '?';
+
     const c = Number.parseInt(card);
-    // Return early if parsing fails
-    if (isNaN(c)) {
-        return '?';
-    }
+    if (isNaN(c)) return '?';
+
     const rank = (c >> 8) & 0x0f;
     const suit = c & 0xf000;
+
     const numToCharRanks = [
         '2',
         '3',
@@ -42,113 +67,209 @@ const cardToString = (card: string) => {
     numToCharSuits.set(0x4000, 'D');
     numToCharSuits.set(0x2000, 'H');
     numToCharSuits.set(0x1000, 'S');
+
     const rankChar = numToCharRanks[rank];
     const suitChar = numToCharSuits.get(suit);
-    // Return '?' if either rank or suit is invalid
-    if (!rankChar || !suitChar) {
-        return '?';
-    }
+
+    if (!rankChar || !suitChar) return '?';
     return rankChar + suitChar;
 };
 
-const getCardPhoto = (card: string): string | null => {
-    // Return null for placeholder or invalid cards
-    if (card === '?' || card.length < 2) {
-        return null;
-    }
-    const rankMap: { [key: string]: string } = {
-        '2': '2',
-        '3': '3',
-        '4': '4',
-        '5': '5',
-        '6': '6',
-        '7': '7',
-        '8': '8',
-        '9': '9',
-        T: '10',
-        J: 'jack',
-        Q: 'queen',
-        K: 'king',
-        A: 'ace',
-    };
-    const suitMap: { [key: string]: string } = {
-        C: 'clubs',
-        D: 'diamonds',
-        H: 'hearts',
-        S: 'spades',
-    };
-    const rank = card[0];
-    const suit = card[1];
-    const rankStr = rankMap[rank];
-    const suitStr = suitMap[suit];
-    // Return null if either rank or suit is undefined/invalid
-    if (!rankStr || !suitStr) {
-        return null;
-    }
-    // Prefer WebP for drastic size reduction; PNG remains as fallback if needed elsewhere
-    return `/cards/webp/${rankStr}_of_${suitStr}.webp`;
-};
-
-const cardPhotoBack = '/cards/webp/back_of_card.webp';
-
-const CardImage = ({
-    cardPhoto,
-    folded,
-    altText,
-    highlighted = false,
+const SVGCardFace = ({
+    rank,
+    suit,
+    folded = false,
 }: {
-    cardPhoto: string;
-    folded: boolean;
-    altText: string;
-    highlighted?: boolean;
+    rank: string;
+    suit: string;
+    folded?: boolean;
 }) => {
+    const suitInfo = suitConfig[suit as keyof typeof suitConfig];
+    const isRed = suit === 'D' || suit === 'H';
+
     return (
-        <Box
-            width={'100%'}
-            height={'100%'}
-            position={'relative'}
-            className="card-image-box"
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            borderRadius={'10%'}
+        <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 24 32"
+            style={{
+                // Apply only dimming here; move glow to container to avoid SVG filter clipping
+                filter: folded ? 'brightness(50%)' : 'none',
+            }}
         >
-            <Image
-                borderRadius={'10%'}
-                position={'absolute'}
-                alt={altText}
-                src={cardPhoto}
-                loading="eager"
-                decoding="async"
-                width="100%"
-                draggable="false"
-                style={{
-                    objectFit: 'contain',
-                    filter: folded ? 'brightness(50%)' : 'none',
-                    boxShadow: highlighted
-                        ? '0 0 3px 2px rgba(255, 215, 0, 0.9), 0 0 10px rgba(255, 215, 0, 0.85)'
-                        : 'none',
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
-                }}
-                sizes="(max-width: 768px) 15vw, 10vw"
+            {/* Card background */}
+            <rect
+                width="24"
+                height="32"
+                rx="2"
+                ry="2"
+                fill="#FFFFFF"
+                stroke="#000000"
+                strokeWidth="0.5"
             />
-        </Box>
+
+            {/* Top left rank and suit - vertically aligned and compact */}
+            <text
+                x="3"
+                y="8"
+                fontSize="8"
+                fontWeight="bold"
+                fill={isRed ? '#FF0000' : '#000000'}
+                fontFamily="Arial, sans-serif"
+            >
+                {rank}
+            </text>
+
+            {/* Suit under rank - bigger and aligned */}
+            <text
+                x="3"
+                y="13.5"
+                fontSize="8"
+                fill={suitInfo.color}
+                fontFamily="serif"
+            >
+                {suitInfo.symbol}
+            </text>
+
+            {/* Large centered suit - bigger with less white space */}
+            <text
+                x="12"
+                y="22"
+                fontSize="22"
+                fill={suitInfo.color}
+                fontFamily="serif"
+                textAnchor="middle"
+                dominantBaseline="middle"
+            >
+                {suitInfo.symbol}
+            </text>
+        </svg>
     );
 };
 
-const Card = ({
+const CardBack = ({ highlighted = false }: { highlighted?: boolean }) => (
+    <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 24 32"
+        style={{
+            filter: highlighted
+                ? 'drop-shadow(0 0 12px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 6px rgba(255, 215, 0, 0.7))'
+                : 'none',
+        }}
+    >
+        {/* Card background - darkish red */}
+        <rect
+            width="24"
+            height="32"
+            rx="2"
+            ry="2"
+            fill="#8B0000"
+            stroke="#000000"
+            strokeWidth="0.5"
+        />
+
+        {/* Card back pattern - darker red overlay */}
+        <rect
+            x="2"
+            y="2"
+            width="20"
+            height="28"
+            rx="1"
+            ry="1"
+            fill="#660000"
+            opacity="0.4"
+        />
+
+        {/* Texture pattern - diagonal lines */}
+        <defs>
+            <pattern
+                id="cardTexture"
+                patternUnits="userSpaceOnUse"
+                width="4"
+                height="4"
+            >
+                <line
+                    x1="0"
+                    y1="0"
+                    x2="4"
+                    y2="4"
+                    stroke="#A52A2A"
+                    strokeWidth="0.5"
+                    opacity="0.3"
+                />
+                <line
+                    x1="4"
+                    y1="0"
+                    x2="0"
+                    y2="4"
+                    stroke="#A52A2A"
+                    strokeWidth="0.5"
+                    opacity="0.3"
+                />
+            </pattern>
+        </defs>
+
+        {/* Apply texture */}
+        <rect
+            x="2"
+            y="2"
+            width="20"
+            height="28"
+            rx="1"
+            ry="1"
+            fill="url(#cardTexture)"
+        />
+
+        {/* Brand name "Stacked" woven into the texture */}
+        <text
+            x="12"
+            y="16"
+            fontSize="3"
+            fill="#FFFFFF"
+            fontFamily="Arial, sans-serif"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            opacity="1"
+            fontWeight="bold"
+        >
+            STACKED
+        </text>
+
+        {/* Subtle border inset to add depth */}
+        <rect
+            x="2.75"
+            y="2.75"
+            width="18.5"
+            height="26.5"
+            rx="1"
+            ry="1"
+            fill="none"
+            stroke="#5a0000"
+            strokeWidth="0.5"
+            opacity="0.6"
+        />
+    </svg>
+);
+
+const SVGCard = ({
     card,
     placeholder,
     folded,
     highlighted = false,
-}: cardProps) => {
+}: CardProps) => {
     const [flipState, setFlipState] = useState<'back' | 'flipping' | 'front'>(
         'back'
     );
-    const cardString = cardToString(card);
-    const cardPhoto = getCardPhoto(cardString);
     const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+    const cardString = useMemo(() => cardToString(card), [card]);
+    const cardData = useMemo(() => {
+        if (cardString === '?' || cardString.length < 2) return null;
+        const rank = cardString[0];
+        const suit = cardString[1];
+        return { rank: rankMap[rank] || rank, suit };
+    }, [cardString]);
 
     useEffect(() => {
         // Reset and clear any queued timeouts when card/placeholder changes
@@ -156,9 +277,7 @@ const Card = ({
         timersRef.current = [];
         setFlipState('back');
 
-        if (placeholder) {
-            return;
-        }
+        if (placeholder) return;
 
         const startFlip = () => {
             // Start the flip animation after 300ms
@@ -175,70 +294,30 @@ const Card = ({
             );
         };
 
-        // Preload and decode the front image before flipping, with a safe fallback
-        if (cardPhoto) {
-            let started = false;
-            const fallbackId = setTimeout(() => {
-                if (!started) {
-                    startFlip();
-                    started = true;
-                }
-            }, 700);
-            timersRef.current.push(fallbackId);
-
-            const img: HTMLImageElement | null =
-                typeof window !== 'undefined' ? new window.Image() : null;
-            if (img) {
-                img.src = cardPhoto;
-                const maybeDecode = img as HTMLImageElement as unknown as {
-                    decode?: () => Promise<void>;
-                };
-                if (typeof maybeDecode.decode === 'function') {
-                    maybeDecode.decode!()
-                        .then(() => {
-                            if (!started) {
-                                clearTimeout(fallbackId);
-                                startFlip();
-                                started = true;
-                            }
-                        })
-                        .catch(() => {
-                            if (!started) {
-                                startFlip();
-                                started = true;
-                            }
-                        });
-                } else {
-                    startFlip();
-                }
-            } else {
-                if (!started) {
-                    startFlip();
-                    started = true;
-                }
-            }
-        } else {
-            startFlip();
-        }
+        // Start flip immediately for SVG cards (no image loading needed)
+        startFlip();
 
         return () => {
             timersRef.current.forEach(clearTimeout);
             timersRef.current = [];
         };
-    }, [card, placeholder, cardPhoto]);
+    }, [card, placeholder]);
 
-    if (cardString == '2\u0000') {
-        return null;
-    }
+    if (cardString === '2\u0000') return null;
 
-    if (card == '0') {
+    if (card === '0') {
         return (
-            <CardImage
-                altText="Card Back"
-                cardPhoto={cardPhotoBack}
-                folded={folded}
-                highlighted={highlighted}
-            />
+            <Box
+                width="100%"
+                height="fit-content"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                borderRadius="10%"
+                overflow="hidden"
+            >
+                <CardBack highlighted={highlighted} />
+            </Box>
         );
     }
 
@@ -260,8 +339,8 @@ const Card = ({
             justifyContent="center"
             position="relative"
             cursor={placeholder ? 'pointer' : 'default'}
-            width={'100%'}
-            height={'100%'}
+            width="100%"
+            height="fit-content"
             opacity={placeholder ? 0 : 1}
             sx={{
                 perspective: '1000px',
@@ -271,7 +350,7 @@ const Card = ({
         >
             <Box
                 width="100%"
-                height="100%"
+                height="fit-content"
                 sx={{
                     transform: getTransform(),
                     transition:
@@ -282,25 +361,54 @@ const Card = ({
                     WebkitTransformStyle: 'preserve-3d',
                 }}
             >
-                {flipState === 'front' ? (
-                    <CardImage
-                        altText={`Card ${cardString}`}
-                        cardPhoto={cardPhoto ?? ''}
-                        folded={folded}
-                        highlighted={highlighted}
-                    />
+                {flipState === 'front' && cardData ? (
+                    // Outer wrapper provides the highlight so it follows the rounded card shape
+                    <Box
+                        width="100%"
+                        height="fit-content"
+                        borderRadius="10%"
+                        className="card-outer-wrapper"
+                        boxShadow={
+                            highlighted
+                                ? '0 0 8px 2px rgba(255,215,0,0.95), 0 0 12px 3px rgba(255,215,0,0.7)'
+                                : 'none'
+                        }
+                    >
+                        <Box
+                            width="100%"
+                            height="fit-content"
+                            display="flex"
+                            className="card-inner-wrapper"
+                            justifyContent="center"
+                            alignItems="center"
+                            borderRadius="10%"
+                            overflow="hidden"
+                        >
+                            <SVGCardFace
+                                rank={cardData.rank}
+                                suit={cardData.suit}
+                                folded={folded}
+                            />
+                        </Box>
+                    </Box>
                 ) : (
-                    <CardImage
-                        altText="Card Back"
-                        cardPhoto={cardPhotoBack}
-                        folded={folded}
-                        highlighted={false}
-                    />
+                    <Box
+                        width="100%"
+                        height="fit-content"
+                        display="flex"
+                        className="card-back-outer-wrapper"
+                        justifyContent="center"
+                        alignItems="center"
+                        borderRadius="10%"
+                        overflow="hidden"
+                    >
+                        <CardBack highlighted={false} />
+                    </Box>
                 )}
             </Box>
         </Flex>
     );
 };
 
-const MemoizedCard = React.memo(Card);
-export default MemoizedCard;
+const MemoizedSVGCard = React.memo(SVGCard);
+export default MemoizedSVGCard;

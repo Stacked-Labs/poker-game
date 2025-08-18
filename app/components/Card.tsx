@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Box, Flex } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import type { Card as CardType } from '../interfaces';
 
 type CardProps = {
@@ -79,10 +79,12 @@ const SVGCardFace = ({
     rank,
     suit,
     folded = false,
+    highlighted = false,
 }: {
     rank: string;
     suit: string;
     folded?: boolean;
+    highlighted?: boolean;
 }) => {
     const suitInfo = suitConfig[suit as keyof typeof suitConfig];
     const isRed = suit === 'D' || suit === 'H';
@@ -93,8 +95,10 @@ const SVGCardFace = ({
             height="100%"
             viewBox="0 0 24 32"
             style={{
-                // Apply only dimming here; move glow to container to avoid SVG filter clipping
-                filter: folded ? 'brightness(50%)' : 'none',
+                filter:
+                    `${folded ? 'brightness(50%)' : ''} ${highlighted ? 'drop-shadow(0 0 2px rgba(255, 215, 0, 1))' : ''}`.trim() ||
+                    'none',
+                display: 'block',
             }}
         >
             {/* Card background */}
@@ -104,8 +108,8 @@ const SVGCardFace = ({
                 rx="2"
                 ry="2"
                 fill="#FFFFFF"
-                stroke="#000000"
-                strokeWidth="0.5"
+                stroke={highlighted ? '#FFD700' : '#000000'}
+                strokeWidth={'0.5'}
             />
 
             {/* Top left rank and suit - vertically aligned and compact */}
@@ -154,8 +158,9 @@ const CardBack = ({ highlighted = false }: { highlighted?: boolean }) => (
         viewBox="0 0 24 32"
         style={{
             filter: highlighted
-                ? 'drop-shadow(0 0 12px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 6px rgba(255, 215, 0, 0.7))'
+                ? 'drop-shadow(0 0 4px rgba(255, 215, 0, 1))'
                 : 'none',
+            display: 'block',
         }}
     >
         {/* Card background - darkish red */}
@@ -165,8 +170,8 @@ const CardBack = ({ highlighted = false }: { highlighted?: boolean }) => (
             rx="2"
             ry="2"
             fill="#8B0000"
-            stroke="#000000"
-            strokeWidth="0.5"
+            stroke={highlighted ? '#FFD700' : '#000000'}
+            strokeWidth={'0.5'}
         />
 
         {/* Card back pattern - darker red overlay */}
@@ -309,14 +314,14 @@ const SVGCard = ({
         return (
             <Box
                 width="100%"
-                height="fit-content"
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
+                sx={{ aspectRatio: '3 / 4', perspective: '1000px' }}
+                position="relative"
                 borderRadius="10%"
                 overflow="hidden"
             >
-                <CardBack highlighted={highlighted} />
+                <Box width="100%" height="100%">
+                    <CardBack highlighted={highlighted} />
+                </Box>
             </Box>
         );
     }
@@ -335,22 +340,18 @@ const SVGCard = ({
     };
 
     return (
-        <Flex
-            justifyContent="center"
+        <Box
+            width="100%"
+            sx={{ aspectRatio: '3 / 4', perspective: '1000px' }}
             position="relative"
             cursor={placeholder ? 'pointer' : 'default'}
-            width="100%"
-            height="fit-content"
             opacity={placeholder ? 0 : 1}
-            sx={{
-                perspective: '1000px',
-                isolation: 'isolate',
-                contain: 'layout paint',
-            }}
+            borderRadius="10%"
+            overflow="hidden"
         >
             <Box
                 width="100%"
-                height="fit-content"
+                height="100%"
                 sx={{
                     transform: getTransform(),
                     transition:
@@ -362,51 +363,17 @@ const SVGCard = ({
                 }}
             >
                 {flipState === 'front' && cardData ? (
-                    // Outer wrapper provides the highlight so it follows the rounded card shape
-                    <Box
-                        width="100%"
-                        height="fit-content"
-                        borderRadius="10%"
-                        className="card-outer-wrapper"
-                        boxShadow={
-                            highlighted
-                                ? '0 0 8px 2px rgba(255,215,0,0.95), 0 0 12px 3px rgba(255,215,0,0.7)'
-                                : 'none'
-                        }
-                    >
-                        <Box
-                            width="100%"
-                            height="fit-content"
-                            display="flex"
-                            className="card-inner-wrapper"
-                            justifyContent="center"
-                            alignItems="center"
-                            borderRadius="10%"
-                            overflow="hidden"
-                        >
-                            <SVGCardFace
-                                rank={cardData.rank}
-                                suit={cardData.suit}
-                                folded={folded}
-                            />
-                        </Box>
-                    </Box>
+                    <SVGCardFace
+                        rank={cardData.rank}
+                        suit={cardData.suit}
+                        folded={folded}
+                        highlighted={highlighted}
+                    />
                 ) : (
-                    <Box
-                        width="100%"
-                        height="fit-content"
-                        display="flex"
-                        className="card-back-outer-wrapper"
-                        justifyContent="center"
-                        alignItems="center"
-                        borderRadius="10%"
-                        overflow="hidden"
-                    >
-                        <CardBack highlighted={false} />
-                    </Box>
+                    <CardBack highlighted={highlighted} />
                 )}
             </Box>
-        </Flex>
+        </Box>
     );
 };
 

@@ -1,8 +1,5 @@
-import { Player } from '@/app/interfaces';
+import { PendingPlayer, Player } from '@/app/interfaces';
 import {
-    Flex,
-    Box,
-    Button,
     Text,
     useDisclosure,
     Modal,
@@ -11,13 +8,14 @@ import {
     ModalHeader,
     ModalBody,
     ModalFooter,
-    Tooltip,
     ModalCloseButton,
+    Button,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { GiBootKick } from 'react-icons/gi';
-import useToastHelper from '@/app/hooks/useToastHelper';
+
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
+import PlayerCard from './PlayerCard';
 
 interface Props {
     acceptedPlayers: Player[] | undefined;
@@ -33,10 +31,10 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     const [kickingInProgress, setKickingInProgress] = useState<string | null>(
         null
     );
-    const toast = useToastHelper();
+
     const isOwner = useIsTableOwner();
 
-    const confirmKick = (player: Player) => {
+    const confirmKick = (player: PendingPlayer) => {
         setSelectedPlayer({
             uuid: player.uuid,
             name: player.username || player.uuid.substring(0, 8),
@@ -67,149 +65,25 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                     if (player) {
                         const isKicking = kickingInProgress === player.uuid;
 
-                        return (
-                            <Flex
-                                key={index}
-                                alignItems={'center'}
-                                gap={{ base: 0, lg: 10 }}
-                                width={{ base: '90vw', md: '70%' }}
-                                borderColor={'grey'}
-                                borderWidth={2}
-                                borderRadius={10}
-                                paddingX={{ base: 5, md: 10 }}
-                                paddingY={{ base: 2, md: 5 }}
-                                direction={{
-                                    base: 'column',
-                                    lg: 'row',
-                                }}
-                                mb={4}
-                                bg={
-                                    isKicking
-                                        ? 'rgba(255, 0, 0, 0.1)'
-                                        : 'transparent'
-                                }
-                                transition="background-color 0.3s"
-                            >
-                                <Flex
-                                    flex={3}
-                                    justifyContent={'space-around'}
-                                    alignItems={'center'}
-                                    textAlign={'left'}
-                                    gap={40}
-                                >
-                                    <Flex
-                                        gap={{ base: 2, xl: 5 }}
-                                        flex={2}
-                                        direction={{
-                                            base: 'column',
-                                            xl: 'row',
-                                        }}
-                                    >
-                                        <Flex
-                                            justifyContent={'space-between'}
-                                            direction={{
-                                                base: 'column',
-                                                xl: 'row',
-                                            }}
-                                            gap={{ base: 2, xl: 5 }}
-                                        >
-                                            <Flex
-                                                gap={{ base: 2, xl: 5 }}
-                                                direction={{
-                                                    base: 'column',
-                                                    xl: 'row',
-                                                }}
-                                            >
-                                                <Box
-                                                    bgColor={'charcoal.600'}
-                                                    paddingY={1}
-                                                    paddingX={2}
-                                                    borderRadius={10}
-                                                >
-                                                    <Text
-                                                        fontSize={'small'}
-                                                        color={'white'}
-                                                    >
-                                                        ID:{' '}
-                                                        {player.uuid.substring(
-                                                            0,
-                                                            8
-                                                        )}
-                                                    </Text>
-                                                </Box>
-                                            </Flex>
-                                            <Text color={'white'}>
-                                                Total buy-in:{' '}
-                                                <Text
-                                                    as={'span'}
-                                                    fontWeight={'bold'}
-                                                >
-                                                    {player.totalBuyIn}
-                                                </Text>
-                                            </Text>
-                                        </Flex>
-                                        <Flex
-                                            gap={4}
-                                            justifyContent={'space-between'}
-                                            direction={{
-                                                base: 'column',
-                                                xl: 'row',
-                                            }}
-                                        >
-                                            <Text color={'white'}>
-                                                Seat:{' '}
-                                                <Text
-                                                    as={'span'}
-                                                    fontWeight={'bold'}
-                                                >
-                                                    {player.seatID}
-                                                </Text>
-                                            </Text>
-                                        </Flex>
-                                    </Flex>
-                                </Flex>
+                        const formattedPlayer: PendingPlayer = {
+                            uuid: player.uuid,
+                            username: player.username,
+                            seatId: player.seatID,
+                            buyIn: player.totalBuyIn,
+                        };
 
-                                <Flex
-                                    gap={{ base: 5, lg: 10 }}
-                                    py={{ base: 5, lg: 0 }}
-                                    width={{ base: '100%', lg: '25%' }}
-                                    justifyContent={{
-                                        base: 'center',
-                                        lg: 'flex-end',
-                                    }}
-                                >
-                                    {isOwner && (
-                                        <Tooltip
-                                            label="Kick Player"
-                                            placement="top"
-                                        >
-                                            <Button
-                                                variant={'settingsSmallButton'}
-                                                bg={'red.500'}
-                                                _hover={{
-                                                    background: 'red.600',
-                                                }}
-                                                onClick={() =>
-                                                    confirmKick(player)
-                                                }
-                                                isLoading={isKicking}
-                                                loadingText="Kicking..."
-                                                width={{
-                                                    base: '100%',
-                                                    lg: 'auto',
-                                                }}
-                                                color="white"
-                                                rightIcon={
-                                                    <GiBootKick size={20} />
-                                                }
-                                                px={4}
-                                            >
-                                                Kick
-                                            </Button>
-                                        </Tooltip>
-                                    )}
-                                </Flex>
-                            </Flex>
+                        return (
+                            <PlayerCard
+                                key={player.uuid}
+                                index={index}
+                                player={formattedPlayer}
+                                isOwner={isOwner}
+                                type={'accepted'}
+                                isKicking={isKicking}
+                                handleAcceptPlayer={null}
+                                handleDenyPlayer={null}
+                                confirmKick={confirmKick}
+                            />
                         );
                     }
                 })}

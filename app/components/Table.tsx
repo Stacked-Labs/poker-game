@@ -323,7 +323,7 @@ const Table = () => {
                                                 (player) =>
                                                     player.uuid ===
                                                     appState.clientID
-                                            ) || appState.isSeatRequested
+                                            ) || appState.seatRequested != null
                                         }
                                     />
                                 )}

@@ -9,6 +9,7 @@ type CardProps = {
     placeholder: boolean;
     folded: boolean;
     highlighted?: boolean;
+    dimmed?: boolean;
 };
 
 // Card rank mapping
@@ -80,11 +81,13 @@ const SVGCardFace = ({
     suit,
     folded = false,
     highlighted = false,
+    dimmed = false,
 }: {
     rank: string;
     suit: string;
     folded?: boolean;
     highlighted?: boolean;
+    dimmed?: boolean;
 }) => {
     const suitInfo = suitConfig[suit as keyof typeof suitConfig];
     const isRed = suit === 'D' || suit === 'H';
@@ -95,10 +98,19 @@ const SVGCardFace = ({
             height="100%"
             viewBox="0 0 24 32"
             style={{
-                filter:
-                    `${folded ? 'brightness(50%)' : ''} ${highlighted ? 'drop-shadow(0 0 2px rgba(255, 215, 0, 1))' : ''}`.trim() ||
-                    'none',
                 display: 'block',
+                filter:
+                    [
+                        folded || (dimmed && !highlighted)
+                            ? 'brightness(50%)'
+                            : '',
+                        highlighted
+                            ? 'drop-shadow(0 0 2px rgba(255, 215, 0, 1))'
+                            : '',
+                    ]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim() || 'none',
             }}
         >
             {/* Card background */}
@@ -151,16 +163,31 @@ const SVGCardFace = ({
     );
 };
 
-const CardBack = ({ highlighted = false }: { highlighted?: boolean }) => (
+const CardBack = ({
+    highlighted = false,
+    dimmed = false,
+    folded = false,
+}: {
+    highlighted?: boolean;
+    dimmed?: boolean;
+    folded?: boolean;
+}) => (
     <svg
         width="100%"
         height="100%"
         viewBox="0 0 24 32"
         style={{
-            filter: highlighted
-                ? 'drop-shadow(0 0 4px rgba(255, 215, 0, 1))'
-                : 'none',
             display: 'block',
+            filter:
+                [
+                    folded || (dimmed && !highlighted) ? 'brightness(50%)' : '',
+                    highlighted
+                        ? 'drop-shadow(0 0 4px rgba(255, 215, 0, 1))'
+                        : '',
+                ]
+                    .filter(Boolean)
+                    .join(' ')
+                    .trim() || 'none',
         }}
     >
         {/* Card background - darkish red */}
@@ -262,6 +289,7 @@ const SVGCard = ({
     placeholder,
     folded,
     highlighted = false,
+    dimmed = false,
 }: CardProps) => {
     const [flipState, setFlipState] = useState<'back' | 'flipping' | 'front'>(
         'back'
@@ -320,7 +348,11 @@ const SVGCard = ({
                 overflow="hidden"
             >
                 <Box width="100%" height="100%">
-                    <CardBack highlighted={highlighted} />
+                    <CardBack
+                        highlighted={highlighted}
+                        dimmed={dimmed}
+                        folded={folded}
+                    />
                 </Box>
             </Box>
         );
@@ -368,9 +400,14 @@ const SVGCard = ({
                         suit={cardData.suit}
                         folded={folded}
                         highlighted={highlighted}
+                        dimmed={dimmed}
                     />
                 ) : (
-                    <CardBack highlighted={highlighted} />
+                    <CardBack
+                        highlighted={highlighted}
+                        dimmed={dimmed}
+                        folded={folded}
+                    />
                 )}
             </Box>
         </Box>

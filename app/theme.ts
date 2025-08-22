@@ -224,7 +224,7 @@ const components = {
                 border: 0,
             },
             settingsSmallButton: {
-                width: '50%',
+                width: '50px',
                 border: 0,
             },
             connectButton: {

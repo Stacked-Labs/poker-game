@@ -190,11 +190,21 @@ const TakenSeatButton = ({
               : 'green'
         : 'gray';
 
-    // Build a set of winning cards from the latest pot to drive highlights
-    const lastPot = appState.game?.pots?.[appState.game.pots.length - 1];
-    const winningSet = new Set<number>(
-        (lastPot?.winningHand ?? []).map((c: number | string) => Number(c))
-    );
+    // Only show winning hand effects when this player is actually a winner
+    // Use the isWinner prop from Table component instead of trying to read stale pot data
+    const winningSet = new Set<number>();
+
+    if (isWinner) {
+        // Build a set of winning cards from the first pot with a winning hand
+        const potWithWinningHand = appState.game?.pots?.find(
+            (pot) => pot.winningHand && pot.winningHand.length > 0
+        );
+        if (potWithWinningHand?.winningHand) {
+            potWithWinningHand.winningHand.forEach((card) => {
+                winningSet.add(Number(card));
+            });
+        }
+    }
 
     // Compute hand strength label per display rules
     const strengthLabel: string | null = useMemo(() => {
@@ -298,7 +308,23 @@ const TakenSeatButton = ({
                     player.cards.map((card: Card, index: number) => {
                         // During showdown reveal, only losers should appear dimmed.
                         // Otherwise, fall back to whether the player folded this hand.
-                        const shouldDim = isRevealed ? !isWinner : !player.in;
+                        const shouldDim = isWinner
+                            ? false
+                            : isRevealed
+                              ? !isWinner
+                              : !player.in;
+
+                        // DEBUG: Log shouldDim logic for winning players
+                        if (isWinner || winningSet.size > 0) {
+                            console.log('🏆 WINNER DEBUG:', {
+                                player: player.username,
+                                isWinner,
+                                isRevealed,
+                                playerIn: player.in,
+                                shouldDim,
+                                hasWinningCards: winningSet.size > 0,
+                            });
+                        }
                         return (
                             <Box
                                 key={`${card}-${index}`}
@@ -320,9 +346,8 @@ const TakenSeatButton = ({
                                     card={card}
                                     placeholder={false}
                                     folded={shouldDim}
-                                    highlighted={
-                                        isWinner && winningSet.has(Number(card))
-                                    }
+                                    highlighted={winningSet.has(Number(card))}
+                                    dimmed={false}
                                 />
                             </Box>
                         );

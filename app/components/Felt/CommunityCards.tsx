@@ -1,16 +1,19 @@
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { Box, Flex } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import CardComponent from '../Card';
 
 const CommunityCards = () => {
     const { appState } = useContext(AppContext);
     const communityCards = appState.game?.communityCards;
-    const winningHand =
-        appState.game?.pots?.[appState.game.pots.length - 1]?.winningHand ?? [];
+    const potWithWinningHand = appState.game?.pots?.find(
+        (pot) => pot.winningHand && pot.winningHand.length > 0
+    );
+    const winningHand = potWithWinningHand?.winningHand ?? [];
     const winningSet = new Set<number>(
         winningHand.map((c: number | string) => Number(c))
     );
+
     const isGameRunning = appState.game?.running;
 
     const cards = [0, 1, 2, 3, 4];
@@ -125,6 +128,7 @@ const CommunityCards = () => {
                                         ] as unknown as number
                                     )
                                 )}
+                                dimmed={false}
                             />
                         ) : (
                             <CardComponent

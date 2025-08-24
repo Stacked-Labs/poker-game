@@ -66,7 +66,7 @@ const FooterWithActionButtons = ({
                     }
                     break;
                 case HOTKEY_FOLD:
-                    handleFold(appState.username);
+                    canCheck ? onOpen() : handleFold(appState.username);
                     e.preventDefault();
                     break;
                 default:

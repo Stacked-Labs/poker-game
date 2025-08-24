@@ -50,6 +50,7 @@ const GuardModal = ({
                     onClick={() => {
                         if (username) {
                             handleFold(username);
+                            onClose();
                         }
                     }}
                 >

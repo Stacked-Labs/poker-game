@@ -90,7 +90,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         newPlayer(socket, name);
         takeSeat(socket, name, seatId, buyIn);
         appStore.dispatch({ type: 'setUsername', payload: name });
-        appStore.dispatch({ type: 'setIsSeatRequested', payload: true });
+        appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
         currentUser.setCurrentUser({ name, seatId });
         sendLog(socket, `${name} buys in for ${buyIn}`);
         onClose(); // Close modal after sending

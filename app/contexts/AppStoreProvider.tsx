@@ -12,7 +12,7 @@ const initialState: AppState = {
     volume: 1,
     unreadMessageCount: 0,
     isChatOpen: false,
-    isSeatRequested: false,
+    seatRequested: null,
     isLeaveRequested: false,
     pendingPlayers: [],
 };
@@ -29,7 +29,7 @@ type ACTIONTYPE =
     | { type: 'incrementUnreadCount' }
     | { type: 'resetUnreadCount' }
     | { type: 'setChatOpen'; payload: boolean }
-    | { type: 'setIsSeatRequested'; payload: boolean }
+    | { type: 'setSeatRequested'; payload: number | null }
     | { type: 'setIsLeaveRequested'; payload: boolean }
     | { type: 'setPendingPlayers'; payload: PendingPlayer[] };
 
@@ -76,8 +76,8 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 };
             }
             return { ...state, isChatOpen: action.payload };
-        case 'setIsSeatRequested':
-            return { ...state, isSeatRequested: action.payload };
+        case 'setSeatRequested':
+            return { ...state, seatRequested: action.payload };
         case 'setIsLeaveRequested':
             return { ...state, isLeaveRequested: action.payload };
         case 'setPendingPlayers':

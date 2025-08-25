@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState, useContext } from 'react';
-import { isTableExisting } from '@/app/hooks/server_actions';
+import { cancelPlayer, isTableExisting } from '@/app/hooks/server_actions';
 import Table from '@/app/components/Table';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { Box, Flex, Heading } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
 
 const TablePage = ({ params }: { params: { id: string } }) => {
     const router = useRouter();
@@ -15,7 +16,7 @@ const TablePage = ({ params }: { params: { id: string } }) => {
     const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
         'checking'
     );
-
+    const socket = useContext(SocketContext);
     const tableId = params.id;
 
     useEffect(() => {
@@ -79,6 +80,26 @@ const TablePage = ({ params }: { params: { id: string } }) => {
                 }}
             >
                 <Table />
+                {socket &&
+                    appState.clientID &&
+                    appState.seatRequested !== null && (
+                        <Button
+                            position="fixed"
+                            bottom="2"
+                            right="2"
+                            bg={'red.400'}
+                            width={'fit-content'}
+                            alignSelf={'end'}
+                            m={4}
+                            onClick={() => {
+                                if (appState.clientID) {
+                                    cancelPlayer(socket, appState.clientID);
+                                }
+                            }}
+                        >
+                            Cancel Request ({appState.seatRequested})
+                        </Button>
+                    )}
             </Flex>
         </>
     );

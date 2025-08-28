@@ -83,10 +83,9 @@ export function resetGame(socket: WebSocket) {
     });
 }
 
-export function cancelPlayer(socket: WebSocket, uuid: string) {
+export function cancelSeatRequest(socket: WebSocket) {
     sendWebSocketMessage(socket, {
-        action: 'cancel-player',
-        uuid: uuid,
+        action: 'cancel-seat-request',
     });
 }
 

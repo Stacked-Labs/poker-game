@@ -15,7 +15,6 @@ const TablePage = ({ params }: { params: { id: string } }) => {
     const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
         'checking'
     );
-
     const tableId = params.id;
 
     useEffect(() => {

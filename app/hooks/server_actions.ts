@@ -83,6 +83,12 @@ export function resetGame(socket: WebSocket) {
     });
 }
 
+export function cancelSeatRequest(socket: WebSocket) {
+    sendWebSocketMessage(socket, {
+        action: 'cancel-seat-request',
+    });
+}
+
 // export function dealGame(socket: WebSocket) {
 //     socket.send(
 //         JSON.stringify({

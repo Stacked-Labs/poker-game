@@ -22,7 +22,7 @@ export type AppState = {
     volume: number;
     unreadMessageCount: number;
     isChatOpen: boolean; // Track if chat is currently open
-    isSeatRequested: boolean;
+    seatRequested: number | null;
     isLeaveRequested: boolean;
     pendingPlayers: PendingPlayer[]; // Added for storing pending players
 };

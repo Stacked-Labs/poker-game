@@ -15,9 +15,10 @@ const initialState: AppState = {
     isSeatRequested: false,
     isLeaveRequested: false,
     pendingPlayers: [],
+    isSitOutNext: false,
 };
 
-type ACTIONTYPE =
+export type ACTIONTYPE =
     | { type: 'addMessage'; payload: Message }
     | { type: 'addLog'; payload: Log }
     | { type: 'setUsername'; payload: string }
@@ -31,7 +32,8 @@ type ACTIONTYPE =
     | { type: 'setChatOpen'; payload: boolean }
     | { type: 'setIsSeatRequested'; payload: boolean }
     | { type: 'setIsLeaveRequested'; payload: boolean }
-    | { type: 'setPendingPlayers'; payload: PendingPlayer[] };
+    | { type: 'setPendingPlayers'; payload: PendingPlayer[] }
+    | { type: 'setIsSitOutNext'; payload: boolean };
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
@@ -82,6 +84,8 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, isLeaveRequested: action.payload };
         case 'setPendingPlayers':
             return { ...state, pendingPlayers: action.payload };
+        case 'setIsSitOutNext':
+            return { ...state, isSitOutNext: action.payload };
         default: {
             const exhaustiveCheck: never = action;
             throw new Error(`Unhandled action type: ${exhaustiveCheck}`);

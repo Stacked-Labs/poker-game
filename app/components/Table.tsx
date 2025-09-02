@@ -7,6 +7,7 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
+import TableMenuBurger from './TableMenuBurger/TableMenuBurger';
 
 const initialPlayers: (Player | null)[] = [
     null,
@@ -237,6 +238,7 @@ const Table = () => {
             maxWidth="100%"
             overflow="hidden"
         >
+            <TableMenuBurger />
             <Box
                 as="picture"
                 className="table-image"

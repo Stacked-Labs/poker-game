@@ -25,6 +25,7 @@ export type AppState = {
     isSeatRequested: boolean;
     isLeaveRequested: boolean;
     pendingPlayers: PendingPlayer[]; // Added for storing pending players
+    isSitOutNext: boolean;
 };
 
 export type Player = {

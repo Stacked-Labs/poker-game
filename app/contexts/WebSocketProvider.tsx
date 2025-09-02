@@ -232,7 +232,7 @@ export function SocketProvider(props: SocketProviderProps) {
                     // Handle is_pending_player message
                     if (eventData.payload !== undefined) {
                         dispatch({
-                            type: 'setIsSeatRequested',
+                            type: 'setSeatRequested',
                             payload: eventData.payload, // true if the player is pending, false otherwise
                         });
                     } else {
@@ -241,8 +241,8 @@ export function SocketProvider(props: SocketProviderProps) {
                             eventData.payload
                         );
                         dispatch({
-                            type: 'setIsSeatRequested',
-                            payload: false,
+                            type: 'setSeatRequested',
+                            payload: null,
                         });
                         return; // Message handled
                     }
@@ -317,11 +317,11 @@ export function SocketProvider(props: SocketProviderProps) {
                         );
                         if (
                             isPlayerSeated &&
-                            appStateRef.current.isSeatRequested
+                            appStateRef.current.seatRequested
                         ) {
                             dispatch({
-                                type: 'setIsSeatRequested',
-                                payload: false,
+                                type: 'setSeatRequested',
+                                payload: null,
                             });
                         }
                         return;
@@ -381,11 +381,11 @@ export function SocketProvider(props: SocketProviderProps) {
                             (eventData.message === 'Seat request denied.' ||
                                 eventData.message ===
                                     'A player is already requesting for this seat.') &&
-                            appStateRef.current.isSeatRequested
+                            appStateRef.current.seatRequested
                         ) {
                             dispatch({
-                                type: 'setIsSeatRequested',
-                                payload: false,
+                                type: 'setSeatRequested',
+                                payload: null,
                             });
                         }
                         return;

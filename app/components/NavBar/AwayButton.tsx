@@ -1,9 +1,10 @@
+'use client';
+
 import { Tooltip, IconButton, Icon } from '@chakra-ui/react';
-import React from 'react';
 import { FaUserCheck, FaCoffee } from 'react-icons/fa';
 
 interface AwayButtonProps {
-    isAway: boolean;
+    isAway: boolean | undefined;
     sitOutPending: boolean;
     handleReturnReady: () => void;
     handleSitOutNext: () => void;

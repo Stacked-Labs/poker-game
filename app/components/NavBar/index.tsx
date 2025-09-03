@@ -31,7 +31,9 @@ import {
     handleSitOutNext,
     handleLeaveTable,
 } from '@/app/hooks/useTableOptions';
-import AwayButton from '../AwayButton';
+import TableMenuBurger from './TableMenuBurger';
+import AwayButton from './AwayButton';
+import LeaveButton from './LeaveButton';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -123,6 +125,10 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 opacity={isLoading ? 0 : 1}
             >
                 <HStack spacing={{ base: 1, md: 2 }} alignItems="stretch">
+                    <TableMenuBurger
+                        isUserSeated={isUserSeated}
+                        isAway={isAway}
+                    />
                     <Box position="relative">
                         <IconButton
                             icon={
@@ -224,37 +230,19 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                     </Box>
                     {/* Away toggle is now placed on the left next to Settings */}
                     {isUserSeated && (
-                        <Tooltip
-                            label={
-                                appState.isLeaveRequested
-                                    ? 'Leaving after this hand...'
-                                    : 'Leave Table'
-                            }
-                        >
-                            <IconButton
-                                icon={
-                                    <Icon
-                                        as={FiLogOut}
-                                        boxSize={{ base: 5, md: 8 }}
-                                    />
-                                }
-                                aria-label="Leave Table"
-                                size={'lg'}
-                                colorScheme={
-                                    appState.isLeaveRequested ? 'gray' : 'red'
-                                }
-                                onClick={() =>
+                        <Box display={{ base: 'none', md: 'block' }}>
+                            <LeaveButton
+                                isUserSeated
+                                isLeaveRequested={appState.isLeaveRequested}
+                                handleLeaveTable={() =>
                                     handleLeaveTable(
                                         socket,
                                         appState.username,
                                         info
                                     )
                                 }
-                                isDisabled={appState.isLeaveRequested}
-                                opacity={appState.isLeaveRequested ? 0.6 : 1}
-                                display={{ base: 'none', md: 'block' }}
                             />
-                        </Tooltip>
+                        </Box>
                     )}
                     <Box position="relative">
                         <IconButton

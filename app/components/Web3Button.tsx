@@ -91,7 +91,7 @@ const Web3Button: React.FC<Web3ButtonProps> = ({
                         color={connected ? 'green.100' : 'white'}
                     />
                 }
-                variant="white"
+                variant="outlined"
                 size="lg"
                 onClick={accountAddress ? handleDisconnect : handleConnect}
                 role="button"

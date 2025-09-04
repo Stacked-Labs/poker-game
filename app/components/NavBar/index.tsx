@@ -20,16 +20,20 @@ import VolumeButton from '../VolumeButton';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import {
-    requestLeave,
-    sendLog,
     sendPauseGameCommand,
     sendResumeGameCommand,
-    playerSitOutNext,
-    playerSetReady,
 } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
-import { FaPlay, FaPause, FaCoffee, FaUserCheck } from 'react-icons/fa';
+import { FaPlay, FaPause } from 'react-icons/fa';
+import {
+    handleReturnReady,
+    handleSitOutNext,
+    handleLeaveTable,
+} from '@/app/hooks/useTableOptions';
+import TableMenuBurger from './TableMenuBurger';
+import AwayButton from './AwayButton';
+import LeaveButton from './LeaveButton';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -55,49 +59,21 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
         (player) => player.uuid === appState.clientID
     );
 
-    // Handle leave table request
-    const handleLeaveTable = () => {
-        if (socket) {
-            requestLeave(socket);
-            sendLog(
-                socket,
-                `${appState.username} requested to leave the table`
-            );
-            info(
-                'Leave request sent',
-                'You will be removed after this hand.',
-                5000
-            );
-        }
-    };
-
     // Local player state
     const localPlayer = appState.game?.players?.find(
         (p) => p.uuid === appState.clientID
     );
     const isAway = !!localPlayer && localPlayer.stack > 0 && !localPlayer.ready;
-    const [sitOutPending, setSitOutPending] = useState<boolean>(false);
 
-    const handleSitOutNext = () => {
-        if (!socket) return;
-        playerSitOutNext(socket);
-        info('Sit out requested', 'Takes effect next hand.', 3000);
-        setSitOutPending(true);
-    };
-
-    const handleReturnReady = () => {
-        if (!socket) return;
-        playerSetReady(socket, true);
-        info('Returning', 'You will be dealt next hand.', 3000);
-    };
+    const sitOutPending = appState.isSitOutNext;
 
     // Reset pending flag once away state takes effect or player leaves seat
     useEffect(() => {
         if (isAway && sitOutPending) {
-            setSitOutPending(false);
+            dispatch({ type: 'setIsSitOutNext', payload: false });
         }
         if (!localPlayer && sitOutPending) {
-            setSitOutPending(false);
+            dispatch({ type: 'setIsSitOutNext', payload: false });
         }
     }, [isAway, localPlayer, sitOutPending]);
 
@@ -149,6 +125,10 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 opacity={isLoading ? 0 : 1}
             >
                 <HStack spacing={{ base: 1, md: 2 }} alignItems="stretch">
+                    <TableMenuBurger
+                        isUserSeated={isUserSeated}
+                        isAway={isAway}
+                    />
                     <Box position="relative">
                         <IconButton
                             icon={
@@ -189,36 +169,18 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                         )}
                     </Box>
                     {isUserSeated && (
-                        <Tooltip
-                            label={
-                                isAway
-                                    ? "I'm back"
-                                    : sitOutPending
-                                      ? 'Sit out requested – will apply next hand'
-                                      : 'Sit out next hand'
-                            }
-                            aria-label="Away toggle"
-                        >
-                            <IconButton
-                                icon={
-                                    <Icon
-                                        as={isAway ? FaUserCheck : FaCoffee}
-                                        boxSize={{ base: 5, md: 8 }}
-                                    />
+                        <Box display={{ base: 'none', md: 'block' }}>
+                            <AwayButton
+                                isAway={isAway}
+                                sitOutPending={appState.isSitOutNext}
+                                handleReturnReady={() =>
+                                    handleReturnReady(socket, info)
                                 }
-                                aria-label={
-                                    isAway ? "I'm back" : 'Sit out next hand'
+                                handleSitOutNext={() =>
+                                    handleSitOutNext(socket, dispatch, info)
                                 }
-                                size={'lg'}
-                                onClick={
-                                    isAway
-                                        ? handleReturnReady
-                                        : handleSitOutNext
-                                }
-                                isDisabled={!isAway && sitOutPending}
-                                colorScheme={isAway ? 'green' : undefined}
                             />
-                        </Tooltip>
+                        </Box>
                     )}
                     <StartGameButton />
                     {isOwner && appState.game?.running && socket && (
@@ -263,33 +225,24 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                     )}
                 </HStack>
                 <HStack spacing={{ base: 1, md: 2 }} alignItems="center">
-                    <VolumeButton />
+                    <Box display={{ base: 'none', md: 'block' }}>
+                        <VolumeButton />
+                    </Box>
                     {/* Away toggle is now placed on the left next to Settings */}
                     {isUserSeated && (
-                        <Tooltip
-                            label={
-                                appState.isLeaveRequested
-                                    ? 'Leaving after this hand...'
-                                    : 'Leave Table'
-                            }
-                        >
-                            <IconButton
-                                icon={
-                                    <Icon
-                                        as={FiLogOut}
-                                        boxSize={{ base: 5, md: 8 }}
-                                    />
+                        <Box display={{ base: 'none', md: 'block' }}>
+                            <LeaveButton
+                                isUserSeated
+                                isLeaveRequested={appState.isLeaveRequested}
+                                handleLeaveTable={() =>
+                                    handleLeaveTable(
+                                        socket,
+                                        appState.username,
+                                        info
+                                    )
                                 }
-                                aria-label="Leave Table"
-                                size={'lg'}
-                                colorScheme={
-                                    appState.isLeaveRequested ? 'gray' : 'red'
-                                }
-                                onClick={handleLeaveTable}
-                                isDisabled={appState.isLeaveRequested}
-                                opacity={appState.isLeaveRequested ? 0.6 : 1}
                             />
-                        </Tooltip>
+                        </Box>
                     )}
                     <Box position="relative">
                         <IconButton
@@ -330,12 +283,6 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             </Flex>
                         )}
                     </Box>
-                    {/* Wallet button: icon-only on mobile, full on larger screens */}
-                    <Web3Button
-                        compact
-                        size="lg"
-                        display={{ base: 'inline-flex', md: 'none' }}
-                    />
                     <Web3Button
                         size="lg"
                         variant="white"

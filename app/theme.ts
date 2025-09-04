@@ -232,6 +232,12 @@ const components = {
                 border: '2px',
                 bg: '#2D2D2D',
             },
+            outlined: {
+                bg: 'gray.200',
+                _focus: {
+                    boxShadow: 'outline'
+                }
+            },
         },
         defaultProps: {
             variant: 'base',

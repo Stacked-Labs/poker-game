@@ -114,6 +114,29 @@ const FooterWithActionButtons = ({
     const callAmount =
         maxBet - player.bet < player.stack ? maxBet - player.bet : player.stack;
 
+    // Debug logging for action buttons visibility
+    console.log('🔍 FooterWithActionButtons Debug:', {
+        isCurrentTurn,
+        clientID: appState.clientID,
+        gameAction: appState.game.action,
+        actingPlayer: player
+            ? {
+                  uuid: player.uuid,
+                  address: player.address,
+                  username: player.username,
+                  position: player.position,
+                  seatID: player.seatID,
+              }
+            : null,
+        gameBetting: appState.game.betting,
+        gamePaused: gameIsPaused,
+        canCheck,
+        canCall,
+        callAmount,
+        maxBet,
+        playerBets,
+    });
+
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>

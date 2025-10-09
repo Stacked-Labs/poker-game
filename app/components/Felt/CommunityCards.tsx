@@ -120,6 +120,7 @@ const CommunityCards = () => {
                             <CardComponent
                                 card={appState.game.communityCards[num]}
                                 placeholder={false}
+                                // During showdown, dim community cards that are not part of winning hand
                                 folded={false}
                                 highlighted={winningSet.has(
                                     Number(
@@ -128,7 +129,23 @@ const CommunityCards = () => {
                                         ] as unknown as number
                                     )
                                 )}
-                                dimmed={false}
+                                dimmed={
+                                    // Showdown is when game is at stage 1, not betting, and we have pots
+                                    Boolean(
+                                        appState.game &&
+                                            appState.game.stage === 1 &&
+                                            !appState.game.betting &&
+                                            (appState.game.pots?.length || 0) >
+                                                0
+                                    ) &&
+                                    !winningSet.has(
+                                        Number(
+                                            appState.game.communityCards[
+                                                num
+                                            ] as unknown as number
+                                        )
+                                    )
+                                }
                             />
                         ) : (
                             <CardComponent

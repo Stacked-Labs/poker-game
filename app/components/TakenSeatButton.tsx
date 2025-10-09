@@ -306,22 +306,36 @@ const TakenSeatButton = ({
             >
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
-                        // During showdown reveal, only losers should appear dimmed.
-                        // Otherwise, fall back to whether the player folded this hand.
-                        const shouldDim = isWinner
-                            ? false
-                            : isRevealed
-                              ? !isWinner
-                              : !player.in;
+                        // Determine if we are in showdown state
+                        const isShowdown = Boolean(
+                            appState.game &&
+                                appState.game.stage === 1 &&
+                                !appState.game.betting &&
+                                (appState.game.pots?.length || 0) > 0
+                        );
 
-                        // DEBUG: Log shouldDim logic for winning players
-                        if (isWinner || winningSet.size > 0) {
+                        const isCardWinning = winningSet.has(Number(card));
+
+                        // Dimming rules:
+                        // - During showdown: winners dim ONLY non-winning cards; losers dim all cards
+                        // - Otherwise: dim players who folded / are not in hand
+                        const dimThisCard = isShowdown
+                            ? isWinner
+                                ? !isCardWinning
+                                : true
+                            : !player.in;
+
+                        // Folded visual (for non-showdown states) still uses folded prop
+                        const foldedVisual = !isShowdown && !player.in;
+
+                        // DEBUG: Log shouldDim logic for winners/losers at showdown
+                        if (isShowdown && (isWinner || winningSet.size > 0)) {
                             console.log('🏆 WINNER DEBUG:', {
                                 player: player.username,
                                 isWinner,
                                 isRevealed,
                                 playerIn: player.in,
-                                shouldDim,
+                                shouldDim: dimThisCard,
                                 hasWinningCards: winningSet.size > 0,
                             });
                         }
@@ -345,9 +359,9 @@ const TakenSeatButton = ({
                                 <CardComponent
                                     card={card}
                                     placeholder={false}
-                                    folded={shouldDim}
-                                    highlighted={winningSet.has(Number(card))}
-                                    dimmed={false}
+                                    folded={foldedVisual}
+                                    highlighted={isCardWinning}
+                                    dimmed={dimThisCard}
                                 />
                             </Box>
                         );

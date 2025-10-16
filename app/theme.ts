@@ -166,6 +166,15 @@ const components = {
                     '2xl': 'large',
                 },
             },
+            statSubHead: {
+                fontSize: 'lg',
+                fontWeight: 'semibold',
+                color: 'grey'
+            },
+            statBody: {
+                fontSize: 'sm',
+                fontWeight: 'medium',
+            }
         },
     },
     Button: {

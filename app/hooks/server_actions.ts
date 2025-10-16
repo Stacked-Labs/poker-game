@@ -284,3 +284,123 @@ export async function isTableOwner(table: string) {
         throw error;
     }
 }
+
+export async function getHealth() {
+    isBackendUrlValid();
+
+    try {
+        const response = await fetch(`${backendUrl}/health`, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error(`Health check failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to perform health check.', error);
+        throw error;
+    }
+}
+
+export async function getHealthDb() {
+    isBackendUrlValid();
+
+    try {
+        const response = await fetch(`${backendUrl}/health/db`, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error(`DB Health check failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to perform DB health check.', error);
+        throw error;
+    }
+}
+
+export async function getMetrics() {
+    isBackendUrlValid();
+
+    try {
+        const response = await fetch(`${backendUrl}/metrics`, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error(`Metrics fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch metrics.', error);
+        throw error;
+    }
+}
+
+export async function getDebugTables() {
+    isBackendUrlValid();
+
+    try {
+        const response = await fetch(`${backendUrl}/debug/tables`, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error(`Debug tables fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch debug tables.', error);
+        throw error;
+    }
+}
+
+export async function getDebugConnections() {
+    isBackendUrlValid();
+
+    try {
+        const response = await fetch(`${backendUrl}/debug/connections`, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error(`Debug connections fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch debug connections.', error);
+        throw error;
+    }
+}
+
+export async function getStats() {
+    isBackendUrlValid();
+
+    try {
+        const response = await fetch(`${backendUrl}/api/stats`, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error(`Stats fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch stats.', error);
+        throw error;
+    }
+}
+
+export async function getLiveStats() {
+    isBackendUrlValid();
+
+    try {
+        const response = await fetch(`${backendUrl}/api/stats/live`, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error(`Live stats fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    }
+    catch (error) {
+        console.error('Unable to fetch live stats.', error);
+        throw error;
+    }
+}

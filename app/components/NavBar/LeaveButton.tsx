@@ -31,6 +31,7 @@ const LeaveButton = ({
                 isDisabled={isLeaveRequested}
                 opacity={isLeaveRequested ? 0.6 : 1}
                 variant={'outlined'}
+                bg={'gray.200'}
             />
         </Tooltip>
     );

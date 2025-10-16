@@ -43,6 +43,7 @@ const VolumeButtonComponent = () => {
                 role="button"
                 tabIndex={0}
                 _focus={{ boxShadow: 'outline' }}
+                bg={'gray.200'}
             />
         </Tooltip>
     );

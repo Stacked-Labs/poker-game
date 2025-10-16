@@ -39,6 +39,7 @@ const AwayButton = ({
                 onClick={isAway ? handleReturnReady : handleSitOutNext}
                 isDisabled={!isAway && sitOutPending}
                 colorScheme={isAway ? 'green' : undefined}
+                bg={'gray.200'}
             />
         </Tooltip>
     );

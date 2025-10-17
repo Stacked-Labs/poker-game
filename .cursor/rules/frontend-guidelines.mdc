@@ -1,11 +1,14 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
+
 # 🧠 Cursor Rules: Senior Frontend Engineer with Chakra UI Expertise
 
-##  Chakra UI Components Overview
+## Chakra UI Components Overview
+
+USE THIS FOR DOCS ON CHAKRAUI: https://chakra-ui.com/llms-full.txt
 
 Chakra UI offers a rich set of accessible, modular, and customizable components. Key categories include:
 
@@ -19,7 +22,7 @@ Chakra UI offers a rich set of accessible, modular, and customizable components.
 - **Typography**: Heading, Highlight, Text
 - **Other**: CloseButton, Portal, Show, Hide, Transitions
 
-*Reference: [Chakra UI Components](https://v2.chakra-ui.com/docs/components)*
+_Reference: [Chakra UI Components](https://v2.chakra-ui.com/docs/components)_
 
 ---
 
@@ -36,16 +39,18 @@ Chakra UI offers a rich set of accessible, modular, and customizable components.
 - **Style Props**: Use Chakra's style props for rapid and consistent styling without external CSS.
 
 ```jsx
-<Box p={4} bg="teal.500" color="white">Styled Box</Box>
+<Box p={4} bg="teal.500" color="white">
+    Styled Box
+</Box>
 ```
 
 - **Conditional Rendering**: Implement `useMediaQuery` for rendering components based on screen size.
 
 ```jsx
-const [isLargerThan768] = useMediaQuery("(min-width: 768px)");
+const [isLargerThan768] = useMediaQuery('(min-width: 768px)');
 ```
 
-*Reference: [Chakra UI Tips and Tricks](https://www.ayrshare.com/the-top-5-chakra-ui-tips-and-tricks-for-react-developers/)*
+_Reference: [Chakra UI Tips and Tricks](https://www.ayrshare.com/the-top-5-chakra-ui-tips-and-tricks-for-react-developers/)_
 
 ---
 
@@ -63,8 +68,8 @@ npm run build
 const LazyComponent = React.lazy(() => import('./LazyComponent'));
 
 <Suspense fallback={<div>Loading...</div>}>
-  <LazyComponent />
-</Suspense>
+    <LazyComponent />
+</Suspense>;
 ```
 
 - **Memoization**: Use `React.memo`, `useMemo`, and `useCallback` to prevent unnecessary re-renders.
@@ -77,7 +82,7 @@ const MemoizedComponent = React.memo(Component);
 
 - **Avoid Reconciliation**: Implement `shouldComponentUpdate` or `React.memo` to prevent unnecessary DOM updates.
 
-*References: [React Performance Optimization](https://legacy.reactjs.org/docs/optimizing-performance.html), [SuperTokens Blog](https://supertokens.com/blog/5-tips-for-optimizing-your-react-apps-performance)*
+_References: [React Performance Optimization](https://legacy.reactjs.org/docs/optimizing-performance.html), [SuperTokens Blog](https://supertokens.com/blog/5-tips-for-optimizing-your-react-apps-performance)_
 
 ---
 
@@ -91,7 +96,7 @@ const MemoizedComponent = React.memo(Component);
 
 - **Responsive Layouts**: Employ Chakra's responsive utilities to create layouts that adapt to various screen sizes.
 
-*Reference: [Chakra UI Design Patterns](https://daily.dev/blog/chakra-ui-design-patterns-basics)*
+_Reference: [Chakra UI Design Patterns](https://daily.dev/blog/chakra-ui-design-patterns-basics)_
 
 ---
 
@@ -103,12 +108,12 @@ const MemoizedComponent = React.memo(Component);
 const MyContext = React.createContext();
 
 function MyProvider({ children }) {
-  const [state, setState] = useState(initialState);
-  return (
-    <MyContext.Provider value={{ state, setState }}>
-      {children}
-    </MyContext.Provider>
-  );
+    const [state, setState] = useState(initialState);
+    return (
+        <MyContext.Provider value={{ state, setState }}>
+            {children}
+        </MyContext.Provider>
+    );
 }
 ```
 
@@ -116,7 +121,7 @@ function MyProvider({ children }) {
 
 - **Zustand**: A lightweight alternative to Redux with a simpler API.
 
-*Reference: [React State Management](https://react.dev/learn/managing-state)*
+_Reference: [React State Management](https://react.dev/learn/managing-state)_
 
 ---
 
@@ -132,7 +137,7 @@ function MyProvider({ children }) {
 import { getCLS, getFID, getLCP } from 'web-vitals';
 
 function sendToAnalytics({ name, delta, id }) {
-  // Send metrics to your analytics service
+    // Send metrics to your analytics service
 }
 
 getCLS(sendToAnalytics);
@@ -140,7 +145,7 @@ getFID(sendToAnalytics);
 getLCP(sendToAnalytics);
 ```
 
-*Reference: [Web Vitals](https://web.dev/vitals/)*
+_Reference: [Web Vitals](https://web.dev/vitals/)_
 
 <!-- ---
 

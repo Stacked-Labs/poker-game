@@ -1,0 +1,89 @@
+---
+alwaysApply: false
+---
+
+# Cursor Rules for Stacked Roulette Project
+
+## Project Overview
+
+This is a multiplayer web roulette game with smart contracts and USDC betting on Base network, built with Next.js, React, and thirdweb.
+
+## Technology Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Blockchain**: thirdweb v5, Base chain, USDC
+- **UI**: Radix UI, Framer Motion, Lucide React
+- **State**: Zustand
+
+## thirdweb Documentation Rules
+
+When working with thirdweb libraries, always reference the appropriate documentation:
+
+### For TypeScript/React Applications (Primary)
+
+- **Quick Reference**: https://portal.thirdweb.com/llms.txt
+- **Full Documentation**: https://portal.thirdweb.com/llms-full.txt
+- **Use for**: TypeScript, React, React Native applications with external wallets and advanced blockchain features
+
+### For HTTP API (Secondary)
+
+- **API Reference**: https://api.thirdweb.com/llms.txt
+- **Use for**: Web/native applications, servers, agents using HTTP thirdweb API
+
+## Implementation Guidelines
+
+### thirdweb v5 Usage
+
+- Always use the latest thirdweb v5 syntax and patterns
+- Reference the TypeScript SDK documentation for React hooks and functions
+- Use `getContract` and `readContract` for contract interactions
+- Use `useActiveAccount` for wallet connection state
+- Configure chains using `base` from "thirdweb/chains"
+
+### Code Patterns
+
+- Use proper TypeScript types for all thirdweb functions
+- Implement error handling for blockchain operations
+- Use loading states for async operations
+- Follow React best practices with hooks (useCallback, useEffect)
+
+### File Structure
+
+- Keep blockchain logic in `/src/lib/thirdweb.ts`
+- Create custom hooks in `/src/hooks/` for complex blockchain operations
+- Use components in `/src/components/` for UI elements
+
+## Documentation References
+
+When implementing thirdweb features, always include:
+
+```
+Docs: https://portal.thirdweb.com/llms.txt
+```
+
+For complex implementations requiring full context:
+
+```
+Docs: https://portal.thirdweb.com/llms-full.txt
+```
+
+## Common thirdweb Patterns
+
+- Wallet connection: `useActiveAccount`, `ConnectButton`
+- Contract reading: `readContract`, `getContract`
+- Chain configuration: Import from "thirdweb/chains"
+- Client setup: `createThirdwebClient`
+
+## Error Handling
+
+- Always wrap blockchain operations in try-catch
+- Provide user-friendly error messages
+- Log errors to console for debugging
+- Use loading states to indicate async operations
+
+## Testing
+
+- Test wallet connection flows
+- Verify contract interactions work correctly
+- Ensure proper error handling
+- Test on Base testnet before mainnet

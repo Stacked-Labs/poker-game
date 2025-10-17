@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "thirdweb-api": {
+            "url": "https://api.thirdweb.com/mcp?secretKey=164075e2c46a3febff550af75dc25765"
+        },
+        "chakra-ui": {
+            "command": "npx",
+            "args": ["-y", "@chakra-ui/react-mcp"]
+        }
+    }
+}

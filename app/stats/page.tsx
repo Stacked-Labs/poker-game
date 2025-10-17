@@ -1,4 +1,15 @@
-import { Text, Flex, Box, List, ListItem } from '@chakra-ui/react';
+import {
+    Text,
+    Flex,
+    Box,
+    Tooltip,
+    Table,
+    Thead,
+    Tbody,
+    Tr,
+    Th,
+    Td,
+} from '@chakra-ui/react';
 import {
     getDebugConnections,
     getDebugTables,
@@ -228,73 +239,154 @@ const page = async () => {
                         timestamp={debugTables.timestamp}
                     >
                         <StatBody>
-                            <Text
-                                textTransform={'capitalize'}
-                                color={
-                                    health.status === 'healthy'
-                                        ? 'green.400'
-                                        : 'red.500'
-                                }
+                            <Tooltip
+                                label="Overall system health status from the backend API"
+                                placement="top"
+                                hasArrow
                             >
-                                {health.status}
-                            </Text>
+                                <Text
+                                    textTransform={'capitalize'}
+                                    fontWeight={'semibold'}
+                                    color={
+                                        health.status === 'healthy'
+                                            ? 'green.400'
+                                            : 'red.500'
+                                    }
+                                    cursor="help"
+                                >
+                                    {health.status}
+                                </Text>
+                            </Tooltip>
                             <Flex
                                 as="span"
-                                w="16px"
-                                h="16px"
+                                w="20px"
+                                h="20px"
                                 borderRadius="full"
                                 bg={
                                     health.status === 'healthy'
                                         ? 'green.400'
                                         : 'red.500'
                                 }
-                                border="2px solid"
+                                border="3px solid"
                                 borderColor="white"
+                                boxShadow="0 0 8px rgba(0, 0, 0, 0.3)"
                                 aria-label={health.status}
                             />
                         </StatBody>
                         <Timestamp time={health.timestamp} />
                         <StatBody>
-                            <Text>Active Connections</Text>
-                            <Text>{liveStats.data.active_connections}</Text>
+                            <Tooltip
+                                label="Active WebSocket connections from clients (Source: liveStats API)"
+                                placement="top"
+                                hasArrow
+                            >
+                                <Text cursor="help">WebSocket Connections</Text>
+                            </Tooltip>
+                            <Text fontWeight={'semibold'}>
+                                {liveStats.data.active_connections}
+                            </Text>
                         </StatBody>
                         <StatBody>
-                            <Text>Active Tables</Text>
-                            <Text>{liveStats.data.active_tables}</Text>
+                            <Tooltip
+                                label="Number of tables with active games (Source: liveStats API)"
+                                placement="top"
+                                hasArrow
+                            >
+                                <Text cursor="help">Active Tables</Text>
+                            </Tooltip>
+                            <Text fontWeight={'semibold'}>
+                                {liveStats.data.active_tables}
+                            </Text>
                         </StatBody>
                         <Timestamp time={liveStats.timestamp} />
                         <StatBody>
-                            <Text>Active Players</Text>
-                            <Text>{stats.data.active_players_count}</Text>
+                            <Tooltip
+                                label="Players currently in active games (Source: stats database query)"
+                                placement="top"
+                                hasArrow
+                            >
+                                <Text cursor="help">Active Players</Text>
+                            </Tooltip>
+                            <Text fontWeight={'semibold'}>
+                                {stats.data.active_players_count}
+                            </Text>
                         </StatBody>
                         <StatBody>
-                            <Text>Active Tables</Text>
-                            <Text>{stats.data.active_tables_count}</Text>
+                            <Tooltip
+                                label="Tables with active games in database - may differ from liveStats count above (Source: stats database query)"
+                                placement="top"
+                                hasArrow
+                            >
+                                <Text cursor="help">Active Tables</Text>
+                            </Tooltip>
+                            <Text fontWeight={'semibold'}>
+                                {stats.data.active_tables_count}
+                            </Text>
                         </StatBody>
                         <SubBody>
                             <Text variant={'statSubHead'}>Last 24 hrs</Text>
                             <StatBody>
-                                <Text>Tables</Text>
-                                <Text>{stats.data.tables_last_24h}</Text>
+                                <Tooltip
+                                    label="Tables created in the last 24 hours (Source: stats database query)"
+                                    placement="top"
+                                    hasArrow
+                                >
+                                    <Text cursor="help">Tables</Text>
+                                </Tooltip>
+                                <Text fontWeight={'semibold'}>
+                                    {stats.data.tables_last_24h}
+                                </Text>
                             </StatBody>
                             <StatBody>
-                                <Text>Hands</Text>
-                                <Text>{stats.data.hands_last_24h}</Text>
+                                <Tooltip
+                                    label="Hands played in the last 24 hours (Source: stats database query)"
+                                    placement="top"
+                                    hasArrow
+                                >
+                                    <Text cursor="help">Hands</Text>
+                                </Tooltip>
+                                <Text fontWeight={'semibold'}>
+                                    {stats.data.hands_last_24h}
+                                </Text>
                             </StatBody>
                         </SubBody>
                         <SubBody>
                             <Text variant={'statSubHead'}>Total</Text>
                             <StatBody>
-                                <Text>Hands Played</Text>
-                                <Text>{stats.data.total_hands_played}</Text>
+                                <Tooltip
+                                    label="Total hands played since launch (Source: stats database query)"
+                                    placement="top"
+                                    hasArrow
+                                >
+                                    <Text cursor="help">Hands Played</Text>
+                                </Tooltip>
+                                <Text fontWeight={'semibold'}>
+                                    {stats.data.total_hands_played}
+                                </Text>
                             </StatBody>
                             <StatBody>
-                                <Text>Tables Created</Text>
-                                <Text>{stats.data.total_tables_created}</Text>
+                                <Tooltip
+                                    label="Total tables created since launch (Source: stats database query)"
+                                    placement="top"
+                                    hasArrow
+                                >
+                                    <Text cursor="help">Tables Created</Text>
+                                </Tooltip>
+                                <Text fontWeight={'semibold'}>
+                                    {stats.data.total_tables_created}
+                                </Text>
                             </StatBody>
                             <StatBody>
-                                <Text>Unique Players</Text>
-                                <Text>{stats.data.total_hands_played}</Text>
+                                <Tooltip
+                                    label="Total unique players who have joined since launch (Source: stats database query)"
+                                    placement="top"
+                                    hasArrow
+                                >
+                                    <Text cursor="help">Unique Players</Text>
+                                </Tooltip>
+                                <Text fontWeight={'semibold'}>
+                                    {stats.data.total_unique_players}
+                                </Text>
                             </StatBody>
                         </SubBody>
                     </StatCard>
@@ -305,36 +397,52 @@ const page = async () => {
                             timestamp={healthDb.timestamp}
                         >
                             <StatBody>
-                                <Text>Database Connection</Text>
+                                <Tooltip
+                                    label="Connection status to the PostgreSQL database (Source: healthDb API)"
+                                    placement="top"
+                                    hasArrow
+                                >
+                                    <Text cursor="help">
+                                        Database Connection
+                                    </Text>
+                                </Tooltip>
                                 <Flex
                                     as="span"
-                                    w="16px"
-                                    h="16px"
+                                    w="20px"
+                                    h="20px"
                                     borderRadius="full"
                                     bg={
                                         healthDb.database === 'connected'
                                             ? 'green.400'
                                             : 'red.500'
                                     }
-                                    border="2px solid"
+                                    border="3px solid"
                                     borderColor="white"
+                                    boxShadow="0 0 8px rgba(0, 0, 0, 0.3)"
                                     aria-label={healthDb.database}
                                 />
                             </StatBody>
                             <StatBody>
-                                <Text>Database Status</Text>
+                                <Tooltip
+                                    label="Overall database health and query response status (Source: healthDb API)"
+                                    placement="top"
+                                    hasArrow
+                                >
+                                    <Text cursor="help">Database Status</Text>
+                                </Tooltip>
                                 <Flex
                                     as="span"
-                                    w="16px"
-                                    h="16px"
+                                    w="20px"
+                                    h="20px"
                                     borderRadius="full"
                                     bg={
                                         health.status === 'healthy'
                                             ? 'green.400'
                                             : 'red.500'
                                     }
-                                    border="2px solid"
+                                    border="3px solid"
                                     borderColor="white"
+                                    boxShadow="0 0 8px rgba(0, 0, 0, 0.3)"
                                     aria-label={healthDb.status}
                                 />
                             </StatBody>
@@ -345,16 +453,36 @@ const page = async () => {
                             timestamp={metrics.timestamp}
                         >
                             <Flex direction={'column'} gap={2}>
-                                <Text variant={'statSubHead'}>Connections</Text>
+                                <Tooltip
+                                    label="Connection pool for database queries - different from WebSocket connections"
+                                    placement="top"
+                                    hasArrow
+                                >
+                                    <Text variant={'statSubHead'} cursor="help">
+                                        Database Pool
+                                    </Text>
+                                </Tooltip>
                                 <StatBody>
-                                    <Text>Idle</Text>
-                                    <Text>
+                                    <Tooltip
+                                        label="Idle database connections in the pool (Source: metrics API)"
+                                        placement="top"
+                                        hasArrow
+                                    >
+                                        <Text cursor="help">Idle</Text>
+                                    </Tooltip>
+                                    <Text fontWeight={'semibold'}>
                                         {metrics.database.connections_idle}
                                     </Text>
                                 </StatBody>
                                 <StatBody>
-                                    <Text>Active</Text>
-                                    <Text>
+                                    <Tooltip
+                                        label="Database connections currently in use for queries (Source: metrics API)"
+                                        placement="top"
+                                        hasArrow
+                                    >
+                                        <Text cursor="help">Active</Text>
+                                    </Tooltip>
+                                    <Text fontWeight={'semibold'}>
                                         {metrics.database.connections_in_use}
                                     </Text>
                                 </StatBody>
@@ -362,8 +490,16 @@ const page = async () => {
                             <SubBody>
                                 <Text variant={'statSubHead'}>Tables</Text>
                                 <StatBody>
-                                    <Text>Active</Text>
-                                    <Text>{metrics.tables.active_count}</Text>
+                                    <Tooltip
+                                        label="Active tables from metrics API (Source: metrics API)"
+                                        placement="top"
+                                        hasArrow
+                                    >
+                                        <Text cursor="help">Active</Text>
+                                    </Tooltip>
+                                    <Text fontWeight={'semibold'}>
+                                        {metrics.tables.active_count}
+                                    </Text>
                                 </StatBody>
                             </SubBody>
                         </StatCard>
@@ -376,29 +512,102 @@ const page = async () => {
                         timestamp={debugTables.timestamp}
                     >
                         <StatBody>
-                            <Text>Connections</Text>
-                            <Text>{debugConnections.total_clients}</Text>
+                            <Tooltip
+                                label="Debug info: Total WebSocket clients connected (Source: debugConnections API)"
+                                placement="top"
+                                hasArrow
+                            >
+                                <Text cursor="help">WebSocket Clients</Text>
+                            </Tooltip>
+                            <Text fontWeight={'semibold'}>
+                                {debugConnections.total_clients}
+                            </Text>
                         </StatBody>
                         <StatBody>
-                            <Text>Tables</Text>
-                            <Text>{debugTables.total_count}</Text>
+                            <Tooltip
+                                label="Debug info: Total tables in memory with player details listed below (Source: debugTables API)"
+                                placement="top"
+                                hasArrow
+                            >
+                                <Text cursor="help">Tables</Text>
+                            </Tooltip>
+                            <Text fontWeight={'semibold'}>
+                                {debugTables.total_count}
+                            </Text>
                         </StatBody>
                         {debugTables.tables.at(0) ? (
-                            <List
-                                maxHeight={'100px'}
-                                overflowY={'scroll'}
-                                flexDirection={'column'}
+                            <Box
+                                maxHeight={'200px'}
+                                overflowY={'auto'}
+                                border="1px solid"
+                                borderColor="whiteAlpha.300"
+                                borderRadius="md"
                             >
-                                {debugTables.tables.map((table, index) => {
-                                    return (
-                                        <ListItem key={index}>
-                                            <Text>
-                                                {formatDebugTable(table)}
-                                            </Text>
-                                        </ListItem>
-                                    );
-                                })}
-                            </List>
+                                <Table size="sm" variant="simple">
+                                    <Thead
+                                        bg="whiteAlpha.100"
+                                        position="sticky"
+                                        top={0}
+                                        zIndex={1}
+                                    >
+                                        <Tr>
+                                            <Th
+                                                color="white"
+                                                borderColor="whiteAlpha.300"
+                                            >
+                                                Table Name
+                                            </Th>
+                                            <Th
+                                                color="white"
+                                                borderColor="whiteAlpha.300"
+                                                isNumeric
+                                            >
+                                                Players
+                                            </Th>
+                                        </Tr>
+                                    </Thead>
+                                    <Tbody>
+                                        {debugTables.tables.map(
+                                            (table, index) => {
+                                                const tableName =
+                                                    typeof table === 'string'
+                                                        ? table
+                                                        : table.name;
+                                                const playerCount =
+                                                    typeof table === 'string'
+                                                        ? '-'
+                                                        : table.player_count;
+
+                                                return (
+                                                    <Tr
+                                                        key={index}
+                                                        _hover={{
+                                                            bg: 'whiteAlpha.50',
+                                                        }}
+                                                    >
+                                                        <Td
+                                                            color="statBody"
+                                                            borderColor="whiteAlpha.300"
+                                                            fontFamily="monospace"
+                                                            fontSize="xs"
+                                                        >
+                                                            {tableName}
+                                                        </Td>
+                                                        <Td
+                                                            color="statBody"
+                                                            borderColor="whiteAlpha.300"
+                                                            isNumeric
+                                                            fontWeight="semibold"
+                                                        >
+                                                            {playerCount}
+                                                        </Td>
+                                                    </Tr>
+                                                );
+                                            }
+                                        )}
+                                    </Tbody>
+                                </Table>
+                            </Box>
                         ) : (
                             <Flex justifyContent={'center'}>
                                 <Text color={'grey'}>No tables</Text>

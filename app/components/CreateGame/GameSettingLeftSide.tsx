@@ -363,7 +363,14 @@ const LeftSideContent: React.FC = () => {
                 sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
                 onSuccess={(token: string) => setTurnstileToken(token)}
                 onExpire={() => setTurnstileToken(null)}
+                onError={() => {
+                    console.error('Turnstile error occurred');
+                    setTurnstileToken(null);
+                }}
                 theme="dark"
+                appearance="interaction-only"
+                execution="render"
+                retry="auto"
             />
 
             <Button

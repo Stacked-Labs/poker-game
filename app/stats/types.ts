@@ -25,8 +25,15 @@ export interface Metrics {
     timestamp: string;
 }
 
+export interface DebugTableEntry {
+    name: string;
+    player_count: number;
+}
+
+export type DebugTableRow = string | DebugTableEntry;
+
 export interface DebugTables {
-    tables: string[];
+    tables: DebugTableRow[];
     timestamp: string;
     total_count: number;
 }

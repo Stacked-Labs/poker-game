@@ -9,6 +9,7 @@ import {
     Progress,
     Tooltip,
     Tag,
+    useBreakpointValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { Card, Player } from '../interfaces';
@@ -46,6 +47,7 @@ const TakenSeatButton = ({
     const shortEthAddress = address
         ? `${address.slice(0, 2)}...${address.slice(-2)}`
         : '0x00...00';
+    const isMobile = useBreakpointValue({ base: true, lg: false }) ?? true;
 
     const chipPositions: {
         [key: number]: {
@@ -55,61 +57,61 @@ const TakenSeatButton = ({
         };
     } = {
         1: {
-            top: { base: '-20%', md: '-25%', '2xl': '-28%' },
+            top: { base: '-46%', md: isMobile ? '-45%' : '-10%', '2xl': '-18%' },
             justifyContent: { base: 'center' },
         },
         2: {
-            top: { base: '15%', md: '-25%', '2xl': '-28%' },
-            right: { base: '-100%', md: '0', '2xl': '0' },
+            top: { base: '-15%', md: isMobile ? '15%' : '-10%', '2xl': '-18%' },
+            right: { base: '-105%', md: isMobile ? '-70%' : 0, '2xl': 0 },
             flexDirection: { base: 'column', md: 'row' },
             justifyContent: { base: 'center' },
         },
         3: {
-            bottom: { base: '40%', md: '40%', lg: '23%' },
-            right: { base: '-100%', md: '-110%', lg: '-110%' },
+            bottom: { base: '18%', md: '40%', lg: '23%' },
+            right: { base: '-105%', md: '-105%', lg: '-110%' },
             flexDirection: { base: 'column', md: 'row' },
         },
         4: {
             top: { base: '15%', md: '40%', lg: '30%' },
-            right: { base: '-100%', md: '-110%', lg: '-110%' },
+            right: { base: '-107%', md: '-105%', lg: '-110%' },
             flexDirection: { base: 'column', md: 'row' },
         },
         5: {
-            bottom: { base: '30%', md: '-35%', '2xl': '-30%' },
-            right: { base: '-100%', md: '0', '2xl': '0' },
+            bottom: { base: '10%', md: isMobile ? '20%' : '-30%', '2xl': '-30%' },
+            right: { base: '-107%', md: isMobile ? '-70%' : 0, '2xl': 0 },
             flexDirection: { base: 'column', md: 'row' },
             alignItems: { base: 'left', md: 'start' },
             justifyContent: { base: 'center' },
         },
         6: {
-            bottom: { base: '-33%', md: '-35%', '2xl': '-30%' },
-            right: { base: '0', md: '0', '2xl': '0' },
+            bottom: { base: '-50%', md: isMobile ? '-45%' : '-30%', '2xl': '-30%' },
+            right: { base: 0, md: 0, '2xl': 0 },
             flexDirection: { base: 'row', md: 'row' },
             justifyContent: { base: 'center' },
         },
         7: {
-            bottom: { base: '30%', md: '-35%', '2xl': '-30%' },
-            left: { base: '-100%', md: '0', '2xl': '0' },
-            flexDirection: { base: 'column', md: 'row' },
+            bottom: { base: '10%', md: isMobile ? '20%' : '-30%', '2xl': '-30%' },
+            left: { base: '-105%', md: isMobile ? '-70%' : 0, '2xl': 0 },
+            flexDirection: { base: 'column', md: 'row-reverse' },
             alignItems: { base: 'end', md: 'start' },
             justifyContent: { base: 'center' },
         },
         8: {
             top: { base: '15%', md: '40%', lg: '30%' },
-            left: { base: '-100%', md: '-110%', lg: '-110%' },
+            left: { base: '-105%', md: '-105%', lg: '-110%' },
             flexDirection: { base: 'column', md: 'row-reverse' },
             alignItems: { base: 'end', md: 'start' },
         },
         9: {
-            bottom: { base: '40%', md: '40%', lg: '23%' },
-            left: { base: '-100%', md: '-110%', lg: '-110%' },
+            bottom: { base: '18%', md: '40%', lg: '23%' },
+            left: { base: '-105%', md: isMobile ? '-105%' : 0, lg: '-110%' },
             flexDirection: { base: 'column', md: 'row-reverse' },
             alignItems: { base: 'end', md: 'start' },
         },
         10: {
-            top: { base: '15%', md: '-25%', '2xl': '-28%' },
-            left: { base: '-100%', md: '0', '2xl': '0' },
-            flexDirection: { base: 'column', md: 'row' },
+            top: { base: '-15%', md: isMobile ? '15%' : '-10%', '2xl': '-18%' },
+            left: { base: '-105%', md: isMobile ? '-68%' : '0%', '2xl': '0%' },
+            flexDirection: { base: 'column', md: isMobile ? 'row-reverse' : 'row' },
             alignItems: { base: 'end', md: 'start' },
             justifyContent: { base: 'center' },
         },

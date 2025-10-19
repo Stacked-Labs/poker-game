@@ -18,6 +18,7 @@ import {
     TabPanels,
     TabPanel,
 } from '@chakra-ui/react';
+import Link from 'next/link';
 import {
     getHealth,
     getHealthDb,
@@ -744,22 +745,37 @@ const page = async () => {
                                                                             placement="top"
                                                                             hasArrow
                                                                         >
-                                                                            <Text
-                                                                                fontFamily="monospace"
-                                                                                fontSize="xs"
-                                                                                color="statBody"
-                                                                                noOfLines={
-                                                                                    1
-                                                                                }
-                                                                                flex={
-                                                                                    1
-                                                                                }
-                                                                                textAlign="left"
+                                                                            <Link
+                                                                                href={`/table/${table.name}`}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                style={{
+                                                                                    flex: 1,
+                                                                                    textDecoration:
+                                                                                        'none',
+                                                                                }}
                                                                             >
-                                                                                {
-                                                                                    table.name
-                                                                                }
-                                                                            </Text>
+                                                                                <Text
+                                                                                    fontFamily="monospace"
+                                                                                    fontSize="xs"
+                                                                                    color="statBody"
+                                                                                    noOfLines={
+                                                                                        1
+                                                                                    }
+                                                                                    textAlign="left"
+                                                                                    _hover={{
+                                                                                        color: 'blue.400',
+                                                                                        fontWeight:
+                                                                                            'bold',
+                                                                                    }}
+                                                                                    cursor="alias"
+                                                                                    transition="all 0.2s"
+                                                                                >
+                                                                                    {
+                                                                                        table.name
+                                                                                    }
+                                                                                </Text>
+                                                                            </Link>
                                                                         </Tooltip>
                                                                     </HStack>
                                                                     <HStack

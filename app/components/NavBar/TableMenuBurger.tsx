@@ -11,7 +11,7 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import VolumeButton from '../VolumeButton';
-import Web3Button from '../Web3Button';
+import WalletButton from '../WalletButton';
 import { ReactElement, useContext } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -69,6 +69,7 @@ const TableMenuBurger = ({
                 gap={2}
                 padding={0}
             >
+                <Item button={<WalletButton />} />
                 {isUserSeated && (
                     <Item
                         button={
@@ -86,7 +87,6 @@ const TableMenuBurger = ({
                     />
                 )}
                 <Item button={<VolumeButton />} />
-                <Item button={<Web3Button compact />} />
                 {isUserSeated && (
                     <Item
                         button={

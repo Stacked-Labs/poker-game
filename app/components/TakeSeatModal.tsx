@@ -20,7 +20,7 @@ import {
 } from '@chakra-ui/react';
 import { motion, MotionStyle } from 'framer-motion';
 import { FaDiscord } from 'react-icons/fa';
-import Web3Button from './Web3Button';
+import WalletButton from './WalletButton';
 import { newPlayer, sendLog, takeSeat } from '../hooks/server_actions';
 import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -157,7 +157,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                 </ModalBody>
                 <ModalFooter>
                     <VStack w={'100%'}>
-                        <Web3Button w={'80%'} />
+                        <WalletButton width="80%" />
                         <HStack width="80%" justifyContent={'flex-end'} mt={4}>
                             <Button
                                 size="lg"

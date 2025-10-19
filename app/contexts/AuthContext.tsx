@@ -1,26 +1,23 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode, useEffect } from 'react';
-import useToastHelper from '@/app/hooks/useToastHelper';
-import {
-    useActiveAccount,
-    useActiveWallet,
-    useDisconnect,
-} from 'thirdweb/react';
-import { signMessage } from 'thirdweb/utils';
-import { Account, Wallet } from 'thirdweb/dist/types/exports/wallets.native';
-import { authenticateUser, isAuth } from '../hooks/server_actions';
-import { useRouter } from 'next/navigation';
+import React, {
+    createContext,
+    useContext,
+    ReactNode,
+    useEffect,
+    useState,
+} from 'react';
+import { useActiveAccount } from 'thirdweb/react';
+import { isAuth } from '../hooks/server_actions';
+
 interface AuthContextProps {
     isAuthenticated: boolean;
     userAddress: string | null;
-    authenticate: (account: Account, wallet: Wallet) => void;
 }
 
 const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
     userAddress: null,
-    authenticate: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -30,84 +27,37 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const { error, success } = useToastHelper();
-    const wallet = useActiveWallet();
     const account = useActiveAccount();
-    const { disconnect } = useDisconnect();
-    const router = useRouter();
-
-    const authenticate = async (account: Account, wallet: Wallet) => {
-        try {
-            if (!account || !wallet) {
-                error('Failed to authenticate: no wallet connection.');
-                return;
-            }
-
-            const message = `
-I agree to the following terms and conditions:
-
-1. Stacked is not responsible for any funds used on this platform.
-2. This is a testing phase and the platform may contain bugs or errors.
-3. I am using this platform at my own risk.
-
-Signing Address: ${account.address}
-Timestamp: ${Date.now()}`;
-
-            const signature = await signMessage({ message, account });
-
-            const response = await authenticateUser(
-                account.address,
-                signature,
-                message
-            );
-
-            if (response?.success) {
-                setCookie('address', account.address, false);
-                success(
-                    'Authentication Successful',
-                    'You have been successfully authenticated.'
-                );
-            } else {
-                throw new Error('No success response');
-            }
-        } catch (err) {
-            console.error(err);
-            disconnect(wallet);
-            error(
-                'Authentication Failed',
-                'There was an error during authentication. Please try again.'
-            );
-        }
-        router.refresh();
-    };
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const checkAuthentication = async () => {
-            if (!account || !wallet) return;
+            if (!account?.address) {
+                setIsAuthenticated(false);
+                return;
+            }
 
             try {
-                const address = getCookie('address');
-                const isAuthenticated = await isAuth();
-
-                if (!isAuthenticated || address !== account.address) {
-                    await authenticate(account, wallet);
-                }
+                const authenticated = await isAuth();
+                setIsAuthenticated(authenticated);
+                console.log('Auth status:', authenticated);
             } catch (error) {
-                console.error('Error during authentication check:', error);
+                console.error('Error checking authentication:', error);
+                setIsAuthenticated(false);
             }
         };
 
         checkAuthentication();
-    }, [account?.address, account, wallet]);
+
+        // Check auth status periodically while wallet is connected
+        const interval = setInterval(checkAuthentication, 5000);
+
+        return () => clearInterval(interval);
+    }, [account?.address]);
 
     const value: AuthContextProps = {
-        isAuthenticated:
-            typeof window !== 'undefined' && !!getCookie('address'),
-        userAddress:
-            typeof window !== 'undefined' && getCookie('address')
-                ? getCookie('address') || null
-                : null,
-        authenticate,
+        isAuthenticated,
+        userAddress: account?.address || null,
     };
 
     return (

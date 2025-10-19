@@ -59,6 +59,7 @@ export function SocketProvider(props: SocketProviderProps) {
     const [reconnectionAttempts, setReconnectionAttempts] = useState(0);
     const maxReconnectionAttempts = 5;
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const hasShownInitialErrorRef = useRef(false);
 
     useEffect(() => {
         appStateRef.current = appState;
@@ -134,6 +135,7 @@ export function SocketProvider(props: SocketProviderProps) {
                 console.log('WebSocket connected');
                 setIsReconnecting(false); // Reset reconnection state on successful open
                 setReconnectionAttempts(0); // Reset attempts on successful open
+                hasShownInitialErrorRef.current = false; // Reset error flag on successful connection
 
                 if (isReconnecting) {
                     // This flag might still be true if this open is from a reconnect attempt
@@ -143,8 +145,6 @@ export function SocketProvider(props: SocketProviderProps) {
                         2000,
                         TOAST_ID_RECONNECTED
                     );
-                } else {
-                    toastSuccessRef.current('WebSocket connected');
                 }
                 // Always send join-table on open
                 const joinMessage = { action: 'join-table' } as const;
@@ -162,12 +162,15 @@ export function SocketProvider(props: SocketProviderProps) {
                 socketRef.current = null;
                 setSocket(null);
                 if (!event.wasClean) {
-                    toastErrorRef.current(
-                        'WebSocket disconnected unexpectedly'
-                    );
+                    // Only show error toast on first disconnect, not during reconnection attempts
+                    if (!hasShownInitialErrorRef.current) {
+                        toastErrorRef.current(
+                            'Connection Lost',
+                            'Attempting to reconnect...'
+                        );
+                        hasShownInitialErrorRef.current = true;
+                    }
                     attemptReconnection(); // Safe to call here
-                } else {
-                    toastInfoRef.current('WebSocket disconnected cleanly');
                 }
             };
 
@@ -175,11 +178,8 @@ export function SocketProvider(props: SocketProviderProps) {
                 console.error('WebSocket error:', err);
                 socketRef.current = null;
                 setSocket(null);
-                toastErrorRef.current(
-                    'WebSocket error',
-                    'An error occurred with the WebSocket connection.'
-                );
-                attemptReconnection(); // Safe to call here
+                // Don't show error toast here - onclose will handle it
+                // This prevents duplicate error toasts
             };
 
             _socket.onmessage = (e) => {
@@ -419,10 +419,11 @@ export function SocketProvider(props: SocketProviderProps) {
         if (!WS_BASE_URL || reconnectionAttempts >= maxReconnectionAttempts) {
             if (reconnectionAttempts >= maxReconnectionAttempts) {
                 setIsReconnecting(false);
+                hasShownInitialErrorRef.current = false; // Reset for next connection attempt
                 toastErrorRef.current(
                     'Connection Failed',
-                    'Max reconnection attempts reached. Please refresh.',
-                    2000
+                    'Unable to connect. Please refresh the page.',
+                    5000
                 );
             }
             return;
@@ -434,12 +435,15 @@ export function SocketProvider(props: SocketProviderProps) {
         setReconnectionAttempts(nextAttempt);
         const delay = getReconnectDelay(reconnectionAttempts);
 
-        toastInfoRef.current(
-            'Attempting Reconnection',
-            `Attempt ${nextAttempt}/${maxReconnectionAttempts} in ${delay / 1000}s`,
-            delay,
-            TOAST_ID_RECONNECTING
-        );
+        // Only show reconnection toast for first few attempts
+        if (nextAttempt <= 2) {
+            toastInfoRef.current(
+                'Attempting Reconnection',
+                `Attempt ${nextAttempt}/${maxReconnectionAttempts}...`,
+                delay,
+                TOAST_ID_RECONNECTING
+            );
+        }
 
         if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);

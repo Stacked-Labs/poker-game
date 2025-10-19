@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 import { RiMenu3Line } from 'react-icons/ri';
-import Web3Button from '../Web3Button';
+import WalletButton from '../WalletButton';
 import { Poppins } from 'next/font/google';
 import { usePathname } from 'next/navigation'; // Import the hook
 
@@ -56,7 +56,7 @@ const HomeNavBar: React.FC = () => {
             >
                 <Text className={poppins.className}>Support</Text>
             </Button>
-            <Web3Button width="200px" />
+            <WalletButton width="200px" label="Sign In" />
         </>
     ));
     NavButtons.displayName = 'NavButtons';

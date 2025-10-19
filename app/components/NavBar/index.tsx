@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { FiSettings, FiMessageSquare, FiLogOut } from 'react-icons/fi';
-import Web3Button from '../Web3Button';
+import WalletButton from '../WalletButton';
 import SettingsModal from './Settings/SettingsModal';
 import SideBarChat from './Chat/SideBarChat';
 import StartGameButton from '../StartGameButton';
@@ -283,13 +283,9 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             </Flex>
                         )}
                     </Box>
-                    <Web3Button
-                        size="lg"
-                        variant="white"
-                        colorScheme="white"
-                        paddingX={{ md: 12 }}
-                        display={{ base: 'none', md: 'inline-flex' }}
-                    />
+                    <Box display={{ base: 'none', md: 'inline-flex' }}>
+                        <WalletButton />
+                    </Box>
                 </HStack>
 
                 <SettingsModal isOpen={isOpen} onClose={onClose} />

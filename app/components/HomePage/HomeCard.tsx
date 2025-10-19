@@ -20,7 +20,7 @@ import {
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord } from 'react-icons/fa';
 import { SiFarcaster } from 'react-icons/si'; // Imported SiFarcaster from react-icons/si
-import Web3Button from '@/app/components/Web3Button';
+import WalletButton from '@/app/components/WalletButton';
 import { useRouter } from 'next/navigation';
 
 const HomeCard = () => {
@@ -92,7 +92,7 @@ const HomeCard = () => {
                                 Play Now
                             </Button>
 
-                            <Web3Button />
+                            <WalletButton height="64px" />
                         </Stack>
 
                         <Flex

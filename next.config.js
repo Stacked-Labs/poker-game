@@ -38,8 +38,8 @@ const nextConfig = {
                         value: [
                             "default-src 'self'",
                             "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://widgets.coingecko.com",
-                            "frame-src 'self' https://challenges.cloudflare.com",
-                            "connect-src 'self' https://challenges.cloudflare.com wss://* ws://* https://*",
+                            "frame-src 'self' https://challenges.cloudflare.com https://embedded-wallet.thirdweb.com",
+                            "connect-src 'self' http://localhost:8080 ws://localhost:8080 https://api.stackedpoker.io wss://api.stackedpoker.io https://challenges.cloudflare.com wss://* ws://* https://*",
                             "img-src 'self' data: https: blob:",
                             "style-src 'self' 'unsafe-inline'",
                             "font-src 'self' data:",

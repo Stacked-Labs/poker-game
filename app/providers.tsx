@@ -14,7 +14,20 @@ import { client } from './thirdwebclient';
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <CacheProvider>
-            <ChakraProvider theme={theme}>
+            <ChakraProvider
+                theme={theme}
+                toastOptions={{
+                    defaultOptions: {
+                        position: 'top-right',
+                        duration: 5000,
+                        isClosable: true,
+                        containerStyle: {
+                            marginTop: '0px',
+                            marginBottom: '0px',
+                        },
+                    },
+                }}
+            >
                 <ThirdwebProvider>
                     <AutoConnect client={client} />
                     <AppStoreProvider>

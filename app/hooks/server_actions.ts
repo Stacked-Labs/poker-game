@@ -187,6 +187,55 @@ export async function initSession() {
     }
 }
 
+// SIWE Authentication - Step 1: Get authentication payload
+export async function getAuthPayload(address: string) {
+    console.log('Getting auth payload for address:', address);
+
+    isBackendUrlValid();
+
+    const response = await fetch(`${backendUrl}/auth`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to get authentication payload');
+    }
+
+    const data = await response.json();
+    console.log('Received auth payload:', data);
+    return data; // Returns { payload, message }
+}
+
+// SIWE Authentication - Step 3: Verify signed payload
+export async function verifySignedPayload(signedPayload: object) {
+    console.log('Verifying signed payload:', signedPayload);
+
+    isBackendUrlValid();
+
+    const response = await fetch(`${backendUrl}/auth/verify`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(signedPayload),
+    });
+
+    if (!response.ok) {
+        throw new Error('Authentication verification failed');
+    }
+
+    const data = await response.json();
+    console.log('Verification result:', data);
+    return data; // Returns { success: true, address: "0x..." }
+}
+
+// Legacy function - kept for backward compatibility if needed
 export async function authenticateUser(
     address: string,
     signature: string,
@@ -344,7 +393,9 @@ export async function getDebugTables() {
             method: 'GET',
         });
         if (!response.ok) {
-            throw new Error(`Debug tables fetch failed: ${response.statusText}`);
+            throw new Error(
+                `Debug tables fetch failed: ${response.statusText}`
+            );
         }
         return await response.json();
     } catch (error) {
@@ -361,7 +412,9 @@ export async function getDebugConnections() {
             method: 'GET',
         });
         if (!response.ok) {
-            throw new Error(`Debug connections fetch failed: ${response.statusText}`);
+            throw new Error(
+                `Debug connections fetch failed: ${response.statusText}`
+            );
         }
         return await response.json();
     } catch (error) {
@@ -398,8 +451,7 @@ export async function getLiveStats() {
             throw new Error(`Live stats fetch failed: ${response.statusText}`);
         }
         return await response.json();
-    }
-    catch (error) {
+    } catch (error) {
         console.error('Unable to fetch live stats.', error);
         throw error;
     }

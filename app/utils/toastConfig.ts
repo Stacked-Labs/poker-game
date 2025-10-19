@@ -33,6 +33,10 @@ export const showToast = (
         duration,
         isClosable: true,
         position: 'top-right',
+        containerStyle: {
+            marginTop: '0px',
+            marginBottom: '0px',
+        },
     });
 };
 

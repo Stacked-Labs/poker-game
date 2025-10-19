@@ -456,3 +456,20 @@ export async function getLiveStats() {
         throw error;
     }
 }
+
+export async function getTables() {
+    isBackendUrlValid();
+
+    try {
+        const response = await fetch(`${backendUrl}/api/stats/tables`, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error(`Tables fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch tables.', error);
+        throw error;
+    }
+}

@@ -70,12 +70,29 @@ export interface LiveStatsResponse {
     timestamp: string;
 }
 
+export interface TableEntry {
+    name: string;
+    created_at: string;
+    is_active: boolean;
+    owner_uuid: string;
+    min_buy_in: number;
+    max_buy_in: number;
+    player_count: number;
+    in_memory: boolean;
+}
+
+export interface TablesResponse {
+    success: boolean;
+    tables: TableEntry[];
+    total_count: number;
+    timestamp: string;
+}
+
 export interface SystemStats {
     health: Health;
     healthDb: HealthDb;
     metrics: Metrics;
-    debugTables: DebugTables;
-    debugConnections: DebugConnections;
+    tables: TablesResponse;
     stats: StatsResponse;
     liveStats: LiveStatsResponse;
 }

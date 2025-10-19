@@ -3,30 +3,30 @@ import {
     Flex,
     Box,
     Tooltip,
-    Table,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td,
+    Badge,
+    Accordion,
+    AccordionItem,
+    AccordionButton,
+    AccordionPanel,
+    AccordionIcon,
+    HStack,
+    Stack,
+    Divider,
+    VStack,
 } from '@chakra-ui/react';
 import {
-    getDebugConnections,
-    getDebugTables,
     getHealth,
     getHealthDb,
     getLiveStats,
     getMetrics,
     getStats,
+    getTables,
 } from '../hooks/server_actions';
 import {
     Health,
     HealthDb,
     Metrics,
-    DebugTableEntry,
-    DebugTables,
-    DebugTableRow,
-    DebugConnections,
+    TablesResponse,
     StatsResponse,
     LiveStatsResponse,
 } from '../stats/types';
@@ -94,14 +94,6 @@ const SubBody = ({ children }: { children: ReactNode }) => {
     );
 };
 
-const formatDebugTable = (table: DebugTableRow) => {
-    if (typeof table === 'string') {
-        return table;
-    }
-
-    return `${table.name} (${table.player_count})`;
-};
-
 const page = async () => {
     const now = new Date().toISOString();
 
@@ -144,15 +136,11 @@ const page = async () => {
         timestamp: now,
     };
 
-    const defaultDebugTables: DebugTables = {
+    const defaultTables: TablesResponse = {
+        success: false,
         tables: [],
         timestamp: now,
         total_count: 0,
-    };
-
-    const defaultDebugConnections: DebugConnections = {
-        timestamp: now,
-        total_clients: 0,
     };
 
     const defaultStats: StatsResponse = {
@@ -178,32 +166,18 @@ const page = async () => {
         timestamp: now,
     };
 
-    const [
-        health,
-        healthDb,
-        metrics,
-        debugTables,
-        debugConnections,
-        stats,
-        liveStats,
-    ]: [
+    const [health, healthDb, metrics, tables, stats, liveStats]: [
         Health,
         HealthDb,
         Metrics,
-        DebugTables,
-        DebugConnections,
+        TablesResponse,
         StatsResponse,
         LiveStatsResponse,
     ] = await Promise.all([
         withFallback(getHealth(), defaultHealth, 'health'),
         withFallback(getHealthDb(), defaultHealthDb, 'database health'),
         withFallback(getMetrics(), defaultMetrics, 'metrics'),
-        withFallback(getDebugTables(), defaultDebugTables, 'debug tables'),
-        withFallback(
-            getDebugConnections(),
-            defaultDebugConnections,
-            'debug connections'
-        ),
+        withFallback(getTables(), defaultTables, 'tables'),
         withFallback(getStats(), defaultStats, 'stats'),
         withFallback(getLiveStats(), defaultLiveStats, 'live stats'),
     ]);
@@ -236,7 +210,7 @@ const page = async () => {
                     <StatCard
                         flex={2}
                         title={'Stacked'}
-                        timestamp={debugTables.timestamp}
+                        timestamp={health.timestamp}
                     >
                         <StatBody>
                             <Tooltip
@@ -508,109 +482,292 @@ const page = async () => {
                 <Flex width={'full'}>
                     <StatCard
                         flex={1}
-                        title={'Debug'}
-                        timestamp={debugTables.timestamp}
+                        title={'Tables'}
+                        timestamp={tables.timestamp}
                     >
                         <StatBody>
                             <Tooltip
-                                label="Debug info: Total WebSocket clients connected (Source: debugConnections API)"
+                                label="Total tables in the database (both active and inactive)"
                                 placement="top"
                                 hasArrow
                             >
-                                <Text cursor="help">WebSocket Clients</Text>
+                                <Text cursor="help">Total Tables</Text>
                             </Tooltip>
                             <Text fontWeight={'semibold'}>
-                                {debugConnections.total_clients}
+                                {tables.total_count}
                             </Text>
                         </StatBody>
                         <StatBody>
                             <Tooltip
-                                label="Debug info: Total tables in memory with player details listed below (Source: debugTables API)"
+                                label="Tables currently active with players"
                                 placement="top"
                                 hasArrow
                             >
-                                <Text cursor="help">Tables</Text>
+                                <Text cursor="help">Active Tables</Text>
                             </Tooltip>
                             <Text fontWeight={'semibold'}>
-                                {debugTables.total_count}
+                                {
+                                    tables.tables.filter((t) => t.is_active)
+                                        .length
+                                }
                             </Text>
                         </StatBody>
-                        {debugTables.tables.at(0) ? (
+                        <StatBody>
+                            <Tooltip
+                                label="Tables loaded in backend memory"
+                                placement="top"
+                                hasArrow
+                            >
+                                <Text cursor="help">In Memory</Text>
+                            </Tooltip>
+                            <Text fontWeight={'semibold'}>
+                                {
+                                    tables.tables.filter((t) => t.in_memory)
+                                        .length
+                                }
+                            </Text>
+                        </StatBody>
+                        {tables.tables.length > 0 ? (
                             <Box
-                                maxHeight={'200px'}
+                                maxHeight={'400px'}
                                 overflowY={'auto'}
                                 border="1px solid"
-                                borderColor="whiteAlpha.300"
+                                borderColor="whiteAlpha.200"
                                 borderRadius="md"
+                                bg="whiteAlpha.50"
                             >
-                                <Table size="sm" variant="simple">
-                                    <Thead
-                                        bg="whiteAlpha.100"
-                                        position="sticky"
-                                        top={0}
-                                        zIndex={1}
-                                    >
-                                        <Tr>
-                                            <Th
-                                                color="white"
-                                                borderColor="whiteAlpha.300"
-                                            >
-                                                Table Name
-                                            </Th>
-                                            <Th
-                                                color="white"
-                                                borderColor="whiteAlpha.300"
-                                                isNumeric
-                                            >
-                                                Players
-                                            </Th>
-                                        </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                        {debugTables.tables.map(
-                                            (table, index) => {
-                                                const tableName =
-                                                    typeof table === 'string'
-                                                        ? table
-                                                        : table.name;
-                                                const playerCount =
-                                                    typeof table === 'string'
-                                                        ? '-'
-                                                        : table.player_count;
-
-                                                return (
-                                                    <Tr
-                                                        key={index}
-                                                        _hover={{
-                                                            bg: 'whiteAlpha.50',
-                                                        }}
-                                                    >
-                                                        <Td
-                                                            color="statBody"
-                                                            borderColor="whiteAlpha.300"
-                                                            fontFamily="monospace"
-                                                            fontSize="xs"
-                                                        >
-                                                            {tableName}
-                                                        </Td>
-                                                        <Td
-                                                            color="statBody"
-                                                            borderColor="whiteAlpha.300"
-                                                            isNumeric
-                                                            fontWeight="semibold"
-                                                        >
-                                                            {playerCount}
-                                                        </Td>
-                                                    </Tr>
-                                                );
+                                <Accordion allowMultiple>
+                                    {tables.tables.map((table, index) => (
+                                        <AccordionItem
+                                            key={index}
+                                            borderBottom={
+                                                index < tables.tables.length - 1
+                                                    ? '1px solid'
+                                                    : 'none'
                                             }
-                                        )}
-                                    </Tbody>
-                                </Table>
+                                            borderColor="whiteAlpha.200"
+                                        >
+                                            <h2>
+                                                <AccordionButton
+                                                    py={3}
+                                                    px={4}
+                                                    _hover={{
+                                                        bg: 'whiteAlpha.100',
+                                                    }}
+                                                    _expanded={{
+                                                        bg: 'whiteAlpha.100',
+                                                        borderBottom:
+                                                            '1px solid',
+                                                        borderColor:
+                                                            'whiteAlpha.200',
+                                                    }}
+                                                    transition="all 0.2s"
+                                                >
+                                                    <Box
+                                                        flex={1}
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="space-between"
+                                                        width="100%"
+                                                    >
+                                                        <HStack
+                                                            gap={2}
+                                                            flex={1}
+                                                            minW={0}
+                                                        >
+                                                            <Tooltip
+                                                                label={
+                                                                    table.is_active
+                                                                        ? 'Active'
+                                                                        : 'Inactive'
+                                                                }
+                                                                placement="top"
+                                                                hasArrow
+                                                            >
+                                                                <Box
+                                                                    width="8px"
+                                                                    height="8px"
+                                                                    borderRadius="full"
+                                                                    bg={
+                                                                        table.is_active
+                                                                            ? 'green.400'
+                                                                            : 'gray.600'
+                                                                    }
+                                                                    boxShadow={
+                                                                        table.is_active
+                                                                            ? '0 0 8px rgba(72, 187, 120, 0.6)'
+                                                                            : 'none'
+                                                                    }
+                                                                    flexShrink={
+                                                                        0
+                                                                    }
+                                                                />
+                                                            </Tooltip>
+                                                            <Tooltip
+                                                                label={
+                                                                    table.name
+                                                                }
+                                                                placement="top"
+                                                                hasArrow
+                                                            >
+                                                                <Text
+                                                                    fontFamily="monospace"
+                                                                    fontSize="xs"
+                                                                    color="statBody"
+                                                                    noOfLines={
+                                                                        1
+                                                                    }
+                                                                    flex={1}
+                                                                    textAlign="left"
+                                                                >
+                                                                    {table.name}
+                                                                </Text>
+                                                            </Tooltip>
+                                                        </HStack>
+                                                        <HStack
+                                                            gap={2}
+                                                            flexShrink={0}
+                                                        >
+                                                            <Badge
+                                                                colorScheme="blue"
+                                                                fontSize="xs"
+                                                                fontWeight="bold"
+                                                                px={2}
+                                                                py={1}
+                                                                borderRadius="sm"
+                                                            >
+                                                                {
+                                                                    table.player_count
+                                                                }
+                                                            </Badge>
+                                                            {table.in_memory && (
+                                                                <Badge
+                                                                    colorScheme="purple"
+                                                                    fontSize="xs"
+                                                                    fontWeight="bold"
+                                                                    px={2}
+                                                                    py={1}
+                                                                    borderRadius="sm"
+                                                                >
+                                                                    MEM
+                                                                </Badge>
+                                                            )}
+                                                        </HStack>
+                                                    </Box>
+                                                    <AccordionIcon
+                                                        ml={3}
+                                                        color="statBody"
+                                                    />
+                                                </AccordionButton>
+                                            </h2>
+                                            <AccordionPanel
+                                                pb={4}
+                                                pt={3}
+                                                px={4}
+                                                bg="blackAlpha.200"
+                                            >
+                                                <VStack
+                                                    gap={3}
+                                                    align="stretch"
+                                                    divider={
+                                                        <Divider
+                                                            borderColor="whiteAlpha.200"
+                                                            opacity={0.5}
+                                                        />
+                                                    }
+                                                >
+                                                    <Flex
+                                                        justify="space-between"
+                                                        align="center"
+                                                    >
+                                                        <Text
+                                                            fontSize="sm"
+                                                            color="gray.400"
+                                                            fontWeight="medium"
+                                                        >
+                                                            Owner
+                                                        </Text>
+                                                        <Tooltip
+                                                            label={
+                                                                table.owner_uuid
+                                                            }
+                                                            placement="top"
+                                                            hasArrow
+                                                        >
+                                                            <Text
+                                                                fontSize="xs"
+                                                                fontFamily="monospace"
+                                                                color="statBody"
+                                                                textAlign="right"
+                                                                cursor="help"
+                                                            >
+                                                                {table
+                                                                    .owner_uuid
+                                                                    .length > 20
+                                                                    ? `${table.owner_uuid.slice(0, 8)}...${table.owner_uuid.slice(-6)}`
+                                                                    : table.owner_uuid}
+                                                            </Text>
+                                                        </Tooltip>
+                                                    </Flex>
+                                                    <Flex
+                                                        justify="space-between"
+                                                        align="center"
+                                                    >
+                                                        <Text
+                                                            fontSize="sm"
+                                                            color="gray.400"
+                                                            fontWeight="medium"
+                                                        >
+                                                            Buy-in Range
+                                                        </Text>
+                                                        <Text
+                                                            fontSize="sm"
+                                                            fontWeight="semibold"
+                                                            color="statBody"
+                                                            textAlign="right"
+                                                        >
+                                                            {table.min_buy_in} -{' '}
+                                                            {table.max_buy_in}
+                                                        </Text>
+                                                    </Flex>
+                                                    <Flex
+                                                        justify="space-between"
+                                                        align="center"
+                                                    >
+                                                        <Text
+                                                            fontSize="sm"
+                                                            color="gray.400"
+                                                            fontWeight="medium"
+                                                        >
+                                                            Created
+                                                        </Text>
+                                                        <Text
+                                                            fontSize="xs"
+                                                            color="statBody"
+                                                            textAlign="right"
+                                                        >
+                                                            {new Date(
+                                                                table.created_at
+                                                            ).toLocaleString(
+                                                                'en-US',
+                                                                {
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit',
+                                                                }
+                                                            )}
+                                                        </Text>
+                                                    </Flex>
+                                                </VStack>
+                                            </AccordionPanel>
+                                        </AccordionItem>
+                                    ))}
+                                </Accordion>
                             </Box>
                         ) : (
-                            <Flex justifyContent={'center'}>
-                                <Text color={'grey'}>No tables</Text>
+                            <Flex justifyContent={'center'} py={4}>
+                                <Text color={'grey'}>No tables found</Text>
                             </Flex>
                         )}
                     </StatCard>

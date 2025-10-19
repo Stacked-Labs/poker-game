@@ -20,26 +20,55 @@ const ActionButton = ({
     hotkey,
     className = '',
 }: ActionButtonProps) => {
+    // Check if this is a compact button (used in raise interface)
+    const isCompactButton = className.includes('mobile-');
+
     return (
         <Button
             color={`${color}.500`}
             borderColor={`${color}.500`}
             borderBottomWidth={4}
-            padding={{ base: 4, sm: 6, md: 10 }}
+            padding={
+                isCompactButton
+                    ? { base: 2, sm: 2.5, md: 4, lg: 5 }
+                    : { base: 4, sm: 5, md: 4, lg: 5 }
+            }
             textTransform={'uppercase'}
             onClick={clickHandler}
             isDisabled={isDisabled}
-            fontSize={{
-                base: '15px',
-                md: 'medium',
-                lg: 'large',
-                xl: 'large',
-                '2xl': 'large',
-            }}
+            fontSize={
+                isCompactButton
+                    ? {
+                          base: '12px',
+                          sm: '13px',
+                          md: 'medium',
+                          lg: 'large',
+                          xl: 'large',
+                          '2xl': 'large',
+                      }
+                    : {
+                          base: '15px',
+                          sm: '16px',
+                          md: 'medium',
+                          lg: 'large',
+                          xl: 'large',
+                          '2xl': 'large',
+                      }
+            }
             maxW={{ base: 'unset', md: '180px', lg: '200px' }}
             width={{ base: '100%', md: 'auto' }}
             flex={{ base: 1, md: '0 0 auto' }}
-            height={{ base: '100%', md: 'auto' }}
+            height={
+                isCompactButton
+                    ? { base: 'auto', md: 'auto' }
+                    : { base: '100%', md: 'auto' }
+            }
+            minH={isCompactButton ? { base: '36px', sm: '40px' } : undefined}
+            maxH={
+                isCompactButton
+                    ? { base: '44px', sm: '48px', md: 'none' }
+                    : undefined
+            }
             flexShrink={{ base: 1, md: 0 }}
             position={'relative'}
             className={`action-button ${text.toLowerCase()}-button ${className}`.trim()}

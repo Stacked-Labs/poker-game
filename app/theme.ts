@@ -213,9 +213,12 @@ const components = {
                 },
             },
             raiseActionButton: {
-                fontSize: { base: '10px', md: 'sm', lg: 'md' },
+                fontSize: { base: '12px', sm: '13px', md: 'sm', lg: 'md' },
                 width: '80px',
-                height: 'fit-content',
+                height: 'auto',
+                minH: { base: '36px', sm: '40px' },
+                maxH: { base: '44px', sm: '48px', md: 'none' },
+                padding: { base: 2, sm: 2.5, md: 3 },
             },
             navButton: {
                 border: 0,

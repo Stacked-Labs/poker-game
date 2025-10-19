@@ -190,7 +190,7 @@ const RaiseInputBox = ({
             {/* ======= MOBILE / TABLET LAYOUT (≤ lg) ======= */}
             <Flex
                 direction="column"
-                gap={2}
+                gap={{ base: 1.5, sm: 2 }}
                 width="100%"
                 display={{ base: 'flex', lg: 'none' }}
                 position="relative"
@@ -300,11 +300,15 @@ const RaiseInputBox = ({
                         p={1}
                         textAlign="center"
                         overflow={'hidden'}
+                        display="flex"
+                        alignItems="center"
+                        minH={{ base: '36px', sm: '40px' }}
+                        maxH={{ base: '44px', sm: '48px' }}
                     >
                         <Input
                             bg={'charcoal.600'}
                             border={'none'}
-                            fontSize={{ base: 'xl', sm: '2xl' }}
+                            fontSize={{ base: '13px', sm: '14px' }}
                             size={'sm'}
                             width={'100%'}
                             height={'100%'}
@@ -316,6 +320,7 @@ const RaiseInputBox = ({
                             focusBorderColor={'gray.300'}
                             textAlign={'center'}
                             onBlur={handleInputOnBlur}
+                            py={{ base: 1, sm: 1.5 }}
                         />
                     </Box>
 

@@ -150,7 +150,7 @@ const FooterWithActionButtons = ({
                 justifyContent={{ base: 'space-between', md: 'end' }}
                 gap={{ base: 1, md: 2 }}
                 p={2}
-                height={{ base: '100px', md: '150px' }}
+                height={{ base: '80px', md: '80px' }}
                 overflow={'visible'}
                 alignItems={'center'}
             >

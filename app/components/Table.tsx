@@ -113,6 +113,51 @@ const Table = () => {
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
     const [players, setPlayers] = useState(initialPlayers);
     const [winningPlayers, setWinningPlayers] = useState<Player[]>([]);
+    const imageRef = React.useRef<HTMLImageElement>(null);
+    const [imageDimensions, setImageDimensions] = useState({
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+    });
+
+    // Track actual rendered image dimensions
+    useEffect(() => {
+        const updateImageDimensions = () => {
+            if (imageRef.current) {
+                const img = imageRef.current;
+                const rect = img.getBoundingClientRect();
+                setImageDimensions({
+                    width: rect.width,
+                    height: rect.height,
+                    top:
+                        rect.top -
+                        img.parentElement!.parentElement!.getBoundingClientRect()
+                            .top,
+                    left:
+                        rect.left -
+                        img.parentElement!.parentElement!.getBoundingClientRect()
+                            .left,
+                });
+            }
+        };
+
+        updateImageDimensions();
+
+        // Update on window resize
+        window.addEventListener('resize', updateImageDimensions);
+
+        // Use ResizeObserver for more accurate tracking
+        const resizeObserver = new ResizeObserver(updateImageDimensions);
+        if (imageRef.current) {
+            resizeObserver.observe(imageRef.current);
+        }
+
+        return () => {
+            window.removeEventListener('resize', updateImageDimensions);
+            resizeObserver.disconnect();
+        };
+    }, []);
 
     // Use CSS media queries for orientation to avoid SSR/CSR mismatch
 
@@ -250,6 +295,7 @@ const Table = () => {
                     srcSet="/table-vertical.webp"
                 />
                 <img
+                    ref={imageRef}
                     src="/table-horizontal.webp"
                     alt="Poker table"
                     style={{
@@ -259,16 +305,39 @@ const Table = () => {
                         maxWidth: '100%',
                         maxHeight: '100%',
                     }}
+                    onLoad={() => {
+                        // Update dimensions immediately after image loads
+                        if (imageRef.current) {
+                            const img = imageRef.current;
+                            const rect = img.getBoundingClientRect();
+                            const containerRect =
+                                img.parentElement!.parentElement!.getBoundingClientRect();
+                            setImageDimensions({
+                                width: rect.width,
+                                height: rect.height,
+                                top: rect.top - containerRect.top,
+                                left: rect.left - containerRect.left,
+                            });
+                        }
+                    }}
                 />
             </Box>
             <Grid
                 className="table-grid"
                 p={1}
                 position={'absolute'}
-                width={'100%'}
-                height={'100%'}
-                top={0}
-                left={0}
+                width={
+                    imageDimensions.width
+                        ? `${imageDimensions.width}px`
+                        : '100%'
+                }
+                height={
+                    imageDimensions.height
+                        ? `${imageDimensions.height}px`
+                        : '100%'
+                }
+                top={imageDimensions.top ? `${imageDimensions.top}px` : 0}
+                left={imageDimensions.left ? `${imageDimensions.left}px` : 0}
                 templateAreas={templateGridLarge}
                 gridTemplateRows={'repeat(4, minmax(0, 1fr))'}
                 gridTemplateColumns={'repeat(5, 1fr)'}

@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { isAuth } from '../hooks/server_actions';
+import { useWalletAuth } from '../hooks/useWalletAuth';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
@@ -29,6 +30,9 @@ type AuthProviderProps = {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const account = useActiveAccount();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    // Handle wallet authentication - runs once at provider level
+    useWalletAuth();
 
     useEffect(() => {
         const checkAuthentication = async () => {

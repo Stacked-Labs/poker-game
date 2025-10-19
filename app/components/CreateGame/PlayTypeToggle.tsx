@@ -67,7 +67,6 @@ export default function PlayTypeToggle({
             >
                 Crypto
             </Text>
-
         </Box>
     );
 }

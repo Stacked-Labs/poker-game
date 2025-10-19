@@ -169,12 +169,12 @@ const components = {
             statSubHead: {
                 fontSize: 'lg',
                 fontWeight: 'semibold',
-                color: 'grey'
+                color: 'grey',
             },
             statBody: {
                 fontSize: 'sm',
                 fontWeight: 'medium',
-            }
+            },
         },
     },
     Button: {
@@ -244,8 +244,8 @@ const components = {
             outlined: {
                 bg: 'gray.200',
                 _focus: {
-                    boxShadow: 'outline'
-                }
+                    boxShadow: 'outline',
+                },
             },
         },
         defaultProps: {

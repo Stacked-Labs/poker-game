@@ -57,7 +57,11 @@ const TakenSeatButton = ({
         };
     } = {
         1: {
-            top: { base: '-46%', md: isMobile ? '-45%' : '-10%', '2xl': '-18%' },
+            top: {
+                base: '-46%',
+                md: isMobile ? '-45%' : '-10%',
+                '2xl': '-18%',
+            },
             justifyContent: { base: 'center' },
         },
         2: {
@@ -77,20 +81,32 @@ const TakenSeatButton = ({
             flexDirection: { base: 'column', md: 'row' },
         },
         5: {
-            bottom: { base: '10%', md: isMobile ? '20%' : '-30%', '2xl': '-30%' },
+            bottom: {
+                base: '10%',
+                md: isMobile ? '20%' : '-30%',
+                '2xl': '-30%',
+            },
             right: { base: '-107%', md: isMobile ? '-70%' : 0, '2xl': 0 },
             flexDirection: { base: 'column', md: 'row' },
             alignItems: { base: 'left', md: 'start' },
             justifyContent: { base: 'center' },
         },
         6: {
-            bottom: { base: '-50%', md: isMobile ? '-45%' : '-30%', '2xl': '-30%' },
+            bottom: {
+                base: '-50%',
+                md: isMobile ? '-45%' : '-30%',
+                '2xl': '-30%',
+            },
             right: { base: 0, md: 0, '2xl': 0 },
             flexDirection: { base: 'row', md: 'row' },
             justifyContent: { base: 'center' },
         },
         7: {
-            bottom: { base: '10%', md: isMobile ? '20%' : '-30%', '2xl': '-30%' },
+            bottom: {
+                base: '10%',
+                md: isMobile ? '20%' : '-30%',
+                '2xl': '-30%',
+            },
             left: { base: '-105%', md: isMobile ? '-70%' : 0, '2xl': 0 },
             flexDirection: { base: 'column', md: 'row-reverse' },
             alignItems: { base: 'end', md: 'start' },
@@ -111,7 +127,10 @@ const TakenSeatButton = ({
         10: {
             top: { base: '-15%', md: isMobile ? '15%' : '-10%', '2xl': '-18%' },
             left: { base: '-105%', md: isMobile ? '-68%' : '0%', '2xl': '0%' },
-            flexDirection: { base: 'column', md: isMobile ? 'row-reverse' : 'row' },
+            flexDirection: {
+                base: 'column',
+                md: isMobile ? 'row-reverse' : 'row',
+            },
             alignItems: { base: 'end', md: 'start' },
             justifyContent: { base: 'center' },
         },

@@ -10,22 +10,42 @@ import {
 const useToastHelper = () => {
     const toast = useToast();
 
-    const success = (title: string, description?: string, duration?: number, id?: string) => {
+    const success = (
+        title: string,
+        description?: string,
+        duration?: number,
+        id?: string
+    ) => {
         if (id && toast.isActive(id)) return;
         showSuccessToast(toast, title, description, duration, id);
     };
 
-    const error = (title: string, description?: string, duration?: number, id?: string) => {
+    const error = (
+        title: string,
+        description?: string,
+        duration?: number,
+        id?: string
+    ) => {
         if (id && toast.isActive(id)) return;
         showErrorToast(toast, title, description, duration, id);
     };
 
-    const warning = (title: string, description?: string, duration?: number, id?: string) => {
+    const warning = (
+        title: string,
+        description?: string,
+        duration?: number,
+        id?: string
+    ) => {
         if (id && toast.isActive(id)) return;
         showWarningToast(toast, title, description, duration, id);
     };
 
-    const info = (title: string, description?: string, duration?: number, id?: string) => {
+    const info = (
+        title: string,
+        description?: string,
+        duration?: number,
+        id?: string
+    ) => {
         if (id && toast.isActive(id)) return;
         showInfoToast(toast, title, description, duration, id);
     };

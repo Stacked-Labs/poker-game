@@ -32,6 +32,9 @@ import {
 } from '../stats/types';
 import { ReactNode } from 'react';
 
+// Revalidate stats data every 30 seconds
+export const revalidate = 60;
+
 const StatCard = ({
     title,
     timestamp,

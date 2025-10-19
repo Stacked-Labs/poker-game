@@ -44,6 +44,7 @@ const LeftSideContent: React.FC = () => {
     const [bigBlind, setBigBlind] = useState<number>(2);
     const [isFormValid, setIsFormValid] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+    const [turnstileError, setTurnstileError] = useState(false);
 
     const { gameModes, networks } = gameData;
 
@@ -83,10 +84,15 @@ const LeftSideContent: React.FC = () => {
     ]);
 
     const handleCreateGame = async () => {
-        if (!turnstileToken) {
+        // If Turnstile is configured but has an error or no token, warn but allow proceed
+        if (
+            !turnstileToken &&
+            !turnstileError &&
+            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+        ) {
             toast.warning(
-                'Verification Required',
-                'Please complete the human verification challenge.'
+                'Verification Pending',
+                'Please wait for bot verification to complete.'
             );
             return;
         }
@@ -154,7 +160,7 @@ const LeftSideContent: React.FC = () => {
                         bigBlind: bigBlind,
                         isCrypto: playType === 'Crypto',
                         chain: playType === 'Crypto' ? selectedNetwork : '',
-                        cfTurnstileToken: turnstileToken,
+                        cfTurnstileToken: turnstileToken || '', // Send empty string if no token (fallback mode)
                     }),
                 }
             );
@@ -359,19 +365,43 @@ const LeftSideContent: React.FC = () => {
                 )}
             </VStack>
 
-            <Turnstile
-                sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
-                onSuccess={(token: string) => setTurnstileToken(token)}
-                onExpire={() => setTurnstileToken(null)}
-                onError={() => {
-                    console.error('Turnstile error occurred');
-                    setTurnstileToken(null);
-                }}
-                theme="dark"
-                appearance="interaction-only"
-                execution="render"
-                retry="auto"
-            />
+            {/* Turnstile Widget with improved error handling */}
+            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+                <Turnstile
+                    sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                    onSuccess={(token: string) => {
+                        console.log('Turnstile verification successful');
+                        setTurnstileToken(token);
+                        setTurnstileError(false);
+                    }}
+                    onExpire={() => {
+                        console.log('Turnstile token expired');
+                        setTurnstileToken(null);
+                    }}
+                    onError={(errorCode?: string) => {
+                        console.error('Turnstile error occurred:', errorCode);
+                        setTurnstileError(true);
+                        setTurnstileToken(null);
+                        // Show a user-friendly error message
+                        if (errorCode === '600010') {
+                            toast.warning(
+                                'Verification Issue',
+                                'Having trouble with bot verification. You can still try to create a game.'
+                            );
+                        }
+                    }}
+                    theme="dark"
+                    appearance="interaction-only"
+                    execution="render"
+                    retry="auto"
+                    refreshExpired="auto"
+                    retryInterval={2000}
+                />
+            ) : (
+                <Text color="yellow.500" fontSize="sm">
+                    ⚠️ Turnstile not configured
+                </Text>
+            )}
 
             <Button
                 variant="homeSectionButton"
@@ -385,11 +415,22 @@ const LeftSideContent: React.FC = () => {
                 isLoading={isLoading}
                 loadingText="Loading"
                 spinner={<Spinner size="md" color="white" />}
-                opacity={isFormValid && !!turnstileToken ? 1 : 0.6}
-                cursor={
-                    isFormValid && !!turnstileToken ? 'pointer' : 'not-allowed'
+                opacity={
+                    isFormValid && (!!turnstileToken || turnstileError)
+                        ? 1
+                        : 0.6
                 }
-                disabled={!isFormValid || !turnstileToken}
+                cursor={
+                    isFormValid && (!!turnstileToken || turnstileError)
+                        ? 'pointer'
+                        : 'not-allowed'
+                }
+                disabled={
+                    !isFormValid ||
+                    (!turnstileToken &&
+                        !turnstileError &&
+                        !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+                }
             >
                 Create Game
             </Button>

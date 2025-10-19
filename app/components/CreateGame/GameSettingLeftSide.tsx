@@ -48,6 +48,35 @@ const LeftSideContent: React.FC = () => {
 
     const { gameModes, networks } = gameData;
 
+    // Debug logging for Turnstile setup
+    useEffect(() => {
+        console.log('🔍 Turnstile Debug Info:');
+        console.log(
+            '- Site Key configured:',
+            !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+        );
+        console.log(
+            '- Site Key (first 10 chars):',
+            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.substring(0, 10)
+        );
+        console.log('- Current hostname:', window.location.hostname);
+        console.log('- Current protocol:', window.location.protocol);
+
+        // Check CSP
+        const cspMetaTags = document.querySelectorAll(
+            'meta[http-equiv="Content-Security-Policy"]'
+        );
+        console.log('- CSP meta tags found:', cspMetaTags.length);
+        cspMetaTags.forEach((tag, i) => {
+            const content = (tag as HTMLMetaElement).content;
+            const hasScriptSrc = content.includes('script-src');
+            const hasCloudflareCom = content.includes('cloudflare.com');
+            console.log(
+                `  Tag ${i}: script-src present: ${hasScriptSrc}, cloudflare.com allowed: ${hasCloudflareCom}`
+            );
+        });
+    }, []);
+
     useEffect(() => {
         const validateForm = () => {
             const isSmallBlindValid =
@@ -367,36 +396,55 @@ const LeftSideContent: React.FC = () => {
 
             {/* Turnstile Widget with improved error handling */}
             {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
-                <Turnstile
-                    sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                    onSuccess={(token: string) => {
-                        console.log('Turnstile verification successful');
-                        setTurnstileToken(token);
-                        setTurnstileError(false);
-                    }}
-                    onExpire={() => {
-                        console.log('Turnstile token expired');
-                        setTurnstileToken(null);
-                    }}
-                    onError={(errorCode?: string) => {
-                        console.error('Turnstile error occurred:', errorCode);
-                        setTurnstileError(true);
-                        setTurnstileToken(null);
-                        // Show a user-friendly error message
-                        if (errorCode === '600010') {
-                            toast.warning(
-                                'Verification Issue',
-                                'Having trouble with bot verification. You can still try to create a game.'
+                <VStack spacing={2}>
+                    <Turnstile
+                        sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                        onSuccess={(token: string) => {
+                            console.log('✅ Turnstile verification successful');
+                            setTurnstileToken(token);
+                            setTurnstileError(false);
+                        }}
+                        onExpire={() => {
+                            console.log('⏱️ Turnstile token expired');
+                            setTurnstileToken(null);
+                        }}
+                        onError={(errorCode?: string) => {
+                            console.error('❌ Turnstile error:', errorCode);
+                            console.log(
+                                'CSP Check - Current meta tags:',
+                                Array.from(
+                                    document.querySelectorAll(
+                                        'meta[http-equiv="Content-Security-Policy"]'
+                                    )
+                                ).map((m) => (m as HTMLMetaElement).content)
                             );
-                        }
-                    }}
-                    theme="dark"
-                    appearance="interaction-only"
-                    execution="render"
-                    retry="auto"
-                    refreshExpired="auto"
-                    retryInterval={2000}
-                />
+                            setTurnstileError(true);
+                            setTurnstileToken(null);
+
+                            // Show a user-friendly error message
+                            if (errorCode === '600010') {
+                                toast.warning(
+                                    'Verification Issue',
+                                    'Bot verification failed. You can still create a game.'
+                                );
+                            }
+                        }}
+                        theme="dark"
+                        size="normal"
+                        retry="auto"
+                        refreshExpired="auto"
+                        retryInterval={3000}
+                    />
+                    {turnstileError && (
+                        <Text
+                            color="yellow.400"
+                            fontSize="xs"
+                            textAlign="center"
+                        >
+                            Verification temporarily unavailable
+                        </Text>
+                    )}
+                </VStack>
             ) : (
                 <Text color="yellow.500" fontSize="sm">
                     ⚠️ Turnstile not configured

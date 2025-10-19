@@ -205,12 +205,61 @@ const page = async () => {
                 width={{ base: 'full', lg: '70vw' }}
                 size="lg"
                 variant="enclosed"
+                colorScheme="blue"
             >
-                <TabList>
-                    <Tab fontSize="2xl" py={6} fontWeight="bold">
+                <TabList
+                    borderBottom="2px solid"
+                    borderColor="whiteAlpha.300"
+                    mb={4}
+                >
+                    <Tab
+                        fontSize="2xl"
+                        py={6}
+                        px={8}
+                        fontWeight="bold"
+                        color="whiteAlpha.600"
+                        borderColor="transparent"
+                        _selected={{
+                            color: 'white',
+                            borderColor: 'white',
+                            borderBottom: '4px solid',
+                            borderTop: '1px solid',
+                            borderLeft: '1px solid',
+                            borderRight: '1px solid',
+                            bg: 'whiteAlpha.100',
+                            boxShadow: '0 4px 12px rgba(255, 255, 255, 0.15)',
+                        }}
+                        _hover={{
+                            color: 'whiteAlpha.800',
+                            bg: 'whiteAlpha.50',
+                        }}
+                        transition="all 0.3s"
+                    >
                         General Stats
                     </Tab>
-                    <Tab fontSize="2xl" py={6} fontWeight="bold">
+                    <Tab
+                        fontSize="2xl"
+                        py={6}
+                        px={8}
+                        fontWeight="bold"
+                        color="whiteAlpha.600"
+                        borderColor="transparent"
+                        _selected={{
+                            color: 'white',
+                            borderColor: 'white',
+                            borderBottom: '4px solid',
+                            borderTop: '1px solid',
+                            borderLeft: '1px solid',
+                            borderRight: '1px solid',
+                            bg: 'whiteAlpha.100',
+                            boxShadow: '0 4px 12px rgba(255, 255, 255, 0.15)',
+                        }}
+                        _hover={{
+                            color: 'whiteAlpha.800',
+                            bg: 'whiteAlpha.50',
+                        }}
+                        transition="all 0.3s"
+                    >
                         Tables
                     </Tab>
                 </TabList>

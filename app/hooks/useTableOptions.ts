@@ -39,7 +39,7 @@ export const handleSitOutNext = (
 ) => {
     if (!socket) return;
     playerSitOutNext(socket);
-    toast('Sit out requested', 'Takes effect next hand.', 3000);
+    toast('Away...', '', 3000);
     dispatch({ type: 'setIsSitOutNext', payload: true });
 };
 
@@ -54,5 +54,5 @@ export const handleReturnReady = (
 ) => {
     if (!socket) return;
     playerSetReady(socket, true);
-    toast('Returning', 'You will be dealt next hand.', 3000);
+    toast("I'm Back", '', 3000);
 };

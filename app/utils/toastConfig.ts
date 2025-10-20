@@ -36,6 +36,9 @@ export const showToast = (
         containerStyle: {
             marginTop: '0px',
             marginBottom: '0px',
+            maxWidth: '200px',
+            minWidth: '150px',
+            width: 'fit-content',
         },
     });
 };

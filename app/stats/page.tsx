@@ -750,7 +750,6 @@ const page = async () => {
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
                                                                                 style={{
-                                                                                    flex: 1,
                                                                                     textDecoration:
                                                                                         'none',
                                                                                 }}
@@ -777,6 +776,28 @@ const page = async () => {
                                                                                 </Text>
                                                                             </Link>
                                                                         </Tooltip>
+                                                                        <Text
+                                                                            fontSize="xs"
+                                                                            color="gray.400"
+                                                                            flexShrink={
+                                                                                0
+                                                                            }
+                                                                            ml={
+                                                                                2
+                                                                            }
+                                                                        >
+                                                                            {new Date(
+                                                                                table.created_at
+                                                                            ).toLocaleString(
+                                                                                'en-US',
+                                                                                {
+                                                                                    month: 'short',
+                                                                                    day: 'numeric',
+                                                                                    hour: '2-digit',
+                                                                                    minute: '2-digit',
+                                                                                }
+                                                                            )}
+                                                                        </Text>
                                                                     </HStack>
                                                                     <HStack
                                                                         gap={2}
@@ -901,35 +922,6 @@ const page = async () => {
                                                                         {
                                                                             table.max_buy_in
                                                                         }
-                                                                    </Text>
-                                                                </Flex>
-                                                                <Flex
-                                                                    justify="space-between"
-                                                                    align="center"
-                                                                >
-                                                                    <Text
-                                                                        fontSize="sm"
-                                                                        color="gray.400"
-                                                                        fontWeight="medium"
-                                                                    >
-                                                                        Created
-                                                                    </Text>
-                                                                    <Text
-                                                                        fontSize="xs"
-                                                                        color="statBody"
-                                                                        textAlign="right"
-                                                                    >
-                                                                        {new Date(
-                                                                            table.created_at
-                                                                        ).toLocaleString(
-                                                                            'en-US',
-                                                                            {
-                                                                                month: 'short',
-                                                                                day: 'numeric',
-                                                                                hour: '2-digit',
-                                                                                minute: '2-digit',
-                                                                            }
-                                                                        )}
                                                                     </Text>
                                                                 </Flex>
                                                             </VStack>

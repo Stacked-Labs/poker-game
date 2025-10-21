@@ -82,7 +82,7 @@ const PlayerList = () => {
     };
 
     return (
-        <VStack gap={5}>
+        <VStack gap={6} align="stretch" w="100%">
             <PendingPlayers
                 pendingPlayers={pendingPlayers}
                 handleAcceptPlayer={handleAcceptPlayer}

@@ -1,6 +1,6 @@
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { PendingPlayer } from '@/app/interfaces';
-import { Text } from '@chakra-ui/react';
+import { Text, VStack } from '@chakra-ui/react';
 import React from 'react';
 
 import PlayerCard from './PlayerCard';
@@ -20,9 +20,15 @@ const PendingPlayers = ({
 
     if (pendingPlayers && pendingPlayers.length > 0) {
         return (
-            <>
-                <Text color={'white'} fontSize="lg" fontWeight="bold" mb={4}>
-                    Pending
+            <VStack align="stretch" gap={3} w="100%">
+                <Text
+                    color={'white'}
+                    fontSize={{ base: 'lg', md: 'xl' }}
+                    fontWeight="bold"
+                    mb={2}
+                    fontFamily="Poppins, sans-serif"
+                >
+                    Pending Players
                 </Text>
                 {pendingPlayers.map((player: PendingPlayer, index: number) => {
                     if (player) {
@@ -41,7 +47,7 @@ const PendingPlayers = ({
                         );
                     }
                 })}
-            </>
+            </VStack>
         );
     }
 };

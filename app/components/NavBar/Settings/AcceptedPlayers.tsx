@@ -10,6 +10,7 @@ import {
     ModalFooter,
     ModalCloseButton,
     Button,
+    VStack,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { GiBootKick } from 'react-icons/gi';
@@ -58,35 +59,43 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     if (acceptedPlayers && acceptedPlayers.length > 0) {
         return (
             <>
-                <Text color={'white'} fontSize="lg" fontWeight="bold" mb={4}>
-                    Accepted Players
-                </Text>
-                {acceptedPlayers.map((player: Player, index: number) => {
-                    if (player) {
-                        const isKicking = kickingInProgress === player.uuid;
+                <VStack align="stretch" gap={3} w="100%">
+                    <Text
+                        color={'white'}
+                        fontSize={{ base: 'lg', md: 'xl' }}
+                        fontWeight="bold"
+                        mb={2}
+                        fontFamily="Poppins, sans-serif"
+                    >
+                        Accepted Players
+                    </Text>
+                    {acceptedPlayers.map((player: Player, index: number) => {
+                        if (player) {
+                            const isKicking = kickingInProgress === player.uuid;
 
-                        const formattedPlayer: PendingPlayer = {
-                            uuid: player.uuid,
-                            username: player.username,
-                            seatId: player.seatID,
-                            buyIn: player.totalBuyIn,
-                        };
+                            const formattedPlayer: PendingPlayer = {
+                                uuid: player.uuid,
+                                username: player.username,
+                                seatId: player.seatID,
+                                buyIn: player.totalBuyIn,
+                            };
 
-                        return (
-                            <PlayerCard
-                                key={player.uuid}
-                                index={index}
-                                player={formattedPlayer}
-                                isOwner={isOwner}
-                                type={'accepted'}
-                                isKicking={isKicking}
-                                handleAcceptPlayer={null}
-                                handleDenyPlayer={null}
-                                confirmKick={confirmKick}
-                            />
-                        );
-                    }
-                })}
+                            return (
+                                <PlayerCard
+                                    key={player.uuid}
+                                    index={index}
+                                    player={formattedPlayer}
+                                    isOwner={isOwner}
+                                    type={'accepted'}
+                                    isKicking={isKicking}
+                                    handleAcceptPlayer={null}
+                                    handleDenyPlayer={null}
+                                    confirmKick={confirmKick}
+                                />
+                            );
+                        }
+                    })}
+                </VStack>
 
                 {/* Confirmation Modal */}
                 <Modal isOpen={isOpen} onClose={onClose} isCentered>

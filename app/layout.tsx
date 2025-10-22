@@ -5,6 +5,11 @@ import { Providers } from './providers';
 import '@fontsource/luckiest-guy';
 import '@fontsource/poppins';
 import '@fontsource/libre-barcode-39-text';
+import '@fontsource/geist-sans/500.css'; // Geist Medium
+import '@fontsource/geist-sans/600.css'; // Geist SemiBold
+import '@fontsource/geist-sans/700.css'; // Geist Bold
+import '@fontsource/geist-sans/800.css'; // Geist ExtraBold
+import '@fontsource/geist-sans/900.css'; // Geist Black
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import React from 'react';
 

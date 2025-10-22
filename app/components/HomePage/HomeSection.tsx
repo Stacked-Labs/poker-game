@@ -1,15 +1,7 @@
 import { Box, Flex, Text, VStack, useBreakpointValue } from '@chakra-ui/react';
 import React from 'react';
 import HomeCard from './HomeCard';
-import { Poppins } from 'next/font/google';
-import Image from 'next/image';
 import { keyframes } from '@emotion/react';
-
-const poppins = Poppins({
-    weight: ['700'],
-    subsets: ['latin'],
-    display: 'swap',
-});
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -62,19 +54,20 @@ const HomeSection = () => {
                             {words.map((word, index) => (
                                 <Text
                                     key={index}
+                                    as="h1"
                                     fontSize={{
                                         base: '3xl',
                                         lg: '8xl',
                                         xl: '9xl',
                                     }}
                                     fontWeight="extrabold"
+                                    fontFamily="heading"
                                     color="white"
                                     lineHeight={1.1}
                                     animation={`${fadeIn} 0.7s ease-out ${
                                         index * 0.4
                                     }s forwards`}
                                     opacity={0}
-                                    className={poppins.className}
                                 >
                                     {word}
                                 </Text>

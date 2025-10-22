@@ -15,14 +15,7 @@ import {
 import React from 'react';
 import { RiMenu3Line } from 'react-icons/ri';
 import WalletButton from '../WalletButton';
-import { Poppins } from 'next/font/google';
-import { usePathname } from 'next/navigation'; // Import the hook
-
-const poppins = Poppins({
-    weight: ['700'],
-    subsets: ['latin'],
-    display: 'swap',
-});
+import { usePathname } from 'next/navigation';
 
 const logoImage = '/logo.png';
 
@@ -45,7 +38,7 @@ const HomeNavBar: React.FC = () => {
                 rel="noopener noreferrer"
                 aria-label="Documentation"
             >
-                <Text className={poppins.className}>Docs</Text>
+                Docs
             </Button>
             <Button
                 variant={'navButton'}
@@ -54,7 +47,7 @@ const HomeNavBar: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                <Text className={poppins.className}>Support</Text>
+                Support
             </Button>
             <WalletButton width="200px" label="Sign In" />
         </>
@@ -91,7 +84,8 @@ const HomeNavBar: React.FC = () => {
                 />
                 <Text
                     color={'white'}
-                    className={poppins.className}
+                    fontFamily="heading"
+                    fontWeight="bold"
                     fontSize={'5xl'}
                 >
                     Stacked

@@ -16,6 +16,7 @@
         "@chakra-ui/react": "^2.8.1",
         "@emotion/react": "^11.11.1",
         "@emotion/styled": "^11.11.0",
+        "@fontsource/geist-sans": "^5.2.5",
         "@fontsource/knewave": "^5.0.13",
         "@fontsource/libre-barcode-39-text": "^5.0.19",
         "@fontsource/luckiest-guy": "^5.0.19",

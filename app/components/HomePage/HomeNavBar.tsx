@@ -52,7 +52,7 @@ const HomeNavBar: React.FC = () => {
                 aria-label="Documentation"
                 variant="unstyled"
                 fontWeight="black"
-                fontSize={{ base: '2xl', md: '3xl' }}
+                fontSize={{ base: '2xl', md: '2xl' }}
                 color="brand.darkNavy"
                 textTransform="uppercase"
                 border="none"
@@ -81,12 +81,12 @@ const HomeNavBar: React.FC = () => {
             </Button>
             <Button
                 as="a"
-                href="https://discord.gg/4evYx7F4"
+                href="https://discord.com/invite/vWBtE88R"
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="unstyled"
                 fontWeight="black"
-                fontSize={{ base: '2xl', md: '3xl' }}
+                fontSize={{ base: '2xl', md: '2xl' }}
                 color="brand.darkNavy"
                 textTransform="uppercase"
                 border="none"

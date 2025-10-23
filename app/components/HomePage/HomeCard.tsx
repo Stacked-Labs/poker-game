@@ -117,12 +117,12 @@ const HomeCard = () => {
 
                 {/* Content */}
                 <Stack
-                    gap={10}
+                    gap={{ base: 8, md: 10 }}
                     flex={1}
                     justifyContent="center"
                     alignItems="center"
-                    paddingY={[6, 10, 12]}
-                    paddingX={[6, 10, 12]}
+                    paddingY={{ base: 8, md: 10, lg: 12 }}
+                    paddingX={{ base: 8, md: 10, lg: 12 }}
                     position="relative"
                     zIndex={1}
                 >
@@ -136,8 +136,8 @@ const HomeCard = () => {
                         <Image
                             src="/Text Logo.png"
                             alt="STACKED"
-                            width="100%"
-                            maxW={{ base: '100%', md: '100%', xl: '100%' }}
+                            width={{ base: '75%', sm: '85%', md: '100%' }}
+                            maxW={{ base: '240px', sm: '280px', md: '100%' }}
                             height="auto"
                             mx="auto"
                             objectFit="contain"
@@ -146,15 +146,14 @@ const HomeCard = () => {
 
                     {/* Buttons Section */}
                     <Stack
-                        gap={4}
+                        gap={{ base: 3, md: 4 }}
                         width="100%"
                         maxW="340px"
                         animation={`${slideUp} 0.8s ease-out 0.4s backwards`}
                     >
                         <Button
-                            size="lg"
                             height="76px"
-                            fontSize="md"
+                            fontSize={{ base: 'sm', md: 'md' }}
                             fontWeight="bold"
                             borderRadius="16px"
                             bg="brand.green"
@@ -195,22 +194,31 @@ const HomeCard = () => {
                         </Button>
 
                         <Box
-                            as={WalletButton}
                             height="76px"
-                            borderRadius="16px"
-                            bg="white"
-                            color="brand.pink"
-                            border="2px solid"
-                            borderColor="brand.pink"
-                            fontWeight="bold"
-                            _hover={{
-                                bg: 'brand.pink',
-                                color: 'white',
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 8px 20px rgba(235, 11, 92, 0.3)',
+                            display="flex"
+                            width="100%"
+                            sx={{
+                                '& > div': {
+                                    display: 'flex !important',
+                                    width: '100% !important',
+                                    height: '100% !important',
+                                },
+                                '& button:hover': {
+                                    backgroundColor:
+                                        'var(--chakra-colors-brand-pink) !important',
+                                    color: 'white !important',
+                                    transform: 'translateY(-2px) !important',
+                                    boxShadow:
+                                        '0 8px 20px rgba(235, 11, 92, 0.3) !important',
+                                },
                             }}
-                            transition="all 0.2s ease"
-                        />
+                        >
+                            <WalletButton
+                                width="100%"
+                                height="76px"
+                                variant="home"
+                            />
+                        </Box>
                     </Stack>
 
                     {/* Social Links */}
@@ -218,16 +226,16 @@ const HomeCard = () => {
                         direction="row"
                         justify="center"
                         align="center"
-                        gap={6}
+                        gap={{ base: 4, md: 6 }}
                         width="100%"
                         animation={`${slideUp} 0.8s ease-out 0.6s backwards`}
                     >
                         <Link href="https://x.com/stacked_poker" isExternal>
                             <IconButton
                                 aria-label="X"
-                                icon={<RiTwitterXLine size={24} />}
-                                size="lg"
-                                borderRadius="12px"
+                                icon={<RiTwitterXLine size={20} />}
+                                size={{ base: 'md', md: 'lg' }}
+                                borderRadius={{ base: '10px', md: '12px' }}
                                 bg="brand.lightGray"
                                 color="#000000"
                                 border="none"
@@ -243,9 +251,9 @@ const HomeCard = () => {
                         <Link href="https://discord.gg/896EhkVYbd" isExternal>
                             <IconButton
                                 aria-label="Discord"
-                                icon={<FaDiscord size={24} />}
-                                size="lg"
-                                borderRadius="12px"
+                                icon={<FaDiscord size={20} />}
+                                size={{ base: 'md', md: 'lg' }}
+                                borderRadius={{ base: '10px', md: '12px' }}
                                 bg="brand.lightGray"
                                 color="#5865F2"
                                 border="none"
@@ -265,9 +273,9 @@ const HomeCard = () => {
                         >
                             <IconButton
                                 aria-label="Warpcast"
-                                icon={<SiFarcaster size={24} />}
-                                size="lg"
-                                borderRadius="12px"
+                                icon={<SiFarcaster size={20} />}
+                                size={{ base: 'md', md: 'lg' }}
+                                borderRadius={{ base: '10px', md: '12px' }}
                                 bg="brand.lightGray"
                                 color="#855DCD"
                                 border="none"

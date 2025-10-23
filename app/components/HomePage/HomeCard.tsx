@@ -74,8 +74,8 @@ const HomeCard = () => {
             <Flex
                 position="relative"
                 borderRadius="32px"
-                width={['100%', '90%', '75%', '65%']}
-                maxWidth="480px"
+                width={['100%', '85%', '65%', '55%']}
+                maxWidth="460px"
                 minWidth="320px"
                 minHeight="320px"
                 height="fit-content"
@@ -148,7 +148,7 @@ const HomeCard = () => {
                     <Stack
                         gap={4}
                         width="100%"
-                        maxW="360px"
+                        maxW="340px"
                         animation={`${slideUp} 0.8s ease-out 0.4s backwards`}
                     >
                         <Button

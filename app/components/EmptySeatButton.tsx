@@ -104,27 +104,19 @@ const EmptySeatButton = ({
                 onMouseLeave={() => setIsHovered(false)}
                 isDisabled={disabled}
             >
-                {/* Seat Number Badge */}
-                <Box
+                {/* Seat Number */}
+                <Text
                     position="absolute"
-                    top={{ base: '6px', sm: '8px', md: '12px' }}
-                    left={{ base: '6px', sm: '8px', md: '12px' }}
-                    bg="rgba(236, 238, 245, 0.5)"
-                    backdropFilter="blur(8px)"
+                    top={{ base: '4px', sm: '6px', md: '8px' }}
+                    left={{ base: '6px', sm: '8px', md: '10px' }}
                     color="brand.navy"
-                    fontSize={{ base: 'xs', sm: 'sm' }}
-                    fontWeight="extrabold"
-                    px={{ base: 2, sm: 2.5, md: 3 }}
-                    py={{ base: 1, sm: 1, md: 1.5 }}
-                    borderRadius="full"
-                    border="2px solid white"
-                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.15)"
+                    fontSize={{ base: 'sm', sm: 'md', md: 'lg' }}
+                    fontWeight="black"
+                    lineHeight="1"
                     transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                    minW={{ base: '24px', sm: '28px' }}
-                    textAlign="center"
                 >
                     {seatId}
-                </Box>
+                </Text>
 
                 {/* Icon and Text Container */}
                 <Box

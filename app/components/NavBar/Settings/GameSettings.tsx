@@ -22,45 +22,45 @@ const GameSettings = () => {
             <Text
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
-                mb={{ base: 4, md: 6 }}
-                color="white"
-                fontFamily="Poppins, sans-serif"
+                mb={6}
+                color="brand.navy"
+                letterSpacing="-0.02em"
             >
                 Game Settings
             </Text>
 
             <Box
-                bg="#262626"
-                borderRadius="lg"
+                bg="white"
+                borderRadius="16px"
                 border="2px solid"
-                borderColor="#363535"
-                p={{ base: 4, md: 6 }}
+                borderColor="brand.lightGray"
+                p={{ base: 5, md: 6 }}
                 mb={6}
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex
                     direction={{ base: 'column', sm: 'row' }}
                     justify={'space-between'}
                     align={{ base: 'start', sm: 'center' }}
-                    mb={4}
-                    pb={4}
-                    borderBottom="1px"
-                    borderColor="#363535"
+                    mb={6}
+                    pb={5}
+                    borderBottom="2px solid"
+                    borderColor="brand.lightGray"
                     gap={3}
                 >
                     <Box flex={1}>
                         <Text
                             fontSize={{ base: 'md', md: 'lg' }}
-                            fontWeight="semibold"
-                            color="white"
-                            fontFamily="Poppins, sans-serif"
+                            fontWeight="bold"
+                            color="brand.navy"
                         >
                             Enable Ante
                         </Text>
                         <Text
                             fontSize={'sm'}
-                            color="#c6c6c6"
+                            color="gray.600"
                             mt={1}
-                            fontFamily="Poppins, sans-serif"
+                            fontWeight="medium"
                         >
                             Add an ante requirement for each hand
                         </Text>
@@ -70,72 +70,94 @@ const GameSettings = () => {
                         size={{ base: 'md', md: 'lg' }}
                         isChecked={isAnte}
                         onChange={() => setIsAnte(!isAnte)}
+                        sx={{
+                            'span.chakra-switch__track': {
+                                bg: 'gray.300',
+                                _checked: {
+                                    bg: 'brand.green',
+                                },
+                            },
+                        }}
                     />
                 </Flex>
 
                 <Text
                     fontSize={{ base: 'md', md: 'lg' }}
-                    fontWeight={'semibold'}
+                    fontWeight={'bold'}
                     mb={4}
-                    color="white"
-                    fontFamily="Poppins, sans-serif"
+                    color="brand.navy"
                 >
                     Blind Levels
                 </Text>
 
-                <TableContainer overflowX="auto">
+                <TableContainer
+                    overflowX="auto"
+                    borderRadius="12px"
+                    border="2px solid"
+                    borderColor="brand.lightGray"
+                >
                     <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
-                        <Thead bg="#363535">
+                        <Thead bg="brand.lightGray">
                             <Tr>
                                 <Th
-                                    color={'#c6c6c6'}
+                                    color={'brand.navy'}
                                     fontSize="xs"
-                                    fontFamily="Poppins, sans-serif"
+                                    fontWeight="bold"
                                 >
                                     Small Blind
                                 </Th>
                                 <Th
-                                    color={'#c6c6c6'}
+                                    color={'brand.navy'}
                                     fontSize="xs"
-                                    fontFamily="Poppins, sans-serif"
+                                    fontWeight="bold"
                                 >
                                     Big Blind
                                 </Th>
                                 {isAnte && (
                                     <Th
-                                        color={'#c6c6c6'}
+                                        color={'brand.navy'}
                                         fontSize="xs"
-                                        fontFamily="Poppins, sans-serif"
+                                        fontWeight="bold"
                                     >
                                         Ante
                                     </Th>
                                 )}
                                 <Th
-                                    color={'#c6c6c6'}
+                                    color={'brand.navy'}
                                     fontSize="xs"
-                                    fontFamily="Poppins, sans-serif"
+                                    fontWeight="bold"
                                 >
                                     Duration (min)
                                 </Th>
                             </Tr>
                         </Thead>
                         <Tbody>
-                            <Tr _hover={{ bg: '#2e2e2e' }}>
+                            <Tr
+                                _hover={{
+                                    bg: 'brand.lightGray',
+                                }}
+                                transition="all 0.2s ease"
+                            >
                                 <Td>
                                     <Input
                                         variant="outline"
                                         placeholder="10"
                                         size="sm"
-                                        bg="#363535"
-                                        color="white"
-                                        borderColor="#424242"
-                                        _hover={{ borderColor: '#1db954' }}
-                                        _focus={{
-                                            borderColor: '#1ed760',
-                                            boxShadow: '0 0 0 1px #1ed760',
+                                        bg="white"
+                                        color="brand.navy"
+                                        borderColor="brand.lightGray"
+                                        borderWidth="2px"
+                                        borderRadius="8px"
+                                        fontWeight="semibold"
+                                        _hover={{
+                                            borderColor: 'brand.green',
                                         }}
-                                        _placeholder={{ color: '#c6c6c6' }}
-                                        fontFamily="Poppins, sans-serif"
+                                        _focus={{
+                                            borderColor: 'brand.pink',
+                                            boxShadow:
+                                                '0 0 0 3px rgba(235, 11, 92, 0.1)',
+                                        }}
+                                        _placeholder={{ color: 'gray.400' }}
                                     />
                                 </Td>
                                 <Td>
@@ -143,16 +165,21 @@ const GameSettings = () => {
                                         variant="outline"
                                         placeholder="20"
                                         size="sm"
-                                        bg="#363535"
-                                        color="white"
-                                        borderColor="#424242"
-                                        _hover={{ borderColor: '#1db954' }}
-                                        _focus={{
-                                            borderColor: '#1ed760',
-                                            boxShadow: '0 0 0 1px #1ed760',
+                                        bg="white"
+                                        color="brand.navy"
+                                        borderColor="brand.lightGray"
+                                        borderWidth="2px"
+                                        borderRadius="8px"
+                                        fontWeight="semibold"
+                                        _hover={{
+                                            borderColor: 'brand.green',
                                         }}
-                                        _placeholder={{ color: '#c6c6c6' }}
-                                        fontFamily="Poppins, sans-serif"
+                                        _focus={{
+                                            borderColor: 'brand.pink',
+                                            boxShadow:
+                                                '0 0 0 3px rgba(235, 11, 92, 0.1)',
+                                        }}
+                                        _placeholder={{ color: 'gray.400' }}
                                     />
                                 </Td>
                                 {isAnte && (
@@ -161,16 +188,21 @@ const GameSettings = () => {
                                             variant="outline"
                                             placeholder="5"
                                             size="sm"
-                                            bg="#363535"
-                                            color="white"
-                                            borderColor="#424242"
-                                            _hover={{ borderColor: '#1db954' }}
-                                            _focus={{
-                                                borderColor: '#1ed760',
-                                                boxShadow: '0 0 0 1px #1ed760',
+                                            bg="white"
+                                            color="brand.navy"
+                                            borderColor="brand.lightGray"
+                                            borderWidth="2px"
+                                            borderRadius="8px"
+                                            fontWeight="semibold"
+                                            _hover={{
+                                                borderColor: 'brand.green',
                                             }}
-                                            _placeholder={{ color: '#c6c6c6' }}
-                                            fontFamily="Poppins, sans-serif"
+                                            _focus={{
+                                                borderColor: 'brand.pink',
+                                                boxShadow:
+                                                    '0 0 0 3px rgba(235, 11, 92, 0.1)',
+                                            }}
+                                            _placeholder={{ color: 'gray.400' }}
                                         />
                                     </Td>
                                 )}
@@ -179,16 +211,21 @@ const GameSettings = () => {
                                         variant="outline"
                                         placeholder="15"
                                         size="sm"
-                                        bg="#363535"
-                                        color="white"
-                                        borderColor="#424242"
-                                        _hover={{ borderColor: '#1db954' }}
-                                        _focus={{
-                                            borderColor: '#1ed760',
-                                            boxShadow: '0 0 0 1px #1ed760',
+                                        bg="white"
+                                        color="brand.navy"
+                                        borderColor="brand.lightGray"
+                                        borderWidth="2px"
+                                        borderRadius="8px"
+                                        fontWeight="semibold"
+                                        _hover={{
+                                            borderColor: 'brand.green',
                                         }}
-                                        _placeholder={{ color: '#c6c6c6' }}
-                                        fontFamily="Poppins, sans-serif"
+                                        _focus={{
+                                            borderColor: 'brand.pink',
+                                            boxShadow:
+                                                '0 0 0 3px rgba(235, 11, 92, 0.1)',
+                                        }}
+                                        _placeholder={{ color: 'gray.400' }}
                                     />
                                 </Td>
                             </Tr>

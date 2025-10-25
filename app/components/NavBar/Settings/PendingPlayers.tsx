@@ -20,13 +20,13 @@ const PendingPlayers = ({
 
     if (pendingPlayers && pendingPlayers.length > 0) {
         return (
-            <VStack align="stretch" gap={3} w="100%">
+            <VStack align="stretch" gap={4} w="100%">
                 <Text
-                    color={'white'}
-                    fontSize={{ base: 'lg', md: 'xl' }}
+                    color={'brand.navy'}
+                    fontSize={{ base: 'xl', md: '2xl' }}
                     fontWeight="bold"
                     mb={2}
-                    fontFamily="Poppins, sans-serif"
+                    letterSpacing="-0.02em"
                 >
                     Pending Players
                 </Text>

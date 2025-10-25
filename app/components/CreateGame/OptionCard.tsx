@@ -21,20 +21,33 @@ const OptionCard: React.FC<OptionCardProps> = ({
 }) => {
     const card = (
         <Flex
-            borderWidth={4}
-            borderColor={isSelected ? 'red.500' : 'gray.50'}
-            borderRadius="lg"
+            borderWidth="2px"
+            borderColor={isSelected ? 'brand.pink' : 'brand.lightGray'}
+            borderRadius="16px"
             p={4}
             cursor={disabled ? 'not-allowed' : 'pointer'}
             onClick={disabled ? undefined : onClick}
             width={['100px', '100px', '150px', '150px']}
             height={['100px', '100px', '150px', '150px']}
-            transition="all 0.2s"
-            _hover={disabled ? {} : { boxShadow: 'md', bgColor: 'gray.50' }}
+            transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+            _hover={
+                disabled
+                    ? {}
+                    : {
+                          transform: 'translateY(-4px)',
+                          boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12)',
+                      }
+            }
             alignItems="center"
             justifyContent="center"
             opacity={disabled ? 0.5 : 1}
-            bgColor={disabled ? 'gray.100' : 'transparent'}
+            bg={disabled ? 'rgba(236, 238, 245, 0.5)' : 'white'}
+            boxShadow={
+                isSelected
+                    ? '0 4px 16px rgba(235, 11, 92, 0.25)'
+                    : '0 2px 8px rgba(0, 0, 0, 0.06)'
+            }
+            transform={isSelected ? 'scale(1.02)' : 'scale(1)'}
         >
             <VStack spacing={2} align="center">
                 {image && (
@@ -49,7 +62,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
                 <Text
                     fontWeight="bold"
                     textAlign="center"
-                    color="white"
+                    color={disabled ? 'gray.400' : 'brand.darkNavy'}
                     fontSize={['12px', '12px', '16px', '16px']}
                 >
                     {name}
@@ -58,7 +71,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
                     <Text
                         fontSize={['10px', '10px', '12px', '12px']}
                         textAlign="center"
-                        color="white"
+                        color={disabled ? 'gray.400' : 'brand.navy'}
                     >
                         {description}
                     </Text>
@@ -68,7 +81,15 @@ const OptionCard: React.FC<OptionCardProps> = ({
     );
 
     return disabled ? (
-        <Tooltip label="Coming soon" aria-label="A tooltip">
+        <Tooltip
+            label="Coming soon"
+            aria-label="Coming soon tooltip"
+            bg="brand.darkNavy"
+            color="white"
+            borderRadius="8px"
+            px={3}
+            py={2}
+        >
             {card}
         </Tooltip>
     ) : (

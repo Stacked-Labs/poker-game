@@ -118,11 +118,15 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 align="center"
                 justify="space-between"
                 wrap="wrap"
-                padding={{ base: '0.5rem', md: '1rem' }}
-                bg="gray.200"
-                color="white"
+                padding={{ base: '0.75rem 1rem', md: '1rem 1.5rem' }}
+                bg="white"
+                color="brand.navy"
                 zIndex={10}
                 opacity={isLoading ? 0 : 1}
+                boxShadow="0 2px 12px rgba(0, 0, 0, 0.08)"
+                borderBottom="1px solid"
+                borderColor="rgba(0, 0, 0, 0.08)"
+                position="relative"
             >
                 <HStack spacing={{ base: 1, md: 2 }} alignItems="stretch">
                     <TableMenuBurger
@@ -134,29 +138,40 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             icon={
                                 <Icon
                                     as={FiSettings}
-                                    boxSize={{ base: 5, md: 8 }}
+                                    boxSize={{ base: 5, md: 6 }}
                                 />
                             }
                             aria-label="Settings"
-                            size={'lg'}
+                            size="lg"
                             onClick={onOpen}
+                            bg="brand.lightGray"
+                            color="brand.navy"
+                            border="none"
+                            borderRadius="12px"
+                            _hover={{
+                                bg: 'brand.navy',
+                                color: 'white',
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
+                            }}
+                            transition="all 0.2s ease"
                         />
                         {pendingCount > 0 && (
                             <Flex
                                 position="absolute"
-                                top="-5px"
-                                right="-5px"
-                                width="22px"
-                                height="22px"
+                                top="-6px"
+                                right="-6px"
+                                width="24px"
+                                height="24px"
                                 borderRadius="full"
-                                bg="red.500"
+                                bg="brand.pink"
                                 color="white"
                                 justifyContent="center"
                                 alignItems="center"
                                 fontSize="xs"
                                 fontWeight="bold"
                                 zIndex={11}
-                                boxShadow="0px 0px 5px rgba(0, 0, 0, 0.3)"
+                                boxShadow="0 2px 8px rgba(235, 11, 92, 0.4)"
                                 border="2px solid white"
                                 animation={
                                     animateBadge
@@ -209,7 +224,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                                         ? 'Resume Game'
                                         : 'Pause Game'
                                 }
-                                size={'lg'}
+                                size="lg"
                                 onClick={() => {
                                     if (appState.game?.paused) {
                                         sendResumeGameCommand(socket);
@@ -217,9 +232,21 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                                         sendPauseGameCommand(socket);
                                     }
                                 }}
-                                colorScheme={
-                                    appState.game?.paused ? 'green' : 'yellow'
+                                bg={
+                                    appState.game?.paused
+                                        ? 'brand.green'
+                                        : 'brand.yellow'
                                 }
+                                color="white"
+                                border="none"
+                                borderRadius="12px"
+                                _hover={{
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: appState.game?.paused
+                                        ? '0 4px 12px rgba(54, 163, 123, 0.4)'
+                                        : '0 4px 12px rgba(253, 197, 29, 0.4)',
+                                }}
+                                transition="all 0.2s ease"
                             />
                         </Tooltip>
                     )}
@@ -249,29 +276,40 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             icon={
                                 <Icon
                                     as={FiMessageSquare}
-                                    boxSize={{ base: 5, md: 8 }}
+                                    boxSize={{ base: 5, md: 6 }}
                                 />
                             }
                             aria-label="Chat"
-                            size={'lg'}
+                            size="lg"
                             onClick={handleChatToggle}
+                            bg="brand.lightGray"
+                            color="brand.navy"
+                            border="none"
+                            borderRadius="12px"
+                            _hover={{
+                                bg: 'brand.navy',
+                                color: 'white',
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
+                            }}
+                            transition="all 0.2s ease"
                         />
                         {unreadMessageCount > 0 && (
                             <Flex
                                 position="absolute"
-                                top="-5px"
-                                right="-5px"
-                                width="22px"
-                                height="22px"
+                                top="-6px"
+                                right="-6px"
+                                width="24px"
+                                height="24px"
                                 borderRadius="full"
-                                bg="red.500"
+                                bg="brand.pink"
                                 color="white"
                                 justifyContent="center"
                                 alignItems="center"
                                 fontSize="xs"
                                 fontWeight="bold"
                                 zIndex={11}
-                                boxShadow="0px 0px 5px rgba(0, 0, 0, 0.3)"
+                                boxShadow="0 2px 8px rgba(235, 11, 92, 0.4)"
                                 border="2px solid white"
                                 animation={
                                     animateMsgBadge
@@ -283,7 +321,23 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             </Flex>
                         )}
                     </Box>
-                    <Box display={{ base: 'none', md: 'inline-flex' }}>
+                    <Box
+                        display={{ base: 'none', md: 'inline-flex' }}
+                        sx={{
+                            '& > div': {
+                                display: 'flex !important',
+                                height: '100% !important',
+                            },
+                            '& button:hover': {
+                                backgroundColor:
+                                    'var(--chakra-colors-brand-pink) !important',
+                                color: 'white !important',
+                                transform: 'translateY(-2px) !important',
+                                boxShadow:
+                                    '0 8px 20px rgba(235, 11, 92, 0.3) !important',
+                            },
+                        }}
+                    >
                         <WalletButton />
                     </Box>
                 </HStack>

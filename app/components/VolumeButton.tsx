@@ -34,16 +34,23 @@ const VolumeButtonComponent = () => {
         <Tooltip label={`Volume: ${appState.volume * 100}%`} placement="top">
             <IconButton
                 aria-label={`Volume: ${appState.volume * 100}%`}
-                icon={<Icon as={VolumeIcon} boxSize={{ base: 5, md: 8 }} />}
+                icon={<Icon as={VolumeIcon} boxSize={{ base: 5, md: 6 }} />}
                 onClick={handleClick}
-                variant="white"
-                colorScheme="white"
                 zIndex={3}
-                size={'lg'}
+                size="lg"
                 role="button"
                 tabIndex={0}
-                _focus={{ boxShadow: 'outline' }}
-                bg={'gray.200'}
+                bg="brand.lightGray"
+                color="brand.navy"
+                border="none"
+                borderRadius="12px"
+                _hover={{
+                    bg: 'brand.navy',
+                    color: 'white',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
+                }}
+                transition="all 0.2s ease"
             />
         </Tooltip>
     );

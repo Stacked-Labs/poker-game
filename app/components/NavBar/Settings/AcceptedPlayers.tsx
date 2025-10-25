@@ -59,13 +59,13 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     if (acceptedPlayers && acceptedPlayers.length > 0) {
         return (
             <>
-                <VStack align="stretch" gap={3} w="100%">
+                <VStack align="stretch" gap={4} w="100%">
                     <Text
-                        color={'white'}
-                        fontSize={{ base: 'lg', md: 'xl' }}
+                        color={'brand.navy'}
+                        fontSize={{ base: 'xl', md: '2xl' }}
                         fontWeight="bold"
                         mb={2}
-                        fontFamily="Poppins, sans-serif"
+                        letterSpacing="-0.02em"
                     >
                         Accepted Players
                     </Text>
@@ -99,72 +99,103 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
 
                 {/* Confirmation Modal */}
                 <Modal isOpen={isOpen} onClose={onClose} isCentered>
-                    <ModalOverlay backdropFilter="blur(5px)" />
+                    <ModalOverlay
+                        bg="rgba(11, 20, 48, 0.8)"
+                        backdropFilter="blur(8px)"
+                    />
                     <ModalContent
-                        bg="gray.900"
-                        color="white"
-                        borderRadius={10}
-                        borderWidth="1px"
-                        borderColor="gray.900"
-                        boxShadow="0 4px 12px rgba(0, 0, 0, 0.5)"
+                        bg="white"
+                        color="brand.navy"
+                        borderRadius="24px"
+                        borderWidth="2px"
+                        borderColor="brand.lightGray"
+                        boxShadow="0 20px 60px rgba(0, 0, 0, 0.2)"
                         mx={4}
+                        maxW="420px"
                     >
                         <ModalHeader
-                            borderBottomWidth="1px"
-                            borderColor="gray.800"
+                            borderBottomWidth="2px"
+                            borderColor="brand.lightGray"
+                            fontSize="2xl"
+                            fontWeight="bold"
+                            letterSpacing="-0.02em"
+                            pt={6}
                         >
                             Confirm Player Kick
                         </ModalHeader>
-                        <ModalCloseButton color="white" size="lg" top="12px" />
+                        <ModalCloseButton
+                            color="brand.navy"
+                            size="lg"
+                            top="20px"
+                            right="20px"
+                            borderRadius="full"
+                            _hover={{
+                                bg: 'brand.lightGray',
+                                transform: 'rotate(90deg)',
+                            }}
+                            transition="all 0.3s ease"
+                        />
                         <ModalBody py={6}>
-                            <Text fontSize="md">
+                            <Text fontSize="md" fontWeight="medium">
                                 Are you sure you want to kick player{' '}
                                 <Text
                                     as="span"
                                     fontWeight="bold"
-                                    color="red.300"
+                                    color="brand.pink"
                                 >
                                     {selectedPlayer?.name}
                                 </Text>
                                 ?
                             </Text>
-                            <Text mt={4} fontSize="sm" color="gray.400">
+                            <Text mt={4} fontSize="sm" color="gray.600">
                                 This action cannot be undone. The player will
                                 need to rejoin the game.
                             </Text>
                         </ModalBody>
                         <ModalFooter
                             justifyContent="space-between"
-                            borderTopWidth="1px"
-                            borderColor="gray.800"
-                            py={4}
+                            borderTopWidth="2px"
+                            borderColor="brand.lightGray"
+                            py={5}
+                            gap={3}
                         >
                             <Button
-                                variant="outline"
                                 onClick={onClose}
                                 size="md"
-                                height="48px"
+                                height="52px"
+                                flex={1}
+                                bg="brand.lightGray"
+                                color="brand.navy"
+                                border="none"
+                                borderRadius="12px"
+                                fontWeight="bold"
                                 _hover={{
-                                    bg: 'transparent',
-                                    borderColor: 'gray.400',
+                                    bg: 'gray.300',
+                                    transform: 'translateY(-2px)',
                                 }}
-                                color="white"
-                                borderColor="gray.600"
-                                width="130px"
+                                transition="all 0.2s ease"
                             >
                                 Cancel
                             </Button>
                             <Button
-                                bg="red.500"
-                                _hover={{ bg: 'red.600' }}
-                                _active={{ bg: 'red.700' }}
+                                bg="brand.pink"
                                 color="white"
                                 onClick={handleConfirmKick}
                                 leftIcon={<GiBootKick size={22} />}
                                 size="md"
-                                height="48px"
-                                width="130px"
+                                height="52px"
+                                flex={1}
+                                borderRadius="12px"
+                                border="none"
                                 fontWeight="bold"
+                                _hover={{
+                                    bg: 'brand.pink',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow:
+                                        '0 12px 24px rgba(235, 11, 92, 0.3)',
+                                }}
+                                _active={{ transform: 'translateY(0)' }}
+                                transition="all 0.2s ease"
                             >
                                 Confirm
                             </Button>

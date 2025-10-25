@@ -14,6 +14,7 @@ import {
     HStack,
     Icon,
 } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
 import { IoCaretBack } from 'react-icons/io5';
 import {
     FiUsers,
@@ -28,6 +29,23 @@ import GameLog from './GameLog';
 import Ledger from './Ledger';
 import HowTo from './HowTo';
 
+// Animations
+const fadeIn = keyframes`
+    from { opacity: 0; }
+    to { opacity: 1; }
+`;
+
+const slideDown = keyframes`
+    from { 
+        opacity: 0; 
+        transform: translateY(-20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+`;
+
 const SettingsModal = ({
     isOpen,
     onClose,
@@ -37,17 +55,21 @@ const SettingsModal = ({
 }) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} size={'full'}>
-            <ModalOverlay bg="blackAlpha.900" />
+            <ModalOverlay
+                bg="rgba(11, 20, 48, 0.95)"
+                backdropFilter="blur(10px)"
+            />
             <ModalContent
-                bg="#121212"
+                bg="white"
                 h="100vh"
                 w="100vw"
                 maxW="100vw"
                 maxH="100vh"
                 m={0}
                 borderRadius={0}
+                animation={`${fadeIn} 0.3s ease-out`}
             >
-                <ModalBody p={{ base: 3, md: 6 }} h="100%">
+                <ModalBody p={{ base: 4, md: 8 }} h="100%">
                     <Tabs
                         size={{ base: 'sm', md: 'md' }}
                         variant="soft-rounded"
@@ -59,24 +81,29 @@ const SettingsModal = ({
                         flexDirection="column"
                     >
                         <TabList
-                            gap={{ base: 1, sm: 2 }}
-                            bg="#191414"
+                            gap={{ base: 2, sm: 3 }}
+                            bg="brand.lightGray"
                             p={{ base: 2, md: 3 }}
-                            borderRadius="lg"
-                            mb={{ base: 3, md: 4 }}
+                            borderRadius="20px"
+                            mb={{ base: 4, md: 6 }}
                             flexWrap={{ base: 'nowrap', sm: 'wrap' }}
                             overflowX="auto"
+                            animation={`${slideDown} 0.4s ease-out`}
+                            boxShadow="0 4px 12px rgba(0, 0, 0, 0.05)"
                             sx={{
                                 '&::-webkit-scrollbar': {
-                                    height: '4px',
+                                    height: '6px',
                                 },
                                 '&::-webkit-scrollbar-track': {
-                                    bg: '#171717',
+                                    bg: 'white',
                                     borderRadius: 'full',
                                 },
                                 '&::-webkit-scrollbar-thumb': {
-                                    bg: '#262626',
+                                    bg: 'brand.navy',
                                     borderRadius: 'full',
+                                    _hover: {
+                                        bg: 'brand.pink',
+                                    },
                                 },
                             }}
                         >
@@ -85,27 +112,37 @@ const SettingsModal = ({
                                 minW="fit-content"
                                 px={{ base: 3, md: 4 }}
                                 py={2}
-                                color="#c6c6c6"
+                                bg="brand.pink"
+                                color="white"
                                 _hover={{
-                                    bg: '#262626',
-                                    color: 'white',
+                                    bg: 'brand.pink',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow:
+                                        '0 4px 8px rgba(235, 11, 92, 0.2)',
                                 }}
                                 _selected={{
-                                    bg: '#eb4034',
-                                    color: 'white',
+                                    bg: 'brand.pink',
+                                    color: 'white !important',
+                                    boxShadow:
+                                        '0 4px 12px rgba(235, 11, 92, 0.3)',
                                 }}
-                                borderRadius="md"
-                                fontWeight="semibold"
+                                borderRadius="12px"
+                                fontWeight="bold"
                                 fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                fontFamily="Poppins, sans-serif"
+                                transition="all 0.2s ease"
                             >
-                                <HStack spacing={{ base: 1, md: 2 }}>
+                                <HStack
+                                    spacing={{ base: 1, md: 2 }}
+                                    color="white"
+                                >
                                     <Icon
                                         as={IoCaretBack}
                                         boxSize={{ base: 4, md: 5 }}
+                                        color="white"
                                     />
                                     <Text
                                         display={{ base: 'none', sm: 'block' }}
+                                        color="white"
                                     >
                                         Back
                                     </Text>
@@ -115,19 +152,27 @@ const SettingsModal = ({
                                 minW="fit-content"
                                 px={{ base: 3, md: 4 }}
                                 py={2}
-                                color="#c6c6c6"
+                                color="gray.600"
                                 _hover={{
-                                    bg: '#262626',
-                                    color: 'white',
+                                    bg: 'white',
+                                    color: 'brand.green',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow:
+                                        '0 4px 8px rgba(54, 163, 123, 0.2)',
                                 }}
                                 _selected={{
-                                    bg: '#1db954',
-                                    color: 'white',
+                                    bg: 'brand.green',
+                                    color: 'white !important',
+                                    boxShadow:
+                                        '0 4px 12px rgba(54, 163, 123, 0.3)',
+                                    '& *': {
+                                        color: 'white !important',
+                                    },
                                 }}
-                                borderRadius="md"
-                                fontWeight="semibold"
+                                borderRadius="12px"
+                                fontWeight="bold"
                                 fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                fontFamily="Poppins, sans-serif"
+                                transition="all 0.2s ease"
                             >
                                 <HStack spacing={{ base: 1, md: 2 }}>
                                     <Icon
@@ -141,19 +186,27 @@ const SettingsModal = ({
                                 minW="fit-content"
                                 px={{ base: 3, md: 4 }}
                                 py={2}
-                                color="#c6c6c6"
+                                color="gray.600"
                                 _hover={{
-                                    bg: '#262626',
-                                    color: 'white',
+                                    bg: 'white',
+                                    color: 'brand.green',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow:
+                                        '0 4px 8px rgba(54, 163, 123, 0.2)',
                                 }}
                                 _selected={{
-                                    bg: '#1db954',
-                                    color: 'white',
+                                    bg: 'brand.green',
+                                    color: 'white !important',
+                                    boxShadow:
+                                        '0 4px 12px rgba(54, 163, 123, 0.3)',
+                                    '& *': {
+                                        color: 'white !important',
+                                    },
                                 }}
-                                borderRadius="md"
-                                fontWeight="semibold"
+                                borderRadius="12px"
+                                fontWeight="bold"
                                 fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                fontFamily="Poppins, sans-serif"
+                                transition="all 0.2s ease"
                             >
                                 <HStack spacing={{ base: 1, md: 2 }}>
                                     <Icon
@@ -167,19 +220,27 @@ const SettingsModal = ({
                                 minW="fit-content"
                                 px={{ base: 3, md: 4 }}
                                 py={2}
-                                color="#c6c6c6"
+                                color="gray.600"
                                 _hover={{
-                                    bg: '#262626',
-                                    color: 'white',
+                                    bg: 'white',
+                                    color: 'brand.green',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow:
+                                        '0 4px 8px rgba(54, 163, 123, 0.2)',
                                 }}
                                 _selected={{
-                                    bg: '#1db954',
-                                    color: 'white',
+                                    bg: 'brand.green',
+                                    color: 'white !important',
+                                    boxShadow:
+                                        '0 4px 12px rgba(54, 163, 123, 0.3)',
+                                    '& *': {
+                                        color: 'white !important',
+                                    },
                                 }}
-                                borderRadius="md"
-                                fontWeight="semibold"
+                                borderRadius="12px"
+                                fontWeight="bold"
                                 fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                fontFamily="Poppins, sans-serif"
+                                transition="all 0.2s ease"
                             >
                                 <HStack spacing={{ base: 1, md: 2 }}>
                                     <Icon
@@ -193,19 +254,27 @@ const SettingsModal = ({
                                 minW="fit-content"
                                 px={{ base: 3, md: 4 }}
                                 py={2}
-                                color="#c6c6c6"
+                                color="gray.600"
                                 _hover={{
-                                    bg: '#262626',
-                                    color: 'white',
+                                    bg: 'white',
+                                    color: 'brand.green',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow:
+                                        '0 4px 8px rgba(54, 163, 123, 0.2)',
                                 }}
                                 _selected={{
-                                    bg: '#1db954',
-                                    color: 'white',
+                                    bg: 'brand.green',
+                                    color: 'white !important',
+                                    boxShadow:
+                                        '0 4px 12px rgba(54, 163, 123, 0.3)',
+                                    '& *': {
+                                        color: 'white !important',
+                                    },
                                 }}
-                                borderRadius="md"
-                                fontWeight="semibold"
+                                borderRadius="12px"
+                                fontWeight="bold"
                                 fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                fontFamily="Poppins, sans-serif"
+                                transition="all 0.2s ease"
                             >
                                 <HStack spacing={{ base: 1, md: 2 }}>
                                     <Icon
@@ -219,19 +288,27 @@ const SettingsModal = ({
                                 minW="fit-content"
                                 px={{ base: 3, md: 4 }}
                                 py={2}
-                                color="#c6c6c6"
+                                color="gray.600"
                                 _hover={{
-                                    bg: '#262626',
-                                    color: 'white',
+                                    bg: 'white',
+                                    color: 'brand.navy',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow:
+                                        '0 4px 8px rgba(51, 68, 121, 0.2)',
                                 }}
                                 _selected={{
-                                    bg: '#1db954',
-                                    color: 'white',
+                                    bg: 'brand.navy',
+                                    color: 'white !important',
+                                    boxShadow:
+                                        '0 4px 12px rgba(51, 68, 121, 0.3)',
+                                    '& *': {
+                                        color: 'white !important',
+                                    },
                                 }}
-                                borderRadius="md"
-                                fontWeight="semibold"
+                                borderRadius="12px"
+                                fontWeight="bold"
                                 fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                fontFamily="Poppins, sans-serif"
+                                transition="all 0.2s ease"
                             >
                                 <HStack spacing={{ base: 1, md: 2 }}>
                                     <Icon
@@ -255,19 +332,22 @@ const SettingsModal = ({
                         <TabPanels
                             flex={1}
                             overflowY="auto"
+                            bg="white"
+                            borderRadius="20px"
+                            p={{ base: 3, md: 5 }}
                             sx={{
                                 '&::-webkit-scrollbar': {
-                                    width: '8px',
+                                    width: '10px',
                                 },
                                 '&::-webkit-scrollbar-track': {
-                                    bg: '#191414',
+                                    bg: 'brand.lightGray',
                                     borderRadius: 'full',
                                 },
                                 '&::-webkit-scrollbar-thumb': {
-                                    bg: '#262626',
+                                    bg: 'brand.navy',
                                     borderRadius: 'full',
                                     _hover: {
-                                        bg: '#363535',
+                                        bg: 'brand.pink',
                                     },
                                 },
                             }}

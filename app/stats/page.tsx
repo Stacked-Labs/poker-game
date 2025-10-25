@@ -37,7 +37,7 @@ import {
 } from '../stats/types';
 import { ReactNode } from 'react';
 
-// Revalidate stats data every 30 seconds
+// Revalidate stats data every 60 seconds
 export const revalidate = 60;
 
 const StatCard = ({
@@ -54,17 +54,25 @@ const StatCard = ({
     <Flex
         flex={flex}
         direction={'column'}
-        bg={'gray.200'}
-        color={'white'}
-        p={6}
-        rounded={'lg'}
+        bg={'white'}
+        color={'brand.darkNavy'}
+        p={{ base: 4, md: 5 }}
+        borderRadius={'16px'}
+        boxShadow={'0 4px 12px rgba(0, 0, 0, 0.08)'}
+        border={'1px solid'}
+        borderColor={'brand.lightGray'}
     >
-        <Text color={'white'} fontSize={'xl'} fontWeight={'extrabold'} mb={'4'}>
+        <Text
+            color={'brand.darkNavy'}
+            fontSize={{ base: 'lg', md: 'xl' }}
+            fontWeight={'extrabold'}
+            mb={{ base: 2, md: 3 }}
+        >
             {title}
         </Text>
-        <Flex direction={'column'} gap={2} height={'full'}>
+        <Flex direction={'column'} gap={{ base: 1.5, md: 2 }} height={'full'}>
             {children}
-            <Box mt={'auto'} alignSelf={'center'}>
+            <Box mt={'auto'} alignSelf={'center'} pt={2}>
                 <Timestamp time={timestamp} />
             </Box>
         </Flex>
@@ -72,23 +80,31 @@ const StatCard = ({
 );
 
 const Timestamp = ({ time }: { time: string }) => {
-    const formattedTime = new Date(time).toLocaleString();
-
     return (
         <Text
-            fontSize={'sm'}
-            fontWeight={'light'}
-            color={'grey'}
+            fontSize={'xs'}
+            fontWeight={'medium'}
+            color={'brand.navy'}
             align={'center'}
+            opacity={0.7}
+            suppressHydrationWarning
         >
-            As of {formattedTime}
+            As of {new Date(time).toLocaleString()}
         </Text>
     );
 };
 
 const StatBody = ({ children }: { children: ReactNode }) => {
     return (
-        <Flex justify="space-between" align="center" color={'statBody'}>
+        <Flex
+            justify="space-between"
+            align="center"
+            color={'brand.darkNavy'}
+            py={{ base: 1.5, md: 2 }}
+            px={{ base: 2.5, md: 3 }}
+            bg={'brand.lightGray'}
+            borderRadius={'8px'}
+        >
             {children}
         </Flex>
     );
@@ -96,7 +112,13 @@ const StatBody = ({ children }: { children: ReactNode }) => {
 
 const SubBody = ({ children }: { children: ReactNode }) => {
     return (
-        <Flex direction={'column'} gap={2}>
+        <Flex
+            direction={'column'}
+            gap={{ base: 1.5, md: 2 }}
+            p={{ base: 2.5, md: 3 }}
+            bg={'rgba(236, 238, 245, 0.5)'}
+            borderRadius={'12px'}
+        >
             {children}
         </Flex>
     );
@@ -193,89 +215,83 @@ const page = async () => {
     return (
         <Flex
             direction={'column'}
-            bg={'charcoal.800'}
-            pt={28}
-            pb={10}
+            bg={'brand.lightGray'}
+            pt={{ base: 20, md: 24 }}
+            pb={{ base: 6, md: 8 }}
             minHeight={'100vh'}
             alignItems={'center'}
             w={'100%'}
-            px={30}
+            px={{ base: 3, md: 6, lg: 20 }}
         >
+            {/* Page Title */}
+            <VStack gap={1} mb={{ base: 4, md: 5 }} width="full">
+                <Text
+                    fontSize={{ base: '2xl', md: '3xl', lg: '4xl' }}
+                    fontWeight="extrabold"
+                    color="brand.darkNavy"
+                >
+                    System Statistics
+                </Text>
+            </VStack>
+
             <Tabs
                 defaultIndex={0}
-                width={{ base: 'full', lg: '70vw' }}
+                width={{ base: 'full', lg: '75vw', xl: '70vw' }}
                 size="lg"
-                variant="enclosed"
-                colorScheme="blue"
+                variant="unstyled"
             >
                 <TabList
-                    borderBottom="2px solid"
-                    borderColor="whiteAlpha.300"
-                    mb={4}
+                    bg="white"
+                    borderRadius="12px"
+                    p={{ base: '6px', md: 1 }}
+                    mb={{ base: 3, md: 4 }}
+                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.08)"
                 >
                     <Tab
-                        fontSize="2xl"
-                        py={6}
-                        px={8}
+                        fontSize={{ base: 'sm', sm: 'md', md: 'lg', lg: 'xl' }}
+                        py={{ base: 2, sm: 2.5, md: 3 }}
+                        px={{ base: 3, sm: 4, md: 6 }}
                         fontWeight="bold"
-                        color="whiteAlpha.600"
-                        borderColor="transparent"
+                        color="brand.navy"
+                        borderRadius="10px"
+                        flex={1}
                         _selected={{
                             color: 'white',
-                            borderColor: 'white',
-                            borderBottom: '4px solid',
-                            borderTop: '1px solid',
-                            borderLeft: '1px solid',
-                            borderRight: '1px solid',
-                            bg: 'whiteAlpha.100',
-                            boxShadow: '0 4px 12px rgba(255, 255, 255, 0.15)',
+                            bg: 'brand.green',
                         }}
-                        _hover={{
-                            color: 'whiteAlpha.800',
-                            bg: 'whiteAlpha.50',
-                        }}
-                        transition="all 0.3s"
+                        transition="all 0.2s"
                     >
                         General Stats
                     </Tab>
                     <Tab
-                        fontSize="2xl"
-                        py={6}
-                        px={8}
+                        fontSize={{ base: 'sm', sm: 'md', md: 'lg', lg: 'xl' }}
+                        py={{ base: 2, sm: 2.5, md: 3 }}
+                        px={{ base: 3, sm: 4, md: 6 }}
                         fontWeight="bold"
-                        color="whiteAlpha.600"
-                        borderColor="transparent"
+                        color="brand.navy"
+                        borderRadius="10px"
+                        flex={1}
                         _selected={{
                             color: 'white',
-                            borderColor: 'white',
-                            borderBottom: '4px solid',
-                            borderTop: '1px solid',
-                            borderLeft: '1px solid',
-                            borderRight: '1px solid',
-                            bg: 'whiteAlpha.100',
-                            boxShadow: '0 4px 12px rgba(255, 255, 255, 0.15)',
+                            bg: 'brand.pink',
                         }}
-                        _hover={{
-                            color: 'whiteAlpha.800',
-                            bg: 'whiteAlpha.50',
-                        }}
-                        transition="all 0.3s"
+                        transition="all 0.2s"
                     >
                         Tables
                     </Tab>
                 </TabList>
 
                 <TabPanels>
-                    <TabPanel py={6} px={0}>
+                    <TabPanel py={{ base: 3, md: 4 }} px={0}>
                         <Flex
                             direction={'column'}
-                            gap={2}
+                            gap={{ base: 2, md: 3 }}
                             width={'full'}
-                            pb={{ base: 4, lg: 0 }}
+                            pb={{ base: 2, lg: 0 }}
                         >
                             <Flex
                                 width={'full'}
-                                gap={2}
+                                gap={{ base: 2, md: 3 }}
                                 direction={{ base: 'column', lg: 'row' }}
                             >
                                 <StatCard
@@ -291,11 +307,11 @@ const page = async () => {
                                         >
                                             <Text
                                                 textTransform={'capitalize'}
-                                                fontWeight={'semibold'}
+                                                fontWeight={'bold'}
                                                 color={
                                                     health.status === 'healthy'
-                                                        ? 'green.400'
-                                                        : 'red.500'
+                                                        ? 'brand.green'
+                                                        : 'brand.pink'
                                                 }
                                                 cursor="help"
                                             >
@@ -304,17 +320,21 @@ const page = async () => {
                                         </Tooltip>
                                         <Flex
                                             as="span"
-                                            w="20px"
-                                            h="20px"
+                                            w="16px"
+                                            h="16px"
                                             borderRadius="full"
                                             bg={
                                                 health.status === 'healthy'
-                                                    ? 'green.400'
-                                                    : 'red.500'
+                                                    ? 'brand.green'
+                                                    : 'brand.pink'
                                             }
-                                            border="3px solid"
+                                            border="2px solid"
                                             borderColor="white"
-                                            boxShadow="0 0 8px rgba(0, 0, 0, 0.3)"
+                                            boxShadow={
+                                                health.status === 'healthy'
+                                                    ? '0 0 8px rgba(54, 163, 123, 0.5)'
+                                                    : '0 0 8px rgba(235, 11, 92, 0.5)'
+                                            }
                                             aria-label={health.status}
                                         />
                                     </StatBody>
@@ -377,7 +397,12 @@ const page = async () => {
                                         </Text>
                                     </StatBody>
                                     <SubBody>
-                                        <Text variant={'statSubHead'}>
+                                        <Text
+                                            fontSize="sm"
+                                            fontWeight="extrabold"
+                                            color="brand.darkNavy"
+                                            mb={{ base: 0.5, md: 1 }}
+                                        >
                                             Last 24 hrs
                                         </Text>
                                         <StatBody>
@@ -408,7 +433,12 @@ const page = async () => {
                                         </StatBody>
                                     </SubBody>
                                     <SubBody>
-                                        <Text variant={'statSubHead'}>
+                                        <Text
+                                            fontSize="sm"
+                                            fontWeight="extrabold"
+                                            color="brand.darkNavy"
+                                            mb={{ base: 0.5, md: 1 }}
+                                        >
                                             Total
                                         </Text>
                                         <StatBody>
@@ -465,7 +495,7 @@ const page = async () => {
                                     flex={1}
                                     width={'full'}
                                     direction={'column'}
-                                    gap={2}
+                                    gap={{ base: 2, md: 3 }}
                                 >
                                     <StatCard
                                         flex={1}
@@ -478,24 +508,32 @@ const page = async () => {
                                                 placement="top"
                                                 hasArrow
                                             >
-                                                <Text cursor="help">
+                                                <Text
+                                                    cursor="help"
+                                                    fontWeight="medium"
+                                                >
                                                     Database Connection
                                                 </Text>
                                             </Tooltip>
                                             <Flex
                                                 as="span"
-                                                w="20px"
-                                                h="20px"
+                                                w="16px"
+                                                h="16px"
                                                 borderRadius="full"
                                                 bg={
                                                     healthDb.database ===
                                                     'connected'
-                                                        ? 'green.400'
-                                                        : 'red.500'
+                                                        ? 'brand.green'
+                                                        : 'brand.pink'
                                                 }
-                                                border="3px solid"
+                                                border="2px solid"
                                                 borderColor="white"
-                                                boxShadow="0 0 8px rgba(0, 0, 0, 0.3)"
+                                                boxShadow={
+                                                    healthDb.database ===
+                                                    'connected'
+                                                        ? '0 0 8px rgba(54, 163, 123, 0.5)'
+                                                        : '0 0 8px rgba(235, 11, 92, 0.5)'
+                                                }
                                                 aria-label={healthDb.database}
                                             />
                                         </StatBody>
@@ -505,23 +543,30 @@ const page = async () => {
                                                 placement="top"
                                                 hasArrow
                                             >
-                                                <Text cursor="help">
+                                                <Text
+                                                    cursor="help"
+                                                    fontWeight="medium"
+                                                >
                                                     Database Status
                                                 </Text>
                                             </Tooltip>
                                             <Flex
                                                 as="span"
-                                                w="20px"
-                                                h="20px"
+                                                w="16px"
+                                                h="16px"
                                                 borderRadius="full"
                                                 bg={
                                                     health.status === 'healthy'
-                                                        ? 'green.400'
-                                                        : 'red.500'
+                                                        ? 'brand.green'
+                                                        : 'brand.pink'
                                                 }
-                                                border="3px solid"
+                                                border="2px solid"
                                                 borderColor="white"
-                                                boxShadow="0 0 8px rgba(0, 0, 0, 0.3)"
+                                                boxShadow={
+                                                    health.status === 'healthy'
+                                                        ? '0 0 8px rgba(54, 163, 123, 0.5)'
+                                                        : '0 0 8px rgba(235, 11, 92, 0.5)'
+                                                }
                                                 aria-label={healthDb.status}
                                             />
                                         </StatBody>
@@ -531,15 +576,21 @@ const page = async () => {
                                         title={'Metrics'}
                                         timestamp={metrics.timestamp}
                                     >
-                                        <Flex direction={'column'} gap={2}>
+                                        <Flex
+                                            direction={'column'}
+                                            gap={{ base: 1.5, md: 2 }}
+                                        >
                                             <Tooltip
                                                 label="Connection pool for database queries - different from WebSocket connections"
                                                 placement="top"
                                                 hasArrow
                                             >
                                                 <Text
-                                                    variant={'statSubHead'}
+                                                    fontSize="sm"
+                                                    fontWeight="extrabold"
+                                                    color="brand.darkNavy"
                                                     cursor="help"
+                                                    mb={{ base: 0.5, md: 1 }}
                                                 >
                                                     Database Pool
                                                 </Text>
@@ -580,7 +631,12 @@ const page = async () => {
                                             </StatBody>
                                         </Flex>
                                         <SubBody>
-                                            <Text variant={'statSubHead'}>
+                                            <Text
+                                                fontSize="sm"
+                                                fontWeight="extrabold"
+                                                color="brand.darkNavy"
+                                                mb={{ base: 0.5, md: 1 }}
+                                            >
                                                 Tables
                                             </Text>
                                             <StatBody>
@@ -607,7 +663,7 @@ const page = async () => {
                         </Flex>
                     </TabPanel>
 
-                    <TabPanel py={6} px={0}>
+                    <TabPanel py={{ base: 3, md: 4 }} px={0}>
                         <Flex width={'full'}>
                             <StatCard
                                 flex={1}
@@ -663,9 +719,9 @@ const page = async () => {
                                         maxHeight={'400px'}
                                         overflowY={'auto'}
                                         border="1px solid"
-                                        borderColor="whiteAlpha.200"
-                                        borderRadius="md"
-                                        bg="whiteAlpha.50"
+                                        borderColor="brand.lightGray"
+                                        borderRadius="12px"
+                                        bg="rgba(236, 238, 245, 0.3)"
                                     >
                                         <Accordion allowMultiple>
                                             {tables.tables.map(
@@ -680,21 +736,21 @@ const page = async () => {
                                                                 ? '1px solid'
                                                                 : 'none'
                                                         }
-                                                        borderColor="whiteAlpha.200"
+                                                        borderColor="rgba(12, 21, 49, 0.08)"
                                                     >
                                                         <h2>
                                                             <AccordionButton
                                                                 py={3}
                                                                 px={4}
                                                                 _hover={{
-                                                                    bg: 'whiteAlpha.100',
+                                                                    bg: 'brand.lightGray',
                                                                 }}
                                                                 _expanded={{
-                                                                    bg: 'whiteAlpha.100',
+                                                                    bg: 'white',
                                                                     borderBottom:
                                                                         '1px solid',
                                                                     borderColor:
-                                                                        'whiteAlpha.200',
+                                                                        'brand.lightGray',
                                                                 }}
                                                                 transition="all 0.2s"
                                                             >
@@ -725,12 +781,12 @@ const page = async () => {
                                                                                 borderRadius="full"
                                                                                 bg={
                                                                                     table.is_active
-                                                                                        ? 'green.400'
-                                                                                        : 'gray.600'
+                                                                                        ? 'brand.green'
+                                                                                        : 'gray.400'
                                                                                 }
                                                                                 boxShadow={
                                                                                     table.is_active
-                                                                                        ? '0 0 8px rgba(72, 187, 120, 0.6)'
+                                                                                        ? '0 0 8px rgba(54, 163, 123, 0.6)'
                                                                                         : 'none'
                                                                                 }
                                                                                 flexShrink={
@@ -757,17 +813,18 @@ const page = async () => {
                                                                                 <Text
                                                                                     fontFamily="monospace"
                                                                                     fontSize="xs"
-                                                                                    color="statBody"
+                                                                                    color="brand.navy"
+                                                                                    fontWeight="medium"
                                                                                     noOfLines={
                                                                                         1
                                                                                     }
                                                                                     textAlign="left"
                                                                                     _hover={{
-                                                                                        color: 'blue.400',
+                                                                                        color: 'brand.pink',
                                                                                         fontWeight:
                                                                                             'bold',
                                                                                     }}
-                                                                                    cursor="alias"
+                                                                                    cursor="pointer"
                                                                                     transition="all 0.2s"
                                                                                 >
                                                                                     {
@@ -778,7 +835,10 @@ const page = async () => {
                                                                         </Tooltip>
                                                                         <Text
                                                                             fontSize="xs"
-                                                                            color="gray.400"
+                                                                            color="brand.navy"
+                                                                            opacity={
+                                                                                0.6
+                                                                            }
                                                                             flexShrink={
                                                                                 0
                                                                             }
@@ -805,25 +865,14 @@ const page = async () => {
                                                                             0
                                                                         }
                                                                     >
-                                                                        <Badge
-                                                                            colorScheme="blue"
-                                                                            fontSize="xs"
-                                                                            fontWeight="bold"
-                                                                            px={
-                                                                                2
-                                                                            }
-                                                                            py={
-                                                                                1
-                                                                            }
-                                                                            borderRadius="sm"
+                                                                        <Tooltip
+                                                                            label="Number of players currently in this table"
+                                                                            placement="top"
+                                                                            hasArrow
                                                                         >
-                                                                            {
-                                                                                table.player_count
-                                                                            }
-                                                                        </Badge>
-                                                                        {table.in_memory && (
                                                                             <Badge
-                                                                                colorScheme="purple"
+                                                                                bg="brand.green"
+                                                                                color="white"
                                                                                 fontSize="xs"
                                                                                 fontWeight="bold"
                                                                                 px={
@@ -832,16 +881,43 @@ const page = async () => {
                                                                                 py={
                                                                                     1
                                                                                 }
-                                                                                borderRadius="sm"
+                                                                                borderRadius="full"
+                                                                                cursor="help"
                                                                             >
-                                                                                MEM
+                                                                                {
+                                                                                    table.player_count
+                                                                                }
                                                                             </Badge>
+                                                                        </Tooltip>
+                                                                        {table.in_memory && (
+                                                                            <Tooltip
+                                                                                label="Table is currently loaded in backend memory for faster performance"
+                                                                                placement="top"
+                                                                                hasArrow
+                                                                            >
+                                                                                <Badge
+                                                                                    bg="brand.yellow"
+                                                                                    color="brand.darkNavy"
+                                                                                    fontSize="xs"
+                                                                                    fontWeight="bold"
+                                                                                    px={
+                                                                                        2
+                                                                                    }
+                                                                                    py={
+                                                                                        1
+                                                                                    }
+                                                                                    borderRadius="full"
+                                                                                    cursor="help"
+                                                                                >
+                                                                                    MEM
+                                                                                </Badge>
+                                                                            </Tooltip>
                                                                         )}
                                                                     </HStack>
                                                                 </Box>
                                                                 <AccordionIcon
                                                                     ml={3}
-                                                                    color="statBody"
+                                                                    color="brand.navy"
                                                                 />
                                                             </AccordionButton>
                                                         </h2>
@@ -849,16 +925,16 @@ const page = async () => {
                                                             pb={4}
                                                             pt={3}
                                                             px={4}
-                                                            bg="blackAlpha.200"
+                                                            bg="rgba(236, 238, 245, 0.5)"
                                                         >
                                                             <VStack
                                                                 gap={3}
                                                                 align="stretch"
                                                                 divider={
                                                                     <Divider
-                                                                        borderColor="whiteAlpha.200"
+                                                                        borderColor="rgba(12, 21, 49, 0.1)"
                                                                         opacity={
-                                                                            0.5
+                                                                            1
                                                                         }
                                                                     />
                                                                 }
@@ -869,8 +945,11 @@ const page = async () => {
                                                                 >
                                                                     <Text
                                                                         fontSize="sm"
-                                                                        color="gray.400"
+                                                                        color="brand.navy"
                                                                         fontWeight="medium"
+                                                                        opacity={
+                                                                            0.7
+                                                                        }
                                                                     >
                                                                         Owner
                                                                     </Text>
@@ -884,7 +963,8 @@ const page = async () => {
                                                                         <Text
                                                                             fontSize="xs"
                                                                             fontFamily="monospace"
-                                                                            color="statBody"
+                                                                            color="brand.darkNavy"
+                                                                            fontWeight="medium"
                                                                             textAlign="right"
                                                                             cursor="help"
                                                                         >
@@ -903,16 +983,19 @@ const page = async () => {
                                                                 >
                                                                     <Text
                                                                         fontSize="sm"
-                                                                        color="gray.400"
+                                                                        color="brand.navy"
                                                                         fontWeight="medium"
+                                                                        opacity={
+                                                                            0.7
+                                                                        }
                                                                     >
                                                                         Buy-in
                                                                         Range
                                                                     </Text>
                                                                     <Text
                                                                         fontSize="sm"
-                                                                        fontWeight="semibold"
-                                                                        color="statBody"
+                                                                        fontWeight="bold"
+                                                                        color="brand.darkNavy"
                                                                         textAlign="right"
                                                                     >
                                                                         {
@@ -932,8 +1015,16 @@ const page = async () => {
                                         </Accordion>
                                     </Box>
                                 ) : (
-                                    <Flex justifyContent={'center'} py={4}>
-                                        <Text color={'grey'}>
+                                    <Flex
+                                        justifyContent={'center'}
+                                        py={8}
+                                        bg="rgba(236, 238, 245, 0.4)"
+                                        borderRadius="12px"
+                                    >
+                                        <Text
+                                            color={'brand.navy'}
+                                            fontWeight="medium"
+                                        >
                                             No tables found
                                         </Text>
                                     </Flex>

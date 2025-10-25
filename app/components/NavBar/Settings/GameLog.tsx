@@ -42,13 +42,13 @@ const GameLog = () => {
     const getBadgeColor = (type: string) => {
         switch (type) {
             case 'action':
-                return 'green';
+                return 'brand.green';
             case 'game':
-                return 'blue';
+                return 'brand.navy';
             case 'system':
-                return 'purple';
+                return 'brand.pink';
             default:
-                return 'gray';
+                return 'gray.500';
         }
     };
 
@@ -65,9 +65,9 @@ const GameLog = () => {
             <Text
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
-                mb={4}
-                color="white"
-                fontFamily="Poppins, sans-serif"
+                mb={6}
+                color="brand.navy"
+                letterSpacing="-0.02em"
             >
                 Game Log
             </Text>
@@ -76,12 +76,16 @@ const GameLog = () => {
                     <Box
                         p={8}
                         textAlign="center"
-                        bg="#262626"
-                        borderRadius="lg"
+                        bg="brand.lightGray"
+                        borderRadius="16px"
                         border="2px solid"
-                        borderColor="#363535"
+                        borderColor="white"
                     >
-                        <Text color="#c6c6c6" fontFamily="Poppins, sans-serif">
+                        <Text
+                            color="gray.600"
+                            fontWeight="medium"
+                            fontSize="md"
+                        >
                             No log entries yet
                         </Text>
                     </Box>
@@ -89,36 +93,41 @@ const GameLog = () => {
                     logEntries.map((entry, index) => (
                         <Box key={entry.id}>
                             <HStack
-                                p={{ base: 3, md: 4 }}
-                                bg="#262626"
-                                borderRadius="lg"
+                                p={{ base: 4, md: 5 }}
+                                bg="white"
+                                borderRadius="16px"
                                 border="2px solid"
-                                borderColor="#363535"
+                                borderColor="brand.lightGray"
                                 justify="space-between"
+                                boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                                 _hover={{
-                                    borderColor: '#1db954',
-                                    bg: '#2e2e2e',
+                                    borderColor: 'brand.green',
+                                    boxShadow:
+                                        '0 8px 20px rgba(54, 163, 123, 0.15)',
+                                    transform: 'translateY(-2px)',
                                 }}
-                                transition="all 0.2s"
+                                transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                                 align="start"
                                 flexDirection={{ base: 'column', sm: 'row' }}
-                                gap={{ base: 2, sm: 0 }}
+                                gap={{ base: 3, sm: 0 }}
                             >
-                                <VStack align="start" flex={1} gap={1} w="100%">
-                                    <HStack flexWrap="wrap">
+                                <VStack align="start" flex={1} gap={2} w="100%">
+                                    <HStack flexWrap="wrap" gap={2}>
                                         <Badge
-                                            colorScheme={getBadgeColor(
-                                                entry.type
-                                            )}
+                                            bg={getBadgeColor(entry.type)}
+                                            color="white"
                                             fontSize="xs"
-                                            fontFamily="Poppins, sans-serif"
+                                            px={3}
+                                            py={1}
+                                            borderRadius="6px"
+                                            fontWeight="bold"
                                         >
                                             {entry.type.toUpperCase()}
                                         </Badge>
                                         <Text
                                             fontWeight="bold"
-                                            color="white"
-                                            fontFamily="Poppins, sans-serif"
+                                            color="brand.navy"
+                                            fontSize="md"
                                         >
                                             {entry.action}
                                         </Text>
@@ -126,8 +135,8 @@ const GameLog = () => {
                                     {entry.player && (
                                         <Text
                                             fontSize="sm"
-                                            color="#c6c6c6"
-                                            fontFamily="Poppins, sans-serif"
+                                            color="gray.600"
+                                            fontWeight="medium"
                                         >
                                             Player: {entry.player}
                                         </Text>
@@ -135,8 +144,8 @@ const GameLog = () => {
                                     {entry.details && (
                                         <Text
                                             fontSize="sm"
-                                            color="#c6c6c6"
-                                            fontFamily="Poppins, sans-serif"
+                                            color="gray.600"
+                                            fontWeight="medium"
                                         >
                                             {entry.details}
                                         </Text>
@@ -144,15 +153,15 @@ const GameLog = () => {
                                 </VStack>
                                 <Text
                                     fontSize="xs"
-                                    color="#c6c6c6"
+                                    color="gray.500"
                                     minW="fit-content"
-                                    fontFamily="Poppins, sans-serif"
+                                    fontWeight="semibold"
                                 >
                                     {formatTime(entry.timestamp)}
                                 </Text>
                             </HStack>
                             {index < logEntries.length - 1 && (
-                                <Divider my={2} borderColor="#363535" />
+                                <Divider my={2} borderColor="transparent" />
                             )}
                         </Box>
                     ))

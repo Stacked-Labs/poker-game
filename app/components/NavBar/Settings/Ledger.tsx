@@ -17,6 +17,7 @@ import {
     StatNumber,
     StatHelpText,
     StatArrow,
+    VStack,
 } from '@chakra-ui/react';
 
 interface Transaction {
@@ -69,15 +70,15 @@ const Ledger = () => {
     const getTypeColor = (type: string) => {
         switch (type) {
             case 'buy-in':
-                return 'blue';
+                return 'brand.navy';
             case 'cash-out':
-                return 'orange';
+                return 'brand.yellow';
             case 'win':
-                return 'green';
+                return 'brand.green';
             case 'loss':
-                return 'red';
+                return 'brand.pink';
             default:
-                return 'gray';
+                return 'gray.500';
         }
     };
 
@@ -93,9 +94,9 @@ const Ledger = () => {
             <Text
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
-                mb={4}
-                color="white"
-                fontFamily="Poppins, sans-serif"
+                mb={6}
+                color="brand.navy"
+                letterSpacing="-0.02em"
             >
                 Financial Ledger
             </Text>
@@ -106,62 +107,69 @@ const Ledger = () => {
                 mb={6}
                 flexWrap="wrap"
                 justify="space-around"
-                bg="#262626"
-                p={{ base: 3, md: 4 }}
-                borderRadius="lg"
+                bg="white"
+                p={{ base: 4, md: 6 }}
+                borderRadius="16px"
                 border="2px solid"
-                borderColor="#363535"
+                borderColor="brand.lightGray"
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Stat textAlign="center">
-                    <StatLabel color="#c6c6c6" fontFamily="Poppins, sans-serif">
+                    <StatLabel
+                        color="gray.600"
+                        fontWeight="semibold"
+                        fontSize="sm"
+                    >
                         Total Buy-ins
                     </StatLabel>
                     <StatNumber
-                        color="#1ed760"
-                        fontFamily="Poppins, sans-serif"
+                        color="brand.navy"
+                        fontSize={{ base: '2xl', md: '3xl' }}
+                        fontWeight="bold"
                     >
                         {formatCurrency(totalBuyIns)}
                     </StatNumber>
-                    <StatHelpText
-                        color="#c6c6c6"
-                        fontFamily="Poppins, sans-serif"
-                    >
+                    <StatHelpText color="gray.500" fontWeight="medium">
                         All players
                     </StatHelpText>
                 </Stat>
                 <Stat textAlign="center">
-                    <StatLabel color="#c6c6c6" fontFamily="Poppins, sans-serif">
+                    <StatLabel
+                        color="gray.600"
+                        fontWeight="semibold"
+                        fontSize="sm"
+                    >
                         Total Wins
                     </StatLabel>
                     <StatNumber
-                        color="#1db954"
-                        fontFamily="Poppins, sans-serif"
+                        color="brand.green"
+                        fontSize={{ base: '2xl', md: '3xl' }}
+                        fontWeight="bold"
                     >
                         <StatArrow type="increase" />
                         {formatCurrency(totalWins)}
                     </StatNumber>
-                    <StatHelpText
-                        color="#c6c6c6"
-                        fontFamily="Poppins, sans-serif"
-                    >
+                    <StatHelpText color="gray.500" fontWeight="medium">
                         Payouts
                     </StatHelpText>
                 </Stat>
                 <Stat textAlign="center">
-                    <StatLabel color="#c6c6c6" fontFamily="Poppins, sans-serif">
+                    <StatLabel
+                        color="gray.600"
+                        fontWeight="semibold"
+                        fontSize="sm"
+                    >
                         Total Losses
                     </StatLabel>
                     <StatNumber
-                        color="#eb4034"
-                        fontFamily="Poppins, sans-serif"
+                        color="brand.pink"
+                        fontSize={{ base: '2xl', md: '3xl' }}
+                        fontWeight="bold"
                     >
                         <StatArrow type="decrease" />
                         {formatCurrency(totalLosses)}
                     </StatNumber>
-                    <StatHelpText
-                        color="#c6c6c6"
-                        fontFamily="Poppins, sans-serif"
-                    >
+                    <StatHelpText color="gray.500" fontWeight="medium">
                         Rake & Losses
                     </StatHelpText>
                 </Stat>
@@ -169,37 +177,63 @@ const Ledger = () => {
 
             {/* Transactions Table */}
             <TableContainer
-                bg="#262626"
-                borderRadius="lg"
+                bg="white"
+                borderRadius="16px"
                 border="2px solid"
-                borderColor="#363535"
+                borderColor="brand.lightGray"
                 overflowY="auto"
-                maxH="400px"
+                maxH="500px"
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                sx={{
+                    '&::-webkit-scrollbar': {
+                        width: '8px',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                        bg: 'brand.lightGray',
+                        borderRadius: 'full',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        bg: 'brand.navy',
+                        borderRadius: 'full',
+                        _hover: {
+                            bg: 'brand.pink',
+                        },
+                    },
+                }}
             >
                 <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
-                    <Thead position="sticky" top={0} bg="#363535" zIndex={1}>
+                    <Thead
+                        position="sticky"
+                        top={0}
+                        bg="brand.lightGray"
+                        zIndex={1}
+                    >
                         <Tr>
                             <Th
-                                color={'#c6c6c6'}
-                                fontFamily="Poppins, sans-serif"
+                                color={'brand.navy'}
+                                fontWeight="bold"
+                                fontSize="xs"
                             >
                                 Time
                             </Th>
                             <Th
-                                color={'#c6c6c6'}
-                                fontFamily="Poppins, sans-serif"
+                                color={'brand.navy'}
+                                fontWeight="bold"
+                                fontSize="xs"
                             >
                                 Player
                             </Th>
                             <Th
-                                color={'#c6c6c6'}
-                                fontFamily="Poppins, sans-serif"
+                                color={'brand.navy'}
+                                fontWeight="bold"
+                                fontSize="xs"
                             >
                                 Type
                             </Th>
                             <Th
-                                color={'#c6c6c6'}
-                                fontFamily="Poppins, sans-serif"
+                                color={'brand.navy'}
+                                fontWeight="bold"
+                                fontSize="xs"
                                 isNumeric
                             >
                                 Amount
@@ -210,10 +244,7 @@ const Ledger = () => {
                         {transactions.length === 0 ? (
                             <Tr>
                                 <Td colSpan={4} textAlign="center" py={8}>
-                                    <Text
-                                        color="#c6c6c6"
-                                        fontFamily="Poppins, sans-serif"
-                                    >
+                                    <Text color="gray.600" fontWeight="medium">
                                         No transactions yet
                                     </Text>
                                 </Td>
@@ -222,13 +253,16 @@ const Ledger = () => {
                             transactions.map((transaction) => (
                                 <Tr
                                     key={transaction.id}
-                                    _hover={{ bg: '#2e2e2e' }}
+                                    _hover={{
+                                        bg: 'brand.lightGray',
+                                    }}
+                                    transition="all 0.2s ease"
                                 >
                                     <Td>
                                         <Text
                                             fontSize="xs"
-                                            color="#c6c6c6"
-                                            fontFamily="Poppins, sans-serif"
+                                            color="gray.600"
+                                            fontWeight="medium"
                                         >
                                             {transaction.timestamp.toLocaleTimeString(
                                                 'en-US',
@@ -241,20 +275,21 @@ const Ledger = () => {
                                     </Td>
                                     <Td>
                                         <Text
-                                            fontWeight="medium"
-                                            color="white"
-                                            fontFamily="Poppins, sans-serif"
+                                            fontWeight="semibold"
+                                            color="brand.navy"
                                         >
                                             {transaction.player}
                                         </Text>
                                     </Td>
                                     <Td>
                                         <Badge
-                                            colorScheme={getTypeColor(
-                                                transaction.type
-                                            )}
+                                            bg={getTypeColor(transaction.type)}
+                                            color="white"
                                             fontSize="xs"
-                                            fontFamily="Poppins, sans-serif"
+                                            px={2}
+                                            py={1}
+                                            borderRadius="6px"
+                                            fontWeight="bold"
                                         >
                                             {transaction.type}
                                         </Badge>
@@ -264,10 +299,9 @@ const Ledger = () => {
                                             fontWeight="bold"
                                             color={
                                                 transaction.amount >= 0
-                                                    ? '#1ed760'
-                                                    : '#eb4034'
+                                                    ? 'brand.green'
+                                                    : 'brand.pink'
                                             }
-                                            fontFamily="Poppins, sans-serif"
                                         >
                                             {transaction.amount >= 0 ? '+' : ''}
                                             {formatCurrency(transaction.amount)}

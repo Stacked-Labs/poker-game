@@ -23,15 +23,24 @@ const LeaveButton = ({
             }
         >
             <IconButton
-                icon={<Icon as={FiLogOut} boxSize={{ base: 5, md: 8 }} />}
+                icon={<Icon as={FiLogOut} boxSize={{ base: 5, md: 6 }} />}
                 aria-label="Leave Table"
-                size={'lg'}
-                colorScheme={isLeaveRequested ? 'gray' : 'red'}
+                size="lg"
                 onClick={handleLeaveTable}
                 isDisabled={isLeaveRequested}
+                bg={isLeaveRequested ? 'gray.300' : 'brand.pink'}
+                color="white"
+                border="none"
+                borderRadius="12px"
                 opacity={isLeaveRequested ? 0.6 : 1}
-                variant={'outlined'}
-                bg={'gray.200'}
+                _hover={{
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(235, 11, 92, 0.4)',
+                }}
+                _disabled={{
+                    cursor: 'not-allowed',
+                }}
+                transition="all 0.2s ease"
             />
         </Tooltip>
     );

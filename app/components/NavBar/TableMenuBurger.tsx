@@ -27,7 +27,14 @@ import LeaveButton from './LeaveButton';
 
 const Item = ({ button }: { button: ReactElement }) => {
     return (
-        <MenuItem bg={'none'} width={'fit-content'} p={0} mb={2}>
+        <MenuItem
+            bg="transparent"
+            width="fit-content"
+            p={0}
+            mb={2}
+            _hover={{ bg: 'transparent' }}
+            _focus={{ bg: 'transparent' }}
+        >
             {button}
         </MenuItem>
     );
@@ -59,13 +66,24 @@ const TableMenuBurger = ({
                 as={IconButton}
                 aria-label="Open table menu"
                 icon={<Icon as={isOpen ? FiX : FiMenu} boxSize={5} />}
-                size={'lg'}
+                size="lg"
                 zIndex={999}
+                bg="brand.lightGray"
+                color="brand.navy"
+                border="none"
+                borderRadius="12px"
+                _hover={{
+                    bg: 'brand.navy',
+                    color: 'white',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
+                }}
+                transition="all 0.2s ease"
             />
             <MenuList
                 zIndex={999}
-                bg={'none'}
-                border={'none'}
+                bg="transparent"
+                border="none"
                 gap={2}
                 padding={0}
             >

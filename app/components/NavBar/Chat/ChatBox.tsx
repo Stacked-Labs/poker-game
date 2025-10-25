@@ -81,73 +81,160 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
     };
 
     return (
-        <Flex flexDirection={'column'} gap={4} height={'100%'} p={3}>
-            <IconButton
-                onClick={onToggle}
-                icon={<IoClose />}
-                width={'fit-content'}
-                paddingX={3}
-                aria-label={'Close Chat Box'}
-                border={'none'}
-                fontSize={'3xl'}
-                color={'lightGray'}
-                justifyContent={'start'}
-                _hover={{ background: 'none' }}
-                _active={{ background: 'none', outline: 'none' }}
-                _focus={{ outline: 'none', boxShadow: 'none' }}
-            />
-            <Box flex={1} height={'100%'} overflowY="auto" color={'lightGray'}>
+        <Flex flexDirection="column" gap={0} height="100%" bg="white">
+            {/* Chat Header */}
+            <Flex
+                align="center"
+                justify="space-between"
+                px={4}
+                py={3}
+                borderBottom="1px solid"
+                borderColor="rgba(0, 0, 0, 0.08)"
+                bg="white"
+            >
+                <Text
+                    fontSize="xl"
+                    fontWeight="bold"
+                    color="brand.navy"
+                    fontFamily="heading"
+                >
+                    Chat
+                </Text>
+                <IconButton
+                    onClick={onToggle}
+                    icon={<IoClose />}
+                    aria-label="Close Chat Box"
+                    size="md"
+                    bg="transparent"
+                    color="brand.navy"
+                    border="none"
+                    borderRadius="8px"
+                    _hover={{
+                        bg: 'brand.lightGray',
+                    }}
+                    _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
+                    _focus={{ outline: 'none', boxShadow: 'none' }}
+                />
+            </Flex>
+
+            {/* Messages Area */}
+            <Box
+                flex={1}
+                overflowY="auto"
+                px={4}
+                py={3}
+                bg="white"
+                css={{
+                    '&::-webkit-scrollbar': {
+                        width: '8px',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                        background: 'transparent',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        background: 'rgba(51, 68, 121, 0.2)',
+                        borderRadius: '4px',
+                    },
+                    '&::-webkit-scrollbar-thumb:hover': {
+                        background: 'rgba(51, 68, 121, 0.3)',
+                    },
+                }}
+            >
                 {appState.appState.messages.map((msg, index) => (
-                    <Text
+                    <Box
                         key={index}
-                        whiteSpace={'break-spaces'}
-                        fontSize={'lg'}
-                        mb={2}
-                        lineHeight="1.5"
-                        textStyle={'nowrap'}
+                        mb={3}
+                        p={3}
+                        borderRadius="12px"
+                        bg="brand.lightGray"
+                        transition="all 0.2s ease"
+                        _hover={{
+                            bg: 'rgba(236, 238, 245, 0.8)',
+                        }}
                     >
                         <Text
-                            as={'span'}
-                            color={getColorForUsername(msg.name)}
-                            fontWeight={'bold'}
-                            fontSize={'lg'}
+                            color="brand.navy"
+                            fontSize="md"
+                            whiteSpace="break-spaces"
+                            lineHeight="1.5"
                         >
-                            {msg.name}
+                            <Text
+                                as="span"
+                                color={getColorForUsername(msg.name)}
+                                fontWeight="bold"
+                                mr={1}
+                            >
+                                {msg.name}:
+                            </Text>
+                            {msg.message}
                         </Text>
-                        : {msg.message}
-                    </Text>
+                    </Box>
                 ))}
             </Box>
 
-            <Box display="flex" alignItems="center" color={'white'}>
-                <Input
-                    bgColor={'charcoal.600'}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    _placeholder={{ opacity: 0.4, color: 'white' }}
-                    focusBorderColor="themeColor"
-                    placeholder="Enter message"
-                    marginRight={3}
-                    onKeyDown={handleKeyPress}
-                    disabled={!username && !clientID}
-                    fontSize={'lg'}
-                    height={'50px'}
-                    padding={4}
-                />
-                <IconButton
-                    icon={<IoIosSend />}
-                    onClick={handleSendMessage}
-                    aria-label="Send"
-                    colorScheme="themeColor"
-                    variant="solid"
-                    border={'none'}
-                    _hover={{ color: 'themeColor' }}
-                    fontSize={'3xl'}
-                    size={'lg'}
-                    height={'50px'}
-                    width={'50px'}
-                    disabled={!username && !clientID}
-                />
+            {/* Input Area */}
+            <Box
+                px={4}
+                py={3}
+                borderTop="1px solid"
+                borderColor="rgba(0, 0, 0, 0.08)"
+                bg="white"
+            >
+                <Flex gap={2} alignItems="center">
+                    <Input
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Type a message..."
+                        onKeyDown={handleKeyPress}
+                        disabled={!username && !clientID}
+                        flex={1}
+                        height="48px"
+                        bg="brand.lightGray"
+                        color="brand.navy"
+                        border="none"
+                        borderRadius="12px"
+                        fontSize="md"
+                        px={4}
+                        _placeholder={{
+                            color: 'rgba(51, 68, 121, 0.5)',
+                        }}
+                        _focus={{
+                            bg: 'rgba(236, 238, 245, 0.8)',
+                            boxShadow: '0 0 0 2px rgba(51, 68, 121, 0.2)',
+                        }}
+                        _disabled={{
+                            opacity: 0.6,
+                            cursor: 'not-allowed',
+                        }}
+                        transition="all 0.2s ease"
+                    />
+                    <IconButton
+                        icon={<IoIosSend size={28} />}
+                        onClick={handleSendMessage}
+                        aria-label="Send Message"
+                        disabled={!username && !clientID}
+                        size="lg"
+                        height="48px"
+                        width="48px"
+                        bg="brand.green"
+                        color="white"
+                        border="none"
+                        borderRadius="12px"
+                        _hover={{
+                            bg: 'brand.green',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 4px 12px rgba(54, 163, 123, 0.4)',
+                        }}
+                        _active={{
+                            transform: 'translateY(0)',
+                        }}
+                        _disabled={{
+                            opacity: 0.5,
+                            cursor: 'not-allowed',
+                        }}
+                        transition="all 0.2s ease"
+                    />
+                </Flex>
             </Box>
         </Flex>
     );

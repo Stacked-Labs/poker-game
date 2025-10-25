@@ -10,18 +10,38 @@ import {
     Text,
     Tooltip,
     useClipboard,
+    Icon,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { ReactElement } from 'react';
-import { FaDiscord, FaCopy } from 'react-icons/fa';
+import { FaDiscord, FaCopy, FaCheck } from 'react-icons/fa';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { SiFarcaster } from 'react-icons/si';
-// removed CopyLinkButton; inlining copy logic
 
 const pulse = keyframes`
-  0% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.2); opacity: 0.3; }
-  100% { transform: scale(1); opacity: 0.8; }
+  0% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+  50% { 
+    transform: scale(1.15); 
+    opacity: 0.7; 
+  }
+  100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+`;
+
+const fadeIn = keyframes`
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 `;
 
 const LinkBox = () => {
@@ -30,16 +50,39 @@ const LinkBox = () => {
     const { hasCopied, onCopy } = useClipboard(currentUrl || '');
 
     return (
-        <Flex width={'80%'} borderRadius={'xl'} overflow="hidden">
-            <Box width={'85%'} bg={'whitesmoke'} alignContent={'center'}>
+        <Flex
+            width="85%"
+            maxW="380px"
+            borderRadius="12px"
+            overflow="hidden"
+            boxShadow="0 2px 12px rgba(0, 0, 0, 0.08)"
+            border="2px solid"
+            borderColor="brand.green"
+            transition="all 0.3s ease"
+            _hover={{
+                boxShadow: '0 4px 16px rgba(54, 163, 123, 0.3)',
+                transform: 'translateY(-2px)',
+            }}
+        >
+            <Box
+                flex={1}
+                bg="white"
+                display="flex"
+                alignItems="center"
+                px={2.5}
+                py={2}
+            >
                 <Input
                     value={currentUrl}
                     isReadOnly
                     border="none"
                     bg="transparent"
-                    color="gray.600"
-                    fontSize="smaller"
-                    p={3}
+                    color="brand.navy"
+                    fontSize="xs"
+                    fontWeight="medium"
+                    p={0}
+                    height="auto"
+                    minH="0"
                     _focus={{
                         outline: 'none',
                         boxShadow: 'none',
@@ -47,46 +90,66 @@ const LinkBox = () => {
                     cursor="text"
                 />
             </Box>
-            <Box
-                width={'15%'}
-                bg={'green.500'}
-                _hover={{
-                    bg: 'green.400',
-                }}
+            <Tooltip
+                label={hasCopied ? 'Copied!' : 'Copy Link'}
+                closeOnClick={false}
             >
-                <Tooltip
-                    label={hasCopied ? 'Copied!' : 'Copy to clipboard'}
-                    closeOnClick={false}
-                    height={'100%'}
+                <Flex
+                    onClick={onCopy}
+                    minW="44px"
+                    py={1.5}
+                    bg={hasCopied ? 'brand.green' : 'brand.green'}
+                    cursor="pointer"
+                    justifyContent="center"
+                    alignItems="center"
+                    color="white"
+                    transition="all 0.2s ease"
+                    _hover={{
+                        bg: 'brand.green',
+                        transform: 'scale(1.05)',
+                    }}
+                    _active={{
+                        transform: 'scale(0.95)',
+                    }}
                 >
-                    <Flex
-                        onClick={onCopy}
-                        height={'100%'}
-                        cursor={'pointer'}
-                        justifyContent={'center'}
-                        alignItems={'center'}
-                        color="white"
-                        _hover={{ color: 'lightgrey' }}
-                    >
-                        <FaCopy />
-                    </Flex>
-                </Tooltip>
-            </Box>
+                    <Icon
+                        as={hasCopied ? FaCheck : FaCopy}
+                        boxSize={3.5}
+                        transition="all 0.2s ease"
+                    />
+                </Flex>
+            </Tooltip>
         </Flex>
     );
 };
 
-const SocialButton = ({ icon }: { icon: ReactElement }) => {
+const SocialButton = ({
+    icon,
+    label,
+    color,
+    rotation = '5deg',
+}: {
+    icon: ReactElement;
+    label: string;
+    color: string;
+    rotation?: string;
+}) => {
     return (
         <IconButton
-            aria-label="Discord"
-            variant="social"
+            aria-label={label}
             icon={icon}
-            color={'white'}
-            size="2xl"
-            transition="transform 0.2s"
-            _hover={{ transform: 'scale(1.1)' }}
-            height={5}
+            size={{ base: 'md', md: 'lg' }}
+            bg="brand.lightGray"
+            color={color}
+            border="none"
+            borderRadius={{ base: '10px', md: '12px' }}
+            transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+            _hover={{
+                bg: color,
+                color: 'white',
+                transform: `translateY(-4px) rotate(${rotation})`,
+                boxShadow: `0 8px 16px ${color}40`,
+            }}
         />
     );
 };
@@ -94,59 +157,121 @@ const SocialButton = ({ icon }: { icon: ReactElement }) => {
 const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
     return (
         <ModalContent
-            bg="rgba(38, 38, 38, 0.9)"
-            borderRadius="2xl"
+            bg="white"
+            borderRadius={{ base: '20px', md: '24px' }}
             overflow="hidden"
-            boxShadow="none"
+            boxShadow="0 20px 60px rgba(0, 0, 0, 0.25)"
+            border="1px solid"
+            borderColor="rgba(0, 0, 0, 0.08)"
             display="flex"
             flexDirection="column"
+            animation={`${fadeIn} 0.4s ease-out`}
+            maxW="420px"
+            mx={{ base: 3, md: 0 }}
         >
+            {/* Header */}
             <Flex
                 justifyContent="space-between"
                 alignItems="center"
-                py={2}
-                px={4}
-                color="white"
+                py={{ base: 3, md: 4 }}
+                px={{ base: 4, md: 5 }}
+                bg="brand.lightGray"
+                borderBottom="1px solid"
+                borderColor="rgba(0, 0, 0, 0.08)"
             >
-                <Stack gap={0}>
-                    <Text fontWeight={'extrabold'} p={0}>
+                <Stack gap={1}>
+                    <Text
+                        fontWeight="extrabold"
+                        fontSize="xl"
+                        color="brand.navy"
+                        fontFamily="heading"
+                    >
                         Lobby
                     </Text>
-                    <Flex gap={1} alignItems={'center'}>
+                    <Flex gap={2} alignItems="center">
                         <Box
-                            height={1.5}
-                            width={1.5}
-                            bg={'white'}
-                            borderRadius={'full'}
+                            height={2}
+                            width={2}
+                            bg="brand.green"
+                            borderRadius="full"
                             animation={`${pulse} 2s ease-in-out infinite`}
+                            boxShadow="0 0 8px rgba(54, 163, 123, 0.6)"
                         />
-                        <Text fontSize={'sm'} color={'whiteAlpha.700'}>
+                        <Text
+                            fontSize="sm"
+                            color="brand.navy"
+                            fontWeight="medium"
+                            opacity={0.7}
+                        >
                             Waiting for players
                         </Text>
                     </Flex>
                 </Stack>
-                <CloseButton onClick={onClose} fontWeight={'bolder'} />
+                <CloseButton
+                    onClick={onClose}
+                    color="brand.navy"
+                    borderRadius="8px"
+                    _hover={{
+                        bg: 'rgba(51, 68, 121, 0.1)',
+                    }}
+                />
             </Flex>
+
+            {/* Content */}
             <Stack
-                py={2}
-                gap={5}
+                py={{ base: 3, md: 4 }}
+                px={{ base: 4, md: 5 }}
+                gap={{ base: 3, md: 4 }}
                 overflow="auto"
                 flex={1}
                 minHeight={0}
-                alignItems={'center'}
+                alignItems="center"
+                bg="white"
             >
                 <LinkBox />
-                <Flex gap={5} alignItems="center">
+
+                {/* Social Buttons */}
+                <Flex
+                    gap={{ base: 3, md: 4 }}
+                    alignItems="center"
+                    justifyContent="center"
+                >
                     <Link href="https://x.com/stacked_poker" isExternal>
-                        <SocialButton icon={<RiTwitterXLine />} />
+                        <SocialButton
+                            icon={<RiTwitterXLine size={20} />}
+                            label="X (Twitter)"
+                            color="#000000"
+                            rotation="5deg"
+                        />
                     </Link>
                     <Link href="https://discord.gg/896EhkVYbd" isExternal>
-                        <SocialButton icon={<FaDiscord />} />
+                        <SocialButton
+                            icon={<FaDiscord size={20} />}
+                            label="Discord"
+                            color="#5865F2"
+                            rotation="-5deg"
+                        />
                     </Link>
                     <Link href="https://warpcast.com/stackedpoker" isExternal>
-                        <SocialButton icon={<SiFarcaster />} />
+                        <SocialButton
+                            icon={<SiFarcaster size={20} />}
+                            label="Farcaster"
+                            color="#855DCD"
+                            rotation="5deg"
+                        />
                     </Link>
                 </Flex>
+
+                {/* Hint Text */}
+                <Text
+                    fontSize="xs"
+                    color="brand.navy"
+                    opacity={0.6}
+                    textAlign="center"
+                    maxW="300px"
+                >
+                    Share the link above to invite players to your table
+                </Text>
             </Stack>
         </ModalContent>
     );

@@ -39,15 +39,18 @@ const HomePage: React.FC = () => {
             {/* CoinGecko price marquee placed directly under the navbar */}
             <Box
                 width="100%"
-                bgColor={'gray.200'}
+                bgColor="brand.lightGray"
                 display="flex"
                 justifyContent="center"
                 position="fixed"
-                top="80px"
+                top={{ base: '68px', md: '76px' }}
                 left={0}
                 zIndex={98}
+                borderBottom="1px solid"
+                borderColor="rgba(235, 11, 92, 0.2)"
+                boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
                 dangerouslySetInnerHTML={{
-                    __html: `<gecko-coin-price-marquee-widget dark-mode="true" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
+                    __html: `<gecko-coin-price-marquee-widget dark-mode="false" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
                 }}
             />
             <Box w="100vw" bgColor={'gray.200'}>

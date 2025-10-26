@@ -29,11 +29,11 @@ const rankMap: { [key: string]: string } = {
     A: 'A',
 };
 
-// Suit symbols and colors
+// Suit symbols and colors - Saturated for better visibility
 const suitConfig = {
     C: { symbol: '♣', color: '#000000' }, // Clubs - Black
-    D: { symbol: '♦', color: '#FF0000' }, // Diamonds - Red
-    H: { symbol: '♥', color: '#FF0000' }, // Hearts - Red
+    D: { symbol: '♦', color: '#DC143C' }, // Diamonds - Crimson Red (more saturated)
+    H: { symbol: '♥', color: '#DC143C' }, // Hearts - Crimson Red (more saturated)
     S: { symbol: '♠', color: '#000000' }, // Spades - Black
 };
 
@@ -105,7 +105,7 @@ const SVGCardFace = ({
                             ? 'brightness(50%)'
                             : '',
                         highlighted
-                            ? 'drop-shadow(0 0 2px rgba(255, 215, 0, 1))'
+                            ? 'drop-shadow(0 0 3px rgba(253, 197, 29, 1)) drop-shadow(0 0 6px rgba(253, 197, 29, 0.6))'
                             : '',
                     ]
                         .filter(Boolean)
@@ -117,11 +117,11 @@ const SVGCardFace = ({
             <rect
                 width="24"
                 height="32"
-                rx="2"
-                ry="2"
+                rx="2.5"
+                ry="2.5"
                 fill="#FFFFFF"
-                stroke={highlighted ? '#FFD700' : '#000000'}
-                strokeWidth={'0.5'}
+                stroke={highlighted ? '#FDC51D' : '#334479'}
+                strokeWidth={highlighted ? '0.75' : '0.5'}
             />
 
             {/* Top left rank and suit - vertically aligned and compact */}
@@ -129,9 +129,9 @@ const SVGCardFace = ({
                 x="3"
                 y="8"
                 fontSize="8"
-                fontWeight="bold"
-                fill={isRed ? '#FF0000' : '#000000'}
-                fontFamily="Arial, sans-serif"
+                fontWeight="800"
+                fill={isRed ? '#DC143C' : '#000000'}
+                fontFamily="'Geist Sans', 'Poppins', sans-serif"
             >
                 {rank}
             </text>
@@ -182,7 +182,7 @@ const CardBack = ({
                 [
                     folded || (dimmed && !highlighted) ? 'brightness(50%)' : '',
                     highlighted
-                        ? 'drop-shadow(0 0 4px rgba(255, 215, 0, 1))'
+                        ? 'drop-shadow(0 0 3px rgba(253, 197, 29, 1)) drop-shadow(0 0 6px rgba(253, 197, 29, 0.6))'
                         : '',
                 ]
                     .filter(Boolean)
@@ -190,30 +190,30 @@ const CardBack = ({
                     .trim() || 'none',
         }}
     >
-        {/* Card background - darkish red */}
+        {/* Card background - brand dark navy */}
         <rect
             width="24"
             height="32"
-            rx="2"
-            ry="2"
-            fill="#8B0000"
-            stroke={highlighted ? '#FFD700' : '#000000'}
-            strokeWidth={'0.5'}
+            rx="2.5"
+            ry="2.5"
+            fill="#0B1430"
+            stroke={highlighted ? '#FDC51D' : '#334479'}
+            strokeWidth={highlighted ? '0.75' : '0.5'}
         />
 
-        {/* Card back pattern - darker red overlay */}
+        {/* Card back pattern - navy overlay for depth */}
         <rect
             x="2"
             y="2"
             width="20"
             height="28"
-            rx="1"
-            ry="1"
-            fill="#660000"
-            opacity="0.4"
+            rx="1.5"
+            ry="1.5"
+            fill="#334479"
+            opacity="0.3"
         />
 
-        {/* Texture pattern - diagonal lines */}
+        {/* Texture pattern - diagonal lines with brand colors */}
         <defs>
             <pattern
                 id="cardTexture"
@@ -226,18 +226,18 @@ const CardBack = ({
                     y1="0"
                     x2="4"
                     y2="4"
-                    stroke="#A52A2A"
+                    stroke="#36A37B"
                     strokeWidth="0.5"
-                    opacity="0.3"
+                    opacity="0.15"
                 />
                 <line
                     x1="4"
                     y1="0"
                     x2="0"
                     y2="4"
-                    stroke="#A52A2A"
+                    stroke="#EB0B5C"
                     strokeWidth="0.5"
-                    opacity="0.3"
+                    opacity="0.15"
                 />
             </pattern>
         </defs>
@@ -248,22 +248,23 @@ const CardBack = ({
             y="2"
             width="20"
             height="28"
-            rx="1"
-            ry="1"
+            rx="1.5"
+            ry="1.5"
             fill="url(#cardTexture)"
         />
 
-        {/* Brand name "Stacked" woven into the texture */}
+        {/* Brand name "STACKED" - smaller with brand light gray */}
         <text
             x="12"
             y="16"
             fontSize="3"
-            fill="#FFFFFF"
-            fontFamily="Arial, sans-serif"
+            fill="#ECEEF5"
+            fontFamily="'Geist Sans', 'Poppins', sans-serif"
             textAnchor="middle"
             dominantBaseline="middle"
-            opacity="1"
-            fontWeight="bold"
+            opacity="0.9"
+            fontWeight="800"
+            letterSpacing="0.5"
         >
             STACKED
         </text>
@@ -274,12 +275,12 @@ const CardBack = ({
             y="2.75"
             width="18.5"
             height="26.5"
-            rx="1"
-            ry="1"
+            rx="1.5"
+            ry="1.5"
             fill="none"
-            stroke="#5a0000"
+            stroke="#334479"
             strokeWidth="0.5"
-            opacity="0.6"
+            opacity="0.4"
         />
     </svg>
 );

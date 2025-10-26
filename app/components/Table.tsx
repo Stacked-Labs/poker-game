@@ -120,6 +120,13 @@ const Table = () => {
         top: 0,
         left: 0,
     });
+    const [isGridReady, setIsGridReady] = useState(false);
+
+    useEffect(() => {
+        if (imageDimensions.width > 0 && imageDimensions.height > 0) {
+            setIsGridReady(true);
+        }
+    }, [imageDimensions.height, imageDimensions.width]);
 
     // Track actual rendered image dimensions
     useEffect(() => {
@@ -322,93 +329,112 @@ const Table = () => {
                     }}
                 />
             </Box>
-            <Grid
-                className="table-grid"
-                p={1}
-                position={'absolute'}
-                width={
-                    imageDimensions.width
-                        ? `${imageDimensions.width}px`
-                        : '100%'
-                }
-                height={
-                    imageDimensions.height
-                        ? `${imageDimensions.height}px`
-                        : '100%'
-                }
-                top={imageDimensions.top ? `${imageDimensions.top}px` : 0}
-                left={imageDimensions.left ? `${imageDimensions.left}px` : 0}
-                templateAreas={templateGridLarge}
-                gridTemplateRows={'repeat(4, minmax(0, 1fr))'}
-                gridTemplateColumns={'repeat(5, 1fr)'}
-                sx={{
-                    '@media (orientation: portrait)': {
-                        gridTemplateAreas: templateGridSmall,
-                        gridTemplateRows: 'repeat(7, minmax(0, 1fr))',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                    },
-                }}
-                gap={{ base: 2, md: 2, lg: 4 }}
-                placeItems="center"
-                justifyContent={'center'}
-            >
-                {players &&
-                    seatIndices.map(({ id, value }) => {
-                        const player: Player | null = players[value - 1];
-                        return (
-                            <GridItem
-                                key={value}
-                                className={`seat seat-${value}`}
-                                area={id}
-                                display={'flex'}
-                                justifyContent={'center'}
-                                alignItems={'center'}
-                                sx={{
-                                    '@media (orientation: portrait)': {
-                                        alignItems:
-                                            value === 1
-                                                ? 'end'
-                                                : value === 10
-                                                  ? 'top'
-                                                  : 'center',
-                                    },
-                                }}
-                                width={'100%'}
-                                height={'100%'}
-                            >
-                                {player && player !== null ? (
-                                    <TakenSeatButton
-                                        player={player}
-                                        isCurrentTurn={isPlayerTurn(player)}
-                                        isWinner={isPlayerWinner(player)}
-                                        isRevealed={isPlayerRevealed(player)}
-                                        winnings={getPlayerWinnings(player)}
-                                    />
-                                ) : (
-                                    <EmptySeatButton
-                                        seatId={value}
-                                        disabled={
-                                            appState.game?.players?.some(
-                                                (player) =>
-                                                    player.uuid ===
-                                                    appState.clientID
-                                            ) || appState.seatRequested != null
-                                        }
-                                    />
-                                )}
-                            </GridItem>
-                        );
-                    })}
-                <GridItem
-                    height={{ base: '100%', md: '70%', lg: '60%' }}
-                    width={'80%'}
-                    area={'felt'}
-                    className="grid-felt"
+            {!isGridReady && (
+                <Box
+                    position="absolute"
+                    width="70vw"
+                    maxWidth="100%"
+                    aspectRatio={{ base: '3 / 4', md: '4 / 3', lg: '16 / 9' }}
+                    bg="transparent"
+                />
+            )}
+            {isGridReady && (
+                <Grid
+                    className="table-grid"
+                    p={1}
+                    position={'absolute'}
+                    width={
+                        imageDimensions.width
+                            ? `${imageDimensions.width}px`
+                            : '100%'
+                    }
+                    height={
+                        imageDimensions.height
+                            ? `${imageDimensions.height}px`
+                            : '100%'
+                    }
+                    top={imageDimensions.top ? `${imageDimensions.top}px` : 0}
+                    left={
+                        imageDimensions.left ? `${imageDimensions.left}px` : 0
+                    }
+                    templateAreas={templateGridLarge}
+                    gridTemplateRows={'repeat(4, minmax(0, 1fr))'}
+                    gridTemplateColumns={'repeat(5, 1fr)'}
+                    sx={{
+                        '@media (orientation: portrait)': {
+                            gridTemplateAreas: templateGridSmall,
+                            gridTemplateRows: 'repeat(7, minmax(0, 1fr))',
+                            gridTemplateColumns: 'repeat(3, 1fr)',
+                        },
+                    }}
+                    gap={{ base: 2, md: 2, lg: 4 }}
+                    placeItems="center"
                     justifyContent={'center'}
+                    opacity={isGridReady ? 1 : 0}
+                    pointerEvents={isGridReady ? 'auto' : 'none'}
+                    transition="opacity 0.2s ease-in-out"
                 >
-                    <Felt />
-                </GridItem>
-            </Grid>
+                    {players &&
+                        seatIndices.map(({ id, value }) => {
+                            const player: Player | null = players[value - 1];
+                            return (
+                                <GridItem
+                                    key={value}
+                                    className={`seat seat-${value}`}
+                                    area={id}
+                                    display={'flex'}
+                                    justifyContent={'center'}
+                                    alignItems={'center'}
+                                    sx={{
+                                        '@media (orientation: portrait)': {
+                                            alignItems:
+                                                value === 1
+                                                    ? 'end'
+                                                    : value === 10
+                                                      ? 'top'
+                                                      : 'center',
+                                        },
+                                    }}
+                                    width={'100%'}
+                                    height={'100%'}
+                                >
+                                    {player && player !== null ? (
+                                        <TakenSeatButton
+                                            player={player}
+                                            isCurrentTurn={isPlayerTurn(player)}
+                                            isWinner={isPlayerWinner(player)}
+                                            isRevealed={isPlayerRevealed(
+                                                player
+                                            )}
+                                            winnings={getPlayerWinnings(player)}
+                                        />
+                                    ) : (
+                                        <EmptySeatButton
+                                            seatId={value}
+                                            disabled={
+                                                appState.game?.players?.some(
+                                                    (player) =>
+                                                        player.uuid ===
+                                                        appState.clientID
+                                                ) ||
+                                                appState.seatRequested != null
+                                            }
+                                        />
+                                    )}
+                                </GridItem>
+                            );
+                        })}
+                    <GridItem
+                        height={{ base: '100%', md: '70%', lg: '60%' }}
+                        width={'80%'}
+                        area={'felt'}
+                        className="grid-felt"
+                        justifyContent={'center'}
+                    >
+                        <Felt />
+                    </GridItem>
+                </Grid>
+            )}
         </Flex>
     );
 };

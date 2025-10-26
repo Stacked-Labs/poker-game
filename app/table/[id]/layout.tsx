@@ -27,11 +27,6 @@ const float2 = keyframes`
     66% { transform: translateY(-10px) translateX(15px); }
 `;
 
-const pulse = keyframes`
-    0%, 100% { opacity: 0.15; }
-    50% { opacity: 0.25; }
-`;
-
 const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
     params,

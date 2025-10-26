@@ -186,6 +186,7 @@ const RaiseInputBox = ({
             alignItems={'center'}
             color={'white'}
             className="raise-input-box"
+            zIndex={10}
         >
             {/* ======= MOBILE / TABLET LAYOUT (≤ lg) ======= */}
             <Flex
@@ -294,7 +295,7 @@ const RaiseInputBox = ({
                 <Flex gap={2} width="100%" className="raise-actions-row">
                     {/* Amount */}
                     <Box
-                        bg={'charcoal.800'}
+                        bg={'brand.darkNavy'}
                         rounded={'lg'}
                         flex={1}
                         p={1}
@@ -304,9 +305,11 @@ const RaiseInputBox = ({
                         alignItems="center"
                         minH={{ base: '36px', sm: '40px' }}
                         maxH={{ base: '44px', sm: '48px' }}
+                        border="2px solid"
+                        borderColor="brand.navy"
                     >
                         <Input
-                            bg={'charcoal.600'}
+                            bg={'brand.navy'}
                             border={'none'}
                             fontSize={{ base: '13px', sm: '14px' }}
                             size={'sm'}
@@ -317,10 +320,12 @@ const RaiseInputBox = ({
                             min={minRaise}
                             max={maxRaise}
                             onChange={handleInputChange}
-                            focusBorderColor={'gray.300'}
+                            focusBorderColor={'brand.green'}
                             textAlign={'center'}
                             onBlur={handleInputOnBlur}
                             py={{ base: 1, sm: 1.5 }}
+                            color="white"
+                            fontWeight="bold"
                         />
                     </Box>
 
@@ -368,17 +373,20 @@ const RaiseInputBox = ({
                     width={{ base: '60px', sm: '70px' }}
                     display={{ base: 'flex', lg: 'none' }}
                     flexDirection="column"
-                    bg={'charcoal.600'}
+                    bg={'brand.navy'}
                     rounded={'lg'}
                     overflow={'hidden'}
                     zIndex={20}
+                    border="2px solid"
+                    borderColor="brand.darkNavy"
                     className="raise-vertical-slider"
                 >
                     <Flex
-                        bg={'charcoal.400'}
+                        bg={'brand.darkNavy'}
                         p={1}
                         alignItems="center"
                         justifyContent="center"
+                        color="white"
                     >
                         <LuPlus />
                     </Flex>
@@ -392,17 +400,19 @@ const RaiseInputBox = ({
                         min={minRaise}
                         onChange={handleSliderChange}
                         isDisabled={!isCurrentTurn || gameIsPaused}
+                        colorScheme="green"
                     >
-                        <SliderTrack>
-                            <SliderFilledTrack />
+                        <SliderTrack bg="brand.darkNavy">
+                            <SliderFilledTrack bg="brand.green" />
                         </SliderTrack>
-                        <SliderThumb />
+                        <SliderThumb borderColor="brand.green" />
                     </Slider>
                     <Flex
-                        bg={'charcoal.400'}
+                        bg={'brand.darkNavy'}
                         p={1}
                         alignItems="center"
                         justifyContent="center"
+                        color="white"
                     >
                         <LuMinus />
                     </Flex>
@@ -420,13 +430,15 @@ const RaiseInputBox = ({
             >
                 <Flex gap={2} justifyContent={{ base: 'end' }}>
                     <Box
-                        bg={'charcoal.800'}
+                        bg={'brand.darkNavy'}
                         width={'fit-content'}
                         textAlign={'center'}
                         rounded={'lg'}
                         px={1}
                         flex={1}
                         height={'100%'}
+                        border="2px solid"
+                        borderColor="brand.navy"
                         className="raise-bet-container"
                     >
                         <Text
@@ -434,12 +446,15 @@ const RaiseInputBox = ({
                             p={1}
                             fontSize={{ base: 'xs', md: 'sm' }}
                             display={{ base: 'none', md: 'block' }}
+                            color="white"
+                            fontWeight="semibold"
                         >
                             Your Bet
                         </Text>
                         <Input
-                            bg={'charcoal.600'}
-                            border={'white'}
+                            bg={'brand.navy'}
+                            border={'2px solid'}
+                            borderColor="brand.green"
                             fontSize={{ base: 'xs', md: 'xl' }}
                             mb={1}
                             size={{ base: 'xs', md: 'md' }}
@@ -448,9 +463,11 @@ const RaiseInputBox = ({
                             min={minRaise}
                             max={maxRaise}
                             onChange={handleInputChange}
-                            focusBorderColor={'gray.300'}
+                            focusBorderColor={'brand.green'}
                             textAlign={'center'}
                             onBlur={handleInputOnBlur}
+                            color="white"
+                            fontWeight="bold"
                             className="raise-bet-input"
                         />
                     </Box>
@@ -460,12 +477,14 @@ const RaiseInputBox = ({
                 </Flex>
                 <Flex
                     flexDirection={'column'}
-                    bg={'charcoal.800'}
+                    bg={'brand.darkNavy'}
                     rounded={'lg'}
                     flex={1}
                     justifyContent={'center'}
                     overflow={'hidden'}
                     maxW={'95vw'}
+                    border="2px solid"
+                    borderColor="brand.navy"
                     className="raise-slider-container"
                 >
                     <Flex flex={1} gap={2} p={2}>
@@ -548,15 +567,16 @@ const RaiseInputBox = ({
                     <Flex
                         alignItems={'center'}
                         flex={1}
-                        bg={'charcoal.600'}
+                        bg={'brand.navy'}
                         roundedBottom={'lg'}
                         overflow={'hidden'}
                     >
                         <Flex
-                            bg={'charcoal.400'}
+                            bg={'brand.darkNavy'}
                             height={'100%'}
                             alignItems={'center'}
                             p={1}
+                            color="white"
                         >
                             <LuMinus />
                         </Flex>
@@ -571,17 +591,19 @@ const RaiseInputBox = ({
                                 handleSliderChange(value)
                             }
                             isDisabled={!isCurrentTurn || gameIsPaused}
+                            colorScheme="green"
                         >
-                            <SliderTrack>
-                                <SliderFilledTrack />
+                            <SliderTrack bg="brand.darkNavy">
+                                <SliderFilledTrack bg="brand.green" />
                             </SliderTrack>
-                            <SliderThumb />
+                            <SliderThumb borderColor="brand.green" />
                         </Slider>
                         <Flex
-                            bg={'charcoal.400'}
+                            bg={'brand.darkNavy'}
                             height={'100%'}
                             alignItems={'center'}
                             p={1}
+                            color="white"
                         >
                             <LuPlus />
                         </Flex>

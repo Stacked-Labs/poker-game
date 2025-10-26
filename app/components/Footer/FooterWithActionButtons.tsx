@@ -153,6 +153,7 @@ const FooterWithActionButtons = ({
                 height={{ base: '80px', md: '80px' }}
                 overflow={'visible'}
                 alignItems={'center'}
+                zIndex={1}
             >
                 {showRaise && isCurrentTurn ? (
                     <RaiseInputBox
@@ -162,6 +163,13 @@ const FooterWithActionButtons = ({
                     />
                 ) : (
                     <>
+                        <ActionButton
+                            text={'Raise'}
+                            color="green"
+                            clickHandler={() => setShowRaise(true)}
+                            isDisabled={!isCurrentTurn || gameIsPaused}
+                            hotkey={HOTKEY_RAISE}
+                        />
                         {isCurrentTurn && !canCall && !gameIsPaused && (
                             <ActionButton
                                 text={'Call (' + callAmount + ')'}
@@ -173,13 +181,6 @@ const FooterWithActionButtons = ({
                                 hotkey={HOTKEY_CALL}
                             />
                         )}
-                        <ActionButton
-                            text={'Raise'}
-                            color="green"
-                            clickHandler={() => setShowRaise(true)}
-                            isDisabled={!isCurrentTurn || gameIsPaused}
-                            hotkey={HOTKEY_RAISE}
-                        />
                         {isCurrentTurn && canCheck && !gameIsPaused && (
                             <ActionButton
                                 text={'Check'}

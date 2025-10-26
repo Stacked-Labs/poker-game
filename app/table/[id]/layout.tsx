@@ -3,15 +3,29 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import Navbar from '@/app/components/NavBar';
-import { Flex, Modal, Text, useDisclosure } from '@chakra-ui/react';
+import { Flex, Modal, Text, useDisclosure, Box } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
 import LandscapeScreen from '@/app/components/LandscapeScreen';
 import { AnimatePresence, motion } from 'framer-motion';
+import { keyframes } from '@emotion/react';
 
 const MotionFlex = motion(Flex);
 const MotionText = motion(Text);
+
+// Animations
+const float = keyframes`
+    0%, 100% { transform: translateY(0px) translateX(0px); }
+    33% { transform: translateY(-15px) translateX(10px); }
+    66% { transform: translateY(10px) translateX(-15px); }
+`;
+
+const float2 = keyframes`
+    0%, 100% { transform: translateY(0px) translateX(0px); }
+    33% { transform: translateY(12px) translateX(-12px); }
+    66% { transform: translateY(-10px) translateX(15px); }
+`;
 
 const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
@@ -93,21 +107,82 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                 h="var(--full-vh)"
                 zIndex="auto"
                 transformOrigin="center center"
-                bg={'gray.200'}
+                bg="brand.lightGray"
                 filter={loading ? 'blur(3px)' : 'none'}
-                transition={'0.5s ease-in-out'}
+                transition="0.5s ease-in-out"
+                position="relative"
+                overflow="hidden"
             >
-                <SocketProvider tableId={params.id}>
-                    <Navbar isLoading={loading} />
-                    {children}
-                    <Footer />
-                </SocketProvider>
+                {/* Animated Background Glow Elements */}
+                <Box
+                    position="absolute"
+                    width="600px"
+                    height="600px"
+                    borderRadius="50%"
+                    bg="brand.pink"
+                    filter="blur(150px)"
+                    opacity={0.12}
+                    animation={`${float} 20s ease-in-out infinite`}
+                    top="10%"
+                    left="15%"
+                    zIndex={0}
+                    pointerEvents="none"
+                />
+                <Box
+                    position="absolute"
+                    width="500px"
+                    height="500px"
+                    borderRadius="50%"
+                    bg="brand.green"
+                    filter="blur(140px)"
+                    opacity={0.1}
+                    animation={`${float2} 25s ease-in-out infinite`}
+                    bottom="20%"
+                    right="10%"
+                    zIndex={0}
+                    pointerEvents="none"
+                />
+                <Box
+                    position="absolute"
+                    width="450px"
+                    height="450px"
+                    borderRadius="50%"
+                    bg="brand.yellow"
+                    filter="blur(130px)"
+                    opacity={0.08}
+                    animation={`${float} 22s ease-in-out infinite 5s`}
+                    top="40%"
+                    right="25%"
+                    zIndex={0}
+                    pointerEvents="none"
+                />
 
-                <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
-                    <LobbyBanner onClose={onClose} />
-                </Modal>
+                {/* Content Layer */}
+                <Box
+                    position="relative"
+                    zIndex={1}
+                    width="100%"
+                    height="100%"
+                    display="flex"
+                    flexDirection="column"
+                >
+                    <SocketProvider tableId={params.id}>
+                        <Navbar isLoading={loading} />
+                        {children}
+                        <Footer />
+                    </SocketProvider>
 
-                <LandscapeScreen />
+                    <Modal
+                        isOpen={isOpen}
+                        onClose={onClose}
+                        isCentered
+                        size={'xs'}
+                    >
+                        <LobbyBanner onClose={onClose} />
+                    </Modal>
+
+                    <LandscapeScreen />
+                </Box>
             </Flex>
         </>
     );

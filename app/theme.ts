@@ -1,161 +1,187 @@
 import { extendTheme } from '@chakra-ui/react';
 
+// ============================================
+// 1. BREAKPOINTS
+// ============================================
 const breakpoints = {
-    sm: '30em',
-    md: '48em',
-    lg: '62em',
-    xl: '80em',
-    '2xl': '96em',
+    sm: '30em', // 480px
+    md: '48em', // 768px
+    lg: '62em', // 992px
+    xl: '80em', // 1280px
+    '2xl': '96em', // 1536px
 };
 
-const tokens = {
-    colors: {
-        light: {
-            'bg-default':
-                'linear-gradient(to top, #323232 30%, rgba(0, 0, 0, 0.9))',
-            'fg-default': '#000000',
-            'text-primary': '#ffffff',
-            'text-secondary': '#ffffff',
-            'text-tertiary': 'black',
-            'btn-border': '#ffffff',
-            'btn-selected': '#c6c6c6',
-            'btn-hover': '#424242',
-            'btn-empty': 'transparent',
-            'btn-dark': '#101010',
-            charcoal: '#171717',
-            'gray.50': '#212121', // Lightest gray
-            'gray.100': '#191414',
-            'gray.200': '#121212', // Darkest gray
-            'green.50': '#1ed760', // Lighter green
-            'green.100': '#1db954',
-            'red.100': '#eb4034',
-        },
-
-        dark: {
-            'bg-default':
-                'linear-gradient(to top, #323232 20%, rgba(0, 0, 0, 0.9))',
-            'fg-default': '#000000',
-            'text-primary': '#ffffff',
-            'text-secondary': '#ffffff',
-            'text-tertiary': 'black',
-            'btn-border': '#ffffff',
-            'btn-selected': '#c6c6c6',
-            'btn-hover': '#424242',
-            'btn-empty': 'transparent',
-            'btn-dark': 'black',
-            'gray.50': '#212121', // Lightest gray
-            'gray.100': '#191414',
-            'gray.200': '#121212', // Darkest gray
-            'green.50': '#1ed760', // Lighter green
-            'green.100': '#1db954', // Darker green
-            'red.100': '#eb4034',
-            charcoal: '#171717',
-        },
-        // Add shadows here
+// ============================================
+// 2. COLORS
+// ============================================
+const colors = {
+    // Legacy charcoal colors (consider migrating to brand colors)
+    charcoal: {
+        400: '#363535',
+        600: '#363535',
+        800: '#262626',
+    },
+    // New brand colors
+    brand: {
+        navy: '#334479',
+        darkNavy: '#0B1430',
+        lightGray: '#ECEEF5',
+        pink: '#EB0B5C',
+        green: '#36A37B',
+        yellow: '#FDC51D',
+    },
+    // Legacy colors (consider migrating)
+    legacy: {
+        grayDarkest: '#121212',
+        grayDark: '#191414',
+        grayLight: '#212121',
+        greenLight: '#1ed760',
+        greenDark: '#1db954',
+        red: '#eb4034',
+        btnHover: '#424242',
+        btnSelected: '#c6c6c6',
     },
 };
 
-const colors = {
-    'charcoal.800': '#262626',
-    'charcoal.600': '#363535',
-    'charcoal.400': '#363535',
-};
-
+// ============================================
+// 3. SEMANTIC TOKENS (for light/dark mode)
+// ============================================
 const semanticTokens = {
     colors: {
+        // Background colors
+        'bg.default': {
+            default: 'linear-gradient(to top, #323232 30%, rgba(0, 0, 0, 0.9))',
+            _dark: 'linear-gradient(to top, #323232 20%, rgba(0, 0, 0, 0.9))',
+        },
+        'bg.surface': {
+            default: 'legacy.grayDark',
+            _dark: 'legacy.grayDarkest',
+        },
+        'bg.charcoal': {
+            default: '#171717',
+            _dark: '#171717',
+        },
+
+        // Text colors
+        'text.primary': {
+            default: '#ffffff',
+            _dark: '#ffffff',
+        },
+        'text.secondary': {
+            default: '#ffffff',
+            _dark: '#ffffff',
+        },
+        'text.tertiary': {
+            default: 'black',
+            _dark: 'black',
+        },
+
+        // Button states
+        'btn.border': {
+            default: '#ffffff',
+            _dark: '#ffffff',
+        },
+        'btn.selected': {
+            default: 'legacy.btnSelected',
+            _dark: 'legacy.btnSelected',
+        },
+        'btn.hover': {
+            default: 'legacy.btnHover',
+            _dark: 'legacy.btnHover',
+        },
+
+        // Legacy semantic colors (used throughout app)
         'gray.50': {
-            default: tokens.colors.light['gray.50'],
-            _dark: tokens.colors.dark['gray.50'],
+            default: 'legacy.grayLight',
+            _dark: 'legacy.grayLight',
         },
         'gray.100': {
-            default: tokens.colors.light['gray.100'],
-            _dark: tokens.colors.dark['gray.100'],
+            default: 'legacy.grayDark',
+            _dark: 'legacy.grayDark',
         },
         'gray.200': {
-            default: tokens.colors.light['gray.200'],
-            _dark: tokens.colors.dark['gray.200'],
+            default: 'legacy.grayDarkest',
+            _dark: 'legacy.grayDarkest',
         },
         'green.50': {
-            default: tokens.colors.light['green.50'],
-            _dark: tokens.colors.dark['green.50'],
+            default: 'legacy.greenLight',
+            _dark: 'legacy.greenLight',
         },
         'green.100': {
-            default: tokens.colors.light['green.100'],
-            _dark: tokens.colors.dark['green.100'],
-        },
-        'bg-default': {
-            default: tokens.colors.light['bg-default'],
-            _dark: tokens.colors.dark['bg-default'],
-        },
-        'fg-default': {
-            default: tokens.colors.light['fg-default'],
-            _dark: tokens.colors.dark['fg-default'],
-        },
-        'text-primary': {
-            default: tokens.colors.light['text-primary'],
-            _dark: tokens.colors.dark['text-primary'],
-        },
-        'text-secondary': {
-            default: tokens.colors.light['text-secondary'],
-            _dark: tokens.colors.dark['text-secondary'],
-        },
-        'btn-border': {
-            default: tokens.colors.light['btn-border'],
-            _dark: tokens.colors.dark['btn-border'],
-        },
-        'btn-selected': {
-            default: tokens.colors.light['btn-selected'],
-            _dark: tokens.colors.dark['btn-selected'],
-        },
-        'btn-hover': {
-            default: tokens.colors.light['btn-hover'],
-            _dark: tokens.colors.dark['btn-hover'],
-        },
-        'btn-empty': {
-            default: tokens.colors.light['btn-empty'],
-            _dark: tokens.colors.dark['btn-empty'],
+            default: 'legacy.greenDark',
+            _dark: 'legacy.greenDark',
         },
         'red.100': {
-            default: tokens.colors.light['red.100'],
-            _dark: tokens.colors.dark['red.100'],
+            default: 'legacy.red',
+            _dark: 'legacy.red',
         },
-        // Add shadows here
     },
 };
 
+// ============================================
+// 4. TYPOGRAPHY
+// ============================================
+const fonts = {
+    heading: `'Geist Sans', 'Poppins', sans-serif`,
+    body: `'Geist Sans', 'Poppins', sans-serif`,
+};
+
+const fontWeights = {
+    heading: 800, // Geist ExtraBold - Thicker headings
+    body: 600, // Geist SemiBold - Thicker body text
+    normal: 500,
+    medium: 600,
+    semibold: 700,
+    bold: 800,
+    extrabold: 900, // Geist Black - Heaviest weight
+};
+
+// ============================================
+// 5. GLOBAL STYLES
+// ============================================
 const styles = {
     global: {
         html: {
-            backgroundColor: tokens.colors.dark['gray.200'],
+            backgroundColor: 'legacy.grayDarkest',
         },
         body: {
-            backgrondCcolor: tokens.colors.dark['gray.200'],
-            color: tokens.colors.dark['gray.200'],
-            fontFamily: 'Poppins, sans-serif',
-            background: 'white',
-            backgroundAttachment: 'scroll',
-            backgroundRepeat: 'repeat',
+            backgroundColor: 'legacy.grayDarkest',
+            color: 'text.primary',
+            fontFamily: 'body',
             overflowY: 'auto',
-            bg: 'white',
             _before: {
                 content: "''",
                 position: 'fixed',
                 top: 0,
                 bottom: 0,
                 width: '100%',
-                background: 'charcoal',
+                background: 'bg.charcoal',
                 zIndex: -1,
             },
         },
     },
 };
 
+// ============================================
+// 6. COMPONENT STYLES
+// ============================================
 const components = {
+    // HEADING COMPONENT
+    Heading: {
+        baseStyle: {
+            fontWeight: 'bold', // Uses 800 from fontWeights
+            letterSpacing: '-0.02em', // Tighter spacing for thicker appearance
+        },
+    },
+
+    // TEXT COMPONENT
     Text: {
-        baseStyle: { color: 'charcoal' },
+        baseStyle: {
+            color: 'charcoal.800',
+        },
         variants: {
             secondary: {
-                color: 'text-secondary',
+                color: 'text.secondary',
             },
             seatText: {
                 fontSize: {
@@ -169,7 +195,7 @@ const components = {
             statSubHead: {
                 fontSize: 'lg',
                 fontWeight: 'semibold',
-                color: 'grey',
+                color: 'gray.500',
             },
             statBody: {
                 fontSize: 'sm',
@@ -177,35 +203,38 @@ const components = {
             },
         },
     },
+
+    // BUTTON COMPONENT
     Button: {
         baseStyle: {
-            bg: 'charcoal',
+            bg: 'bg.charcoal',
             color: 'white',
             borderRadius: '10px',
-            border: '2px solid white',
+            border: '2px solid',
+            borderColor: 'btn.border',
             _hover: {
-                bg: '#2e2e2e', // Adjust this color to your preference for a lighter color on hover
+                bg: '#2e2e2e',
             },
         },
         variants: {
             base: {},
             social: {
                 border: 'none',
-                bg: 'none',
+                bg: 'transparent',
                 _hover: {
-                    bg: 'none',
+                    bg: 'transparent',
                     color: 'green.400',
                 },
             },
             underlined: {
                 bg: 'transparent',
                 border: 'none',
-                color: 'text-primary',
+                color: 'text.primary',
                 textDecoration: 'underline',
                 _hover: {
                     background: 'transparent',
                     border: 'none',
-                    color: 'text-secondary',
+                    color: 'text.secondary',
                 },
                 _focus: {
                     outline: 'none',
@@ -213,12 +242,31 @@ const components = {
                 },
             },
             raiseActionButton: {
-                fontSize: { base: '12px', sm: '13px', md: 'sm', lg: 'md' },
+                fontSize: { base: '10px', sm: '11px', md: 'sm', lg: 'sm' },
                 width: '80px',
                 height: 'auto',
-                minH: { base: '36px', sm: '40px' },
-                maxH: { base: '44px', sm: '48px', md: 'none' },
-                padding: { base: 2, sm: 2.5, md: 3 },
+                minH: { base: '28px', sm: '30px', md: '32px', lg: '32px' },
+                maxH: { base: '30px', sm: '32px', md: '36px', lg: '36px' },
+                padding: { base: 1, sm: 1, md: 1.5, lg: 1.5 },
+                bg: 'brand.navy',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                _hover: {
+                    bg: 'brand.green',
+                    transform: 'translateY(-1px)',
+                    boxShadow: 'lg',
+                },
+                _active: {
+                    transform: 'translateY(0px)',
+                },
+                _disabled: {
+                    opacity: 0.4,
+                    cursor: 'not-allowed',
+                },
+                transition: 'all 0.2s',
             },
             navButton: {
                 border: 0,
@@ -227,7 +275,7 @@ const components = {
                 fontSize: '2xl',
                 borderRadius: 0,
                 _hover: {
-                    bg: 'none',
+                    bg: 'transparent',
                     borderBottom: '2px solid red',
                 },
             },
@@ -250,92 +298,96 @@ const components = {
                     boxShadow: 'outline',
                 },
             },
-        },
-        defaultProps: {
-            variant: 'base',
+            emptySeat: {
+                width: '100%',
+                height: {
+                    base: 'fit-content',
+                    sm: '100%',
+                },
+                border: '2px dashed',
+                borderColor: 'gray.400',
+                color: 'gray.400',
+                fontSize: {
+                    base: '0.95rem',
+                    sm: '1rem',
+                    md: '1.5rem',
+                    lg: '2.3rem',
+                },
+                paddingY: {
+                    base: '1rem',
+                    xs: '2rem',
+                },
+            },
         },
         sizes: {
             sm: {
-                py: '2',
-                px: '2',
+                py: 2,
+                px: 2,
                 fontSize: 'sm',
                 fontWeight: 'normal',
             },
             md: {
-                py: '2',
-                px: '3',
+                py: 2,
+                px: 3,
                 fontSize: 'md',
                 fontWeight: 'normal',
             },
             lg: {
-                py: '2',
-                px: '4',
+                py: 2,
+                px: 4,
                 fontSize: 'lg',
                 fontWeight: 'normal',
             },
             xl: {
-                py: '3',
-                px: '4',
+                py: 3,
+                px: 4,
                 fontSize: 'xl',
                 fontWeight: 'bold',
             },
             '2xl': {
-                py: '3',
-                px: '4',
+                py: 3,
+                px: 4,
                 fontSize: '2xl',
                 fontWeight: 'bold',
             },
             '3xl': {
-                py: '3',
-                px: '4',
+                py: 3,
+                px: 4,
                 fontSize: '3xl',
                 fontWeight: 'bold',
             },
             '4xl': {
-                py: '3',
-                px: '4',
+                py: 3,
+                px: 4,
                 fontSize: '4xl',
                 fontWeight: 'bold',
             },
         },
-        emptySeatButton: {
-            width: '100%',
-            height: {
-                base: 'fit-content',
-                sm: '100%',
-            },
-            border: '2px dashed',
-            color: 'lightGray',
-            fontSize: {
-                base: '0.95rem',
-                sm: '1rem',
-                md: '1.5rem',
-                lg: '2.3rem',
-            },
-            paddingY: {
-                base: '1rem ',
-                xs: '2rem',
-            },
+        defaultProps: {
+            variant: 'base',
         },
     },
+
+    // INPUT COMPONENT
     Input: {
         baseStyle: {},
         variants: {
             outlined: {
                 field: {
-                    variant: 'outlined',
                     bgColor: 'charcoal.600',
-                    flex: '1',
-                    paddingY: '2',
-                    paddingX: '5',
-                    borderRadius: '4',
-                    borderWidth: '1',
-                    borderColor: 'grey',
+                    flex: 1,
+                    paddingY: 2,
+                    paddingX: 5,
+                    borderRadius: 4,
+                    borderWidth: 1,
+                    borderColor: 'gray.500',
                     textAlign: 'left',
                 },
             },
         },
     },
+
+    // ICON COMPONENT
     Icon: {
         variants: {
             socialIcon: {
@@ -346,21 +398,28 @@ const components = {
     },
 };
 
-// eslint-disable-next-line import/prefer-default-export
+// ============================================
+// 7. DESIGN TOKENS
+// ============================================
+const radii = {
+    default: '0.625rem',
+};
+
+const shadows = {
+    default: '0px 0px 8px 0px rgba(0, 0, 0, 0.15)',
+};
+
+// ============================================
+// 8. EXPORT THEME
+// ============================================
 export const theme = extendTheme({
-    styles,
-    semanticTokens,
-    components,
     breakpoints,
     colors,
-    radii: {
-        default: '0.625rem',
-    },
-    shadows: {
-        default: '0px 0px 8px 0px rgba(0, 0, 0, 0.15)',
-    },
-    fonts: {
-        heading: `'Poppins', sans-serif`,
-        body: `'Poppins', sans-serif`,
-    },
+    semanticTokens,
+    fonts,
+    fontWeights,
+    styles,
+    components,
+    radii,
+    shadows,
 });

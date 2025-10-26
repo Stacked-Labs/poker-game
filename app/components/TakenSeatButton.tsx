@@ -17,16 +17,42 @@ import { AppContext } from '../contexts/AppStoreProvider';
 import CardComponent from './Card';
 import { currentHandLabel } from '@/app/lib/poker/pokerHandEval';
 
-const pulseWhiteGlow = keyframes`
-  0% { box-shadow: 0 0 6px 5px rgba(255, 255, 255, 0.6); }
-  50% { box-shadow: 0 0 9px 6px rgba(255, 255, 255, 0.6); }
-  100% { box-shadow: 0 0 6px 5px rgba(255, 255, 255, 0.6); }
+// Brand-themed glow animations - brand.pink for active player
+const pulsePinkGlow = keyframes`
+  0% { 
+    box-shadow: 0 0 8px 3px rgba(235, 11, 92, 0.6),
+                0 0 12px 5px rgba(235, 11, 92, 0.3); 
+  }
+  50% { 
+    box-shadow: 0 0 10px 4px rgba(235, 11, 92, 0.8),
+                0 0 16px 7px rgba(235, 11, 92, 0.4); 
+  }
+  100% { 
+    box-shadow: 0 0 8px 3px rgba(235, 11, 92, 0.6),
+                0 0 12px 5px rgba(235, 11, 92, 0.3); 
+  }
 `;
 
-const pulseGoldGlow = keyframes`
-  0% { box-shadow: 0 0 6px 5px rgba(255, 215, 0, 0.6); }
-  50% { box-shadow: 0 0 9px 6px rgba(255, 215, 0, 0.6); }
-  100% { box-shadow: 0 0 6px 5px rgba(255, 215, 0, 0.6); }
+const pulseYellowGlow = keyframes`
+  0% { 
+    box-shadow: 0 0 12px 6px rgba(253, 197, 29, 0.6),
+                0 0 20px 10px rgba(253, 197, 29, 0.3); 
+  }
+  50% { 
+    box-shadow: 0 0 16px 8px rgba(253, 197, 29, 0.8),
+                0 0 28px 14px rgba(253, 197, 29, 0.4); 
+  }
+  100% { 
+    box-shadow: 0 0 12px 6px rgba(253, 197, 29, 0.6),
+                0 0 20px 10px rgba(253, 197, 29, 0.3); 
+  }
+`;
+
+// Gradient animation for active player border
+const gradientShift = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 `;
 
 const TakenSeatButton = ({
@@ -140,9 +166,9 @@ const TakenSeatButton = ({
     const chipPosition = chipPositions[player?.seatID || 4] || defaultPosition;
 
     const glowAnimation = isCurrentTurn
-        ? `${pulseWhiteGlow} 2s ease-in-out 0.2s infinite`
+        ? `${pulsePinkGlow} 2s ease-in-out 0.2s infinite`
         : isWinner
-          ? `${pulseGoldGlow} 2s ease-in-out 0.5s infinite`
+          ? `${pulseYellowGlow} 2s ease-in-out 0.5s infinite`
           : 'none';
 
     // Countdown timer logic
@@ -280,17 +306,18 @@ const TakenSeatButton = ({
                 {appState.game.running &&
                     appState.game.dealer == player.position && (
                         <Text
-                            fontWeight="semibold"
+                            fontWeight="bold"
                             display="inline-flex"
                             alignItems="center"
                             justifyContent="center"
                             borderRadius="full"
-                            bg="white"
-                            color="black"
+                            bg="brand.navy"
+                            color="white"
                             width={{ base: 4, md: 6, lg: 6, xl: 6, '2xl': 8 }}
                             height={{ base: 4, md: 6, lg: 6, xl: 6, '2xl': 8 }}
                             variant={'seatText'}
                             zIndex={3}
+                            boxShadow="0 2px 8px rgba(51, 68, 121, 0.3)"
                         >
                             D
                         </Text>
@@ -301,15 +328,15 @@ const TakenSeatButton = ({
                         px={4}
                         py={1}
                         w={'fit-content'}
-                        bg="amber.300"
-                        fontWeight="semibold"
-                        color="white"
+                        bg="brand.yellow"
+                        fontWeight="bold"
+                        color="brand.navy"
                         display="flex"
                         alignItems="center"
                         justifyContent="center"
-                        backgroundColor={'gray'}
                         variant={'seatText'}
                         zIndex={3}
+                        boxShadow="0 2px 8px rgba(253, 197, 29, 0.3)"
                     >
                         {player.bet}
                     </Text>
@@ -388,146 +415,238 @@ const TakenSeatButton = ({
                         );
                     })}
             </Flex>
-            <Flex
-                className="player-info-container"
-                direction={'column'}
-                bg={isCurrentTurn || isWinner ? 'white' : 'gray.50'}
-                borderRadius={{ base: 4, md: 8, lg: 12, xl: 12, '2xl': 12 }}
-                width={'110%'}
-                paddingX={4}
-                paddingY={1}
-                zIndex={2}
-                justifySelf={'flex-end'}
-                justifyContent={'center'}
-                alignItems={'center'}
-                alignSelf={'flex-end'}
-                animation={glowAnimation}
-                transition={'all 0.5s ease-in-out'}
+            <Box
+                className="player-info-wrapper"
                 position={'relative'}
+                width={'110%'}
+                zIndex={2}
+                alignSelf={'flex-end'}
             >
-                {/* Away badge rendered above the container without affecting layout */}
-                {player.stack > 0 && !player.ready && (
-                    <Tag
-                        position="absolute"
-                        top={-3}
-                        right={1}
-                        colorScheme="yellow"
-                        variant="subtle"
-                        size={{ base: 'xs', md: 'sm' }}
-                        fontSize={{ base: '8px', md: 'sm' }}
-                        px={{ base: 1, md: 2 }}
-                        py={{ base: 0.5, md: 0 }}
-                        zIndex={3}
-                    >
-                        Away
-                    </Tag>
-                )}
-                {strengthLabel && (
-                    <Tag
-                        position="absolute"
-                        top={{ base: -2, md: -3 }}
-                        left={'50%'}
-                        transform={'translateX(-50%)'}
-                        colorScheme={'teal'}
-                        variant="solid"
-                        size={{ base: 'xs', md: 'sm' }}
-                        fontSize={{ base: '8px', md: 'sm' }}
-                        px={{ base: 1, md: 2 }}
-                        py={{ base: 0, md: 0.5 }}
-                        whiteSpace="nowrap"
-                        pointerEvents="none"
-                        zIndex={4}
-                    >
-                        {strengthLabel}
-                    </Tag>
-                )}
-                <HStack spacing={2} className="player-info-header">
-                    <Tooltip label={shortEthAddress} hasArrow>
-                        <Text
-                            className="player-username"
-                            variant={'seatText'}
-                            fontWeight={'bold'}
-                            color={
-                                isCurrentTurn || isWinner
-                                    ? 'gray.700'
-                                    : 'gray.300'
-                            }
-                            cursor="pointer"
-                        >
-                            {player.username}
-                        </Text>
-                    </Tooltip>
+                {/* Animated Gradient Border for Active Player */}
+                {isCurrentTurn && (
                     <Box
-                        position={'relative'}
-                        display={'inline-flex'}
-                        alignItems={'center'}
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        borderRadius={{
+                            base: 4,
+                            md: 8,
+                            lg: 12,
+                            xl: 12,
+                            '2xl': 12,
+                        }}
+                        padding="3px"
+                        bgGradient="linear(to-r, brand.pink, brand.green, brand.yellow, brand.pink)"
+                        backgroundSize="200% 200%"
+                        animation={`${gradientShift} 3s ease infinite`}
+                        pointerEvents="none"
+                        zIndex={0}
                     >
-                        <Text
-                            className="player-stack"
-                            variant={'seatText'}
-                            color={
-                                isCurrentTurn || isWinner
-                                    ? 'gray.700'
-                                    : 'gray.300'
-                            }
-                        >
-                            {player.stack}
-                        </Text>
-                        {/* Winnings overlay – positioned next to the stack on the same line */}
-                        <Text
-                            className="player-winnings-overlay"
-                            variant={'seatText'}
-                            color={'green.600'}
-                            fontWeight={'bold'}
-                            position={'absolute'}
-                            left={'110%'}
-                            pointerEvents={'none'}
-                            zIndex={2}
-                            opacity={isWinner && winnings > 0 ? 1 : 0}
-                        >
-                            {`+${Math.round(winnings)}`}
-                        </Text>
-                    </Box>
-                </HStack>
-
-                {/* Countdown timer – keep box rendered for consistent height */}
-                {(() => {
-                    const timerVisible =
-                        isCurrentTurn && deadline > 0 && remaining > 0;
-                    return (
                         <Box
-                            className="player-timer-container"
                             width="100%"
-                            display="flex"
-                            flexDirection="row"
-                            alignItems="center"
-                            alignSelf="stretch"
-                            visibility={timerVisible ? 'visible' : 'hidden'}
+                            height="100%"
+                            bg="white"
+                            borderRadius={{
+                                base: '2px',
+                                md: '6px',
+                                lg: '10px',
+                                xl: '10px',
+                                '2xl': '10px',
+                            }}
+                        />
+                    </Box>
+                )}
+
+                <Flex
+                    className="player-info-container"
+                    direction={'column'}
+                    bg={isCurrentTurn || isWinner ? 'white' : 'brand.darkNavy'}
+                    borderRadius={{ base: 4, md: 8, lg: 12, xl: 12, '2xl': 12 }}
+                    width={'100%'}
+                    paddingX={4}
+                    paddingY={1}
+                    justifySelf={'flex-end'}
+                    justifyContent={'center'}
+                    alignItems={'center'}
+                    animation={glowAnimation}
+                    transition={'all 0.5s ease-in-out'}
+                    position={'relative'}
+                    border="2px solid"
+                    borderColor={
+                        isCurrentTurn
+                            ? 'transparent'
+                            : isWinner
+                              ? 'brand.yellow'
+                              : 'brand.darkNavy'
+                    }
+                    boxShadow={
+                        !isCurrentTurn && !isWinner
+                            ? '0 2px 8px rgba(11, 20, 48, 0.3)'
+                            : 'none'
+                    }
+                >
+                    {/* Away badge rendered above the container without affecting layout */}
+                    {player.stack > 0 && !player.ready && (
+                        <Tag
+                            position="absolute"
+                            top={-3}
+                            right={1}
+                            bg="brand.yellow"
+                            color="brand.navy"
+                            variant="solid"
+                            size={{ base: 'xs', md: 'sm' }}
+                            fontSize={{ base: '8px', md: 'sm' }}
+                            px={{ base: 1, md: 2 }}
+                            py={{ base: 0.5, md: 0 }}
+                            zIndex={3}
+                            fontWeight="bold"
+                            borderRadius="6px"
                         >
-                            {/* Numeric time – hidden on small screens */}
+                            Away
+                        </Tag>
+                    )}
+                    {strengthLabel && (
+                        <Tag
+                            position="absolute"
+                            top={{ base: -2, md: -3 }}
+                            left={'50%'}
+                            transform={'translateX(-50%)'}
+                            bg="brand.green"
+                            color="white"
+                            variant="solid"
+                            size={{ base: 'xs', md: 'sm' }}
+                            fontSize={{ base: '8px', md: 'sm' }}
+                            px={{ base: 1, md: 2 }}
+                            py={{ base: 0, md: 0.5 }}
+                            whiteSpace="nowrap"
+                            pointerEvents="none"
+                            zIndex={4}
+                            fontWeight="bold"
+                            borderRadius="6px"
+                            boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
+                        >
+                            {strengthLabel}
+                        </Tag>
+                    )}
+                    <HStack spacing={2} className="player-info-header">
+                        <Tooltip
+                            label={shortEthAddress}
+                            hasArrow
+                            bg="brand.navy"
+                            color="white"
+                            borderRadius="md"
+                        >
                             <Text
-                                className="player-timer-count"
-                                fontSize={{ base: 'xs', md: 'sm' }}
-                                textAlign="center"
-                                color={`${barScheme}.700`}
-                                display={{ base: 'none', md: 'block' }}
-                                mr={2}
+                                className="player-username"
+                                variant={'seatText'}
+                                fontWeight={'bold'}
+                                color={
+                                    isCurrentTurn || isWinner
+                                        ? 'brand.darkNavy'
+                                        : 'white'
+                                }
+                                cursor="pointer"
                             >
-                                {`00:${secondsText}`}
+                                {player.username}
                             </Text>
-                            {/* Progress bar */}
-                            <Progress
-                                className="player-timer-bar"
-                                value={progress}
-                                height={{ base: 1, md: 2 }}
-                                width="100%"
-                                colorScheme={barScheme}
-                                borderRadius="md"
-                            />
+                        </Tooltip>
+                        <Box
+                            position={'relative'}
+                            display={'inline-flex'}
+                            alignItems={'center'}
+                        >
+                            <Text
+                                className="player-stack"
+                                variant={'seatText'}
+                                color={
+                                    isCurrentTurn || isWinner
+                                        ? 'brand.darkNavy'
+                                        : 'white'
+                                }
+                                fontWeight="semibold"
+                            >
+                                {player.stack}
+                            </Text>
+                            {/* Winnings overlay – positioned next to the stack on the same line */}
+                            <Text
+                                className="player-winnings-overlay"
+                                variant={'seatText'}
+                                color={'brand.green'}
+                                fontWeight={'bold'}
+                                position={'absolute'}
+                                left={'110%'}
+                                pointerEvents={'none'}
+                                zIndex={2}
+                                opacity={isWinner && winnings > 0 ? 1 : 0}
+                            >
+                                {`+${Math.round(winnings)}`}
+                            </Text>
                         </Box>
-                    );
-                })()}
-            </Flex>
+                    </HStack>
+
+                    {/* Countdown timer – keep box rendered for consistent height */}
+                    {(() => {
+                        const timerVisible =
+                            isCurrentTurn && deadline > 0 && remaining > 0;
+
+                        // Brand color scheme mapping
+                        const timerColorMap = {
+                            red: 'brand.pink',
+                            yellow: 'brand.yellow',
+                            green: 'brand.green',
+                            gray: 'gray.400',
+                        };
+
+                        const timerColor =
+                            timerColorMap[barScheme] || 'brand.navy';
+
+                        return (
+                            <Box
+                                className="player-timer-container"
+                                width="100%"
+                                display="flex"
+                                flexDirection="row"
+                                alignItems="center"
+                                alignSelf="stretch"
+                                visibility={timerVisible ? 'visible' : 'hidden'}
+                            >
+                                {/* Numeric time – hidden on small screens */}
+                                <Text
+                                    className="player-timer-count"
+                                    fontSize={{ base: 'xs', md: 'sm' }}
+                                    textAlign="center"
+                                    color={
+                                        isCurrentTurn || isWinner
+                                            ? 'brand.darkNavy'
+                                            : 'white'
+                                    }
+                                    display={{ base: 'none', md: 'block' }}
+                                    mr={2}
+                                    fontWeight="bold"
+                                >
+                                    {`00:${secondsText}`}
+                                </Text>
+                                {/* Progress bar */}
+                                <Progress
+                                    className="player-timer-bar"
+                                    value={progress}
+                                    height={{ base: 1, md: 2 }}
+                                    width="100%"
+                                    colorScheme={barScheme}
+                                    borderRadius="md"
+                                    sx={{
+                                        '& > div': {
+                                            bg: timerColor,
+                                        },
+                                    }}
+                                />
+                            </Box>
+                        );
+                    })()}
+                </Flex>
+            </Box>
         </Flex>
     );
 };

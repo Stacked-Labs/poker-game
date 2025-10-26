@@ -53,16 +53,19 @@ const TablePage = ({ params }: { params: { id: string } }) => {
                     top="80px"
                     left="50%"
                     transform="translateX(-50%)"
-                    bg="yellow.400"
-                    color="black"
-                    px={6}
-                    py={3}
-                    borderRadius="md"
-                    boxShadow="lg"
+                    bg="brand.yellow"
+                    color="white"
+                    px={8}
+                    py={4}
+                    borderRadius="16px"
+                    boxShadow="0 8px 24px rgba(253, 197, 29, 0.4)"
                     zIndex={990}
                     textAlign="center"
+                    border="2px solid white"
                 >
-                    <Heading size="md">Game Paused</Heading>
+                    <Heading size="md" fontWeight="bold">
+                        Game Paused
+                    </Heading>
                 </Box>
             )}
             <Flex

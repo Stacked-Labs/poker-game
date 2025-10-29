@@ -473,3 +473,37 @@ export async function getTables() {
         throw error;
     }
 }
+
+export async function fetchTableEvents(
+    tableName: string,
+    limit: number = 50,
+    offset: number = 0
+) {
+    isBackendUrlValid();
+
+    if (!tableName) {
+        throw new Error('Table name is not defined');
+    }
+
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/tables/${tableName}/events?limit=${limit}&offset=${offset}`,
+            {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Events fetch failed: ${response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch table events.', error);
+        throw error;
+    }
+}

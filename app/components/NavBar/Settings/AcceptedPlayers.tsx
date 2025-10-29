@@ -59,12 +59,12 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
     if (acceptedPlayers && acceptedPlayers.length > 0) {
         return (
             <>
-                <VStack align="stretch" gap={4} w="100%">
+                <VStack align="stretch" gap={{ base: 2.5, md: 4 }} w="100%">
                     <Text
                         color={'brand.navy'}
-                        fontSize={{ base: 'xl', md: '2xl' }}
+                        fontSize={{ base: 'lg', md: 'xl', lg: '2xl' }}
                         fontWeight="bold"
-                        mb={2}
+                        mb={{ base: 1, md: 2 }}
                         letterSpacing="-0.02em"
                     >
                         Accepted Players

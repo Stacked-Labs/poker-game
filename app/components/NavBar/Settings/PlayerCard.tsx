@@ -37,44 +37,41 @@ const PlayerCard = ({
             justifyContent={'space-between'}
             width={'100%'}
             bg="white"
-            borderRadius="16px"
+            borderRadius={{ base: '12px', md: '16px' }}
             border="2px solid"
             borderColor="brand.lightGray"
-            paddingX={{ base: 4, sm: 5, md: 6 }}
-            paddingY={{ base: 4, md: 5 }}
+            paddingX={{ base: 3, sm: 4, md: 6 }}
+            paddingY={{ base: 3, sm: 3.5, md: 5 }}
             boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
             _hover={{
                 borderColor: 'brand.green',
                 boxShadow: '0 8px 20px rgba(54, 163, 123, 0.15)',
-                transform: 'translateY(-4px)',
+                transform: 'translateY(-2px)',
             }}
             transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
             flexDirection={{ base: 'column', sm: 'row' }}
-            gap={{ base: 3, sm: 0 }}
+            gap={{ base: 2.5, sm: 0 }}
         >
             <VStack
                 flex={1}
                 justifyContent={{ base: 'center', lg: 'space-around' }}
                 alignItems={'start'}
                 textAlign={'left'}
-                gap={{ base: 2, md: 3 }}
+                gap={{ base: 1.5, md: 2 }}
                 w={{ base: '100%', sm: 'auto' }}
             >
                 <Text
                     color={'brand.navy'}
                     fontWeight={'bold'}
-                    fontSize={{ base: 'lg', md: 'xl', lg: '2xl' }}
+                    fontSize={{ base: 'md', sm: 'lg', md: 'xl', lg: '2xl' }}
                     letterSpacing="-0.02em"
                 >
                     {player.username}
                 </Text>
                 <Flex
-                    gap={{ base: 2, md: 3 }}
+                    gap={{ base: 1.5, md: 2 }}
                     flex={2}
-                    direction={{
-                        base: 'column',
-                        md: 'row',
-                    }}
+                    direction={'row'}
                     flexWrap="wrap"
                     w="100%"
                     alignItems="center"
@@ -82,44 +79,42 @@ const PlayerCard = ({
                     <Badge
                         bg="brand.lightGray"
                         color="brand.navy"
-                        paddingY={1.5}
-                        paddingX={3}
-                        borderRadius="8px"
-                        fontSize="xs"
+                        paddingY={{ base: 0.5, md: 1 }}
+                        paddingX={{ base: 2, md: 3 }}
+                        borderRadius={{ base: '6px', md: '8px' }}
+                        fontSize={{ base: '2xs', md: 'xs' }}
                         fontWeight="semibold"
                     >
                         ID: {player.uuid.substring(0, 8)}
                     </Badge>
-                    <Flex gap={3} flexWrap="wrap">
+                    <Text
+                        color={'gray.600'}
+                        fontSize={{ base: '2xs', sm: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                    >
+                        Buy-in:{' '}
                         <Text
-                            color={'gray.600'}
-                            fontSize="sm"
-                            fontWeight="medium"
+                            as={'span'}
+                            fontWeight={'bold'}
+                            color="brand.green"
                         >
-                            Buy-in:{' '}
-                            <Text
-                                as={'span'}
-                                fontWeight={'bold'}
-                                color="brand.green"
-                            >
-                                ${player.buyIn}
-                            </Text>
+                            ${player.buyIn}
                         </Text>
+                    </Text>
+                    <Text
+                        color={'gray.600'}
+                        fontSize={{ base: '2xs', sm: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                    >
+                        Seat:{' '}
                         <Text
-                            color={'gray.600'}
-                            fontSize="sm"
-                            fontWeight="medium"
+                            as={'span'}
+                            fontWeight={'bold'}
+                            color="brand.green"
                         >
-                            Seat:{' '}
-                            <Text
-                                as={'span'}
-                                fontWeight={'bold'}
-                                color="brand.green"
-                            >
-                                #{player.seatId}
-                            </Text>
+                            #{player.seatId}
                         </Text>
-                    </Flex>
+                    </Text>
                 </Flex>
             </VStack>
 
@@ -128,7 +123,7 @@ const PlayerCard = ({
                 handleAcceptPlayer &&
                 handleDenyPlayer && (
                     <Flex
-                        gap={{ base: 2, lg: 3 }}
+                        gap={{ base: 1.5, lg: 2 }}
                         w={{ base: '100%', sm: 'auto' }}
                         justifyContent={{ base: 'flex-end', sm: 'flex-start' }}
                     >
@@ -151,13 +146,13 @@ const PlayerCard = ({
                                 }}
                                 _active={{ transform: 'translateY(0)' }}
                                 onClick={() => handleAcceptPlayer(player.uuid)}
-                                minW={{ base: '48px', md: '52px' }}
-                                h={{ base: '48px', md: '52px' }}
-                                borderRadius="12px"
+                                minW={{ base: '36px', sm: '40px', md: '52px' }}
+                                h={{ base: '36px', sm: '40px', md: '52px' }}
+                                borderRadius={{ base: '10px', md: '12px' }}
                                 border="none"
                                 transition="all 0.2s ease"
                             >
-                                <FaCircleCheck size={22} />
+                                <FaCircleCheck size={18} />
                             </Button>
                         </Tooltip>
                         <Tooltip
@@ -179,13 +174,13 @@ const PlayerCard = ({
                                 }}
                                 _active={{ transform: 'translateY(0)' }}
                                 onClick={() => handleDenyPlayer(player.uuid)}
-                                minW={{ base: '48px', md: '52px' }}
-                                h={{ base: '48px', md: '52px' }}
-                                borderRadius="12px"
+                                minW={{ base: '36px', sm: '40px', md: '52px' }}
+                                h={{ base: '36px', sm: '40px', md: '52px' }}
+                                borderRadius={{ base: '10px', md: '12px' }}
                                 border="none"
                                 transition="all 0.2s ease"
                             >
-                                <FaCircleXmark size={22} />
+                                <FaCircleXmark size={18} />
                             </Button>
                         </Tooltip>
                     </Flex>
@@ -215,13 +210,13 @@ const PlayerCard = ({
                             onClick={() => confirmKick(player)}
                             isLoading={isKicking}
                             loadingText="Kicking..."
-                            minW={{ base: '48px', md: '52px' }}
-                            h={{ base: '48px', md: '52px' }}
-                            borderRadius="12px"
+                            minW={{ base: '36px', sm: '40px', md: '52px' }}
+                            h={{ base: '36px', sm: '40px', md: '52px' }}
+                            borderRadius={{ base: '10px', md: '12px' }}
                             border="none"
                             transition="all 0.2s ease"
                         >
-                            <GiBootKick size={22} />
+                            <GiBootKick size={18} />
                         </Button>
                     </Tooltip>
                 )}

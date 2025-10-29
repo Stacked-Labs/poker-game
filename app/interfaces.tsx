@@ -94,3 +94,27 @@ export type PendingPlayer = {
     seatId: number;
     buyIn: number;
 };
+
+// Event History Types
+export type GameEventRecord = {
+    id: number;
+    table_id: number;
+    hand_id?: number;
+    player_uuid?: string;
+    event_type: string;
+    event_category: 'action' | 'game_event' | 'meta_event';
+    amount?: number;
+    stage: string;
+    sequence_num: number;
+    timestamp: string;
+    metadata: Record<string, unknown>;
+};
+
+export type EventsResponse = {
+    success: boolean;
+    events: GameEventRecord[];
+    table_name: string;
+    limit: number;
+    offset: number;
+    has_more: boolean;
+};

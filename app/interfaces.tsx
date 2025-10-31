@@ -105,7 +105,7 @@ export type GameEventRecord = {
     event_type: string;
     event_category: 'action' | 'game_event' | 'meta_event';
     amount?: number | null;
-    stage: string;
+    stage?: string; // Optional - omitted for meta events
     sequence_num: number;
     timestamp: string;
     metadata: Record<string, unknown>;

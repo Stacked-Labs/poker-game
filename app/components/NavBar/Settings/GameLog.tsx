@@ -65,6 +65,23 @@ interface GameResumedMetadata {
     resumed_by?: string;
 }
 
+interface PlayerAcceptedMetadata {
+    seat_id: number;
+    buy_in: number | string;
+    queued: boolean;
+}
+
+interface PlayerKickedMetadata {
+    kicked_by_uuid: string;
+    kicked_by_name: string;
+    queued: boolean;
+}
+
+interface PlayerLeftMetadata {
+    player_name?: string;
+    reason?: string;
+}
+
 // Helper function to convert backend card string to EvalCard format
 const convertBackendCardToInt = (cardStr: string): EvalCard | null => {
     if (!cardStr || cardStr.length < 2) return null;
@@ -314,7 +331,7 @@ const GameLog = () => {
             event_category: event.event_category,
             player_name,
             amount,
-            stage: event.stage,
+            stage: event.stage ?? null, // stage is optional (omitted for meta events)
             metadata,
             full_event: event,
         });
@@ -355,7 +372,11 @@ const GameLog = () => {
                         </>
                     );
                 }
-                return 'Cards dealt to players';
+                return (
+                    <Text as="span" fontWeight="bold">
+                        Cards dealt to players
+                    </Text>
+                );
             }
 
             case 'flop_dealt': {
@@ -598,7 +619,7 @@ const GameLog = () => {
                                                                                         <Text
                                                                                             as="span"
                                                                                             color="gray.700"
-                                                                                            fontWeight="normal"
+                                                                                            fontWeight="bold"
                                                                                         >
                                                                                             {convertCardsToEmojis(
                                                                                                 winner.hole_cards
@@ -628,6 +649,7 @@ const GameLog = () => {
                                                                                     <Text
                                                                                         fontSize="xs"
                                                                                         color="gray.700"
+                                                                                        fontWeight="bold"
                                                                                     >
                                                                                         Combo:{' '}
                                                                                         {convertCardsToEmojis(
@@ -700,13 +722,14 @@ const GameLog = () => {
                                                     fontSize="xs"
                                                     color="gray.600"
                                                     mt={idx > 0 ? 0.5 : 0}
+                                                    fontWeight="bold"
                                                 >
                                                     {revealedInfo.username}{' '}
                                                     showed:{' '}
                                                     <Text
                                                         as="span"
                                                         color="gray.700"
-                                                        fontWeight="medium"
+                                                        fontWeight="bold"
                                                     >
                                                         {convertCardsToEmojis(
                                                             revealedInfo.cards
@@ -721,7 +744,13 @@ const GameLog = () => {
 
                         {/* Total pot */}
                         {meta.total_pot !== undefined && (
-                            <Text fontSize="xs" color="gray.600" mt={2} ml={4}>
+                            <Text
+                                fontSize="xs"
+                                color="gray.600"
+                                mt={2}
+                                ml={4}
+                                fontWeight="bold"
+                            >
                                 Total pot: {formatAmount(meta.total_pot)}
                             </Text>
                         )}
@@ -730,7 +759,15 @@ const GameLog = () => {
             }
 
             case 'pot_awarded':
-                return <>Pot awarded: {formatAmount(amount)}</>;
+                return (
+                    <>
+                        Pot{' '}
+                        <Text as="span" fontWeight="bold">
+                            awarded
+                        </Text>
+                        : {formatAmount(amount)}
+                    </>
+                );
 
             case 'player_joined': {
                 const meta = metadata as Partial<PlayerJoinedMetadata>;
@@ -751,16 +788,19 @@ const GameLog = () => {
                 );
             }
 
-            case 'player_left':
+            case 'player_left': {
+                const meta = metadata as Partial<PlayerLeftMetadata>;
+                const displayName = player_name || meta.player_name || 'Player';
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        {displayName}{' '}
                         <Text as="span" color="red.500" fontWeight="bold">
                             left
                         </Text>{' '}
                         the table
                     </>
                 );
+            }
 
             case 'game_paused': {
                 const meta = metadata as Partial<GamePausedMetadata>;
@@ -784,6 +824,104 @@ const GameLog = () => {
                             resumed
                         </Text>
                         {meta.resumed_by && <> by {meta.resumed_by}</>}
+                    </>
+                );
+            }
+
+            case 'player_accepted': {
+                const meta = metadata as Partial<PlayerAcceptedMetadata>;
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="green.600" fontWeight="bold">
+                            accepted
+                        </Text>
+                        {meta.seat_id !== undefined && (
+                            <> (Seat {meta.seat_id}</>
+                        )}
+                        {meta.buy_in !== undefined && (
+                            <>, Buy-in: {formatAmount(meta.buy_in)}</>
+                        )}
+                        {meta.queued && (
+                            <Text
+                                as="span"
+                                color="orange.500"
+                                fontWeight="bold"
+                            >
+                                {' '}
+                                — Queued
+                            </Text>
+                        )}
+                        {meta.seat_id !== undefined && <>)</>}
+                    </>
+                );
+            }
+
+            case 'player_denied': {
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="red.500" fontWeight="bold">
+                            denied
+                        </Text>{' '}
+                        seat request
+                    </>
+                );
+            }
+
+            case 'player_kicked': {
+                const meta = metadata as Partial<PlayerKickedMetadata>;
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="red.600" fontWeight="bold">
+                            kicked
+                        </Text>
+                        {meta.kicked_by_name && <> by {meta.kicked_by_name}</>}
+                        {meta.queued && (
+                            <Text
+                                as="span"
+                                color="orange.500"
+                                fontWeight="bold"
+                            >
+                                {' '}
+                                — Queued
+                            </Text>
+                        )}
+                    </>
+                );
+            }
+
+            case 'player_set_ready': {
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="green.600" fontWeight="bold">
+                            set ready
+                        </Text>
+                    </>
+                );
+            }
+
+            case 'player_set_away': {
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="orange.500" fontWeight="bold">
+                            set away
+                        </Text>
+                    </>
+                );
+            }
+
+            case 'player_sit_out_next': {
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="orange.600" fontWeight="bold">
+                            will sit out
+                        </Text>{' '}
+                        next hand
                     </>
                 );
             }
@@ -935,7 +1073,11 @@ const GameLog = () => {
                 >
                     {events.length === 0 ? (
                         <Box p={6} textAlign="center">
-                            <Text color="gray.500" fontFamily="mono">
+                            <Text
+                                color="gray.500"
+                                fontFamily="mono"
+                                fontWeight="bold"
+                            >
                                 — No events recorded —
                             </Text>
                         </Box>
@@ -960,7 +1102,7 @@ const GameLog = () => {
                                     >
                                         <Text
                                             color="gray.500"
-                                            fontWeight="medium"
+                                            fontWeight="bold"
                                             minW="fit-content"
                                             fontSize={{
                                                 base: '10px',
@@ -997,6 +1139,7 @@ const GameLog = () => {
                                                 base: '11px',
                                                 md: 'xs',
                                             }}
+                                            fontWeight="bold"
                                         >
                                             {formatLogMessage(event)}
                                         </Text>

@@ -151,13 +151,13 @@ const TakenSeatButton = ({
         1: {
             top: {
                 base: '-46%',
-                md: isMobile ? '-45%' : '-10%',
+                md: isMobile ? '-45%' : '-16%',
                 '2xl': '-18%',
             },
             justifyContent: { base: 'center' },
         },
         2: {
-            top: { base: '-15%', md: isMobile ? '15%' : '-10%', '2xl': '-18%' },
+            top: { base: '-15%', md: isMobile ? '15%' : '-16%', '2xl': '-18%' },
             right: { base: '-105%', md: isMobile ? '-70%' : 0, '2xl': 0 },
             flexDirection: { base: 'column', md: 'row' },
             justifyContent: { base: 'center' },
@@ -217,7 +217,7 @@ const TakenSeatButton = ({
             alignItems: { base: 'end', md: 'start' },
         },
         10: {
-            top: { base: '-15%', md: isMobile ? '15%' : '-10%', '2xl': '-18%' },
+            top: { base: '-15%', md: isMobile ? '15%' : '-16%', '2xl': '-18%' },
             left: { base: '-105%', md: isMobile ? '-68%' : '0%', '2xl': '0%' },
             flexDirection: {
                 base: 'column',
@@ -391,8 +391,8 @@ const TakenSeatButton = ({
                 {player.bet !== 0 && (
                     <Text
                         borderRadius="1.5rem"
-                        px={4}
-                        py={1}
+                        px={{ base: 2, md: 3 }}
+                        py={0}
                         w={'fit-content'}
                         bg="brand.yellow"
                         fontWeight="bold"
@@ -401,6 +401,7 @@ const TakenSeatButton = ({
                         alignItems="center"
                         justifyContent="center"
                         variant={'seatText'}
+                        fontSize={{ base: '10px', md: '16px' }}
                         zIndex={3}
                         boxShadow="0 2px 8px rgba(253, 197, 29, 0.3)"
                     >
@@ -571,15 +572,15 @@ const TakenSeatButton = ({
                     {player.stack > 0 && !player.ready && (
                         <Tag
                             position="absolute"
-                            top={-3}
-                            right={1}
+                            top={{ base: -2, md: -3 }}
+                            right={0}
                             bg="brand.yellow"
                             color="brand.navy"
                             variant="solid"
                             size={{ base: 'xs', md: 'sm' }}
                             fontSize={{ base: '8px', md: 'sm' }}
-                            px={{ base: 1, md: 2 }}
-                            py={{ base: 0.5, md: 0 }}
+                            px={{ base: 1, md: 1 }}
+                            py={{ base: 0.1, md: 0.2 }}
                             zIndex={3}
                             fontWeight="bold"
                             borderRadius="6px"

@@ -12,6 +12,7 @@ import {
     useBreakpointValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import CardComponent from './Card';
@@ -55,6 +56,71 @@ const gradientShift = keyframes`
   100% { background-position: 0% 50%; }
 `;
 
+// Component for animating individual digits
+const AnimatedDigit = ({
+    digit,
+    isWinner,
+    isCurrentTurn,
+    fontSize,
+}: {
+    digit: string;
+    isWinner: boolean;
+    isCurrentTurn: boolean;
+    fontSize: ResponsiveValue<string>;
+}) => {
+    const color = isWinner
+        ? 'brand.green'
+        : isCurrentTurn
+          ? 'brand.darkNavy'
+          : 'white';
+
+    return (
+        <Box
+            position="relative"
+            display="inline-flex"
+            alignItems="center"
+            justifyContent="center"
+            overflow="hidden"
+            height={{ base: '16px', md: '20px', lg: '24px' }}
+            minWidth={{ base: '8px', md: '10px', lg: '12px' }}
+        >
+            <AnimatePresence mode="popLayout">
+                <motion.div
+                    key={digit}
+                    initial={{ y: '100%' }}
+                    animate={{ y: '0%' }}
+                    exit={{ y: '-100%' }}
+                    transition={{
+                        type: 'spring',
+                        stiffness: 200,
+                        damping: 20,
+                        mass: 0.8,
+                    }}
+                    style={{
+                        position: 'absolute',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <Text
+                        variant="seatText"
+                        fontSize={fontSize}
+                        color={color}
+                        fontWeight="bold"
+                        lineHeight={1}
+                        transition="color 0.3s ease-in-out"
+                        textAlign="center"
+                    >
+                        {digit}
+                    </Text>
+                </motion.div>
+            </AnimatePresence>
+        </Box>
+    );
+};
+
 const TakenSeatButton = ({
     player,
     isCurrentTurn,
@@ -85,13 +151,13 @@ const TakenSeatButton = ({
         1: {
             top: {
                 base: '-46%',
-                md: isMobile ? '-45%' : '-10%',
+                md: isMobile ? '-45%' : '-16%',
                 '2xl': '-18%',
             },
             justifyContent: { base: 'center' },
         },
         2: {
-            top: { base: '-15%', md: isMobile ? '15%' : '-10%', '2xl': '-18%' },
+            top: { base: '-15%', md: isMobile ? '15%' : '-16%', '2xl': '-18%' },
             right: { base: '-105%', md: isMobile ? '-70%' : 0, '2xl': 0 },
             flexDirection: { base: 'column', md: 'row' },
             justifyContent: { base: 'center' },
@@ -151,7 +217,7 @@ const TakenSeatButton = ({
             alignItems: { base: 'end', md: 'start' },
         },
         10: {
-            top: { base: '-15%', md: isMobile ? '15%' : '-10%', '2xl': '-18%' },
+            top: { base: '-15%', md: isMobile ? '15%' : '-16%', '2xl': '-18%' },
             left: { base: '-105%', md: isMobile ? '-68%' : '0%', '2xl': '0%' },
             flexDirection: {
                 base: 'column',
@@ -325,8 +391,8 @@ const TakenSeatButton = ({
                 {player.bet !== 0 && (
                     <Text
                         borderRadius="1.5rem"
-                        px={4}
-                        py={1}
+                        px={{ base: 2, md: 3 }}
+                        py={0}
                         w={'fit-content'}
                         bg="brand.yellow"
                         fontWeight="bold"
@@ -335,6 +401,7 @@ const TakenSeatButton = ({
                         alignItems="center"
                         justifyContent="center"
                         variant={'seatText'}
+                        fontSize={{ base: '10px', md: '16px' }}
                         zIndex={3}
                         boxShadow="0 2px 8px rgba(253, 197, 29, 0.3)"
                     >
@@ -351,6 +418,7 @@ const TakenSeatButton = ({
                 gap={0}
                 left="50%"
                 transform="translateX(-50%)"
+                marginTop={{ base: 0, md: '12px' }}
             >
                 {appState.game.running &&
                     player.cards.map((card: Card, index: number) => {
@@ -376,6 +444,14 @@ const TakenSeatButton = ({
                         // Folded visual (for non-showdown states) still uses folded prop
                         const foldedVisual = !isShowdown && !player.in;
 
+                        // Determine if this is the current user's cards
+                        const isSelf = appState.clientID
+                            ? player.uuid === appState.clientID
+                            : false;
+
+                        // Skip flip animation for enemy players - they should show front immediately
+                        const skipAnimation = !isSelf;
+
                         // DEBUG: Log shouldDim logic for winners/losers at showdown
                         if (isShowdown && (isWinner || winningSet.size > 0)) {
                             console.log('🏆 WINNER DEBUG:', {
@@ -391,8 +467,12 @@ const TakenSeatButton = ({
                             <Box
                                 key={`${card}-${index}`}
                                 className={`player-card seat-${player.seatID}-card-${index}`}
-                                width="40%" // narrower than 50% so the pair is centred
+                                width={{ base: '40%', md: '48%' }} // narrower than 50% so the pair is centred, bigger on md screens
                                 display="flex"
+                                alignItems="flex-start"
+                                justifyContent="flex-start"
+                                p={0}
+                                m={0}
                                 ml={
                                     index === 1
                                         ? { base: '0%', md: '-2%', lg: '0%' }
@@ -410,6 +490,7 @@ const TakenSeatButton = ({
                                     folded={foldedVisual}
                                     highlighted={isCardWinning}
                                     dimmed={dimThisCard}
+                                    skipAnimation={skipAnimation}
                                 />
                             </Box>
                         );
@@ -465,11 +546,11 @@ const TakenSeatButton = ({
                     bg={isCurrentTurn || isWinner ? 'white' : 'brand.darkNavy'}
                     borderRadius={{ base: 4, md: 8, lg: 12, xl: 12, '2xl': 12 }}
                     width={'100%'}
-                    paddingX={4}
-                    paddingY={1}
+                    paddingX={{ base: 1, md: 2 }}
+                    paddingY={{ base: 0.5, md: 1 }}
                     justifySelf={'flex-end'}
                     justifyContent={'center'}
-                    alignItems={'center'}
+                    alignItems={'flex-start'}
                     animation={glowAnimation}
                     transition={'all 0.5s ease-in-out'}
                     position={'relative'}
@@ -491,15 +572,15 @@ const TakenSeatButton = ({
                     {player.stack > 0 && !player.ready && (
                         <Tag
                             position="absolute"
-                            top={-3}
-                            right={1}
+                            top={{ base: -2, md: -3 }}
+                            right={0}
                             bg="brand.yellow"
                             color="brand.navy"
                             variant="solid"
                             size={{ base: 'xs', md: 'sm' }}
                             fontSize={{ base: '8px', md: 'sm' }}
-                            px={{ base: 1, md: 2 }}
-                            py={{ base: 0.5, md: 0 }}
+                            px={{ base: 1, md: 1 }}
+                            py={{ base: 0.1, md: 0.2 }}
                             zIndex={3}
                             fontWeight="bold"
                             borderRadius="6px"
@@ -510,7 +591,7 @@ const TakenSeatButton = ({
                     {strengthLabel && (
                         <Tag
                             position="absolute"
-                            top={{ base: -2, md: -3 }}
+                            top={{ base: -1, md: -3 }}
                             left={'50%'}
                             transform={'translateX(-50%)'}
                             bg="brand.green"
@@ -530,7 +611,12 @@ const TakenSeatButton = ({
                             {strengthLabel}
                         </Tag>
                     )}
-                    <HStack spacing={2} className="player-info-header">
+                    <HStack
+                        spacing={2}
+                        className="player-info-header"
+                        width="100%"
+                        justifyContent="space-between"
+                    >
                         <Tooltip
                             label={shortEthAddress}
                             hasArrow
@@ -541,6 +627,7 @@ const TakenSeatButton = ({
                             <Text
                                 className="player-username"
                                 variant={'seatText'}
+                                fontSize={{ base: '10px', md: 'xs', lg: 'sm' }}
                                 fontWeight={'bold'}
                                 color={
                                     isCurrentTurn || isWinner
@@ -552,38 +639,28 @@ const TakenSeatButton = ({
                                 {player.username}
                             </Text>
                         </Tooltip>
-                        <Box
-                            position={'relative'}
-                            display={'inline-flex'}
+                        <Flex
+                            className="player-stack-container"
                             alignItems={'center'}
+                            justifyContent={'center'}
+                            gap={0}
                         >
-                            <Text
-                                className="player-stack"
-                                variant={'seatText'}
-                                color={
-                                    isCurrentTurn || isWinner
-                                        ? 'brand.darkNavy'
-                                        : 'white'
-                                }
-                                fontWeight="semibold"
-                            >
-                                {player.stack}
-                            </Text>
-                            {/* Winnings overlay – positioned next to the stack on the same line */}
-                            <Text
-                                className="player-winnings-overlay"
-                                variant={'seatText'}
-                                color={'brand.green'}
-                                fontWeight={'bold'}
-                                position={'absolute'}
-                                left={'110%'}
-                                pointerEvents={'none'}
-                                zIndex={2}
-                                opacity={isWinner && winnings > 0 ? 1 : 0}
-                            >
-                                {`+${Math.round(winnings)}`}
-                            </Text>
-                        </Box>
+                            {String(player.stack)
+                                .split('')
+                                .map((digit, index) => (
+                                    <AnimatedDigit
+                                        key={`${player.seatID}-${index}`}
+                                        digit={digit}
+                                        isWinner={isWinner && winnings > 0}
+                                        isCurrentTurn={isCurrentTurn}
+                                        fontSize={{
+                                            base: 'xs',
+                                            md: 'sm',
+                                            lg: 'md',
+                                        }}
+                                    />
+                                ))}
+                        </Flex>
                     </HStack>
 
                     {/* Countdown timer – keep box rendered for consistent height */}
@@ -609,8 +686,9 @@ const TakenSeatButton = ({
                                 display="flex"
                                 flexDirection="row"
                                 alignItems="center"
-                                alignSelf="stretch"
+                                alignSelf="flex-start"
                                 visibility={timerVisible ? 'visible' : 'hidden'}
+                                marginTop={{ base: '-2px', md: '-8px' }}
                             >
                                 {/* Numeric time – hidden on small screens */}
                                 <Text

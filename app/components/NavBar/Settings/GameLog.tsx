@@ -1,172 +1,1185 @@
 'use client';
 
-import { Box, VStack, HStack, Text, Badge, Divider } from '@chakra-ui/react';
+import { Box, VStack, HStack, Text, Button, Spinner } from '@chakra-ui/react';
+import { useContext, useEffect, useState } from 'react';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { fetchTableEvents } from '@/app/hooks/server_actions';
+import { GameEventRecord, EventsResponse } from '@/app/interfaces';
+import useToastHelper from '@/app/hooks/useToastHelper';
+import { evaluateBest5, EvalCard, Suit } from '@/app/lib/poker/pokerHandEval';
 
-interface LogEntry {
-    id: string;
-    timestamp: Date;
-    action: string;
-    player?: string;
-    details?: string;
-    type: 'action' | 'game' | 'system';
+// Type-safe metadata interfaces
+interface HandStartedMetadata {
+    hand_number: number;
+    sb_amount: number;
+    bb_amount: number;
 }
 
-const GameLog = () => {
-    // Mock log entries - replace with actual game log data from your state
-    const logEntries: LogEntry[] = [
-        {
-            id: '1',
-            timestamp: new Date(),
-            action: 'Game Started',
-            type: 'game',
-            details: 'New game session initiated',
-        },
-        {
-            id: '2',
-            timestamp: new Date(Date.now() - 60000),
-            action: 'Player Joined',
-            player: 'Player 1',
-            type: 'system',
-            details: 'Joined the table',
-        },
-        {
-            id: '3',
-            timestamp: new Date(Date.now() - 120000),
-            action: 'Bet',
-            player: 'Player 2',
-            type: 'action',
-            details: 'Raised $100',
-        },
-    ];
+interface CardsDealtMetadata {
+    my_cards?: string[];
+}
 
-    const getBadgeColor = (type: string) => {
-        switch (type) {
+interface CommunityCardsMetadata {
+    cards: string[];
+    pot_size: number;
+}
+
+interface PotWinner {
+    uuid: string;
+    name: string;
+    share: number | string;
+    winning_hand?: string[];
+    winning_score?: number;
+    hole_cards?: string[];
+}
+
+interface PotResult {
+    pot_number: number;
+    amount: number | string;
+    eligible_players: string[];
+    winners: PotWinner[];
+}
+
+interface RevealedCardInfo {
+    username: string;
+    cards: string[];
+}
+
+interface HandConcludedMetadata {
+    pots: PotResult[];
+    total_pot: number | string;
+    revealed_cards: Record<string, RevealedCardInfo>;
+    community_cards?: string[];
+}
+
+interface PlayerJoinedMetadata {
+    seat_id: number;
+    buy_in: number | string;
+}
+
+interface GamePausedMetadata {
+    paused_by?: string;
+}
+
+interface GameResumedMetadata {
+    resumed_by?: string;
+}
+
+interface PlayerAcceptedMetadata {
+    seat_id: number;
+    buy_in: number | string;
+    queued: boolean;
+}
+
+interface PlayerKickedMetadata {
+    kicked_by_uuid: string;
+    kicked_by_name: string;
+    queued: boolean;
+}
+
+interface PlayerLeftMetadata {
+    player_name?: string;
+    reason?: string;
+}
+
+// Helper function to convert backend card string to EvalCard format
+const convertBackendCardToInt = (cardStr: string): EvalCard | null => {
+    if (!cardStr || cardStr.length < 2) return null;
+
+    // Card format: rank + suit (e.g., "A♠", "Kh", "10♣")
+    const suitChar = cardStr.slice(-1);
+    const rankStr = cardStr.slice(0, -1).toUpperCase();
+
+    // Map suit characters to Suit type
+    const suitMap: { [key: string]: Suit } = {
+        '♠': 's',
+        '♥': 'h',
+        '♦': 'd',
+        '♣': 'c',
+        s: 's',
+        h: 'h',
+        d: 'd',
+        c: 'c',
+        S: 's',
+        H: 'h',
+        D: 'd',
+        C: 'c',
+    };
+
+    // Map rank characters to numeric values (2-14 where 14 is Ace)
+    const rankMap: { [key: string]: number } = {
+        '2': 2,
+        '3': 3,
+        '4': 4,
+        '5': 5,
+        '6': 6,
+        '7': 7,
+        '8': 8,
+        '9': 9,
+        '10': 10,
+        T: 10,
+        J: 11,
+        Q: 12,
+        K: 13,
+        A: 14,
+    };
+
+    const suit = suitMap[suitChar];
+    const rank = rankMap[rankStr];
+
+    if (!suit || !rank) return null;
+
+    // Create raw integer representation for the card
+    const rankIndex = rank - 2; // 0-12
+    const suitMasks: { [key in Suit]: number } = {
+        c: 0x8000,
+        d: 0x4000,
+        h: 0x2000,
+        s: 0x1000,
+    };
+    const raw = (rankIndex << 8) | suitMasks[suit];
+
+    return { rank, suit, raw };
+};
+
+// Helper function to get hand category from winning cards
+const getHandCategoryFromCards = (winningCards: string[]): string | null => {
+    if (!winningCards || winningCards.length !== 5) return null;
+
+    const evalCards = winningCards
+        .map(convertBackendCardToInt)
+        .filter((c): c is EvalCard => c !== null);
+
+    if (evalCards.length !== 5) return null;
+
+    const result = evaluateBest5(evalCards);
+    return result?.category ?? null;
+};
+
+const GameLog = () => {
+    const { appState } = useContext(AppContext);
+    const toast = useToastHelper();
+    const [events, setEvents] = useState<GameEventRecord[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(false);
+    const [offset, setOffset] = useState(0);
+    const [isUnauthorized, setIsUnauthorized] = useState(false);
+    const limit = 50;
+
+    // Load initial events
+    useEffect(() => {
+        const loadEvents = async () => {
+            if (!appState.table) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                setIsUnauthorized(false);
+                const response: EventsResponse = await fetchTableEvents(
+                    appState.table,
+                    limit,
+                    0
+                );
+
+                // Debug logging for initial load
+                console.log('[GameLog] Initial events loaded:', {
+                    count: response.events.length,
+                    has_more: response.has_more,
+                    event_types: Array.from(
+                        new Set(response.events.map((e) => e.event_type))
+                    ),
+                    full_response: response,
+                });
+
+                setEvents(response.events);
+                setHasMore(response.has_more);
+                setOffset(response.events.length);
+            } catch (error) {
+                console.error('Failed to load events:', error);
+                const errorMessage =
+                    error instanceof Error ? error.message : 'Unknown error';
+                if (errorMessage.includes('Unauthorized')) {
+                    setIsUnauthorized(true);
+                } else {
+                    toast.error('Failed to load game log');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadEvents();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [appState.table]);
+
+    // Load more events
+    const loadMoreEvents = async () => {
+        if (!appState.table || loadingMore || !hasMore) return;
+
+        try {
+            setLoadingMore(true);
+            const response: EventsResponse = await fetchTableEvents(
+                appState.table,
+                limit,
+                offset
+            );
+
+            // Debug logging for pagination
+            console.log('[GameLog] More events loaded:', {
+                count: response.events.length,
+                has_more: response.has_more,
+                new_offset: offset + response.events.length,
+                event_types: Array.from(
+                    new Set(response.events.map((e) => e.event_type))
+                ),
+            });
+
+            setEvents([...events, ...response.events]);
+            setHasMore(response.has_more);
+            setOffset(offset + response.events.length);
+        } catch (error) {
+            console.error('Failed to load more events:', error);
+            toast.error('Failed to load more events');
+        } finally {
+            setLoadingMore(false);
+        }
+    };
+
+    const getBadgeColor = (category: string) => {
+        switch (category) {
             case 'action':
                 return 'brand.green';
-            case 'game':
+            case 'game_event':
                 return 'brand.navy';
-            case 'system':
+            case 'meta_event':
                 return 'brand.pink';
             default:
                 return 'gray.500';
         }
     };
 
-    const formatTime = (date: Date) => {
-        return date.toLocaleTimeString('en-US', {
+    const formatTime = (timestamp: string) => {
+        return new Date(timestamp).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
         });
     };
 
+    const convertCardsToEmojis = (cards: string[]): string => {
+        return cards
+            .map((card) => {
+                // Card format is like "Ah" (Ace of Hearts) or "9d" (9 of Diamonds)
+                const suit = card.slice(-1).toLowerCase();
+                const rank = card.slice(0, -1).toUpperCase();
+
+                const suitEmoji: { [key: string]: string } = {
+                    s: '♠️',
+                    h: '♥️',
+                    d: '♦️',
+                    c: '♣️',
+                };
+
+                // Convert 'T' to '10' for display
+                const displayRank = rank === 'T' ? '10' : rank;
+
+                return `${displayRank}${suitEmoji[suit] || suit}`;
+            })
+            .join(' ');
+    };
+
+    // Helper function to safely format amount
+    const formatAmount = (amt: number | string | null | undefined): string => {
+        if (amt === undefined || amt === null) return '0.00';
+        const numAmount = typeof amt === 'string' ? parseFloat(amt) : amt;
+        return isNaN(numAmount) ? '0.00' : numAmount.toFixed(2);
+    };
+
+    // Get color for action keywords
+    const getActionColor = (action: string): string => {
+        switch (action.toLowerCase()) {
+            case 'folded':
+            case 'fold':
+                return 'red.500';
+            case 'called':
+            case 'call':
+                return 'blue.500';
+            case 'raised':
+            case 'raise':
+                return 'orange.500';
+            case 'bet':
+                return 'purple.500';
+            case 'checked':
+            case 'check':
+                return 'green.500';
+            case 'all-in':
+                return 'red.600';
+            default:
+                return 'gray.800';
+        }
+    };
+
+    const formatLogMessage = (event: GameEventRecord) => {
+        const { event_type, metadata, amount, player_name } = event;
+
+        // Debug logging for all events
+        console.log('[GameLog Event]', {
+            event_type,
+            event_category: event.event_category,
+            player_name,
+            amount,
+            stage: event.stage ?? null, // stage is optional (omitted for meta events)
+            metadata,
+            full_event: event,
+        });
+
+        switch (event_type) {
+            case 'hand_started': {
+                const meta = metadata as Partial<HandStartedMetadata>;
+                return (
+                    <>
+                        <Text as="span" fontWeight="bold" color="brand.navy">
+                            Hand #{meta.hand_number || event.hand_id} started
+                        </Text>
+                        {meta.sb_amount !== undefined &&
+                            meta.bb_amount !== undefined && (
+                                <>
+                                    {' '}
+                                    — SB: {formatAmount(meta.sb_amount)}, BB:{' '}
+                                    {formatAmount(meta.bb_amount)}
+                                </>
+                            )}
+                    </>
+                );
+            }
+
+            case 'cards_dealt': {
+                const meta = metadata as Partial<CardsDealtMetadata>;
+                if (Array.isArray(meta.my_cards) && meta.my_cards.length > 0) {
+                    return (
+                        <>
+                            <Text
+                                as="span"
+                                fontWeight="bold"
+                                color="purple.600"
+                            >
+                                You were dealt:
+                            </Text>{' '}
+                            {convertCardsToEmojis(meta.my_cards)}
+                        </>
+                    );
+                }
+                return (
+                    <Text as="span" fontWeight="bold">
+                        Cards dealt to players
+                    </Text>
+                );
+            }
+
+            case 'flop_dealt': {
+                const meta = metadata as Partial<CommunityCardsMetadata>;
+                return (
+                    <>
+                        <Text as="span" color="purple.600" fontWeight="bold">
+                            Flop:
+                        </Text>{' '}
+                        {Array.isArray(meta.cards)
+                            ? convertCardsToEmojis(meta.cards.slice(0, 3))
+                            : 'N/A'}
+                        {meta.pot_size !== undefined && (
+                            <> — Pot: {formatAmount(meta.pot_size)}</>
+                        )}
+                    </>
+                );
+            }
+
+            case 'turn_dealt': {
+                const meta = metadata as Partial<CommunityCardsMetadata>;
+                return (
+                    <>
+                        <Text as="span" color="purple.600" fontWeight="bold">
+                            Turn:
+                        </Text>{' '}
+                        {Array.isArray(meta.cards) && meta.cards.length >= 4
+                            ? convertCardsToEmojis(meta.cards.slice(0, 4))
+                            : 'N/A'}
+                        {meta.pot_size !== undefined && (
+                            <> — Pot: {formatAmount(meta.pot_size)}</>
+                        )}
+                    </>
+                );
+            }
+
+            case 'river_dealt': {
+                const meta = metadata as Partial<CommunityCardsMetadata>;
+                return (
+                    <>
+                        <Text as="span" color="purple.600" fontWeight="bold">
+                            River:
+                        </Text>{' '}
+                        {Array.isArray(meta.cards) && meta.cards.length >= 5
+                            ? convertCardsToEmojis(meta.cards)
+                            : 'N/A'}
+                        {meta.pot_size !== undefined && (
+                            <> — Pot: {formatAmount(meta.pot_size)}</>
+                        )}
+                    </>
+                );
+            }
+
+            case 'fold':
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text
+                            as="span"
+                            color={getActionColor('folded')}
+                            fontWeight="bold"
+                        >
+                            folded
+                        </Text>
+                    </>
+                );
+
+            case 'check':
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text
+                            as="span"
+                            color={getActionColor('checked')}
+                            fontWeight="bold"
+                        >
+                            checked
+                        </Text>
+                    </>
+                );
+
+            case 'call':
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text
+                            as="span"
+                            color={getActionColor('called')}
+                            fontWeight="bold"
+                        >
+                            called
+                        </Text>{' '}
+                        {formatAmount(amount)}
+                    </>
+                );
+
+            case 'bet':
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text
+                            as="span"
+                            color={getActionColor('bet')}
+                            fontWeight="bold"
+                        >
+                            bet
+                        </Text>{' '}
+                        {formatAmount(amount)}
+                    </>
+                );
+
+            case 'raise':
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text
+                            as="span"
+                            color={getActionColor('raised')}
+                            fontWeight="bold"
+                        >
+                            raised
+                        </Text>{' '}
+                        to {formatAmount(amount)}
+                    </>
+                );
+
+            case 'all_in':
+                return (
+                    <>
+                        {player_name || 'Player'} went{' '}
+                        <Text
+                            as="span"
+                            color={getActionColor('all-in')}
+                            fontWeight="bold"
+                        >
+                            all-in
+                        </Text>{' '}
+                        for {formatAmount(amount)}
+                    </>
+                );
+
+            case 'hand_concluded': {
+                const meta = metadata as Partial<HandConcludedMetadata>;
+
+                return (
+                    <Box>
+                        <Text as="span" fontWeight="bold" color="brand.navy">
+                            Hand #{event.hand_id} concluded
+                        </Text>
+
+                        {/* Board cards */}
+                        {meta.community_cards &&
+                            Array.isArray(meta.community_cards) &&
+                            meta.community_cards.length > 0 && (
+                                <Box mt={1} ml={4}>
+                                    <Text
+                                        fontSize="xs"
+                                        color="purple.600"
+                                        fontWeight="bold"
+                                    >
+                                        Board:{' '}
+                                        {convertCardsToEmojis(
+                                            meta.community_cards
+                                        )}
+                                    </Text>
+                                </Box>
+                            )}
+
+                        {/* Pots (main pot and side pots) */}
+                        {meta.pots &&
+                            Array.isArray(meta.pots) &&
+                            meta.pots.length > 0 && (
+                                <Box mt={1} ml={4}>
+                                    {meta.pots.map((pot, potIdx) => {
+                                        const potLabel =
+                                            pot.pot_number === 0
+                                                ? 'Main Pot (MP)'
+                                                : `Side Pot ${pot.pot_number} (SP${pot.pot_number})`;
+
+                                        return (
+                                            <Box
+                                                key={potIdx}
+                                                mt={potIdx > 0 ? 2 : 0}
+                                            >
+                                                <Text
+                                                    fontSize="xs"
+                                                    fontWeight="bold"
+                                                    color="brand.navy"
+                                                >
+                                                    {potLabel}:{' '}
+                                                    {formatAmount(pot.amount)}
+                                                </Text>
+
+                                                {/* Winners for this pot */}
+                                                {pot.winners &&
+                                                    Array.isArray(
+                                                        pot.winners
+                                                    ) &&
+                                                    pot.winners.length > 0 && (
+                                                        <Box ml={4} mt={0.5}>
+                                                            {pot.winners.map(
+                                                                (
+                                                                    winner,
+                                                                    winnerIdx
+                                                                ) => (
+                                                                    <Box
+                                                                        key={
+                                                                            winnerIdx
+                                                                        }
+                                                                        mt={
+                                                                            winnerIdx >
+                                                                            0
+                                                                                ? 1
+                                                                                : 0
+                                                                        }
+                                                                    >
+                                                                        <Text
+                                                                            fontSize="xs"
+                                                                            color="green.600"
+                                                                            fontWeight="bold"
+                                                                        >
+                                                                            {
+                                                                                winner.name
+                                                                            }{' '}
+                                                                            wins{' '}
+                                                                            {formatAmount(
+                                                                                winner.share
+                                                                            )}
+                                                                            {winner.hole_cards &&
+                                                                                Array.isArray(
+                                                                                    winner.hole_cards
+                                                                                ) &&
+                                                                                winner
+                                                                                    .hole_cards
+                                                                                    .length >
+                                                                                    0 && (
+                                                                                    <>
+                                                                                        ,
+                                                                                        shows{' '}
+                                                                                        <Text
+                                                                                            as="span"
+                                                                                            color="gray.700"
+                                                                                            fontWeight="bold"
+                                                                                        >
+                                                                                            {convertCardsToEmojis(
+                                                                                                winner.hole_cards
+                                                                                            )}
+                                                                                        </Text>
+                                                                                    </>
+                                                                                )}
+                                                                        </Text>
+
+                                                                        {/* Winning hand and category */}
+                                                                        {winner.winning_hand &&
+                                                                            Array.isArray(
+                                                                                winner.winning_hand
+                                                                            ) &&
+                                                                            winner
+                                                                                .winning_hand
+                                                                                .length >
+                                                                                0 && (
+                                                                                <Box
+                                                                                    ml={
+                                                                                        4
+                                                                                    }
+                                                                                    mt={
+                                                                                        0.5
+                                                                                    }
+                                                                                >
+                                                                                    <Text
+                                                                                        fontSize="xs"
+                                                                                        color="gray.700"
+                                                                                        fontWeight="bold"
+                                                                                    >
+                                                                                        Combo:{' '}
+                                                                                        {convertCardsToEmojis(
+                                                                                            winner.winning_hand
+                                                                                        )}
+                                                                                        {(() => {
+                                                                                            const handCategory =
+                                                                                                getHandCategoryFromCards(
+                                                                                                    winner.winning_hand
+                                                                                                );
+                                                                                            return handCategory ? (
+                                                                                                <>
+                                                                                                    {' '}
+                                                                                                    —{' '}
+                                                                                                    <Text
+                                                                                                        as="span"
+                                                                                                        fontWeight="bold"
+                                                                                                        color="purple.600"
+                                                                                                    >
+                                                                                                        {
+                                                                                                            handCategory
+                                                                                                        }
+                                                                                                    </Text>
+                                                                                                </>
+                                                                                            ) : null;
+                                                                                        })()}
+                                                                                    </Text>
+                                                                                </Box>
+                                                                            )}
+                                                                    </Box>
+                                                                )
+                                                            )}
+                                                        </Box>
+                                                    )}
+                                            </Box>
+                                        );
+                                    })}
+                                </Box>
+                            )}
+
+                        {/* Revealed cards section - shows all players who revealed */}
+                        {meta.revealed_cards &&
+                            Object.keys(meta.revealed_cards).length > 0 && (
+                                <Box mt={2} ml={4}>
+                                    {Object.entries(meta.revealed_cards).map(
+                                        ([uuid, revealedInfo], idx) => {
+                                            // Check if this player is a winner (already shown above)
+                                            let isWinner = false;
+
+                                            if (meta.pots) {
+                                                for (const pot of meta.pots) {
+                                                    const winner =
+                                                        pot.winners?.find(
+                                                            (w) =>
+                                                                w.uuid === uuid
+                                                        );
+                                                    if (winner) {
+                                                        isWinner = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            // Only show non-winners here (winners already shown above)
+                                            if (isWinner) return null;
+
+                                            return (
+                                                <Text
+                                                    key={uuid}
+                                                    fontSize="xs"
+                                                    color="gray.600"
+                                                    mt={idx > 0 ? 0.5 : 0}
+                                                    fontWeight="bold"
+                                                >
+                                                    {revealedInfo.username}{' '}
+                                                    showed:{' '}
+                                                    <Text
+                                                        as="span"
+                                                        color="gray.700"
+                                                        fontWeight="bold"
+                                                    >
+                                                        {convertCardsToEmojis(
+                                                            revealedInfo.cards
+                                                        )}
+                                                    </Text>
+                                                </Text>
+                                            );
+                                        }
+                                    )}
+                                </Box>
+                            )}
+
+                        {/* Total pot */}
+                        {meta.total_pot !== undefined && (
+                            <Text
+                                fontSize="xs"
+                                color="gray.600"
+                                mt={2}
+                                ml={4}
+                                fontWeight="bold"
+                            >
+                                Total pot: {formatAmount(meta.total_pot)}
+                            </Text>
+                        )}
+                    </Box>
+                );
+            }
+
+            case 'pot_awarded':
+                return (
+                    <>
+                        Pot{' '}
+                        <Text as="span" fontWeight="bold">
+                            awarded
+                        </Text>
+                        : {formatAmount(amount)}
+                    </>
+                );
+
+            case 'player_joined': {
+                const meta = metadata as Partial<PlayerJoinedMetadata>;
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="green.600" fontWeight="bold">
+                            joined
+                        </Text>
+                        {meta.seat_id !== undefined && (
+                            <> (Seat {meta.seat_id}</>
+                        )}
+                        {meta.buy_in !== undefined && (
+                            <>, Buy-in: {formatAmount(meta.buy_in)}</>
+                        )}
+                        {meta.seat_id !== undefined && <>)</>}
+                    </>
+                );
+            }
+
+            case 'player_left': {
+                const meta = metadata as Partial<PlayerLeftMetadata>;
+                const displayName = player_name || meta.player_name || 'Player';
+                return (
+                    <>
+                        {displayName}{' '}
+                        <Text as="span" color="red.500" fontWeight="bold">
+                            left
+                        </Text>{' '}
+                        the table
+                    </>
+                );
+            }
+
+            case 'game_paused': {
+                const meta = metadata as Partial<GamePausedMetadata>;
+                return (
+                    <>
+                        Game{' '}
+                        <Text as="span" color="orange.500" fontWeight="bold">
+                            paused
+                        </Text>
+                        {meta.paused_by && <> by {meta.paused_by}</>}
+                    </>
+                );
+            }
+
+            case 'game_resumed': {
+                const meta = metadata as Partial<GameResumedMetadata>;
+                return (
+                    <>
+                        Game{' '}
+                        <Text as="span" color="green.600" fontWeight="bold">
+                            resumed
+                        </Text>
+                        {meta.resumed_by && <> by {meta.resumed_by}</>}
+                    </>
+                );
+            }
+
+            case 'player_accepted': {
+                const meta = metadata as Partial<PlayerAcceptedMetadata>;
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="green.600" fontWeight="bold">
+                            accepted
+                        </Text>
+                        {meta.seat_id !== undefined && (
+                            <> (Seat {meta.seat_id}</>
+                        )}
+                        {meta.buy_in !== undefined && (
+                            <>, Buy-in: {formatAmount(meta.buy_in)}</>
+                        )}
+                        {meta.queued && (
+                            <Text
+                                as="span"
+                                color="orange.500"
+                                fontWeight="bold"
+                            >
+                                {' '}
+                                — Queued
+                            </Text>
+                        )}
+                        {meta.seat_id !== undefined && <>)</>}
+                    </>
+                );
+            }
+
+            case 'player_denied': {
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="red.500" fontWeight="bold">
+                            denied
+                        </Text>{' '}
+                        seat request
+                    </>
+                );
+            }
+
+            case 'player_kicked': {
+                const meta = metadata as Partial<PlayerKickedMetadata>;
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="red.600" fontWeight="bold">
+                            kicked
+                        </Text>
+                        {meta.kicked_by_name && <> by {meta.kicked_by_name}</>}
+                        {meta.queued && (
+                            <Text
+                                as="span"
+                                color="orange.500"
+                                fontWeight="bold"
+                            >
+                                {' '}
+                                — Queued
+                            </Text>
+                        )}
+                    </>
+                );
+            }
+
+            case 'player_set_ready': {
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="green.600" fontWeight="bold">
+                            set ready
+                        </Text>
+                    </>
+                );
+            }
+
+            case 'player_set_away': {
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="orange.500" fontWeight="bold">
+                            set away
+                        </Text>
+                    </>
+                );
+            }
+
+            case 'player_sit_out_next': {
+                return (
+                    <>
+                        {player_name || 'Player'}{' '}
+                        <Text as="span" color="orange.600" fontWeight="bold">
+                            will sit out
+                        </Text>{' '}
+                        next hand
+                    </>
+                );
+            }
+
+            default:
+                console.warn(
+                    '[GameLog] Unhandled event_type:',
+                    event_type,
+                    event
+                );
+                return (
+                    <>
+                        <Text as="span" color="orange.500" fontWeight="bold">
+                            [UNHANDLED EVENT]
+                        </Text>{' '}
+                        {event_type.replace(/_/g, ' ')}
+                        {player_name && <> by {player_name}</>}
+                        {amount !== null &&
+                            amount !== undefined &&
+                            ` (${formatAmount(amount)})`}
+                    </>
+                );
+        }
+    };
+
+    if (loading) {
+        return (
+            <Box>
+                <Text
+                    fontSize={{ base: 'xl', md: '2xl' }}
+                    fontWeight={'bold'}
+                    mb={6}
+                    color="brand.navy"
+                    letterSpacing="-0.02em"
+                >
+                    Game Log
+                </Text>
+                <Box
+                    p={8}
+                    textAlign="center"
+                    bg="brand.lightGray"
+                    borderRadius="16px"
+                >
+                    <Spinner
+                        size="xl"
+                        color="brand.green"
+                        thickness="4px"
+                        speed="0.65s"
+                    />
+                    <Text mt={4} color="gray.600" fontWeight="medium">
+                        Loading events...
+                    </Text>
+                </Box>
+            </Box>
+        );
+    }
+
+    if (isUnauthorized) {
+        return (
+            <Box>
+                <Text
+                    fontSize={{ base: 'xl', md: '2xl' }}
+                    fontWeight={'bold'}
+                    mb={6}
+                    color="brand.navy"
+                    letterSpacing="-0.02em"
+                >
+                    Game Log
+                </Text>
+                <Box
+                    p={8}
+                    textAlign="center"
+                    bg="brand.lightGray"
+                    borderRadius="16px"
+                    border="2px solid"
+                    borderColor="white"
+                >
+                    <Text
+                        color="gray.600"
+                        fontWeight="bold"
+                        fontSize="lg"
+                        mb={2}
+                    >
+                        Authentication Required
+                    </Text>
+                    <Text color="gray.500" fontWeight="medium" fontSize="sm">
+                        Please connect your wallet to view game events
+                    </Text>
+                </Box>
+            </Box>
+        );
+    }
+
     return (
         <Box>
             <Text
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
-                mb={6}
+                mb={4}
                 color="brand.navy"
                 letterSpacing="-0.02em"
             >
                 Game Log
             </Text>
-            <VStack align="stretch" gap={3}>
-                {logEntries.length === 0 ? (
-                    <Box
-                        p={8}
-                        textAlign="center"
-                        bg="brand.lightGray"
-                        borderRadius="16px"
-                        border="2px solid"
-                        borderColor="white"
+            <Box
+                bg="white"
+                borderRadius="12px"
+                border="1px solid"
+                borderColor="gray.200"
+                overflow="hidden"
+            >
+                {/* Log container with terminal-like styling */}
+                <Box
+                    bg="gray.50"
+                    px={{ base: 3, md: 4 }}
+                    py={2}
+                    borderBottom="1px solid"
+                    borderColor="gray.200"
+                >
+                    <Text
+                        fontSize="xs"
+                        fontWeight="bold"
+                        color="white"
+                        fontFamily="mono"
                     >
-                        <Text
-                            color="gray.600"
-                            fontWeight="medium"
-                            fontSize="md"
-                        >
-                            No log entries yet
-                        </Text>
-                    </Box>
-                ) : (
-                    logEntries.map((entry, index) => (
-                        <Box key={entry.id}>
-                            <HStack
-                                p={{ base: 4, md: 5 }}
-                                bg="white"
-                                borderRadius="16px"
-                                border="2px solid"
-                                borderColor="brand.lightGray"
-                                justify="space-between"
-                                boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
-                                _hover={{
-                                    borderColor: 'brand.green',
-                                    boxShadow:
-                                        '0 8px 20px rgba(54, 163, 123, 0.15)',
-                                    transform: 'translateY(-2px)',
-                                }}
-                                transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                                align="start"
-                                flexDirection={{ base: 'column', sm: 'row' }}
-                                gap={{ base: 3, sm: 0 }}
+                        EVENT LOG — {events.length} entries
+                    </Text>
+                </Box>
+                <Box
+                    maxH="70vh"
+                    overflowY="auto"
+                    fontFamily="mono"
+                    lineHeight="1.4"
+                    sx={{
+                        '&::-webkit-scrollbar': {
+                            width: '8px',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            bg: 'gray.50',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            bg: 'gray.300',
+                            borderRadius: 'full',
+                            _hover: {
+                                bg: 'brand.navy',
+                            },
+                        },
+                    }}
+                >
+                    {events.length === 0 ? (
+                        <Box p={6} textAlign="center">
+                            <Text
+                                color="gray.500"
+                                fontFamily="mono"
+                                fontWeight="bold"
                             >
-                                <VStack align="start" flex={1} gap={2} w="100%">
-                                    <HStack flexWrap="wrap" gap={2}>
-                                        <Badge
-                                            bg={getBadgeColor(entry.type)}
-                                            color="white"
-                                            fontSize="xs"
-                                            px={3}
-                                            py={1}
-                                            borderRadius="6px"
-                                            fontWeight="bold"
-                                        >
-                                            {entry.type.toUpperCase()}
-                                        </Badge>
+                                — No events recorded —
+                            </Text>
+                        </Box>
+                    ) : (
+                        <VStack align="stretch" gap={0} spacing={0}>
+                            {events.map((event, index) => (
+                                <Box
+                                    key={event.id}
+                                    px={{ base: 2, md: 3 }}
+                                    py={{ base: 1.5, md: 2 }}
+                                    bg={
+                                        index % 2 === 0
+                                            ? 'white'
+                                            : 'brand.lightGray'
+                                    }
+                                >
+                                    <HStack
+                                        gap={{ base: 0.25, md: 1 }}
+                                        flexWrap="wrap"
+                                        align="baseline"
+                                        rowGap={0}
+                                    >
                                         <Text
+                                            color="gray.500"
                                             fontWeight="bold"
-                                            color="brand.navy"
-                                            fontSize="md"
+                                            minW="fit-content"
+                                            fontSize={{
+                                                base: '10px',
+                                                md: 'xs',
+                                            }}
+                                            mr={{ base: 1, md: 0 }}
                                         >
-                                            {entry.action}
+                                            [{formatTime(event.timestamp)}]
+                                        </Text>
+                                        <Text
+                                            color={getBadgeColor(
+                                                event.event_category
+                                            )}
+                                            fontWeight="bold"
+                                            textTransform="uppercase"
+                                            fontSize={{
+                                                base: '9px',
+                                                md: '10px',
+                                            }}
+                                            minW="fit-content"
+                                            mr={{ base: 1, md: 0 }}
+                                        >
+                                            [
+                                            {event.event_category.replace(
+                                                '_',
+                                                '-'
+                                            )}
+                                            ]
+                                        </Text>
+                                        <Text
+                                            color="gray.800"
+                                            wordBreak="break-word"
+                                            fontSize={{
+                                                base: '11px',
+                                                md: 'xs',
+                                            }}
+                                            fontWeight="bold"
+                                        >
+                                            {formatLogMessage(event)}
                                         </Text>
                                     </HStack>
-                                    {entry.player && (
-                                        <Text
-                                            fontSize="sm"
-                                            color="gray.600"
-                                            fontWeight="medium"
-                                        >
-                                            Player: {entry.player}
-                                        </Text>
-                                    )}
-                                    {entry.details && (
-                                        <Text
-                                            fontSize="sm"
-                                            color="gray.600"
-                                            fontWeight="medium"
-                                        >
-                                            {entry.details}
-                                        </Text>
-                                    )}
-                                </VStack>
-                                <Text
-                                    fontSize="xs"
-                                    color="gray.500"
-                                    minW="fit-content"
-                                    fontWeight="semibold"
-                                >
-                                    {formatTime(entry.timestamp)}
-                                </Text>
-                            </HStack>
-                            {index < logEntries.length - 1 && (
-                                <Divider my={2} borderColor="transparent" />
-                            )}
+                                </Box>
+                            ))}
+                        </VStack>
+                    )}
+                    {hasMore && (
+                        <Box
+                            p={3}
+                            textAlign="center"
+                            borderTop="1px solid"
+                            borderColor="gray.200"
+                            bg="gray.50"
+                        >
+                            <Button
+                                onClick={loadMoreEvents}
+                                isLoading={loadingMore}
+                                loadingText="Loading..."
+                                size="sm"
+                                bg="brand.navy"
+                                color="white"
+                                fontFamily="mono"
+                                fontSize="xs"
+                                px={6}
+                                py={2}
+                                borderRadius="6px"
+                                fontWeight="bold"
+                                _hover={{
+                                    bg: 'brand.green',
+                                }}
+                                transition="all 0.2s ease"
+                            >
+                                Load More Events
+                            </Button>
                         </Box>
-                    ))
-                )}
-            </VStack>
+                    )}
+                </Box>
+            </Box>
         </Box>
     );
 };

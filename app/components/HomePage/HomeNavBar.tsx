@@ -81,7 +81,7 @@ const HomeNavBar: React.FC = () => {
             </Button>
             <Button
                 as="a"
-                href="https://discord.com/invite/vWBtE88R"
+                href="https://discord.gg/XMWfksjt"
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="unstyled"
@@ -281,7 +281,7 @@ const HomeNavBar: React.FC = () => {
                             </Button>
                             <Button
                                 as="a"
-                                href="https://discord.gg/4evYx7F4"
+                                href="https://discord.gg/XMWfksjt"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 size="lg"

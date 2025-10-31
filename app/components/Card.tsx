@@ -10,6 +10,7 @@ type CardProps = {
     folded: boolean;
     highlighted?: boolean;
     dimmed?: boolean;
+    skipAnimation?: boolean; // Skip flip animation for enemy players
 };
 
 // Card rank mapping
@@ -124,11 +125,11 @@ const SVGCardFace = ({
                 strokeWidth={highlighted ? '0.75' : '0.5'}
             />
 
-            {/* Top left rank and suit - vertically aligned and compact */}
+            {/* Top left rank */}
             <text
-                x="3"
-                y="8"
-                fontSize="8"
+                x="2"
+                y="10"
+                fontSize="10"
                 fontWeight="800"
                 fill={isRed ? '#DC143C' : '#000000'}
                 fontFamily="'Geist Sans', 'Poppins', sans-serif"
@@ -136,22 +137,11 @@ const SVGCardFace = ({
                 {rank}
             </text>
 
-            {/* Suit under rank - bigger and aligned */}
-            <text
-                x="3"
-                y="13.5"
-                fontSize="8"
-                fill={suitInfo.color}
-                fontFamily="serif"
-            >
-                {suitInfo.symbol}
-            </text>
-
-            {/* Large centered suit - bigger with less white space */}
+            {/* Large centered suit - positioned right under the rank */}
             <text
                 x="12"
-                y="22"
-                fontSize="22"
+                y="18"
+                fontSize="18"
                 fill={suitInfo.color}
                 fontFamily="serif"
                 textAnchor="middle"
@@ -291,6 +281,7 @@ const SVGCard = ({
     folded,
     highlighted = false,
     dimmed = false,
+    skipAnimation = false,
 }: CardProps) => {
     const [flipState, setFlipState] = useState<'back' | 'flipping' | 'front'>(
         'back'
@@ -309,9 +300,20 @@ const SVGCard = ({
         // Reset and clear any queued timeouts when card/placeholder changes
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
-        setFlipState('back');
 
-        if (placeholder) return;
+        if (placeholder) {
+            setFlipState('back');
+            return;
+        }
+
+        // If skipAnimation is true, show front immediately without animation
+        if (skipAnimation) {
+            setFlipState('front');
+            return;
+        }
+
+        // Otherwise, start with back and animate
+        setFlipState('back');
 
         const startFlip = () => {
             // Start the flip animation after 300ms
@@ -335,7 +337,7 @@ const SVGCard = ({
             timersRef.current.forEach(clearTimeout);
             timersRef.current = [];
         };
-    }, [card, placeholder]);
+    }, [card, placeholder, skipAnimation]);
 
     if (cardString === '2\u0000') return null;
 
@@ -381,6 +383,10 @@ const SVGCard = ({
             opacity={placeholder ? 0 : 1}
             borderRadius="10%"
             overflow="hidden"
+            p={0}
+            m={0}
+            display="flex"
+            alignItems="flex-start"
         >
             <Box
                 width="100%"

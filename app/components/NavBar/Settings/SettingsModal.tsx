@@ -23,11 +23,13 @@ import {
     FiDollarSign,
     FiHelpCircle,
 } from 'react-icons/fi';
+import { BiSupport } from 'react-icons/bi';
 import GameSettings from './GameSettings';
 import PlayerList from './PlayerList';
 import GameLog from './GameLog';
 import Ledger from './Ledger';
 import HowTo from './HowTo';
+import Support from './Support';
 
 // Animations
 const fadeIn = keyframes`
@@ -81,11 +83,11 @@ const SettingsModal = ({
                         flexDirection="column"
                     >
                         <TabList
-                            gap={{ base: 2, sm: 3 }}
+                            gap={{ base: 1, md: 2 }}
                             bg="brand.lightGray"
                             p={{ base: 2, md: 3 }}
                             borderRadius="20px"
-                            mb={{ base: 4, md: 6 }}
+                            mb={{ base: 0.25, md: 0.25 }}
                             flexWrap={{ base: 'nowrap', sm: 'wrap' }}
                             overflowX="auto"
                             animation={`${slideDown} 0.4s ease-out`}
@@ -291,6 +293,40 @@ const SettingsModal = ({
                                 color="gray.600"
                                 _hover={{
                                     bg: 'white',
+                                    color: 'brand.pink',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow:
+                                        '0 4px 8px rgba(235, 11, 92, 0.2)',
+                                }}
+                                _selected={{
+                                    bg: 'brand.pink',
+                                    color: 'white !important',
+                                    boxShadow:
+                                        '0 4px 12px rgba(235, 11, 92, 0.3)',
+                                    '& *': {
+                                        color: 'white !important',
+                                    },
+                                }}
+                                borderRadius="12px"
+                                fontWeight="bold"
+                                fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
+                                transition="all 0.2s ease"
+                            >
+                                <HStack spacing={{ base: 1, md: 2 }}>
+                                    <Icon
+                                        as={BiSupport}
+                                        boxSize={{ base: 4, md: 5 }}
+                                    />
+                                    <Text>Support</Text>
+                                </HStack>
+                            </Tab>
+                            <Tab
+                                minW="fit-content"
+                                px={{ base: 3, md: 4 }}
+                                py={2}
+                                color="gray.600"
+                                _hover={{
+                                    bg: 'white',
                                     color: 'brand.navy',
                                     transform: 'translateY(-2px)',
                                     boxShadow:
@@ -334,7 +370,7 @@ const SettingsModal = ({
                             overflowY="auto"
                             bg="white"
                             borderRadius="20px"
-                            p={{ base: 3, md: 5 }}
+                            p={{ base: 1, md: 2 }}
                             sx={{
                                 '&::-webkit-scrollbar': {
                                     width: '10px',
@@ -354,32 +390,38 @@ const SettingsModal = ({
                         >
                             <TabPanel></TabPanel>
                             <TabPanel
-                                px={{ base: 0, sm: 2, md: 4 }}
-                                py={{ base: 2, md: 4 }}
+                                px={{ base: 0, sm: 1, md: 2 }}
+                                py={{ base: 1, md: 2 }}
                             >
                                 <PlayerList />
                             </TabPanel>
                             <TabPanel
-                                px={{ base: 0, sm: 2, md: 4 }}
-                                py={{ base: 2, md: 4 }}
+                                px={{ base: 0, sm: 1, md: 2 }}
+                                py={{ base: 1, md: 2 }}
                             >
                                 <Ledger />
                             </TabPanel>
                             <TabPanel
-                                px={{ base: 0, sm: 2, md: 4 }}
-                                py={{ base: 2, md: 4 }}
+                                px={{ base: 0, sm: 1, md: 2 }}
+                                py={{ base: 1, md: 2 }}
                             >
                                 <GameLog />
                             </TabPanel>
                             <TabPanel
-                                px={{ base: 0, sm: 2, md: 4 }}
-                                py={{ base: 2, md: 4 }}
+                                px={{ base: 0, sm: 1, md: 2 }}
+                                py={{ base: 1, md: 2 }}
                             >
                                 <GameSettings />
                             </TabPanel>
                             <TabPanel
-                                px={{ base: 0, sm: 2, md: 4 }}
-                                py={{ base: 2, md: 4 }}
+                                px={{ base: 0, sm: 1, md: 2 }}
+                                py={{ base: 1, md: 2 }}
+                            >
+                                <Support />
+                            </TabPanel>
+                            <TabPanel
+                                px={{ base: 0, sm: 1, md: 2 }}
+                                py={{ base: 1, md: 2 }}
                             >
                                 <HowTo />
                             </TabPanel>

@@ -99,11 +99,12 @@ export type PendingPlayer = {
 export type GameEventRecord = {
     id: number;
     table_id: number;
-    hand_id?: number;
-    player_uuid?: string;
+    hand_id?: number | null;
+    player_uuid: string;
+    player_name: string; // NEW: Top-level player name (indexed)
     event_type: string;
     event_category: 'action' | 'game_event' | 'meta_event';
-    amount?: number;
+    amount?: number | null;
     stage: string;
     sequence_num: number;
     timestamp: string;

@@ -66,7 +66,7 @@ const EmptySeatButton = ({
                 onClick={onOpen}
                 isLoading={isLoading}
                 color="white"
-                borderRadius="20px"
+                borderRadius={{ base: '8px', md: '20px' }}
                 spinner={<Spinner color="brand.green" size="lg" />}
                 border="2.5px dashed"
                 borderColor="rgba(255, 255, 255, 0.4)"

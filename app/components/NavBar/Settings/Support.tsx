@@ -82,6 +82,10 @@ const Support = () => {
                                 p={3}
                                 bg="rgba(88, 101, 242, 0.1)"
                                 borderRadius="12px"
+                                aspectRatio={1}
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
                             >
                                 <Icon
                                     as={FaDiscord}
@@ -172,6 +176,10 @@ const Support = () => {
                                 p={3}
                                 bg="rgba(0, 0, 0, 0.08)"
                                 borderRadius="12px"
+                                aspectRatio={1}
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
                             >
                                 <Icon
                                     as={RiTwitterXLine}

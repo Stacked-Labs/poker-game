@@ -113,24 +113,10 @@ const HomeNavBar: React.FC = () => {
             >
                 Support
             </Button>
-            <Box
-                as={WalletButton}
-                width={{ base: '140px', md: '180px' }}
-                label="Sign In"
+            <WalletButton
+                width="160px"
                 height="52px"
-                borderRadius="14px"
-                bg="brand.pink"
-                color="white"
-                fontWeight="extrabold"
-                fontSize={{ base: 'md', md: 'lg' }}
-                border="none"
-                boxShadow="0 4px 16px rgba(235, 11, 92, 0.3)"
-                _hover={{
-                    bg: 'brand.pink',
-                    transform: 'translateY(-3px)',
-                    boxShadow: '0 8px 24px rgba(235, 11, 92, 0.45)',
-                }}
-                transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+                label="Sign In"
             />
         </>
     ));
@@ -301,25 +287,10 @@ const HomeNavBar: React.FC = () => {
                             >
                                 💬 Support
                             </Button>
-                            <Box
-                                as={WalletButton}
+                            <WalletButton
                                 width="100%"
-                                label="Sign In"
                                 height="56px"
-                                borderRadius="16px"
-                                bg="brand.pink"
-                                color="white"
-                                fontWeight="bold"
-                                fontSize="md"
-                                border="none"
-                                boxShadow="0 4px 16px rgba(235, 11, 92, 0.3)"
-                                _hover={{
-                                    bg: 'brand.pink',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 6px 20px rgba(235, 11, 92, 0.4)',
-                                }}
-                                transition="all 0.2s ease"
+                                label="Sign In"
                             />
                         </VStack>
 

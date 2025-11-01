@@ -193,32 +193,10 @@ const HomeCard = () => {
                             Play Now
                         </Button>
 
-                        <Box
-                            height="76px"
-                            display="flex"
+                        <WalletButton
                             width="100%"
-                            sx={{
-                                '& > div': {
-                                    display: 'flex !important',
-                                    width: '100% !important',
-                                    height: '100% !important',
-                                },
-                                '& button:hover': {
-                                    backgroundColor:
-                                        'var(--chakra-colors-brand-pink) !important',
-                                    color: 'white !important',
-                                    transform: 'translateY(-2px) !important',
-                                    boxShadow:
-                                        '0 8px 20px rgba(235, 11, 92, 0.3) !important',
-                                },
-                            }}
-                        >
-                            <WalletButton
-                                width="100%"
-                                height="76px"
-                                variant="home"
-                            />
-                        </Box>
+                            height="76px"
+                        />
                     </Stack>
 
                     {/* Social Links */}

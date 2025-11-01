@@ -321,23 +321,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             </Flex>
                         )}
                     </Box>
-                    <Box
-                        display={{ base: 'none', md: 'inline-flex' }}
-                        sx={{
-                            '& > div': {
-                                display: 'flex !important',
-                                height: '100% !important',
-                            },
-                            '& button:hover': {
-                                backgroundColor:
-                                    'var(--chakra-colors-brand-pink) !important',
-                                color: 'white !important',
-                                transform: 'translateY(-2px) !important',
-                                boxShadow:
-                                    '0 8px 20px rgba(235, 11, 92, 0.3) !important',
-                            },
-                        }}
-                    >
+                    <Box display={{ base: 'none', md: 'inline-flex' }}>
                         <WalletButton />
                     </Box>
                 </HStack>

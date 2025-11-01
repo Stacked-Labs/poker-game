@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useMediaQuery } from '@chakra-ui/react';
 import { ConnectButton } from 'thirdweb/react';
 import {
     client,
@@ -14,7 +15,6 @@ interface WalletButtonProps {
     height?: string;
     className?: string;
     label?: string;
-    variant?: 'navbar' | 'home';
 }
 
 const WalletButton: React.FC<WalletButtonProps> = ({
@@ -22,44 +22,19 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     height,
     className,
     label = 'Sign In',
-    variant = 'navbar',
 }) => {
-    // Navbar variant: pink button like HomeNavBar
-    const navbarStyle = {
-        width: width || 'auto',
-        height: height || '48px',
-        minHeight: '48px',
-        padding: '12px 20px',
-        borderRadius: '12px',
-        backgroundColor: '#EB0B5C', // brand.pink
-        color: 'white',
-        border: 'none',
-        fontWeight: 'bold',
-        fontSize: '14px',
-        lineHeight: '1',
-        boxSizing: 'border-box' as const,
-        boxShadow: '0 4px 12px rgba(235, 11, 92, 0.3)',
-        transition: 'all 0.2s ease',
-    };
+    // Use compact on mobile/small screens, wide on larger screens
+    const [isLargerScreen] = useMediaQuery('(min-width: 768px)');
+    const modalSize = isLargerScreen ? 'wide' : 'compact';
 
-    // Home variant: larger, matches home page styling
-    const homeStyle = {
-        width: width || '100%',
-        height: height || '76px',
-        minHeight: '76px',
-        padding: '24px 16px',
-        borderRadius: '16px',
-        backgroundColor: 'white',
-        color: '#EB0B5C', // brand.pink
-        border: '2px solid #EB0B5C',
-        fontWeight: 'bold',
-        fontSize: '16px',
-        lineHeight: '1',
-        boxSizing: 'border-box' as const,
-        transition: 'all 0.2s ease',
-    };
-
-    const buttonStyle = variant === 'home' ? homeStyle : navbarStyle;
+    // Only apply size if provided, otherwise use ThirdWeb defaults
+    const sizeStyle =
+        width || height
+            ? {
+                  ...(width && { width }),
+                  ...(height && { height, minHeight: height }),
+              }
+            : undefined;
 
     return (
         <ConnectButton
@@ -72,7 +47,6 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                     [baseChain.id]:
                         '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
                 },
-                style: buttonStyle,
             }}
             detailsModal={{
                 payOptions: {
@@ -96,12 +70,12 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             connectButton={{
                 label: label,
                 className: className,
-                style: buttonStyle,
+                style: sizeStyle,
             }}
             connectModal={{
                 showThirdwebBranding: false,
-                size: 'compact',
-                title: 'Connect to Stacked Poker',
+                size: modalSize,
+                title: 'Log In',
             }}
             theme="light"
         />

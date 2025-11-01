@@ -312,35 +312,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     <ModalFooter px={8} pb={8} pt={2}>
                         <VStack w="100%" spacing={4}>
                             {/* Wallet Button */}
-                            <Box
-                                width="100%"
-                                sx={{
-                                    '& > div': {
-                                        display: 'flex !important',
-                                        width: '100% !important',
-                                        height: '56px !important',
-                                    },
-                                    '& button': {
-                                        height: '56px !important',
-                                        minHeight: '56px !important',
-                                        borderRadius: '12px !important',
-                                        fontSize: 'md !important',
-                                        fontWeight: 'bold !important',
-                                        transition: 'all 0.2s ease !important',
-                                    },
-                                    '& button:hover': {
-                                        backgroundColor:
-                                            'var(--chakra-colors-brand-pink) !important',
-                                        color: 'white !important',
-                                        transform:
-                                            'translateY(-2px) !important',
-                                        boxShadow:
-                                            '0 8px 20px rgba(235, 11, 92, 0.3) !important',
-                                    },
-                                }}
-                            >
-                                <WalletButton width="100%" height="56px" />
-                            </Box>
+                            <WalletButton width="100%" height="56px" />
 
                             {/* Join Button */}
                             <Button

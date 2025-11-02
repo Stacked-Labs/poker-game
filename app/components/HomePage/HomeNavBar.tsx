@@ -19,7 +19,7 @@ import WalletButton from '../WalletButton';
 import { usePathname } from 'next/navigation';
 import { keyframes } from '@emotion/react';
 
-const logoImage = '/IconLogo.svg';
+const logoImage = '/IconLogo.png';
 
 // Animations
 const fadeIn = keyframes`
@@ -113,11 +113,7 @@ const HomeNavBar: React.FC = () => {
             >
                 Support
             </Button>
-            <WalletButton
-                width="160px"
-                height="52px"
-                label="Sign In"
-            />
+            <WalletButton width="160px" height="52px" label="Sign In" />
         </>
     ));
     NavButtons.displayName = 'NavButtons';

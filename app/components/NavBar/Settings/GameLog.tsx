@@ -75,11 +75,13 @@ interface PlayerKickedMetadata {
     kicked_by_uuid: string;
     kicked_by_name: string;
     queued: boolean;
+    final_stack?: number;
 }
 
 interface PlayerLeftMetadata {
     player_name?: string;
     reason?: string;
+    final_stack?: number;
 }
 
 // Helper function to convert backend card string to EvalCard format
@@ -791,6 +793,7 @@ const GameLog = () => {
             case 'player_left': {
                 const meta = metadata as Partial<PlayerLeftMetadata>;
                 const displayName = player_name || meta.player_name || 'Player';
+                const chipStack = amount ?? meta.final_stack;
                 return (
                     <>
                         {displayName}{' '}
@@ -798,6 +801,35 @@ const GameLog = () => {
                             left
                         </Text>{' '}
                         the table
+                        {chipStack !== null && chipStack !== undefined && (
+                            <>
+                                {' '}
+                                with{' '}
+                                <Text
+                                    as="span"
+                                    color="brand.navy"
+                                    fontWeight="bold"
+                                >
+                                    {formatAmount(chipStack)}
+                                </Text>{' '}
+                                chips
+                            </>
+                        )}
+                        {meta.reason && (
+                            <Text
+                                as="span"
+                                color="gray.500"
+                                fontSize="xs"
+                                fontWeight="normal"
+                            >
+                                {' '}
+                                (
+                                {meta.reason === 'player_requested'
+                                    ? 'voluntary'
+                                    : meta.reason.replace(/_/g, ' ')}
+                                )
+                            </Text>
+                        )}
                     </>
                 );
             }
@@ -871,6 +903,7 @@ const GameLog = () => {
 
             case 'player_kicked': {
                 const meta = metadata as Partial<PlayerKickedMetadata>;
+                const chipStack = amount ?? meta.final_stack;
                 return (
                     <>
                         {player_name || 'Player'}{' '}
@@ -878,6 +911,20 @@ const GameLog = () => {
                             kicked
                         </Text>
                         {meta.kicked_by_name && <> by {meta.kicked_by_name}</>}
+                        {chipStack !== null && chipStack !== undefined && (
+                            <>
+                                {' '}
+                                with{' '}
+                                <Text
+                                    as="span"
+                                    color="brand.navy"
+                                    fontWeight="bold"
+                                >
+                                    {formatAmount(chipStack)}
+                                </Text>{' '}
+                                chips remaining
+                            </>
+                        )}
                         {meta.queued && (
                             <Text
                                 as="span"

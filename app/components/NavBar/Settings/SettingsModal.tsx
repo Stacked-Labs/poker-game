@@ -30,6 +30,7 @@ import GameLog from './GameLog';
 import Ledger from './Ledger';
 import HowTo from './HowTo';
 import Support from './Support';
+import { GameEventsProvider } from '@/app/contexts/GameEventsProvider';
 
 // Animations
 const fadeIn = keyframes`
@@ -72,7 +73,8 @@ const SettingsModal = ({
                 animation={`${fadeIn} 0.3s ease-out`}
             >
                 <ModalBody p={{ base: 4, md: 8 }} h="100%">
-                    <Tabs
+                    <GameEventsProvider>
+                        <Tabs
                         size={{ base: 'sm', md: 'md' }}
                         variant="soft-rounded"
                         colorScheme="green"
@@ -427,6 +429,7 @@ const SettingsModal = ({
                             </TabPanel>
                         </TabPanels>
                     </Tabs>
+                    </GameEventsProvider>
                 </ModalBody>
             </ModalContent>
         </Modal>

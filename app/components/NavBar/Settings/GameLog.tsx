@@ -1,11 +1,8 @@
 'use client';
 
 import { Box, VStack, HStack, Text, Button, Spinner } from '@chakra-ui/react';
-import { useContext, useEffect, useState } from 'react';
-import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { fetchTableEvents } from '@/app/hooks/server_actions';
-import { GameEventRecord, EventsResponse } from '@/app/interfaces';
-import useToastHelper from '@/app/hooks/useToastHelper';
+import { useGameEvents } from '@/app/contexts/GameEventsProvider';
+import { GameEventRecord } from '@/app/interfaces';
 import { evaluateBest5, EvalCard, Suit } from '@/app/lib/poker/pokerHandEval';
 
 // Type-safe metadata interfaces
@@ -159,96 +156,8 @@ const getHandCategoryFromCards = (winningCards: string[]): string | null => {
 };
 
 const GameLog = () => {
-    const { appState } = useContext(AppContext);
-    const toast = useToastHelper();
-    const [events, setEvents] = useState<GameEventRecord[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
-    const [hasMore, setHasMore] = useState(false);
-    const [offset, setOffset] = useState(0);
-    const [isUnauthorized, setIsUnauthorized] = useState(false);
-    const limit = 50;
-
-    // Load initial events
-    useEffect(() => {
-        const loadEvents = async () => {
-            if (!appState.table) {
-                setLoading(false);
-                return;
-            }
-
-            try {
-                setLoading(true);
-                setIsUnauthorized(false);
-                const response: EventsResponse = await fetchTableEvents(
-                    appState.table,
-                    limit,
-                    0
-                );
-
-                // Debug logging for initial load
-                console.log('[GameLog] Initial events loaded:', {
-                    count: response.events.length,
-                    has_more: response.has_more,
-                    event_types: Array.from(
-                        new Set(response.events.map((e) => e.event_type))
-                    ),
-                    full_response: response,
-                });
-
-                setEvents(response.events);
-                setHasMore(response.has_more);
-                setOffset(response.events.length);
-            } catch (error) {
-                console.error('Failed to load events:', error);
-                const errorMessage =
-                    error instanceof Error ? error.message : 'Unknown error';
-                if (errorMessage.includes('Unauthorized')) {
-                    setIsUnauthorized(true);
-                } else {
-                    toast.error('Failed to load game log');
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadEvents();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [appState.table]);
-
-    // Load more events
-    const loadMoreEvents = async () => {
-        if (!appState.table || loadingMore || !hasMore) return;
-
-        try {
-            setLoadingMore(true);
-            const response: EventsResponse = await fetchTableEvents(
-                appState.table,
-                limit,
-                offset
-            );
-
-            // Debug logging for pagination
-            console.log('[GameLog] More events loaded:', {
-                count: response.events.length,
-                has_more: response.has_more,
-                new_offset: offset + response.events.length,
-                event_types: Array.from(
-                    new Set(response.events.map((e) => e.event_type))
-                ),
-            });
-
-            setEvents([...events, ...response.events]);
-            setHasMore(response.has_more);
-            setOffset(offset + response.events.length);
-        } catch (error) {
-            console.error('Failed to load more events:', error);
-            toast.error('Failed to load more events');
-        } finally {
-            setLoadingMore(false);
-        }
-    };
+    const { events, loading, error, hasMore, loadMoreEvents } = useGameEvents();
+    const isUnauthorized = error?.includes('Unauthorized') || false;
 
     const getBadgeColor = (category: string) => {
         switch (category) {
@@ -1205,7 +1114,6 @@ const GameLog = () => {
                         >
                             <Button
                                 onClick={loadMoreEvents}
-                                isLoading={loadingMore}
                                 loadingText="Loading..."
                                 size="sm"
                                 bg="brand.navy"

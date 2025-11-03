@@ -309,7 +309,7 @@ export function SocketProvider(props: SocketProviderProps) {
                         };
                         dispatch({ type: 'updateGame', payload: newGame });
 
-                        // If player was just successfully seated, reset the flag
+                        // If player was just successfully seated, reset the flags
                         const isPlayerSeated = eventData.game.players?.some(
                             (p: Player) => {
                                 return p.uuid === appStateRef.current.clientID;
@@ -322,6 +322,17 @@ export function SocketProvider(props: SocketProviderProps) {
                             dispatch({
                                 type: 'setSeatRequested',
                                 payload: null,
+                            });
+                        }
+                        
+                        // If player was previously marked as leaving but is now seated, reset the leave flag
+                        if (
+                            isPlayerSeated &&
+                            appStateRef.current.isLeaveRequested
+                        ) {
+                            dispatch({
+                                type: 'setIsLeaveRequested',
+                                payload: false,
                             });
                         }
                         return;

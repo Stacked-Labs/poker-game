@@ -477,7 +477,8 @@ export async function getTables() {
 export async function fetchTableEvents(
     tableName: string,
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
+    eventTypes?: string[]
 ) {
     isBackendUrlValid();
 
@@ -486,8 +487,18 @@ export async function fetchTableEvents(
     }
 
     try {
+        const searchParams = new URLSearchParams({
+            limit: limit.toString(),
+            offset: offset.toString(),
+        });
+
+        // Add event_types filter if provided
+        if (eventTypes && eventTypes.length > 0) {
+            searchParams.set('event_types', eventTypes.join(','));
+        }
+
         const response = await fetch(
-            `${backendUrl}/api/tables/${tableName}/events?limit=${limit}&offset=${offset}`,
+            `${backendUrl}/api/tables/${tableName}/events?${searchParams.toString()}`,
             {
                 method: 'GET',
                 credentials: 'include',

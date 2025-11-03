@@ -31,6 +31,7 @@ import Ledger from './Ledger';
 import HowTo from './HowTo';
 import Support from './Support';
 import { GameEventsProvider } from '@/app/contexts/GameEventsProvider';
+import { FINANCIAL_EVENT_TYPES } from '@/app/interfaces';
 
 // Animations
 const fadeIn = keyframes`
@@ -73,8 +74,7 @@ const SettingsModal = ({
                 animation={`${fadeIn} 0.3s ease-out`}
             >
                 <ModalBody p={{ base: 4, md: 8 }} h="100%">
-                    <GameEventsProvider>
-                        <Tabs
+                    <Tabs
                         size={{ base: 'sm', md: 'md' }}
                         variant="soft-rounded"
                         colorScheme="green"
@@ -401,13 +401,20 @@ const SettingsModal = ({
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}
                             >
-                                <Ledger />
+                                <GameEventsProvider 
+                                    isModalOpen={isOpen} 
+                                    eventTypes={FINANCIAL_EVENT_TYPES}
+                                >
+                                    <Ledger />
+                                </GameEventsProvider>
                             </TabPanel>
                             <TabPanel
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}
                             >
-                                <GameLog />
+                                <GameEventsProvider isModalOpen={isOpen}>
+                                    <GameLog />
+                                </GameEventsProvider>
                             </TabPanel>
                             <TabPanel
                                 px={{ base: 0, sm: 1, md: 2 }}
@@ -429,7 +436,6 @@ const SettingsModal = ({
                             </TabPanel>
                         </TabPanels>
                     </Tabs>
-                    </GameEventsProvider>
                 </ModalBody>
             </ModalContent>
         </Modal>

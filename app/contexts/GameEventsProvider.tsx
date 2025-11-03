@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, {
+    createContext,
+    useContext,
+    useState,
+    useEffect,
+    useCallback,
+} from 'react';
 import { AppContext } from './AppStoreProvider';
 import { fetchTableEvents } from '@/app/hooks/server_actions';
 import { GameEventRecord, EventsResponse } from '@/app/interfaces';
@@ -14,7 +20,9 @@ interface GameEventsContextType {
     refreshEvents: () => Promise<void>;
 }
 
-const GameEventsContext = createContext<GameEventsContextType | undefined>(undefined);
+const GameEventsContext = createContext<GameEventsContextType | undefined>(
+    undefined
+);
 
 export const useGameEvents = () => {
     const context = useContext(GameEventsContext);
@@ -26,9 +34,15 @@ export const useGameEvents = () => {
 
 interface GameEventsProviderProps {
     children: React.ReactNode;
+    isModalOpen?: boolean;
+    eventTypes?: string[]; // Optional filter for specific event types (e.g., financial events for Ledger)
 }
 
-export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({ children }) => {
+export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({
+    children,
+    isModalOpen = false,
+    eventTypes,
+}) => {
     const { appState } = useContext(AppContext);
     const [events, setEvents] = useState<GameEventRecord[]>([]);
     const [loading, setLoading] = useState(true);
@@ -37,6 +51,57 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({ children
     const [hasMore, setHasMore] = useState(false);
     const [offset, setOffset] = useState(0);
     const limit = 50;
+
+    // Helper function to fetch ALL events by paginating through all pages
+    // Optional eventTypes filter reduces data transfer for specific use cases (e.g., Ledger)
+    const fetchAllEvents = useCallback(
+        async (
+            tableName: string,
+            eventTypes?: string[]
+        ): Promise<GameEventRecord[]> => {
+            let allEvents: GameEventRecord[] = [];
+            let currentOffset = 0;
+            let hasMorePages = true;
+
+            const filterDesc =
+                eventTypes && eventTypes.length > 0
+                    ? ` (filtered: ${eventTypes.join(', ')})`
+                    : ' (all events)';
+
+            console.log(
+                '[GameEventsProvider] Starting to fetch events for table:',
+                tableName + filterDesc
+            );
+
+            while (hasMorePages) {
+                const response: EventsResponse = await fetchTableEvents(
+                    tableName,
+                    limit,
+                    currentOffset,
+                    eventTypes
+                );
+
+                allEvents = [...allEvents, ...response.events];
+                hasMorePages = response.has_more;
+                currentOffset += response.events.length;
+
+                console.log('[GameEventsProvider] Fetched page:', {
+                    page_events: response.events.length,
+                    total_so_far: allEvents.length,
+                    has_more: hasMorePages,
+                    applied_filters: response.event_types,
+                });
+            }
+
+            console.log('[GameEventsProvider] Finished fetching events:', {
+                total_count: allEvents.length,
+                filters_applied: eventTypes || 'none',
+            });
+
+            return allEvents;
+        },
+        []
+    );
 
     // Load initial events when table changes
     useEffect(() => {
@@ -49,24 +114,29 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({ children
             try {
                 setLoading(true);
                 setError(null);
-                const response: EventsResponse = await fetchTableEvents(
+
+                // Fetch ALL events (with optional filtering)
+                const allEvents = await fetchAllEvents(
                     appState.table,
-                    limit,
-                    0
+                    eventTypes
                 );
 
                 console.log('[GameEventsProvider] Initial events loaded:', {
-                    count: response.events.length,
-                    has_more: response.has_more,
+                    count: allEvents.length,
                     table: appState.table,
+                    filtered: eventTypes ? 'yes' : 'no',
                 });
 
-                setEvents(response.events);
-                setHasMore(response.has_more);
-                setOffset(response.events.length);
+                setEvents(allEvents);
+                setHasMore(false); // We loaded everything
+                setOffset(allEvents.length);
             } catch (err) {
-                console.error('[GameEventsProvider] Failed to load events:', err);
-                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                console.error(
+                    '[GameEventsProvider] Failed to load events:',
+                    err
+                );
+                const errorMessage =
+                    err instanceof Error ? err.message : 'Unknown error';
                 setError(errorMessage);
             } finally {
                 setLoading(false);
@@ -74,7 +144,7 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({ children
         };
 
         loadInitialEvents();
-    }, [appState.table]);
+    }, [appState.table, fetchAllEvents, eventTypes]);
 
     // Load more events (pagination)
     const loadMoreEvents = useCallback(async () => {
@@ -98,8 +168,12 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({ children
             setHasMore(response.has_more);
             setOffset(offset + response.events.length);
         } catch (err) {
-            console.error('[GameEventsProvider] Failed to load more events:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+            console.error(
+                '[GameEventsProvider] Failed to load more events:',
+                err
+            );
+            const errorMessage =
+                err instanceof Error ? err.message : 'Unknown error';
             setError(errorMessage);
         } finally {
             setLoadingMore(false);
@@ -113,28 +187,59 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({ children
         try {
             setLoading(true);
             setError(null);
-            const response: EventsResponse = await fetchTableEvents(
-                appState.table,
-                limit,
-                0
-            );
+
+            // Fetch ALL events (with optional filtering)
+            const allEvents = await fetchAllEvents(appState.table, eventTypes);
 
             console.log('[GameEventsProvider] Events refreshed:', {
-                count: response.events.length,
-                has_more: response.has_more,
+                count: allEvents.length,
+                filtered: eventTypes ? 'yes' : 'no',
             });
 
-            setEvents(response.events);
-            setHasMore(response.has_more);
-            setOffset(response.events.length);
+            setEvents(allEvents);
+            setHasMore(false); // We loaded everything
+            setOffset(allEvents.length);
         } catch (err) {
-            console.error('[GameEventsProvider] Failed to refresh events:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+            console.error(
+                '[GameEventsProvider] Failed to refresh events:',
+                err
+            );
+            const errorMessage =
+                err instanceof Error ? err.message : 'Unknown error';
             setError(errorMessage);
         } finally {
             setLoading(false);
         }
-    }, [appState.table]);
+    }, [appState.table, fetchAllEvents, eventTypes]);
+
+    // Refresh events when modal opens
+    useEffect(() => {
+        if (isModalOpen && appState.table) {
+            console.log(
+                '[GameEventsProvider] Modal opened, refreshing events...'
+            );
+            refreshEvents();
+        }
+    }, [isModalOpen, appState.table, refreshEvents]);
+
+    // Poll for new events every 30 seconds while modal is open
+    useEffect(() => {
+        if (!isModalOpen || !appState.table) return;
+
+        console.log(
+            '[GameEventsProvider] Starting 30-second polling interval...'
+        );
+
+        const intervalId = setInterval(() => {
+            console.log('[GameEventsProvider] Polling for new events...');
+            refreshEvents();
+        }, 30000); // 30 seconds
+
+        return () => {
+            console.log('[GameEventsProvider] Stopping polling interval');
+            clearInterval(intervalId);
+        };
+    }, [isModalOpen, appState.table, refreshEvents]);
 
     const value: GameEventsContextType = {
         events,
@@ -151,4 +256,3 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({ children
         </GameEventsContext.Provider>
     );
 };
-

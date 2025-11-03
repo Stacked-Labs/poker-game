@@ -82,9 +82,10 @@ const HomeSection = () => {
             width="100vw"
             height={{ base: '100%', lg: 'var(--full-vh)' }}
             bgAttachment="fixed"
+            bgColor="brand.lightGray"
             bgSize="cover"
             bgPosition={{ base: 'right', lg: 'center' }}
-            bgImage={'url("/bg.webp")'}
+            bgImage={''}
         >
             <Flex
                 position="relative"
@@ -95,7 +96,7 @@ const HomeSection = () => {
                 <Box width={{ base: '100%', lg: '40%' }}>
                     <HomeCard />
                 </Box>
-                {showArenaText && (
+                {false && (
                     <VStack
                         width={{ base: '100%', lg: '60%' }}
                         justifyContent="center"

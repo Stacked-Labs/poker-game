@@ -10,6 +10,7 @@ import { SoundProvider } from '@/app/contexts/SoundProvider';
 import { AuthProvider } from '@/app/contexts/AuthContext';
 import { AutoConnect, ThirdwebProvider } from 'thirdweb/react';
 import { client } from './thirdwebclient';
+import { ColorModeProvider } from '@/components/ui/color-mode';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
@@ -33,7 +34,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     <AppStoreProvider>
                         <UserProvider>
                             <AuthProvider>
-                                <SoundProvider>{children}</SoundProvider>
+                                <SoundProvider>
+                                    <ColorModeProvider>
+                                        {children}
+                                    </ColorModeProvider>
+                                </SoundProvider>
                             </AuthProvider>
                         </UserProvider>
                     </AppStoreProvider>

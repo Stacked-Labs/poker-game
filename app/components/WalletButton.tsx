@@ -2,13 +2,15 @@
 
 import React from 'react';
 import { useMediaQuery } from '@chakra-ui/react';
-import { ConnectButton } from 'thirdweb/react';
+import { ConnectButton, darkTheme, lightTheme } from 'thirdweb/react';
 import {
     client,
     baseChain,
     supportedTokens,
     wallets,
 } from '@/app/thirdwebclient';
+import { useColorMode } from "@chakra-ui/react";
+import { theme } from "@/app/theme";
 
 interface WalletButtonProps {
     width?: string;
@@ -26,15 +28,30 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     // Use compact on mobile/small screens, wide on larger screens
     const [isLargerScreen] = useMediaQuery('(min-width: 768px)');
     const modalSize = isLargerScreen ? 'wide' : 'compact';
+    const { colorMode } = useColorMode();
 
     // Only apply size if provided, otherwise use ThirdWeb defaults
     const sizeStyle =
         width || height
             ? {
-                  ...(width && { width }),
-                  ...(height && { height, minHeight: height }),
-              }
+                ...(width && { width }),
+                ...(height && { height, minHeight: height }),
+            }
             : undefined;
+
+    const customLightTheme = lightTheme({
+        colors: {
+            primaryButtonBg: theme.colors.legacy.grayDark,
+        }
+    })
+
+
+    const customDarkTheme = darkTheme({
+        colors: {
+            primaryButtonBg: theme.colors.legacy.grayLight,
+            primaryButtonText: 'white'
+        }
+    })
 
     return (
         <ConnectButton
@@ -77,7 +94,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                 size: modalSize,
                 title: 'Log In',
             }}
-            theme="light"
+            theme={colorMode == 'light' ? customLightTheme : customDarkTheme}
         />
     );
 };

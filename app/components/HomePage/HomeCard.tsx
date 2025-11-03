@@ -79,7 +79,7 @@ const HomeCard = () => {
                 minWidth="320px"
                 minHeight="320px"
                 height="fit-content"
-                bg="white"
+                bg='bg.card'
                 boxShadow="0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)"
                 overflow="hidden"
                 animation={`${slideUp} 0.6s ease-out`}
@@ -110,7 +110,7 @@ const HomeCard = () => {
                     <Box
                         width="100%"
                         height="100%"
-                        bg="white"
+                        bg="bg.card"
                         borderRadius="29px"
                     />
                 </Box>
@@ -213,17 +213,14 @@ const HomeCard = () => {
                                 aria-label="X"
                                 icon={<RiTwitterXLine size={20} />}
                                 size={{ base: 'md', md: 'lg' }}
-                                borderRadius={{ base: '10px', md: '12px' }}
-                                bg="brand.lightGray"
+                                variant={'social'}
                                 color="#000000"
-                                border="none"
                                 _hover={{
                                     bg: '#000000',
                                     color: 'white',
                                     transform: 'translateY(-4px) rotate(5deg)',
                                     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)',
                                 }}
-                                transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
                             />
                         </Link>
                         <Link href="https://discord.gg/896EhkVYbd" isExternal>
@@ -231,10 +228,8 @@ const HomeCard = () => {
                                 aria-label="Discord"
                                 icon={<FaDiscord size={20} />}
                                 size={{ base: 'md', md: 'lg' }}
-                                borderRadius={{ base: '10px', md: '12px' }}
-                                bg="brand.lightGray"
+                                variant={'social'}
                                 color="#5865F2"
-                                border="none"
                                 _hover={{
                                     bg: '#5865F2',
                                     color: 'white',
@@ -253,10 +248,8 @@ const HomeCard = () => {
                                 aria-label="Warpcast"
                                 icon={<SiFarcaster size={20} />}
                                 size={{ base: 'md', md: 'lg' }}
-                                borderRadius={{ base: '10px', md: '12px' }}
-                                bg="brand.lightGray"
+                                variant={'social'}
                                 color="#855DCD"
-                                border="none"
                                 _hover={{
                                     bg: '#855DCD',
                                     color: 'white',

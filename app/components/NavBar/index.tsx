@@ -34,6 +34,7 @@ import {
 import TableMenuBurger from './TableMenuBurger';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
+import { ColorModeButton } from '@/components/ui/color-mode';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -337,6 +338,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 display={isOpenChat ? 'block' : 'none'}
                 opacity={isLoading ? 0 : 1}
             ></Flex>
+            <ColorModeButton />
             <SideBarChat isOpen={isOpenChat} onToggle={onToggleChat} />
         </>
     );

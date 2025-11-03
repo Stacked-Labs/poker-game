@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useContext, useEffect } from 'react';
-import { Box, Flex, VStack } from '@chakra-ui/react';
+import { Box, Flex, useColorMode, VStack } from '@chakra-ui/react';
 import HomeSection from './components/HomePage/HomeSection';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -11,6 +11,7 @@ import Script from 'next/script';
 const HomePage: React.FC = () => {
     const router = useRouter();
     const { appState } = useContext(AppContext);
+    const { colorMode } = useColorMode();
 
     useEffect(() => {
         if (appState.table) {
@@ -39,7 +40,7 @@ const HomePage: React.FC = () => {
             {/* CoinGecko price marquee placed directly under the navbar */}
             <Box
                 width="100%"
-                bgColor="brand.lightGray"
+                bgColor="bg.card"
                 display="flex"
                 justifyContent="center"
                 position="fixed"
@@ -50,7 +51,7 @@ const HomePage: React.FC = () => {
                 borderColor="rgba(235, 11, 92, 0.2)"
                 boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
                 dangerouslySetInnerHTML={{
-                    __html: `<gecko-coin-price-marquee-widget dark-mode="false" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
+                    __html: `<gecko-coin-price-marquee-widget dark-mode="${colorMode == 'dark' ? 'true' : 'false'}" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
                 }}
             />
             <Box w="100vw" bgColor={'gray.200'}>

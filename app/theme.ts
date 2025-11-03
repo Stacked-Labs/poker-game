@@ -1,5 +1,10 @@
 import { extendTheme } from '@chakra-ui/react';
 
+const config = {
+    initialColorMode: "light",
+    useSystemColorMode: false,
+};
+
 // ============================================
 // 1. BREAKPOINTS
 // ============================================
@@ -20,6 +25,9 @@ const colors = {
         400: '#363535',
         600: '#363535',
         800: '#262626',
+    },
+    black: {
+        dark: '#191414',
     },
     // New brand colors
     brand: {
@@ -61,10 +69,18 @@ const semanticTokens = {
             default: '#171717',
             _dark: '#171717',
         },
+        'bg.navbar': {
+            default: "rgba(255, 255, 255, 0.85)",
+            _dark: "rgba(46, 46, 54, 0.95)",
+        },
+        'bg.card': {
+            default: 'white',
+            _dark: 'black.dark',
+        },
 
         // Text colors
         'text.primary': {
-            default: '#ffffff',
+            default: 'black.dark',
             _dark: '#ffffff',
         },
         'text.secondary': {
@@ -88,6 +104,10 @@ const semanticTokens = {
         'btn.hover': {
             default: 'legacy.btnHover',
             _dark: 'legacy.btnHover',
+        },
+        'btn.lightGray': {
+            default: 'brand.lightGray',
+            _dark: '#444444',
         },
 
         // Legacy semantic colors (used throughout app)
@@ -218,13 +238,24 @@ const components = {
         },
         variants: {
             base: {},
-            social: {
+            themeButton: {
                 border: 'none',
                 bg: 'transparent',
+                color: 'brand.darkNavy',
                 _hover: {
                     bg: 'transparent',
-                    color: 'green.400',
+                    color: 'brand.pink',
                 },
+            },
+            social: {
+                bg: "btn.lightGray",
+                border: "none",
+                size: { base: 'md', md: 'lg' },
+                borderRadius: { base: '10px', md: '12px' },
+                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                _hover: {
+                    color: 'white',
+                }
             },
             underlined: {
                 bg: 'transparent',
@@ -268,16 +299,36 @@ const components = {
                 },
                 transition: 'all 0.2s',
             },
-            navButton: {
-                border: 0,
-                textTransform: 'uppercase',
-                fontFamily: 'Poppins',
-                fontSize: '2xl',
-                borderRadius: 0,
+            navLink: {
+                bg: 'none',
+                fontSize: { base: '2xl', md: '2xl' },
+                fontWeight: 'black',
+                color: "text.primary",
+                textTransform: "uppercase",
+                border: "none",
+                outline: "none",
+                boxShadow: "none",
                 _hover: {
-                    bg: 'transparent',
-                    borderBottom: '2px solid red',
+                    transform: 'translateY(-3px)',
+                    color: 'brand.pink',
+                    border: 'none',
+                    outline: 'none',
+                    boxShadow: 'none',
+                    bg: 'none',
                 },
+                _focus: {
+                    border: 'none',
+                    outline: 'none',
+                    boxShadow: 'none',
+                    bg: 'none',
+                },
+                _active: {
+                    border: 'none',
+                    outline: 'none',
+                    boxShadow: 'none',
+                    bg: 'none',
+                },
+                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
             },
             homeSectionButton: {
                 paddingY: 8,
@@ -422,4 +473,5 @@ export const theme = extendTheme({
     components,
     radii,
     shadows,
+    config
 });

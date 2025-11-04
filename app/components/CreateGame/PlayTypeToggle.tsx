@@ -20,7 +20,7 @@ export default function PlayTypeToggle({
             position="relative"
             width="240px"
             height="48px"
-            bg="brand.lightGray"
+            bg="card.lightGray"
             borderRadius="full"
             display="flex"
             alignItems="center"
@@ -38,7 +38,7 @@ export default function PlayTypeToggle({
                 left={playType === 'Crypto' ? 'calc(50% - 2px)' : '4px'}
                 width="calc(50% - 2px)"
                 height="40px"
-                bg="white"
+                bg="card.white"
                 borderRadius="full"
                 transition="left 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                 borderWidth="2px"
@@ -60,7 +60,7 @@ export default function PlayTypeToggle({
                     fontSize="sm"
                     fontWeight="bold"
                     color={
-                        playType === 'Free' ? 'brand.pink' : 'brand.darkNavy'
+                        playType === 'Free' ? 'brand.pink' : 'text.primary'
                     }
                     transition="color 0.2s ease"
                 >
@@ -82,7 +82,7 @@ export default function PlayTypeToggle({
                     fontSize="sm"
                     fontWeight="bold"
                     color={
-                        playType === 'Crypto' ? 'brand.pink' : 'brand.darkNavy'
+                        playType === 'Crypto' ? 'brand.pink' : 'text.primary'
                     }
                     transition="color 0.2s ease"
                 >

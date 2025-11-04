@@ -40,7 +40,7 @@ const HomePage: React.FC = () => {
             {/* CoinGecko price marquee placed directly under the navbar */}
             <Box
                 width="100%"
-                bgColor="bg.card"
+                bgColor="card.white"
                 display="flex"
                 justifyContent="center"
                 position="fixed"

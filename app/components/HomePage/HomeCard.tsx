@@ -79,7 +79,7 @@ const HomeCard = () => {
                 minWidth="320px"
                 minHeight="320px"
                 height="fit-content"
-                bg='bg.card'
+                bg='card.white'
                 boxShadow="0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)"
                 overflow="hidden"
                 animation={`${slideUp} 0.6s ease-out`}
@@ -110,7 +110,7 @@ const HomeCard = () => {
                     <Box
                         width="100%"
                         height="100%"
-                        bg="bg.card"
+                        bg="card.white"
                         borderRadius="29px"
                     />
                 </Box>
@@ -155,7 +155,7 @@ const HomeCard = () => {
                             height="76px"
                             fontSize={{ base: 'sm', md: 'md' }}
                             fontWeight="bold"
-                            borderRadius="16px"
+                            borderRadius={'bigButton'}
                             bg="brand.green"
                             color="white"
                             border="none"

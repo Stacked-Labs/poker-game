@@ -58,8 +58,8 @@ const semanticTokens = {
     colors: {
         // Background colors
         'bg.default': {
-            default: 'linear-gradient(to top, #323232 30%, rgba(0, 0, 0, 0.9))',
-            _dark: 'linear-gradient(to top, #323232 20%, rgba(0, 0, 0, 0.9))',
+            default: 'linear-gradient(to top, rgb(243, 243, 243) 45%, #fff 100%)',
+            _dark: 'linear-gradient(to bottom,rgb(25, 25, 25) 50%,rgb(25, 25, 25) 100%)',
         },
         'bg.surface': {
             default: 'legacy.grayDark',
@@ -73,23 +73,23 @@ const semanticTokens = {
             default: "rgba(255, 255, 255, 0.85)",
             _dark: "rgba(46, 46, 54, 0.95)",
         },
-        'bg.card': {
+        'bg.input': {
             default: 'white',
-            _dark: 'black.dark',
+            _dark: 'charcoal.800'
         },
 
         // Text colors
         'text.primary': {
-            default: 'black.dark',
+            default: 'brand.darkNavy',
             _dark: '#ffffff',
         },
         'text.secondary': {
-            default: '#ffffff',
-            _dark: '#ffffff',
+            default: 'brand.navy',
+            _dark: 'brand.navy',
         },
         'text.tertiary': {
-            default: 'black',
-            _dark: 'black',
+            default: 'brand.navy',
+            _dark: 'brand.lightGray',
         },
 
         // Button states
@@ -108,6 +108,26 @@ const semanticTokens = {
         'btn.lightGray': {
             default: 'brand.lightGray',
             _dark: '#444444',
+        },
+
+        // Border
+        'border.lightGray': {
+            default: 'brand.lightGray',
+            _dark: 'charcoal.600'
+        },
+
+        // Card
+        'card.white': {
+            default: 'white',
+            _dark: 'legacy.grayLight',
+        },
+        'card.darkNavy': {
+            default: 'brand.darkNavy',
+            _dark: 'legacy.grayLight',
+        },
+        'card.lightGray': {
+            default: 'brand.lightGray',
+            _dark: 'legacy.grayDark',
         },
 
         // Legacy semantic colors (used throughout app)
@@ -435,6 +455,25 @@ const components = {
                     textAlign: 'left',
                 },
             },
+            white: {
+                field: {
+                    bg: "bg.input",
+                    borderWidth: "2px",
+                    borderColor: "border.lightGray",
+                    borderRadius: "10px",
+                    _focus: {
+                        borderColor: 'brand.pink',
+                        boxShadow: '0 0 0 1px #EB0B5C',
+                    },
+                    _hover: {
+                        borderColor: 'brand.pink',
+                    },
+                    color: "text.primary",
+                    height: "40px",
+                    fontSize: "sm",
+                    width: "120px",
+                }
+            }
         },
     },
 
@@ -447,6 +486,17 @@ const components = {
             },
         },
     },
+
+    FormLabel: {
+        variants: {
+            createGame: {
+                color: "text.secondary",
+                mb: 0,
+                fontWeight: "bold",
+                fontSize: "lg",
+            }
+        }
+    },
 };
 
 // ============================================
@@ -454,6 +504,7 @@ const components = {
 // ============================================
 const radii = {
     default: '0.625rem',
+    bigButton: "1rem"
 };
 
 const shadows = {

@@ -48,7 +48,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
 
     const customDarkTheme = darkTheme({
         colors: {
-            primaryButtonBg: theme.colors.legacy.grayLight,
+            primaryButtonBg: theme.colors.legacy.grayDarkest,
             primaryButtonText: 'white'
         }
     })
@@ -87,7 +87,10 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             connectButton={{
                 label: label,
                 className: className,
-                style: sizeStyle,
+                style: {
+                    ...sizeStyle,
+                    borderRadius: "bigButton",
+                },
             }}
             connectModal={{
                 showThirdwebBranding: false,

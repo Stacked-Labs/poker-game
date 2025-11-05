@@ -77,7 +77,7 @@ const semanticTokens = {
         // Text colors
         'text.primary': {
             default: 'brand.darkNavy',
-            _dark: '#ffffff',
+            _dark: 'white',
         },
         'text.secondary': {
             default: 'brand.navy',
@@ -90,6 +90,14 @@ const semanticTokens = {
         'text.white': {
             default: 'white',
             _dark: 'brand.lightGray',
+        },
+        'text.gray600': {
+            default: 'gray.600',
+            _dark: 'gray.400',
+        },
+        'text.gray700': {
+            default: 'gray.700',
+            _dark: 'gray.500',
         },
 
         // Button states
@@ -119,7 +127,7 @@ const semanticTokens = {
         // Input
         'input.white': {
             default: 'white',
-            _dark: 'charcoal.800'
+            _dark: 'charcoal.600'
         },
         'input.lightGray': {
             default: 'brand.lightGray',
@@ -518,6 +526,26 @@ const components = {
                             '0 0 0 3px rgba(235, 11, 92, 0.1)',
                         bg: "input.white",
                     }
+                }
+            },
+            settings: {
+                field: {
+                    size: "sm",
+                    bg: "input.white",
+                    color: "text.tertiary",
+                    borderColor: "input.lightGray",
+                    borderWidth: "2px",
+                    borderRadius: "8px",
+                    fontWeight: "semibold",
+                    _hover: {
+                        borderColor: 'brand.green',
+                    },
+                    _focus: {
+                        borderColor: 'brand.pink',
+                        boxShadow:
+                            '0 0 0 3px rgba(235, 11, 92, 0.1)',
+                    },
+                    _placeholder: { color: 'gray.400' }
                 }
             }
         },

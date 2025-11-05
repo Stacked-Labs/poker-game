@@ -30,10 +30,10 @@ const GameSettings = () => {
             </Text>
 
             <Box
-                bg="white"
+                bg="card.white"
                 borderRadius="16px"
                 border="2px solid"
-                borderColor="brand.lightGray"
+                borderColor="card.lightGray"
                 p={{ base: 5, md: 6 }}
                 mb={6}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
@@ -52,7 +52,7 @@ const GameSettings = () => {
                         <Text
                             fontSize={{ base: 'md', md: 'lg' }}
                             fontWeight="bold"
-                            color="brand.navy"
+                            color="text.tertiary"
                         >
                             Enable Ante
                         </Text>
@@ -85,7 +85,7 @@ const GameSettings = () => {
                     fontSize={{ base: 'md', md: 'lg' }}
                     fontWeight={'bold'}
                     mb={4}
-                    color="brand.navy"
+                    color="text.tertiary"
                 >
                     Blind Levels
                 </Text>
@@ -94,20 +94,20 @@ const GameSettings = () => {
                     overflowX="auto"
                     borderRadius="12px"
                     border="2px solid"
-                    borderColor="brand.lightGray"
+                    borderColor="card.lightGray"
                 >
                     <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
-                        <Thead bg="brand.lightGray">
+                        <Thead bg="card.lightGray">
                             <Tr>
                                 <Th
-                                    color={'brand.navy'}
+                                    color={'text.tertiary'}
                                     fontSize="xs"
                                     fontWeight="bold"
                                 >
                                     Small Blind
                                 </Th>
                                 <Th
-                                    color={'brand.navy'}
+                                    color={'text.tertiary'}
                                     fontSize="xs"
                                     fontWeight="bold"
                                 >
@@ -115,7 +115,7 @@ const GameSettings = () => {
                                 </Th>
                                 {isAnte && (
                                     <Th
-                                        color={'brand.navy'}
+                                        color={'text.tertiary'}
                                         fontSize="xs"
                                         fontWeight="bold"
                                     >
@@ -123,7 +123,7 @@ const GameSettings = () => {
                                     </Th>
                                 )}
                                 <Th
-                                    color={'brand.navy'}
+                                    color={'text.tertiary'}
                                     fontSize="xs"
                                     fontWeight="bold"
                                 >
@@ -134,98 +134,34 @@ const GameSettings = () => {
                         <Tbody>
                             <Tr
                                 _hover={{
-                                    bg: 'brand.lightGray',
+                                    bg: 'input.lightGray',
                                 }}
                                 transition="all 0.2s ease"
                             >
                                 <Td>
                                     <Input
-                                        variant="outline"
-                                        placeholder="10"
-                                        size="sm"
-                                        bg="white"
-                                        color="brand.navy"
-                                        borderColor="brand.lightGray"
-                                        borderWidth="2px"
-                                        borderRadius="8px"
-                                        fontWeight="semibold"
-                                        _hover={{
-                                            borderColor: 'brand.green',
-                                        }}
-                                        _focus={{
-                                            borderColor: 'brand.pink',
-                                            boxShadow:
-                                                '0 0 0 3px rgba(235, 11, 92, 0.1)',
-                                        }}
-                                        _placeholder={{ color: 'gray.400' }}
+                                        variant={'settings'}
+                                        placeholder="5"
                                     />
                                 </Td>
                                 <Td>
                                     <Input
-                                        variant="outline"
+                                        variant={'settings'}
                                         placeholder="20"
-                                        size="sm"
-                                        bg="white"
-                                        color="brand.navy"
-                                        borderColor="brand.lightGray"
-                                        borderWidth="2px"
-                                        borderRadius="8px"
-                                        fontWeight="semibold"
-                                        _hover={{
-                                            borderColor: 'brand.green',
-                                        }}
-                                        _focus={{
-                                            borderColor: 'brand.pink',
-                                            boxShadow:
-                                                '0 0 0 3px rgba(235, 11, 92, 0.1)',
-                                        }}
-                                        _placeholder={{ color: 'gray.400' }}
                                     />
                                 </Td>
                                 {isAnte && (
                                     <Td>
                                         <Input
-                                            variant="outline"
+                                            variant={'settings'}
                                             placeholder="5"
-                                            size="sm"
-                                            bg="white"
-                                            color="brand.navy"
-                                            borderColor="brand.lightGray"
-                                            borderWidth="2px"
-                                            borderRadius="8px"
-                                            fontWeight="semibold"
-                                            _hover={{
-                                                borderColor: 'brand.green',
-                                            }}
-                                            _focus={{
-                                                borderColor: 'brand.pink',
-                                                boxShadow:
-                                                    '0 0 0 3px rgba(235, 11, 92, 0.1)',
-                                            }}
-                                            _placeholder={{ color: 'gray.400' }}
                                         />
                                     </Td>
                                 )}
                                 <Td>
                                     <Input
-                                        variant="outline"
+                                        variant={'settings'}
                                         placeholder="15"
-                                        size="sm"
-                                        bg="white"
-                                        color="brand.navy"
-                                        borderColor="brand.lightGray"
-                                        borderWidth="2px"
-                                        borderRadius="8px"
-                                        fontWeight="semibold"
-                                        _hover={{
-                                            borderColor: 'brand.green',
-                                        }}
-                                        _focus={{
-                                            borderColor: 'brand.pink',
-                                            boxShadow:
-                                                '0 0 0 3px rgba(235, 11, 92, 0.1)',
-                                        }}
-                                        _placeholder={{ color: 'gray.400' }}
                                     />
                                 </Td>
                             </Tr>

@@ -36,10 +36,10 @@ const PlayerCard = ({
             alignItems={'center'}
             justifyContent={'space-between'}
             width={'100%'}
-            bg="white"
+            bg={'card.white'}
             borderRadius={{ base: '12px', md: '16px' }}
             border="2px solid"
-            borderColor="brand.lightGray"
+            borderColor="border.lightGray"
             paddingX={{ base: 3, sm: 4, md: 6 }}
             paddingY={{ base: 3, sm: 3.5, md: 5 }}
             boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
@@ -61,7 +61,7 @@ const PlayerCard = ({
                 w={{ base: '100%', sm: 'auto' }}
             >
                 <Text
-                    color={'brand.navy'}
+                    color={'text.tertiary'}
                     fontWeight={'bold'}
                     fontSize={{ base: 'md', sm: 'lg', md: 'xl', lg: '2xl' }}
                     letterSpacing="-0.02em"
@@ -77,7 +77,7 @@ const PlayerCard = ({
                     alignItems="center"
                 >
                     <Badge
-                        bg="brand.lightGray"
+                        bg="card.lightGray"
                         color="brand.navy"
                         paddingY={{ base: 0.5, md: 1 }}
                         paddingX={{ base: 2, md: 3 }}

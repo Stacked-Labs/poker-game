@@ -62,8 +62,8 @@ const Support = () => {
             {/* Discord Support Card */}
             <Card
                 variant="outline"
-                bg="white"
-                borderColor="brand.lightGray"
+                bg="card.white"
+                borderColor="card.lightGray"
                 borderWidth="2px"
                 borderRadius="20px"
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
@@ -104,7 +104,7 @@ const Support = () => {
                                 </Heading>
                                 <Text
                                     fontSize={{ base: 'sm', md: 'md' }}
-                                    color="gray.600"
+                                    color="text.gray600"
                                 >
                                     Join our Discord server
                                 </Text>
@@ -113,7 +113,7 @@ const Support = () => {
 
                         <Text
                             fontSize={{ base: 'sm', md: 'md' }}
-                            color="gray.700"
+                            color="text.gray700"
                         >
                             For game issues, bug reports, or general support,
                             please join our Discord community and submit a
@@ -156,8 +156,8 @@ const Support = () => {
             {/* Twitter Support Card */}
             <Card
                 variant="outline"
-                bg="white"
-                borderColor="brand.lightGray"
+                bg="card.white"
+                borderColor="card.lightGray"
                 borderWidth="2px"
                 borderRadius="20px"
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
@@ -174,7 +174,7 @@ const Support = () => {
                         <HStack spacing={3}>
                             <Box
                                 p={3}
-                                bg="rgba(0, 0, 0, 0.08)"
+                                bg="card.lightGray"
                                 borderRadius="12px"
                                 aspectRatio={1}
                                 display="flex"
@@ -198,7 +198,7 @@ const Support = () => {
                                 </Heading>
                                 <Text
                                     fontSize={{ base: 'sm', md: 'md' }}
-                                    color="gray.600"
+                                    color="text.gray600"
                                 >
                                     Reach out on Twitter
                                 </Text>
@@ -207,7 +207,7 @@ const Support = () => {
 
                         <Text
                             fontSize={{ base: 'sm', md: 'md' }}
-                            color="gray.700"
+                            color="text.gray700"
                         >
                             You can also contact us on Twitter for quick
                             questions or updates. Send us a DM or mention us in
@@ -257,7 +257,7 @@ const Support = () => {
             >
                 <Text
                     fontSize={{ base: 'sm', md: 'md' }}
-                    color="brand.navy"
+                    color="text.tertiary"
                     fontWeight="medium"
                 >
                     💡 <strong>Tip:</strong> For the fastest response, join our

@@ -983,7 +983,7 @@ const GameLog = () => {
                 Game Log
             </Text>
             <Box
-                bg="white"
+                bg="card.white"
                 borderRadius="12px"
                 border="1px solid"
                 borderColor="gray.200"

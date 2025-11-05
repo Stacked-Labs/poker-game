@@ -32,6 +32,8 @@ import HowTo from './HowTo';
 import Support from './Support';
 import { GameEventsProvider } from '@/app/contexts/GameEventsProvider';
 import { FINANCIAL_EVENT_TYPES } from '@/app/interfaces';
+import { IconType } from 'react-icons/lib/iconBase';
+import { ColorModeButton } from '../../ColorModeButton';
 
 // Animations
 const fadeIn = keyframes`
@@ -50,6 +52,50 @@ const slideDown = keyframes`
     }
 `;
 
+const TabItem = ({ text, color, icon }: { text: string, color: string, icon: IconType }) => {
+    return (
+        <Tab
+            minW="fit-content"
+            px={{ base: 3, md: 4 }}
+            py={2}
+            _hover={{
+                bg: 'input.white',
+                color: color,
+                transform: 'translateY(-2px)',
+                boxShadow:
+                    '0 4px 8px rgba(54, 163, 123, 0.2)',
+            }}
+            _selected={{
+                bg: color,
+                color: 'text.white !important',
+                boxShadow:
+                    '0 4px 12px rgba(54, 163, 123, 0.3)',
+                '& *': {
+                    color: 'text.white !important',
+                },
+            }}
+            borderRadius="12px"
+            fontWeight="bold"
+            fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
+            transition="all 0.2s ease"
+        >
+            <HStack spacing={{ base: 1, md: 2 }}>
+                <Icon
+                    as={icon}
+                    boxSize={{ base: 4, md: 5 }}
+                    color={'text.primary'}
+                />
+                <Text
+                    textTransform={'capitalize'}
+                    color={'text.primary'}
+                >
+                    {text}
+                </Text>
+            </HStack>
+        </Tab>
+    )
+}
+
 const SettingsModal = ({
     isOpen,
     onClose,
@@ -64,7 +110,7 @@ const SettingsModal = ({
                 backdropFilter="blur(10px)"
             />
             <ModalContent
-                bg="white"
+                bg="bg.default"
                 h="100vh"
                 w="100vw"
                 maxW="100vw"
@@ -86,7 +132,7 @@ const SettingsModal = ({
                     >
                         <TabList
                             gap={{ base: 1, md: 2 }}
-                            bg="brand.lightGray"
+                            bg="card.lightGray"
                             p={{ base: 2, md: 3 }}
                             borderRadius="20px"
                             mb={{ base: 0.25, md: 0.25 }}
@@ -117,7 +163,7 @@ const SettingsModal = ({
                                 px={{ base: 3, md: 4 }}
                                 py={2}
                                 bg="brand.pink"
-                                color="white"
+                                color="text.gray600"
                                 _hover={{
                                     bg: 'brand.pink',
                                     transform: 'translateY(-2px)',
@@ -137,16 +183,15 @@ const SettingsModal = ({
                             >
                                 <HStack
                                     spacing={{ base: 1, md: 2 }}
-                                    color="white"
                                 >
                                     <Icon
                                         as={IoCaretBack}
                                         boxSize={{ base: 4, md: 5 }}
-                                        color="white"
+                                        color="text.white"
                                     />
                                     <Text
                                         display={{ base: 'none', sm: 'block' }}
-                                        color="white"
+                                        color="text.white"
                                     >
                                         Back
                                     </Text>
@@ -182,195 +227,24 @@ const SettingsModal = ({
                                     <Icon
                                         as={FiUsers}
                                         boxSize={{ base: 4, md: 5 }}
+                                        color={'text.gray600'}
+
                                     />
-                                    <Text>Players</Text>
+                                    <Text color={'text.gray600'}>Players</Text>
                                 </HStack>
                             </Tab>
-                            <Tab
-                                minW="fit-content"
-                                px={{ base: 3, md: 4 }}
-                                py={2}
-                                color="gray.600"
-                                _hover={{
-                                    bg: 'white',
-                                    color: 'brand.green',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 4px 8px rgba(54, 163, 123, 0.2)',
-                                }}
-                                _selected={{
-                                    bg: 'brand.green',
-                                    color: 'white !important',
-                                    boxShadow:
-                                        '0 4px 12px rgba(54, 163, 123, 0.3)',
-                                    '& *': {
-                                        color: 'white !important',
-                                    },
-                                }}
-                                borderRadius="12px"
-                                fontWeight="bold"
-                                fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                transition="all 0.2s ease"
-                            >
-                                <HStack spacing={{ base: 1, md: 2 }}>
-                                    <Icon
-                                        as={FiDollarSign}
-                                        boxSize={{ base: 4, md: 5 }}
-                                    />
-                                    <Text>Ledger</Text>
-                                </HStack>
-                            </Tab>
-                            <Tab
-                                minW="fit-content"
-                                px={{ base: 3, md: 4 }}
-                                py={2}
-                                color="gray.600"
-                                _hover={{
-                                    bg: 'white',
-                                    color: 'brand.green',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 4px 8px rgba(54, 163, 123, 0.2)',
-                                }}
-                                _selected={{
-                                    bg: 'brand.green',
-                                    color: 'white !important',
-                                    boxShadow:
-                                        '0 4px 12px rgba(54, 163, 123, 0.3)',
-                                    '& *': {
-                                        color: 'white !important',
-                                    },
-                                }}
-                                borderRadius="12px"
-                                fontWeight="bold"
-                                fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                transition="all 0.2s ease"
-                            >
-                                <HStack spacing={{ base: 1, md: 2 }}>
-                                    <Icon
-                                        as={FiFileText}
-                                        boxSize={{ base: 4, md: 5 }}
-                                    />
-                                    <Text>Log</Text>
-                                </HStack>
-                            </Tab>
-                            <Tab
-                                minW="fit-content"
-                                px={{ base: 3, md: 4 }}
-                                py={2}
-                                color="gray.600"
-                                _hover={{
-                                    bg: 'white',
-                                    color: 'brand.green',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 4px 8px rgba(54, 163, 123, 0.2)',
-                                }}
-                                _selected={{
-                                    bg: 'brand.green',
-                                    color: 'white !important',
-                                    boxShadow:
-                                        '0 4px 12px rgba(54, 163, 123, 0.3)',
-                                    '& *': {
-                                        color: 'white !important',
-                                    },
-                                }}
-                                borderRadius="12px"
-                                fontWeight="bold"
-                                fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                transition="all 0.2s ease"
-                            >
-                                <HStack spacing={{ base: 1, md: 2 }}>
-                                    <Icon
-                                        as={FiSettings}
-                                        boxSize={{ base: 4, md: 5 }}
-                                    />
-                                    <Text>Settings</Text>
-                                </HStack>
-                            </Tab>
-                            <Tab
-                                minW="fit-content"
-                                px={{ base: 3, md: 4 }}
-                                py={2}
-                                color="gray.600"
-                                _hover={{
-                                    bg: 'white',
-                                    color: 'brand.pink',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 4px 8px rgba(235, 11, 92, 0.2)',
-                                }}
-                                _selected={{
-                                    bg: 'brand.pink',
-                                    color: 'white !important',
-                                    boxShadow:
-                                        '0 4px 12px rgba(235, 11, 92, 0.3)',
-                                    '& *': {
-                                        color: 'white !important',
-                                    },
-                                }}
-                                borderRadius="12px"
-                                fontWeight="bold"
-                                fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                transition="all 0.2s ease"
-                            >
-                                <HStack spacing={{ base: 1, md: 2 }}>
-                                    <Icon
-                                        as={BiSupport}
-                                        boxSize={{ base: 4, md: 5 }}
-                                    />
-                                    <Text>Support</Text>
-                                </HStack>
-                            </Tab>
-                            <Tab
-                                minW="fit-content"
-                                px={{ base: 3, md: 4 }}
-                                py={2}
-                                color="gray.600"
-                                _hover={{
-                                    bg: 'white',
-                                    color: 'brand.navy',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 4px 8px rgba(51, 68, 121, 0.2)',
-                                }}
-                                _selected={{
-                                    bg: 'brand.navy',
-                                    color: 'white !important',
-                                    boxShadow:
-                                        '0 4px 12px rgba(51, 68, 121, 0.3)',
-                                    '& *': {
-                                        color: 'white !important',
-                                    },
-                                }}
-                                borderRadius="12px"
-                                fontWeight="bold"
-                                fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
-                                transition="all 0.2s ease"
-                            >
-                                <HStack spacing={{ base: 1, md: 2 }}>
-                                    <Icon
-                                        as={FiHelpCircle}
-                                        boxSize={{ base: 4, md: 5 }}
-                                    />
-                                    <Text
-                                        display={{ base: 'none', sm: 'block' }}
-                                    >
-                                        How To
-                                    </Text>
-                                    <Text
-                                        display={{ base: 'block', sm: 'none' }}
-                                    >
-                                        Help
-                                    </Text>
-                                </HStack>
-                            </Tab>
+                            <TabItem text='Ledger' color="brand.green" icon={FiDollarSign} />
+                            <TabItem text='Log' color="brand.green" icon={FiFileText} />
+                            <TabItem text='Settings' color="brand.green" icon={FiSettings} />
+                            <TabItem text='Support' color="brand.pink" icon={BiSupport} />
+                            <TabItem text='How To' color="brand.navy" icon={FiHelpCircle} />
+                            <ColorModeButton />
                         </TabList>
 
                         <TabPanels
                             flex={1}
                             overflowY="auto"
-                            bg="white"
+                            bg="bg.default"
                             borderRadius="20px"
                             p={{ base: 1, md: 2 }}
                             sx={{
@@ -401,8 +275,8 @@ const SettingsModal = ({
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}
                             >
-                                <GameEventsProvider 
-                                    isModalOpen={isOpen} 
+                                <GameEventsProvider
+                                    isModalOpen={isOpen}
                                     eventTypes={FINANCIAL_EVENT_TYPES}
                                 >
                                     <Ledger />

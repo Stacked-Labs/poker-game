@@ -34,7 +34,7 @@ import {
 import TableMenuBurger from './TableMenuBurger';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
-import { ColorModeButton } from '@/components/ui/color-mode';
+import { ColorModeButton } from '../ColorModeButton';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -120,7 +120,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 justify="space-between"
                 wrap="wrap"
                 padding={{ base: '0.75rem 1rem', md: '1rem 1.5rem' }}
-                bg="white"
+                bg="bg.navbar"
                 color="brand.navy"
                 zIndex={10}
                 opacity={isLoading ? 0 : 1}
@@ -143,19 +143,8 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                                 />
                             }
                             aria-label="Settings"
-                            size="lg"
                             onClick={onOpen}
-                            bg="brand.lightGray"
-                            color="brand.navy"
-                            border="none"
-                            borderRadius="12px"
-                            _hover={{
-                                bg: 'brand.navy',
-                                color: 'white',
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
-                            }}
-                            transition="all 0.2s ease"
+                            variant={'gameSettingsButton'}
                         />
                         {pendingCount > 0 && (
                             <Flex
@@ -199,6 +188,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                         </Box>
                     )}
                     <StartGameButton />
+                    <ColorModeButton />
                     {isOwner && appState.game?.running && socket && (
                         <Tooltip
                             label={
@@ -281,19 +271,8 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                                 />
                             }
                             aria-label="Chat"
-                            size="lg"
                             onClick={handleChatToggle}
-                            bg="brand.lightGray"
-                            color="brand.navy"
-                            border="none"
-                            borderRadius="12px"
-                            _hover={{
-                                bg: 'brand.navy',
-                                color: 'white',
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
-                            }}
-                            transition="all 0.2s ease"
+                            variant={'gameSettingsButton'}
                         />
                         {unreadMessageCount > 0 && (
                             <Flex
@@ -338,7 +317,6 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 display={isOpenChat ? 'block' : 'none'}
                 opacity={isLoading ? 0 : 1}
             ></Flex>
-            <ColorModeButton />
             <SideBarChat isOpen={isOpenChat} onToggle={onToggleChat} />
         </>
     );

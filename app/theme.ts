@@ -73,10 +73,6 @@ const semanticTokens = {
             default: "rgba(255, 255, 255, 0.85)",
             _dark: "rgba(46, 46, 54, 0.95)",
         },
-        'bg.input': {
-            default: 'white',
-            _dark: 'charcoal.800'
-        },
 
         // Text colors
         'text.primary': {
@@ -89,6 +85,10 @@ const semanticTokens = {
         },
         'text.tertiary': {
             default: 'brand.navy',
+            _dark: 'brand.lightGray',
+        },
+        'text.white': {
+            default: 'white',
             _dark: 'brand.lightGray',
         },
 
@@ -107,13 +107,23 @@ const semanticTokens = {
         },
         'btn.lightGray': {
             default: 'brand.lightGray',
-            _dark: '#444444',
+            _dark: 'legacy.grayDark',
         },
 
         // Border
         'border.lightGray': {
             default: 'brand.lightGray',
             _dark: 'charcoal.600'
+        },
+
+        // Input
+        'input.white': {
+            default: 'white',
+            _dark: 'charcoal.800'
+        },
+        'input.lightGray': {
+            default: 'brand.lightGray',
+            _dark: 'charcoal.800'
         },
 
         // Card
@@ -389,6 +399,20 @@ const components = {
                     xs: '2rem',
                 },
             },
+            gameSettingsButton: {
+                size: "lg",
+                bg: "btn.lightGray",
+                color: "text.tertiary",
+                border: "none",
+                borderRadius: "12px",
+                transition: "all 0.2s ease",
+                _hover: {
+                    bg: 'brand.navy',
+                    color: 'white',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
+                }
+            }
         },
         sizes: {
             sm: {
@@ -457,7 +481,7 @@ const components = {
             },
             white: {
                 field: {
-                    bg: "bg.input",
+                    bg: "input.white",
                     borderWidth: "2px",
                     borderColor: "border.lightGray",
                     borderRadius: "10px",
@@ -472,6 +496,28 @@ const components = {
                     height: "40px",
                     fontSize: "sm",
                     width: "120px",
+                }
+            },
+            takeSeatModal: {
+                field: {
+                    bg: "input.lightGray",
+                    color: "text.tertiary",
+                    height: "56px",
+                    border: "2px solid transparent",
+                    borderRadius: "12px",
+                    fontSize: "md",
+                    fontWeight: "semibold",
+                    transition: "all 0.2s ease",
+                    _placeholder: { color: 'gray.400' },
+                    _hover: {
+                        borderColor: 'brand.green',
+                    },
+                    _focus: {
+                        borderColor: 'brand.pink',
+                        boxShadow:
+                            '0 0 0 3px rgba(235, 11, 92, 0.1)',
+                        bg: "input.white",
+                    }
                 }
             }
         },

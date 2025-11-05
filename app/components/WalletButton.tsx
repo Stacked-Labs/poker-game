@@ -89,7 +89,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                 className: className,
                 style: {
                     ...sizeStyle,
-                    borderRadius: "bigButton",
+                    borderRadius: theme.radii.bigButton,
                 },
             }}
             connectModal={{

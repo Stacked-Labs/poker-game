@@ -66,7 +66,7 @@ const LinkBox = () => {
         >
             <Box
                 flex={1}
-                bg="white"
+                bg={'input.white'}
                 display="flex"
                 alignItems="center"
                 px={2.5}
@@ -77,7 +77,7 @@ const LinkBox = () => {
                     isReadOnly
                     border="none"
                     bg="transparent"
-                    color="brand.navy"
+                    color="text.tertiary"
                     fontSize="xs"
                     fontWeight="medium"
                     p={0}
@@ -139,11 +139,8 @@ const SocialButton = ({
             aria-label={label}
             icon={icon}
             size={{ base: 'md', md: 'lg' }}
-            bg="brand.lightGray"
             color={color}
-            border="none"
-            borderRadius={{ base: '10px', md: '12px' }}
-            transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+            variant={'social'}
             _hover={{
                 bg: color,
                 color: 'white',
@@ -157,7 +154,7 @@ const SocialButton = ({
 const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
     return (
         <ModalContent
-            bg="white"
+            bg={'card.white'}
             borderRadius={{ base: '20px', md: '24px' }}
             overflow="hidden"
             boxShadow="0 20px 60px rgba(0, 0, 0, 0.25)"
@@ -175,7 +172,7 @@ const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
                 alignItems="center"
                 py={{ base: 3, md: 4 }}
                 px={{ base: 4, md: 5 }}
-                bg="brand.lightGray"
+                bg={'card.lightGray'}
                 borderBottom="1px solid"
                 borderColor="rgba(0, 0, 0, 0.08)"
             >
@@ -226,7 +223,7 @@ const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
                 flex={1}
                 minHeight={0}
                 alignItems="center"
-                bg="white"
+                bg={'card.white'}
             >
                 <LinkBox />
 
@@ -265,7 +262,7 @@ const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
                 {/* Hint Text */}
                 <Text
                     fontSize="xs"
-                    color="brand.navy"
+                    color="text.tertiary"
                     opacity={0.6}
                     textAlign="center"
                     maxW="300px"

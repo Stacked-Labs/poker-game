@@ -77,7 +77,7 @@ const LinkBox = () => {
                     isReadOnly
                     border="none"
                     bg="transparent"
-                    color="text.tertiary"
+                    color="text.secondary"
                     fontSize="xs"
                     fontWeight="medium"
                     p={0}
@@ -180,7 +180,7 @@ const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
                     <Text
                         fontWeight="extrabold"
                         fontSize="xl"
-                        color="brand.navy"
+                        color="text.secondary"
                         fontFamily="heading"
                     >
                         Lobby
@@ -196,7 +196,7 @@ const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
                         />
                         <Text
                             fontSize="sm"
-                            color="brand.navy"
+                            color="text.secondary"
                             fontWeight="medium"
                             opacity={0.7}
                         >
@@ -206,7 +206,7 @@ const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
                 </Stack>
                 <CloseButton
                     onClick={onClose}
-                    color="brand.navy"
+                    color="text.secondary"
                     borderRadius="8px"
                     _hover={{
                         bg: 'rgba(51, 68, 121, 0.1)',
@@ -262,7 +262,7 @@ const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
                 {/* Hint Text */}
                 <Text
                     fontSize="xs"
-                    color="text.tertiary"
+                    color="text.secondary"
                     opacity={0.6}
                     textAlign="center"
                     maxW="300px"

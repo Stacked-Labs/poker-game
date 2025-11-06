@@ -104,7 +104,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                         backdropFilter="blur(8px)"
                     />
                     <ModalContent
-                        bg="white"
+                        bg="card.white"
                         color="brand.navy"
                         borderRadius="24px"
                         borderWidth="2px"

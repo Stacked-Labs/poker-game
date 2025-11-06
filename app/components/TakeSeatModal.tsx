@@ -155,7 +155,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     <Box
                         width="100%"
                         height="100%"
-                        bg="white"
+                        bg="card.white"
                         borderRadius="29px"
                     />
                 </Box>
@@ -192,7 +192,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     </Tooltip>
 
                     <ModalCloseButton
-                        color="brand.navy"
+                        color="text.secondary"
                         size="lg"
                         top={4}
                         right={4}
@@ -210,7 +210,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 as="h2"
                                 fontSize="2xl"
                                 fontWeight="bold"
-                                color="brand.navy"
+                                color="text.secondary"
                                 letterSpacing="-0.02em"
                             >
                                 Take Your Seat
@@ -233,7 +233,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 {/* Name Input */}
                                 <FormControl>
                                     <FormLabel
-                                        color="brand.navy"
+                                        color="text.secondary"
                                         fontSize="2xl"
                                         mb={1}
                                         textAlign="center"
@@ -253,7 +253,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 {/* Buy-in Input */}
                                 <FormControl>
                                     <FormLabel
-                                        color="brand.navy"
+                                        color="text.secondary"
                                         fontSize="2xl"
                                         mb={1}
                                         textAlign="center"

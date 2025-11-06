@@ -910,7 +910,7 @@ const GameLog = () => {
                     fontSize={{ base: 'xl', md: '2xl' }}
                     fontWeight={'bold'}
                     mb={6}
-                    color="brand.navy"
+                    color="text.secondary"
                     letterSpacing="-0.02em"
                 >
                     Game Log
@@ -942,7 +942,7 @@ const GameLog = () => {
                     fontSize={{ base: 'xl', md: '2xl' }}
                     fontWeight={'bold'}
                     mb={6}
-                    color="brand.navy"
+                    color="text.secondary"
                     letterSpacing="-0.02em"
                 >
                     Game Log
@@ -977,7 +977,7 @@ const GameLog = () => {
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
                 mb={4}
-                color="brand.navy"
+                color="text.secondary"
                 letterSpacing="-0.02em"
             >
                 Game Log

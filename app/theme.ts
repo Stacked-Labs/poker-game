@@ -81,10 +81,6 @@ const semanticTokens = {
         },
         'text.secondary': {
             default: 'brand.navy',
-            _dark: 'brand.navy',
-        },
-        'text.tertiary': {
-            default: 'brand.navy',
             _dark: 'brand.lightGray',
         },
         'text.white': {
@@ -115,7 +111,7 @@ const semanticTokens = {
         },
         'btn.lightGray': {
             default: 'brand.lightGray',
-            _dark: 'legacy.grayDark',
+            _dark: 'charcoal.600',
         },
 
         // Border
@@ -410,7 +406,7 @@ const components = {
             gameSettingsButton: {
                 size: "lg",
                 bg: "btn.lightGray",
-                color: "text.tertiary",
+                color: "text.secondary",
                 border: "none",
                 borderRadius: "12px",
                 transition: "all 0.2s ease",
@@ -509,7 +505,7 @@ const components = {
             takeSeatModal: {
                 field: {
                     bg: "input.lightGray",
-                    color: "text.tertiary",
+                    color: "text.secondary",
                     height: "56px",
                     border: "2px solid transparent",
                     borderRadius: "12px",

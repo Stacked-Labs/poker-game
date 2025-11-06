@@ -23,7 +23,7 @@ const GameSettings = () => {
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
                 mb={6}
-                color="brand.navy"
+                color="text.secondary"
                 letterSpacing="-0.02em"
             >
                 Game Settings
@@ -52,7 +52,7 @@ const GameSettings = () => {
                         <Text
                             fontSize={{ base: 'md', md: 'lg' }}
                             fontWeight="bold"
-                            color="text.tertiary"
+                            color="text.secondary"
                         >
                             Enable Ante
                         </Text>
@@ -85,7 +85,7 @@ const GameSettings = () => {
                     fontSize={{ base: 'md', md: 'lg' }}
                     fontWeight={'bold'}
                     mb={4}
-                    color="text.tertiary"
+                    color="text.secondary"
                 >
                     Blind Levels
                 </Text>
@@ -100,14 +100,14 @@ const GameSettings = () => {
                         <Thead bg="card.lightGray">
                             <Tr>
                                 <Th
-                                    color={'text.tertiary'}
+                                    color={'text.secondary'}
                                     fontSize="xs"
                                     fontWeight="bold"
                                 >
                                     Small Blind
                                 </Th>
                                 <Th
-                                    color={'text.tertiary'}
+                                    color={'text.secondary'}
                                     fontSize="xs"
                                     fontWeight="bold"
                                 >
@@ -115,7 +115,7 @@ const GameSettings = () => {
                                 </Th>
                                 {isAnte && (
                                     <Th
-                                        color={'text.tertiary'}
+                                        color={'text.secondary'}
                                         fontSize="xs"
                                         fontWeight="bold"
                                     >
@@ -123,7 +123,7 @@ const GameSettings = () => {
                                     </Th>
                                 )}
                                 <Th
-                                    color={'text.tertiary'}
+                                    color={'text.secondary'}
                                     fontSize="xs"
                                     fontWeight="bold"
                                 >

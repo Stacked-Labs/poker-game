@@ -241,7 +241,7 @@ const page = async () => {
                 variant="unstyled"
             >
                 <TabList
-                    bg="white"
+                    bg="card.white"
                     borderRadius="12px"
                     p={{ base: '6px', md: 1 }}
                     mb={{ base: 3, md: 4 }}

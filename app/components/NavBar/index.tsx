@@ -121,7 +121,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 wrap="wrap"
                 padding={{ base: '0.75rem 1rem', md: '1rem 1.5rem' }}
                 bg="bg.navbar"
-                color="brand.navy"
+                color="text.secondary"
                 zIndex={10}
                 opacity={isLoading ? 0 : 1}
                 boxShadow="0 2px 12px rgba(0, 0, 0, 0.08)"

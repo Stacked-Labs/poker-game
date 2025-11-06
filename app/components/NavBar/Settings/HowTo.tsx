@@ -23,7 +23,7 @@ const HowTo = () => {
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
                 mb={6}
-                color="brand.navy"
+                color="text.secondary"
                 letterSpacing="-0.02em"
             >
                 How To Play
@@ -53,13 +53,13 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="text.tertiary"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Getting Started
                             </Heading>
                         </Box>
-                        <AccordionIcon color="text.tertiary" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={3}>
@@ -68,7 +68,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Connect your wallet
                                     </Text>{' '}
@@ -79,7 +79,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Join a table
                                     </Text>{' '}
@@ -90,7 +90,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Wait for approval
                                     </Text>{' '}
@@ -100,7 +100,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Start playing
                                     </Text>{' '}
@@ -134,13 +134,13 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="text.tertiary"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Game Actions
                             </Heading>
                         </Box>
-                        <AccordionIcon color="text.tertiary" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={3}>
@@ -245,13 +245,13 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="text.tertiary"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Hand Rankings
                             </Heading>
                         </Box>
-                        <AccordionIcon color="text.tertiary" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={2}>
@@ -268,7 +268,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Royal Flush
                                     </Text>{' '}
@@ -278,7 +278,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Straight Flush
                                     </Text>{' '}
@@ -288,7 +288,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Four of a Kind
                                     </Text>{' '}
@@ -298,7 +298,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Full House
                                     </Text>{' '}
@@ -308,7 +308,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Flush
                                     </Text>{' '}
@@ -318,7 +318,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Straight
                                     </Text>{' '}
@@ -328,7 +328,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Three of a Kind
                                     </Text>{' '}
@@ -338,7 +338,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         Two Pair
                                     </Text>{' '}
@@ -348,7 +348,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         One Pair
                                     </Text>{' '}
@@ -358,7 +358,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="text.tertiary"
+                                        color="text.secondary"
                                     >
                                         High Card
                                     </Text>{' '}
@@ -392,13 +392,13 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="text.tertiary"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Tips & Tricks
                             </Heading>
                         </Box>
-                        <AccordionIcon color="text.tertiary" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={3}>
@@ -455,13 +455,13 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="text.tertiary"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Table Owner Controls
                             </Heading>
                         </Box>
-                        <AccordionIcon color="text.tertiary" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={3}>

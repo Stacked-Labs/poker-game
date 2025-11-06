@@ -240,7 +240,7 @@ const Ledger = () => {
                     fontSize={{ base: 'xl', md: '2xl' }}
                     fontWeight={'bold'}
                     mb={6}
-                    color="brand.navy"
+                    color="text.secondary"
                     letterSpacing="-0.02em"
                 >
                     Session Ledger
@@ -271,7 +271,7 @@ const Ledger = () => {
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
                 mb={6}
-                color="brand.navy"
+                color="text.secondary"
                 letterSpacing="-0.02em"
             >
                 Session Ledger
@@ -398,7 +398,7 @@ const Ledger = () => {
                     >
                         <Tr>
                             <Th
-                                color={'text.tertiary'}
+                                color={'text.secondary'}
                                 fontWeight="bold"
                                 fontSize="xs"
                             >
@@ -413,7 +413,7 @@ const Ledger = () => {
                                 BUY-IN
                             </Th>
                             <Th
-                                color={'text.tertiary'}
+                                color={'text.secondary'}
                                 fontWeight="bold"
                                 fontSize="xs"
                                 isNumeric
@@ -421,7 +421,7 @@ const Ledger = () => {
                                 BUY-OUT
                             </Th>
                             <Th
-                                color={'text.tertiary'}
+                                color={'text.secondary'}
                                 fontWeight="bold"
                                 fontSize="xs"
                                 isNumeric
@@ -429,7 +429,7 @@ const Ledger = () => {
                                 STACK
                             </Th>
                             <Th
-                                color={'text.tertiary'}
+                                color={'text.secondary'}
                                 fontWeight="bold"
                                 fontSize="xs"
                                 isNumeric

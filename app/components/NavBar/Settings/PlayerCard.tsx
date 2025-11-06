@@ -61,7 +61,7 @@ const PlayerCard = ({
                 w={{ base: '100%', sm: 'auto' }}
             >
                 <Text
-                    color={'text.tertiary'}
+                    color={'text.secondary'}
                     fontWeight={'bold'}
                     fontSize={{ base: 'md', sm: 'lg', md: 'xl', lg: '2xl' }}
                     letterSpacing="-0.02em"

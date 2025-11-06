@@ -42,7 +42,7 @@ const Support = () => {
                 <Heading
                     as="h2"
                     size={{ base: 'lg', md: 'xl' }}
-                    color="brand.navy"
+                    color="text.secondary"
                     mb={3}
                     fontWeight="bold"
                 >
@@ -50,7 +50,7 @@ const Support = () => {
                 </Heading>
                 <Text
                     fontSize={{ base: 'md', md: 'lg' }}
-                    color="gray.600"
+                    color="text.gray600"
                     maxW="600px"
                     mx="auto"
                 >
@@ -97,7 +97,7 @@ const Support = () => {
                                 <Heading
                                     as="h3"
                                     size={{ base: 'md', md: 'lg' }}
-                                    color="brand.navy"
+                                    color="text.secondary"
                                     mb={1}
                                 >
                                     Discord Support
@@ -174,7 +174,7 @@ const Support = () => {
                         <HStack spacing={3}>
                             <Box
                                 p={3}
-                                bg="card.lightGray"
+                                bg="btn.lightGray"
                                 borderRadius="12px"
                                 aspectRatio={1}
                                 display="flex"
@@ -191,7 +191,7 @@ const Support = () => {
                                 <Heading
                                     as="h3"
                                     size={{ base: 'md', md: 'lg' }}
-                                    color="brand.navy"
+                                    color="text.secondary"
                                     mb={1}
                                 >
                                     Twitter/X Support
@@ -257,7 +257,7 @@ const Support = () => {
             >
                 <Text
                     fontSize={{ base: 'sm', md: 'md' }}
-                    color="text.tertiary"
+                    color="text.secondary"
                     fontWeight="medium"
                 >
                     💡 <strong>Tip:</strong> For the fastest response, join our

@@ -71,7 +71,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
                     <Text
                         fontSize={['10px', '10px', '12px', '12px']}
                         textAlign="center"
-                        color={disabled ? 'gray.400' : 'text.tertiary'}
+                        color={disabled ? 'gray.400' : 'text.secondary'}
                     >
                         {description}
                     </Text>

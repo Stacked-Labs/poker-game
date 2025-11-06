@@ -95,7 +95,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                 <Text
                     fontSize="xl"
                     fontWeight="bold"
-                    color="brand.navy"
+                    color="text.secondary"
                     fontFamily="heading"
                 >
                     Chat
@@ -106,7 +106,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                     aria-label="Close Chat Box"
                     size="md"
                     bg="transparent"
-                    color="brand.navy"
+                    color="text.secondary"
                     border="none"
                     borderRadius="8px"
                     _hover={{
@@ -153,7 +153,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                         }}
                     >
                         <Text
-                            color="text.tertiary"
+                            color="text.secondary"
                             fontSize="md"
                             whiteSpace="break-spaces"
                             lineHeight="1.5"
@@ -190,14 +190,14 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                         flex={1}
                         height="48px"
                         bg="input.lightGray"
-                        color="text.tertiary"
+                        color="text.secondary"
                         border="none"
                         borderRadius="12px"
                         fontSize="md"
                         fontWeight="light"
                         px={4}
                         _placeholder={{
-                            color: "text.tertiary",
+                            color: "text.secondary",
                         }}
                         _focus={{
                             bg: 'input.white',

@@ -132,7 +132,7 @@ const HomeNavBar: React.FC = () => {
                 onClick={onOpen}
                 display={{ base: 'flex', lg: 'none' }}
                 bg="transparent"
-                color="brand.navy"
+                color="text.secondary"
                 borderRadius="12px"
                 _hover={{
                     bg: 'rgba(12, 21, 49, 0.08)',
@@ -173,7 +173,7 @@ const HomeNavBar: React.FC = () => {
                             fontFamily="heading"
                             fontWeight="bold"
                             fontSize="xl"
-                            color="brand.navy"
+                            color="text.secondary"
                         >
                             Menu
                         </Text>
@@ -182,7 +182,7 @@ const HomeNavBar: React.FC = () => {
                             icon={<RiCloseLine size={24} />}
                             onClick={onClose}
                             bg="transparent"
-                            color="brand.navy"
+                            color="text.secondary"
                             borderRadius="12px"
                             _hover={{
                                 bg: 'rgba(12, 21, 49, 0.08)',
@@ -202,7 +202,7 @@ const HomeNavBar: React.FC = () => {
                                 size="lg"
                                 fontWeight="semibold"
                                 bg="brand.lightGray"
-                                color="brand.navy"
+                                color="text.secondary"
                                 borderRadius="16px"
                                 height="56px"
                                 justifyContent="flex-start"
@@ -224,7 +224,7 @@ const HomeNavBar: React.FC = () => {
                                 size="lg"
                                 fontWeight="semibold"
                                 bg="brand.lightGray"
-                                color="brand.navy"
+                                color="text.secondary"
                                 borderRadius="16px"
                                 height="56px"
                                 justifyContent="flex-start"

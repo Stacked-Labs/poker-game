@@ -396,7 +396,7 @@ const TakenSeatButton = ({
                         w={'fit-content'}
                         bg="brand.yellow"
                         fontWeight="bold"
-                        color="brand.navy"
+                        color="text.secondary"
                         display="flex"
                         alignItems="center"
                         justifyContent="center"
@@ -528,7 +528,7 @@ const TakenSeatButton = ({
                         <Box
                             width="100%"
                             height="100%"
-                            bg="white"
+                            bg="card.white"
                             borderRadius={{
                                 base: '2px',
                                 md: '6px',
@@ -575,7 +575,7 @@ const TakenSeatButton = ({
                             top={{ base: -2, md: -3 }}
                             right={0}
                             bg="brand.yellow"
-                            color="brand.navy"
+                            color="text.secondary"
                             variant="solid"
                             size={{ base: 'xs', md: 'sm' }}
                             fontSize={{ base: '8px', md: 'sm' }}

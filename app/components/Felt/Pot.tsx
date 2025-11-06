@@ -100,6 +100,7 @@ const Pot = () => {
                                                         md: '14px',
                                                         base: '10px',
                                                     }}
+                                                    color={'white'}
                                                 >
                                                     {game.pots[index].amount}
                                                 </Text>

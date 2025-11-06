@@ -148,6 +148,24 @@ const RaiseInputBox = ({
         }
     };
 
+    const handleDecreaseRaise = () => {
+        const newValue = betValidator(
+            inputValue - bigBlind,
+            minRaise,
+            currentStack + currentBet
+        );
+        setInputValue(newValue);
+    };
+
+    const handleIncreaseRaise = () => {
+        const newValue = betValidator(
+            inputValue + bigBlind,
+            minRaise,
+            currentStack + currentBet
+        );
+        setInputValue(newValue);
+    }
+
     const actionButtons = () => {
         return (
             <Flex flex={1} gap={2} justifyContent={'flex-end'}>
@@ -571,15 +589,16 @@ const RaiseInputBox = ({
                         roundedBottom={'lg'}
                         overflow={'hidden'}
                     >
-                        <Flex
+                        <Button
                             bg={'brand.darkNavy'}
                             height={'100%'}
                             alignItems={'center'}
                             p={1}
                             color="white"
+                            onClick={handleDecreaseRaise}
                         >
                             <LuMinus />
-                        </Flex>
+                        </Button>
                         <Slider
                             aria-label="slider-ex-1"
                             marginX={3}
@@ -598,15 +617,16 @@ const RaiseInputBox = ({
                             </SliderTrack>
                             <SliderThumb borderColor="brand.green" />
                         </Slider>
-                        <Flex
+                        <Button
                             bg={'brand.darkNavy'}
                             height={'100%'}
                             alignItems={'center'}
                             p={1}
                             color="white"
+                            onClick={handleIncreaseRaise}
                         >
                             <LuPlus />
-                        </Flex>
+                        </Button>
                     </Flex>
                 </Flex>
             </Flex>

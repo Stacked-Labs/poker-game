@@ -33,9 +33,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     <AppStoreProvider>
                         <UserProvider>
                             <AuthProvider>
-                                <SoundProvider>
-                                    {children}
-                                </SoundProvider>
+                                <SoundProvider>{children}</SoundProvider>
                             </AuthProvider>
                         </UserProvider>
                     </AppStoreProvider>

@@ -103,10 +103,10 @@ const LeftSideContent: React.FC = () => {
 
             setIsFormValid(
                 isSmallBlindValid &&
-                isBigBlindValid &&
-                isGameModeSelected &&
-                isNetworkSelected &&
-                isWalletConnected
+                    isBigBlindValid &&
+                    isGameModeSelected &&
+                    isNetworkSelected &&
+                    isWalletConnected
             );
         };
 

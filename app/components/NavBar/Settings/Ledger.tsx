@@ -112,10 +112,10 @@ const Ledger = () => {
                         ? parseFloat(amount)
                         : amount
                     : metadata?.final_stack
-                        ? typeof metadata.final_stack === 'string'
-                            ? parseFloat(metadata.final_stack as string)
-                            : (metadata.final_stack as number)
-                        : 0;
+                      ? typeof metadata.final_stack === 'string'
+                          ? parseFloat(metadata.final_stack as string)
+                          : (metadata.final_stack as number)
+                      : 0;
 
                 session.totalBuyOuts += buyOutAmount;
                 session.currentStack = 0; // Player left, no current stack
@@ -135,10 +135,10 @@ const Ledger = () => {
                         ? parseFloat(amount)
                         : amount
                     : metadata?.final_stack
-                        ? typeof metadata.final_stack === 'string'
-                            ? parseFloat(metadata.final_stack as string)
-                            : (metadata.final_stack as number)
-                        : 0;
+                      ? typeof metadata.final_stack === 'string'
+                          ? parseFloat(metadata.final_stack as string)
+                          : (metadata.final_stack as number)
+                      : 0;
 
                 session.totalBuyOuts += kickedAmount;
                 session.currentStack = 0; // Player kicked, no current stack
@@ -478,7 +478,7 @@ const Ledger = () => {
                                         <Td>
                                             <HStack spacing={3}>
                                                 {session.transactions.length >
-                                                    0 ? (
+                                                0 ? (
                                                     <Icon
                                                         as={
                                                             expandedRows.has(
@@ -610,12 +610,12 @@ const Ledger = () => {
                                                         <Badge
                                                             bg={
                                                                 tx.type ===
-                                                                    'buy-in'
+                                                                'buy-in'
                                                                     ? 'brand.navy'
                                                                     : tx.type ===
                                                                         'buy-out'
-                                                                        ? 'brand.green'
-                                                                        : 'brand.pink'
+                                                                      ? 'brand.green'
+                                                                      : 'brand.pink'
                                                             }
                                                             color="white"
                                                             fontSize="2xs"
@@ -654,7 +654,7 @@ const Ledger = () => {
                                                 {/* BUY-OUT column */}
                                                 <Td isNumeric>
                                                     {tx.type === 'buy-out' ||
-                                                        tx.type === 'kicked' ? (
+                                                    tx.type === 'kicked' ? (
                                                         <Text
                                                             fontWeight="bold"
                                                             color="brand.pink"

@@ -275,8 +275,8 @@ const SettingsModal = ({
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}
                             >
-                                <GameEventsProvider
-                                    isModalOpen={isOpen}
+                                <GameEventsProvider 
+                                    isModalOpen={isOpen} 
                                     eventTypes={FINANCIAL_EVENT_TYPES}
                                 >
                                     <Ledger />

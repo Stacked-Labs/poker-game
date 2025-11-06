@@ -34,9 +34,9 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     const sizeStyle =
         width || height
             ? {
-                ...(width && { width }),
-                ...(height && { height, minHeight: height }),
-            }
+                  ...(width && { width }),
+                  ...(height && { height, minHeight: height }),
+              }
             : undefined;
 
     const customLightTheme = lightTheme({

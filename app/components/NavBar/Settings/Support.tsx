@@ -63,7 +63,7 @@ const Support = () => {
             <Card
                 variant="outline"
                 bg="card.white"
-                borderColor="card.lightGray"
+                borderColor="border.lightGray"
                 borderWidth="2px"
                 borderRadius="20px"
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
@@ -157,7 +157,7 @@ const Support = () => {
             <Card
                 variant="outline"
                 bg="card.white"
-                borderColor="card.lightGray"
+                borderColor="border.lightGray"
                 borderWidth="2px"
                 borderRadius="20px"
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"

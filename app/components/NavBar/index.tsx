@@ -145,6 +145,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             aria-label="Settings"
                             onClick={onOpen}
                             variant={'gameSettingsButton'}
+                            size={'lg'}
                         />
                         {pendingCount > 0 && (
                             <Flex
@@ -188,7 +189,6 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                         </Box>
                     )}
                     <StartGameButton />
-                    <ColorModeButton />
                     {isOwner && appState.game?.running && socket && (
                         <Tooltip
                             label={
@@ -241,6 +241,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             />
                         </Tooltip>
                     )}
+                    <ColorModeButton />
                 </HStack>
                 <HStack spacing={{ base: 1, md: 2 }} alignItems="center">
                     <Box display={{ base: 'none', md: 'block' }}>
@@ -273,6 +274,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             aria-label="Chat"
                             onClick={handleChatToggle}
                             variant={'gameSettingsButton'}
+                            size={'lg'}
                         />
                         {unreadMessageCount > 0 && (
                             <Flex

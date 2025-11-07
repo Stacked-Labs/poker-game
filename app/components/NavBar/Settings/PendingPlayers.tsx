@@ -22,7 +22,7 @@ const PendingPlayers = ({
         return (
             <VStack align="stretch" gap={{ base: 2.5, md: 4 }} w="100%">
                 <Text
-                    color={'brand.navy'}
+                    color={'text.secondary'}
                     fontSize={{ base: 'lg', md: 'xl', lg: '2xl' }}
                     fontWeight="bold"
                     mb={{ base: 1, md: 2 }}

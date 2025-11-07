@@ -248,7 +248,7 @@ const Ledger = () => {
                 <Box
                     p={8}
                     textAlign="center"
-                    bg="brand.lightGray"
+                    bg="input.lightGray"
                     borderRadius="16px"
                 >
                     <Spinner
@@ -363,11 +363,11 @@ const Ledger = () => {
                         width: '8px',
                     },
                     '&::-webkit-scrollbar-track': {
-                        bg: 'brand.lightGray',
+                        bg: 'input.lightGray',
                         borderRadius: 'full',
                     },
                     '&::-webkit-scrollbar-thumb': {
-                        bg: 'brand.navy',
+                        bg: 'text.secondary',
                         borderRadius: 'full',
                         _hover: {
                             bg: 'brand.pink',
@@ -463,13 +463,13 @@ const Ledger = () => {
                                         _hover={{
                                             bg:
                                                 session.transactions.length > 0
-                                                    ? 'brand.lightGray'
+                                                    ? 'input.lightGray'
                                                     : 'transparent',
                                         }}
                                         transition="all 0.2s ease"
                                         bg={
                                             expandedRows.has(session.uuid)
-                                                ? 'brand.lightGray'
+                                                ? 'input.lightGray'
                                                 : 'transparent'
                                         }
                                         borderBottom="1px solid"
@@ -502,7 +502,7 @@ const Ledger = () => {
                                                     <HStack>
                                                         <Text
                                                             fontWeight="bold"
-                                                            color="brand.navy"
+                                                            color="text.secondary"
                                                         >
                                                             {session.username}
                                                         </Text>
@@ -581,7 +581,7 @@ const Ledger = () => {
                                         session.transactions.map((tx) => (
                                             <Tr
                                                 key={tx.id}
-                                                bg="brand.lightGray"
+                                                bg="input.lightGray"
                                                 transition="all 0.2s ease"
                                             >
                                                 {/* PLAYER column - shows timestamp and badge */}

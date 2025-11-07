@@ -61,7 +61,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
             <>
                 <VStack align="stretch" gap={{ base: 2.5, md: 4 }} w="100%">
                     <Text
-                        color={'brand.navy'}
+                        color={'text.secondary'}
                         fontSize={{ base: 'lg', md: 'xl', lg: '2xl' }}
                         fontWeight="bold"
                         mb={{ base: 1, md: 2 }}
@@ -105,17 +105,17 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                     />
                     <ModalContent
                         bg="card.white"
-                        color="brand.navy"
+                        color="text.secondary"
                         borderRadius="24px"
                         borderWidth="2px"
-                        borderColor="brand.lightGray"
+                        borderColor="border.lightGray"
                         boxShadow="0 20px 60px rgba(0, 0, 0, 0.2)"
                         mx={4}
                         maxW="420px"
                     >
                         <ModalHeader
                             borderBottomWidth="2px"
-                            borderColor="brand.lightGray"
+                            borderColor="border.lightGray"
                             fontSize="2xl"
                             fontWeight="bold"
                             letterSpacing="-0.02em"
@@ -124,7 +124,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                             Confirm Player Kick
                         </ModalHeader>
                         <ModalCloseButton
-                            color="brand.navy"
+                            color="text.secondary"
                             size="lg"
                             top="20px"
                             right="20px"
@@ -136,7 +136,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                             transition="all 0.3s ease"
                         />
                         <ModalBody py={6}>
-                            <Text fontSize="md" fontWeight="medium">
+                            <Text fontSize="md" fontWeight="medium" color='text.primary'>
                                 Are you sure you want to kick player{' '}
                                 <Text
                                     as="span"
@@ -147,7 +147,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                                 </Text>
                                 ?
                             </Text>
-                            <Text mt={4} fontSize="sm" color="gray.600">
+                            <Text mt={4} fontSize="sm" color="text.gray600">
                                 This action cannot be undone. The player will
                                 need to rejoin the game.
                             </Text>
@@ -155,7 +155,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                         <ModalFooter
                             justifyContent="space-between"
                             borderTopWidth="2px"
-                            borderColor="brand.lightGray"
+                            borderColor="border.lightGray"
                             py={5}
                             gap={3}
                         >

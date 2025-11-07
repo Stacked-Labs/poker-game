@@ -35,7 +35,7 @@ const HowTo = () => {
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="card.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{
@@ -116,7 +116,7 @@ const HowTo = () => {
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="card.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{
@@ -227,7 +227,7 @@ const HowTo = () => {
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="card.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{
@@ -374,7 +374,7 @@ const HowTo = () => {
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="card.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{
@@ -437,7 +437,7 @@ const HowTo = () => {
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="card.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{

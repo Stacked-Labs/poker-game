@@ -150,11 +150,10 @@ const HomeNavBar: React.FC = () => {
                 size="xs"
             >
                 <DrawerOverlay
-                    bg="rgba(0, 0, 0, 0.4)"
                     backdropFilter="blur(4px)"
                 />
                 <DrawerContent
-                    bg="rgba(255, 255, 255, 0.98)"
+                    bg='bg.navbar'
                     backdropFilter="blur(12px)"
                     borderLeft="1px solid"
                     borderColor="rgba(12, 21, 49, 0.08)"
@@ -201,7 +200,7 @@ const HomeNavBar: React.FC = () => {
                                 aria-label="Documentation"
                                 size="lg"
                                 fontWeight="semibold"
-                                bg="brand.lightGray"
+                                bg="btn.lightGray"
                                 color="text.secondary"
                                 borderRadius="16px"
                                 height="56px"
@@ -223,7 +222,7 @@ const HomeNavBar: React.FC = () => {
                                 rel="noopener noreferrer"
                                 size="lg"
                                 fontWeight="semibold"
-                                bg="brand.lightGray"
+                                bg="'btn.lightGray"
                                 color="text.secondary"
                                 borderRadius="16px"
                                 height="56px"

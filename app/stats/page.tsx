@@ -60,7 +60,7 @@ const StatCard = ({
         borderRadius={'16px'}
         boxShadow={'0 4px 12px rgba(0, 0, 0, 0.08)'}
         border={'1px solid'}
-        borderColor={'brand.lightGray'}
+        borderColor={'card.lightGray'}
     >
         <Text
             color={'brand.darkNavy'}
@@ -102,7 +102,7 @@ const StatBody = ({ children }: { children: ReactNode }) => {
             color={'brand.darkNavy'}
             py={{ base: 1.5, md: 2 }}
             px={{ base: 2.5, md: 3 }}
-            bg={'brand.lightGray'}
+            bg={'card.lightGray'}
             borderRadius={'8px'}
         >
             {children}
@@ -215,7 +215,7 @@ const page = async () => {
     return (
         <Flex
             direction={'column'}
-            bg={'brand.lightGray'}
+            bg={'card.lightGray'}
             pt={{ base: 20, md: 24 }}
             pb={{ base: 6, md: 8 }}
             minHeight={'100vh'}
@@ -719,7 +719,7 @@ const page = async () => {
                                         maxHeight={'400px'}
                                         overflowY={'auto'}
                                         border="1px solid"
-                                        borderColor="brand.lightGray"
+                                        borderColor="card.lightGray"
                                         borderRadius="12px"
                                         bg="rgba(236, 238, 245, 0.3)"
                                     >
@@ -743,14 +743,14 @@ const page = async () => {
                                                                 py={3}
                                                                 px={4}
                                                                 _hover={{
-                                                                    bg: 'brand.lightGray',
+                                                                    bg: 'card.lightGray',
                                                                 }}
                                                                 _expanded={{
                                                                     bg: 'white',
                                                                     borderBottom:
                                                                         '1px solid',
                                                                     borderColor:
-                                                                        'brand.lightGray',
+                                                                        'card.lightGray',
                                                                 }}
                                                                 transition="all 0.2s"
                                                             >

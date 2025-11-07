@@ -145,11 +145,11 @@ const SettingsModal = ({
                                     height: '6px',
                                 },
                                 '&::-webkit-scrollbar-track': {
-                                    bg: 'white',
+                                    bg: 'card.white',
                                     borderRadius: 'full',
                                 },
                                 '&::-webkit-scrollbar-thumb': {
-                                    bg: 'brand.navy',
+                                    bg: 'text.secondary',
                                     borderRadius: 'full',
                                     _hover: {
                                         bg: 'brand.pink',
@@ -252,11 +252,11 @@ const SettingsModal = ({
                                     width: '10px',
                                 },
                                 '&::-webkit-scrollbar-track': {
-                                    bg: 'brand.lightGray',
+                                    bg: 'card.lightGray',
                                     borderRadius: 'full',
                                 },
                                 '&::-webkit-scrollbar-thumb': {
-                                    bg: 'brand.navy',
+                                    bg: 'text.secondary',
                                     borderRadius: 'full',
                                     _hover: {
                                         bg: 'brand.pink',

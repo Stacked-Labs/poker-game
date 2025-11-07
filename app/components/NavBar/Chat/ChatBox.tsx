@@ -110,7 +110,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                     border="none"
                     borderRadius="8px"
                     _hover={{
-                        bg: 'brand.lightGray',
+                        bg: 'card.lightGray',
                     }}
                     _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
                     _focus={{ outline: 'none', boxShadow: 'none' }}
@@ -149,7 +149,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                         bg="input.lightGray"
                         transition="all 0.2s ease"
                         _hover={{
-                            bg: 'rgba(236, 238, 245, 0.8)',
+                            bg: "card.lightGray",
                         }}
                     >
                         <Text

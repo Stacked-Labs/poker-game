@@ -284,7 +284,6 @@ const components = {
             social: {
                 bg: "btn.lightGray",
                 border: "none",
-                size: { base: 'md', md: 'lg' },
                 borderRadius: { base: '10px', md: '12px' },
                 transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                 _hover: {
@@ -404,7 +403,6 @@ const components = {
                 },
             },
             gameSettingsButton: {
-                size: "lg",
                 bg: "btn.lightGray",
                 color: "text.secondary",
                 border: "none",

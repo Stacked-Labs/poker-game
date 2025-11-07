@@ -40,6 +40,7 @@ const VolumeButtonComponent = () => {
                 role="button"
                 tabIndex={0}
                 variant={'gameSettingsButton'}
+                size={'lg'}
             />
         </Tooltip>
     );

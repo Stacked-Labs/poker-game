@@ -33,7 +33,7 @@ const GameSettings = () => {
                 bg="card.white"
                 borderRadius="16px"
                 border="2px solid"
-                borderColor="card.lightGray"
+                borderColor="border.lightGray"
                 p={{ base: 5, md: 6 }}
                 mb={6}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
@@ -45,7 +45,7 @@ const GameSettings = () => {
                     mb={6}
                     pb={5}
                     borderBottom="2px solid"
-                    borderColor="brand.lightGray"
+                    borderColor="card.lightGray"
                     gap={3}
                 >
                     <Box flex={1}>
@@ -94,7 +94,7 @@ const GameSettings = () => {
                     overflowX="auto"
                     borderRadius="12px"
                     border="2px solid"
-                    borderColor="card.lightGray"
+                    borderColor="border.lightGray"
                 >
                     <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
                         <Thead bg="card.lightGray">

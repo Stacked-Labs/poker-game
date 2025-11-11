@@ -255,29 +255,47 @@ const GameLog = () => {
                 const meta = metadata as unknown as HandStartedMetadata;
                 return (
                     <>
-                        <Text as="span" fontWeight="bold" color="text.secondary">
+                        <Text
+                            as="span"
+                            fontWeight="bold"
+                            color="text.secondary"
+                        >
                             Hand #{meta.hand_number || event.hand_id} started
                         </Text>{' '}
-                        — SB: {formatAmount(meta.sb_amount)}, BB:{' '}
-                        {formatAmount(meta.bb_amount)}
+                        <Text as="span" color="text.primary">
+                            — SB: {formatAmount(meta.sb_amount)}, BB:{' '}
+                            {formatAmount(meta.bb_amount)}
+                        </Text>
                         <Text
                             as="span"
                             fontSize="sm"
-                            color="gray.600"
+                            color="text.primary"
                             display="block"
                             mt={1}
                         >
-                            <Text as="span" fontWeight="semibold">
+                            <Text
+                                as="span"
+                                fontWeight="semibold"
+                                color="text.primary"
+                            >
                                 Dealer:
                             </Text>{' '}
                             {meta.dealer}
                             {' • '}
-                            <Text as="span" fontWeight="semibold">
+                            <Text
+                                as="span"
+                                fontWeight="semibold"
+                                color="text.primary"
+                            >
                                 SB:
                             </Text>{' '}
                             {meta.sb_player}
                             {' • '}
-                            <Text as="span" fontWeight="semibold">
+                            <Text
+                                as="span"
+                                fontWeight="semibold"
+                                color="text.primary"
+                            >
                                 BB:
                             </Text>{' '}
                             {meta.bb_player}
@@ -303,7 +321,7 @@ const GameLog = () => {
                     );
                 }
                 return (
-                    <Text as="span" fontWeight="bold" color='text.primary'>
+                    <Text as="span" fontWeight="bold" color="text.primary">
                         Cards dealt to players
                     </Text>
                 );
@@ -453,7 +471,11 @@ const GameLog = () => {
 
                 return (
                     <Box>
-                        <Text as="span" fontWeight="bold" color="text.secondary">
+                        <Text
+                            as="span"
+                            fontWeight="bold"
+                            color="text.secondary"
+                        >
                             Hand #{event.hand_id} concluded
                         </Text>
 

@@ -120,14 +120,16 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 justify="space-between"
                 wrap="wrap"
                 padding={{ base: '0.75rem 1rem', md: '1rem 1.5rem' }}
-                bg="bg.navbar"
+                bg="transparent"
                 color="text.secondary"
-                zIndex={10}
+                zIndex={99}
                 opacity={isLoading ? 0 : 1}
                 boxShadow="0 2px 12px rgba(0, 0, 0, 0.08)"
                 borderBottom="1px solid"
                 borderColor="rgba(0, 0, 0, 0.08)"
-                position="relative"
+                position="fixed"
+                top={0}
+                width="100%"
             >
                 <HStack spacing={{ base: 1, md: 2 }} alignItems="stretch">
                     <TableMenuBurger
@@ -190,58 +192,62 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                     )}
                     <StartGameButton />
                     {isOwner && appState.game?.running && socket && (
-                        <Tooltip
-                            label={
-                                appState.game?.paused
-                                    ? 'Resume Game'
-                                    : 'Pause Game'
-                            }
-                            aria-label={
-                                appState.game?.paused
-                                    ? 'Resume game tooltip'
-                                    : 'Pause game tooltip'
-                            }
-                        >
-                            <IconButton
-                                icon={
-                                    appState.game?.paused ? (
-                                        <FaPlay />
-                                    ) : (
-                                        <FaPause />
-                                    )
-                                }
-                                aria-label={
+                        <Box display={{ base: 'none', lg: 'block' }}>
+                            <Tooltip
+                                label={
                                     appState.game?.paused
                                         ? 'Resume Game'
                                         : 'Pause Game'
                                 }
-                                size="lg"
-                                onClick={() => {
-                                    if (appState.game?.paused) {
-                                        sendResumeGameCommand(socket);
-                                    } else {
-                                        sendPauseGameCommand(socket);
-                                    }
-                                }}
-                                bg={
+                                aria-label={
                                     appState.game?.paused
-                                        ? 'brand.green'
-                                        : 'brand.yellow'
+                                        ? 'Resume game tooltip'
+                                        : 'Pause game tooltip'
                                 }
-                                color="white"
-                                border="none"
-                                borderRadius="12px"
-                                _hover={{
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: appState.game?.paused
-                                        ? '0 4px 12px rgba(54, 163, 123, 0.4)'
-                                        : '0 4px 12px rgba(253, 197, 29, 0.4)',
-                                }}
-                                transition="all 0.2s ease"
-                            />
-                        </Tooltip>
+                            >
+                                <IconButton
+                                    icon={
+                                        appState.game?.paused ? (
+                                            <FaPlay />
+                                        ) : (
+                                            <FaPause />
+                                        )
+                                    }
+                                    aria-label={
+                                        appState.game?.paused
+                                            ? 'Resume Game'
+                                            : 'Pause Game'
+                                    }
+                                    size="lg"
+                                    onClick={() => {
+                                        if (appState.game?.paused) {
+                                            sendResumeGameCommand(socket);
+                                        } else {
+                                            sendPauseGameCommand(socket);
+                                        }
+                                    }}
+                                    bg={
+                                        appState.game?.paused
+                                            ? 'brand.green'
+                                            : 'brand.yellow'
+                                    }
+                                    color="white"
+                                    border="none"
+                                    borderRadius="12px"
+                                    _hover={{
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: appState.game?.paused
+                                            ? '0 4px 12px rgba(54, 163, 123, 0.4)'
+                                            : '0 4px 12px rgba(253, 197, 29, 0.4)',
+                                    }}
+                                    transition="all 0.2s ease"
+                                />
+                            </Tooltip>
+                        </Box>
                     )}
-                    <ColorModeButton />
+                    <Box display={{ base: 'none', lg: 'block' }}>
+                        <ColorModeButton />
+                    </Box>
                 </HStack>
                 <HStack spacing={{ base: 1, md: 2 }} alignItems="center">
                     <Box display={{ base: 'none', md: 'block' }}>

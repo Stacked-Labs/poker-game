@@ -467,7 +467,7 @@ const TakenSeatButton = ({
                             <Box
                                 key={`${card}-${index}`}
                                 className={`player-card seat-${player.seatID}-card-${index}`}
-                                width={{ base: '40%', md: '48%' }} // narrower than 50% so the pair is centred, bigger on md screens
+                                width={{ base: '48%' }} // narrower than 50% so the pair is centred, bigger on md screens
                                 display="flex"
                                 alignItems="flex-start"
                                 justifyContent="flex-start"
@@ -547,7 +547,7 @@ const TakenSeatButton = ({
                     borderRadius={{ base: 4, md: 8, lg: 12, xl: 12, '2xl': 12 }}
                     width={'100%'}
                     paddingX={{ base: 1, md: 2 }}
-                    paddingY={{ base: 0.5, md: 1 }}
+                    paddingY={{ base: 1, md: 1 }}
                     justifySelf={'flex-end'}
                     justifyContent={'center'}
                     alignItems={'flex-start'}

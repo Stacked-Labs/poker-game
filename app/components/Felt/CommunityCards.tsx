@@ -108,54 +108,48 @@ const CommunityCards = () => {
     if (communityCards && isGameRunning) {
         return (
             <>
-                {cards.map((num, i) => (
-                    <Box
-                        key={i}
-                        flex="1 1 20%"
-                        maxW={{ base: '15%', md: '20%', lg: '18%' }}
-                        display="flex"
-                        height="100%"
-                    >
-                        {appState.game?.communityCards[num] && revealed[num] ? (
-                            <CardComponent
-                                card={appState.game.communityCards[num]}
-                                placeholder={false}
-                                // During showdown, dim community cards that are not part of winning hand
-                                folded={false}
-                                highlighted={winningSet.has(
+                {cards.map((num, i) => 
+                    appState.game?.communityCards[num] && revealed[num] ? (
+                        <CardComponent
+                            key={i}
+                            card={appState.game.communityCards[num]}
+                            placeholder={false}
+                            // During showdown, dim community cards that are not part of winning hand
+                            folded={false}
+                            highlighted={winningSet.has(
+                                Number(
+                                    appState.game.communityCards[
+                                        num
+                                    ] as unknown as number
+                                )
+                            )}
+                            dimmed={
+                                // Showdown is when game is at stage 1, not betting, and we have pots
+                                Boolean(
+                                    appState.game &&
+                                        appState.game.stage === 1 &&
+                                        !appState.game.betting &&
+                                        (appState.game.pots?.length || 0) >
+                                            0
+                                ) &&
+                                !winningSet.has(
                                     Number(
                                         appState.game.communityCards[
                                             num
                                         ] as unknown as number
                                     )
-                                )}
-                                dimmed={
-                                    // Showdown is when game is at stage 1, not betting, and we have pots
-                                    Boolean(
-                                        appState.game &&
-                                            appState.game.stage === 1 &&
-                                            !appState.game.betting &&
-                                            (appState.game.pots?.length || 0) >
-                                                0
-                                    ) &&
-                                    !winningSet.has(
-                                        Number(
-                                            appState.game.communityCards[
-                                                num
-                                            ] as unknown as number
-                                        )
-                                    )
-                                }
-                            />
-                        ) : (
-                            <CardComponent
-                                card="placeholder"
-                                placeholder={true}
-                                folded={false}
-                            />
-                        )}
-                    </Box>
-                ))}
+                                )
+                            }
+                        />
+                    ) : (
+                        <CardComponent
+                            key={i}
+                            card="placeholder"
+                            placeholder={true}
+                            folded={false}
+                        />
+                    )
+                )}
             </>
         );
     }

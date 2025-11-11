@@ -126,7 +126,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
             <ModalOverlay bg="rgba(0, 0, 0, 0.7)" backdropFilter="blur(8px)" />
             <ModalContent
-                bg="white"
                 zIndex={'modal'}
                 borderRadius="32px"
                 maxWidth="420px"
@@ -136,7 +135,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                 overflow="hidden"
                 position="relative"
                 border="1px solid"
-                borderColor="rgba(255, 255, 255, 0.8)"
+                borderColor="card.white"
             >
                 {/* Animated Gradient Border */}
                 <Box
@@ -156,13 +155,13 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     <Box
                         width="100%"
                         height="100%"
-                        bg="white"
+                        bg="card.white"
                         borderRadius="29px"
                     />
                 </Box>
 
                 {/* Content Container */}
-                <Box position="relative" zIndex={1}>
+                <Box position="relative" zIndex={1} bg={'card.white'}>
                     {/* Easter Egg Chair - Top Left */}
                     <Tooltip
                         label='"All you need is a chip and a chair." — Jack Straus'
@@ -193,7 +192,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     </Tooltip>
 
                     <ModalCloseButton
-                        color="brand.navy"
+                        color="text.secondary"
                         size="lg"
                         top={4}
                         right={4}
@@ -211,7 +210,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 as="h2"
                                 fontSize="2xl"
                                 fontWeight="bold"
-                                color="brand.navy"
+                                color="text.secondary"
                                 letterSpacing="-0.02em"
                             >
                                 Take Your Seat
@@ -234,7 +233,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 {/* Name Input */}
                                 <FormControl>
                                     <FormLabel
-                                        color="brand.navy"
+                                        color="text.secondary"
                                         fontSize="2xl"
                                         mb={1}
                                         textAlign="center"
@@ -246,24 +245,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         onChange={(e) =>
                                             setName(e.target.value)
                                         }
-                                        _placeholder={{ color: 'gray.400' }}
-                                        color="brand.navy"
-                                        bg="brand.lightGray"
-                                        border="2px solid transparent"
-                                        borderRadius="12px"
-                                        height="56px"
-                                        fontSize="md"
-                                        fontWeight="semibold"
-                                        _hover={{
-                                            borderColor: 'brand.green',
-                                        }}
-                                        _focus={{
-                                            borderColor: 'brand.pink',
-                                            boxShadow:
-                                                '0 0 0 3px rgba(235, 11, 92, 0.1)',
-                                            bg: 'white',
-                                        }}
-                                        transition="all 0.2s ease"
+                                        variant={'takeSeatModal'}
                                         required
                                     />
                                 </FormControl>
@@ -271,7 +253,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 {/* Buy-in Input */}
                                 <FormControl>
                                     <FormLabel
-                                        color="brand.navy"
+                                        color="text.secondary"
                                         fontSize="2xl"
                                         mb={1}
                                         textAlign="center"
@@ -284,24 +266,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         onChange={(e) =>
                                             setBuyIn(parseFloat(e.target.value))
                                         }
-                                        _placeholder={{ color: 'gray.400' }}
-                                        color="brand.navy"
-                                        bg="brand.lightGray"
-                                        border="2px solid transparent"
-                                        borderRadius="12px"
-                                        height="56px"
-                                        fontSize="md"
-                                        fontWeight="semibold"
-                                        _hover={{
-                                            borderColor: 'brand.green',
-                                        }}
-                                        _focus={{
-                                            borderColor: 'brand.pink',
-                                            boxShadow:
-                                                '0 0 0 3px rgba(235, 11, 92, 0.1)',
-                                            bg: 'white',
-                                        }}
-                                        transition="all 0.2s ease"
+                                        variant={'takeSeatModal'}
                                         required
                                     />
                                 </FormControl>
@@ -320,7 +285,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 h="56px"
                                 fontSize="md"
                                 fontWeight="bold"
-                                borderRadius="12px"
+                                borderRadius={'bigButton'}
                                 bg="brand.green"
                                 color="white"
                                 border="none"

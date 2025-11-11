@@ -41,10 +41,10 @@ const CreateGamePage: React.FC = () => {
             </Head>
             <Box
                 minHeight="var(--full-vh)"
-                bg="white"
                 position="relative"
                 overflow="hidden"
                 animation={`${fadeIn} 0.6s ease-out`}
+                bg={'bg.default'}
             >
                 {/* Decorative Floating Gradient Orbs */}
                 <Box

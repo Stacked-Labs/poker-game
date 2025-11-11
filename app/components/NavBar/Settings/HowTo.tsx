@@ -23,7 +23,7 @@ const HowTo = () => {
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
                 mb={6}
-                color="brand.navy"
+                color="text.secondary"
                 letterSpacing="-0.02em"
             >
                 How To Play
@@ -31,11 +31,11 @@ const HowTo = () => {
 
             <Accordion allowMultiple defaultIndex={[0]}>
                 <AccordionItem
-                    bg="white"
+                    bg="card.white"
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="brand.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{
@@ -44,7 +44,7 @@ const HowTo = () => {
                     transition="all 0.2s ease"
                 >
                     <AccordionButton
-                        _hover={{ bg: 'brand.lightGray' }}
+                        _hover={{ bg: 'card.lightGray' }}
                         borderRadius="16px"
                         py={4}
                         px={5}
@@ -53,22 +53,22 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="brand.navy"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Getting Started
                             </Heading>
                         </Box>
-                        <AccordionIcon color="brand.navy" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={3}>
-                            <OrderedList spacing={3} color="gray.700">
+                            <OrderedList spacing={3} color="text.gray700">
                                 <ListItem fontWeight="medium">
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Connect your wallet
                                     </Text>{' '}
@@ -79,7 +79,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Join a table
                                     </Text>{' '}
@@ -90,7 +90,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Wait for approval
                                     </Text>{' '}
@@ -100,7 +100,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Start playing
                                     </Text>{' '}
@@ -112,11 +112,11 @@ const HowTo = () => {
                 </AccordionItem>
 
                 <AccordionItem
-                    bg="white"
+                    bg="card.white"
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="brand.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{
@@ -125,7 +125,7 @@ const HowTo = () => {
                     transition="all 0.2s ease"
                 >
                     <AccordionButton
-                        _hover={{ bg: 'brand.lightGray' }}
+                        _hover={{ bg: 'card.lightGray' }}
                         borderRadius="16px"
                         py={4}
                         px={5}
@@ -134,17 +134,17 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="brand.navy"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Game Actions
                             </Heading>
                         </Box>
-                        <AccordionIcon color="brand.navy" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={3}>
-                            <UnorderedList spacing={3} color="gray.700">
+                            <UnorderedList spacing={3} color="text.gray700">
                                 <ListItem fontWeight="medium">
                                     <Code
                                         bg="brand.pink"
@@ -223,11 +223,11 @@ const HowTo = () => {
                 </AccordionItem>
 
                 <AccordionItem
-                    bg="white"
+                    bg="card.white"
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="brand.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{
@@ -236,7 +236,7 @@ const HowTo = () => {
                     transition="all 0.2s ease"
                 >
                     <AccordionButton
-                        _hover={{ bg: 'brand.lightGray' }}
+                        _hover={{ bg: 'card.lightGray' }}
                         borderRadius="16px"
                         py={4}
                         px={5}
@@ -245,30 +245,30 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="brand.navy"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Hand Rankings
                             </Heading>
                         </Box>
-                        <AccordionIcon color="brand.navy" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={2}>
                             <Text
                                 fontSize="sm"
-                                color="gray.600"
+                                color="text.gray600"
                                 mb={2}
                                 fontWeight="semibold"
                             >
                                 From highest to lowest:
                             </Text>
-                            <OrderedList spacing={2} color="gray.700">
+                            <OrderedList spacing={2} color="text.gray700">
                                 <ListItem fontWeight="medium">
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Royal Flush
                                     </Text>{' '}
@@ -278,7 +278,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Straight Flush
                                     </Text>{' '}
@@ -288,7 +288,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Four of a Kind
                                     </Text>{' '}
@@ -298,7 +298,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Full House
                                     </Text>{' '}
@@ -308,7 +308,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Flush
                                     </Text>{' '}
@@ -318,7 +318,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Straight
                                     </Text>{' '}
@@ -328,7 +328,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Three of a Kind
                                     </Text>{' '}
@@ -338,7 +338,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         Two Pair
                                     </Text>{' '}
@@ -348,7 +348,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         One Pair
                                     </Text>{' '}
@@ -358,7 +358,7 @@ const HowTo = () => {
                                     <Text
                                         as="span"
                                         fontWeight="bold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         High Card
                                     </Text>{' '}
@@ -370,11 +370,11 @@ const HowTo = () => {
                 </AccordionItem>
 
                 <AccordionItem
-                    bg="white"
+                    bg="card.white"
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="brand.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{
@@ -383,7 +383,7 @@ const HowTo = () => {
                     transition="all 0.2s ease"
                 >
                     <AccordionButton
-                        _hover={{ bg: 'brand.lightGray' }}
+                        _hover={{ bg: 'card.lightGray' }}
                         borderRadius="16px"
                         py={4}
                         px={5}
@@ -392,17 +392,17 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="brand.navy"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Tips & Tricks
                             </Heading>
                         </Box>
-                        <AccordionIcon color="brand.navy" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={3}>
-                            <UnorderedList spacing={3} color="gray.700">
+                            <UnorderedList spacing={3} color="text.gray700">
                                 <ListItem fontWeight="medium">
                                     Pay attention to other players&apos; betting
                                     patterns
@@ -433,11 +433,11 @@ const HowTo = () => {
                 </AccordionItem>
 
                 <AccordionItem
-                    bg="white"
+                    bg="card.white"
                     borderRadius="16px"
                     mb={3}
                     border="2px solid"
-                    borderColor="brand.lightGray"
+                    borderColor="border.lightGray"
                     overflow="hidden"
                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
                     _hover={{
@@ -446,7 +446,7 @@ const HowTo = () => {
                     transition="all 0.2s ease"
                 >
                     <AccordionButton
-                        _hover={{ bg: 'brand.lightGray' }}
+                        _hover={{ bg: 'card.lightGray' }}
                         borderRadius="16px"
                         py={4}
                         px={5}
@@ -455,25 +455,25 @@ const HowTo = () => {
                         <Box flex="1" textAlign="left">
                             <Heading
                                 size={{ base: 'sm', md: 'md' }}
-                                color="brand.navy"
+                                color="text.secondary"
                                 fontWeight="bold"
                             >
                                 Table Owner Controls
                             </Heading>
                         </Box>
-                        <AccordionIcon color="brand.navy" boxSize={6} />
+                        <AccordionIcon color="text.secondary" boxSize={6} />
                     </AccordionButton>
                     <AccordionPanel pb={5} px={5}>
                         <VStack align="start" gap={3}>
                             <Text
                                 fontSize="sm"
-                                color="gray.600"
+                                color="text.gray600"
                                 fontWeight="semibold"
                             >
                                 If you&apos;re the table owner, you have
                                 additional controls:
                             </Text>
-                            <UnorderedList spacing={3} color="gray.700">
+                            <UnorderedList spacing={3} color="text.gray700">
                                 <ListItem fontWeight="medium">
                                     Accept or deny player requests to join
                                 </ListItem>

@@ -255,29 +255,47 @@ const GameLog = () => {
                 const meta = metadata as unknown as HandStartedMetadata;
                 return (
                     <>
-                        <Text as="span" fontWeight="bold" color="brand.navy">
+                        <Text
+                            as="span"
+                            fontWeight="bold"
+                            color="text.secondary"
+                        >
                             Hand #{meta.hand_number || event.hand_id} started
                         </Text>{' '}
-                        — SB: {formatAmount(meta.sb_amount)}, BB:{' '}
-                        {formatAmount(meta.bb_amount)}
+                        <Text as="span" color="text.primary">
+                            — SB: {formatAmount(meta.sb_amount)}, BB:{' '}
+                            {formatAmount(meta.bb_amount)}
+                        </Text>
                         <Text
                             as="span"
                             fontSize="sm"
-                            color="gray.600"
+                            color="text.primary"
                             display="block"
                             mt={1}
                         >
-                            <Text as="span" fontWeight="semibold">
+                            <Text
+                                as="span"
+                                fontWeight="semibold"
+                                color="text.primary"
+                            >
                                 Dealer:
                             </Text>{' '}
                             {meta.dealer}
                             {' • '}
-                            <Text as="span" fontWeight="semibold">
+                            <Text
+                                as="span"
+                                fontWeight="semibold"
+                                color="text.primary"
+                            >
                                 SB:
                             </Text>{' '}
                             {meta.sb_player}
                             {' • '}
-                            <Text as="span" fontWeight="semibold">
+                            <Text
+                                as="span"
+                                fontWeight="semibold"
+                                color="text.primary"
+                            >
                                 BB:
                             </Text>{' '}
                             {meta.bb_player}
@@ -303,7 +321,7 @@ const GameLog = () => {
                     );
                 }
                 return (
-                    <Text as="span" fontWeight="bold">
+                    <Text as="span" fontWeight="bold" color="text.primary">
                         Cards dealt to players
                     </Text>
                 );
@@ -453,7 +471,11 @@ const GameLog = () => {
 
                 return (
                     <Box>
-                        <Text as="span" fontWeight="bold" color="brand.navy">
+                        <Text
+                            as="span"
+                            fontWeight="bold"
+                            color="text.secondary"
+                        >
                             Hand #{event.hand_id} concluded
                         </Text>
 
@@ -494,7 +516,7 @@ const GameLog = () => {
                                                 <Text
                                                     fontSize="xs"
                                                     fontWeight="bold"
-                                                    color="brand.navy"
+                                                    color="text.secondary"
                                                 >
                                                     {potLabel}:{' '}
                                                     {formatAmount(pot.amount)}
@@ -650,7 +672,7 @@ const GameLog = () => {
                                                 <Text
                                                     key={uuid}
                                                     fontSize="xs"
-                                                    color="gray.600"
+                                                    color="text.gray600"
                                                     mt={idx > 0 ? 0.5 : 0}
                                                     fontWeight="bold"
                                                 >
@@ -676,7 +698,7 @@ const GameLog = () => {
                         {meta.total_pot !== undefined && (
                             <Text
                                 fontSize="xs"
-                                color="gray.600"
+                                color="text.gray600"
                                 mt={2}
                                 ml={4}
                                 fontWeight="bold"
@@ -735,7 +757,7 @@ const GameLog = () => {
                                 with{' '}
                                 <Text
                                     as="span"
-                                    color="brand.navy"
+                                    color="text.secondary"
                                     fontWeight="bold"
                                 >
                                     {formatAmount(chipStack)}
@@ -845,7 +867,7 @@ const GameLog = () => {
                                 with{' '}
                                 <Text
                                     as="span"
-                                    color="brand.navy"
+                                    color="text.secondary"
                                     fontWeight="bold"
                                 >
                                     {formatAmount(chipStack)}
@@ -929,7 +951,7 @@ const GameLog = () => {
                     fontSize={{ base: 'xl', md: '2xl' }}
                     fontWeight={'bold'}
                     mb={6}
-                    color="brand.navy"
+                    color="text.secondary"
                     letterSpacing="-0.02em"
                 >
                     Game Log
@@ -937,7 +959,7 @@ const GameLog = () => {
                 <Box
                     p={8}
                     textAlign="center"
-                    bg="brand.lightGray"
+                    bg="card.lightGray"
                     borderRadius="16px"
                 >
                     <Spinner
@@ -946,7 +968,7 @@ const GameLog = () => {
                         thickness="4px"
                         speed="0.65s"
                     />
-                    <Text mt={4} color="gray.600" fontWeight="medium">
+                    <Text mt={4} color="text.gray600" fontWeight="medium">
                         Loading events...
                     </Text>
                 </Box>
@@ -961,7 +983,7 @@ const GameLog = () => {
                     fontSize={{ base: 'xl', md: '2xl' }}
                     fontWeight={'bold'}
                     mb={6}
-                    color="brand.navy"
+                    color="text.secondary"
                     letterSpacing="-0.02em"
                 >
                     Game Log
@@ -969,13 +991,13 @@ const GameLog = () => {
                 <Box
                     p={8}
                     textAlign="center"
-                    bg="brand.lightGray"
+                    bg="card.lightGray"
                     borderRadius="16px"
                     border="2px solid"
                     borderColor="white"
                 >
                     <Text
-                        color="gray.600"
+                        color="text.gray600"
                         fontWeight="bold"
                         fontSize="lg"
                         mb={2}
@@ -996,16 +1018,16 @@ const GameLog = () => {
                 fontSize={{ base: 'xl', md: '2xl' }}
                 fontWeight={'bold'}
                 mb={4}
-                color="brand.navy"
+                color="text.secondary"
                 letterSpacing="-0.02em"
             >
                 Game Log
             </Text>
             <Box
-                bg="white"
+                bg="card.white"
                 borderRadius="12px"
                 border="1px solid"
-                borderColor="gray.200"
+                borderColor="border.lightGray"
                 overflow="hidden"
             >
                 {/* Log container with terminal-like styling */}
@@ -1065,8 +1087,8 @@ const GameLog = () => {
                                     py={{ base: 1.5, md: 2 }}
                                     bg={
                                         index % 2 === 0
-                                            ? 'white'
-                                            : 'brand.lightGray'
+                                            ? 'input.white'
+                                            : 'input.lightGray'
                                     }
                                 >
                                     <HStack
@@ -1108,7 +1130,7 @@ const GameLog = () => {
                                             ]
                                         </Text>
                                         <Text
-                                            color="gray.800"
+                                            color="text.primary"
                                             wordBreak="break-word"
                                             fontSize={{
                                                 base: '11px',

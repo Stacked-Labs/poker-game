@@ -37,20 +37,10 @@ const VolumeButtonComponent = () => {
                 icon={<Icon as={VolumeIcon} boxSize={{ base: 5, md: 6 }} />}
                 onClick={handleClick}
                 zIndex={3}
-                size="lg"
                 role="button"
                 tabIndex={0}
-                bg="brand.lightGray"
-                color="brand.navy"
-                border="none"
-                borderRadius="12px"
-                _hover={{
-                    bg: 'brand.navy',
-                    color: 'white',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
-                }}
-                transition="all 0.2s ease"
+                variant={'gameSettingsButton'}
+                size={'lg'}
             />
         </Tooltip>
     );

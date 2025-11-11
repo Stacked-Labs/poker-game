@@ -15,7 +15,11 @@ const SocialsBox = ({
     return (
         <VStack flex={1} gap={10}>
             <Link href={link}>
-                <Button as={logo} boxSize={230} variant={'social'} />
+                <Button
+                    as={logo} boxSize={230}
+                    variant={'social'}
+                    size={{ base: 'md', md: 'lg' }}
+                />
             </Link>
             <Text textAlign={'justify'}>{text}</Text>
         </VStack>

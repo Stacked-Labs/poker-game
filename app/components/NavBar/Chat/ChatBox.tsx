@@ -81,7 +81,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
     };
 
     return (
-        <Flex flexDirection="column" gap={0} height="100%" bg="white">
+        <Flex flexDirection="column" gap={0} height="100%" bg="card.white">
             {/* Chat Header */}
             <Flex
                 align="center"
@@ -90,12 +90,12 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                 py={3}
                 borderBottom="1px solid"
                 borderColor="rgba(0, 0, 0, 0.08)"
-                bg="white"
+                bg="transparent"
             >
                 <Text
                     fontSize="xl"
                     fontWeight="bold"
-                    color="brand.navy"
+                    color="text.secondary"
                     fontFamily="heading"
                 >
                     Chat
@@ -106,11 +106,11 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                     aria-label="Close Chat Box"
                     size="md"
                     bg="transparent"
-                    color="brand.navy"
+                    color="text.secondary"
                     border="none"
                     borderRadius="8px"
                     _hover={{
-                        bg: 'brand.lightGray',
+                        bg: 'card.lightGray',
                     }}
                     _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
                     _focus={{ outline: 'none', boxShadow: 'none' }}
@@ -123,7 +123,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                 overflowY="auto"
                 px={4}
                 py={3}
-                bg="white"
+                bg="transparent"
                 css={{
                     '&::-webkit-scrollbar': {
                         width: '8px',
@@ -146,14 +146,14 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                         mb={3}
                         p={3}
                         borderRadius="12px"
-                        bg="brand.lightGray"
+                        bg="input.lightGray"
                         transition="all 0.2s ease"
                         _hover={{
-                            bg: 'rgba(236, 238, 245, 0.8)',
+                            bg: "card.lightGray",
                         }}
                     >
                         <Text
-                            color="brand.navy"
+                            color="text.secondary"
                             fontSize="md"
                             whiteSpace="break-spaces"
                             lineHeight="1.5"
@@ -178,7 +178,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                 py={3}
                 borderTop="1px solid"
                 borderColor="rgba(0, 0, 0, 0.08)"
-                bg="white"
+                bg="transparent"
             >
                 <Flex gap={2} alignItems="center">
                     <Input
@@ -189,17 +189,18 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                         disabled={!username && !clientID}
                         flex={1}
                         height="48px"
-                        bg="brand.lightGray"
-                        color="brand.navy"
+                        bg="input.lightGray"
+                        color="text.secondary"
                         border="none"
                         borderRadius="12px"
                         fontSize="md"
+                        fontWeight="light"
                         px={4}
                         _placeholder={{
-                            color: 'rgba(51, 68, 121, 0.5)',
+                            color: "text.secondary",
                         }}
                         _focus={{
-                            bg: 'rgba(236, 238, 245, 0.8)',
+                            bg: 'input.white',
                             boxShadow: '0 0 0 2px rgba(51, 68, 121, 0.2)',
                         }}
                         _disabled={{

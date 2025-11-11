@@ -73,7 +73,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                             transition={{ duration: 0.3, ease: 'easeInOut' }}
                         >
                             <MotionText
-                                color="white"
+                                color="text.white"
                                 fontSize={{
                                     base: '50px',
                                     md: '120px',
@@ -107,7 +107,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                 h="var(--full-vh)"
                 zIndex="auto"
                 transformOrigin="center center"
-                bg="brand.lightGray"
+                bg={loading ? 'charcoal.400' : 'bg.default'}
                 filter={loading ? 'blur(3px)' : 'none'}
                 transition="0.5s ease-in-out"
                 position="relative"
@@ -165,6 +165,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                     height="100%"
                     display="flex"
                     flexDirection="column"
+                    bg={'transparent'}
                 >
                     <SocketProvider tableId={params.id}>
                         <Navbar isLoading={loading} />

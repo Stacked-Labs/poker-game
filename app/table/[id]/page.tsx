@@ -54,7 +54,7 @@ const TablePage = ({ params }: { params: { id: string } }) => {
                     left="50%"
                     transform="translateX(-50%)"
                     bg="brand.yellow"
-                    color="white"
+                    color="text.white"
                     px={8}
                     py={4}
                     borderRadius="16px"
@@ -79,6 +79,7 @@ const TablePage = ({ params }: { params: { id: string } }) => {
                     filter: appState.game?.paused ? 'blur(4px)' : 'none',
                     transition: 'filter 0.3s ease-in-out',
                 }}
+                bg={'transparent'}
             >
                 <Table />
             </Flex>

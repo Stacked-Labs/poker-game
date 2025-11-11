@@ -260,7 +260,7 @@ const LeftSideContent: React.FC = () => {
                 as="h1"
                 fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
                 fontWeight="extrabold"
-                color="brand.darkNavy"
+                color='text.primary'
                 textAlign="center"
                 animation={`${slideUp} 0.6s ease-out`}
             >
@@ -284,7 +284,7 @@ const LeftSideContent: React.FC = () => {
             <Box
                 width="100%"
                 maxW="450px"
-                bg="white"
+                bg="card.white"
                 borderRadius="20px"
                 pt={{ base: 4, md: 5 }}
                 pb={{ base: 6, md: 8 }}
@@ -299,12 +299,7 @@ const LeftSideContent: React.FC = () => {
                         mb={3}
                         gap={2}
                     >
-                        <FormLabel
-                            color="brand.navy"
-                            mb={0}
-                            fontWeight="bold"
-                            fontSize="lg"
-                        >
+                        <FormLabel variant={'createGame'}>
                             Blinds
                         </FormLabel>
                         <Tooltip
@@ -337,29 +332,15 @@ const LeftSideContent: React.FC = () => {
                                 SB:
                             </Text>
                             <Input
+                                variant={'white'}
                                 type="number"
                                 step="0.01"
                                 min="0.01"
                                 placeholder="Small Blind"
-                                bg="white"
-                                borderWidth="2px"
-                                borderColor="brand.lightGray"
-                                borderRadius="10px"
-                                _focus={{
-                                    borderColor: 'brand.pink',
-                                    boxShadow: '0 0 0 1px #EB0B5C',
-                                }}
-                                _hover={{
-                                    borderColor: 'brand.pink',
-                                }}
                                 value={smallBlind}
                                 onChange={(e) =>
                                     setSmallBlind(Number(e.target.value))
                                 }
-                                color="brand.darkNavy"
-                                height="40px"
-                                fontSize="sm"
-                                width="120px"
                             />
                         </Flex>
                         <Flex alignItems="center" gap={2}>
@@ -372,29 +353,15 @@ const LeftSideContent: React.FC = () => {
                                 BB:
                             </Text>
                             <Input
+                                variant={'white'}
                                 type="number"
                                 step="0.01"
                                 min="0.01"
                                 placeholder="Big Blind"
-                                bg="white"
-                                borderWidth="2px"
-                                borderColor="brand.lightGray"
-                                borderRadius="10px"
-                                _focus={{
-                                    borderColor: 'brand.pink',
-                                    boxShadow: '0 0 0 1px #EB0B5C',
-                                }}
-                                _hover={{
-                                    borderColor: 'brand.pink',
-                                }}
                                 value={bigBlind}
                                 onChange={(e) =>
                                     setBigBlind(Number(e.target.value))
                                 }
-                                color="brand.darkNavy"
-                                height="40px"
-                                fontSize="sm"
-                                width="120px"
                             />
                         </Flex>
                     </Flex>
@@ -405,7 +372,7 @@ const LeftSideContent: React.FC = () => {
             <Box
                 width="100%"
                 maxW="500px"
-                bg="white"
+                bg="card.white"
                 borderRadius="20px"
                 pt={{ base: 4, md: 5 }}
                 pb={{ base: 6, md: 8 }}
@@ -420,12 +387,7 @@ const LeftSideContent: React.FC = () => {
                         mb={4}
                         gap={2}
                     >
-                        <FormLabel
-                            color="brand.navy"
-                            mb={0}
-                            fontWeight="bold"
-                            fontSize="lg"
-                        >
+                        <FormLabel variant={'createGame'}>
                             Game Mode
                         </FormLabel>
                         <Tooltip
@@ -469,7 +431,7 @@ const LeftSideContent: React.FC = () => {
             {playType === 'Crypto' && (
                 <Box
                     width="100%"
-                    bg="white"
+                    bg="card.white"
                     borderRadius="20px"
                     pt={{ base: 4, md: 5 }}
                     pb={{ base: 6, md: 8 }}
@@ -484,12 +446,7 @@ const LeftSideContent: React.FC = () => {
                             mb={4}
                             gap={2}
                         >
-                            <FormLabel
-                                color="brand.navy"
-                                mb={0}
-                                fontWeight="bold"
-                                fontSize="lg"
-                            >
+                            <FormLabel variant={'createGame'}>
                                 Network
                             </FormLabel>
                             <Tooltip

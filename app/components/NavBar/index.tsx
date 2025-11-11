@@ -34,6 +34,7 @@ import {
 import TableMenuBurger from './TableMenuBurger';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
+import { ColorModeButton } from '../ColorModeButton';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -119,8 +120,8 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 justify="space-between"
                 wrap="wrap"
                 padding={{ base: '0.75rem 1rem', md: '1rem 1.5rem' }}
-                bg="white"
-                color="brand.navy"
+                bg="bg.navbar"
+                color="text.secondary"
                 zIndex={10}
                 opacity={isLoading ? 0 : 1}
                 boxShadow="0 2px 12px rgba(0, 0, 0, 0.08)"
@@ -142,19 +143,9 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                                 />
                             }
                             aria-label="Settings"
-                            size="lg"
                             onClick={onOpen}
-                            bg="brand.lightGray"
-                            color="brand.navy"
-                            border="none"
-                            borderRadius="12px"
-                            _hover={{
-                                bg: 'brand.navy',
-                                color: 'white',
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
-                            }}
-                            transition="all 0.2s ease"
+                            variant={'gameSettingsButton'}
+                            size={'lg'}
                         />
                         {pendingCount > 0 && (
                             <Flex
@@ -250,6 +241,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             />
                         </Tooltip>
                     )}
+                    <ColorModeButton />
                 </HStack>
                 <HStack spacing={{ base: 1, md: 2 }} alignItems="center">
                     <Box display={{ base: 'none', md: 'block' }}>
@@ -280,19 +272,9 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                                 />
                             }
                             aria-label="Chat"
-                            size="lg"
                             onClick={handleChatToggle}
-                            bg="brand.lightGray"
-                            color="brand.navy"
-                            border="none"
-                            borderRadius="12px"
-                            _hover={{
-                                bg: 'brand.navy',
-                                color: 'white',
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
-                            }}
-                            transition="all 0.2s ease"
+                            variant={'gameSettingsButton'}
+                            size={'lg'}
                         />
                         {unreadMessageCount > 0 && (
                             <Flex

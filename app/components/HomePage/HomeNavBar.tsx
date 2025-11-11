@@ -18,6 +18,7 @@ import { RiMenu3Line, RiCloseLine } from 'react-icons/ri';
 import WalletButton from '../WalletButton';
 import { usePathname } from 'next/navigation';
 import { keyframes } from '@emotion/react';
+import { ColorModeButton } from '../ColorModeButton';
 
 const logoImage = '/IconLogo.png';
 
@@ -50,32 +51,7 @@ const HomeNavBar: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Documentation"
-                variant="unstyled"
-                fontWeight="black"
-                fontSize={{ base: '2xl', md: '2xl' }}
-                color="brand.darkNavy"
-                textTransform="uppercase"
-                border="none"
-                outline="none"
-                boxShadow="none"
-                _hover={{
-                    transform: 'translateY(-3px)',
-                    color: 'brand.pink',
-                    border: 'none',
-                    outline: 'none',
-                    boxShadow: 'none',
-                }}
-                _focus={{
-                    border: 'none',
-                    outline: 'none',
-                    boxShadow: 'none',
-                }}
-                _active={{
-                    border: 'none',
-                    outline: 'none',
-                    boxShadow: 'none',
-                }}
-                transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+                variant="navLink"
             >
                 Docs
             </Button>
@@ -84,32 +60,7 @@ const HomeNavBar: React.FC = () => {
                 href="https://discord.gg/XMWfksjt"
                 target="_blank"
                 rel="noopener noreferrer"
-                variant="unstyled"
-                fontWeight="black"
-                fontSize={{ base: '2xl', md: '2xl' }}
-                color="brand.darkNavy"
-                textTransform="uppercase"
-                border="none"
-                outline="none"
-                boxShadow="none"
-                _hover={{
-                    transform: 'translateY(-3px)',
-                    color: 'brand.pink',
-                    border: 'none',
-                    outline: 'none',
-                    boxShadow: 'none',
-                }}
-                _focus={{
-                    border: 'none',
-                    outline: 'none',
-                    boxShadow: 'none',
-                }}
-                _active={{
-                    border: 'none',
-                    outline: 'none',
-                    boxShadow: 'none',
-                }}
-                transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+                variant="navLink"
             >
                 Support
             </Button>
@@ -129,7 +80,8 @@ const HomeNavBar: React.FC = () => {
             height={{ base: '68px', md: '76px' }}
             zIndex={99}
             as="nav"
-            bg="rgba(255, 255, 255, 0.85)"
+            bg="bg.navbar"
+            color="text.navbar"
             backdropFilter="blur(12px)"
             borderBottom="1px solid"
             borderColor="rgba(12, 21, 49, 0.08)"
@@ -137,28 +89,31 @@ const HomeNavBar: React.FC = () => {
             animation={`${fadeIn} 0.6s ease-out`}
         >
             {/* Logo Section */}
-            <Flex
-                as="a"
-                href="/"
-                alignItems="center"
-                textDecoration="none"
-                _hover={{ textDecoration: 'none' }}
-                transition="transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                _active={{
-                    transform: 'scale(0.95)',
-                }}
-            >
-                <Image
-                    alt="Stacked Logo"
-                    src={logoImage}
-                    width={{ base: '56px', md: '64px', lg: '72px' }}
-                    height={{ base: '56px', md: '64px', lg: '72px' }}
-                    style={{ objectFit: 'contain' }}
-                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                    _hover={{
-                        transform: 'rotate(-8deg) scale(1.08)',
+            <Flex alignItems={'center'}>
+                <Flex
+                    as="a"
+                    href="/"
+                    alignItems="center"
+                    textDecoration="none"
+                    _hover={{ textDecoration: 'none' }}
+                    transition="transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                    _active={{
+                        transform: 'scale(0.95)',
                     }}
-                />
+                >
+                    <Image
+                        alt="Stacked Logo"
+                        src={logoImage}
+                        width={{ base: '56px', md: '64px', lg: '72px' }}
+                        height={{ base: '56px', md: '64px', lg: '72px' }}
+                        style={{ objectFit: 'contain' }}
+                        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                        _hover={{
+                            transform: 'rotate(-8deg) scale(1.08)',
+                        }}
+                    />
+                </Flex>
+                <ColorModeButton />
             </Flex>
 
             {/* Desktop Navigation */}
@@ -177,7 +132,7 @@ const HomeNavBar: React.FC = () => {
                 onClick={onOpen}
                 display={{ base: 'flex', lg: 'none' }}
                 bg="transparent"
-                color="brand.navy"
+                color="text.secondary"
                 borderRadius="12px"
                 _hover={{
                     bg: 'rgba(12, 21, 49, 0.08)',
@@ -195,11 +150,10 @@ const HomeNavBar: React.FC = () => {
                 size="xs"
             >
                 <DrawerOverlay
-                    bg="rgba(0, 0, 0, 0.4)"
                     backdropFilter="blur(4px)"
                 />
                 <DrawerContent
-                    bg="rgba(255, 255, 255, 0.98)"
+                    bg='bg.navbar'
                     backdropFilter="blur(12px)"
                     borderLeft="1px solid"
                     borderColor="rgba(12, 21, 49, 0.08)"
@@ -218,7 +172,7 @@ const HomeNavBar: React.FC = () => {
                             fontFamily="heading"
                             fontWeight="bold"
                             fontSize="xl"
-                            color="brand.navy"
+                            color="text.secondary"
                         >
                             Menu
                         </Text>
@@ -227,7 +181,7 @@ const HomeNavBar: React.FC = () => {
                             icon={<RiCloseLine size={24} />}
                             onClick={onClose}
                             bg="transparent"
-                            color="brand.navy"
+                            color="text.secondary"
                             borderRadius="12px"
                             _hover={{
                                 bg: 'rgba(12, 21, 49, 0.08)',
@@ -246,8 +200,8 @@ const HomeNavBar: React.FC = () => {
                                 aria-label="Documentation"
                                 size="lg"
                                 fontWeight="semibold"
-                                bg="brand.lightGray"
-                                color="brand.navy"
+                                bg="btn.lightGray"
+                                color="text.secondary"
                                 borderRadius="16px"
                                 height="56px"
                                 justifyContent="flex-start"
@@ -268,8 +222,8 @@ const HomeNavBar: React.FC = () => {
                                 rel="noopener noreferrer"
                                 size="lg"
                                 fontWeight="semibold"
-                                bg="brand.lightGray"
-                                color="brand.navy"
+                                bg="'btn.lightGray"
+                                color="text.secondary"
                                 borderRadius="16px"
                                 height="56px"
                                 justifyContent="flex-start"

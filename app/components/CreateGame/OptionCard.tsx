@@ -41,7 +41,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
             alignItems="center"
             justifyContent="center"
             opacity={disabled ? 0.5 : 1}
-            bg={disabled ? 'rgba(236, 238, 245, 0.5)' : 'white'}
+            bg={disabled ? 'rgba(236, 238, 245, 0.5)' : 'card.white'}
             boxShadow={
                 isSelected
                     ? '0 4px 16px rgba(235, 11, 92, 0.25)'
@@ -62,7 +62,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
                 <Text
                     fontWeight="bold"
                     textAlign="center"
-                    color={disabled ? 'gray.400' : 'brand.darkNavy'}
+                    color={disabled ? 'gray.400' : 'text.primary'}
                     fontSize={['12px', '12px', '16px', '16px']}
                 >
                     {name}
@@ -71,7 +71,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
                     <Text
                         fontSize={['10px', '10px', '12px', '12px']}
                         textAlign="center"
-                        color={disabled ? 'gray.400' : 'brand.navy'}
+                        color={disabled ? 'gray.400' : 'text.secondary'}
                     >
                         {description}
                     </Text>

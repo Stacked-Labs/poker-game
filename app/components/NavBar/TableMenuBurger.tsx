@@ -68,8 +68,8 @@ const TableMenuBurger = ({
                 icon={<Icon as={isOpen ? FiX : FiMenu} boxSize={5} />}
                 size="lg"
                 zIndex={999}
-                bg="brand.lightGray"
-                color="brand.navy"
+                bg="btn.lightGray"
+                color="text.secondary"
                 border="none"
                 borderRadius="12px"
                 _hover={{
@@ -84,6 +84,7 @@ const TableMenuBurger = ({
                 zIndex={999}
                 bg="transparent"
                 border="none"
+                boxShadow="none"
                 gap={2}
                 padding={0}
             >

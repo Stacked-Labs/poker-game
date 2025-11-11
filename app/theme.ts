@@ -1,5 +1,10 @@
 import { extendTheme } from '@chakra-ui/react';
 
+const config = {
+    initialColorMode: "light",
+    useSystemColorMode: false,
+};
+
 // ============================================
 // 1. BREAKPOINTS
 // ============================================
@@ -20,6 +25,9 @@ const colors = {
         400: '#363535',
         600: '#363535',
         800: '#262626',
+    },
+    black: {
+        dark: '#191414',
     },
     // New brand colors
     brand: {
@@ -50,8 +58,8 @@ const semanticTokens = {
     colors: {
         // Background colors
         'bg.default': {
-            default: 'linear-gradient(to top, #323232 30%, rgba(0, 0, 0, 0.9))',
-            _dark: 'linear-gradient(to top, #323232 20%, rgba(0, 0, 0, 0.9))',
+            default: 'linear-gradient(to top, rgb(243, 243, 243) 45%, #fff 100%)',
+            _dark: 'linear-gradient(to bottom,rgb(25, 25, 25) 50%,rgb(25, 25, 25) 100%)',
         },
         'bg.surface': {
             default: 'legacy.grayDark',
@@ -61,19 +69,31 @@ const semanticTokens = {
             default: '#171717',
             _dark: '#171717',
         },
+        'bg.navbar': {
+            default: "rgba(255, 255, 255, 0.85)",
+            _dark: "rgba(46, 46, 54, 0.95)",
+        },
 
         // Text colors
         'text.primary': {
-            default: '#ffffff',
-            _dark: '#ffffff',
+            default: 'brand.darkNavy',
+            _dark: 'white',
         },
         'text.secondary': {
-            default: '#ffffff',
-            _dark: '#ffffff',
+            default: 'brand.navy',
+            _dark: 'brand.lightGray',
         },
-        'text.tertiary': {
-            default: 'black',
-            _dark: 'black',
+        'text.white': {
+            default: 'white',
+            _dark: 'brand.lightGray',
+        },
+        'text.gray600': {
+            default: 'gray.600',
+            _dark: 'gray.400',
+        },
+        'text.gray700': {
+            default: 'gray.700',
+            _dark: 'gray.500',
         },
 
         // Button states
@@ -88,6 +108,40 @@ const semanticTokens = {
         'btn.hover': {
             default: 'legacy.btnHover',
             _dark: 'legacy.btnHover',
+        },
+        'btn.lightGray': {
+            default: 'brand.lightGray',
+            _dark: 'charcoal.600',
+        },
+
+        // Border
+        'border.lightGray': {
+            default: 'brand.lightGray',
+            _dark: 'charcoal.600'
+        },
+
+        // Input
+        'input.white': {
+            default: 'white',
+            _dark: 'charcoal.600'
+        },
+        'input.lightGray': {
+            default: 'brand.lightGray',
+            _dark: 'charcoal.800'
+        },
+
+        // Card
+        'card.white': {
+            default: 'white',
+            _dark: 'legacy.grayLight',
+        },
+        'card.darkNavy': {
+            default: 'brand.darkNavy',
+            _dark: 'legacy.grayLight',
+        },
+        'card.lightGray': {
+            default: 'brand.lightGray',
+            _dark: 'legacy.grayDark',
         },
 
         // Legacy semantic colors (used throughout app)
@@ -218,13 +272,23 @@ const components = {
         },
         variants: {
             base: {},
-            social: {
+            themeButton: {
                 border: 'none',
                 bg: 'transparent',
+                color: 'brand.darkNavy',
                 _hover: {
                     bg: 'transparent',
-                    color: 'green.400',
+                    color: 'brand.pink',
                 },
+            },
+            social: {
+                bg: "btn.lightGray",
+                border: "none",
+                borderRadius: { base: '10px', md: '12px' },
+                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                _hover: {
+                    color: 'white',
+                }
             },
             underlined: {
                 bg: 'transparent',
@@ -268,16 +332,36 @@ const components = {
                 },
                 transition: 'all 0.2s',
             },
-            navButton: {
-                border: 0,
-                textTransform: 'uppercase',
-                fontFamily: 'Poppins',
-                fontSize: '2xl',
-                borderRadius: 0,
+            navLink: {
+                bg: 'none',
+                fontSize: { base: '2xl', md: '2xl' },
+                fontWeight: 'black',
+                color: "text.primary",
+                textTransform: "uppercase",
+                border: "none",
+                outline: "none",
+                boxShadow: "none",
                 _hover: {
-                    bg: 'transparent',
-                    borderBottom: '2px solid red',
+                    transform: 'translateY(-3px)',
+                    color: 'brand.pink',
+                    border: 'none',
+                    outline: 'none',
+                    boxShadow: 'none',
+                    bg: 'none',
                 },
+                _focus: {
+                    border: 'none',
+                    outline: 'none',
+                    boxShadow: 'none',
+                    bg: 'none',
+                },
+                _active: {
+                    border: 'none',
+                    outline: 'none',
+                    boxShadow: 'none',
+                    bg: 'none',
+                },
+                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
             },
             homeSectionButton: {
                 paddingY: 8,
@@ -318,6 +402,19 @@ const components = {
                     xs: '2rem',
                 },
             },
+            gameSettingsButton: {
+                bg: "btn.lightGray",
+                color: "text.secondary",
+                border: "none",
+                borderRadius: "12px",
+                transition: "all 0.2s ease",
+                _hover: {
+                    bg: 'brand.navy',
+                    color: 'white',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
+                }
+            }
         },
         sizes: {
             sm: {
@@ -384,6 +481,67 @@ const components = {
                     textAlign: 'left',
                 },
             },
+            white: {
+                field: {
+                    bg: "input.white",
+                    borderWidth: "2px",
+                    borderColor: "border.lightGray",
+                    borderRadius: "10px",
+                    _focus: {
+                        borderColor: 'brand.pink',
+                        boxShadow: '0 0 0 1px #EB0B5C',
+                    },
+                    _hover: {
+                        borderColor: 'brand.pink',
+                    },
+                    color: "text.primary",
+                    height: "40px",
+                    fontSize: "sm",
+                    width: "120px",
+                }
+            },
+            takeSeatModal: {
+                field: {
+                    bg: "input.lightGray",
+                    color: "text.secondary",
+                    height: "56px",
+                    border: "2px solid transparent",
+                    borderRadius: "12px",
+                    fontSize: "md",
+                    fontWeight: "semibold",
+                    transition: "all 0.2s ease",
+                    _placeholder: { color: 'gray.400' },
+                    _hover: {
+                        borderColor: 'brand.green',
+                    },
+                    _focus: {
+                        borderColor: 'brand.pink',
+                        boxShadow:
+                            '0 0 0 3px rgba(235, 11, 92, 0.1)',
+                        bg: "input.white",
+                    }
+                }
+            },
+            settings: {
+                field: {
+                    size: "sm",
+                    bg: "input.white",
+                    color: "text.tertiary",
+                    borderColor: "input.lightGray",
+                    borderWidth: "2px",
+                    borderRadius: "8px",
+                    fontWeight: "semibold",
+                    _hover: {
+                        borderColor: 'brand.green',
+                    },
+                    _focus: {
+                        borderColor: 'brand.pink',
+                        boxShadow:
+                            '0 0 0 3px rgba(235, 11, 92, 0.1)',
+                    },
+                    _placeholder: { color: 'gray.400' }
+                }
+            }
         },
     },
 
@@ -396,6 +554,17 @@ const components = {
             },
         },
     },
+
+    FormLabel: {
+        variants: {
+            createGame: {
+                color: "text.secondary",
+                mb: 0,
+                fontWeight: "bold",
+                fontSize: "lg",
+            }
+        }
+    },
 };
 
 // ============================================
@@ -403,6 +572,7 @@ const components = {
 // ============================================
 const radii = {
     default: '0.625rem',
+    bigButton: "1rem"
 };
 
 const shadows = {
@@ -422,4 +592,5 @@ export const theme = extendTheme({
     components,
     radii,
     shadows,
+    config
 });

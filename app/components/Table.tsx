@@ -288,6 +288,7 @@ const Table = () => {
             maxHeight="100%"
             maxWidth="100%"
             overflow="hidden"
+            bg={'transparent'}
         >
             <Box
                 as="picture"

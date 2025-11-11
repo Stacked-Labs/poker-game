@@ -10,6 +10,9 @@ interface HandStartedMetadata {
     hand_number: number;
     sb_amount: number;
     bb_amount: number;
+    dealer: string;
+    sb_player: string;
+    bb_player: string;
 }
 
 interface CardsDealtMetadata {
@@ -249,20 +252,36 @@ const GameLog = () => {
 
         switch (event_type) {
             case 'hand_started': {
-                const meta = metadata as Partial<HandStartedMetadata>;
+                const meta = metadata as unknown as HandStartedMetadata;
                 return (
                     <>
                         <Text as="span" fontWeight="bold" color="brand.navy">
                             Hand #{meta.hand_number || event.hand_id} started
+                        </Text>{' '}
+                        — SB: {formatAmount(meta.sb_amount)}, BB:{' '}
+                        {formatAmount(meta.bb_amount)}
+                        <Text
+                            as="span"
+                            fontSize="sm"
+                            color="gray.600"
+                            display="block"
+                            mt={1}
+                        >
+                            <Text as="span" fontWeight="semibold">
+                                Dealer:
+                            </Text>{' '}
+                            {meta.dealer}
+                            {' • '}
+                            <Text as="span" fontWeight="semibold">
+                                SB:
+                            </Text>{' '}
+                            {meta.sb_player}
+                            {' • '}
+                            <Text as="span" fontWeight="semibold">
+                                BB:
+                            </Text>{' '}
+                            {meta.bb_player}
                         </Text>
-                        {meta.sb_amount !== undefined &&
-                            meta.bb_amount !== undefined && (
-                                <>
-                                    {' '}
-                                    — SB: {formatAmount(meta.sb_amount)}, BB:{' '}
-                                    {formatAmount(meta.bb_amount)}
-                                </>
-                            )}
                     </>
                 );
             }

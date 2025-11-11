@@ -21,31 +21,31 @@ import { currentHandLabel } from '@/app/lib/poker/pokerHandEval';
 // Brand-themed glow animations - brand.pink for active player
 const pulsePinkGlow = keyframes`
   0% { 
-    box-shadow: 0 0 8px 3px rgba(235, 11, 92, 0.6),
-                0 0 12px 5px rgba(235, 11, 92, 0.3); 
+    box-shadow: 0 0 6px 2.25px rgba(235, 11, 92, 0.7),
+                0 0 9px 3.75px rgba(235, 11, 92, 0.4); 
   }
   50% { 
-    box-shadow: 0 0 10px 4px rgba(235, 11, 92, 0.8),
-                0 0 16px 7px rgba(235, 11, 92, 0.4); 
+    box-shadow: 0 0 7.5px 3px rgba(235, 11, 92, 0.9),
+                0 0 12px 5.25px rgba(235, 11, 92, 0.5); 
   }
   100% { 
-    box-shadow: 0 0 8px 3px rgba(235, 11, 92, 0.6),
-                0 0 12px 5px rgba(235, 11, 92, 0.3); 
+    box-shadow: 0 0 6px 2.25px rgba(235, 11, 92, 0.7),
+                0 0 9px 3.75px rgba(235, 11, 92, 0.4); 
   }
 `;
 
 const pulseYellowGlow = keyframes`
   0% { 
-    box-shadow: 0 0 12px 6px rgba(253, 197, 29, 0.6),
-                0 0 20px 10px rgba(253, 197, 29, 0.3); 
+    box-shadow: 0 0 9px 4.5px rgba(253, 197, 29, 0.7),
+                0 0 15px 5.5px rgba(253, 197, 29, 0.4); 
   }
   50% { 
-    box-shadow: 0 0 16px 8px rgba(253, 197, 29, 0.8),
-                0 0 28px 14px rgba(253, 197, 29, 0.4); 
+    box-shadow: 0 0 12px 6px rgba(253, 197, 29, 0.9),
+                0 0 21px 8.5px rgba(253, 197, 29, 0.5); 
   }
   100% { 
-    box-shadow: 0 0 12px 6px rgba(253, 197, 29, 0.6),
-                0 0 20px 10px rgba(253, 197, 29, 0.3); 
+    box-shadow: 0 0 9px 4.5px rgba(253, 197, 29, 0.7),
+                0 0 15px 5.5px rgba(253, 197, 29, 0.4); 
   }
 `;
 

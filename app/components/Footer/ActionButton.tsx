@@ -95,7 +95,7 @@ const ActionButton = ({
             height={
                 isCompactButton
                     ? { base: 'auto', md: 'auto' }
-                    : { base: '100%', md: 'auto' }
+                    : { base: '100%', md: '100%', lg: '100%' }
             }
             minH={isCompactButton ? { base: '36px', sm: '40px' } : undefined}
             maxH={

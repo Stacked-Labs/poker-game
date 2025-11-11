@@ -7,9 +7,10 @@ const EmptyFooter = () => {
             justifyContent={'end'}
             gap={3}
             p={2}
-            height={{ base: '80px', md: '80px' }}
+            height={{ base: '80px', md: '100px' }}
             overflow={'hidden'}
             zIndex={1}
+            bg="transparent"
         >
             <CancelSeatRequestButton />
         </Flex>

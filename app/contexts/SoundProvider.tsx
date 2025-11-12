@@ -28,6 +28,9 @@ export function SoundProvider({ children }: SoundProviderProps) {
     const { play: playRaise, setVolume: setVolumeRaise } = useAudio(
         '/sound/chips_allin.mp3'
     );
+    const { play: playChatNotif, setVolume: setVolumeChatNotif } = useAudio(
+        '/sound/chat_notif.mp3'
+    );
 
     // Update volume for all sounds when app volume changes
     useEffect(() => {
@@ -35,12 +38,14 @@ export function SoundProvider({ children }: SoundProviderProps) {
         setVolumeCheck(appState.volume);
         setVolumeChips(appState.volume);
         setVolumeRaise(appState.volume);
+        setVolumeChatNotif(appState.volume);
     }, [
         appState.volume,
         setVolumeFlip,
         setVolumeCheck,
         setVolumeChips,
         setVolumeRaise,
+        setVolumeChatNotif
     ]);
 
     // Play sounds based on log messages
@@ -60,6 +65,16 @@ export function SoundProvider({ children }: SoundProviderProps) {
             playRaise();
         }
     }, [appState.logs, playChips, playCheck, playFlip, playRaise]);
+
+    useEffect(() => {
+        const messages = appState.messages;
+        if (messages.length === 0) return;
+
+        const latest = messages[messages.length - 1];
+        if (latest.name === appState.username) return;
+
+        playChatNotif();
+    }, [appState.messages, appState.clientID, appState.username, playChatNotif]);
 
     return (
         <SoundContext.Provider

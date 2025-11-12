@@ -321,11 +321,11 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 width={'100vw'}
                 position={'absolute'}
                 zIndex={999}
-                onClick={onToggleChat}
+                onClick={handleChatToggle}
                 display={isOpenChat ? 'block' : 'none'}
                 opacity={isLoading ? 0 : 1}
             ></Flex>
-            <SideBarChat isOpen={isOpenChat} onToggle={onToggleChat} />
+            <SideBarChat isOpen={isOpenChat} onToggle={handleChatToggle} />
         </>
     );
 };

@@ -32,8 +32,6 @@ const RaiseInputBox = ({
     const { appState } = useContext(AppContext);
     const gameIsPaused = appState.game?.paused || false;
 
-    const maxRaise = 100;
-
     const [inputValue, setInputValue] = useState<number>(0);
     const [sliderValue, setSliderValue] = useState<number>(0);
 
@@ -143,8 +141,8 @@ const RaiseInputBox = ({
     };
 
     const handleInputOnBlur = () => {
-        if (inputValue > maxRaise || inputValue < minRaise) {
-            setInputValue(maxRaise);
+        if (inputValue > currentStack || inputValue < minRaise) {
+            setInputValue(currentStack);
         }
     };
 
@@ -336,7 +334,7 @@ const RaiseInputBox = ({
                             type="number"
                             value={inputValue}
                             min={minRaise}
-                            max={maxRaise}
+                            max={currentStack}
                             onChange={handleInputChange}
                             focusBorderColor={'brand.green'}
                             textAlign={'center'}
@@ -414,7 +412,7 @@ const RaiseInputBox = ({
                         flex={1}
                         size="lg"
                         value={sliderValue}
-                        max={maxRaise}
+                        max={currentStack}
                         min={minRaise}
                         onChange={handleSliderChange}
                         isDisabled={!isCurrentTurn || gameIsPaused}
@@ -479,7 +477,7 @@ const RaiseInputBox = ({
                             type="number"
                             value={inputValue}
                             min={minRaise}
-                            max={maxRaise}
+                            max={currentStack}
                             onChange={handleInputChange}
                             focusBorderColor={'brand.green'}
                             textAlign={'center'}
@@ -604,7 +602,7 @@ const RaiseInputBox = ({
                             marginX={3}
                             defaultValue={0}
                             value={sliderValue}
-                            max={maxRaise}
+                            max={currentStack}
                             min={minRaise}
                             onChange={(value: number) =>
                                 handleSliderChange(value)

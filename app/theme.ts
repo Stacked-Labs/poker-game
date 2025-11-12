@@ -32,6 +32,7 @@ const colors = {
     // New brand colors
     brand: {
         navy: '#334479',
+        'navy.80': 'rgba(51, 68, 121, 0.8)',
         darkNavy: '#0B1430',
         lightGray: '#ECEEF5',
         pink: '#EB0B5C',

@@ -500,7 +500,7 @@ const TakenSeatButton = ({
                 className="player-info-wrapper"
                 position={'relative'}
                 width={'110%'}
-                zIndex={2}
+                zIndex={1}
                 alignSelf={'flex-end'}
             >
                 {/* Animated Gradient Border for Active Player */}

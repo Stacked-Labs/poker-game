@@ -46,28 +46,7 @@ const TablePage = ({ params }: { params: { id: string } }) => {
 
     return (
         <>
-            {appState.game?.paused && (
-                <Box
-                    className="pause-banner"
-                    position="fixed"
-                    top="80px"
-                    left="50%"
-                    transform="translateX(-50%)"
-                    bg="brand.yellow"
-                    color="text.white"
-                    px={8}
-                    py={4}
-                    borderRadius="16px"
-                    boxShadow="0 8px 24px rgba(253, 197, 29, 0.4)"
-                    zIndex={990}
-                    textAlign="center"
-                    border="2px solid white"
-                >
-                    <Heading size="md" fontWeight="bold">
-                        Game Paused
-                    </Heading>
-                </Box>
-            )}
+
             <Flex
                 className="game-page-container"
                 flex={1}
@@ -76,10 +55,6 @@ const TablePage = ({ params }: { params: { id: string } }) => {
                 overflow="hidden"
                 justifyContent={'center'}
                 position={'relative'}
-                style={{
-                    filter: appState.game?.paused ? 'blur(4px)' : 'none',
-                    transition: 'filter 0.3s ease-in-out',
-                }}
                 bg={'transparent'}
             >
                 <Table />

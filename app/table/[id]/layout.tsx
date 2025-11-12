@@ -3,7 +3,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import Navbar from '@/app/components/NavBar';
-import { Flex, Modal, Text, useDisclosure, Box } from '@chakra-ui/react';
+import { Flex, Modal, Text, useDisclosure, Box, Heading } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
@@ -169,8 +169,39 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                 >
                     <SocketProvider tableId={params.id}>
                         <Navbar isLoading={loading} />
-                        {children}
-                        <Footer />
+                        {appState.game?.paused && (
+                            <Box
+                                className="pause-banner"
+                                position="fixed"
+                                top="80px"
+                                left="50%"
+                                transform="translateX(-50%)"
+                                bg="brand.yellow"
+                                color="text.white"
+                                px={8}
+                                py={4}
+                                borderRadius="16px"
+                                boxShadow="0 8px 24px rgba(253, 197, 29, 0.4)"
+                                zIndex={990}
+                                textAlign="center"
+                                border="2px solid white"
+                            >
+                                <Heading size="md" fontWeight="bold">
+                                    Game Paused
+                                </Heading>
+                            </Box>
+                        )}
+                        <Flex
+                            flex={1}
+                            direction={'column'}
+                            filter={appState.game?.paused ? 'blur(4px)' : 'none'}
+                            transition='filter 0.3s ease-in-out'
+                            height={'full'}
+                            gap={4}
+                        >
+                            {children}
+                            <Footer />
+                        </Flex>
                     </SocketProvider>
 
                     <Modal

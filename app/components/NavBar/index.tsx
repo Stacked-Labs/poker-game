@@ -120,7 +120,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 justify="space-between"
                 wrap="wrap"
                 padding={{ base: '0.75rem 1rem', md: '1rem 1.5rem' }}
-                bg="transparent"
+                bg="none"
                 color="text.secondary"
                 zIndex={99}
                 opacity={isLoading ? 0 : 1}
@@ -130,8 +130,13 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 position="fixed"
                 top={0}
                 width="100%"
+                pointerEvents={'none'}
             >
-                <HStack spacing={{ base: 1, md: 2 }} alignItems="stretch">
+                <HStack
+                    spacing={{ base: 1, md: 2 }}
+                    alignItems="stretch"
+                    pointerEvents={'auto'}
+                >
                     <TableMenuBurger
                         isUserSeated={isUserSeated}
                         isAway={isAway}
@@ -249,7 +254,11 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                         <ColorModeButton />
                     </Box>
                 </HStack>
-                <HStack spacing={{ base: 1, md: 2 }} alignItems="center">
+                <HStack
+                    spacing={{ base: 1, md: 2 }}
+                    alignItems="center"
+                    pointerEvents={'auto'}
+                >
                     <Box display={{ base: 'none', md: 'block' }}>
                         <VolumeButton />
                     </Box>

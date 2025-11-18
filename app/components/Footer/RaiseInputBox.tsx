@@ -11,7 +11,7 @@ import {
     Box,
     Text,
 } from '@chakra-ui/react';
-import React, { ChangeEvent, useContext, useState, useEffect } from 'react';
+import React, { ChangeEvent, useContext, useState, useEffect, useRef } from 'react';
 import { LuMinus, LuPlus } from 'react-icons/lu';
 import ActionButton from './ActionButton';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
@@ -74,6 +74,14 @@ const RaiseInputBox = ({
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [gameIsPaused, appState.clientID, appState.game?.action]);
 
+    const desktopInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (showRaise && desktopInputRef.current) {
+            desktopInputRef.current.focus();
+        }
+    }, [showRaise]);
+
     if (!appState.game) {
         return null;
     }
@@ -130,9 +138,7 @@ const RaiseInputBox = ({
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const value = parseInt(e.target.value, 10);
-        setInputValue(value);
-        setSliderValue(value);
+        setInputValue(e.target.valueAsNumber);
     };
 
     const handleSliderChange = (value: number) => {
@@ -141,9 +147,12 @@ const RaiseInputBox = ({
     };
 
     const handleInputOnBlur = () => {
-        if (inputValue > currentStack || inputValue < minRaise) {
-            setInputValue(currentStack);
+        let value = inputValue;
+        if (value > currentStack || value < minRaise || isNaN(value)) {
+            value = currentStack;
+            setInputValue(value);
         }
+        setSliderValue(value);
     };
 
     const handleDecreaseRaise = () => {
@@ -475,7 +484,7 @@ const RaiseInputBox = ({
                             mb={1}
                             size={{ base: 'xs', md: 'md' }}
                             type="number"
-                            value={inputValue}
+                            value={inputValue > currentStack ? currentStack : inputValue}
                             min={minRaise}
                             max={currentStack}
                             onChange={handleInputChange}
@@ -485,6 +494,7 @@ const RaiseInputBox = ({
                             color="white"
                             fontWeight="bold"
                             className="raise-bet-input"
+                            ref={desktopInputRef}
                         />
                     </Box>
                     <Box display={{ base: 'inline-flex', lg: 'none' }} flex={2}>

@@ -300,11 +300,11 @@ const Table = () => {
             >
                 <source
                     media="(orientation: portrait)"
-                    srcSet="/table-vertical-pink.svg"
+                    srcSet="/table-vertical-blue.webp"
                 />
                 <img
                     ref={imageRef}
-                    src="/table-horizontal-pink.svg"
+                    src="/table-horizontal-blue.webp"
                     alt="Poker table"
                     style={{
                         objectFit: 'contain',

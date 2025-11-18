@@ -46,11 +46,10 @@ const TablePage = ({ params }: { params: { id: string } }) => {
 
     return (
         <>
-
             <Flex
                 className="game-page-container"
                 flex={1}
-                top={2}
+                top={6}
                 minHeight={0}
                 overflow="hidden"
                 justifyContent={'center'}

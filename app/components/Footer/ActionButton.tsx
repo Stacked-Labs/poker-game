@@ -97,10 +97,10 @@ const ActionButton = ({
                     ? { base: 'auto', md: 'auto' }
                     : { base: '100%', md: '100%', lg: '100%' }
             }
-            minH={isCompactButton ? { base: '36px', sm: '40px' } : undefined}
+            minH={isCompactButton ? { base: '40px', sm: '44px', md: '48px' } : undefined}
             maxH={
                 isCompactButton
-                    ? { base: '44px', sm: '48px', md: 'none' }
+                    ? { base: '48px', sm: '52px', md: 'none' }
                     : undefined
             }
             flexShrink={{ base: 1, md: 0 }}

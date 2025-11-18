@@ -11,7 +11,13 @@ import {
     Box,
     Text,
 } from '@chakra-ui/react';
-import React, { ChangeEvent, useContext, useState, useEffect, useRef } from 'react';
+import React, {
+    ChangeEvent,
+    useContext,
+    useState,
+    useEffect,
+    useRef,
+} from 'react';
 import { LuMinus, LuPlus } from 'react-icons/lu';
 import ActionButton from './ActionButton';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
@@ -171,7 +177,7 @@ const RaiseInputBox = ({
             currentStack + currentBet
         );
         setInputValue(newValue);
-    }
+    };
 
     const actionButtons = () => {
         return (
@@ -328,15 +334,15 @@ const RaiseInputBox = ({
                         overflow={'hidden'}
                         display="flex"
                         alignItems="center"
-                        minH={{ base: '36px', sm: '40px' }}
-                        maxH={{ base: '44px', sm: '48px' }}
+                        minH={{ base: '40px', sm: '44px', md: '48px' }}
+                        maxH={{ base: '48px', sm: '52px', md: 'none' }}
                         border="2px solid"
                         borderColor="brand.navy"
                     >
                         <Input
                             bg={'brand.navy'}
                             border={'none'}
-                            fontSize={{ base: '13px', sm: '14px' }}
+                            fontSize={{ base: '14px', sm: '15px', md: '16px' }}
                             size={'sm'}
                             width={'100%'}
                             height={'100%'}
@@ -348,7 +354,7 @@ const RaiseInputBox = ({
                             focusBorderColor={'brand.green'}
                             textAlign={'center'}
                             onBlur={handleInputOnBlur}
-                            py={{ base: 1, sm: 1.5 }}
+                            py={{ base: 1.5, sm: 2 }}
                             color="white"
                             fontWeight="bold"
                         />
@@ -484,7 +490,11 @@ const RaiseInputBox = ({
                             mb={1}
                             size={{ base: 'xs', md: 'md' }}
                             type="number"
-                            value={inputValue > currentStack ? currentStack : inputValue}
+                            value={
+                                inputValue > currentStack
+                                    ? currentStack
+                                    : inputValue
+                            }
                             min={minRaise}
                             max={currentStack}
                             onChange={handleInputChange}

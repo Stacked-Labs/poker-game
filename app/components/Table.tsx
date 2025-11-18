@@ -304,7 +304,7 @@ const Table = () => {
                 />
                 <img
                     ref={imageRef}
-                    src="/table-horizontal.webp"
+                    src="/table-horizontal-pink.svg"
                     alt="Poker table"
                     style={{
                         objectFit: 'contain',

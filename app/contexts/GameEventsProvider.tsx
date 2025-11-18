@@ -222,24 +222,8 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({
         }
     }, [isModalOpen, appState.table, refreshEvents]);
 
-    // Poll for new events every 30 seconds while modal is open
-    useEffect(() => {
-        if (!isModalOpen || !appState.table) return;
-
-        console.log(
-            '[GameEventsProvider] Starting 30-second polling interval...'
-        );
-
-        const intervalId = setInterval(() => {
-            console.log('[GameEventsProvider] Polling for new events...');
-            refreshEvents();
-        }, 30000); // 30 seconds
-
-        return () => {
-            console.log('[GameEventsProvider] Stopping polling interval');
-            clearInterval(intervalId);
-        };
-    }, [isModalOpen, appState.table, refreshEvents]);
+    // Removed automatic polling to prevent disruptive refreshes
+    // Users can manually refresh using the refresh button in the UI
 
     const value: GameEventsContextType = {
         events,

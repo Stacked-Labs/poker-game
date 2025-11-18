@@ -124,9 +124,6 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 color="text.secondary"
                 zIndex={99}
                 opacity={isLoading ? 0 : 1}
-                boxShadow="0 2px 12px rgba(0, 0, 0, 0.08)"
-                borderBottom="1px solid"
-                borderColor="rgba(0, 0, 0, 0.08)"
                 position="fixed"
                 top={0}
                 width="100%"

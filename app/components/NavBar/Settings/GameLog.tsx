@@ -159,7 +159,7 @@ const getHandCategoryFromCards = (winningCards: string[]): string | null => {
 };
 
 const GameLog = () => {
-    const { events, loading, error, hasMore, loadMoreEvents } = useGameEvents();
+    const { events, loading, error, hasMore, loadMoreEvents, refreshEvents } = useGameEvents();
     const isUnauthorized = error?.includes('Unauthorized') || false;
 
     const getBadgeColor = (category: string) => {
@@ -1014,15 +1014,36 @@ const GameLog = () => {
 
     return (
         <Box>
-            <Text
-                fontSize={{ base: 'xl', md: '2xl' }}
-                fontWeight={'bold'}
-                mb={4}
-                color="text.secondary"
-                letterSpacing="-0.02em"
-            >
-                Game Log
-            </Text>
+            <HStack justify="space-between" align="center" mb={4}>
+                <Text
+                    fontSize={{ base: 'xl', md: '2xl' }}
+                    fontWeight={'bold'}
+                    color="text.secondary"
+                    letterSpacing="-0.02em"
+                >
+                    Game Log
+                </Text>
+                <Button
+                    onClick={refreshEvents}
+                    isLoading={loading}
+                    loadingText="Refreshing..."
+                    size="sm"
+                    bg="brand.navy"
+                    color="white"
+                    fontFamily="mono"
+                    fontSize="xs"
+                    px={4}
+                    py={2}
+                    borderRadius="6px"
+                    fontWeight="bold"
+                    _hover={{
+                        bg: 'brand.green',
+                    }}
+                    transition="all 0.2s ease"
+                >
+                    Refresh
+                </Button>
+            </HStack>
             <Box
                 bg="card.white"
                 borderRadius="12px"

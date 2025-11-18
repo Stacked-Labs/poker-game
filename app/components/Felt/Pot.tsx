@@ -40,8 +40,16 @@ const Pot = () => {
     if (isGameRunning && pots.length > 0 && pots[0].amount > 0) {
         return (
             <Flex
-                bg={'green.600'}
                 padding={2}
+                sx={{
+                    backgroundColor: 'rgba(16, 100, 50, 0.12)',
+                    backdropFilter: 'blur(12px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                    // Ensure no background override
+                    bg: 'transparent',
+                }}
                 width={{
                     xl: '140px',
                     lg: '115px',
@@ -77,9 +85,17 @@ const Pot = () => {
                                     {game.pots[index] &&
                                     game.pots[index].amount != pot.amount ? (
                                         <Box
-                                            bg={'green.700'}
                                             paddingX={'2'}
                                             borderRadius={999}
+                                            sx={{
+                                                backgroundColor: 'rgba(12, 80, 40, 0.15)',
+                                                backdropFilter: 'blur(10px) saturate(180%)',
+                                                WebkitBackdropFilter: 'blur(10px) saturate(180%)',
+                                                border: '1px solid rgba(255, 255, 255, 0.12)',
+                                                boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.3)',
+                                                // Ensure no background override
+                                                bg: 'transparent',
+                                            }}
                                         >
                                             <Text
                                                 fontSize={{

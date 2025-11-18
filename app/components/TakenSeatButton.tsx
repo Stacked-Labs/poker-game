@@ -421,6 +421,7 @@ const TakenSeatButton = ({
                 marginTop={{ base: 0, md: '12px' }}
             >
                 {appState.game.running &&
+                    player.ready &&
                     player.cards.map((card: Card, index: number) => {
                         // Determine if we are in showdown state
                         const isShowdown = Boolean(

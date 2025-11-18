@@ -1,13 +1,12 @@
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { SocketContext } from '@/app/contexts/WebSocketProvider';
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import FooterWithActionButtons from './FooterWithActionButtons';
 import EmptyFooter from './EmptyFooter';
+import BlindObligationControls from './BlindObligationControls';
+import { Flex } from '@chakra-ui/react';
 
 const Footer = () => {
-    const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
-    const gameIsPaused = appState.game?.paused || false;
 
     // Check if the current user is a spectator (not in the game)
     const isSpectator = () => {
@@ -46,23 +45,35 @@ const Footer = () => {
         return !userInGame;
     };
 
-    if (
+    const showActionButtons =
         appState.game &&
         appState.game.running &&
         !appState.game.betting == false &&
-        !isSpectator()
-    ) {
-        return (
-            <FooterWithActionButtons
-                isCurrentTurn={
-                    appState.clientID ===
-                    appState.game.players[appState.game.action].uuid
-                }
-            />
-        );
-    }
+        !isSpectator();
 
-    return <EmptyFooter />;
+    const content = showActionButtons ? (
+        <FooterWithActionButtons
+            isCurrentTurn={
+                appState.clientID ===
+                appState.game!.players[appState.game!.action].uuid
+            }
+        />
+    ) : (
+        <EmptyFooter />
+    );
+
+    return (
+        <Flex
+            direction="column"
+            gap={{ base: 2, md: 3 }}
+            px={{ base: 2, md: 4 }}
+            pb={{ base: 2, md: 3 }}
+            width="100%"
+        >
+            <BlindObligationControls />
+            {content}
+        </Flex>
+    );
 };
 
 export default Footer;

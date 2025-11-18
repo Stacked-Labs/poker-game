@@ -10,7 +10,13 @@ import {
     useCallback,
     Context,
 } from 'react';
-import { Message, Game, Log, Player } from '@/app/interfaces';
+import {
+    Message,
+    Game,
+    Log,
+    Player,
+    BlindObligationOptions,
+} from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
 
@@ -302,6 +308,9 @@ export function SocketProvider(props: SocketProviderProps) {
                             minRaise: eventData.game.minRaise,
                             readyCount: eventData.game.readyCount,
                             paused: eventData.game.paused,
+                            owesSB: eventData.game?.owesSB,
+                            owesBB: eventData.game?.owesBB,
+                            waitingForBB: eventData.game?.waitingForBB,
                             actionDeadline:
                                 eventData.game?.actionDeadline ??
                                 eventData.actionDeadline ??
@@ -335,6 +344,78 @@ export function SocketProvider(props: SocketProviderProps) {
                                 payload: false,
                             });
                         }
+
+                        // Update blind obligation helper for the local seat
+                        const localPlayer = eventData.game.players?.find(
+                            (p: Player) =>
+                                p.uuid === appStateRef.current.clientID
+                        );
+                        const seatIndex = localPlayer
+                            ? localPlayer.seatID - 1
+                            : -1;
+                        const owesSB =
+                            seatIndex >= 0
+                                ? Boolean(eventData.game?.owesSB?.[seatIndex])
+                                : false;
+                        const owesBB =
+                            seatIndex >= 0
+                                ? Boolean(eventData.game?.owesBB?.[seatIndex])
+                                : false;
+                        const waitingForBB =
+                            seatIndex >= 0
+                                ? Boolean(
+                                      eventData.game?.waitingForBB?.[seatIndex]
+                                  )
+                                : false;
+
+                        if (localPlayer && (owesSB || owesBB || waitingForBB)) {
+                            const existingOptions =
+                                appStateRef.current.blindObligation?.options ??
+                                (['post_now', 'wait_bb', 'sit_out'] as BlindObligationOptions[]);
+                            dispatch({
+                                type: 'setBlindObligation',
+                                payload: {
+                                    seatID: localPlayer.seatID,
+                                    owesSB,
+                                    owesBB,
+                                    waitingForBB,
+                                    options: existingOptions,
+                                },
+                            });
+                        } else if (
+                            appStateRef.current.blindObligation &&
+                            !owesSB &&
+                            !owesBB &&
+                            !waitingForBB
+                        ) {
+                            dispatch({ type: 'clearBlindObligation' });
+                        }
+                        return;
+                    }
+                    case 'blind-obligation': {
+                        // Only set state if the message targets our seat
+                        const localSeatID =
+                            appStateRef.current.game?.players?.find(
+                                (p: Player) =>
+                                    p.uuid === appStateRef.current.clientID
+                            )?.seatID;
+
+                        if (localSeatID && localSeatID !== eventData.seatID) {
+                            return;
+                        }
+
+                        dispatch({
+                            type: 'setBlindObligation',
+                            payload: {
+                                seatID: eventData.seatID,
+                                owesSB: Boolean(eventData.owesSB),
+                                owesBB: Boolean(eventData.owesBB),
+                                waitingForBB: Boolean(eventData.waitingForBB),
+                                options: Array.isArray(eventData.options)
+                                    ? eventData.options
+                                    : (['post_now', 'wait_bb', 'sit_out'] as BlindObligationOptions[]),
+                            },
+                        });
                         return;
                     }
                     case 'game-paused': {

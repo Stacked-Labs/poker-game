@@ -150,6 +150,18 @@ export function playerSetReady(socket: WebSocket, ready: boolean) {
     });
 }
 
+export function payOwedBlinds(socket: WebSocket) {
+    sendWebSocketMessage(socket, {
+        action: 'pay-owed-blinds',
+    });
+}
+
+export function waitForBB(socket: WebSocket) {
+    sendWebSocketMessage(socket, {
+        action: 'wait-for-bb',
+    });
+}
+
 export function sendPauseGameCommand(socket: WebSocket) {
     if (socket && socket.readyState === WebSocket.OPEN) {
         sendWebSocketMessage(socket, {

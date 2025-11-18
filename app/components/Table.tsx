@@ -300,7 +300,7 @@ const Table = () => {
             >
                 <source
                     media="(orientation: portrait)"
-                    srcSet="/table-vertical.webp"
+                    srcSet="/table-vertical-pink.svg"
                 />
                 <img
                     ref={imageRef}

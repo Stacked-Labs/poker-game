@@ -26,6 +26,7 @@ export type AppState = {
     isLeaveRequested: boolean;
     pendingPlayers: PendingPlayer[]; // Added for storing pending players
     isSitOutNext: boolean;
+    blindObligation: BlindObligation | null;
 };
 
 export type Player = {
@@ -66,6 +67,19 @@ export type Game = {
      * A value of 0 means no active timer.
      */
     actionDeadline: number;
+    owesSB?: boolean[];
+    owesBB?: boolean[];
+    waitingForBB?: boolean[];
+};
+
+export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';
+
+export type BlindObligation = {
+    seatID: number;
+    owesSB: boolean;
+    owesBB: boolean;
+    waitingForBB?: boolean;
+    options: BlindObligationOptions[];
 };
 
 export type Config = {

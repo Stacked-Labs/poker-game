@@ -81,12 +81,19 @@ const TableMenuBurger = ({
                 color="text.secondary"
                 border="none"
                 borderRadius="12px"
-                _hover={{
-                    bg: 'brand.navy',
-                    color: 'white',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
-                }}
+                _hover={
+                    isOpen
+                        ? {
+                              bg: 'brand.navy',
+                              color: 'white',
+                          }
+                        : {
+                              bg: 'brand.navy',
+                              color: 'white',
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
+                          }
+                }
                 transition="all 0.2s ease"
             />
             <MenuList

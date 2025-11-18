@@ -16,6 +16,7 @@ const initialState: AppState = {
     isLeaveRequested: false,
     pendingPlayers: [],
     isSitOutNext: false,
+    blindObligation: null,
 };
 
 export type ACTIONTYPE =
@@ -33,7 +34,9 @@ export type ACTIONTYPE =
     | { type: 'setSeatRequested'; payload: number | null }
     | { type: 'setIsLeaveRequested'; payload: boolean }
     | { type: 'setPendingPlayers'; payload: PendingPlayer[] }
-    | { type: 'setIsSitOutNext'; payload: boolean };
+    | { type: 'setIsSitOutNext'; payload: boolean }
+    | { type: 'setBlindObligation'; payload: AppState['blindObligation'] }
+    | { type: 'clearBlindObligation' };
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
@@ -86,6 +89,10 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, pendingPlayers: action.payload };
         case 'setIsSitOutNext':
             return { ...state, isSitOutNext: action.payload };
+        case 'setBlindObligation':
+            return { ...state, blindObligation: action.payload };
+        case 'clearBlindObligation':
+            return { ...state, blindObligation: null };
         default: {
             const exhaustiveCheck: never = action;
             throw new Error(`Unhandled action type: ${exhaustiveCheck}`);

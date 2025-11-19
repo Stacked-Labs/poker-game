@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { Box, Button, Flex, Stack, Text } from '@chakra-ui/react';
+import { Button, Flex } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -17,6 +17,7 @@ const BlindObligationControls = () => {
     const [submitting, setSubmitting] = useState<
         'post_now' | 'wait_bb' | 'sit_out' | null
     >(null);
+    const [autoWaitKey, setAutoWaitKey] = useState<string | null>(null);
 
     const game = appState.game;
     const obligation = appState.blindObligation;
@@ -38,35 +39,58 @@ const BlindObligationControls = () => {
             ? Boolean(game?.waitingForBB?.[seatIndex])
             : Boolean(obligation?.waitingForBB);
 
-    const options: BlindObligationOptions[] =
-        obligation?.options ??
-        (['post_now', 'wait_bb', 'sit_out'] as BlindObligationOptions[]);
+    const options: BlindObligationOptions[] = useMemo(
+        () =>
+            obligation?.options ??
+            (['post_now', 'wait_bb', 'sit_out'] as BlindObligationOptions[]),
+        [obligation?.options]
+    );
 
     const shouldRender =
-        !!localPlayer &&
-        (owesSB || owesBB || waitingForBB || obligation);
+        !!localPlayer && (owesSB || owesBB || waitingForBB || obligation);
 
-    const summaryText = useMemo(() => {
-        const parts = [];
-        if (owesSB) parts.push('SB');
-        if (owesBB) parts.push('BB');
-        if (parts.length === 0 && waitingForBB) {
-            return 'Waiting for your big blind';
-        }
-        if (parts.length === 0) return null;
-        if (parts.length === 2) return 'You owe SB + BB';
-        return `You owe ${parts[0]}`;
-    }, [owesBB, owesSB, waitingForBB]);
+    // Default to wait for BB once per obligation instance
+    useEffect(() => {
+        const key = obligation
+            ? `${obligation.seatID}:${obligation.owesSB}:${obligation.owesBB}:${obligation.waitingForBB}`
+            : null;
+        const canAutoWait =
+            obligation &&
+            options.includes('wait_bb') &&
+            !waitingForBB &&
+            key !== autoWaitKey;
 
-    const supportingText = useMemo(() => {
-        if (waitingForBB) {
-            return 'You are out until your next big blind. Choose “Post now” to rejoin immediately.';
-        }
-        if (owesSB || owesBB) {
-            return 'Pick how to handle your owed blind to get dealt again.';
-        }
-        return null;
-    }, [owesBB, owesSB, waitingForBB]);
+        if (!canAutoWait || !socket || !localPlayer) return;
+
+        setSubmitting('wait_bb');
+        sendWaitForBB(socket);
+        dispatch({
+            type: 'setBlindObligation',
+            payload: {
+                seatID: obligation.seatID,
+                owesSB,
+                owesBB,
+                waitingForBB: true,
+                options,
+            },
+        });
+        setAutoWaitKey(key);
+        toast.info(
+            'Waiting for big blind',
+            'You will rejoin automatically on your BB.'
+        );
+    }, [
+        obligation,
+        options,
+        waitingForBB,
+        socket,
+        localPlayer,
+        dispatch,
+        owesSB,
+        owesBB,
+        toast,
+        autoWaitKey,
+    ]);
 
     useEffect(() => {
         if (!submitting) return;
@@ -82,7 +106,11 @@ const BlindObligationControls = () => {
 
     const handleChoice = (choice: 'post_now' | 'wait_bb' | 'sit_out') => {
         if (!socket || !localPlayer) {
-            toast.error('Not connected', 'Reconnect before trying again.', 4000);
+            toast.error(
+                'Not connected',
+                'Reconnect before trying again.',
+                4000
+            );
             return;
         }
 
@@ -112,7 +140,10 @@ const BlindObligationControls = () => {
             case 'sit_out':
                 playerSetReady(socket, false);
                 dispatch({ type: 'clearBlindObligation' });
-                toast.info('Sitting out', 'You will stay out until you return.');
+                toast.info(
+                    'Sitting out',
+                    'You will stay out until you return.'
+                );
                 break;
             default:
                 break;
@@ -121,121 +152,154 @@ const BlindObligationControls = () => {
 
     if (!shouldRender) return null;
 
-    const buttonWidth = { base: '100%', md: 'auto' };
-
     return (
-        <Box
-            width="100%"
-            px={{ base: 3, md: 4 }}
-            py={{ base: 3, md: 3 }}
-            bg="rgba(11, 20, 48, 0.85)"
-            border="1px solid"
-            borderColor="brand.navy"
-            borderRadius={{ base: '14px', md: '16px' }}
-            boxShadow="0 8px 24px rgba(11, 20, 48, 0.35)"
+        <Flex
+            justifyContent={{ base: 'space-between', md: 'center' }}
+            gap={{ base: 1, md: 2 }}
+            p={2}
+            height={{ base: '100px', md: '120px' }}
+            overflow={'visible'}
+            alignItems={'center'}
+            zIndex={1}
+            bg="transparent"
         >
-            <Flex
-                direction={{ base: 'column', md: 'row' }}
-                align={{ base: 'flex-start', md: 'center' }}
-                justify="space-between"
-                gap={{ base: 3, md: 4 }}
-            >
-                <Flex direction="column" gap={1} minW={0} flex={1}>
-                    <Text
-                        fontWeight="bold"
-                        color="white"
-                        fontSize={{ base: 'sm', md: 'md' }}
-                    >
-                        {summaryText || 'Blind decision needed'}
-                    </Text>
-                    {supportingText && (
-                        <Text
-                            color="text.secondary"
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            noOfLines={2}
-                        >
-                            {supportingText}
-                        </Text>
-                    )}
-                </Flex>
-
-                <Stack
-                    direction={{ base: 'column', sm: 'row' }}
-                    spacing={{ base: 2, md: 3 }}
+            {options.includes('wait_bb') && (
+                <Button
+                    bg="transparent"
+                    color="brand.yellow"
+                    borderColor="brand.yellow"
+                    border="2px solid"
+                    borderRadius={{ base: '8px', md: '10px' }}
+                    padding={{ base: 4, sm: 5, md: 4, lg: 5 }}
+                    textTransform={'uppercase'}
+                    onClick={() => handleChoice('wait_bb')}
+                    isDisabled={submitting !== null || waitingForBB}
+                    isLoading={submitting === 'wait_bb'}
+                    loadingText="Waiting"
+                    fontWeight="bold"
+                    fontSize={{
+                        base: '15px',
+                        sm: '16px',
+                        md: 'medium',
+                        lg: 'large',
+                        xl: 'large',
+                        '2xl': 'large',
+                    }}
+                    maxW={{ base: 'unset', md: '180px', lg: '200px' }}
                     width={{ base: '100%', md: 'auto' }}
+                    flex={{ base: 1, md: '0 0 auto' }}
+                    height={{ base: '100%', md: '100%', lg: '100%' }}
+                    flexShrink={{ base: 1, md: 0 }}
+                    position={'relative'}
+                    zIndex={10}
+                    _hover={{
+                        bg: !(submitting !== null || waitingForBB)
+                            ? 'rgba(253, 197, 29, 0.12)'
+                            : 'transparent',
+                        transform: !(submitting !== null || waitingForBB)
+                            ? 'translateY(-1px)'
+                            : 'none',
+                        boxShadow: !(submitting !== null || waitingForBB)
+                            ? 'lg'
+                            : 'none',
+                    }}
+                    _active={{
+                        transform: !(submitting !== null || waitingForBB)
+                            ? 'translateY(0px)'
+                            : 'none',
+                    }}
+                    transition="all 0.2s"
                 >
-                    {options.includes('post_now') && (
-                        <Button
-                            bg="brand.green"
-                            color="white"
-                            borderRadius="10px"
-                            px={{ base: 3, md: 4 }}
-                            py={{ base: 2, md: 2.5 }}
-                            minW={{ base: 'auto', md: '130px' }}
-                            width={buttonWidth}
-                            _hover={{
-                                bg: 'rgba(54, 163, 123, 0.9)',
-                                transform: 'translateY(-1px)',
-                            }}
-                            _active={{ transform: 'translateY(0px)' }}
-                            isDisabled={submitting !== null}
-                            isLoading={submitting === 'post_now'}
-                            loadingText="Posting"
-                            onClick={() => handleChoice('post_now')}
-                        >
-                            Post now
-                        </Button>
-                    )}
-                    {options.includes('wait_bb') && (
-                        <Button
-                            variant="outline"
-                            borderColor="brand.yellow"
-                            color="brand.yellow"
-                            borderWidth="2px"
-                            borderRadius="10px"
-                            px={{ base: 3, md: 4 }}
-                            py={{ base: 2, md: 2.5 }}
-                            minW={{ base: 'auto', md: '130px' }}
-                            width={buttonWidth}
-                            _hover={{
-                                bg: 'rgba(253, 197, 29, 0.12)',
-                                transform: 'translateY(-1px)',
-                            }}
-                            _active={{ transform: 'translateY(0px)' }}
-                            isDisabled={submitting !== null || waitingForBB}
-                            isLoading={submitting === 'wait_bb'}
-                            loadingText="Setting wait"
-                            onClick={() => handleChoice('wait_bb')}
-                        >
-                            {waitingForBB ? 'Waiting for BB' : 'Wait for BB'}
-                        </Button>
-                    )}
-                    {options.includes('sit_out') && (
-                        <Button
-                            variant="ghost"
-                            color="text.secondary"
-                            borderRadius="10px"
-                            px={{ base: 3, md: 4 }}
-                            py={{ base: 2, md: 2.5 }}
-                            minW={{ base: 'auto', md: '110px' }}
-                            width={buttonWidth}
-                            _hover={{
-                                bg: 'rgba(255, 255, 255, 0.06)',
-                                color: 'white',
-                                transform: 'translateY(-1px)',
-                            }}
-                            _active={{ transform: 'translateY(0px)' }}
-                            isDisabled={submitting !== null}
-                            isLoading={submitting === 'sit_out'}
-                            loadingText="Updating"
-                            onClick={() => handleChoice('sit_out')}
-                        >
-                            Sit out
-                        </Button>
-                    )}
-                </Stack>
-            </Flex>
-        </Box>
+                    {waitingForBB ? 'Waiting for BB' : 'Wait for BB'}
+                </Button>
+            )}
+            {options.includes('post_now') && (
+                <Button
+                    bg="brand.green"
+                    color="white"
+                    borderColor="brand.green"
+                    border="2px solid"
+                    borderRadius={{ base: '8px', md: '10px' }}
+                    padding={{ base: 4, sm: 5, md: 4, lg: 5 }}
+                    textTransform={'uppercase'}
+                    onClick={() => handleChoice('post_now')}
+                    isDisabled={submitting !== null}
+                    isLoading={submitting === 'post_now'}
+                    loadingText="Posting"
+                    fontWeight="bold"
+                    fontSize={{
+                        base: '15px',
+                        sm: '16px',
+                        md: 'medium',
+                        lg: 'large',
+                        xl: 'large',
+                        '2xl': 'large',
+                    }}
+                    maxW={{ base: 'unset', md: '180px', lg: '200px' }}
+                    width={{ base: '100%', md: 'auto' }}
+                    flex={{ base: 1, md: '0 0 auto' }}
+                    height={{ base: '100%', md: '100%', lg: '100%' }}
+                    flexShrink={{ base: 1, md: 0 }}
+                    position={'relative'}
+                    zIndex={10}
+                    _hover={{
+                        bg: !submitting ? '#2d8763' : 'brand.green',
+                        transform: !submitting ? 'translateY(-1px)' : 'none',
+                        boxShadow: !submitting ? 'lg' : 'none',
+                    }}
+                    _active={{
+                        transform: !submitting ? 'translateY(0px)' : 'none',
+                    }}
+                    transition="all 0.2s"
+                >
+                    Post now
+                </Button>
+            )}
+            {options.includes('sit_out') && (
+                <Button
+                    bg="transparent"
+                    color="white"
+                    borderColor="whiteAlpha.600"
+                    border="2px solid"
+                    borderRadius={{ base: '8px', md: '10px' }}
+                    padding={{ base: 4, sm: 5, md: 4, lg: 5 }}
+                    textTransform={'uppercase'}
+                    onClick={() => handleChoice('sit_out')}
+                    isDisabled={submitting !== null}
+                    isLoading={submitting === 'sit_out'}
+                    loadingText="Updating"
+                    fontWeight="bold"
+                    fontSize={{
+                        base: '15px',
+                        sm: '16px',
+                        md: 'medium',
+                        lg: 'large',
+                        xl: 'large',
+                        '2xl': 'large',
+                    }}
+                    maxW={{ base: 'unset', md: '180px', lg: '200px' }}
+                    width={{ base: '100%', md: 'auto' }}
+                    flex={{ base: 1, md: '0 0 auto' }}
+                    height={{ base: '100%', md: '100%', lg: '100%' }}
+                    flexShrink={{ base: 1, md: 0 }}
+                    position={'relative'}
+                    zIndex={10}
+                    _hover={{
+                        bg: !submitting
+                            ? 'rgba(255, 255, 255, 0.06)'
+                            : 'transparent',
+                        transform: !submitting ? 'translateY(-1px)' : 'none',
+                        boxShadow: !submitting ? 'lg' : 'none',
+                    }}
+                    _active={{
+                        transform: !submitting ? 'translateY(0px)' : 'none',
+                    }}
+                    transition="all 0.2s"
+                >
+                    Sit out
+                </Button>
+            )}
+        </Flex>
     );
 };
 

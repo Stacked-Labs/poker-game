@@ -45,11 +45,28 @@ const Footer = () => {
         return !userInGame;
     };
 
+    const localPlayer = appState.game?.players?.find(
+        (p) => p.uuid === appState.clientID
+    );
+    const seatIndex = localPlayer ? localPlayer.seatID - 1 : -1;
+    const owesSB =
+        seatIndex >= 0 ? Boolean(appState.game?.owesSB?.[seatIndex]) : false;
+    const owesBB =
+        seatIndex >= 0 ? Boolean(appState.game?.owesBB?.[seatIndex]) : false;
+    const waitingForBB =
+        seatIndex >= 0
+            ? Boolean(appState.game?.waitingForBB?.[seatIndex])
+            : false;
+    const hasBlindObligation =
+        !!localPlayer &&
+        (owesSB || owesBB || waitingForBB || appState.blindObligation);
+
     const showActionButtons =
         appState.game &&
         appState.game.running &&
         !appState.game.betting == false &&
-        !isSpectator();
+        !isSpectator() &&
+        !hasBlindObligation;
 
     const content = showActionButtons ? (
         <FooterWithActionButtons
@@ -58,7 +75,7 @@ const Footer = () => {
                 appState.game!.players[appState.game!.action].uuid
             }
         />
-    ) : (
+    ) : hasBlindObligation ? null : (
         <EmptyFooter />
     );
 

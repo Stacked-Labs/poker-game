@@ -52,7 +52,15 @@ const slideDown = keyframes`
     }
 `;
 
-const TabItem = ({ text, color, icon }: { text: string, color: string, icon: IconType }) => {
+const TabItem = ({
+    text,
+    color,
+    icon,
+}: {
+    text: string;
+    color: string;
+    icon: IconType;
+}) => {
     return (
         <Tab
             minW="fit-content"
@@ -61,15 +69,12 @@ const TabItem = ({ text, color, icon }: { text: string, color: string, icon: Ico
             _hover={{
                 bg: 'input.white',
                 color: color,
-                transform: 'translateY(-2px)',
-                boxShadow:
-                    '0 4px 8px rgba(54, 163, 123, 0.2)',
+                boxShadow: '0 4px 8px rgba(54, 163, 123, 0.2)',
             }}
             _selected={{
                 bg: color,
                 color: 'text.white !important',
-                boxShadow:
-                    '0 4px 12px rgba(54, 163, 123, 0.3)',
+                boxShadow: '0 4px 12px rgba(54, 163, 123, 0.3)',
                 '& *': {
                     color: 'text.white !important',
                 },
@@ -85,16 +90,13 @@ const TabItem = ({ text, color, icon }: { text: string, color: string, icon: Ico
                     boxSize={{ base: 4, md: 5 }}
                     color={'text.primary'}
                 />
-                <Text
-                    textTransform={'capitalize'}
-                    color={'text.primary'}
-                >
+                <Text textTransform={'capitalize'} color={'text.primary'}>
                     {text}
                 </Text>
             </HStack>
         </Tab>
-    )
-}
+    );
+};
 
 const SettingsModal = ({
     isOpen,
@@ -181,9 +183,7 @@ const SettingsModal = ({
                                 fontSize={{ base: 'xs', sm: 'sm', md: 'md' }}
                                 transition="all 0.2s ease"
                             >
-                                <HStack
-                                    spacing={{ base: 1, md: 2 }}
-                                >
+                                <HStack spacing={{ base: 1, md: 2 }}>
                                     <Icon
                                         as={IoCaretBack}
                                         boxSize={{ base: 4, md: 5 }}
@@ -228,16 +228,35 @@ const SettingsModal = ({
                                         as={FiUsers}
                                         boxSize={{ base: 4, md: 5 }}
                                         color={'text.gray600'}
-
                                     />
                                     <Text color={'text.gray600'}>Players</Text>
                                 </HStack>
                             </Tab>
-                            <TabItem text='Ledger' color="brand.green" icon={FiDollarSign} />
-                            <TabItem text='Log' color="brand.green" icon={FiFileText} />
-                            <TabItem text='Settings' color="brand.green" icon={FiSettings} />
-                            <TabItem text='Support' color="brand.pink" icon={BiSupport} />
-                            <TabItem text='How To' color="brand.navy" icon={FiHelpCircle} />
+                            <TabItem
+                                text="Ledger"
+                                color="brand.green"
+                                icon={FiDollarSign}
+                            />
+                            <TabItem
+                                text="Log"
+                                color="brand.green"
+                                icon={FiFileText}
+                            />
+                            <TabItem
+                                text="Settings"
+                                color="brand.green"
+                                icon={FiSettings}
+                            />
+                            <TabItem
+                                text="Support"
+                                color="brand.pink"
+                                icon={BiSupport}
+                            />
+                            <TabItem
+                                text="How To"
+                                color="brand.navy"
+                                icon={FiHelpCircle}
+                            />
                             <ColorModeButton />
                         </TabList>
 
@@ -275,8 +294,8 @@ const SettingsModal = ({
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}
                             >
-                                <GameEventsProvider 
-                                    isModalOpen={isOpen} 
+                                <GameEventsProvider
+                                    isModalOpen={isOpen}
                                     eventTypes={FINANCIAL_EVENT_TYPES}
                                 >
                                     <Ledger />

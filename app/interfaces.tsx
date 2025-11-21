@@ -23,9 +23,7 @@ export type AppState = {
     unreadMessageCount: number;
     isChatOpen: boolean; // Track if chat is currently open
     seatRequested: number | null;
-    isLeaveRequested: boolean;
     pendingPlayers: PendingPlayer[]; // Added for storing pending players
-    isSitOutNext: boolean;
     blindObligation: BlindObligation | null;
 };
 
@@ -44,6 +42,9 @@ export type Player = {
     bet: number;
     totalBet: number;
     cards: string[];
+    readyNextHand?: boolean;
+    sitOutNextHand?: boolean;
+    leaveAfterHand?: boolean;
 };
 
 export type Game = {

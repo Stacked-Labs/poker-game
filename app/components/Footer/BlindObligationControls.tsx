@@ -138,7 +138,7 @@ const BlindObligationControls = () => {
                 );
                 break;
             case 'sit_out':
-                playerSetReady(socket, false);
+                playerSetReady(socket);
                 dispatch({ type: 'clearBlindObligation' });
                 toast.info(
                     'Sitting out',

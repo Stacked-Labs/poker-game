@@ -4,7 +4,6 @@ import {
     requestLeave,
     sendLog,
 } from './server_actions';
-import { ACTIONTYPE } from '../contexts/AppStoreProvider';
 
 export const handleLeaveTable = (
     socket: WebSocket | null,
@@ -14,14 +13,21 @@ export const handleLeaveTable = (
         description?: string,
         duration?: number,
         id?: string
-    ) => void
+    ) => void,
+    isLeaveRequested?: boolean
 ) => {
     if (socket != null && username != null) {
+        const isCancelling = Boolean(isLeaveRequested);
         requestLeave(socket);
-        sendLog(socket, `${username} requested to leave the table`);
+        const logMessage = isCancelling
+            ? `${username} canceled their leave request`
+            : `${username} requested to leave the table`;
+        sendLog(socket, logMessage);
         toast(
-            'Leave request sent',
-            'You will be removed after this hand.',
+            isCancelling ? 'Leave request canceled' : 'Leave request sent',
+            isCancelling
+                ? 'You will remain in your seat.'
+                : 'You will leave after this hand (or immediately between hands).',
             5000
         );
     }
@@ -29,7 +35,6 @@ export const handleLeaveTable = (
 
 export const handleSitOutNext = (
     socket: WebSocket | null,
-    dispatch: (value: ACTIONTYPE) => void,
     toast: (
         title: string,
         description?: string,
@@ -40,7 +45,6 @@ export const handleSitOutNext = (
     if (!socket) return;
     playerSitOutNext(socket);
     toast('Away...', '', 3000);
-    dispatch({ type: 'setIsSitOutNext', payload: true });
 };
 
 export const handleReturnReady = (
@@ -53,6 +57,20 @@ export const handleReturnReady = (
     ) => void
 ) => {
     if (!socket) return;
-    playerSetReady(socket, true);
+    playerSetReady(socket);
     toast("I'm Back", '', 3000);
+};
+
+export const handleCancelRejoin = (
+    socket: WebSocket | null,
+    toast: (
+        title: string,
+        description?: string,
+        duration?: number,
+        id?: string
+    ) => void
+) => {
+    if (!socket) return;
+    playerSetReady(socket);
+    toast('Rejoin Cancelled', '', 3000);
 };

@@ -13,9 +13,7 @@ const initialState: AppState = {
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,
-    isLeaveRequested: false,
     pendingPlayers: [],
-    isSitOutNext: false,
     blindObligation: null,
 };
 
@@ -32,9 +30,7 @@ export type ACTIONTYPE =
     | { type: 'resetUnreadCount' }
     | { type: 'setChatOpen'; payload: boolean }
     | { type: 'setSeatRequested'; payload: number | null }
-    | { type: 'setIsLeaveRequested'; payload: boolean }
     | { type: 'setPendingPlayers'; payload: PendingPlayer[] }
-    | { type: 'setIsSitOutNext'; payload: boolean }
     | { type: 'setBlindObligation'; payload: AppState['blindObligation'] }
     | { type: 'clearBlindObligation' };
 
@@ -83,12 +79,8 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, isChatOpen: action.payload };
         case 'setSeatRequested':
             return { ...state, seatRequested: action.payload };
-        case 'setIsLeaveRequested':
-            return { ...state, isLeaveRequested: action.payload };
         case 'setPendingPlayers':
             return { ...state, pendingPlayers: action.payload };
-        case 'setIsSitOutNext':
-            return { ...state, isSitOutNext: action.payload };
         case 'setBlindObligation':
             return { ...state, blindObligation: action.payload };
         case 'clearBlindObligation':

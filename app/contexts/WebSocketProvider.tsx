@@ -276,19 +276,6 @@ export function SocketProvider(props: SocketProviderProps) {
                         };
 
                         dispatch({ type: 'addLog', payload: newLog });
-
-                        // Check if the log message contains a confirmation of leave request
-                        if (
-                            eventData.message.includes(
-                                'Request to leave table'
-                            ) &&
-                            eventData.message.includes('received')
-                        ) {
-                            dispatch({
-                                type: 'setIsLeaveRequested',
-                                payload: true,
-                            });
-                        }
                         return;
                     }
                     case 'update-game': {
@@ -333,23 +320,13 @@ export function SocketProvider(props: SocketProviderProps) {
                                 payload: null,
                             });
                         }
-                        
-                        // If player was previously marked as leaving but is now seated, reset the leave flag
-                        if (
-                            isPlayerSeated &&
-                            appStateRef.current.isLeaveRequested
-                        ) {
-                            dispatch({
-                                type: 'setIsLeaveRequested',
-                                payload: false,
-                            });
-                        }
 
                         // Update blind obligation helper for the local seat
                         const localPlayer = eventData.game.players?.find(
                             (p: Player) =>
                                 p.uuid === appStateRef.current.clientID
                         );
+
                         const seatIndex = localPlayer
                             ? localPlayer.seatID - 1
                             : -1;
@@ -371,7 +348,11 @@ export function SocketProvider(props: SocketProviderProps) {
                         if (localPlayer && (owesSB || owesBB || waitingForBB)) {
                             const existingOptions =
                                 appStateRef.current.blindObligation?.options ??
-                                (['post_now', 'wait_bb', 'sit_out'] as BlindObligationOptions[]);
+                                ([
+                                    'post_now',
+                                    'wait_bb',
+                                    'sit_out',
+                                ] as BlindObligationOptions[]);
                             dispatch({
                                 type: 'setBlindObligation',
                                 payload: {
@@ -413,7 +394,11 @@ export function SocketProvider(props: SocketProviderProps) {
                                 waitingForBB: Boolean(eventData.waitingForBB),
                                 options: Array.isArray(eventData.options)
                                     ? eventData.options
-                                    : (['post_now', 'wait_bb', 'sit_out'] as BlindObligationOptions[]),
+                                    : ([
+                                          'post_now',
+                                          'wait_bb',
+                                          'sit_out',
+                                      ] as BlindObligationOptions[]),
                             },
                         });
                         return;

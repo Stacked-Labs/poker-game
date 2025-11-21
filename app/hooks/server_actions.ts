@@ -143,10 +143,10 @@ export function playerSitOutNext(socket: WebSocket) {
 }
 
 // Set readiness; typically used to return from away between hands
-export function playerSetReady(socket: WebSocket, ready: boolean) {
+// Now works as a toggle - backend handles the state change
+export function playerSetReady(socket: WebSocket) {
     sendWebSocketMessage(socket, {
         action: 'player-set-ready',
-        ready,
     });
 }
 

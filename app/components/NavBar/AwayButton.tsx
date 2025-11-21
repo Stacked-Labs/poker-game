@@ -5,54 +5,96 @@ import { FaUserCheck, FaCoffee } from 'react-icons/fa';
 
 interface AwayButtonProps {
     isAway: boolean | undefined;
-    sitOutPending: boolean;
+    sitOutNextHand?: boolean;
+    readyNextHand?: boolean;
     handleReturnReady: () => void;
     handleSitOutNext: () => void;
+    handleCancelRejoin: () => void;
 }
 
 const AwayButton = ({
     isAway,
-    sitOutPending,
+    sitOutNextHand,
+    readyNextHand,
     handleReturnReady,
     handleSitOutNext,
+    handleCancelRejoin,
 }: AwayButtonProps) => {
+    // State 1: Away & Requested to Rejoin -> Show "Cancel Rejoin"
+    if (isAway && readyNextHand) {
+        return (
+            <Tooltip label="Cancel request to rejoin" aria-label="Cancel rejoin">
+                <IconButton
+                    icon={<Icon as={FaCoffee} boxSize={{ base: 5, md: 6 }} />}
+                    aria-label="Cancel rejoin"
+                    size="lg"
+                    onClick={handleCancelRejoin}
+                    bg="brand.green"
+                    color="white"
+                    border="none"
+                    borderRadius="12px"
+                    _hover={{
+                        bg: 'brand.navy',
+                        color: 'white',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(54, 163, 123, 0.4)',
+                    }}
+                    transition="all 0.2s ease"
+                />
+            </Tooltip>
+        );
+    }
+
+    // State 2: Away & Not Requested -> Show "I'm Back"
+    if (isAway) {
+        return (
+            <Tooltip label="I'm back" aria-label="I'm back">
+                <IconButton
+                    icon={<Icon as={FaUserCheck} boxSize={{ base: 5, md: 6 }} />}
+                    aria-label="I'm back"
+                    size="lg"
+                    onClick={handleReturnReady}
+                    bg="brand.green"
+                    color="white"
+                    border="none"
+                    borderRadius="12px"
+                    _hover={{
+                        bg: 'brand.navy',
+                        color: 'white',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(54, 163, 123, 0.4)',
+                    }}
+                    transition="all 0.2s ease"
+                />
+            </Tooltip>
+        );
+    }
+
+    // State 3: Playing & Sit Out Next -> Show "Cancel Sit Out"
+    // State 4: Playing & Normal -> Show "Sit Out Next Hand"
+    const isSitOutNext = sitOutNextHand;
+
     return (
         <Tooltip
-            label={
-                isAway
-                    ? "I'm back"
-                    : sitOutPending
-                      ? 'Sit out requested – will apply next hand'
-                      : 'Sit out next hand'
-            }
+            label={isSitOutNext ? 'Cancel sit out request' : 'Sit out next hand'}
             aria-label="Away toggle"
         >
             <IconButton
-                icon={
-                    <Icon
-                        as={isAway ? FaUserCheck : FaCoffee}
-                        boxSize={{ base: 5, md: 6 }}
-                    />
-                }
-                aria-label={isAway ? "I'm back" : 'Sit out next hand'}
+                icon={<Icon as={FaCoffee} boxSize={{ base: 5, md: 6 }} />}
+                aria-label={isSitOutNext ? 'Cancel sit out' : 'Sit out next hand'}
                 size="lg"
-                onClick={isAway ? handleReturnReady : handleSitOutNext}
-                isDisabled={!isAway && sitOutPending}
-                bg={isAway ? 'brand.green' : 'btn.lightGray'}
-                color={isAway ? 'white' : 'text.secondary'}
+                onClick={handleSitOutNext}
+                bg={isSitOutNext ? 'brand.pink' : 'btn.lightGray'}
+                color={isSitOutNext ? 'white' : 'text.secondary'}
                 border="none"
                 borderRadius="12px"
                 _hover={{
-                    bg: isAway ? 'brand.green' : 'brand.navy',
+                    bg: isSitOutNext ? 'brand.pink' : 'brand.navy',
                     color: 'white',
                     transform: 'translateY(-2px)',
-                    boxShadow: isAway
-                        ? '0 4px 12px rgba(54, 163, 123, 0.4)'
+                    boxShadow: isSitOutNext
+                        ? '0 4px 12px rgba(253, 197, 29, 0.4)'
                         : '0 4px 12px rgba(51, 68, 121, 0.3)',
-                }}
-                _disabled={{
-                    opacity: 0.5,
-                    cursor: 'not-allowed',
                 }}
                 transition="all 0.2s ease"
             />

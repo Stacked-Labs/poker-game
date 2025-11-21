@@ -11,7 +11,7 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { FiSettings, FiMessageSquare, FiLogOut } from 'react-icons/fi';
+import { FiSettings, FiMessageSquare } from 'react-icons/fi';
 import WalletButton from '../WalletButton';
 import SettingsModal from './Settings/SettingsModal';
 import SideBarChat from './Chat/SideBarChat';
@@ -30,6 +30,7 @@ import {
     handleReturnReady,
     handleSitOutNext,
     handleLeaveTable,
+    handleCancelRejoin,
 } from '@/app/hooks/useTableOptions';
 import TableMenuBurger from './TableMenuBurger';
 import AwayButton from './AwayButton';
@@ -65,18 +66,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
         (p) => p.uuid === appState.clientID
     );
     const isAway = !!localPlayer && localPlayer.stack > 0 && !localPlayer.ready;
-
-    const sitOutPending = appState.isSitOutNext;
-
-    // Reset pending flag once away state takes effect or player leaves seat
-    useEffect(() => {
-        if (isAway && sitOutPending) {
-            dispatch({ type: 'setIsSitOutNext', payload: false });
-        }
-        if (!localPlayer && sitOutPending) {
-            dispatch({ type: 'setIsSitOutNext', payload: false });
-        }
-    }, [isAway, localPlayer, sitOutPending]);
+    const leaveAfterHandRequested = Boolean(localPlayer?.leaveAfterHand);
 
     // Trigger animation when pendingCount changes
     useEffect(() => {
@@ -182,12 +172,16 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                         <Box display={{ base: 'none', md: 'block' }}>
                             <AwayButton
                                 isAway={isAway}
-                                sitOutPending={appState.isSitOutNext}
+                                sitOutNextHand={localPlayer?.sitOutNextHand}
+                                readyNextHand={localPlayer?.readyNextHand}
                                 handleReturnReady={() =>
                                     handleReturnReady(socket, info)
                                 }
                                 handleSitOutNext={() =>
-                                    handleSitOutNext(socket, dispatch, info)
+                                    handleSitOutNext(socket, info)
+                                }
+                                handleCancelRejoin={() =>
+                                    handleCancelRejoin(socket, info)
                                 }
                             />
                         </Box>
@@ -264,12 +258,13 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                         <Box display={{ base: 'none', md: 'block' }}>
                             <LeaveButton
                                 isUserSeated
-                                isLeaveRequested={appState.isLeaveRequested}
+                                isLeaveRequested={leaveAfterHandRequested}
                                 handleLeaveTable={() =>
                                     handleLeaveTable(
                                         socket,
                                         appState.username,
-                                        info
+                                        info,
+                                        leaveAfterHandRequested
                                     )
                                 }
                             />

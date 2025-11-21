@@ -140,6 +140,9 @@ const TakenSeatButton = ({
         ? `${address.slice(0, 2)}...${address.slice(-2)}`
         : '0x00...00';
     const isMobile = useBreakpointValue({ base: true, lg: false }) ?? true;
+    const isSelf = appState.clientID
+        ? player.uuid === appState.clientID
+        : false;
 
     const chipPositions: {
         [key: number]: {
@@ -421,7 +424,7 @@ const TakenSeatButton = ({
                 marginTop={{ base: 0, md: '12px' }}
             >
                 {appState.game.running &&
-                    player.ready &&
+                    Number(player.cards[0]) !== -1 &&
                     player.cards.map((card: Card, index: number) => {
                         // Determine if we are in showdown state
                         const isShowdown = Boolean(
@@ -569,24 +572,77 @@ const TakenSeatButton = ({
                             : 'none'
                     }
                 >
-                    {/* Away badge rendered above the container without affecting layout */}
-                    {player.stack > 0 && !player.ready && (
+                    {/* Status badges rendered above the container without affecting layout */}
+                    {player.stack > 0 &&
+                        !player.ready &&
+                        (!isSelf || !player.in) && (
+                            <Tag
+                                position="absolute"
+                                top={{ base: -2, md: -3 }}
+                                right={0}
+                                bg={
+                                    player.readyNextHand
+                                        ? 'brand.lightGray'
+                                        : 'brand.yellow'
+                                }
+                                color={
+                                    player.readyNextHand
+                                        ? 'brand.darkNavy'
+                                        : 'text.secondary'
+                                }
+                                variant="solid"
+                                size={{ base: 'xs', md: 'sm' }}
+                                fontSize={{ base: '8px', md: 'sm' }}
+                                px={{ base: 1, md: 1 }}
+                                py={{ base: 0.1, md: 0.2 }}
+                                zIndex={3}
+                                fontWeight="bold"
+                                borderRadius="6px"
+                            >
+                                {player.readyNextHand
+                                    ? 'Joining next hand'
+                                    : 'Away'}
+                            </Tag>
+                        )}
+                    {player.sitOutNextHand &&
+                        player.ready &&
+                        (!isSelf || !player.in) && (
+                            <Tag
+                                position="absolute"
+                                top={{ base: -2, md: -3 }}
+                                right={0}
+                                bg="brand.lightGray"
+                                color="brand.darkNavy"
+                                variant="solid"
+                                size={{ base: 'xs', md: 'sm' }}
+                                fontSize={{ base: '8px', md: 'sm' }}
+                                px={{ base: 1, md: 1 }}
+                                py={{ base: 0.1, md: 0.2 }}
+                                zIndex={3}
+                                fontWeight="bold"
+                                borderRadius="6px"
+                            >
+                                Sitting out..
+                            </Tag>
+                        )}
+                    {player.leaveAfterHand && (!isSelf || !player.in) && (
                         <Tag
                             position="absolute"
                             top={{ base: -2, md: -3 }}
-                            right={0}
-                            bg="brand.yellow"
-                            color="text.secondary"
+                            left={0}
+                            bg="brand.pink"
+                            color="white"
                             variant="solid"
                             size={{ base: 'xs', md: 'sm' }}
                             fontSize={{ base: '8px', md: 'sm' }}
-                            px={{ base: 1, md: 1 }}
+                            px={{ base: 1, md: 2 }}
                             py={{ base: 0.1, md: 0.2 }}
                             zIndex={3}
                             fontWeight="bold"
                             borderRadius="6px"
+                            boxShadow="0 2px 8px rgba(235, 11, 92, 0.4)"
                         >
-                            Away
+                            Leaving soon
                         </Tag>
                     )}
                     {strengthLabel && (

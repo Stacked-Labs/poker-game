@@ -21,6 +21,7 @@ import {
     handleLeaveTable,
     handleReturnReady,
     handleSitOutNext,
+    handleCancelRejoin,
 } from '@/app/hooks/useTableOptions';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -55,12 +56,16 @@ const TableMenuBurger = ({
     isUserSeated: boolean | undefined;
     isAway: boolean | undefined;
 }) => {
-    const { appState, dispatch } = useContext(AppContext);
+    const { appState } = useContext(AppContext);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const isMobile = useBreakpointValue({ base: true, lg: false }) ?? true;
     const socket = useContext(SocketContext);
     const { info } = useToastHelper();
     const isOwner = useIsTableOwner();
+    const localPlayer = appState.game?.players?.find(
+        (p) => p.uuid === appState.clientID
+    );
+    const leaveAfterHandRequested = Boolean(localPlayer?.leaveAfterHand);
 
     if (!isMobile || !socket) return null;
 
@@ -110,12 +115,16 @@ const TableMenuBurger = ({
                         button={
                             <AwayButton
                                 isAway={isAway}
-                                sitOutPending={appState.isSitOutNext}
+                                sitOutNextHand={localPlayer?.sitOutNextHand}
+                                readyNextHand={localPlayer?.readyNextHand}
                                 handleReturnReady={() =>
                                     handleReturnReady(socket, info)
                                 }
                                 handleSitOutNext={() =>
-                                    handleSitOutNext(socket, dispatch, info)
+                                    handleSitOutNext(socket, info)
+                                }
+                                handleCancelRejoin={() =>
+                                    handleCancelRejoin(socket, info)
                                 }
                             />
                         }
@@ -183,12 +192,13 @@ const TableMenuBurger = ({
                         button={
                             <LeaveButton
                                 isUserSeated
-                                isLeaveRequested={appState.isLeaveRequested}
+                                isLeaveRequested={leaveAfterHandRequested}
                                 handleLeaveTable={() =>
                                     handleLeaveTable(
                                         socket,
                                         appState.username,
-                                        info
+                                        info,
+                                        leaveAfterHandRequested
                                     )
                                 }
                             />

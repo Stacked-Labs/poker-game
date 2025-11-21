@@ -1,6 +1,6 @@
 'use client';
 
-import { Tooltip, IconButton, Icon } from '@chakra-ui/react';
+import { Tooltip, IconButton, Icon, useColorModeValue } from '@chakra-ui/react';
 import { FiLogOut } from 'react-icons/fi';
 
 interface LeaveButtonProps {
@@ -14,31 +14,48 @@ const LeaveButton = ({
     isLeaveRequested,
     handleLeaveTable,
 }: LeaveButtonProps) => {
+    const tooltipLabel = isLeaveRequested
+        ? 'Cancel leave request'
+        : 'Leave after this hand';
+    const buttonLabel = isLeaveRequested
+        ? 'Cancel leave request'
+        : 'Leave Table';
+    const defaultBg = useColorModeValue('brand.lightGray', 'charcoal.600');
+    const bgColor = isLeaveRequested ? 'brand.pink' : defaultBg;
+    const iconColor = isLeaveRequested ? 'white' : 'brand.pink';
+    const hoverShadow = isLeaveRequested
+        ? '0 4px 12px rgba(235, 11, 92, 0.4)'
+        : '0 4px 12px rgba(235, 11, 92, 0.4)';
+
     if (!isUserSeated) return null;
 
     return (
-        <Tooltip
-            label={
-                isLeaveRequested ? 'Leaving after this hand...' : 'Leave Table'
-            }
-        >
+        <Tooltip label={tooltipLabel}>
             <IconButton
                 icon={<Icon as={FiLogOut} boxSize={{ base: 5, md: 6 }} />}
-                aria-label="Leave Table"
+                aria-label={buttonLabel}
+                aria-pressed={isLeaveRequested}
                 size="lg"
                 onClick={handleLeaveTable}
-                isDisabled={isLeaveRequested}
-                bg={isLeaveRequested ? 'gray.300' : 'brand.pink'}
-                color="white"
+                bg={bgColor}
                 border="none"
                 borderRadius="12px"
-                opacity={isLeaveRequested ? 0.6 : 1}
                 _hover={{
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(235, 11, 92, 0.4)',
+                    boxShadow: hoverShadow,
+                    bg: 'brand.pink',
                 }}
                 _disabled={{
                     cursor: 'not-allowed',
+                }}
+                sx={{
+                    svg: {
+                        color: iconColor,
+                        transition: 'color 0.2s ease',
+                    },
+                    '&:hover svg': {
+                        color: 'white',
+                    },
                 }}
                 transition="all 0.2s ease"
             />

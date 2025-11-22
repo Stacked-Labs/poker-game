@@ -46,3 +46,24 @@ export default function RootLayout({
         </html>
     );
 }
+
+export async function generateMetadata(): Promise<Metadata> {
+    return {
+        other: {
+            'fc:miniapp': JSON.stringify({
+                version: 'next',
+                imageUrl: 'https://your-app.com/embed-image',
+                button: {
+                    title: `Launch Your App Name`,
+                    action: {
+                        type: 'launch_miniapp',
+                        name: 'Your App Name',
+                        url: 'https://your-app.com',
+                        splashImageUrl: 'https://your-app.com/splash-image',
+                        splashBackgroundColor: '#000000',
+                    },
+                },
+            }),
+        },
+    };
+}

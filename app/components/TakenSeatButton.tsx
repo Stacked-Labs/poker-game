@@ -328,17 +328,19 @@ const TakenSeatButton = ({
         if (!game) return null;
         const board = (game.communityCards || [])
             .map((c) => Number(c))
-            .filter(Boolean);
-        const hole = (player.cards || []).map((c) => Number(c)).filter(Boolean);
+            .filter((c) => c > 0); // Filter out 0 and negative values
+        const hole = (player.cards || [])
+            .map((c) => Number(c))
+            .filter((c) => c > 0); // Filter out 0 and negative values (e.g., -1 for away players)
 
         // Visibility rules:
         // - Self or any player: only show once board has at least the flop (3 cards)
-        // - Others: additionally require both hole cards to be non-zero (visible)
+        // - Others: additionally require both hole cards to be valid positive numbers (visible)
         const boardHasFlop = board.length >= 3;
         if (!boardHasFlop) return null;
 
-        const bothHoleVisible =
-            hole.length >= 2 && hole[0] !== 0 && hole[1] !== 0;
+        // Check if both hole cards are valid (positive numbers, not -1 or 0)
+        const bothHoleVisible = hole.length >= 2 && hole[0] > 0 && hole[1] > 0;
 
         // Determine if this seat is "self" by matching uuid against clientID when available
         const isSelf = appState.clientID
@@ -346,6 +348,9 @@ const TakenSeatButton = ({
             : false;
 
         if (!isSelf && !bothHoleVisible) return null;
+
+        // Only evaluate hand if we have valid hole cards
+        if (!bothHoleVisible) return null;
 
         const label = currentHandLabel(hole as number[], board as number[]);
         return label ?? null;

@@ -109,7 +109,11 @@ const EmptySeatButton = ({
                     position="absolute"
                     top={{ base: '4px', sm: '6px', md: '8px' }}
                     left={{ base: '6px', sm: '8px', md: '10px' }}
-                    color="text.secondary"
+                    color={
+                        isHovered && !disabled
+                            ? 'brand.green'
+                            : 'text.secondary'
+                    }
                     fontSize={{ base: 'sm', sm: 'md', md: 'lg' }}
                     fontWeight="black"
                     lineHeight="1"
@@ -190,26 +194,6 @@ const EmptySeatButton = ({
                             }
                         />
                     </Box>
-
-                    {/* Hint Text */}
-                    {isHovered && !disabled && (
-                        <Text
-                            color="white"
-                            fontSize={{
-                                base: '2xs',
-                                sm: 'xs',
-                                md: 'sm',
-                                lg: 'md',
-                            }}
-                            fontWeight="bold"
-                            textShadow="0 2px 8px rgba(0, 0, 0, 0.5)"
-                            animation={`${fadeIn} 0.3s ease-out`}
-                            letterSpacing="wide"
-                            display={{ base: 'none', sm: 'block' }}
-                        >
-                            Join
-                        </Text>
-                    )}
                 </Box>
             </MotionButton>
             <TakeSeatModal isOpen={isOpen} onClose={onClose} seatId={seatId} />

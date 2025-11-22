@@ -3,7 +3,14 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import Navbar from '@/app/components/NavBar';
-import { Flex, Modal, Text, useDisclosure, Box, Heading } from '@chakra-ui/react';
+import {
+    Flex,
+    Modal,
+    Text,
+    useDisclosure,
+    Box,
+    Heading,
+} from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
@@ -107,7 +114,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                 h="var(--full-vh)"
                 zIndex="auto"
                 transformOrigin="center center"
-                bg={loading ? 'charcoal.400' : 'bg.default'}
+                bg="bg.default"
                 filter={loading ? 'blur(3px)' : 'none'}
                 transition="0.5s ease-in-out"
                 position="relative"
@@ -194,8 +201,10 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                         <Flex
                             flex={1}
                             direction={'column'}
-                            filter={appState.game?.paused ? 'blur(4px)' : 'none'}
-                            transition='filter 0.3s ease-in-out'
+                            filter={
+                                appState.game?.paused ? 'blur(4px)' : 'none'
+                            }
+                            transition="filter 0.3s ease-in-out"
                             height={'full'}
                             gap={4}
                         >

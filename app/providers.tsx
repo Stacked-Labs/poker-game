@@ -15,8 +15,14 @@ import {
     TOAST_BANNER_DURATION_MS,
     TOAST_BANNER_POSITION,
 } from './utils/toastDefaults';
+import { sdk } from '@farcaster/miniapp-sdk';
+import { useEffect } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+    useEffect(() => {
+        sdk.actions.ready();
+    }, []);
+
     return (
         <CacheProvider>
             <ChakraProvider

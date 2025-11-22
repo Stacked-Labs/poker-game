@@ -10,8 +10,15 @@ import { SoundProvider } from '@/app/contexts/SoundProvider';
 import { AuthProvider } from '@/app/contexts/AuthContext';
 import { AutoConnect, ThirdwebProvider } from 'thirdweb/react';
 import { client } from './thirdwebclient';
+import { sdk } from '@farcaster/miniapp-sdk';
+import { useEffect } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+
+    useEffect(() => {
+        sdk.actions.ready();
+    }, []);
+
     return (
         <CacheProvider>
             <ChakraProvider

@@ -3,6 +3,7 @@ import { Providers } from './providers';
 import { Libre_Barcode_39_Text, Poppins } from 'next/font/google';
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import React from 'react';
+import type { Metadata } from 'next';
 
 const poppins = Poppins({
     subsets: ['latin'],
@@ -17,6 +18,27 @@ const libreBarcode = Libre_Barcode_39_Text({
     display: 'swap',
     variable: '--font-barcode',
 });
+
+export async function generateMetadata(): Promise<Metadata> {
+    return {
+        other: {
+            'fc:miniapp': JSON.stringify({
+                version: 'next',
+                imageUrl: 'https://images.pexels.com/photos/34194627/pexels-photo-34194627.jpeg', // Placeholder for testing
+                button: {
+                    title: 'Stacked Poker',
+                    action: {
+                        type: 'launch_miniapp',
+                        name: 'Stacked Poker',
+                        url: 'https://throneless-leadingly-rob.ngrok-free.dev', // This is a placeholder for testing, replace with actual stacked URL.
+                        splashImageUrl: 'https://images.pexels.com/photos/34194627/pexels-photo-34194627.jpeg', // Placeholder for testing
+                        splashBackgroundColor: '#000000', // Placeholder for testing
+                    },
+                },
+            }),
+        },
+    };
+}
 
 export default function RootLayout({
     children,
@@ -47,23 +69,3 @@ export default function RootLayout({
     );
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-    return {
-        other: {
-            'fc:miniapp': JSON.stringify({
-                version: 'next',
-                imageUrl: 'https://your-app.com/embed-image',
-                button: {
-                    title: `Launch Your App Name`,
-                    action: {
-                        type: 'launch_miniapp',
-                        name: 'Your App Name',
-                        url: 'https://your-app.com',
-                        splashImageUrl: 'https://your-app.com/splash-image',
-                        splashBackgroundColor: '#000000',
-                    },
-                },
-            }),
-        },
-    };
-}

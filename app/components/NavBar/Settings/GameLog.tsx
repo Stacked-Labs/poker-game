@@ -55,6 +55,7 @@ interface HandConcludedMetadata {
 interface PlayerJoinedMetadata {
     seat_id: number;
     buy_in: number | string;
+    player_name?: string;
 }
 
 interface GamePausedMetadata {
@@ -82,6 +83,12 @@ interface PlayerLeftMetadata {
     player_name?: string;
     reason?: string;
     final_stack?: number;
+}
+
+interface PlayerEliminatedMetadata {
+    player_name?: string;
+    seat_id?: number;
+    hand_number?: number;
 }
 
 // Helper function to convert backend card string to EvalCard format
@@ -723,9 +730,10 @@ const GameLog = () => {
 
             case 'player_joined': {
                 const meta = metadata as Partial<PlayerJoinedMetadata>;
+                const displayName = player_name || meta.player_name || 'Player';
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        {displayName}{' '}
                         <Text as="span" color="green.600" fontWeight="bold">
                             joined
                         </Text>
@@ -779,6 +787,29 @@ const GameLog = () => {
                                     : meta.reason.replace(/_/g, ' ')}
                                 )
                             </Text>
+                        )}
+                    </>
+                );
+            }
+
+            case 'player_eliminated': {
+                const meta = metadata as Partial<PlayerEliminatedMetadata>;
+                const displayName = player_name || meta.player_name || 'Player';
+                const handRef = meta.hand_number ?? event.hand_id;
+                return (
+                    <>
+                        <Text as="span" color="red.600" fontWeight="bold">
+                            {displayName}
+                        </Text>{' '}
+                        was eliminated
+                        {meta.seat_id !== undefined && (
+                            <> (Seat {meta.seat_id})</>
+                        )}
+                        {handRef !== undefined && handRef !== null && (
+                            <>
+                                {' '}
+                                before Hand #{handRef}
+                            </>
                         )}
                     </>
                 );
@@ -907,18 +938,6 @@ const GameLog = () => {
                         <Text as="span" color="orange.500" fontWeight="bold">
                             set away
                         </Text>
-                    </>
-                );
-            }
-
-            case 'player_sit_out_next': {
-                return (
-                    <>
-                        {player_name || 'Player'}{' '}
-                        <Text as="span" color="orange.600" fontWeight="bold">
-                            will sit out
-                        </Text>{' '}
-                        next hand
                     </>
                 );
             }

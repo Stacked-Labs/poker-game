@@ -111,17 +111,34 @@ export type PendingPlayer = {
 };
 
 // Event History Types
-export type EventType = 
-  // Player management
-  | 'player_joined' | 'player_left' | 'player_kicked' | 'player_accepted' 
-  | 'player_denied' | 'player_set_ready' | 'player_set_away' | 'player_sit_out_next'
-  // Game events
-  | 'hand_started' | 'cards_dealt' | 'flop_dealt' | 'turn_dealt' 
-  | 'river_dealt' | 'hand_concluded' | 'pot_awarded'
-  // Player actions
-  | 'fold' | 'check' | 'call' | 'bet' | 'raise' | 'all_in'
-  // Meta events
-  | 'game_paused' | 'game_resumed';
+export type EventType =
+    // Player management
+    | 'player_joined'
+    | 'player_left'
+    | 'player_kicked'
+    | 'player_accepted'
+    | 'player_denied'
+    | 'player_set_ready'
+    | 'player_set_away'
+    | 'player_eliminated'
+    // Game events
+    | 'hand_started'
+    | 'cards_dealt'
+    | 'flop_dealt'
+    | 'turn_dealt'
+    | 'river_dealt'
+    | 'hand_concluded'
+    | 'pot_awarded'
+    // Player actions
+    | 'fold'
+    | 'check'
+    | 'call'
+    | 'bet'
+    | 'raise'
+    | 'all_in'
+    // Meta events
+    | 'game_paused'
+    | 'game_resumed';
 
 export type GameEventRecord = {
     id: number;

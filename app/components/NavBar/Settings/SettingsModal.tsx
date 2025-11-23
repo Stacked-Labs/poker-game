@@ -168,7 +168,6 @@ const SettingsModal = ({
                                 color="text.gray600"
                                 _hover={{
                                     bg: 'brand.pink',
-                                    transform: 'translateY(-2px)',
                                     boxShadow:
                                         '0 4px 8px rgba(235, 11, 92, 0.2)',
                                 }}
@@ -205,7 +204,6 @@ const SettingsModal = ({
                                 _hover={{
                                     bg: 'white',
                                     color: 'brand.green',
-                                    transform: 'translateY(-2px)',
                                     boxShadow:
                                         '0 4px 8px rgba(54, 163, 123, 0.2)',
                                 }}

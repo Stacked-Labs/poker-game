@@ -63,7 +63,7 @@ const nextConfig = {
         return [
             {
                 source: '/.well-known/farcaster.json',
-                destination: '/well-known/farcaster'
+                destination: '/well-known'
             },
         ];
     },

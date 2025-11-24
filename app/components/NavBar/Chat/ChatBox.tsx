@@ -1,6 +1,6 @@
 import { Box, Input, IconButton, Text, Flex } from '@chakra-ui/react';
 import { IoIosSend } from 'react-icons/io';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { sendMessage } from '@/app/hooks/server_actions';
@@ -59,11 +59,28 @@ function getColorForUsername(username: string): string {
     return usernameColorMap[username];
 }
 
-const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
+const Chatbox = ({
+    onToggle,
+    shouldAutoFocus = false,
+}: {
+    onToggle: () => void;
+    shouldAutoFocus?: boolean;
+}) => {
     const socket = useContext(SocketContext);
     const [message, setMessage] = useState('');
     const appState = useContext(AppContext);
     const { username, clientID } = appState.appState;
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        if (!shouldAutoFocus) {
+            return;
+        }
+
+        if ((username || clientID) && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [username, clientID, shouldAutoFocus]);
 
     const handleSendMessage = () => {
         console.log(appState.appState);
@@ -143,13 +160,18 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                 {appState.appState.messages.map((msg, index) => (
                     <Box
                         key={index}
-                        mb={3}
-                        p={3}
-                        borderRadius="12px"
-                        bg="input.lightGray"
+                        mb={0}
+                        py={2}
+                        px={4}
+                        mx={-4}
+                        borderRadius="0"
+                        bg={index % 2 === 0 ? 'input.lightGray' : 'white'}
                         transition="all 0.2s ease"
                         _hover={{
-                            bg: "card.lightGray",
+                            bg:
+                                index % 2 === 0
+                                    ? 'card.lightGray'
+                                    : 'white',
                         }}
                     >
                         <Text
@@ -182,6 +204,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
             >
                 <Flex gap={2} alignItems="center">
                     <Input
+                        ref={inputRef}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Type a message..."
@@ -197,7 +220,7 @@ const Chatbox = ({ onToggle }: { onToggle: () => void }) => {
                         fontWeight="light"
                         px={4}
                         _placeholder={{
-                            color: "text.secondary",
+                            color: 'text.secondary',
                         }}
                         _focus={{
                             bg: 'input.white',

@@ -33,7 +33,7 @@ const SideBarChat = ({
             borderLeft="1px solid"
             borderColor="rgba(0, 0, 0, 0.08)"
         >
-            <Chatbox onToggle={onToggle} />
+            <Chatbox onToggle={onToggle} shouldAutoFocus={isOpen} />
         </Flex>
     );
 };

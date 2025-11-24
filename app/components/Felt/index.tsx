@@ -3,7 +3,7 @@ import React from 'react';
 import Pot from './Pot';
 import CommunityCards from './CommunityCards';
 
-const Felt = () => {
+const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
     return (
         <Flex
             className="felt-container"
@@ -14,8 +14,8 @@ const Felt = () => {
             position={'relative'}
             gap={{ base: 1, md: 2, lg: 3 }}
         >
-            <Pot />
-            <CommunityCards />
+            <Pot activePotIndex={activePotIndex} />
+            <CommunityCards activePotIndex={activePotIndex} />
         </Flex>
     );
 };

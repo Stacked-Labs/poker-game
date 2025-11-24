@@ -1,18 +1,33 @@
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Box } from '@chakra-ui/react';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CardComponent from '../Card';
 
-const CommunityCards = () => {
+const CommunityCards = ({
+    activePotIndex,
+}: {
+    activePotIndex: number | null;
+}) => {
     const { appState } = useContext(AppContext);
     const communityCards = appState.game?.communityCards;
-    const potWithWinningHand = appState.game?.pots?.find(
-        (pot) => pot.winningHand && pot.winningHand.length > 0
-    );
-    const winningHand = potWithWinningHand?.winningHand ?? [];
+    const resolvedPot = useMemo(() => {
+        if (
+            typeof activePotIndex === 'number' &&
+            activePotIndex >= 0 &&
+            appState.game?.pots &&
+            appState.game.pots[activePotIndex]
+        ) {
+            return appState.game.pots[activePotIndex];
+        }
+        return appState.game?.pots?.find(
+            (pot) => pot.winningHand && pot.winningHand.length > 0
+        );
+    }, [activePotIndex, appState.game?.pots]);
+    const winningHand = resolvedPot?.winningHand ?? [];
     const winningSet = new Set<number>(
         winningHand.map((c: number | string) => Number(c))
     );
+    const hasWinningCombination = winningSet.size > 0;
 
     const isGameRunning = appState.game?.running;
 
@@ -124,6 +139,8 @@ const CommunityCards = () => {
                                 )
                             )}
                             dimmed={
+                                // Only dim when we actually know which cards won
+                                hasWinningCombination &&
                                 // Showdown is when game is at stage 1, not betting, and we have pots
                                 Boolean(
                                     appState.game &&

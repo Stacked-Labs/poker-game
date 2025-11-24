@@ -127,12 +127,14 @@ const TakenSeatButton = ({
     isWinner,
     isRevealed,
     winnings,
+    activePotIndex,
 }: {
     player: Player;
     isCurrentTurn: boolean;
     isWinner: boolean;
     isRevealed: boolean;
     winnings: number;
+    activePotIndex: number | null;
 }) => {
     const { appState } = useContext(AppContext);
     const address = player?.address;
@@ -234,12 +236,6 @@ const TakenSeatButton = ({
     const defaultPosition = { top: '100%', flexDirection: 'row' };
     const chipPosition = chipPositions[player?.seatID || 4] || defaultPosition;
 
-    const glowAnimation = isCurrentTurn
-        ? `${pulsePinkGlow} 2s ease-in-out 0.2s infinite`
-        : isWinner
-          ? `${pulseYellowGlow} 2s ease-in-out 0.5s infinite`
-          : 'none';
-
     // Countdown timer logic
     const deadline = appState.game?.actionDeadline ?? 0;
     const [remaining, setRemaining] = useState<number>(0);
@@ -306,21 +302,29 @@ const TakenSeatButton = ({
               : 'green'
         : 'gray';
 
-    // Only show winning hand effects when this player is actually a winner
-    // Use the isWinner prop from Table component instead of trying to read stale pot data
+    const pots = appState.game?.pots ?? [];
+    const resolvedPot =
+        typeof activePotIndex === 'number' &&
+        activePotIndex >= 0 &&
+        activePotIndex < pots.length
+            ? pots[activePotIndex]
+            : pots.find((pot) => pot.winningHand && pot.winningHand.length > 0);
+    const playerWinsActivePot = resolvedPot
+        ? Boolean(resolvedPot.winningPlayerNums?.includes(player.position))
+        : isWinner;
     const winningSet = new Set<number>();
-
-    if (isWinner) {
-        // Build a set of winning cards from the first pot with a winning hand
-        const potWithWinningHand = appState.game?.pots?.find(
-            (pot) => pot.winningHand && pot.winningHand.length > 0
-        );
-        if (potWithWinningHand?.winningHand) {
-            potWithWinningHand.winningHand.forEach((card) => {
-                winningSet.add(Number(card));
-            });
-        }
+    if (playerWinsActivePot && resolvedPot?.winningHand) {
+        resolvedPot.winningHand.forEach((card) => {
+            winningSet.add(Number(card));
+        });
     }
+    const showWinnerHighlight =
+        activePotIndex === null ? isWinner : playerWinsActivePot;
+    const glowAnimation = isCurrentTurn
+        ? `${pulsePinkGlow} 2s ease-in-out 0.2s infinite`
+        : showWinnerHighlight
+          ? `${pulseYellowGlow} 2s ease-in-out 0.5s infinite`
+          : 'none';
 
     // Compute hand strength label per display rules
     const strengthLabel: string | null = useMemo(() => {
@@ -445,7 +449,7 @@ const TakenSeatButton = ({
                         // - During showdown: winners dim ONLY non-winning cards; losers dim all cards
                         // - Otherwise: dim players who folded / are not in hand
                         const dimThisCard = isShowdown
-                            ? isWinner
+                            ? playerWinsActivePot
                                 ? !isCardWinning
                                 : true
                             : !player.in;
@@ -462,10 +466,14 @@ const TakenSeatButton = ({
                         const skipAnimation = !isSelf;
 
                         // DEBUG: Log shouldDim logic for winners/losers at showdown
-                        if (isShowdown && (isWinner || winningSet.size > 0)) {
+                        if (
+                            isShowdown &&
+                            (playerWinsActivePot || winningSet.size > 0)
+                        ) {
                             console.log('🏆 WINNER DEBUG:', {
                                 player: player.username,
                                 isWinner,
+                                playerWinsActivePot,
                                 isRevealed,
                                 playerIn: player.in,
                                 shouldDim: dimThisCard,
@@ -552,7 +560,11 @@ const TakenSeatButton = ({
                 <Flex
                     className="player-info-container"
                     direction={'column'}
-                    bg={isCurrentTurn || isWinner ? 'white' : 'brand.darkNavy'}
+                    bg={
+                        isCurrentTurn || showWinnerHighlight
+                            ? 'white'
+                            : 'brand.darkNavy'
+                    }
                     borderRadius={{ base: 4, md: 8, lg: 12, xl: 12, '2xl': 12 }}
                     width={'100%'}
                     paddingX={{ base: 1, md: 2 }}
@@ -567,12 +579,12 @@ const TakenSeatButton = ({
                     borderColor={
                         isCurrentTurn
                             ? 'transparent'
-                            : isWinner
+                            : showWinnerHighlight
                               ? 'brand.yellow'
                               : 'brand.darkNavy'
                     }
                     boxShadow={
-                        !isCurrentTurn && !isWinner
+                        !isCurrentTurn && !showWinnerHighlight
                             ? '0 2px 8px rgba(11, 20, 48, 0.3)'
                             : 'none'
                     }
@@ -692,7 +704,7 @@ const TakenSeatButton = ({
                                 fontSize={{ base: '10px', md: 'xs', lg: 'sm' }}
                                 fontWeight={'bold'}
                                 color={
-                                    isCurrentTurn || isWinner
+                                    isCurrentTurn || showWinnerHighlight
                                         ? 'brand.darkNavy'
                                         : 'white'
                                 }
@@ -713,7 +725,9 @@ const TakenSeatButton = ({
                                     <AnimatedDigit
                                         key={`${player.seatID}-${index}`}
                                         digit={digit}
-                                        isWinner={isWinner && winnings > 0}
+                                        isWinner={
+                                            showWinnerHighlight && winnings > 0
+                                        }
                                         isCurrentTurn={isCurrentTurn}
                                         fontSize={{
                                             base: 'xs',
@@ -758,7 +772,7 @@ const TakenSeatButton = ({
                                     fontSize={{ base: 'xs', md: 'sm' }}
                                     textAlign="center"
                                     color={
-                                        isCurrentTurn || isWinner
+                                        isCurrentTurn || showWinnerHighlight
                                             ? 'brand.darkNavy'
                                             : 'white'
                                     }

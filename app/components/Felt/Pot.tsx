@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { AppContext } from '../../contexts/AppStoreProvider';
 import { Pot as PotType } from '../../interfaces';
 import { Box, Flex, Text } from '@chakra-ui/react';
@@ -16,12 +16,22 @@ const initialPot: PotType[] = [
     },
 ];
 
-const Pot = () => {
+const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
     const { appState } = useContext(AppContext);
     const isGameRunning = appState.game?.running;
     const game = appState.game;
     const [stage, setStage] = useState(game?.stage);
     const [pots, setPots] = useState(initialPot);
+    const highlightIndex = useMemo(() => {
+        if (
+            typeof activePotIndex === 'number' &&
+            activePotIndex >= 0 &&
+            activePotIndex < (game?.pots?.length || 0)
+        ) {
+            return activePotIndex;
+        }
+        return null;
+    }, [activePotIndex, game?.pots?.length]);
 
     if (!game || !game.pots || !isGameRunning) {
         return null;
@@ -38,6 +48,7 @@ const Pot = () => {
     }
 
     if (isGameRunning && pots.length > 0 && pots[0].amount > 0) {
+        const mainPotActive = highlightIndex === 0;
         return (
             <Flex
                 padding={2}
@@ -45,9 +56,6 @@ const Pot = () => {
                     backgroundColor: 'rgba(16, 100, 50, 0.12)',
                     backdropFilter: 'blur(12px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-                    // Ensure no background override
                     bg: 'transparent',
                 }}
                 width={{
@@ -69,9 +77,20 @@ const Pot = () => {
                 position={'absolute'}
                 top={{ base: '-8', md: '-6', lg: '-6' }}
                 left={'50%'}
-                transform={'translateX(-50%)'}
+                transform={
+                    mainPotActive
+                        ? 'translateX(-50%) scale(1.05)'
+                        : 'translateX(-50%)'
+                }
+                transition="transform 0.3s ease"
                 pointerEvents={'none'}
                 zIndex={999}
+                border="1px solid rgba(255, 255, 255, 0.15)"
+                boxShadow={
+                    mainPotActive
+                        ? '0 8px 32px 0 rgba(31, 38, 135, 0.37), 0 0 18px rgba(255, 213, 64, 0.7)'
+                        : '0 8px 32px 0 rgba(31, 38, 135, 0.37)'
+                }
             >
                 {pots.map((pot, index) => {
                     if (pot.amount !== 0) {
@@ -162,12 +181,27 @@ const Pot = () => {
                             pot.amount !== 0 &&
                             index > 0 && (
                                 <Flex
-                                    bg="yellow.400"
+                                    bg={
+                                        highlightIndex === index
+                                            ? 'brand.yellow'
+                                            : 'yellow.400'
+                                    }
                                     px={2}
                                     borderRadius={999}
                                     gap={1}
                                     width="fit-content"
                                     marginBottom={1}
+                                    boxShadow={
+                                        highlightIndex === index
+                                            ? '0 2px 6px rgba(0, 0, 0, 0.25), 0 0 12px rgba(255, 213, 64, 0.65)'
+                                            : '0 2px 6px rgba(0, 0, 0, 0.25)'
+                                    }
+                                    transform={
+                                        highlightIndex === index
+                                            ? 'scale(1.05)'
+                                            : 'scale(1)'
+                                    }
+                                    transition="transform 0.25s ease"
                                     key={`pot-${index}-${index}`}
                                 >
                                     <Text
@@ -179,7 +213,8 @@ const Pot = () => {
                                         color="black"
                                         whiteSpace="nowrap"
                                     >
-                                        SP{index}: {pot.amount}
+                                        SP{index}:{' '}
+                                        {pot.amount}
                                     </Text>
                                 </Flex>
                             )

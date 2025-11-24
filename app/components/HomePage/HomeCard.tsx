@@ -82,11 +82,12 @@ const HomeCard = () => {
                 bg='card.white'
                 boxShadow="0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)"
                 overflow="hidden"
-                animation={`${slideUp} 0.6s ease-out`}
+                animation={`${slideUp} 0.6s ease-out, ${float} 3s ease-in-out infinite 0.6s`}
                 backdropFilter="blur(10px)"
                 border="1px solid"
                 borderColor="rgba(255, 255, 255, 0.8)"
                 _hover={{
+                    animation: `${slideUp} 0.6s ease-out`,
                     transform: 'translateY(-4px)',
                     boxShadow:
                         '0 30px 80px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)',

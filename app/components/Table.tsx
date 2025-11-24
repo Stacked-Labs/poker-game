@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Box, Flex, Grid, GridItem } from '@chakra-ui/react';
 import EmptySeatButton from './EmptySeatButton';
 import TakenSeatButton from './TakenSeatButton';
@@ -107,12 +107,15 @@ function getRevealedPlayers(game: GameType) {
     return revealedPlayers;
 }
 
+const SHOWDOWN_SPOTLIGHT_DURATION = 8000;
+
 const Table = () => {
     const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
     const [players, setPlayers] = useState(initialPlayers);
     const [winningPlayers, setWinningPlayers] = useState<Player[]>([]);
+    const [activePotIndex, setActivePotIndex] = useState<number | null>(null);
     const imageRef = React.useRef<HTMLImageElement>(null);
     const [imageDimensions, setImageDimensions] = useState({
         width: 0,
@@ -121,6 +124,14 @@ const Table = () => {
         left: 0,
     });
     const [isGridReady, setIsGridReady] = useState(false);
+    const potHighlightTimeouts = useRef<number[]>([]);
+
+    const clearPotHighlightTimers = () => {
+        potHighlightTimeouts.current.forEach((timeout) => {
+            clearTimeout(timeout);
+        });
+        potHighlightTimeouts.current = [];
+    };
 
     useEffect(() => {
         if (imageDimensions.width > 0 && imageDimensions.height > 0) {
@@ -226,6 +237,63 @@ const Table = () => {
         appState.game?.running,
         appState.game,
         socket,
+    ]);
+
+    useEffect(() => {
+        const game = appState.game;
+        clearPotHighlightTimers();
+
+        if (
+            !game ||
+            !game.running ||
+            game.stage !== 1 ||
+            game.betting ||
+            !game.pots ||
+            game.pots.length === 0
+        ) {
+            setActivePotIndex(null);
+            return;
+        }
+
+        const indices: number[] = [];
+        for (let i = game.pots.length - 1; i >= 0; i--) {
+            const pot = game.pots[i];
+            const hasWinner =
+                (pot.winningPlayerNums &&
+                    pot.winningPlayerNums.length > 0) ||
+                (pot.winningHand && pot.winningHand.length > 0);
+            if (hasWinner) {
+                indices.push(i);
+            }
+        }
+
+        if (indices.length === 0) {
+            setActivePotIndex(0);
+            return;
+        }
+
+        const stepDuration = SHOWDOWN_SPOTLIGHT_DURATION / indices.length;
+
+        indices.forEach((potIdx, sequenceIdx) => {
+            const timeout = window.setTimeout(() => {
+                setActivePotIndex(potIdx);
+            }, sequenceIdx * stepDuration);
+            potHighlightTimeouts.current.push(timeout);
+        });
+
+        const finalTimeout = window.setTimeout(() => {
+            setActivePotIndex(0);
+        }, SHOWDOWN_SPOTLIGHT_DURATION);
+        potHighlightTimeouts.current.push(finalTimeout);
+
+        return () => {
+            clearPotHighlightTimers();
+        };
+    }, [
+        appState.game?.stage,
+        appState.game?.betting,
+        appState.game?.pots,
+        appState.game?.running,
     ]);
 
     const isPlayerTurn = (player: Player): boolean => {
@@ -408,6 +476,7 @@ const Table = () => {
                                                 player
                                             )}
                                             winnings={getPlayerWinnings(player)}
+                                            activePotIndex={activePotIndex}
                                         />
                                     ) : (
                                         <EmptySeatButton
@@ -432,7 +501,7 @@ const Table = () => {
                         className="grid-felt"
                         justifyContent={'center'}
                     >
-                        <Felt />
+                        <Felt activePotIndex={activePotIndex} />
                     </GridItem>
                 </Grid>
             )}

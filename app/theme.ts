@@ -145,6 +145,10 @@ const semanticTokens = {
             default: 'brand.lightGray',
             _dark: 'legacy.grayDark',
         },
+        'card.lighterGray': {
+            default: 'rgba(236, 238, 245, 0.5)',
+            _dark: 'rgba(53, 53, 53, 0.5)',
+        },
 
         // Legacy semantic colors (used throughout app)
         'gray.50': {

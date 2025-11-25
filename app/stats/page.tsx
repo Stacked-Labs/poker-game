@@ -54,8 +54,8 @@ const StatCard = ({
     <Flex
         flex={flex}
         direction={'column'}
-        bg={'white'}
-        color={'brand.darkNavy'}
+        bg={'card.white'}
+        color={'text.primary'}
         p={{ base: 4, md: 5 }}
         borderRadius={'16px'}
         boxShadow={'0 4px 12px rgba(0, 0, 0, 0.08)'}
@@ -63,7 +63,7 @@ const StatCard = ({
         borderColor={'card.lightGray'}
     >
         <Text
-            color={'brand.darkNavy'}
+            color={'text.primary'}
             fontSize={{ base: 'lg', md: 'xl' }}
             fontWeight={'extrabold'}
             mb={{ base: 2, md: 3 }}
@@ -84,7 +84,7 @@ const Timestamp = ({ time }: { time: string }) => {
         <Text
             fontSize={'xs'}
             fontWeight={'medium'}
-            color={'brand.navy'}
+            color={'text.secondary'}
             align={'center'}
             opacity={0.7}
             suppressHydrationWarning
@@ -99,7 +99,6 @@ const StatBody = ({ children }: { children: ReactNode }) => {
         <Flex
             justify="space-between"
             align="center"
-            color={'brand.darkNavy'}
             py={{ base: 1.5, md: 2 }}
             px={{ base: 2.5, md: 3 }}
             bg={'card.lightGray'}
@@ -110,13 +109,26 @@ const StatBody = ({ children }: { children: ReactNode }) => {
     );
 };
 
+
+const StatText = ({ text, hasTooltip }: { text: string | number, hasTooltip: boolean }) => {
+    return (
+        <Text
+            fontWeight={hasTooltip ? 'normal' : 'semibold'}
+            color={'text.primary'}
+            cursor={hasTooltip ? 'help' : 'default'}
+        >
+            {text}
+        </Text >
+    );
+}
+
 const SubBody = ({ children }: { children: ReactNode }) => {
     return (
         <Flex
             direction={'column'}
             gap={{ base: 1.5, md: 2 }}
             p={{ base: 2.5, md: 3 }}
-            bg={'rgba(236, 238, 245, 0.5)'}
+            bg={'card.lighterGray'}
             borderRadius={'12px'}
         >
             {children}
@@ -228,7 +240,7 @@ const page = async () => {
                 <Text
                     fontSize={{ base: '2xl', md: '3xl', lg: '4xl' }}
                     fontWeight="extrabold"
-                    color="brand.darkNavy"
+                    color="text.primary"
                 >
                     System Statistics
                 </Text>
@@ -252,7 +264,7 @@ const page = async () => {
                         py={{ base: 2, sm: 2.5, md: 3 }}
                         px={{ base: 3, sm: 4, md: 6 }}
                         fontWeight="bold"
-                        color="brand.navy"
+                        color="text.secondary"
                         borderRadius="10px"
                         flex={1}
                         _selected={{
@@ -268,7 +280,7 @@ const page = async () => {
                         py={{ base: 2, sm: 2.5, md: 3 }}
                         px={{ base: 3, sm: 4, md: 6 }}
                         fontWeight="bold"
-                        color="brand.navy"
+                        color="text.secondary"
                         borderRadius="10px"
                         flex={1}
                         _selected={{
@@ -345,13 +357,9 @@ const page = async () => {
                                             placement="top"
                                             hasArrow
                                         >
-                                            <Text cursor="help">
-                                                WebSocket Connections
-                                            </Text>
+                                            <StatText text="WebSocket Connections" hasTooltip={true} />
                                         </Tooltip>
-                                        <Text fontWeight={'semibold'}>
-                                            {liveStats.data.active_connections}
-                                        </Text>
+                                        <StatText text={liveStats.data.active_connections} hasTooltip={false} />
                                     </StatBody>
                                     <StatBody>
                                         <Tooltip
@@ -359,13 +367,9 @@ const page = async () => {
                                             placement="top"
                                             hasArrow
                                         >
-                                            <Text cursor="help">
-                                                Active Tables
-                                            </Text>
+                                            <StatText text="Active Tables" hasTooltip={true} />
                                         </Tooltip>
-                                        <Text fontWeight={'semibold'}>
-                                            {liveStats.data.active_tables}
-                                        </Text>
+                                        <StatText text={liveStats.data.active_tables} hasTooltip={false} />
                                     </StatBody>
                                     <Timestamp time={liveStats.timestamp} />
                                     <StatBody>
@@ -374,13 +378,9 @@ const page = async () => {
                                             placement="top"
                                             hasArrow
                                         >
-                                            <Text cursor="help">
-                                                Active Players
-                                            </Text>
+                                            <StatText text="Active Players" hasTooltip={true} />
                                         </Tooltip>
-                                        <Text fontWeight={'semibold'}>
-                                            {stats.data.active_players_count}
-                                        </Text>
+                                        <StatText text={stats.data.active_players_count} hasTooltip={false} />
                                     </StatBody>
                                     <StatBody>
                                         <Tooltip
@@ -388,19 +388,15 @@ const page = async () => {
                                             placement="top"
                                             hasArrow
                                         >
-                                            <Text cursor="help">
-                                                Active Tables
-                                            </Text>
+                                            <StatText text="Active Tables" hasTooltip={true} />
                                         </Tooltip>
-                                        <Text fontWeight={'semibold'}>
-                                            {stats.data.active_tables_count}
-                                        </Text>
+                                        <StatText text={stats.data.active_tables_count} hasTooltip={false} />
                                     </StatBody>
                                     <SubBody>
                                         <Text
                                             fontSize="sm"
                                             fontWeight="extrabold"
-                                            color="brand.darkNavy"
+                                            color="text.primary"
                                             mb={{ base: 0.5, md: 1 }}
                                         >
                                             Last 24 hrs
@@ -411,13 +407,9 @@ const page = async () => {
                                                 placement="top"
                                                 hasArrow
                                             >
-                                                <Text cursor="help">
-                                                    Tables
-                                                </Text>
+                                                <StatText text="Tables" hasTooltip={true} />
                                             </Tooltip>
-                                            <Text fontWeight={'semibold'}>
-                                                {stats.data.tables_last_24h}
-                                            </Text>
+                                            <StatText text={stats.data.tables_last_24h} hasTooltip={false} />
                                         </StatBody>
                                         <StatBody>
                                             <Tooltip
@@ -425,18 +417,16 @@ const page = async () => {
                                                 placement="top"
                                                 hasArrow
                                             >
-                                                <Text cursor="help">Hands</Text>
+                                                <StatText text="Hands" hasTooltip={true} />
                                             </Tooltip>
-                                            <Text fontWeight={'semibold'}>
-                                                {stats.data.hands_last_24h}
-                                            </Text>
+                                            <StatText text={stats.data.hands_last_24h} hasTooltip={false} />
                                         </StatBody>
                                     </SubBody>
                                     <SubBody>
                                         <Text
                                             fontSize="sm"
                                             fontWeight="extrabold"
-                                            color="brand.darkNavy"
+                                            color="text.primary"
                                             mb={{ base: 0.5, md: 1 }}
                                         >
                                             Total
@@ -447,13 +437,9 @@ const page = async () => {
                                                 placement="top"
                                                 hasArrow
                                             >
-                                                <Text cursor="help">
-                                                    Hands Played
-                                                </Text>
+                                                <StatText text="Hands Played" hasTooltip={true} />
                                             </Tooltip>
-                                            <Text fontWeight={'semibold'}>
-                                                {stats.data.total_hands_played}
-                                            </Text>
+                                            <StatText text={stats.data.total_hands_played} hasTooltip={false} />
                                         </StatBody>
                                         <StatBody>
                                             <Tooltip
@@ -461,16 +447,12 @@ const page = async () => {
                                                 placement="top"
                                                 hasArrow
                                             >
-                                                <Text cursor="help">
-                                                    Tables Created
-                                                </Text>
+                                                <StatText text="Tables Created" hasTooltip={true} />
                                             </Tooltip>
-                                            <Text fontWeight={'semibold'}>
-                                                {
-                                                    stats.data
-                                                        .total_tables_created
-                                                }
-                                            </Text>
+                                            <StatText
+                                                text={stats.data.total_tables_created}
+                                                hasTooltip={false}
+                                            />
                                         </StatBody>
                                         <StatBody>
                                             <Tooltip
@@ -478,16 +460,12 @@ const page = async () => {
                                                 placement="top"
                                                 hasArrow
                                             >
-                                                <Text cursor="help">
-                                                    Unique Players
-                                                </Text>
+                                                <StatText text="Unique Players" hasTooltip={true} />
                                             </Tooltip>
-                                            <Text fontWeight={'semibold'}>
-                                                {
-                                                    stats.data
-                                                        .total_unique_players
-                                                }
-                                            </Text>
+                                            <StatText
+                                                text={stats.data.total_unique_players}
+                                                hasTooltip={false}
+                                            />
                                         </StatBody>
                                     </SubBody>
                                 </StatCard>
@@ -511,6 +489,7 @@ const page = async () => {
                                                 <Text
                                                     cursor="help"
                                                     fontWeight="medium"
+                                                    color={'text.primary'}
                                                 >
                                                     Database Connection
                                                 </Text>
@@ -546,6 +525,7 @@ const page = async () => {
                                                 <Text
                                                     cursor="help"
                                                     fontWeight="medium"
+                                                    color={'text.primary'}
                                                 >
                                                     Database Status
                                                 </Text>
@@ -588,7 +568,7 @@ const page = async () => {
                                                 <Text
                                                     fontSize="sm"
                                                     fontWeight="extrabold"
-                                                    color="brand.darkNavy"
+                                                    color="text.primary"
                                                     cursor="help"
                                                     mb={{ base: 0.5, md: 1 }}
                                                 >
@@ -601,16 +581,12 @@ const page = async () => {
                                                     placement="top"
                                                     hasArrow
                                                 >
-                                                    <Text cursor="help">
-                                                        Idle
-                                                    </Text>
+                                                    <StatText text="Idle" hasTooltip={true} />
                                                 </Tooltip>
-                                                <Text fontWeight={'semibold'}>
-                                                    {
-                                                        metrics.database
-                                                            .connections_idle
-                                                    }
-                                                </Text>
+                                                <StatText
+                                                    text={metrics.database.connections_idle}
+                                                    hasTooltip={false}
+                                                />
                                             </StatBody>
                                             <StatBody>
                                                 <Tooltip
@@ -618,23 +594,19 @@ const page = async () => {
                                                     placement="top"
                                                     hasArrow
                                                 >
-                                                    <Text cursor="help">
-                                                        Active
-                                                    </Text>
+                                                    <StatText text="Active" hasTooltip={true} />
                                                 </Tooltip>
-                                                <Text fontWeight={'semibold'}>
-                                                    {
-                                                        metrics.database
-                                                            .connections_in_use
-                                                    }
-                                                </Text>
+                                                <StatText
+                                                    text={metrics.database.connections_in_use}
+                                                    hasTooltip={false}
+                                                />
                                             </StatBody>
                                         </Flex>
                                         <SubBody>
                                             <Text
                                                 fontSize="sm"
                                                 fontWeight="extrabold"
-                                                color="brand.darkNavy"
+                                                color="text.primary"
                                                 mb={{ base: 0.5, md: 1 }}
                                             >
                                                 Tables
@@ -645,16 +617,9 @@ const page = async () => {
                                                     placement="top"
                                                     hasArrow
                                                 >
-                                                    <Text cursor="help">
-                                                        Active
-                                                    </Text>
+                                                    <StatText text="Active" hasTooltip={true} />
                                                 </Tooltip>
-                                                <Text fontWeight={'semibold'}>
-                                                    {
-                                                        metrics.tables
-                                                            .active_count
-                                                    }
-                                                </Text>
+                                                <StatText text={metrics.tables.active_count} hasTooltip={false} />
                                             </StatBody>
                                         </SubBody>
                                     </StatCard>
@@ -676,11 +641,9 @@ const page = async () => {
                                         placement="top"
                                         hasArrow
                                     >
-                                        <Text cursor="help">Total Tables</Text>
+                                        <StatText text="Total Tables" hasTooltip={true} />
                                     </Tooltip>
-                                    <Text fontWeight={'semibold'}>
-                                        {tables.total_count}
-                                    </Text>
+                                    <StatText text={tables.total_count} hasTooltip={false} />
                                 </StatBody>
                                 <StatBody>
                                     <Tooltip
@@ -688,15 +651,16 @@ const page = async () => {
                                         placement="top"
                                         hasArrow
                                     >
-                                        <Text cursor="help">Active Tables</Text>
+                                        <StatText text="Active Tables" hasTooltip={true} />
                                     </Tooltip>
-                                    <Text fontWeight={'semibold'}>
-                                        {
+                                    <StatText
+                                        text={
                                             tables.tables.filter(
                                                 (t) => t.is_active
                                             ).length
                                         }
-                                    </Text>
+                                        hasTooltip={false}
+                                    />
                                 </StatBody>
                                 <StatBody>
                                     <Tooltip
@@ -704,15 +668,16 @@ const page = async () => {
                                         placement="top"
                                         hasArrow
                                     >
-                                        <Text cursor="help">In Memory</Text>
+                                        <StatText text="In Memory" hasTooltip={true} />
                                     </Tooltip>
-                                    <Text fontWeight={'semibold'}>
-                                        {
+                                    <StatText
+                                        text={
                                             tables.tables.filter(
                                                 (t) => t.in_memory
                                             ).length
                                         }
-                                    </Text>
+                                        hasTooltip={false} 
+                                        />
                                 </StatBody>
                                 {tables.tables.length > 0 ? (
                                     <Box
@@ -813,7 +778,7 @@ const page = async () => {
                                                                                 <Text
                                                                                     fontFamily="monospace"
                                                                                     fontSize="xs"
-                                                                                    color="brand.navy"
+                                                                                    color="text.secondary"
                                                                                     fontWeight="medium"
                                                                                     noOfLines={
                                                                                         1
@@ -835,7 +800,7 @@ const page = async () => {
                                                                         </Tooltip>
                                                                         <Text
                                                                             fontSize="xs"
-                                                                            color="brand.navy"
+                                                                            color="text.secondary"
                                                                             opacity={
                                                                                 0.6
                                                                             }
@@ -897,7 +862,7 @@ const page = async () => {
                                                                             >
                                                                                 <Badge
                                                                                     bg="brand.yellow"
-                                                                                    color="brand.darkNavy"
+                                                                                    color="text.primary"
                                                                                     fontSize="xs"
                                                                                     fontWeight="bold"
                                                                                     px={
@@ -917,7 +882,7 @@ const page = async () => {
                                                                 </Box>
                                                                 <AccordionIcon
                                                                     ml={3}
-                                                                    color="brand.navy"
+                                                                    color="text.secondary"
                                                                 />
                                                             </AccordionButton>
                                                         </h2>
@@ -945,7 +910,7 @@ const page = async () => {
                                                                 >
                                                                     <Text
                                                                         fontSize="sm"
-                                                                        color="brand.navy"
+                                                                        color="text.secondary"
                                                                         fontWeight="medium"
                                                                         opacity={
                                                                             0.7
@@ -963,7 +928,7 @@ const page = async () => {
                                                                         <Text
                                                                             fontSize="xs"
                                                                             fontFamily="monospace"
-                                                                            color="brand.darkNavy"
+                                                                            color="text.primary"
                                                                             fontWeight="medium"
                                                                             textAlign="right"
                                                                             cursor="help"
@@ -983,7 +948,7 @@ const page = async () => {
                                                                 >
                                                                     <Text
                                                                         fontSize="sm"
-                                                                        color="brand.navy"
+                                                                        color="text.secondary"
                                                                         fontWeight="medium"
                                                                         opacity={
                                                                             0.7
@@ -995,7 +960,7 @@ const page = async () => {
                                                                     <Text
                                                                         fontSize="sm"
                                                                         fontWeight="bold"
-                                                                        color="brand.darkNavy"
+                                                                        color="text.primary"
                                                                         textAlign="right"
                                                                     >
                                                                         {
@@ -1018,11 +983,11 @@ const page = async () => {
                                     <Flex
                                         justifyContent={'center'}
                                         py={8}
-                                        bg="rgba(236, 238, 245, 0.4)"
+                                        bg="card.lighterGray"
                                         borderRadius="12px"
                                     >
                                         <Text
-                                            color={'brand.navy'}
+                                            color={'text.secondary'}
                                             fontWeight="medium"
                                         >
                                             No tables found

@@ -65,8 +65,8 @@ const RaiseInputBox = ({
                 if (
                     !gameIsPaused &&
                     isCurrentTurn &&
-                    inputValue >= minRaise &&
-                    inputValue <= currentStack + currentBet
+                    inputValue >= minAllowedBet &&
+                    inputValue <= maxTotalBet
                 ) {
                     handleSubmitRaise(
                         appState.username,
@@ -88,6 +88,15 @@ const RaiseInputBox = ({
         }
     }, [showRaise]);
 
+    useEffect(() => {
+        if (!appState.game) {
+            setSliderValue(0);
+            return;
+        }
+        const activePlayer = appState.game.players[appState.game.action];
+        setSliderValue(Math.max(inputValue - activePlayer.bet, 0));
+    }, [appState.game, inputValue]);
+
     if (!appState.game) {
         return null;
     }
@@ -99,6 +108,12 @@ const RaiseInputBox = ({
     const playerBets = appState.game.players.map((player) => player.bet); // array of all players' bets
     const maxBet = Math.max(...playerBets); // largest bet out of all player's bets
     const minRaise = maxBet + appState.game.minRaise;
+    const maxTotalBet = currentStack + currentBet;
+    const minAllowedBet = Math.min(minRaise, maxTotalBet);
+    const sliderMinValue =
+        maxTotalBet > minRaise
+            ? Math.max(minRaise - currentBet, 0)
+            : currentStack;
 
     const currentPot =
         appState.game.pots.length != 0
@@ -112,16 +127,20 @@ const RaiseInputBox = ({
     };
 
     const betValidator = (bet: number, minRaise: number, stack: number) => {
-        if (bet < minRaise) {
-            setSliderValue(minRaise);
-            return minRaise;
-        } else if (bet > stack) {
-            setSliderValue(stack);
-            return stack;
-        } else {
-            setSliderValue(bet);
-            return bet;
+        let validatedBet = bet;
+
+        if (stack <= minRaise) {
+            validatedBet = stack;
+        } else if (bet < minRaise) {
+            validatedBet = minRaise;
         }
+
+        if (validatedBet > stack) {
+            validatedBet = stack;
+        }
+
+        setSliderValue(Math.max(validatedBet - currentBet, 0));
+        return validatedBet;
     };
 
     const half =
@@ -132,7 +151,7 @@ const RaiseInputBox = ({
             : Math.ceil(bigBlind * 2.5);
 
     const full = appState.game.pots.length != 0 ? potBet : bigBlind * 3;
-    const allIn = currentStack + currentBet;
+    const allIn = maxTotalBet;
 
     const handleSubmitRaise = (user: string | null, amount: number) => {
         if (socket) {
@@ -144,28 +163,31 @@ const RaiseInputBox = ({
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setInputValue(e.target.valueAsNumber);
+        const value = isNaN(e.target.valueAsNumber) ? 0 : e.target.valueAsNumber;
+        setSliderValue(value);
+        setInputValue(value + currentBet);
     };
 
     const handleSliderChange = (value: number) => {
-        setInputValue(value);
         setSliderValue(value);
+        setInputValue(value + currentBet);
     };
 
     const handleInputOnBlur = () => {
-        let value = inputValue;
-        if (value > currentStack || value < minRaise || isNaN(value)) {
-            value = currentStack;
-            setInputValue(value);
-        }
-        setSliderValue(value);
+        const value = isNaN(sliderValue) ? sliderMinValue : sliderValue;
+        const validatedBet = betValidator(
+            value + currentBet,
+            minRaise,
+            maxTotalBet
+        );
+        setInputValue(validatedBet);
     };
 
     const handleDecreaseRaise = () => {
         const newValue = betValidator(
             inputValue - bigBlind,
             minRaise,
-            currentStack + currentBet
+            maxTotalBet
         );
         setInputValue(newValue);
     };
@@ -174,7 +196,7 @@ const RaiseInputBox = ({
         const newValue = betValidator(
             inputValue + bigBlind,
             minRaise,
-            currentStack + currentBet
+            maxTotalBet
         );
         setInputValue(newValue);
     };
@@ -201,8 +223,8 @@ const RaiseInputBox = ({
                     isDisabled={
                         gameIsPaused ||
                         !isCurrentTurn ||
-                        inputValue < minRaise ||
-                        inputValue > currentStack + currentBet
+                        inputValue < minAllowedBet ||
+                        inputValue > maxTotalBet
                     }
                     hotkey={HOTKEY_RAISE}
                 />
@@ -245,7 +267,7 @@ const RaiseInputBox = ({
                                 betValidator(
                                     minRaise,
                                     minRaise,
-                                    currentStack + currentBet
+                                    maxTotalBet
                                 )
                             )
                         }
@@ -262,7 +284,7 @@ const RaiseInputBox = ({
                                 betValidator(
                                     half,
                                     minRaise,
-                                    currentStack + currentBet
+                                    maxTotalBet
                                 )
                             )
                         }
@@ -279,7 +301,7 @@ const RaiseInputBox = ({
                                 betValidator(
                                     threeQuarter,
                                     minRaise,
-                                    currentStack + currentBet
+                                    maxTotalBet
                                 )
                             )
                         }
@@ -296,7 +318,7 @@ const RaiseInputBox = ({
                                 betValidator(
                                     full,
                                     minRaise,
-                                    currentStack + currentBet
+                                    maxTotalBet
                                 )
                             )
                         }
@@ -313,7 +335,7 @@ const RaiseInputBox = ({
                                 betValidator(
                                     allIn,
                                     minRaise,
-                                    currentStack + currentBet
+                                    maxTotalBet
                                 )
                             )
                         }
@@ -347,8 +369,8 @@ const RaiseInputBox = ({
                             width={'100%'}
                             height={'100%'}
                             type="number"
-                            value={inputValue}
-                            min={minRaise}
+                            value={sliderValue}
+                            min={sliderMinValue}
                             max={currentStack}
                             onChange={handleInputChange}
                             focusBorderColor={'brand.green'}
@@ -386,8 +408,8 @@ const RaiseInputBox = ({
                             isDisabled={
                                 gameIsPaused ||
                                 !isCurrentTurn ||
-                                inputValue < minRaise ||
-                                inputValue > currentStack + currentBet
+                                inputValue < minAllowedBet ||
+                                inputValue > maxTotalBet
                             }
                             hotkey={HOTKEY_RAISE}
                             className="mobile-raise"
@@ -428,7 +450,7 @@ const RaiseInputBox = ({
                         size="lg"
                         value={sliderValue}
                         max={currentStack}
-                        min={minRaise}
+                        min={sliderMinValue}
                         onChange={handleSliderChange}
                         isDisabled={!isCurrentTurn || gameIsPaused}
                         colorScheme="green"
@@ -491,11 +513,11 @@ const RaiseInputBox = ({
                             size={{ base: 'xs', md: 'md' }}
                             type="number"
                             value={
-                                inputValue > currentStack
+                                sliderValue > currentStack
                                     ? currentStack
-                                    : inputValue
+                                    : sliderValue
                             }
-                            min={minRaise}
+                            min={sliderMinValue}
                             max={currentStack}
                             onChange={handleInputChange}
                             focusBorderColor={'brand.green'}
@@ -532,7 +554,7 @@ const RaiseInputBox = ({
                                     betValidator(
                                         minRaise,
                                         minRaise,
-                                        currentStack + currentBet
+                                        maxTotalBet
                                     )
                                 )
                             }
@@ -547,7 +569,7 @@ const RaiseInputBox = ({
                                     betValidator(
                                         half,
                                         minRaise,
-                                        currentStack + currentBet
+                                        maxTotalBet
                                     )
                                 )
                             }
@@ -562,7 +584,7 @@ const RaiseInputBox = ({
                                     betValidator(
                                         threeQuarter,
                                         minRaise,
-                                        currentStack + currentBet
+                                        maxTotalBet
                                     )
                                 )
                             }
@@ -577,7 +599,7 @@ const RaiseInputBox = ({
                                     betValidator(
                                         full,
                                         minRaise,
-                                        currentStack + currentBet
+                                        maxTotalBet
                                     )
                                 )
                             }
@@ -592,7 +614,7 @@ const RaiseInputBox = ({
                                     betValidator(
                                         allIn,
                                         minRaise,
-                                        currentStack + currentBet
+                                        maxTotalBet
                                     )
                                 )
                             }
@@ -620,10 +642,9 @@ const RaiseInputBox = ({
                         <Slider
                             aria-label="slider-ex-1"
                             marginX={3}
-                            defaultValue={0}
                             value={sliderValue}
                             max={currentStack}
-                            min={minRaise}
+                            min={sliderMinValue}
                             onChange={(value: number) =>
                                 handleSliderChange(value)
                             }

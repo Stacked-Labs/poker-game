@@ -417,6 +417,21 @@ const components = {
                     boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
                 },
             },
+            homeNav: {
+                size: "lg",
+                fontWeight: "semibold",
+                bg: "btn.lightGray",
+                color: "text.secondary",
+                borderRadius: "16px",
+                height: "56px",
+                justifyContent: "flex-start",
+                px: 6,
+                transition: "all 0.2s ease",
+                _hover: {
+                    bg: 'rgba(12, 21, 49, 0.12)',
+                    transform: 'translateX(4px)',
+                }
+            },
         },
         sizes: {
             sm: {

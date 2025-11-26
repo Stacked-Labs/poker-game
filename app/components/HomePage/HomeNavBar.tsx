@@ -198,19 +198,7 @@ const HomeNavBar: React.FC = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label="Documentation"
-                                size="lg"
-                                fontWeight="semibold"
-                                bg="btn.lightGray"
-                                color="text.secondary"
-                                borderRadius="16px"
-                                height="56px"
-                                justifyContent="flex-start"
-                                px={6}
-                                _hover={{
-                                    bg: 'rgba(12, 21, 49, 0.12)',
-                                    transform: 'translateX(4px)',
-                                }}
-                                transition="all 0.2s ease"
+                                variant={'homeNav'}
                                 onClick={onClose}
                             >
                                 📚 Documentation
@@ -220,19 +208,8 @@ const HomeNavBar: React.FC = () => {
                                 href="https://discord.gg/XMWfksjt"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                size="lg"
-                                fontWeight="semibold"
-                                bg="'btn.lightGray"
-                                color="text.secondary"
-                                borderRadius="16px"
-                                height="56px"
-                                justifyContent="flex-start"
-                                px={6}
-                                _hover={{
-                                    bg: 'rgba(12, 21, 49, 0.12)',
-                                    transform: 'translateX(4px)',
-                                }}
-                                transition="all 0.2s ease"
+                                aria-label='Support'
+                                variant={'homeNav'}
                                 onClick={onClose}
                             >
                                 💬 Support

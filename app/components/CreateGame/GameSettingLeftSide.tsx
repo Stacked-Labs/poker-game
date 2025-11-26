@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import {
     VStack,
     Text,
@@ -53,19 +53,54 @@ const LeftSideContent: React.FC = () => {
     const [isFormValid, setIsFormValid] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileError, setTurnstileError] = useState(false);
+    const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
+    const isTurnstileConfigured = Boolean(turnstileSiteKey);
+
+    const isCloudflareReady = useMemo(() => {
+        if (!isTurnstileConfigured) {
+            return true;
+        }
+        return Boolean(turnstileToken) || turnstileError;
+    }, [isTurnstileConfigured, turnstileToken, turnstileError]);
+
+    const turnstileStatusText = useMemo(() => {
+        if (!isTurnstileConfigured) {
+            return 'Cloudflare Turnstile is disabled for this environment.';
+        }
+
+        if (turnstileError) {
+            return 'Cloudflare verification temporarily unavailable — you can still create a game.';
+        }
+
+        if (turnstileToken) {
+            return 'Verified by Cloudflare. You are clear to create a game.';
+        }
+
+        return 'Waiting for Cloudflare Turnstile to verify your browser…';
+    }, [isTurnstileConfigured, turnstileError, turnstileToken]);
+
+    const turnstileStatusColor = useMemo(() => {
+        if (!isTurnstileConfigured) {
+            return 'text.secondary';
+        }
+        if (turnstileError) {
+            return 'brand.yellow';
+        }
+        if (turnstileToken) {
+            return 'brand.green';
+        }
+        return 'text.secondary';
+    }, [isTurnstileConfigured, turnstileError, turnstileToken]);
 
     const { gameModes, networks } = gameData;
 
     // Debug logging for Turnstile setup
     useEffect(() => {
         console.log('🔍 Turnstile Debug Info:');
-        console.log(
-            '- Site Key configured:',
-            !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-        );
+        console.log('- Site Key configured:', isTurnstileConfigured);
         console.log(
             '- Site Key (first 10 chars):',
-            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.substring(0, 10)
+            turnstileSiteKey.substring(0, 10)
         );
         console.log('- Current hostname:', window.location.hostname);
         console.log('- Current protocol:', window.location.protocol);
@@ -490,73 +525,83 @@ const LeftSideContent: React.FC = () => {
             )}
 
             {/* Turnstile Section */}
-            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
-                <Box
-                    width="100%"
-                    animation={`${slideUp} 0.6s ease-out 0.5s backwards`}
-                >
-                    <Flex
-                        direction="column"
-                        align="center"
-                        justify="center"
-                        gap={2}
-                    >
-                        <Turnstile
-                            sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                            onSuccess={(token: string) => {
-                                console.log(
-                                    '✅ Turnstile verification successful'
-                                );
-                                setTurnstileToken(token);
-                                setTurnstileError(false);
-                            }}
-                            onExpire={() => {
-                                console.log('⏱️ Turnstile token expired');
-                                setTurnstileToken(null);
-                            }}
-                            onError={(errorCode?: string) => {
-                                console.error('❌ Turnstile error:', errorCode);
-                                console.log(
-                                    'CSP Check - Current meta tags:',
-                                    Array.from(
-                                        document.querySelectorAll(
-                                            'meta[http-equiv="Content-Security-Policy"]'
-                                        )
-                                    ).map((m) => (m as HTMLMetaElement).content)
-                                );
-                                setTurnstileError(true);
-                                setTurnstileToken(null);
-
-                                // Show a user-friendly error message
-                                if (errorCode === '600010') {
-                                    toast.warning(
-                                        'Verification Issue',
-                                        'Bot verification failed. You can still create a game.'
+            <Box
+                width="100%"
+                maxW="500px"
+                bg="card.white"
+                borderRadius="20px"
+                p={{ base: 4, md: 6 }}
+                boxShadow="0 4px 16px rgba(0, 0, 0, 0.08)"
+                animation={`${slideUp} 0.6s ease-out 0.5s backwards`}
+            >
+                <VStack spacing={3} align="center" textAlign="center">
+                    {isTurnstileConfigured ? (
+                        <>
+                            <Turnstile
+                                sitekey={turnstileSiteKey}
+                                onSuccess={(token: string) => {
+                                    console.log(
+                                        '✅ Turnstile verification successful'
                                     );
-                                }
-                            }}
-                            theme="light"
-                            size="normal"
-                            retry="auto"
-                            refreshExpired="auto"
-                            retryInterval={3000}
-                        />
-                        {turnstileError && (
-                            <Text
-                                color="brand.yellow"
-                                fontSize="xs"
-                                textAlign="center"
-                            >
-                                Verification temporarily unavailable
-                            </Text>
-                        )}
-                    </Flex>
-                </Box>
-            ) : (
-                <Text color="brand.yellow" fontSize="sm">
-                    ⚠️ Turnstile not configured
-                </Text>
-            )}
+                                    setTurnstileToken(token);
+                                    setTurnstileError(false);
+                                }}
+                                onExpire={() => {
+                                    console.log('⏱️ Turnstile token expired');
+                                    setTurnstileToken(null);
+                                }}
+                                onError={(errorCode?: string) => {
+                                    console.error(
+                                        '❌ Turnstile error:',
+                                        errorCode
+                                    );
+                                    console.log(
+                                        'CSP Check - Current meta tags:',
+                                        Array.from(
+                                            document.querySelectorAll(
+                                                'meta[http-equiv="Content-Security-Policy"]'
+                                            )
+                                        ).map(
+                                            (m) =>
+                                                (m as HTMLMetaElement).content
+                                        )
+                                    );
+                                    setTurnstileError(true);
+                                    setTurnstileToken(null);
+
+                                    if (errorCode === '600010') {
+                                        toast.warning(
+                                            'Verification Issue',
+                                            'Bot verification failed. You can still create a game.'
+                                        );
+                                    }
+                                }}
+                                theme="light"
+                                size="normal"
+                                retry="auto"
+                                refreshExpired="auto"
+                                retryInterval={3000}
+                            />
+                            {turnstileError && (
+                                <Text
+                                    color="brand.yellow"
+                                    fontSize="xs"
+                                    textAlign="center"
+                                >
+                                    Verification temporarily unavailable
+                                </Text>
+                            )}
+                        </>
+                    ) : (
+                        <Text color="brand.yellow" fontSize="sm">
+                            ⚠️ Turnstile is not configured for this environment.
+                        </Text>
+                    )}
+                    <Text fontSize="sm" color={turnstileStatusColor}>
+                        {turnstileStatusText}
+                    </Text>
+                </VStack>
+            </Box>
 
             {/* Create Game Button */}
             <Button
@@ -574,22 +619,11 @@ const LeftSideContent: React.FC = () => {
                 isLoading={isLoading}
                 loadingText="Creating..."
                 spinner={<Spinner size="md" color="white" />}
-                opacity={
-                    isFormValid && (!!turnstileToken || turnstileError)
-                        ? 1
-                        : 0.6
-                }
+                opacity={isFormValid && isCloudflareReady ? 1 : 0.6}
                 cursor={
-                    isFormValid && (!!turnstileToken || turnstileError)
-                        ? 'pointer'
-                        : 'not-allowed'
+                    isFormValid && isCloudflareReady ? 'pointer' : 'not-allowed'
                 }
-                disabled={
-                    !isFormValid ||
-                    (!turnstileToken &&
-                        !turnstileError &&
-                        !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY)
-                }
+                disabled={!isFormValid || !isCloudflareReady}
                 animation={`${slideUp} 0.6s ease-out 0.6s backwards`}
                 position="relative"
                 overflow="hidden"

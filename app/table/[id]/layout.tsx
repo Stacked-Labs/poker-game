@@ -12,6 +12,7 @@ import {
     Heading,
 } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
+import GameConfigWatermark from '@/app/components/Footer/GameConfigWatermark';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
 import LandscapeScreen from '@/app/components/LandscapeScreen';
@@ -209,7 +210,10 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                             gap={4}
                         >
                             {children}
-                            <Footer />
+                            <Box position="relative" width="100%">
+                                <GameConfigWatermark />
+                                <Footer />
+                            </Box>
                         </Flex>
                     </SocketProvider>
 

@@ -149,12 +149,13 @@ const FooterWithActionButtons = ({
             <Flex
                 justifyContent={{ base: 'space-between', md: 'end' }}
                 gap={{ base: 1, md: 2 }}
-                p={2}
+                p={1}
                 height={{ base: '100px', md: '120px' }}
                 overflow={'visible'}
                 alignItems={'center'}
-                zIndex={1}
+                zIndex={0}
                 bg="transparent"
+                width="100%"
             >
                 {showRaise && isCurrentTurn ? (
                     <RaiseInputBox

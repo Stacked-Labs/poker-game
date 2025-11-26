@@ -89,20 +89,20 @@ const ActionButton = ({
                           '2xl': 'large',
                       }
             }
-            maxW={{ base: 'unset', md: '180px', lg: '200px' }}
-            width={{ base: '100%', md: 'auto' }}
+            maxW={{ base: 'unset', md: '180px', lg: '180px' }}
+            width={{ base: '100%', md: '140px', lg: '140px' }}
             flex={{ base: 1, md: '0 0 auto' }}
             height={
                 isCompactButton
                     ? { base: 'auto', md: 'auto' }
                     : { base: '100%', md: '100%', lg: '100%' }
             }
-            minH={isCompactButton ? { base: '40px', sm: '44px', md: '48px' } : undefined}
-            maxH={
+            minH={
                 isCompactButton
-                    ? { base: '48px', sm: '52px', md: 'none' }
+                    ? { base: '40px', sm: '44px', md: '48px' }
                     : undefined
             }
+            maxH={isCompactButton ? { base: '100%', md: 'none' } : undefined}
             flexShrink={{ base: 1, md: 0 }}
             position={'relative'}
             zIndex={10}

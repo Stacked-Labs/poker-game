@@ -163,7 +163,9 @@ const RaiseInputBox = ({
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const value = isNaN(e.target.valueAsNumber) ? 0 : e.target.valueAsNumber;
+        const value = isNaN(e.target.valueAsNumber)
+            ? 0
+            : e.target.valueAsNumber;
         setSliderValue(value);
         setInputValue(value + currentBet);
     };
@@ -203,7 +205,12 @@ const RaiseInputBox = ({
 
     const actionButtons = () => {
         return (
-            <Flex flex={1} gap={2} justifyContent={'flex-end'}>
+            <Flex
+                flex={1}
+                gap={2}
+                justifyContent={'flex-end'}
+                alignItems={'stretch'}
+            >
                 <ActionButton
                     text={'Back'}
                     color="white"
@@ -236,16 +243,18 @@ const RaiseInputBox = ({
         <Flex
             gap={2}
             direction={{ base: 'column', md: 'row' }}
-            alignItems={'center'}
+            alignItems={{ base: 'center', md: 'stretch' }}
             color={'white'}
             className="raise-input-box"
             zIndex={10}
+            height="100%"
         >
             {/* ======= MOBILE / TABLET LAYOUT (≤ lg) ======= */}
             <Flex
                 direction="column"
-                gap={{ base: 1.5, sm: 2 }}
+                gap={{ base: 1, sm: 2 }}
                 width="100%"
+                height="100%"
                 display={{ base: 'flex', lg: 'none' }}
                 position="relative"
                 className="raise-mobile-wrapper"
@@ -264,11 +273,7 @@ const RaiseInputBox = ({
                         isDisabled={gameIsPaused || !isCurrentTurn}
                         onClick={() =>
                             setInputValue(
-                                betValidator(
-                                    minRaise,
-                                    minRaise,
-                                    maxTotalBet
-                                )
+                                betValidator(minRaise, minRaise, maxTotalBet)
                             )
                         }
                     >
@@ -281,11 +286,7 @@ const RaiseInputBox = ({
                         isDisabled={gameIsPaused || !isCurrentTurn}
                         onClick={() =>
                             setInputValue(
-                                betValidator(
-                                    half,
-                                    minRaise,
-                                    maxTotalBet
-                                )
+                                betValidator(half, minRaise, maxTotalBet)
                             )
                         }
                     >
@@ -315,11 +316,7 @@ const RaiseInputBox = ({
                         isDisabled={gameIsPaused || !isCurrentTurn}
                         onClick={() =>
                             setInputValue(
-                                betValidator(
-                                    full,
-                                    minRaise,
-                                    maxTotalBet
-                                )
+                                betValidator(full, minRaise, maxTotalBet)
                             )
                         }
                     >
@@ -332,11 +329,7 @@ const RaiseInputBox = ({
                         isDisabled={gameIsPaused || !isCurrentTurn}
                         onClick={() =>
                             setInputValue(
-                                betValidator(
-                                    allIn,
-                                    minRaise,
-                                    maxTotalBet
-                                )
+                                betValidator(allIn, minRaise, maxTotalBet)
                             )
                         }
                     >
@@ -345,7 +338,12 @@ const RaiseInputBox = ({
                 </Flex>
 
                 {/* Row 2 – amount display + Back + Raise buttons */}
-                <Flex gap={2} width="100%" className="raise-actions-row">
+                <Flex
+                    gap={2}
+                    width="100%"
+                    className="raise-actions-row"
+                    height="100%"
+                >
                     {/* Amount */}
                     <Box
                         bg={'brand.darkNavy'}
@@ -356,8 +354,7 @@ const RaiseInputBox = ({
                         overflow={'hidden'}
                         display="flex"
                         alignItems="center"
-                        minH={{ base: '40px', sm: '44px', md: '48px' }}
-                        maxH={{ base: '48px', sm: '52px', md: 'none' }}
+                        minH={{ base: '40px', md: '48px' }}
                         border="2px solid"
                         borderColor="brand.navy"
                     >
@@ -480,6 +477,7 @@ const RaiseInputBox = ({
                 }}
                 gap={1}
                 display={{ base: 'none', lg: 'flex' }}
+                alignItems="stretch"
             >
                 <Flex gap={2} justifyContent={{ base: 'end' }}>
                     <Box
@@ -487,29 +485,32 @@ const RaiseInputBox = ({
                         width={'fit-content'}
                         textAlign={'center'}
                         rounded={'lg'}
-                        px={1}
+                        px={2}
+                        py={2}
                         flex={1}
                         height={'100%'}
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="space-between"
+                        alignItems="center"
                         border="2px solid"
                         borderColor="brand.navy"
                         className="raise-bet-container"
                     >
                         <Text
                             whiteSpace={'nowrap'}
-                            p={1}
-                            fontSize={{ base: 'xs', md: 'sm' }}
+                            fontSize={{ base: 'sm', md: 'lg' }}
                             display={{ base: 'none', md: 'block' }}
                             color="white"
-                            fontWeight="semibold"
+                            fontWeight="bold"
                         >
-                            Your Bet
+                            Bet
                         </Text>
                         <Input
                             bg={'brand.navy'}
                             border={'2px solid'}
                             borderColor="brand.green"
                             fontSize={{ base: 'xs', md: 'xl' }}
-                            mb={1}
                             size={{ base: 'xs', md: 'md' }}
                             type="number"
                             value={
@@ -527,6 +528,8 @@ const RaiseInputBox = ({
                             fontWeight="bold"
                             className="raise-bet-input"
                             ref={desktopInputRef}
+                            mt={'auto'}
+                            width="100%"
                         />
                     </Box>
                     <Box display={{ base: 'inline-flex', lg: 'none' }} flex={2}>
@@ -566,11 +569,7 @@ const RaiseInputBox = ({
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setInputValue(
-                                    betValidator(
-                                        half,
-                                        minRaise,
-                                        maxTotalBet
-                                    )
+                                    betValidator(half, minRaise, maxTotalBet)
                                 )
                             }
                         >
@@ -596,11 +595,7 @@ const RaiseInputBox = ({
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setInputValue(
-                                    betValidator(
-                                        full,
-                                        minRaise,
-                                        maxTotalBet
-                                    )
+                                    betValidator(full, minRaise, maxTotalBet)
                                 )
                             }
                         >
@@ -611,11 +606,7 @@ const RaiseInputBox = ({
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setInputValue(
-                                    betValidator(
-                                        allIn,
-                                        minRaise,
-                                        maxTotalBet
-                                    )
+                                    betValidator(allIn, minRaise, maxTotalBet)
                                 )
                             }
                         >
@@ -668,10 +659,14 @@ const RaiseInputBox = ({
                         </Button>
                     </Flex>
                 </Flex>
+                <Flex
+                    ml={2}
+                    display={{ base: 'none', lg: 'flex' }}
+                    alignItems="stretch"
+                >
+                    {actionButtons()}
+                </Flex>
             </Flex>
-            <Box display={{ base: 'none', lg: 'inline-flex' }} ml={'auto'}>
-                {actionButtons()}
-            </Box>
         </Flex>
     );
 };

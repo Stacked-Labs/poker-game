@@ -126,9 +126,7 @@ const Table = () => {
     });
     const [isGridReady, setIsGridReady] = useState(false);
     const potHighlightTimeouts = useRef<number[]>([]);
-    const [tableColorKey, setTableColorKey] = useState<string>(() => {
-        return localStorage.getItem("tableColorKey") || "blue";
-    });
+    const [tableColorKey, setTableColorKey] = useState<string>("blue");
     const tableColorObj = tableColors[tableColorKey];
 
     const clearPotHighlightTimers = () => {
@@ -139,6 +137,9 @@ const Table = () => {
     };
 
     useEffect(() => {
+        const initialKey = localStorage.getItem("tableColorKey") || "blue";
+        setTableColorKey(initialKey);
+
         const onStorage = () => {
             const key = localStorage.getItem("tableColorKey") || "blue";
             setTableColorKey(key);

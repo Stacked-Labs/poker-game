@@ -46,6 +46,7 @@ interface RevealedCardInfo {
 }
 
 interface HandConcludedMetadata {
+    hand_number?: number;
     pots: PotResult[];
     total_pot: number | string;
     revealed_cards: Record<string, RevealedCardInfo>;
@@ -484,7 +485,7 @@ const GameLog = () => {
                             fontWeight="bold"
                             color="text.secondary"
                         >
-                            Hand #{event.hand_id} concluded
+                            Hand #{meta.hand_number || event.hand_id} concluded
                         </Text>
 
                         {/* Board cards */}

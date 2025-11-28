@@ -7,6 +7,7 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
+import { tableColors } from '../utils/tableColors';
 
 const initialPlayers: (Player | null)[] = [
     null,
@@ -125,6 +126,8 @@ const Table = () => {
     });
     const [isGridReady, setIsGridReady] = useState(false);
     const potHighlightTimeouts = useRef<number[]>([]);
+    const [tableColorKey, setTableColorKey] = useState<string>('green');
+    const tableColorObj = tableColors[tableColorKey];
 
     const clearPotHighlightTimers = () => {
         potHighlightTimeouts.current.forEach((timeout) => {
@@ -132,6 +135,24 @@ const Table = () => {
         });
         potHighlightTimeouts.current = [];
     };
+
+    useEffect(() => {
+        const initialKey = localStorage.getItem('tableColorKey') || 'green';
+        setTableColorKey(initialKey);
+
+        const onStorage = () => {
+            const key = localStorage.getItem('tableColorKey') || 'green';
+            setTableColorKey(key);
+        };
+
+        window.addEventListener('storage', onStorage);
+        window.addEventListener('tableColorChanged', onStorage);
+
+        return () => {
+            window.removeEventListener('storage', onStorage);
+            window.removeEventListener('tableColorChanged', onStorage);
+        };
+    }, []);
 
     useEffect(() => {
         if (imageDimensions.width > 0 && imageDimensions.height > 0) {
@@ -259,8 +280,7 @@ const Table = () => {
         for (let i = game.pots.length - 1; i >= 0; i--) {
             const pot = game.pots[i];
             const hasWinner =
-                (pot.winningPlayerNums &&
-                    pot.winningPlayerNums.length > 0) ||
+                (pot.winningPlayerNums && pot.winningPlayerNums.length > 0) ||
                 (pot.winningHand && pot.winningHand.length > 0);
             if (hasWinner) {
                 indices.push(i);
@@ -368,11 +388,11 @@ const Table = () => {
             >
                 <source
                     media="(orientation: portrait)"
-                    srcSet="/table-vertical-blue.webp"
+                    srcSet={'/' + tableColorObj.vertical}
                 />
                 <img
                     ref={imageRef}
-                    src="/table-horizontal-blue.webp"
+                    src={'/' + tableColorObj.horizontal}
                     alt="Poker table"
                     style={{
                         objectFit: 'contain',

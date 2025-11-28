@@ -1,7 +1,9 @@
+import { tableColors } from '@/app/utils/tableColors';
 import {
     Box,
     Flex,
     Input,
+    Select,
     Switch,
     Table,
     TableContainer,
@@ -16,6 +18,16 @@ import React, { useState } from 'react';
 
 const GameSettings = () => {
     const [isAnte, setIsAnte] = useState<boolean>(false);
+    const tableColorKey = localStorage.getItem('tableColorKey') ?? 'blue';
+    const [selectedColor, onColorChange] = useState<string>(tableColorKey);
+
+    const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const key = e.target.value;
+        onColorChange(key);
+
+        localStorage.setItem('tableColorKey', key);
+        window.dispatchEvent(new Event("tableColorChanged"));
+    };
 
     return (
         <Box>
@@ -81,93 +93,151 @@ const GameSettings = () => {
                     />
                 </Flex>
 
-                <Text
-                    fontSize={{ base: 'md', md: 'lg' }}
-                    fontWeight={'bold'}
-                    mb={4}
-                    color="text.secondary"
+                <Flex
+                    direction="column"
+                    mb={6}
+                    pb={5}
+                    borderBottom="2px solid"
+                    borderColor="card.lightGray"
                 >
-                    Blind Levels
-                </Text>
+                    <Text
+                        fontSize={{ base: 'md', md: 'lg' }}
+                        fontWeight={'bold'}
+                        mb={4}
+                        color="text.secondary"
+                    >
+                        Blind Levels
+                    </Text>
 
-                <TableContainer
-                    overflowX="auto"
-                    borderRadius="12px"
-                    border="2px solid"
-                    borderColor="border.lightGray"
-                >
-                    <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
-                        <Thead bg="card.lightGray">
-                            <Tr>
-                                <Th
-                                    color={'text.secondary'}
-                                    fontSize="xs"
-                                    fontWeight="bold"
-                                >
-                                    Small Blind
-                                </Th>
-                                <Th
-                                    color={'text.secondary'}
-                                    fontSize="xs"
-                                    fontWeight="bold"
-                                >
-                                    Big Blind
-                                </Th>
-                                {isAnte && (
+                    <TableContainer
+                        overflowX="auto"
+                        borderRadius="12px"
+                        border="2px solid"
+                        borderColor="border.lightGray"
+                    >
+                        <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
+                            <Thead bg="card.lightGray">
+                                <Tr>
                                     <Th
                                         color={'text.secondary'}
                                         fontSize="xs"
                                         fontWeight="bold"
                                     >
-                                        Ante
+                                        Small Blind
                                     </Th>
-                                )}
-                                <Th
-                                    color={'text.secondary'}
-                                    fontSize="xs"
-                                    fontWeight="bold"
+                                    <Th
+                                        color={'text.secondary'}
+                                        fontSize="xs"
+                                        fontWeight="bold"
+                                    >
+                                        Big Blind
+                                    </Th>
+                                    {isAnte && (
+                                        <Th
+                                            color={'text.secondary'}
+                                            fontSize="xs"
+                                            fontWeight="bold"
+                                        >
+                                            Ante
+                                        </Th>
+                                    )}
+                                    <Th
+                                        color={'text.secondary'}
+                                        fontSize="xs"
+                                        fontWeight="bold"
+                                    >
+                                        Duration (min)
+                                    </Th>
+                                </Tr>
+                            </Thead>
+                            <Tbody>
+                                <Tr
+                                    _hover={{
+                                        bg: 'input.lightGray',
+                                    }}
+                                    transition="all 0.2s ease"
                                 >
-                                    Duration (min)
-                                </Th>
-                            </Tr>
-                        </Thead>
-                        <Tbody>
-                            <Tr
-                                _hover={{
-                                    bg: 'input.lightGray',
-                                }}
-                                transition="all 0.2s ease"
-                            >
-                                <Td>
-                                    <Input
-                                        variant={'settings'}
-                                        placeholder="5"
-                                    />
-                                </Td>
-                                <Td>
-                                    <Input
-                                        variant={'settings'}
-                                        placeholder="20"
-                                    />
-                                </Td>
-                                {isAnte && (
                                     <Td>
                                         <Input
                                             variant={'settings'}
                                             placeholder="5"
                                         />
                                     </Td>
-                                )}
-                                <Td>
-                                    <Input
-                                        variant={'settings'}
-                                        placeholder="15"
-                                    />
-                                </Td>
-                            </Tr>
-                        </Tbody>
-                    </Table>
-                </TableContainer>
+                                    <Td>
+                                        <Input
+                                            variant={'settings'}
+                                            placeholder="20"
+                                        />
+                                    </Td>
+                                    {isAnte && (
+                                        <Td>
+                                            <Input
+                                                variant={'settings'}
+                                                placeholder="5"
+                                            />
+                                        </Td>
+                                    )}
+                                    <Td>
+                                        <Input
+                                            variant={'settings'}
+                                            placeholder="15"
+                                        />
+                                    </Td>
+                                </Tr>
+                            </Tbody>
+                        </Table>
+                    </TableContainer>
+                </Flex>
+
+                <Flex
+                    direction={{ base: 'column', sm: 'row' }}
+                    justify={'space-between'}
+                    align={{ base: 'start', sm: 'center' }}
+                    gap={3}
+                >
+                    <Text
+                        fontSize={{ base: 'md', md: 'lg' }}
+                        fontWeight="bold"
+                        color="text.secondary"
+                    >
+                        Table Color
+                    </Text>
+                    <Select
+                        id="color-select"
+                        value={selectedColor}
+                        onChange={handleSelectChange}
+                        variant="outline"
+                        width='50%'
+                        bg={tableColors[selectedColor].color}
+                        color={selectedColor == 'white' ? 'brand.darkNavy' : 'white'}
+                        fontWeight={'bold'}
+                        sx={{
+                            "& > option:checked": {
+                                color: 'text.primary',
+                                fontWeight: 'bold',
+                            },
+                            "& > option": {
+                                bg: 'card.white',
+                                color: 'text.primary'
+                            }
+                        }}
+                        _hover={{
+                            cursor: 'pointer'
+                        }}
+                        defaultValue={tableColorKey}
+                    >
+                        {
+                            tableColors && Object.entries(tableColors).map(([key]) => (
+                                <option
+                                    key={key}
+                                    value={key}
+                                >
+                                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                                </option>
+                            ))
+                        }
+                    </Select>
+                </Flex>
             </Box>
         </Box>
     );

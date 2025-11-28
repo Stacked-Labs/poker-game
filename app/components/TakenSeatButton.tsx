@@ -12,112 +12,117 @@ import {
     useBreakpointValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+    motion,
+    animate,
+    useAnimationControls,
+    useReducedMotion,
+} from 'framer-motion';
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import CardComponent from './Card';
 import { currentHandLabel } from '@/app/lib/poker/pokerHandEval';
 
-// Brand-themed glow animations - brand.pink for active player
-const pulsePinkGlow = keyframes`
-  0% { 
-    box-shadow: 0 0 6px 2.25px rgba(235, 11, 92, 0.7),
-                0 0 9px 3.75px rgba(235, 11, 92, 0.4); 
+const pulseBorderPink = keyframes`
+  0% {
+    box-shadow: 0 0 0 0 rgba(235, 11, 92, 0.5);
   }
-  50% { 
-    box-shadow: 0 0 7.5px 3px rgba(235, 11, 92, 0.9),
-                0 0 12px 5.25px rgba(235, 11, 92, 0.5); 
+  70% {
+    box-shadow: 0 0 0 10px rgba(235, 11, 92, 0);
   }
-  100% { 
-    box-shadow: 0 0 6px 2.25px rgba(235, 11, 92, 0.7),
-                0 0 9px 3.75px rgba(235, 11, 92, 0.4); 
+  100% {
+    box-shadow: 0 0 0 0 rgba(235, 11, 92, 0);
   }
 `;
 
-const pulseYellowGlow = keyframes`
-  0% { 
-    box-shadow: 0 0 9px 4.5px rgba(253, 197, 29, 0.7),
-                0 0 15px 5.5px rgba(253, 197, 29, 0.4); 
+const pulseBorderYellow = keyframes`
+  0% {
+    box-shadow: 0 0 0 0 rgba(253, 197, 29, 0.55);
   }
-  50% { 
-    box-shadow: 0 0 12px 6px rgba(253, 197, 29, 0.9),
-                0 0 21px 8.5px rgba(253, 197, 29, 0.5); 
+  70% {
+    box-shadow: 0 0 0 10px rgba(253, 197, 29, 0);
   }
-  100% { 
-    box-shadow: 0 0 9px 4.5px rgba(253, 197, 29, 0.7),
-                0 0 15px 5.5px rgba(253, 197, 29, 0.4); 
+  100% {
+    box-shadow: 0 0 0 0 rgba(253, 197, 29, 0);
   }
 `;
 
-// Gradient animation for active player border
-const gradientShift = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
-
-// Component for animating individual digits
-const AnimatedDigit = ({
-    digit,
-    isWinner,
-    isCurrentTurn,
+const StackValue = ({
+    value,
+    color,
     fontSize,
 }: {
-    digit: string;
-    isWinner: boolean;
-    isCurrentTurn: boolean;
+    value: number;
+    color: string;
     fontSize: ResponsiveValue<string>;
 }) => {
-    const color = isWinner
-        ? 'brand.green'
-        : isCurrentTurn
-          ? 'brand.darkNavy'
-          : 'white';
+    const prefersReducedMotion = useReducedMotion();
+    const animationControls = useAnimationControls();
+    const previousValueRef = useRef<number>(value);
+    const [displayValue, setDisplayValue] = useState<number>(value);
+
+    useEffect(() => {
+        animationControls.set({ y: 0, opacity: 1 });
+    }, [animationControls]);
+
+    useEffect(() => {
+        if (prefersReducedMotion) {
+            setDisplayValue(value);
+            previousValueRef.current = value;
+            return;
+        }
+
+        const fromValue = previousValueRef.current;
+        if (fromValue === value) {
+            return;
+        }
+        previousValueRef.current = value;
+        const direction = value >= fromValue ? 1 : -1;
+
+        const controls = animate(fromValue, value, {
+            duration: 0.4,
+            ease: 'easeOut',
+            onUpdate: (latest) => {
+                setDisplayValue(Math.round(latest));
+            },
+        });
+
+        animationControls.start({
+            y: [direction * 6, 0],
+            opacity: [0.5, 1],
+            transition: { duration: 0.35, ease: 'easeOut' },
+        });
+
+        return () => {
+            controls.stop();
+        };
+    }, [value, prefersReducedMotion, animationControls]);
+
+    const formattedValue = useMemo(
+        () =>
+            Number.isFinite(displayValue)
+                ? displayValue.toLocaleString('en-US')
+                : '0',
+        [displayValue]
+    );
 
     return (
-        <Box
-            position="relative"
-            display="inline-flex"
-            alignItems="center"
-            justifyContent="center"
-            overflow="hidden"
-            height={{ base: '16px', md: '20px', lg: '24px' }}
-            minWidth={{ base: '8px', md: '10px', lg: '12px' }}
+        <Text
+            variant="seatText"
+            fontSize={fontSize}
+            fontWeight="bold"
+            lineHeight={1}
+            color={color}
+            minWidth="fit-content"
         >
-            <AnimatePresence mode="popLayout">
-                <motion.div
-                    key={digit}
-                    initial={{ y: '100%' }}
-                    animate={{ y: '0%' }}
-                    exit={{ y: '-100%' }}
-                    transition={{
-                        type: 'spring',
-                        stiffness: 200,
-                        damping: 20,
-                        mass: 0.8,
-                    }}
-                    style={{
-                        position: 'absolute',
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <Text
-                        variant="seatText"
-                        fontSize={fontSize}
-                        color={color}
-                        fontWeight="bold"
-                        lineHeight={1}
-                        transition="color 0.3s ease-in-out"
-                        textAlign="center"
-                    >
-                        {digit}
-                    </Text>
-                </motion.div>
-            </AnimatePresence>
-        </Box>
+            <motion.span
+                style={{ display: 'inline-block', willChange: 'transform' }}
+                animate={animationControls}
+                initial={false}
+            >
+                {formattedValue}
+            </motion.span>
+        </Text>
     );
 };
 
@@ -145,6 +150,7 @@ const TakenSeatButton = ({
     const isSelf = appState.clientID
         ? player.uuid === appState.clientID
         : false;
+    const prefersReducedMotion = useReducedMotion();
 
     const chipPositions: {
         [key: number]: {
@@ -320,11 +326,37 @@ const TakenSeatButton = ({
     }
     const showWinnerHighlight =
         activePotIndex === null ? isWinner : playerWinsActivePot;
-    const glowAnimation = isCurrentTurn
-        ? `${pulsePinkGlow} 2s ease-in-out 0.2s infinite`
+    const highlightVariant = isCurrentTurn
+        ? 'active'
         : showWinnerHighlight
-          ? `${pulseYellowGlow} 2s ease-in-out 0.5s infinite`
-          : 'none';
+          ? 'winner'
+          : null;
+    const highlightBorderColor =
+        highlightVariant === 'active'
+            ? 'brand.pink'
+            : highlightVariant === 'winner'
+              ? 'brand.yellow'
+              : 'brand.darkNavy';
+    const highlightShadow =
+        highlightVariant === 'active'
+            ? '0 6px 18px rgba(235, 11, 92, 0.35)'
+            : highlightVariant === 'winner'
+              ? '0 6px 18px rgba(253, 197, 29, 0.3)'
+              : '0 2px 8px rgba(11, 20, 48, 0.3)';
+    const highlightPulse =
+        highlightVariant && !prefersReducedMotion
+            ? `${
+                  highlightVariant === 'active'
+                      ? pulseBorderPink
+                      : pulseBorderYellow
+              } 2s ease-out infinite`
+            : 'none';
+    const stackColor =
+        showWinnerHighlight && winnings > 0
+            ? 'brand.green'
+            : isCurrentTurn
+              ? 'brand.darkNavy'
+              : 'white';
 
     // Compute hand strength label per display rules
     const strengthLabel: string | null = useMemo(() => {
@@ -520,43 +552,6 @@ const TakenSeatButton = ({
                 zIndex={1}
                 alignSelf={'flex-end'}
             >
-                {/* Animated Gradient Border for Active Player */}
-                {isCurrentTurn && (
-                    <Box
-                        position="absolute"
-                        top={0}
-                        left={0}
-                        right={0}
-                        bottom={0}
-                        borderRadius={{
-                            base: 4,
-                            md: 8,
-                            lg: 12,
-                            xl: 12,
-                            '2xl': 12,
-                        }}
-                        padding="3px"
-                        bgGradient="linear(to-r, brand.pink, brand.green, brand.yellow, brand.pink)"
-                        backgroundSize="200% 200%"
-                        animation={`${gradientShift} 3s ease infinite`}
-                        pointerEvents="none"
-                        zIndex={0}
-                    >
-                        <Box
-                            width="100%"
-                            height="100%"
-                            bg="card.white"
-                            borderRadius={{
-                                base: '2px',
-                                md: '6px',
-                                lg: '10px',
-                                xl: '10px',
-                                '2xl': '10px',
-                            }}
-                        />
-                    </Box>
-                )}
-
                 <Flex
                     className="player-info-container"
                     direction={'column'}
@@ -572,22 +567,18 @@ const TakenSeatButton = ({
                     justifySelf={'flex-end'}
                     justifyContent={'center'}
                     alignItems={'flex-start'}
-                    animation={glowAnimation}
                     transition={'all 0.5s ease-in-out'}
                     position={'relative'}
                     border="2px solid"
                     borderColor={
-                        isCurrentTurn
-                            ? 'transparent'
+                        highlightVariant
+                            ? highlightBorderColor
                             : showWinnerHighlight
                               ? 'brand.yellow'
                               : 'brand.darkNavy'
                     }
-                    boxShadow={
-                        !isCurrentTurn && !showWinnerHighlight
-                            ? '0 2px 8px rgba(11, 20, 48, 0.3)'
-                            : 'none'
-                    }
+                    boxShadow={highlightShadow}
+                    animation={highlightPulse}
                 >
                     {/* Status badges rendered above the container without affecting layout */}
                     {player.stack > 0 &&
@@ -717,25 +708,12 @@ const TakenSeatButton = ({
                             className="player-stack-container"
                             alignItems={'center'}
                             justifyContent={'center'}
-                            gap={0}
                         >
-                            {String(player.stack)
-                                .split('')
-                                .map((digit, index) => (
-                                    <AnimatedDigit
-                                        key={`${player.seatID}-${index}`}
-                                        digit={digit}
-                                        isWinner={
-                                            showWinnerHighlight && winnings > 0
-                                        }
-                                        isCurrentTurn={isCurrentTurn}
-                                        fontSize={{
-                                            base: 'xs',
-                                            md: 'sm',
-                                            lg: 'md',
-                                        }}
-                                    />
-                                ))}
+                            <StackValue
+                                value={player.stack}
+                                color={stackColor}
+                                fontSize={{ base: 'xs', md: 'sm', lg: 'md' }}
+                            />
                         </Flex>
                     </HStack>
 

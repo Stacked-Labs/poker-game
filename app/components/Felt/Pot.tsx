@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useContext, useMemo, useState } from 'react';
+import React, { Fragment, useContext, useMemo, useState } from 'react';
 import { AppContext } from '../../contexts/AppStoreProvider';
 import { Pot as PotType } from '../../interfaces';
-import { Box, Flex, Text } from '@chakra-ui/react';
+import { Box, Flex, Text, usePrefersReducedMotion } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
 
 const initialPot: PotType[] = [
     {
@@ -16,10 +17,23 @@ const initialPot: PotType[] = [
     },
 ];
 
+const pulsePotPrimary = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(253, 197, 29, 0.45); }
+  70% { box-shadow: 0 0 0 8px rgba(253, 197, 29, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(253, 197, 29, 0); }
+`;
+
+const pulsePotSecondary = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.35); }
+  70% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+`;
+
 const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
     const { appState } = useContext(AppContext);
     const isGameRunning = appState.game?.running;
     const game = appState.game;
+    const prefersReducedMotion = usePrefersReducedMotion();
     const [stage, setStage] = useState(game?.stage);
     const [pots, setPots] = useState(initialPot);
     const highlightIndex = useMemo(() => {
@@ -49,6 +63,16 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
 
     if (isGameRunning && pots.length > 0 && pots[0].amount > 0) {
         const mainPotActive = highlightIndex === 0;
+        const borderColor = mainPotActive
+            ? 'brand.yellow'
+            : 'rgba(255, 255, 255, 0.15)';
+        const shadowColor = mainPotActive
+            ? '0 10px 24px rgba(253, 197, 29, 0.35)'
+            : '0 8px 32px rgba(31, 38, 135, 0.37)';
+        const borderAnimation =
+            mainPotActive && !prefersReducedMotion
+                ? `${pulsePotPrimary} 2.4s ease-out infinite`
+                : 'none';
         return (
             <Flex
                 padding={2}
@@ -77,25 +101,19 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                 position={'absolute'}
                 top={{ base: '-8', md: '-6', lg: '-6' }}
                 left={'50%'}
-                transform={
-                    mainPotActive
-                        ? 'translateX(-50%) scale(1.05)'
-                        : 'translateX(-50%)'
-                }
+                transform="translateX(-50%)"
                 transition="transform 0.3s ease"
                 pointerEvents={'none'}
                 zIndex={999}
-                border="1px solid rgba(255, 255, 255, 0.15)"
-                boxShadow={
-                    mainPotActive
-                        ? '0 8px 32px 0 rgba(31, 38, 135, 0.37), 0 0 18px rgba(255, 213, 64, 0.7)'
-                        : '0 8px 32px 0 rgba(31, 38, 135, 0.37)'
-                }
+                border="1.5px solid"
+                borderColor={borderColor}
+                boxShadow={shadowColor}
+                animation={borderAnimation}
             >
                 {pots.map((pot, index) => {
                     if (pot.amount !== 0) {
                         return (
-                            <>
+                            <Fragment key={`main-pot-${index}`}>
                                 <Flex
                                     position={'absolute'}
                                     top={{ base: -3, lg: -4, '2xl': -6 }}
@@ -160,9 +178,10 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                         {pot.amount}
                                     </Text>
                                 )}
-                            </>
+                            </Fragment>
                         );
                     }
+                    return null;
                 })}
                 <Flex
                     gap={2}
@@ -196,12 +215,13 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                             ? '0 2px 6px rgba(0, 0, 0, 0.25), 0 0 12px rgba(255, 213, 64, 0.65)'
                                             : '0 2px 6px rgba(0, 0, 0, 0.25)'
                                     }
-                                    transform={
-                                        highlightIndex === index
-                                            ? 'scale(1.05)'
-                                            : 'scale(1)'
+                                    border="1px solid rgba(255, 255, 255, 0.2)"
+                                    animation={
+                                        highlightIndex === index &&
+                                        !prefersReducedMotion
+                                            ? `${pulsePotSecondary} 2s ease-out infinite`
+                                            : 'none'
                                     }
-                                    transition="transform 0.25s ease"
                                     key={`pot-${index}-${index}`}
                                 >
                                     <Text

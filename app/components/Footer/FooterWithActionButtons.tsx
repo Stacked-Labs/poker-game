@@ -153,9 +153,10 @@ const FooterWithActionButtons = ({
                 height={{ base: '100px', md: '120px' }}
                 overflow={'visible'}
                 alignItems={'center'}
-                zIndex={0}
+                zIndex={showRaise && isCurrentTurn ? 100 : 0}
                 bg="transparent"
                 width="100%"
+                position="relative"
             >
                 {showRaise && isCurrentTurn ? (
                     <RaiseInputBox

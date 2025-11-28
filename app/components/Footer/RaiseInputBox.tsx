@@ -246,8 +246,9 @@ const RaiseInputBox = ({
             alignItems={{ base: 'center', md: 'stretch' }}
             color={'white'}
             className="raise-input-box"
-            zIndex={10}
+            zIndex={100}
             height="100%"
+            position="relative"
         >
             {/* ======= MOBILE / TABLET LAYOUT (≤ lg) ======= */}
             <Flex
@@ -258,6 +259,7 @@ const RaiseInputBox = ({
                 display={{ base: 'flex', lg: 'none' }}
                 position="relative"
                 className="raise-mobile-wrapper"
+                zIndex={9999}
             >
                 {/* Row 1 – pot-size quick buttons */}
                 <Flex
@@ -423,16 +425,21 @@ const RaiseInputBox = ({
                     width={{ base: '60px', sm: '70px' }}
                     display={{ base: 'flex', lg: 'none' }}
                     flexDirection="column"
-                    bg={'brand.navy.80'}
+                    bg="rgba(51, 68, 121, 0.6)"
                     rounded={'lg'}
                     overflow={'hidden'}
-                    zIndex={20}
+                    zIndex={10000}
                     border="2px solid"
-                    borderColor="brand.darkNavy"
+                    borderColor="rgba(51, 68, 121, 0.8)"
                     className="raise-vertical-slider"
+                    transition="all 0.2s ease-in-out"
+                    _hover={{
+                        bg: 'rgba(51, 68, 121, 0.9)',
+                        borderColor: 'brand.darkNavy',
+                    }}
                 >
                     <Button
-                        bg={'brand.darkNavy'}
+                        bg="transparent"
                         height={'auto'}
                         minH={'auto'}
                         p={1}
@@ -442,11 +449,14 @@ const RaiseInputBox = ({
                         onClick={handleIncreaseRaise}
                         isDisabled={!isCurrentTurn || gameIsPaused}
                         borderRadius={0}
+                        opacity={0.7}
+                        transition="all 0.2s ease-in-out"
                         _hover={{
-                            bg: 'brand.navy',
+                            bg: 'rgba(51, 68, 121, 0.8)',
+                            opacity: 1,
                         }}
                         _active={{
-                            bg: 'brand.darkNavy',
+                            bg: 'rgba(51, 68, 121, 0.9)',
                         }}
                     >
                         <LuPlus />
@@ -463,13 +473,13 @@ const RaiseInputBox = ({
                         isDisabled={!isCurrentTurn || gameIsPaused}
                         colorScheme="green"
                     >
-                        <SliderTrack bg="brand.darkNavy">
+                        <SliderTrack bg="rgb(24, 31, 56, 0.8)">
                             <SliderFilledTrack bg="brand.green" />
                         </SliderTrack>
                         <SliderThumb borderColor="brand.green" />
                     </Slider>
                     <Button
-                        bg={'brand.darkNavy'}
+                        bg="transparent"
                         height={'auto'}
                         minH={'auto'}
                         p={1}
@@ -479,11 +489,14 @@ const RaiseInputBox = ({
                         onClick={handleDecreaseRaise}
                         isDisabled={!isCurrentTurn || gameIsPaused}
                         borderRadius={0}
+                        opacity={0.7}
+                        transition="all 0.2s ease-in-out"
                         _hover={{
-                            bg: 'brand.navy',
+                            bg: 'rgba(51, 68, 121, 0.8)',
+                            opacity: 1,
                         }}
                         _active={{
-                            bg: 'brand.darkNavy',
+                            bg: 'rgba(51, 68, 121, 0.9)',
                         }}
                     >
                         <LuMinus />

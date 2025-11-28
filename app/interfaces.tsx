@@ -172,3 +172,38 @@ export const FINANCIAL_EVENT_TYPES: EventType[] = [
     'player_left',
     'player_kicked'
 ];
+
+// Ledger Types
+export type LedgerEntryType = 'buy_in' | 'cash_out' | 'forced_out';
+
+export type LedgerEntry = {
+    event_id: number;
+    sequence_num: number;
+    entry_type: LedgerEntryType;
+    player_uuid: string;
+    player_name: string;
+    seat_id: number | null;
+    amount: string | null; // decimal encoded
+    final_stack: string | null; // decimal encoded
+    reason: string | null;
+    timestamp: string; // ISO8601 string
+};
+
+export type LedgerTotals = {
+    buy_in: string; // decimal
+    cash_out: string; // decimal
+    net: string; // cash_out - buy_in
+    per_player: Array<{
+        player_uuid: string;
+        player_name: string;
+        buy_in: string;
+        cash_out: string;
+    }>;
+};
+
+export type LedgerResponse = {
+    success: boolean;
+    table_name: string;
+    entries: LedgerEntry[];
+    totals: LedgerTotals;
+};

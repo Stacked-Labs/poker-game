@@ -530,3 +530,33 @@ export async function fetchTableEvents(
         throw error;
     }
 }
+
+export async function fetchTableLedger(tableName: string) {
+    isBackendUrlValid();
+
+    if (!tableName) {
+        throw new Error('Table name is not defined');
+    }
+
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/tables/${tableName}/ledger`,
+            {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Ledger fetch failed: ${response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch table ledger.', error);
+        throw error;
+    }
+}

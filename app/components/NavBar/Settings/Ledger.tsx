@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import {
     Box,
     HStack,
@@ -23,8 +23,8 @@ import {
 } from '@chakra-ui/react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { useGameEvents } from '@/app/contexts/GameEventsProvider';
-import { GameEventRecord } from '@/app/interfaces';
+import { fetchTableLedger } from '@/app/hooks/server_actions';
+import { LedgerResponse, LedgerEntry } from '@/app/interfaces';
 
 interface PlayerSession {
     uuid: string;
@@ -42,29 +42,46 @@ interface FinancialEvent {
     timestamp: string;
     type: 'buy-in' | 'buy-out' | 'kicked';
     amount: number;
-    metadata?: Record<string, unknown>;
 }
 
 const Ledger = () => {
     const { appState } = useContext(AppContext);
-    const { events, loading } = useGameEvents();
+    const [loading, setLoading] = useState(true);
+    const [ledgerData, setLedgerData] = useState<LedgerResponse | null>(null);
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-    // Process events into player sessions
+    // Fetch ledger data when table changes
+    useEffect(() => {
+        const loadLedger = async () => {
+            if (!appState.table) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                const data = await fetchTableLedger(appState.table);
+                setLedgerData(data);
+            } catch (error) {
+                console.error('Failed to load ledger:', error);
+                setLedgerData(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadLedger();
+    }, [appState.table]);
+
+    // Transform ledger entries into player sessions
     const sessions = useMemo(() => {
+        if (!ledgerData) return [];
+
         const playerMap = new Map<string, PlayerSession>();
 
-        // Process all events
-        events.forEach((event: GameEventRecord) => {
-            const {
-                player_uuid,
-                player_name,
-                event_type,
-                amount,
-                metadata,
-                id,
-                timestamp,
-            } = event;
+        // Process all ledger entries
+        ledgerData.entries.forEach((entry: LedgerEntry) => {
+            const { player_uuid, player_name, entry_type, amount, final_stack, event_id, timestamp } = entry;
 
             if (!player_uuid) return;
 
@@ -84,70 +101,28 @@ const Ledger = () => {
 
             const session = playerMap.get(player_uuid)!;
 
-            // Process buy-ins (player_joined or player_accepted)
-            if (
-                (event_type === 'player_joined' ||
-                    event_type === 'player_accepted') &&
-                metadata
-            ) {
-                const buyInAmount =
-                    typeof metadata.buy_in === 'string'
-                        ? parseFloat(metadata.buy_in)
-                        : (metadata.buy_in as number) || 0;
-
+            // Process buy-ins
+            if (entry_type === 'buy_in' && amount) {
+                const buyInAmount = parseFloat(amount);
                 session.totalBuyIns += buyInAmount;
                 session.transactions.push({
-                    id,
+                    id: event_id,
                     timestamp,
                     type: 'buy-in',
                     amount: buyInAmount,
-                    metadata,
                 });
             }
 
-            // Process buy-outs (player_left)
-            if (event_type === 'player_left') {
-                const buyOutAmount = amount
-                    ? typeof amount === 'string'
-                        ? parseFloat(amount)
-                        : amount
-                    : metadata?.final_stack
-                      ? typeof metadata.final_stack === 'string'
-                          ? parseFloat(metadata.final_stack as string)
-                          : (metadata.final_stack as number)
-                      : 0;
-
-                session.totalBuyOuts += buyOutAmount;
-                session.currentStack = 0; // Player left, no current stack
+            // Process cash-outs (cash_out or forced_out)
+            if ((entry_type === 'cash_out' || entry_type === 'forced_out') && (final_stack || amount)) {
+                const cashOutAmount = parseFloat(final_stack || amount || '0');
+                session.totalBuyOuts += cashOutAmount;
+                session.currentStack = 0; // Player left/kicked, no current stack
                 session.transactions.push({
-                    id,
+                    id: event_id,
                     timestamp,
-                    type: 'buy-out',
-                    amount: buyOutAmount,
-                    metadata,
-                });
-            }
-
-            // Process kicked (player_kicked)
-            if (event_type === 'player_kicked') {
-                const kickedAmount = amount
-                    ? typeof amount === 'string'
-                        ? parseFloat(amount)
-                        : amount
-                    : metadata?.final_stack
-                      ? typeof metadata.final_stack === 'string'
-                          ? parseFloat(metadata.final_stack as string)
-                          : (metadata.final_stack as number)
-                      : 0;
-
-                session.totalBuyOuts += kickedAmount;
-                session.currentStack = 0; // Player kicked, no current stack
-                session.transactions.push({
-                    id,
-                    timestamp,
-                    type: 'kicked',
-                    amount: kickedAmount,
-                    metadata,
+                    type: entry_type === 'forced_out' ? 'kicked' : 'buy-out',
+                    amount: cashOutAmount,
                 });
             }
         });
@@ -161,7 +136,7 @@ const Ledger = () => {
                     session.isActive = !player.left && player.in;
                     session.username = player.username || session.username;
                 } else {
-                    // Player is active but no events yet (shouldn't happen normally)
+                    // Player is active but no ledger entries yet
                     playerMap.set(player.uuid, {
                         uuid: player.uuid,
                         username: player.username,
@@ -190,11 +165,12 @@ const Ledger = () => {
             if (!a.isActive && b.isActive) return 1;
             return b.net - a.net;
         });
-    }, [events, appState.game?.players]);
+    }, [ledgerData, appState.game?.players]);
 
-    // Calculate summary stats
-    const totalBuyIns = sessions.reduce((sum, s) => sum + s.totalBuyIns, 0);
-    const totalCashOuts = sessions.reduce((sum, s) => sum + s.totalBuyOuts, 0);
+    // Calculate summary stats from ledger totals and game state
+    const totalBuyIns = ledgerData?.totals?.buy_in ? parseFloat(ledgerData.totals.buy_in) : 0;
+    const totalCashOuts = ledgerData?.totals?.cash_out ? parseFloat(ledgerData.totals.cash_out) : 0;
+    // Calculate chips in play from sessions (includes all players with stacks, even if game hasn't started)
     const totalChipsInPlay = sessions.reduce(
         (sum, s) => sum + s.currentStack,
         0
@@ -611,10 +587,10 @@ const Ledger = () => {
                                                             bg={
                                                                 tx.type ===
                                                                 'buy-in'
-                                                                    ? 'brand.navy'
+                                                                    ? 'brand.green'
                                                                     : tx.type ===
                                                                         'buy-out'
-                                                                      ? 'brand.green'
+                                                                      ? 'brand.pink'
                                                                       : 'brand.pink'
                                                             }
                                                             color="white"

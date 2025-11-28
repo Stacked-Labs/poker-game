@@ -31,7 +31,6 @@ import Ledger from './Ledger';
 import HowTo from './HowTo';
 import Support from './Support';
 import { GameEventsProvider } from '@/app/contexts/GameEventsProvider';
-import { FINANCIAL_EVENT_TYPES } from '@/app/interfaces';
 import { IconType } from 'react-icons/lib/iconBase';
 import { ColorModeButton } from '../../ColorModeButton';
 
@@ -292,12 +291,7 @@ const SettingsModal = ({
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}
                             >
-                                <GameEventsProvider
-                                    isModalOpen={isOpen}
-                                    eventTypes={FINANCIAL_EVENT_TYPES}
-                                >
-                                    <Ledger />
-                                </GameEventsProvider>
+                                <Ledger />
                             </TabPanel>
                             <TabPanel
                                 px={{ base: 0, sm: 1, md: 2 }}

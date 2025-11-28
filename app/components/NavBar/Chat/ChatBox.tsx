@@ -71,6 +71,8 @@ const Chatbox = ({
     const appState = useContext(AppContext);
     const { username, clientID } = appState.appState;
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (!shouldAutoFocus) {
@@ -82,12 +84,25 @@ const Chatbox = ({
         }
     }, [username, clientID, shouldAutoFocus]);
 
+    // Auto-scroll to bottom when new messages arrive or chat opens
+    useEffect(() => {
+        if (appState.appState.isChatOpen && messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+    }, [appState.appState.messages, appState.appState.isChatOpen]);
+
     const handleSendMessage = () => {
         console.log(appState.appState);
 
         if (socket && message != '') {
             sendMessage(socket, message);
             setMessage('');
+            // Scroll to bottom after sending message
+            setTimeout(() => {
+                if (messagesEndRef.current) {
+                    messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
+            }, 100);
         }
     };
 
@@ -136,6 +151,7 @@ const Chatbox = ({
 
             {/* Messages Area */}
             <Box
+                ref={messagesContainerRef}
                 flex={1}
                 overflowY="auto"
                 px={4}
@@ -192,6 +208,7 @@ const Chatbox = ({
                         </Text>
                     </Box>
                 ))}
+                <div ref={messagesEndRef} />
             </Box>
 
             {/* Input Area */}

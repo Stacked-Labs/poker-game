@@ -7,6 +7,7 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { sendLog } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
+import { tableColors } from '../utils/tableColors';
 
 const initialPlayers: (Player | null)[] = [
     null,
@@ -125,6 +126,10 @@ const Table = () => {
     });
     const [isGridReady, setIsGridReady] = useState(false);
     const potHighlightTimeouts = useRef<number[]>([]);
+    const [tableColorKey, setTableColorKey] = useState<string>(() => {
+        return localStorage.getItem("tableColorKey") || "blue";
+    });
+    const tableColorObj = tableColors[tableColorKey];
 
     const clearPotHighlightTimers = () => {
         potHighlightTimeouts.current.forEach((timeout) => {
@@ -132,6 +137,22 @@ const Table = () => {
         });
         potHighlightTimeouts.current = [];
     };
+
+    useEffect(() => {
+        const onStorage = () => {
+            const key = localStorage.getItem("tableColorKey") || "blue";
+            setTableColorKey(key);
+        };
+
+        window.addEventListener("storage", onStorage);
+        window.addEventListener("tableColorChanged", onStorage);
+
+        return () => {
+            window.removeEventListener("storage", onStorage);
+            window.removeEventListener("tableColorChanged", onStorage);
+        };
+    }, []);
+
 
     useEffect(() => {
         if (imageDimensions.width > 0 && imageDimensions.height > 0) {
@@ -368,11 +389,11 @@ const Table = () => {
             >
                 <source
                     media="(orientation: portrait)"
-                    srcSet="/table-vertical-blue.webp"
+                    srcSet={"/" + tableColorObj.vertical}
                 />
                 <img
                     ref={imageRef}
-                    src="/table-horizontal-blue.webp"
+                    src={"/" + tableColorObj.horizontal}
                     alt="Poker table"
                     style={{
                         objectFit: 'contain',

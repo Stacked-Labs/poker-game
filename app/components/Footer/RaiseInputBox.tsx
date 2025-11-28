@@ -431,15 +431,26 @@ const RaiseInputBox = ({
                     borderColor="brand.darkNavy"
                     className="raise-vertical-slider"
                 >
-                    <Flex
+                    <Button
                         bg={'brand.darkNavy'}
+                        height={'auto'}
+                        minH={'auto'}
                         p={1}
                         alignItems="center"
                         justifyContent="center"
                         color="white"
+                        onClick={handleIncreaseRaise}
+                        isDisabled={!isCurrentTurn || gameIsPaused}
+                        borderRadius={0}
+                        _hover={{
+                            bg: 'brand.navy',
+                        }}
+                        _active={{
+                            bg: 'brand.darkNavy',
+                        }}
                     >
                         <LuPlus />
-                    </Flex>
+                    </Button>
                     <Slider
                         orientation="vertical"
                         aria-label="raise-slider-mobile-vertical"
@@ -457,15 +468,26 @@ const RaiseInputBox = ({
                         </SliderTrack>
                         <SliderThumb borderColor="brand.green" />
                     </Slider>
-                    <Flex
+                    <Button
                         bg={'brand.darkNavy'}
+                        height={'auto'}
+                        minH={'auto'}
                         p={1}
                         alignItems="center"
                         justifyContent="center"
                         color="white"
+                        onClick={handleDecreaseRaise}
+                        isDisabled={!isCurrentTurn || gameIsPaused}
+                        borderRadius={0}
+                        _hover={{
+                            bg: 'brand.navy',
+                        }}
+                        _active={{
+                            bg: 'brand.darkNavy',
+                        }}
                     >
                         <LuMinus />
-                    </Flex>
+                    </Button>
                 </Box>
             </Flex>
 

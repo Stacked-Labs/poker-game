@@ -81,7 +81,15 @@ const Ledger = () => {
 
         // Process all ledger entries
         ledgerData.entries.forEach((entry: LedgerEntry) => {
-            const { player_uuid, player_name, entry_type, amount, final_stack, event_id, timestamp } = entry;
+            const {
+                player_uuid,
+                player_name,
+                entry_type,
+                amount,
+                final_stack,
+                event_id,
+                timestamp,
+            } = entry;
 
             if (!player_uuid) return;
 
@@ -114,7 +122,10 @@ const Ledger = () => {
             }
 
             // Process cash-outs (cash_out or forced_out)
-            if ((entry_type === 'cash_out' || entry_type === 'forced_out') && (final_stack || amount)) {
+            if (
+                (entry_type === 'cash_out' || entry_type === 'forced_out') &&
+                (final_stack || amount)
+            ) {
                 const cashOutAmount = parseFloat(final_stack || amount || '0');
                 session.totalBuyOuts += cashOutAmount;
                 session.currentStack = 0; // Player left/kicked, no current stack
@@ -168,8 +179,12 @@ const Ledger = () => {
     }, [ledgerData, appState.game?.players]);
 
     // Calculate summary stats from ledger totals and game state
-    const totalBuyIns = ledgerData?.totals?.buy_in ? parseFloat(ledgerData.totals.buy_in) : 0;
-    const totalCashOuts = ledgerData?.totals?.cash_out ? parseFloat(ledgerData.totals.cash_out) : 0;
+    const totalBuyIns = ledgerData?.totals?.buy_in
+        ? parseFloat(ledgerData.totals.buy_in)
+        : 0;
+    const totalCashOuts = ledgerData?.totals?.cash_out
+        ? parseFloat(ledgerData.totals.cash_out)
+        : 0;
     // Calculate chips in play from sessions (includes all players with stacks, even if game hasn't started)
     const totalChipsInPlay = sessions.reduce(
         (sum, s) => sum + s.currentStack,
@@ -212,15 +227,6 @@ const Ledger = () => {
     if (loading) {
         return (
             <Box>
-                <Text
-                    fontSize={{ base: 'xl', md: '2xl' }}
-                    fontWeight={'bold'}
-                    mb={6}
-                    color="text.secondary"
-                    letterSpacing="-0.02em"
-                >
-                    Session Ledger
-                </Text>
                 <Box
                     p={8}
                     textAlign="center"
@@ -243,16 +249,6 @@ const Ledger = () => {
 
     return (
         <Box>
-            <Text
-                fontSize={{ base: 'xl', md: '2xl' }}
-                fontWeight={'bold'}
-                mb={6}
-                color="text.secondary"
-                letterSpacing="-0.02em"
-            >
-                Session Ledger
-            </Text>
-
             {/* Summary Stats */}
             <HStack
                 gap={4}
@@ -418,7 +414,10 @@ const Ledger = () => {
                         {sessions.length === 0 ? (
                             <Tr>
                                 <Td colSpan={5} textAlign="center" py={8}>
-                                    <Text color="text.gray600" fontWeight="medium">
+                                    <Text
+                                        color="text.gray600"
+                                        fontWeight="medium"
+                                    >
                                         No session data yet
                                     </Text>
                                 </Td>

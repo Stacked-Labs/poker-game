@@ -166,7 +166,8 @@ const getHandCategoryFromCards = (winningCards: string[]): string | null => {
 };
 
 const GameLog = () => {
-    const { events, loading, error, hasMore, loadMoreEvents, refreshEvents } = useGameEvents();
+    const { events, loading, error, hasMore, loadMoreEvents, refreshEvents } =
+        useGameEvents();
     const isUnauthorized = error?.includes('Unauthorized') || false;
 
     const getBadgeColor = (category: string) => {
@@ -806,10 +807,7 @@ const GameLog = () => {
                             <> (Seat {meta.seat_id})</>
                         )}
                         {handRef !== undefined && handRef !== null && (
-                            <>
-                                {' '}
-                                before Hand #{handRef}
-                            </>
+                            <> before Hand #{handRef}</>
                         )}
                     </>
                 );
@@ -966,15 +964,6 @@ const GameLog = () => {
     if (loading) {
         return (
             <Box>
-                <Text
-                    fontSize={{ base: 'xl', md: '2xl' }}
-                    fontWeight={'bold'}
-                    mb={6}
-                    color="text.secondary"
-                    letterSpacing="-0.02em"
-                >
-                    Game Log
-                </Text>
                 <Box
                     p={8}
                     textAlign="center"
@@ -998,15 +987,6 @@ const GameLog = () => {
     if (isUnauthorized) {
         return (
             <Box>
-                <Text
-                    fontSize={{ base: 'xl', md: '2xl' }}
-                    fontWeight={'bold'}
-                    mb={6}
-                    color="text.secondary"
-                    letterSpacing="-0.02em"
-                >
-                    Game Log
-                </Text>
                 <Box
                     p={8}
                     textAlign="center"
@@ -1034,14 +1014,6 @@ const GameLog = () => {
     return (
         <Box>
             <HStack justify="space-between" align="center" mb={4}>
-                <Text
-                    fontSize={{ base: 'xl', md: '2xl' }}
-                    fontWeight={'bold'}
-                    color="text.secondary"
-                    letterSpacing="-0.02em"
-                >
-                    Game Log
-                </Text>
                 <Button
                     onClick={refreshEvents}
                     isLoading={loading}

@@ -39,18 +39,9 @@ const Support = () => {
         >
             {/* Header */}
             <Box textAlign="center" mb={{ base: 2, md: 4 }}>
-                <Heading
-                    as="h2"
-                    size={{ base: 'lg', md: 'xl' }}
-                    color="text.secondary"
-                    mb={3}
-                    fontWeight="bold"
-                >
-                    Need Help?
-                </Heading>
                 <Text
                     fontSize={{ base: 'md', md: 'lg' }}
-                    color="text.gray600"
+                    color="white"
                     maxW="600px"
                     mx="auto"
                 >

@@ -60,15 +60,6 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
         return (
             <>
                 <VStack align="stretch" gap={{ base: 2.5, md: 4 }} w="100%">
-                    <Text
-                        color={'text.secondary'}
-                        fontSize={{ base: 'lg', md: 'xl', lg: '2xl' }}
-                        fontWeight="bold"
-                        mb={{ base: 1, md: 2 }}
-                        letterSpacing="-0.02em"
-                    >
-                        Accepted Players
-                    </Text>
                     {acceptedPlayers.map((player: Player, index: number) => {
                         if (player) {
                             const isKicking = kickingInProgress === player.uuid;
@@ -136,7 +127,11 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                             transition="all 0.3s ease"
                         />
                         <ModalBody py={6}>
-                            <Text fontSize="md" fontWeight="medium" color='text.primary'>
+                            <Text
+                                fontSize="md"
+                                fontWeight="medium"
+                                color="text.primary"
+                            >
                                 Are you sure you want to kick player{' '}
                                 <Text
                                     as="span"

@@ -26,21 +26,11 @@ const GameSettings = () => {
         onColorChange(key);
 
         localStorage.setItem('tableColorKey', key);
-        window.dispatchEvent(new Event("tableColorChanged"));
+        window.dispatchEvent(new Event('tableColorChanged'));
     };
 
     return (
         <Box>
-            <Text
-                fontSize={{ base: 'xl', md: '2xl' }}
-                fontWeight={'bold'}
-                mb={6}
-                color="text.secondary"
-                letterSpacing="-0.02em"
-            >
-                Game Settings
-            </Text>
-
             <Box
                 bg="card.white"
                 borderRadius="16px"
@@ -207,35 +197,35 @@ const GameSettings = () => {
                         value={selectedColor}
                         onChange={handleSelectChange}
                         variant="outline"
-                        width='50%'
+                        width="50%"
                         bg={tableColors[selectedColor].color}
-                        color={selectedColor == 'white' ? 'brand.darkNavy' : 'white'}
+                        color={
+                            selectedColor == 'white'
+                                ? 'brand.darkNavy'
+                                : 'white'
+                        }
                         fontWeight={'bold'}
                         sx={{
-                            "& > option:checked": {
+                            '& > option:checked': {
                                 color: 'text.primary',
                                 fontWeight: 'bold',
                             },
-                            "& > option": {
+                            '& > option': {
                                 bg: 'card.white',
-                                color: 'text.primary'
-                            }
+                                color: 'text.primary',
+                            },
                         }}
                         _hover={{
-                            cursor: 'pointer'
+                            cursor: 'pointer',
                         }}
                         defaultValue={tableColorKey}
                     >
-                        {
-                            tableColors && Object.entries(tableColors).map(([key]) => (
-                                <option
-                                    key={key}
-                                    value={key}
-                                >
+                        {tableColors &&
+                            Object.entries(tableColors).map(([key]) => (
+                                <option key={key} value={key}>
                                     {key.charAt(0).toUpperCase() + key.slice(1)}
                                 </option>
-                            ))
-                        }
+                            ))}
                     </Select>
                 </Flex>
             </Box>

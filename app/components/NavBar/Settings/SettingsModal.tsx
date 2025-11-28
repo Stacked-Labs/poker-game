@@ -107,11 +107,12 @@ const SettingsModal = ({
     return (
         <Modal isOpen={isOpen} onClose={onClose} size={'full'}>
             <ModalOverlay
-                bg="rgba(11, 20, 48, 0.95)"
-                backdropFilter="blur(10px)"
+                bg="rgba(11, 20, 48, 0.0.5)"
+                backdropFilter="blur(6px)"
             />
             <ModalContent
-                bg="bg.default"
+                bg="transparent"
+                backdropFilter="blur(8px)"
                 h="100vh"
                 w="100vw"
                 maxW="100vw"
@@ -260,7 +261,7 @@ const SettingsModal = ({
                         <TabPanels
                             flex={1}
                             overflowY="auto"
-                            bg="bg.default"
+                            bg="rgba(255, 255, 255, 0.05)"
                             borderRadius="20px"
                             p={{ base: 1, md: 2 }}
                             sx={{

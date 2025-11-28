@@ -19,16 +19,6 @@ import {
 const HowTo = () => {
     return (
         <Box>
-            <Text
-                fontSize={{ base: 'xl', md: '2xl' }}
-                fontWeight={'bold'}
-                mb={6}
-                color="text.secondary"
-                letterSpacing="-0.02em"
-            >
-                How To Play
-            </Text>
-
             <Accordion allowMultiple defaultIndex={[0]}>
                 <AccordionItem
                     bg="card.white"

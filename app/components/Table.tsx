@@ -478,19 +478,22 @@ const Table = () => {
                                             winnings={getPlayerWinnings(player)}
                                             activePotIndex={activePotIndex}
                                         />
-                                    ) : (
-                                        <EmptySeatButton
-                                            seatId={value}
-                                            disabled={
-                                                appState.game?.players?.some(
-                                                    (player) =>
-                                                        player.uuid ===
-                                                        appState.clientID
-                                                ) ||
-                                                appState.seatRequested != null
-                                            }
-                                        />
-                                    )}
+                                    ) : (() => {
+                                        const isDisabled =
+                                            appState.game?.players?.some(
+                                                (player) =>
+                                                    player.uuid ===
+                                                    appState.clientID
+                                            ) ||
+                                            appState.seatRequested != null;
+
+                                        return isDisabled ? null : (
+                                            <EmptySeatButton
+                                                seatId={value}
+                                                disabled={false}
+                                            />
+                                        );
+                                    })()}
                                 </GridItem>
                             );
                         })}

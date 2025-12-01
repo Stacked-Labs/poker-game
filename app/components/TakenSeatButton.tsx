@@ -298,8 +298,6 @@ const TakenSeatButton = ({
 
     const total = initialDuration || 1; // avoid divide by zero
     const progress = Math.min((remaining / total) * 100, 100);
-    const seconds = Math.ceil(remaining / 1000);
-    const secondsText = seconds.toString().padStart(2, '0');
     const barScheme: 'green' | 'yellow' | 'red' | 'gray' = isCurrentTurn
         ? remaining <= 5000
             ? 'red'
@@ -562,8 +560,9 @@ const TakenSeatButton = ({
                     }
                     borderRadius={{ base: 4, md: 8, lg: 12, xl: 12, '2xl': 12 }}
                     width={'100%'}
-                    paddingX={{ base: 1, md: 2 }}
-                    paddingY={{ base: 1, md: 1 }}
+                    paddingX={0}
+                    paddingTop={{ base: 1 }}
+                    paddingBottom={{ base: 2, md: 6 }}
                     justifySelf={'flex-end'}
                     justifyContent={'center'}
                     alignItems={'flex-start'}
@@ -676,48 +675,58 @@ const TakenSeatButton = ({
                             {strengthLabel}
                         </Tag>
                     )}
-                    <HStack
-                        spacing={2}
-                        className="player-info-header"
-                        width="100%"
-                        justifyContent="space-between"
-                    >
-                        <Tooltip
-                            label={shortEthAddress}
-                            hasArrow
-                            bg="brand.navy"
-                            color="white"
-                            borderRadius="md"
+                    <Box width="100%" px={{ base: 1, md: 1 }}>
+                        <HStack
+                            spacing={2}
+                            className="player-info-header"
+                            width="100%"
+                            justifyContent="space-between"
                         >
-                            <Text
-                                className="player-username"
-                                variant={'seatText'}
-                                fontSize={{ base: '10px', md: 'xs', lg: 'sm' }}
-                                fontWeight={'bold'}
-                                color={
-                                    isCurrentTurn || showWinnerHighlight
-                                        ? 'brand.darkNavy'
-                                        : 'white'
-                                }
-                                cursor="pointer"
+                            <Tooltip
+                                label={shortEthAddress}
+                                hasArrow
+                                bg="brand.navy"
+                                color="white"
+                                borderRadius="md"
                             >
-                                {player.username}
-                            </Text>
-                        </Tooltip>
-                        <Flex
-                            className="player-stack-container"
-                            alignItems={'center'}
-                            justifyContent={'center'}
-                        >
-                            <StackValue
-                                value={player.stack}
-                                color={stackColor}
-                                fontSize={{ base: 'xs', md: 'sm', lg: 'md' }}
-                            />
-                        </Flex>
-                    </HStack>
+                                <Text
+                                    className="player-username"
+                                    variant={'seatText'}
+                                    fontSize={{
+                                        base: '10px',
+                                        md: 'xs',
+                                        lg: 'sm',
+                                    }}
+                                    fontWeight={'bold'}
+                                    color={
+                                        isCurrentTurn || showWinnerHighlight
+                                            ? 'brand.darkNavy'
+                                            : 'white'
+                                    }
+                                    cursor="pointer"
+                                >
+                                    {player.username}
+                                </Text>
+                            </Tooltip>
+                            <Flex
+                                className="player-stack-container"
+                                alignItems={'center'}
+                                justifyContent={'center'}
+                            >
+                                <StackValue
+                                    value={player.stack}
+                                    color={stackColor}
+                                    fontSize={{
+                                        base: 'xs',
+                                        md: 'sm',
+                                        lg: 'md',
+                                    }}
+                                />
+                            </Flex>
+                        </HStack>
+                    </Box>
 
-                    {/* Countdown timer – keep box rendered for consistent height */}
+                    {/* Countdown timer – progress only, stretches edge to edge */}
                     {(() => {
                         const timerVisible =
                             isCurrentTurn && deadline > 0 && remaining > 0;
@@ -740,34 +749,35 @@ const TakenSeatButton = ({
                                 display="flex"
                                 flexDirection="row"
                                 alignItems="center"
-                                alignSelf="flex-start"
+                                position="absolute"
+                                left={0}
+                                right={0}
+                                bottom={0}
                                 visibility={timerVisible ? 'visible' : 'hidden'}
-                                marginTop={{ base: '-2px', md: '-8px' }}
+                                borderBottomLeftRadius={{
+                                    base: 4,
+                                    md: 8,
+                                    lg: 12,
+                                    xl: 12,
+                                    '2xl': 12,
+                                }}
+                                borderBottomRightRadius={{
+                                    base: 4,
+                                    md: 8,
+                                    lg: 12,
+                                    xl: 12,
+                                    '2xl': 12,
+                                }}
+                                overflow="hidden"
+                                pointerEvents="none"
                             >
-                                {/* Numeric time – hidden on small screens */}
-                                <Text
-                                    className="player-timer-count"
-                                    fontSize={{ base: 'xs', md: 'sm' }}
-                                    textAlign="center"
-                                    color={
-                                        isCurrentTurn || showWinnerHighlight
-                                            ? 'brand.darkNavy'
-                                            : 'white'
-                                    }
-                                    display={{ base: 'none', md: 'block' }}
-                                    mr={2}
-                                    fontWeight="bold"
-                                >
-                                    {`00:${secondsText}`}
-                                </Text>
-                                {/* Progress bar */}
                                 <Progress
                                     className="player-timer-bar"
                                     value={progress}
-                                    height={{ base: 1, md: 2 }}
+                                    height={{ base: 1.5, md: 2 }}
                                     width="100%"
                                     colorScheme={barScheme}
-                                    borderRadius="md"
+                                    borderRadius={0}
                                     sx={{
                                         '& > div': {
                                             bg: timerColor,

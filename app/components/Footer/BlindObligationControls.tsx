@@ -1,4 +1,11 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { Button, Flex } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
@@ -10,6 +17,11 @@ import {
 } from '@/app/hooks/server_actions';
 import { BlindObligationOptions } from '@/app/interfaces';
 
+type QueueableBlindAction = Extract<
+    BlindObligationOptions,
+    'post_now' | 'wait_bb'
+>;
+
 const BlindObligationControls = () => {
     const { appState, dispatch } = useContext(AppContext);
     const socket = useContext(SocketContext);
@@ -17,7 +29,10 @@ const BlindObligationControls = () => {
     const [submitting, setSubmitting] = useState<
         'post_now' | 'wait_bb' | 'sit_out' | null
     >(null);
-    const [autoWaitKey, setAutoWaitKey] = useState<string | null>(null);
+    const [queuedBlindAction, setQueuedBlindAction] =
+        useState<QueueableBlindAction | null>(null);
+    const [autoQueueKey, setAutoQueueKey] = useState<string | null>(null);
+    const previousStageRef = useRef<number | null>(null);
 
     const game = appState.game;
     const obligation = appState.blindObligation;
@@ -49,47 +64,34 @@ const BlindObligationControls = () => {
     const shouldRender =
         !!localPlayer && (owesSB || owesBB || waitingForBB || obligation);
 
-    // Default to wait for BB once per obligation instance
+    // Default to queue "post now" once per new obligation (fallback to wait if needed)
     useEffect(() => {
         const key = obligation
             ? `${obligation.seatID}:${obligation.owesSB}:${obligation.owesBB}:${obligation.waitingForBB}`
             : null;
-        const canAutoWait =
+        const canAutoQueue =
             obligation &&
-            options.includes('wait_bb') &&
             !waitingForBB &&
-            key !== autoWaitKey;
+            key !== autoQueueKey &&
+            (options.includes('post_now') || options.includes('wait_bb'));
 
-        if (!canAutoWait || !socket || !localPlayer) return;
+        if (!canAutoQueue) return;
 
-        setSubmitting('wait_bb');
-        sendWaitForBB(socket);
-        dispatch({
-            type: 'setBlindObligation',
-            payload: {
-                seatID: obligation.seatID,
-                owesSB,
-                owesBB,
-                waitingForBB: true,
-                options,
-            },
-        });
-        setAutoWaitKey(key);
-        toast.info(
-            'Waiting for big blind',
-            'You will rejoin automatically on your BB.'
-        );
+        const defaultAction = options.includes('post_now')
+            ? 'post_now'
+            : options.includes('wait_bb')
+            ? 'wait_bb'
+            : null;
+
+        if (!defaultAction) return;
+
+        setQueuedBlindAction(defaultAction);
+        setAutoQueueKey(key);
     }, [
         obligation,
         options,
         waitingForBB,
-        socket,
-        localPlayer,
-        dispatch,
-        owesSB,
-        owesBB,
-        toast,
-        autoWaitKey,
+        autoQueueKey,
     ]);
 
     useEffect(() => {
@@ -104,6 +106,80 @@ const BlindObligationControls = () => {
         }
     }, [owesBB, owesSB, waitingForBB, submitting]);
 
+    useEffect(() => {
+        if (!shouldRender && queuedBlindAction) {
+            setQueuedBlindAction(null);
+        }
+    }, [queuedBlindAction, shouldRender]);
+
+    const executeQueuedBlindChoice = useCallback(
+        (choice: QueueableBlindAction) => {
+            if (!socket || !localPlayer) {
+                toast.error(
+                    'Not connected',
+                    'Reconnect before trying again.',
+                    4000
+                );
+                return;
+            }
+
+            setQueuedBlindAction(null);
+            setSubmitting(choice);
+            switch (choice) {
+                case 'post_now':
+                    payOwedBlinds(socket);
+                    toast.info(
+                        'Posting blinds',
+                        'We will seat you next hand.'
+                    );
+                    break;
+                case 'wait_bb':
+                    sendWaitForBB(socket);
+                    dispatch({
+                        type: 'setBlindObligation',
+                        payload: {
+                            seatID: localPlayer.seatID,
+                            owesSB,
+                            owesBB,
+                            waitingForBB: true,
+                            options,
+                        },
+                    });
+                    toast.info(
+                        'Waiting for big blind',
+                        'You will rejoin automatically on your BB.'
+                    );
+                    break;
+                default:
+                    break;
+            }
+        },
+        [socket, localPlayer, toast, dispatch, owesSB, owesBB, options]
+    );
+
+    useEffect(() => {
+        const stage = game?.stage ?? null;
+        if (stage === null) {
+            previousStageRef.current = null;
+            return;
+        }
+
+        const stageChanged =
+            previousStageRef.current !== null &&
+            previousStageRef.current !== stage;
+
+        if (
+            stageChanged &&
+            stage === 1 &&
+            queuedBlindAction &&
+            !game?.betting
+        ) {
+            executeQueuedBlindChoice(queuedBlindAction);
+        }
+
+        previousStageRef.current = stage;
+    }, [game?.stage, game?.betting, queuedBlindAction, executeQueuedBlindChoice]);
+
     const handleChoice = (choice: 'post_now' | 'wait_bb' | 'sit_out') => {
         if (!socket || !localPlayer) {
             toast.error(
@@ -114,30 +190,41 @@ const BlindObligationControls = () => {
             return;
         }
 
-        setSubmitting(choice);
         switch (choice) {
             case 'post_now':
-                payOwedBlinds(socket);
-                toast.info('Posting blinds', 'We will seat you next hand.');
+                setQueuedBlindAction((prev) => {
+                    if (prev === 'post_now') {
+                        toast.info(
+                            'Auto action cleared',
+                            'Post blind now request removed.'
+                        );
+                        return null;
+                    }
+                    toast.info(
+                        'Auto post ready',
+                        'We will post your blinds once this hand ends.'
+                    );
+                    return 'post_now';
+                });
                 break;
             case 'wait_bb':
-                sendWaitForBB(socket);
-                dispatch({
-                    type: 'setBlindObligation',
-                    payload: {
-                        seatID: localPlayer.seatID,
-                        owesSB,
-                        owesBB,
-                        waitingForBB: true,
-                        options,
-                    },
+                setQueuedBlindAction((prev) => {
+                    if (prev === 'wait_bb') {
+                        toast.info(
+                            'Auto action cleared',
+                            'Wait for big blind request removed.'
+                        );
+                        return null;
+                    }
+                    toast.info(
+                        'Will wait for big blind',
+                        'We will auto-select wait once this hand ends.'
+                    );
+                    return 'wait_bb';
                 });
-                toast.info(
-                    'Waiting for big blind',
-                    'You will rejoin automatically on your BB.'
-                );
                 break;
             case 'sit_out':
+                setSubmitting('sit_out');
                 playerSetReady(socket);
                 dispatch({ type: 'clearBlindObligation' });
                 toast.info(
@@ -168,7 +255,11 @@ const BlindObligationControls = () => {
                     bg="transparent"
                     color="brand.yellow"
                     borderColor="brand.yellow"
-                    border="2px solid"
+                    border={
+                        queuedBlindAction === 'wait_bb'
+                            ? '2px solid'
+                            : '2px dashed'
+                    }
                     borderRadius={{ base: '8px', md: '10px' }}
                     padding={{ base: 4, sm: 5, md: 4, lg: 5 }}
                     textTransform={'uppercase'}
@@ -192,25 +283,36 @@ const BlindObligationControls = () => {
                     flexShrink={{ base: 1, md: 0 }}
                     position={'relative'}
                     zIndex={10}
+                    opacity={
+                        queuedBlindAction === 'wait_bb' ? 1 : waitingForBB ? 0.7 : 0.85
+                    }
                     _hover={{
-                        bg: !(submitting !== null || waitingForBB)
-                            ? 'rgba(253, 197, 29, 0.12)'
-                            : 'transparent',
-                        transform: !(submitting !== null || waitingForBB)
-                            ? 'translateY(-1px)'
-                            : 'none',
-                        boxShadow: !(submitting !== null || waitingForBB)
-                            ? 'lg'
-                            : 'none',
+                        bg:
+                            !(submitting !== null || waitingForBB)
+                                ? 'rgba(253, 197, 29, 0.12)'
+                                : 'transparent',
+                        transform:
+                            !(submitting !== null || waitingForBB)
+                                ? 'translateY(-1px)'
+                                : 'none',
+                        boxShadow:
+                            !(submitting !== null || waitingForBB)
+                                ? 'lg'
+                                : 'none',
                     }}
                     _active={{
-                        transform: !(submitting !== null || waitingForBB)
-                            ? 'translateY(0px)'
-                            : 'none',
+                        transform:
+                            !(submitting !== null || waitingForBB)
+                                ? 'translateY(0px)'
+                                : 'none',
                     }}
                     transition="all 0.2s"
                 >
-                    {waitingForBB ? 'Waiting for BB' : 'Wait for BB'}
+                    {waitingForBB
+                        ? 'Waiting for BB'
+                        : queuedBlindAction === 'wait_bb'
+                        ? 'Wait for BB (Queued)'
+                        : 'Wait for BB'}
                 </Button>
             )}
             {options.includes('post_now') && (
@@ -250,9 +352,15 @@ const BlindObligationControls = () => {
                     _active={{
                         transform: !submitting ? 'translateY(0px)' : 'none',
                     }}
+                    opacity={queuedBlindAction === 'post_now' ? 1 : 0.95}
+                    borderStyle={
+                        queuedBlindAction === 'post_now' ? 'solid' : 'solid'
+                    }
                     transition="all 0.2s"
                 >
-                    Post now
+                    {queuedBlindAction === 'post_now'
+                        ? 'Post now (Queued)'
+                        : 'Post now'}
                 </Button>
             )}
             {options.includes('sit_out') && (

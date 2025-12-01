@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Button } from '@chakra-ui/react';
+import { Badge, Box, Button } from '@chakra-ui/react';
 import React from 'react';
 
 interface ActionButtonProps {
@@ -10,6 +10,8 @@ interface ActionButtonProps {
     isDisabled: boolean;
     hotkey: string;
     className?: string;
+    queued?: boolean;
+    queueMode?: boolean;
 }
 
 const ActionButton = ({
@@ -19,6 +21,8 @@ const ActionButton = ({
     isDisabled,
     hotkey,
     className = '',
+    queued = false,
+    queueMode = false,
 }: ActionButtonProps) => {
     // Check if this is a compact button (used in raise interface)
     const isCompactButton = className.includes('mobile-');
@@ -53,6 +57,13 @@ const ActionButton = ({
     };
 
     const buttonColors = brandColorMap[color] || brandColorMap.green;
+
+    const queueStyles = queueMode
+        ? {
+              opacity: queued ? 1 : 0.6,
+              borderStyle: queued ? 'solid' : 'dashed',
+          }
+        : {};
 
     return (
         <Button
@@ -106,16 +117,29 @@ const ActionButton = ({
             flexShrink={{ base: 1, md: 0 }}
             position={'relative'}
             zIndex={10}
+            cursor={queueMode ? 'pointer' : 'pointer'}
             _hover={{
-                bg: !isDisabled ? buttonColors.hoverBg : buttonColors.bg,
-                transform: !isDisabled ? 'translateY(-1px)' : 'none',
-                boxShadow: !isDisabled ? 'lg' : 'none',
+                bg:
+                    !isDisabled && !queueMode
+                        ? buttonColors.hoverBg
+                        : buttonColors.bg,
+                transform:
+                    !isDisabled && !queueMode ? 'translateY(-1px)' : 'none',
+                boxShadow:
+                    !isDisabled && !queueMode
+                        ? 'lg'
+                        : queueMode
+                        ? 'none'
+                        : 'none',
             }}
             _active={{
-                transform: !isDisabled ? 'translateY(0px)' : 'none',
+                transform:
+                    !isDisabled && !queueMode ? 'translateY(0px)' : 'none',
             }}
             transition="all 0.2s"
             className={`action-button ${text.toLowerCase()}-button ${className}`.trim()}
+            data-queue-mode={queueMode ? 'true' : undefined}
+            style={queueStyles}
         >
             <Box
                 position={'absolute'}
@@ -129,6 +153,24 @@ const ActionButton = ({
             >
                 {hotkey}
             </Box>
+            {queued && (
+                <Badge
+                    position="absolute"
+                    top={1}
+                    right={1}
+                    colorScheme="yellow"
+                    fontSize="0.55rem"
+                    textTransform="uppercase"
+                    borderRadius="full"
+                    px={1.5}
+                    py={0.5}
+                    bg="rgba(253, 197, 29, 0.2)"
+                    color={buttonColors.text}
+                    border="1px solid rgba(253, 197, 29, 0.6)"
+                >
+                    Auto
+                </Badge>
+            )}
             {text}
         </Button>
     );

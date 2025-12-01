@@ -83,14 +83,14 @@ const PlayerList = () => {
 
     return (
         <VStack gap={{ base: 4, md: 6 }} align="stretch" w="100%">
+            <AcceptedPlayers
+                acceptedPlayers={appState.game?.players}
+                handleKickPlayer={handleKickPlayer}
+            />
             <PendingPlayers
                 pendingPlayers={pendingPlayers}
                 handleAcceptPlayer={handleAcceptPlayer}
                 handleDenyPlayer={handleDenyPlayer}
-            />
-            <AcceptedPlayers
-                acceptedPlayers={appState.game?.players}
-                handleKickPlayer={handleKickPlayer}
             />
         </VStack>
     );

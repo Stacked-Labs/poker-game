@@ -1,13 +1,5 @@
 import { PendingPlayer } from '@/app/interfaces';
-import {
-    Flex,
-    Box,
-    Button,
-    Text,
-    Tooltip,
-    VStack,
-    Badge,
-} from '@chakra-ui/react';
+import { Flex, Button, Text, Tooltip, VStack, Badge } from '@chakra-ui/react';
 import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
 import { GiBootKick } from 'react-icons/gi';
 
@@ -60,14 +52,39 @@ const PlayerCard = ({
                 gap={{ base: 1.5, md: 2 }}
                 w={{ base: '100%', sm: 'auto' }}
             >
-                <Text
-                    color={'text.secondary'}
-                    fontWeight={'bold'}
-                    fontSize={{ base: 'md', sm: 'lg', md: 'xl', lg: '2xl' }}
-                    letterSpacing="-0.02em"
+                <Flex
+                    alignItems="center"
+                    gap={2.5}
+                    flexWrap="wrap"
                 >
-                    {player.username}
-                </Text>
+                    <Text
+                        color={'text.secondary'}
+                        fontWeight={'bold'}
+                        fontSize={{
+                            base: 'md',
+                            sm: 'lg',
+                            md: 'xl',
+                            lg: '2xl',
+                        }}
+                        letterSpacing="-0.02em"
+                    >
+                        {player.username || player.uuid.substring(0, 8)}
+                    </Text>
+                    {type === 'pending' && (
+                        <Badge
+                            color="brand.navy"
+                            bg="brand.lightGray"
+                            textTransform="uppercase"
+                            fontWeight="bold"
+                            fontSize={{ base: '2xs', md: 'xs' }}
+                            borderRadius="full"
+                            px={3}
+                            py={0.5}
+                        >
+                            Pending
+                        </Badge>
+                    )}
+                </Flex>
                 <Flex
                     gap={{ base: 1.5, md: 2 }}
                     flex={2}

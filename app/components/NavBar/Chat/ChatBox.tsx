@@ -121,7 +121,7 @@ const Chatbox = ({
                 px={4}
                 py={3}
                 borderBottom="1px solid"
-                borderColor="rgba(0, 0, 0, 0.08)"
+                borderColor="chat.border"
                 bg="transparent"
             >
                 <Text
@@ -165,11 +165,13 @@ const Chatbox = ({
                         background: 'transparent',
                     },
                     '&::-webkit-scrollbar-thumb': {
-                        background: 'rgba(51, 68, 121, 0.2)',
+                        backgroundColor:
+                            'var(--chakra-colors-chat-scrollThumb)',
                         borderRadius: '4px',
                     },
                     '&::-webkit-scrollbar-thumb:hover': {
-                        background: 'rgba(51, 68, 121, 0.3)',
+                        backgroundColor:
+                            'var(--chakra-colors-chat-scrollThumbHover)',
                     },
                 }}
             >
@@ -181,13 +183,13 @@ const Chatbox = ({
                         px={4}
                         mx={-4}
                         borderRadius="0"
-                        bg={index % 2 === 0 ? 'input.lightGray' : 'white'}
+                        bg={index % 2 === 0 ? 'chat.rowEven' : 'chat.rowOdd'}
                         transition="all 0.2s ease"
                         _hover={{
                             bg:
                                 index % 2 === 0
-                                    ? 'card.lightGray'
-                                    : 'white',
+                                    ? 'chat.rowEvenHover'
+                                    : 'chat.rowOddHover',
                         }}
                     >
                         <Text
@@ -216,7 +218,7 @@ const Chatbox = ({
                 px={4}
                 py={3}
                 borderTop="1px solid"
-                borderColor="rgba(0, 0, 0, 0.08)"
+                borderColor="chat.border"
                 bg="transparent"
             >
                 <Flex gap={2} alignItems="center">
@@ -241,7 +243,7 @@ const Chatbox = ({
                         }}
                         _focus={{
                             bg: 'input.white',
-                            boxShadow: '0 0 0 2px rgba(51, 68, 121, 0.2)',
+                            boxShadow: 'var(--chakra-shadows-chat-inputFocus)',
                         }}
                         _disabled={{
                             opacity: 0.6,

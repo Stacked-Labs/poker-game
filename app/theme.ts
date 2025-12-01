@@ -150,6 +150,36 @@ const semanticTokens = {
             _dark: 'rgba(53, 53, 53, 0.5)',
         },
 
+        // Chat UI
+        'chat.border': {
+            default: 'rgba(0, 0, 0, 0.08)',
+            _dark: 'rgba(255, 255, 255, 0.15)',
+        },
+        'chat.rowEven': {
+            default: 'brand.lightGray',
+            _dark: 'charcoal.800',
+        },
+        'chat.rowOdd': {
+            default: 'white',
+            _dark: 'charcoal.600',
+        },
+        'chat.rowEvenHover': {
+            default: '#dfe3ef',
+            _dark: '#1f1f1f',
+        },
+        'chat.rowOddHover': {
+            default: '#f7f7f7',
+            _dark: '#2b2b2b',
+        },
+        'chat.scrollThumb': {
+            default: 'rgba(51, 68, 121, 0.2)',
+            _dark: 'rgba(255, 255, 255, 0.25)',
+        },
+        'chat.scrollThumbHover': {
+            default: 'rgba(51, 68, 121, 0.3)',
+            _dark: 'rgba(255, 255, 255, 0.4)',
+        },
+
         // Legacy semantic colors (used throughout app)
         'gray.50': {
             default: 'legacy.grayLight',
@@ -174,6 +204,12 @@ const semanticTokens = {
         'red.100': {
             default: 'legacy.red',
             _dark: 'legacy.red',
+        },
+    },
+    shadows: {
+        'chat.inputFocus': {
+            default: '0 0 0 2px rgba(51, 68, 121, 0.2)',
+            _dark: '0 0 0 2px rgba(255, 255, 255, 0.2)',
         },
     },
 };

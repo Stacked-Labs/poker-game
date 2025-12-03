@@ -558,7 +558,7 @@ const TakenSeatButton = ({
                             ? 'white'
                             : 'brand.darkNavy'
                     }
-                    borderRadius={{ base: 4, md: 8, lg: 12, xl: 12, '2xl': 12 }}
+                    borderRadius={4}
                     width={'100%'}
                     paddingX={0}
                     paddingTop={{ base: 1 }}
@@ -754,20 +754,6 @@ const TakenSeatButton = ({
                                 right={0}
                                 bottom={0}
                                 visibility={timerVisible ? 'visible' : 'hidden'}
-                                borderBottomLeftRadius={{
-                                    base: 4,
-                                    md: 8,
-                                    lg: 12,
-                                    xl: 12,
-                                    '2xl': 12,
-                                }}
-                                borderBottomRightRadius={{
-                                    base: 4,
-                                    md: 8,
-                                    lg: 12,
-                                    xl: 12,
-                                    '2xl': 12,
-                                }}
                                 overflow="hidden"
                                 pointerEvents="none"
                             >

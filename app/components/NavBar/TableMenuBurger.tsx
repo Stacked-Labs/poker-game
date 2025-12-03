@@ -95,7 +95,6 @@ const TableMenuBurger = ({
                         : {
                               bg: 'brand.navy',
                               color: 'white',
-                              transform: 'translateY(-2px)',
                               boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
                           }
                 }

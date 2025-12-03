@@ -80,7 +80,10 @@ const Ledger = () => {
         const playerMap = new Map<string, PlayerSession>();
 
         // Process all ledger entries
-        ledgerData.entries.forEach((entry: LedgerEntry) => {
+        if (!ledgerData.entries || !Array.isArray(ledgerData.entries)) {
+            // No entries yet, but we still want to show active players if any
+        } else {
+            ledgerData.entries.forEach((entry: LedgerEntry) => {
             const {
                 player_uuid,
                 player_name,
@@ -136,7 +139,8 @@ const Ledger = () => {
                     amount: cashOutAmount,
                 });
             }
-        });
+            });
+        }
 
         // Merge with active players from game state
         if (appState.game?.players) {

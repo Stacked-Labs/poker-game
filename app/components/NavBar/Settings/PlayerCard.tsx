@@ -72,14 +72,16 @@ const PlayerCard = ({
                     </Text>
                     {type === 'pending' && (
                         <Badge
-                            color="brand.navy"
-                            bg="brand.lightGray"
+                            color="white"
+                            bg="brand.pink"
                             textTransform="uppercase"
                             fontWeight="bold"
                             fontSize={{ base: '2xs', md: 'xs' }}
                             borderRadius="full"
                             px={3}
                             py={0.5}
+                            letterSpacing="0.05em"
+                            boxShadow="0 6px 14px rgba(235, 11, 92, 0.25)"
                         >
                             Pending
                         </Badge>

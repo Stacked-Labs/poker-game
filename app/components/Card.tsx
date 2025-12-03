@@ -243,22 +243,6 @@ const CardBack = ({
             fill="url(#cardTexture)"
         />
 
-        {/* Brand name "STACKED" - smaller with brand light gray */}
-        <text
-            x="12"
-            y="16"
-            fontSize="3"
-            fill="#ECEEF5"
-            fontFamily="'Geist Sans', 'Poppins', sans-serif"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            opacity="0.9"
-            fontWeight="800"
-            letterSpacing="0.5"
-        >
-            STACKED
-        </text>
-
         {/* Subtle border inset to add depth */}
         <rect
             x="2.75"

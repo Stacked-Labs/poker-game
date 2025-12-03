@@ -19,11 +19,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 toastOptions={{
                     defaultOptions: {
                         position: 'top-right',
-                        duration: 5000,
+                        duration: 3500,
                         isClosable: true,
                         containerStyle: {
                             marginTop: '0px',
                             marginBottom: '0px',
+                            maxWidth: '260px',
+                            minWidth: '260px',
+                            width: '260px',
+                            marginInline: 'auto',
                         },
                     },
                 }}

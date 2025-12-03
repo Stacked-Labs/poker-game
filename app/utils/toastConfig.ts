@@ -14,32 +14,37 @@ export interface ToastParams {
 // Define the type for the toast function
 type ToastFunction = (options: UseToastOptions) => void;
 
+const DEFAULT_DURATION = 3500;
+const DEFAULT_POSITION: UseToastOptions['position'] = 'top-right';
+const DEFAULT_CONTAINER_STYLE: UseToastOptions['containerStyle'] = {
+    marginTop: '0px',
+    marginBottom: '0px',
+    maxWidth: '260px',
+    minWidth: '260px',
+    width: '260px',
+    marginInline: 'auto',
+};
+
+const statusMap: Record<ToastType, UseToastOptions['status']> = {
+    success: 'success',
+    error: 'error',
+    warning: 'warning',
+    info: 'info',
+};
+
 export const showToast = (
     toast: ToastFunction,
     { title, description, type = 'info', duration, id }: ToastParams
 ) => {
-    const statusMap = {
-        success: 'success',
-        error: 'error',
-        warning: 'warning',
-        info: 'info',
-    } as const;
-
     toast({
         id,
         title,
         description,
         status: statusMap[type],
-        duration,
+        duration: duration ?? DEFAULT_DURATION,
         isClosable: true,
-        position: 'top-right',
-        containerStyle: {
-            marginTop: '0px',
-            marginBottom: '0px',
-            maxWidth: '200px',
-            minWidth: '150px',
-            width: 'fit-content',
-        },
+        position: DEFAULT_POSITION,
+        containerStyle: DEFAULT_CONTAINER_STYLE,
     });
 };
 

@@ -1,4 +1,5 @@
 import { extendTheme } from '@chakra-ui/react';
+import { StyleFunctionProps } from '@chakra-ui/theme-tools';
 
 const config = {
     initialColorMode: 'light',
@@ -262,6 +263,63 @@ const styles = {
 // 6. COMPONENT STYLES
 // ============================================
 const components = {
+    Alert: {
+        baseStyle: {
+            container: {
+                borderRadius: 'md',
+                fontSize: 'sm',
+                lineHeight: 'short',
+                width: '100%',
+                px: 3,
+                py: 2,
+                gap: 2,
+                boxShadow: 'lg',
+            },
+            title: {
+                fontSize: 'sm',
+                fontWeight: 'semibold',
+                lineHeight: 'shorter',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: '1',
+            },
+            description: {
+                fontSize: 'sm',
+                lineHeight: 'short',
+                marginTop: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: '2',
+            },
+            icon: {
+                mt: 0.5,
+                width: 4,
+                height: 4,
+            },
+        },
+        variants: {
+            solidCompact: (props: StyleFunctionProps) => {
+                const { colorScheme = 'gray' } = props;
+                return {
+                    container: {
+                        bg: `${colorScheme}.500`,
+                        color: 'white',
+                    },
+                    icon: {
+                        color: 'white',
+                    },
+                };
+            },
+        },
+        defaultProps: {
+            variant: 'solidCompact',
+            colorScheme: 'gray',
+        },
+    },
     // HEADING COMPONENT
     Heading: {
         baseStyle: {

@@ -1,28 +1,12 @@
-import { useEffect, useState, useContext } from 'react';
+import { useContext } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { isTableOwner } from '@/app/hooks/server_actions';
 
+// Keep this selector hook so consumers do not have to re-import the AppContext
+// everywhere. It also gives us a single place to evolve ownership logic later
+// (e.g. track loading/error state, add optimistic updates, memoize selectors).
 const useIsTableOwner = () => {
     const { appState } = useContext(AppContext);
-    const [isOwner, setIsOwner] = useState(false);
-
-    useEffect(() => {
-        const checkTableOwner = async () => {
-            if (appState.table) {
-                try {
-                    const result = await isTableOwner(appState.table);
-                    setIsOwner(result.isTableOwner);
-                } catch (error) {
-                    console.error('Error checking table ownership:', error);
-                    setIsOwner(false);
-                }
-            }
-        };
-
-        checkTableOwner();
-    }, [appState.table, appState.clientID]);
-
-    return isOwner;
+    return Boolean(appState.isTableOwner);
 };
 
 export default useIsTableOwner;

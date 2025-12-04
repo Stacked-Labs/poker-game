@@ -1,5 +1,6 @@
 import React, { createContext, useReducer, ReactChild, useEffect } from 'react';
 import { AppState, Message, Game, Log, PendingPlayer } from '@/app/interfaces';
+import { isTableOwner as fetchIsTableOwner } from '@/app/hooks/server_actions';
 
 const initialState: AppState = {
     messages: [],
@@ -15,6 +16,7 @@ const initialState: AppState = {
     seatRequested: null,
     pendingPlayers: [],
     blindObligation: null,
+    isTableOwner: null,
 };
 
 export type ACTIONTYPE =
@@ -32,7 +34,8 @@ export type ACTIONTYPE =
     | { type: 'setSeatRequested'; payload: number | null }
     | { type: 'setPendingPlayers'; payload: PendingPlayer[] }
     | { type: 'setBlindObligation'; payload: AppState['blindObligation'] }
-    | { type: 'clearBlindObligation' };
+    | { type: 'clearBlindObligation' }
+    | { type: 'setIsTableOwner'; payload: boolean | null };
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
@@ -51,11 +54,12 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 username: null,
                 game: null,
                 pendingPlayers: [],
+                isTableOwner: null,
             };
         case 'updatePlayerID':
             return { ...state, clientID: action.payload };
         case 'setTablename':
-            return { ...state, table: action.payload };
+            return { ...state, table: action.payload, isTableOwner: null };
         case 'setVolume':
             if (typeof window !== 'undefined') {
                 localStorage.setItem('volume', action.payload.toString());
@@ -85,6 +89,8 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, blindObligation: action.payload };
         case 'clearBlindObligation':
             return { ...state, blindObligation: null };
+        case 'setIsTableOwner':
+            return { ...state, isTableOwner: action.payload };
         default: {
             const exhaustiveCheck: never = action;
             throw new Error(`Unhandled action type: ${exhaustiveCheck}`);
@@ -109,6 +115,38 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
             dispatch({ type: 'setVolume', payload: parseFloat(storedVolume) });
         }
     }, []);
+
+    useEffect(() => {
+        let isCancelled = false;
+
+        const checkOwnership = async () => {
+            if (!appState.table) {
+                dispatch({ type: 'setIsTableOwner', payload: null });
+                return;
+            }
+
+            try {
+                const result = await fetchIsTableOwner(appState.table);
+                if (!isCancelled) {
+                    dispatch({
+                        type: 'setIsTableOwner',
+                        payload: Boolean(result?.isTableOwner),
+                    });
+                }
+            } catch (error) {
+                console.error('Error checking table ownership:', error);
+                if (!isCancelled) {
+                    dispatch({ type: 'setIsTableOwner', payload: false });
+                }
+            }
+        };
+
+        checkOwnership();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [appState.table, appState.clientID]);
 
     return (
         <AppContext.Provider value={{ appState, dispatch }}>

@@ -25,6 +25,7 @@ export type AppState = {
     seatRequested: number | null;
     pendingPlayers: PendingPlayer[]; // Added for storing pending players
     blindObligation: BlindObligation | null;
+    isTableOwner: boolean | null;
 };
 
 export type Player = {

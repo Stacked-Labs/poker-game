@@ -29,13 +29,6 @@ export function sendMessage(socket: WebSocket, message: string) {
     });
 }
 
-export function sendLog(socket: WebSocket, message: string) {
-    sendWebSocketMessage(socket, {
-        action: 'send-log',
-        message: message,
-    });
-}
-
 export function takeSeat(
     socket: WebSocket,
     username: string,

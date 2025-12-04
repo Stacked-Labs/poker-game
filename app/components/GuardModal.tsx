@@ -2,11 +2,9 @@ import { Button, Flex, ModalContent, Text } from '@chakra-ui/react';
 
 const GuardModal = ({
     handleFold,
-    username,
     onClose,
 }: {
-    handleFold: (username: string) => void;
-    username: string | null;
+    handleFold: () => void;
     onClose: () => void;
 }) => {
     return (
@@ -100,10 +98,8 @@ const GuardModal = ({
                     }}
                     transition="all 0.2s"
                     onClick={() => {
-                        if (username) {
-                            handleFold(username);
-                            onClose();
-                        }
+                        handleFold();
+                        onClose();
                     }}
                 >
                     Fold Anyway

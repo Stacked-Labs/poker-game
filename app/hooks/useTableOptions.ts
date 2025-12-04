@@ -1,13 +1,7 @@
-import {
-    playerSetReady,
-    playerSitOutNext,
-    requestLeave,
-    sendLog,
-} from './server_actions';
+import { playerSetReady, playerSitOutNext, requestLeave } from './server_actions';
 
 export const handleLeaveTable = (
     socket: WebSocket | null,
-    username: string | null,
     toast: (
         title: string,
         description?: string,
@@ -16,21 +10,19 @@ export const handleLeaveTable = (
     ) => void,
     isLeaveRequested?: boolean
 ) => {
-    if (socket != null && username != null) {
-        const isCancelling = Boolean(isLeaveRequested);
-        requestLeave(socket);
-        const logMessage = isCancelling
-            ? `${username} canceled their leave request`
-            : `${username} requested to leave the table`;
-        sendLog(socket, logMessage);
-        toast(
-            isCancelling ? 'Leave request canceled' : 'Leave request sent',
-            isCancelling
-                ? 'You will remain in your seat.'
-                : 'You will leave after this hand (or immediately between hands).',
-            5000
-        );
+    if (!socket) {
+        return;
     }
+
+    const isCancelling = Boolean(isLeaveRequested);
+    requestLeave(socket);
+    toast(
+        isCancelling ? 'Leave request canceled' : 'Leave request sent',
+        isCancelling
+            ? 'You will remain in your seat.'
+            : 'You will leave after this hand (or immediately between hands).',
+        5000
+    );
 };
 
 export const handleSitOutNext = (

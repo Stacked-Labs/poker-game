@@ -4,7 +4,6 @@ import EmptySeatButton from './EmptySeatButton';
 import TakenSeatButton from './TakenSeatButton';
 import { Player, Game as GameType } from '../interfaces';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { sendLog } from '../hooks/server_actions';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
 import { tableColors } from '../utils/tableColors';
@@ -75,25 +74,6 @@ function getWinner(game: GameType) {
     // For backward compatibility, return the first winner
     const winners = getWinners(game);
     return winners.length > 0 ? winners[0] : null;
-}
-
-function handleWinner(game: GameType | null, socket: WebSocket | null) {
-    if (!game || !socket) {
-        return null;
-    }
-    if (game && game.stage === 1 && game.pots.length !== 0) {
-        const winningPlayer = getWinner(game);
-        if (
-            !winningPlayer ||
-            !game.players.some((p) => p && p.uuid === winningPlayer.uuid)
-        ) {
-            console.log('Winning player was kicked or left the game.');
-            return;
-        }
-        const pot = game.pots[game.pots.length - 1].amount;
-        const message = winningPlayer.username + ' wins ' + pot;
-        sendLog(socket, message);
-    }
 }
 
 function getRevealedPlayers(game: GameType) {
@@ -234,7 +214,6 @@ const Table = () => {
         // Show winners when hand is over
         if (game.stage === 1 && game.pots.length !== 0 && !game.betting) {
             setRevealedPlayers(getRevealedPlayers(game));
-            handleWinner(game, socket);
 
             // set winning players
             const winners = getWinners(game);

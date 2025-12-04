@@ -24,7 +24,7 @@ import { motion, MotionStyle } from 'framer-motion';
 import { keyframes } from '@emotion/react';
 import { FaDiscord } from 'react-icons/fa';
 import WalletButton from './WalletButton';
-import { newPlayer, sendLog, takeSeat } from '../hooks/server_actions';
+import { newPlayer, takeSeat } from '../hooks/server_actions';
 import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
@@ -118,7 +118,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         appStore.dispatch({ type: 'setUsername', payload: name });
         appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
         currentUser.setCurrentUser({ name, seatId });
-        sendLog(socket, `${name} buys in for ${buyIn}`);
         onClose(); // Close modal after sending
     };
 

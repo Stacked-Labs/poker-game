@@ -21,7 +21,7 @@ import React, {
 import { LuMinus, LuPlus } from 'react-icons/lu';
 import ActionButton from './ActionButton';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
-import { sendLog, playerRaise } from '@/app/hooks/server_actions';
+import { playerRaise } from '@/app/hooks/server_actions';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { HOTKEY_BACK, HOTKEY_RAISE } from './constants';
 
@@ -68,10 +68,7 @@ const RaiseInputBox = ({
                     inputValue >= minAllowedBet &&
                     inputValue <= maxTotalBet
                 ) {
-                    handleSubmitRaise(
-                        appState.username,
-                        inputValue - currentBet
-                    );
+                    handleSubmitRaise(inputValue - currentBet);
                     e.preventDefault();
                 }
             }
@@ -153,10 +150,8 @@ const RaiseInputBox = ({
     const full = appState.game.pots.length != 0 ? potBet : bigBlind * 3;
     const allIn = maxTotalBet;
 
-    const handleSubmitRaise = (user: string | null, amount: number) => {
+    const handleSubmitRaise = (amount: number) => {
         if (socket) {
-            const raiseMessage = `${user} raises ${amount}`;
-            sendLog(socket, raiseMessage);
             playerRaise(socket, amount);
         }
         setShowRaise(!showRaise);
@@ -222,10 +217,7 @@ const RaiseInputBox = ({
                     text={'Raise'}
                     color="green"
                     clickHandler={() =>
-                        handleSubmitRaise(
-                            appState.username,
-                            inputValue - currentBet
-                        )
+                        handleSubmitRaise(inputValue - currentBet)
                     }
                     isDisabled={
                         gameIsPaused ||
@@ -399,10 +391,7 @@ const RaiseInputBox = ({
                             text={'Raise'}
                             color="green"
                             clickHandler={() =>
-                                handleSubmitRaise(
-                                    appState.username,
-                                    inputValue - currentBet
-                                )
+                                handleSubmitRaise(inputValue - currentBet)
                             }
                             isDisabled={
                                 gameIsPaused ||

@@ -195,7 +195,6 @@ const TableMenuBurger = ({
                                 handleLeaveTable={() =>
                                     handleLeaveTable(
                                         socket,
-                                        appState.username,
                                         info,
                                         leaveAfterHandRequested
                                     )

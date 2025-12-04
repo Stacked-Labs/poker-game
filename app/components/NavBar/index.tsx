@@ -256,18 +256,17 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                     {/* Away toggle is now placed on the left next to Settings */}
                     {isUserSeated && (
                         <Box display={{ base: 'none', md: 'block' }}>
-                            <LeaveButton
-                                isUserSeated
-                                isLeaveRequested={leaveAfterHandRequested}
-                                handleLeaveTable={() =>
-                                    handleLeaveTable(
-                                        socket,
-                                        appState.username,
-                                        info,
-                                        leaveAfterHandRequested
-                                    )
-                                }
-                            />
+                                <LeaveButton
+                                    isUserSeated
+                                    isLeaveRequested={leaveAfterHandRequested}
+                                    handleLeaveTable={() =>
+                                        handleLeaveTable(
+                                            socket,
+                                            info,
+                                            leaveAfterHandRequested
+                                        )
+                                    }
+                                />
                         </Box>
                     )}
                     <Box position="relative">

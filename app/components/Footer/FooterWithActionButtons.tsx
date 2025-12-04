@@ -13,7 +13,6 @@ import { AppContext } from '../../contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import RaiseInputBox from './RaiseInputBox';
 import {
-    sendLog,
     playerCall,
     playerCheck,
     playerFold,
@@ -26,7 +25,7 @@ import {
 } from './constants';
 import GuardModal from '../GuardModal';
 
-const AUTO_ACTION_DELAY_MS = 500;
+const AUTO_ACTION_DELAY_MS = 750;
 
 type QueuedAction = 'call' | 'check' | 'fold';
 
@@ -99,7 +98,7 @@ const FooterWithActionButtons = ({
             switch (key) {
                 case HOTKEY_CALL:
                     if (needsToCall) {
-                        handleCall(appState.username, callAmount);
+                        handleCall();
                         e.preventDefault();
                     }
                     break;
@@ -109,12 +108,12 @@ const FooterWithActionButtons = ({
                     break;
                 case HOTKEY_CHECK:
                     if (canCheck) {
-                        handleCheck(appState.username);
+                        handleCheck();
                         e.preventDefault();
                     }
                     break;
                 case HOTKEY_FOLD:
-                    canCheck ? onOpen() : handleFold(appState.username);
+                    canCheck ? onOpen() : handleFold();
                     e.preventDefault();
                     break;
                 default:
@@ -133,29 +132,23 @@ const FooterWithActionButtons = ({
         isCurrentTurn,
     ]);
 
-    const handleCall = (user: string | null, amount: number) => {
+    const handleCall = () => {
         resetQueuedActions();
         if (socket) {
-            const callMessage = `${user} calls ${amount}`;
-            sendLog(socket, callMessage);
             playerCall(socket);
         }
     };
 
-    const handleCheck = (user: string | null) => {
+    const handleCheck = () => {
         resetQueuedActions();
         if (socket) {
-            const checkMessage = `${user} checks`;
-            sendLog(socket, checkMessage);
             playerCheck(socket);
         }
     };
 
-    const handleFold = (user: string | null) => {
+    const handleFold = () => {
         resetQueuedActions();
         if (socket) {
-            const foldMessage = `${user} folds`;
-            sendLog(socket, foldMessage);
             playerFold(socket);
         }
     };
@@ -172,31 +165,30 @@ const FooterWithActionButtons = ({
         }
 
         autoActionTimeoutRef.current = setTimeout(() => {
-            const username = appState.username;
             const hasQueuedCall = queuedActions.call;
             const hasQueuedCheck = queuedActions.check;
             const hasQueuedFold = queuedActions.fold;
 
             if (hasQueuedCall) {
                 if (needsToCall && callAmount > 0) {
-                    handleCall(username, callAmount);
+                    handleCall();
                     return;
                 }
                 if (canCheck) {
-                    handleCheck(username);
+                    handleCheck();
                     return;
                 }
-                handleFold(username);
+                handleFold();
                 return;
             }
 
             if (hasQueuedCheck) {
                 if (canCheck) {
-                    handleCheck(username);
+                    handleCheck();
                     return;
                 }
                 if (hasQueuedFold) {
-                    handleFold(username);
+                    handleFold();
                     return;
                 }
                 setQueuedActions((prev) => ({ ...prev, check: false }));
@@ -204,7 +196,7 @@ const FooterWithActionButtons = ({
             }
 
             if (hasQueuedFold) {
-                handleFold(username);
+                handleFold();
             }
         }, AUTO_ACTION_DELAY_MS);
 
@@ -216,7 +208,6 @@ const FooterWithActionButtons = ({
         needsToCall,
         callAmount,
         canCheck,
-        appState.username,
         queuedActions,
         clearAutoActionTimeout,
     ]);
@@ -238,10 +229,10 @@ const FooterWithActionButtons = ({
             return;
         }
         if (!needsToCall) {
-            handleCheck(appState.username);
+            handleCheck();
             return;
         }
-        handleCall(appState.username, callAmount);
+        handleCall();
     };
 
     const handleCheckButtonClick = () => {
@@ -249,7 +240,7 @@ const FooterWithActionButtons = ({
             toggleQueuedAction('check');
             return;
         }
-        handleCheck(appState.username);
+        handleCheck();
     };
 
     const handleFoldButtonClick = () => {
@@ -257,7 +248,7 @@ const FooterWithActionButtons = ({
             toggleQueuedAction('fold');
             return;
         }
-        canCheck ? onOpen() : handleFold(appState.username);
+        canCheck ? onOpen() : handleFold();
     };
 
     // Debug logging for action buttons visibility
@@ -296,11 +287,7 @@ const FooterWithActionButtons = ({
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
-                <GuardModal
-                    handleFold={handleFold}
-                    username={appState.username}
-                    onClose={onClose}
-                />
+                <GuardModal handleFold={handleFold} onClose={onClose} />
             </Modal>
             <Flex
                 justifyContent={{ base: 'space-between', md: 'end' }}

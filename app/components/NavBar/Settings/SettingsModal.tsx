@@ -242,8 +242,12 @@ const SettingsModal = ({
                                 size="lg"
                                 _hover={{
                                     bg: 'brand.pink',
+                                    transform: 'scale(1.05)',
                                     boxShadow:
-                                        '0 4px 8px rgba(235, 11, 92, 0.2)',
+                                        '0 4px 12px rgba(235, 11, 92, 0.4)',
+                                }}
+                                _active={{
+                                    transform: 'scale(0.95)',
                                 }}
                                 transition="all 0.2s ease"
                                 flexShrink={0}

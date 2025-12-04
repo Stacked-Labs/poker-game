@@ -77,10 +77,9 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
             <Flex
                 padding={2}
                 sx={{
-                    backgroundColor: 'rgba(16, 100, 50, 0.12)',
-                    backdropFilter: 'blur(12px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-                    bg: 'transparent',
+                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                    backdropFilter: 'blur(2px)',
+                    WebkitBackdropFilter: 'blur(2px)',
                 }}
                 width={{
                     xl: '140px',
@@ -125,13 +124,15 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                             paddingX={'2'}
                                             borderRadius={999}
                                             sx={{
-                                                backgroundColor: 'rgba(12, 80, 40, 0.15)',
-                                                backdropFilter: 'blur(10px) saturate(180%)',
-                                                WebkitBackdropFilter: 'blur(10px) saturate(180%)',
-                                                border: '1px solid rgba(255, 255, 255, 0.12)',
-                                                boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.3)',
+                                                backgroundColor:
+                                                    'rgba(0, 0, 0, 0.15)',
+                                                backdropFilter: 'blur(2px) ',
+                                                WebkitBackdropFilter:
+                                                    'blur(2px) ',
+                                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                                boxShadow:
+                                                    '0 4px 16px 0 rgba(31, 38, 135, 0.3)',
                                                 // Ensure no background override
-                                                bg: 'transparent',
                                             }}
                                         >
                                             <Text
@@ -233,8 +234,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                         color="black"
                                         whiteSpace="nowrap"
                                     >
-                                        SP{index}:{' '}
-                                        {pot.amount}
+                                        SP{index}: {pot.amount}
                                     </Text>
                                 </Flex>
                             )

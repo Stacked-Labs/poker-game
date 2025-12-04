@@ -65,13 +65,16 @@ const Footer = () => {
 
     const socketConnected = Boolean(socket);
 
+    const isInHand = Boolean(localPlayer?.in);
+
     const showActionButtons =
         socketConnected &&
         appState.game &&
         appState.game.running &&
         !appState.game.betting == false &&
         !isSpectator() &&
-        !hasBlindObligation;
+        !hasBlindObligation &&
+        isInHand;
 
     const content = showActionButtons ? (
         <FooterWithActionButtons

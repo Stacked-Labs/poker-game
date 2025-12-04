@@ -87,7 +87,10 @@ const Chatbox = ({
     // Auto-scroll to bottom when new messages arrive or chat opens
     useEffect(() => {
         if (appState.appState.isChatOpen && messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            messagesEndRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end',
+            });
         }
     }, [appState.appState.messages, appState.appState.isChatOpen]);
 
@@ -100,7 +103,10 @@ const Chatbox = ({
             // Scroll to bottom after sending message
             setTimeout(() => {
                 if (messagesEndRef.current) {
-                    messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                    messagesEndRef.current.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'end',
+                    });
                 }
             }, 100);
         }
@@ -123,6 +129,9 @@ const Chatbox = ({
                 borderBottom="1px solid"
                 borderColor="chat.border"
                 bg="transparent"
+                position="sticky"
+                top={0}
+                zIndex={10}
             >
                 <Text
                     fontSize="xl"
@@ -134,11 +143,11 @@ const Chatbox = ({
                 </Text>
                 <IconButton
                     onClick={onToggle}
-                    icon={<IoClose />}
+                    icon={<IoClose size={20} />}
                     aria-label="Close Chat Box"
                     size="md"
                     bg="transparent"
-                    color="text.secondary"
+                    color="brand.pink"
                     border="none"
                     borderRadius="8px"
                     _hover={{

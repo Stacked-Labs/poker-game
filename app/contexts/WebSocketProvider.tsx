@@ -44,6 +44,8 @@ export function SocketProvider(props: SocketProviderProps) {
     const { appState, dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
     const appStateRef = useRef(appState);
+    const isReconnectingRef = useRef(false);
+    const manualCloseRef = useRef(false);
 
     const {
         error: originalError,
@@ -93,6 +95,8 @@ export function SocketProvider(props: SocketProviderProps) {
             console.log(
                 'WebSocket connection attempt skipped: already connected or in progress.'
             );
+            isReconnectingRef.current = false;
+            setIsReconnecting(false);
             return;
         }
 
@@ -118,7 +122,9 @@ export function SocketProvider(props: SocketProviderProps) {
                     'Session Init Failed',
                     `Server error: ${sessionInitResponse.statusText}`
                 );
-                // Do not attempt to reconnect if session initialization itself fails critically.
+                isReconnectingRef.current = false;
+                setIsReconnecting(false);
+                attemptReconnection();
                 return;
             }
             const sessionData = await sessionInitResponse.json();
@@ -139,11 +145,13 @@ export function SocketProvider(props: SocketProviderProps) {
 
             _socket.onopen = () => {
                 console.log('WebSocket connected');
+                const wasReconnecting = isReconnectingRef.current;
+                isReconnectingRef.current = false;
                 setIsReconnecting(false); // Reset reconnection state on successful open
                 setReconnectionAttempts(0); // Reset attempts on successful open
                 hasShownInitialErrorRef.current = false; // Reset error flag on successful connection
 
-                if (isReconnecting) {
+                if (wasReconnecting) {
                     // This flag might still be true if this open is from a reconnect attempt
                     toastSuccessRef.current(
                         'Reconnected successfully',
@@ -167,17 +175,24 @@ export function SocketProvider(props: SocketProviderProps) {
                 console.log('WebSocket disconnected:', event);
                 socketRef.current = null;
                 setSocket(null);
-                if (!event.wasClean) {
-                    // Only show error toast on first disconnect, not during reconnection attempts
-                    if (!hasShownInitialErrorRef.current) {
-                        toastErrorRef.current(
-                            'Connection Lost',
-                            'Attempting to reconnect...'
-                        );
-                        hasShownInitialErrorRef.current = true;
-                    }
-                    attemptReconnection(); // Safe to call here
+
+                if (manualCloseRef.current) {
+                    manualCloseRef.current = false;
+                    return;
                 }
+
+                // Only show error toast on first disconnect, not during reconnection attempts
+                if (!hasShownInitialErrorRef.current) {
+                    toastErrorRef.current(
+                        'Connection Lost',
+                        'Attempting to reconnect...',
+                        5000,
+                        TOAST_ID_RECONNECTING
+                    );
+                    hasShownInitialErrorRef.current = true;
+                }
+
+                attemptReconnection(); // Attempt to reconnect even if close was clean
             };
 
             _socket.onerror = (err) => {
@@ -481,6 +496,8 @@ export function SocketProvider(props: SocketProviderProps) {
                 'Could not establish WebSocket connection. Check console.'
             );
             // If the exception occurs during fetch or new WebSocket(), then attempt reconnection.
+            isReconnectingRef.current = false;
+            setIsReconnecting(false);
             attemptReconnection(); // Safe to call here
         }
     }, [
@@ -495,6 +512,7 @@ export function SocketProvider(props: SocketProviderProps) {
     const attemptReconnection = useCallback(() => {
         if (!WS_BASE_URL || reconnectionAttempts >= maxReconnectionAttempts) {
             if (reconnectionAttempts >= maxReconnectionAttempts) {
+                isReconnectingRef.current = false;
                 setIsReconnecting(false);
                 hasShownInitialErrorRef.current = false; // Reset for next connection attempt
                 toastErrorRef.current(
@@ -505,22 +523,13 @@ export function SocketProvider(props: SocketProviderProps) {
             }
             return;
         }
-        if (isReconnecting) return; // Already trying to reconnect
+        if (isReconnectingRef.current) return; // Already trying to reconnect
 
+        isReconnectingRef.current = true;
         setIsReconnecting(true);
         const nextAttempt = reconnectionAttempts + 1;
         setReconnectionAttempts(nextAttempt);
         const delay = getReconnectDelay(reconnectionAttempts);
-
-        // Only show reconnection toast for first few attempts
-        if (nextAttempt <= 2) {
-            toastInfoRef.current(
-                'Attempting Reconnection',
-                `Attempt ${nextAttempt}/${maxReconnectionAttempts}...`,
-                delay,
-                TOAST_ID_RECONNECTING
-            );
-        }
 
         if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
@@ -548,6 +557,7 @@ export function SocketProvider(props: SocketProviderProps) {
             }
             if (socketRef.current) {
                 console.log('Closing WebSocket connection on unmount/cleanup.');
+                manualCloseRef.current = true;
                 socketRef.current.close(1000, 'Component unmounting'); // Clean close
                 socketRef.current = null;
                 setSocket(null);

@@ -1,4 +1,5 @@
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { useContext } from 'react';
 import FooterWithActionButtons from './FooterWithActionButtons';
 import EmptyFooter from './EmptyFooter';
@@ -7,6 +8,7 @@ import { Flex } from '@chakra-ui/react';
 
 const Footer = () => {
     const { appState } = useContext(AppContext);
+    const socket = useContext(SocketContext);
 
     // Check if the current user is a spectator (not in the game)
     const isSpectator = () => {
@@ -61,7 +63,10 @@ const Footer = () => {
         !!localPlayer &&
         (owesSB || owesBB || waitingForBB || appState.blindObligation);
 
+    const socketConnected = Boolean(socket);
+
     const showActionButtons =
+        socketConnected &&
         appState.game &&
         appState.game.running &&
         !appState.game.betting == false &&

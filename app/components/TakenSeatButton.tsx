@@ -280,19 +280,11 @@ const TakenSeatButton = ({
         const initial = Math.max(deadline - Date.now(), 0);
         setInitialDuration(initial);
 
-        // Debug log
-        console.log(
-            `⏱️ Seat ${player.seatID} timer start: now=${Date.now()} deadline=${deadline} (duration=${initial}ms, seconds=${Math.ceil(initial / 1000)})`
-        );
-
         calcAndSet();
         intervalRef.current = setInterval(calcAndSet, 250);
 
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
-
-            // Debug log for cleanup
-            console.log(`⏹️ Seat ${player.seatID} timer cleared`);
         };
     }, [deadline, actionIndex, isCurrentTurn, player.seatID]);
 

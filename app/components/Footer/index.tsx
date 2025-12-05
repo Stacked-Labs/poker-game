@@ -14,35 +14,10 @@ const Footer = () => {
     const isSpectator = () => {
         if (!appState.game || !appState.clientID) return true;
 
-        // Debug logging for clientID vs player UUID mismatch
-        console.log('🔍 Footer Debug - Spectator Check:', {
-            clientID: appState.clientID,
-            players: appState.game.players.map((p) => ({
-                uuid: p.uuid,
-                address: p.address,
-                seatID: p.seatID,
-                username: p.username,
-            })),
-            gameRunning: appState.game.running,
-            gameBetting: appState.game.betting,
-            gameAction: appState.game.action,
-        });
-
         // Check if the user exists in the players array with a valid seat
         const userInGame = appState.game.players.some(
             (player) => player.uuid === appState.clientID && player.seatID > 0
         );
-
-        console.log('🔍 Footer Debug - Spectator Result:', {
-            userInGame,
-            isSpectator: !userInGame,
-            clientIDMatches: appState.game.players.some(
-                (p) => p.uuid === appState.clientID
-            ),
-            clientIDAddressMatches: appState.game.players.some(
-                (p) => p.address === appState.clientID
-            ),
-        });
 
         return !userInGame;
     };

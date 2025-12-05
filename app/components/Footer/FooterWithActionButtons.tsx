@@ -251,39 +251,6 @@ const FooterWithActionButtons = ({
         canCheck ? onOpen() : handleFold();
     };
 
-    // Debug logging for action buttons visibility
-    console.log('🔍 FooterWithActionButtons Debug:', {
-        isCurrentTurn,
-        clientID: appState.clientID,
-        gameAction: appState.game.action,
-        actingPlayer: actingPlayer
-            ? {
-                  uuid: actingPlayer.uuid,
-                  address: actingPlayer.address,
-                  username: actingPlayer.username,
-                  position: actingPlayer.position,
-                  seatID: actingPlayer.seatID,
-              }
-            : null,
-        localPlayer: localPlayer
-            ? {
-                  uuid: localPlayer.uuid,
-                  seatID: localPlayer.seatID,
-                  bet: localPlayer.bet,
-                  stack: localPlayer.stack,
-              }
-            : null,
-        gameBetting: appState.game.betting,
-        gamePaused: gameIsPaused,
-        canCheck,
-        needsToCall,
-        callAmount,
-        maxBet,
-        playerBets,
-        queuedActions,
-        queueMode,
-    });
-
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>

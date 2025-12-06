@@ -70,6 +70,12 @@ const FooterWithActionButtons = ({
     const resetQueuedActions = useCallback(() => {
         setQueuedActions(createInitialQueuedActions());
     }, []);
+    const toggleQueuedAction = useCallback((action: QueuedAction) => {
+        setQueuedActions((prev) => ({
+            ...prev,
+            [action]: !prev[action],
+        }));
+    }, []);
     const autoActionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const clearAutoActionTimeout = useCallback(() => {
         if (autoActionTimeoutRef.current) {
@@ -81,17 +87,45 @@ const FooterWithActionButtons = ({
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
             const key = e.key.toLowerCase();
-            console.log('footerwith.tsx: ' + key);
+            const active = document.activeElement as HTMLElement | null;
+            const isEditableElement =
+                active &&
+                (active.tagName === 'INPUT' ||
+                    active.tagName === 'TEXTAREA' ||
+                    active.isContentEditable);
 
-            const active = document.activeElement;
-            if (
-                (active &&
-                    (active.tagName === 'INPUT' ||
-                        active.tagName === 'TEXTAREA' ||
-                        (active as HTMLElement).isContentEditable)) ||
-                gameIsPaused ||
-                !isCurrentTurn
-            ) {
+            if (isEditableElement || gameIsPaused) {
+                return;
+            }
+
+            const handledQueueShortcut = (() => {
+                if (!queueMode) {
+                    return false;
+                }
+
+                switch (key) {
+                    case HOTKEY_CALL:
+                        toggleQueuedAction('call');
+                        e.preventDefault();
+                        return true;
+                    case HOTKEY_CHECK:
+                        toggleQueuedAction('check');
+                        e.preventDefault();
+                        return true;
+                    case HOTKEY_FOLD:
+                        toggleQueuedAction('fold');
+                        e.preventDefault();
+                        return true;
+                    default:
+                        return false;
+                }
+            })();
+
+            if (!isCurrentTurn) {
+                return;
+            }
+
+            if (handledQueueShortcut || showRaise) {
                 return;
             }
 
@@ -124,12 +158,12 @@ const FooterWithActionButtons = ({
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [
         gameIsPaused,
-        appState.clientID,
-        appState.game?.action,
+        queueMode,
+        showRaise,
         needsToCall,
         canCheck,
-        callAmount,
         isCurrentTurn,
+        toggleQueuedAction,
     ]);
 
     const handleCall = () => {
@@ -215,13 +249,6 @@ const FooterWithActionButtons = ({
     if (!socket || !appState || !appState.game || !localPlayer) {
         return null;
     }
-
-    const toggleQueuedAction = (action: QueuedAction) => {
-        setQueuedActions((prev) => ({
-            ...prev,
-            [action]: !prev[action],
-        }));
-    };
 
     const handleCallButtonClick = () => {
         if (queueMode) {

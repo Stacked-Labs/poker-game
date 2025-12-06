@@ -487,21 +487,6 @@ const TakenSeatButton = ({
                         // Skip flip animation for enemy players - they should show front immediately
                         const skipAnimation = !isSelf;
 
-                        // DEBUG: Log shouldDim logic for winners/losers at showdown
-                        if (
-                            isShowdown &&
-                            (playerWinsActivePot || winningSet.size > 0)
-                        ) {
-                            console.log('🏆 WINNER DEBUG:', {
-                                player: player.username,
-                                isWinner,
-                                playerWinsActivePot,
-                                isRevealed,
-                                playerIn: player.in,
-                                shouldDim: dimThisCard,
-                                hasWinningCards: winningSet.size > 0,
-                            });
-                        }
                         return (
                             <Box
                                 key={`${card}-${index}`}

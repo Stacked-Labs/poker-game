@@ -14,16 +14,6 @@ import { IoPersonAddSharp } from 'react-icons/io5';
 
 const MotionButton = motion(Button);
 
-// Animations
-const float = keyframes`
-    0%, 100% { 
-        transform: translateY(0px);
-    }
-    50% { 
-        transform: translateY(-3px);
-    }
-`;
-
 const fadeIn = keyframes`
     from { 
         opacity: 0;
@@ -32,15 +22,6 @@ const fadeIn = keyframes`
     to { 
         opacity: 1;
         transform: scale(1);
-    }
-`;
-
-const glowPulse = keyframes`
-    0%, 100% { 
-        box-shadow: 0 0 12px rgba(54, 163, 123, 0);
-    }
-    50% { 
-        box-shadow: 0 0 24px rgba(54, 163, 123, 0.3);
     }
 `;
 
@@ -62,7 +43,7 @@ const EmptySeatButton = ({
                 width="100%"
                 height="100%"
                 bg="rgba(255, 255, 255, 0.05)"
-                backdropFilter="blur(10px)"
+                backdropFilter="blur(2px)"
                 onClick={onOpen}
                 isLoading={isLoading}
                 color="white"
@@ -104,97 +85,16 @@ const EmptySeatButton = ({
                 onMouseLeave={() => setIsHovered(false)}
                 isDisabled={disabled}
             >
-                {/* Seat Number */}
-                <Text
-                    position="absolute"
-                    top={{ base: '4px', sm: '6px', md: '8px' }}
-                    left={{ base: '6px', sm: '8px', md: '10px' }}
-                    color={
-                        isHovered && !disabled
-                            ? 'brand.green'
-                            : 'text.secondary'
-                    }
-                    fontSize={{ base: 'sm', sm: 'md', md: 'lg' }}
-                    fontWeight="black"
-                    lineHeight="1"
-                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                >
-                    {seatId}
-                </Text>
-
-                {/* Icon and Text Container */}
-                <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    gap={{ base: 1, sm: 1.5, md: 2 }}
+                <Icon
+                    as={IoPersonAddSharp}
+                    boxSize={{ base: '28px', md: '36px' }}
+                    color={isHovered && !disabled ? 'brand.green' : 'white'}
                     animation={
-                        !disabled && !isHovered
-                            ? `${float} 3s ease-in-out infinite`
+                        isHovered && !disabled
+                            ? `${fadeIn} 0.3s ease-out`
                             : undefined
                     }
-                >
-                    {/* Icon Circle */}
-                    <Box
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        width={{
-                            base: '40px',
-                            sm: '50px',
-                            md: '60px',
-                            lg: '70px',
-                            xl: '80px',
-                        }}
-                        height={{
-                            base: '40px',
-                            sm: '50px',
-                            md: '60px',
-                            lg: '70px',
-                            xl: '80px',
-                        }}
-                        borderRadius="full"
-                        bg={
-                            isHovered && !disabled
-                                ? 'brand.green'
-                                : 'rgba(255, 255, 255, 0.1)'
-                        }
-                        border="2px solid"
-                        borderColor={
-                            isHovered && !disabled
-                                ? 'white'
-                                : 'rgba(255, 255, 255, 0.3)'
-                        }
-                        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                        boxShadow={
-                            isHovered && !disabled
-                                ? '0 8px 24px rgba(54, 163, 123, 0.5)'
-                                : '0 4px 12px rgba(0, 0, 0, 0.2)'
-                        }
-                        animation={
-                            isHovered && !disabled
-                                ? `${glowPulse} 2s ease-in-out infinite`
-                                : undefined
-                        }
-                    >
-                        <Icon
-                            as={IoPersonAddSharp}
-                            boxSize={{
-                                base: '20px',
-                                sm: '24px',
-                                md: '28px',
-                                lg: '32px',
-                                xl: '36px',
-                            }}
-                            color="white"
-                            animation={
-                                isHovered && !disabled
-                                    ? `${fadeIn} 0.3s ease-out`
-                                    : undefined
-                            }
-                        />
-                    </Box>
-                </Box>
+                />
             </MotionButton>
             <TakeSeatModal isOpen={isOpen} onClose={onClose} seatId={seatId} />
         </>

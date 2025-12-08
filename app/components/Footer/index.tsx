@@ -63,16 +63,10 @@ const Footer = () => {
     );
 
     return (
-        <Flex
-            direction="column"
-            gap={{ base: 2, md: 3 }}
-            px={{ base: 2, md: 4 }}
-            py={{ base: 2, md: 3 }}
-            width="100%"
-        >
+        <>
             <BlindObligationControls />
             {content}
-        </Flex>
+        </>
     );
 };
 

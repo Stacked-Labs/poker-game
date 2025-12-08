@@ -274,6 +274,7 @@ const RaiseInputBox = ({
     const actionButtons = () => {
         return (
             <Flex
+                className="raise-action-buttons-group"
                 flex={1}
                 gap={2}
                 justifyContent={'flex-end'}
@@ -313,163 +314,193 @@ const RaiseInputBox = ({
     return (
         <Flex
             gap={2}
-            direction={{ base: 'column', md: 'row' }}
-            alignItems={{ base: 'center', md: 'stretch' }}
             color={'white'}
             className="raise-input-box"
             zIndex={100}
             height="100%"
+            width="100%"
             position="relative"
+            sx={{
+                '@media (orientation: portrait)': {
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                },
+                '@media (orientation: landscape)': {
+                    flexDirection: 'row',
+                    alignItems: 'stretch',
+                    justifyContent: 'flex-end',
+                },
+            }}
         >
-            {/* ======= MOBILE / TABLET LAYOUT (≤ lg) ======= */}
+            {/* ======= PORTRAIT LAYOUT ======= */}
             <Flex
-                direction="column"
-                gap={{ base: 1, sm: 2 }}
+                direction="row"
+                gap="0.5cqw"
                 width="100%"
                 height="100%"
-                display={{ base: 'flex', lg: 'none' }}
                 position="relative"
-                className="raise-mobile-wrapper"
+                className="raise-portrait-wrapper"
                 zIndex={9999}
+                sx={{
+                    '@media (orientation: portrait)': {
+                        display: 'flex',
+                    },
+                    '@media (orientation: landscape)': {
+                        display: 'none',
+                    },
+                }}
             >
-                {/* Row 1 – pot-size quick buttons */}
-                <Flex
-                    gap={2}
-                    wrap="wrap"
-                    justifyContent="space-between"
-                    className="raise-pot-buttons-row"
+                <Box
+                    className="raise-portrait-amount-box"
+                    bg={'brand.darkNavy'}
+                    rounded={'lg'}
+                    flex={1}
+                    position="absolute"
+                    bottom={'70px'}
+                    p="0.5cqh"
+                    textAlign="center"
+                    overflow={'hidden'}
+                    display="flex"
+                    alignItems="center"
+                    minH="5cqh"
+                    border="2px solid"
+                    borderColor="brand.navy"
                 >
-                    <Button
-                        variant={'raiseActionButton'}
-                        flex={1}
-                        minW={0}
-                        isDisabled={gameIsPaused || !isCurrentTurn}
-                        onClick={() =>
-                            setBetFromControl(
-                                betValidator(minRaise, minRaise, maxTotalBet)
-                            )
-                        }
+                    <Input
+                        className="raise-portrait-bet-input"
+                        ref={mobileInputRef}
+                        bg={'brand.navy'}
+                        border={'none'}
+                        fontSize="8cqw"
+                        size={'sm'}
+                        width={'100%'}
+                        height={'100%'}
+                        type="number"
+                        value={betInput}
+                        min={sliderMinValue}
+                        max={maxTotalBet}
+                        onChange={handleInputChange}
+                        onFocus={() => {
+                            isTypingRef.current = true;
+                        }}
+                        focusBorderColor={'brand.green'}
+                        textAlign={'center'}
+                        onBlur={handleInputOnBlur}
+                        py="1cqh"
+                        color="white"
+                        fontWeight="bold"
+                    />
+                </Box>
+                {/* pot-size quick buttons in two rows, two buttons each, right-aligned in landscape */}
+                <Flex
+                    direction="column"
+                    gap="0.5cqw"
+                    className="raise-portrait-pot-buttons"
+                    alignItems="stretch"
+                    sx={{
+                        '@media (orientation: landscape)': {
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            width: 'auto',
+                            alignItems: 'flex-end',
+                            zIndex: 2,
+                        },
+                    }}
+                >
+                    <Flex
+                        gap="0.5cqw"
+                        width="100%"
+                        justifyContent={{ base: 'stretch', lg: 'flex-end' }}
                     >
-                        Min
-                    </Button>
-                    <Button
-                        variant={'raiseActionButton'}
-                        flex={1}
-                        minW={0}
-                        isDisabled={gameIsPaused || !isCurrentTurn}
-                        onClick={() =>
-                            setBetFromControl(
-                                betValidator(half, minRaise, maxTotalBet)
-                            )
-                        }
-                    >
-                        1/2 Pot
-                    </Button>
-                    <Button
-                        variant={'raiseActionButton'}
-                        flex={1}
-                        minW={0}
-                        isDisabled={gameIsPaused || !isCurrentTurn}
-                        onClick={() =>
-                            setBetFromControl(
-                                betValidator(
-                                    threeQuarter,
-                                    minRaise,
-                                    maxTotalBet
+                        <Button
+                            variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
+                            isDisabled={gameIsPaused || !isCurrentTurn}
+                            onClick={() =>
+                                setBetFromControl(
+                                    betValidator(half, minRaise, maxTotalBet)
                                 )
-                            )
-                        }
+                            }
+                        >
+                            1/2 Pot
+                        </Button>
+                        <Button
+                            variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
+                            isDisabled={gameIsPaused || !isCurrentTurn}
+                            onClick={() =>
+                                setBetFromControl(
+                                    betValidator(
+                                        threeQuarter,
+                                        minRaise,
+                                        maxTotalBet
+                                    )
+                                )
+                            }
+                        >
+                            3/4 Pot
+                        </Button>
+                    </Flex>
+                    <Flex
+                        gap="0.5cqw"
+                        width="100%"
+                        justifyContent={{ base: 'stretch', lg: 'flex-end' }}
                     >
-                        3/4 Pot
-                    </Button>
-                    <Button
-                        variant={'raiseActionButton'}
-                        flex={1}
-                        minW={0}
-                        isDisabled={gameIsPaused || !isCurrentTurn}
-                        onClick={() =>
-                            setBetFromControl(
-                                betValidator(full, minRaise, maxTotalBet)
-                            )
-                        }
-                    >
-                        Pot
-                    </Button>
-                    <Button
-                        variant={'raiseActionButton'}
-                        flex={1}
-                        minW={0}
-                        isDisabled={gameIsPaused || !isCurrentTurn}
-                        onClick={() =>
-                            setBetFromControl(
-                                betValidator(allIn, minRaise, maxTotalBet)
-                            )
-                        }
-                    >
-                        All In
-                    </Button>
+                        <Button
+                            variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
+                            isDisabled={gameIsPaused || !isCurrentTurn}
+                            onClick={() =>
+                                setBetFromControl(
+                                    betValidator(full, minRaise, maxTotalBet)
+                                )
+                            }
+                        >
+                            Pot
+                        </Button>
+                        <Button
+                            variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
+                            isDisabled={gameIsPaused || !isCurrentTurn}
+                            onClick={() =>
+                                setBetFromControl(
+                                    betValidator(allIn, minRaise, maxTotalBet)
+                                )
+                            }
+                        >
+                            All In
+                        </Button>
+                    </Flex>
                 </Flex>
 
                 {/* Row 2 – amount display + Back + Raise buttons */}
                 <Flex
-                    gap={2}
+                    gap="1cqw"
                     width="100%"
-                    className="raise-actions-row"
+                    className="raise-portrait-actions-row"
                     height="100%"
                 >
                     {/* Amount */}
-                    <Box
-                        bg={'brand.darkNavy'}
-                        rounded={'lg'}
-                        flex={1}
-                        p={1}
-                        textAlign="center"
-                        overflow={'hidden'}
-                        display="flex"
-                        alignItems="center"
-                        minH={{ base: '40px', md: '48px' }}
-                        border="2px solid"
-                        borderColor="brand.navy"
-                    >
-                        <Input
-                            ref={mobileInputRef}
-                            bg={'brand.navy'}
-                            border={'none'}
-                            fontSize={{ base: '14px', sm: '15px', md: '16px' }}
-                            size={'sm'}
-                            width={'100%'}
-                            height={'100%'}
-                            type="number"
-                            value={betInput}
-                            min={sliderMinValue}
-                            max={maxTotalBet}
-                            onChange={handleInputChange}
-                            onFocus={() => {
-                                isTypingRef.current = true;
-                            }}
-                            focusBorderColor={'brand.green'}
-                            textAlign={'center'}
-                            onBlur={handleInputOnBlur}
-                            py={{ base: 1.5, sm: 2 }}
-                            color="white"
-                            fontWeight="bold"
-                        />
-                    </Box>
 
                     {/* Back */}
-                    <Flex flex={1}>
+                    <Flex className="raise-portrait-back-wrapper" flex={1}>
                         <ActionButton
                             text={'Back'}
                             color="white"
                             clickHandler={() => setShowRaise(false)}
                             isDisabled={!isCurrentTurn || gameIsPaused}
                             hotkey={HOTKEY_BACK.slice(0, 3)}
-                            className="mobile-back"
+                            className="portrait-back"
                         />
                     </Flex>
 
                     {/* Raise */}
-                    <Flex flex={1}>
+                    <Flex className="raise-portrait-raise-wrapper" flex={1}>
                         <ActionButton
                             text={'Raise'}
                             color="green"
@@ -484,7 +515,7 @@ const RaiseInputBox = ({
                                 getCurrentBetValue() > maxTotalBet
                             }
                             hotkey={HOTKEY_RAISE}
-                            className="mobile-raise"
+                            className="portrait-raise"
                         />
                     </Flex>
                 </Flex>
@@ -492,11 +523,10 @@ const RaiseInputBox = ({
                 {/* Vertical slider overlay – absolute positioned */}
                 <Box
                     position="absolute"
-                    bottom="100px"
+                    bottom="70px"
                     right={0}
-                    height={{ base: '400px', sm: '260px' }}
-                    width={{ base: '60px', sm: '70px' }}
-                    display={{ base: 'flex', lg: 'none' }}
+                    height={{ base: '400px', sm: '350px' }}
+                    width={{ base: '60px', sm: '60px' }}
                     flexDirection="column"
                     bg="rgba(51, 68, 121, 0.6)"
                     rounded={'lg'}
@@ -504,11 +534,19 @@ const RaiseInputBox = ({
                     zIndex={10000}
                     border="2px solid"
                     borderColor="rgba(51, 68, 121, 0.8)"
-                    className="raise-vertical-slider"
+                    className="raise-portrait-vertical-slider"
                     transition="all 0.2s ease-in-out"
                     _hover={{
                         bg: 'rgba(51, 68, 121, 0.9)',
                         borderColor: 'brand.darkNavy',
+                    }}
+                    sx={{
+                        '@media (orientation: portrait)': {
+                            display: 'flex',
+                        },
+                        '@media (orientation: landscape)': {
+                            display: 'none',
+                        },
                     }}
                 >
                     <Button
@@ -577,24 +615,33 @@ const RaiseInputBox = ({
                 </Box>
             </Flex>
 
+            {/* ======= LANDSCAPE LAYOUT ======= */}
             <Flex
-                direction={{
-                    base: 'column-reverse',
-                    md: 'column-reverse',
-                    lg: 'row',
-                }}
-                gap={1}
-                display={{ base: 'none', lg: 'flex' }}
+                className="raise-landscape-wrapper"
+                flexDirection="row"
+                gap="0.3cqw"
                 alignItems="stretch"
+                sx={{
+                    '@media (orientation: portrait)': {
+                        display: 'none',
+                    },
+                    '@media (orientation: landscape)': {
+                        display: 'flex',
+                    },
+                }}
             >
-                <Flex gap={2} justifyContent={{ base: 'end' }}>
+                <Flex
+                    className="raise-landscape-bet-row"
+                    gap="0.3cqw"
+                    justifyContent="flex-end"
+                >
                     <Box
                         bg={'brand.darkNavy'}
                         width={'fit-content'}
                         textAlign={'center'}
                         rounded={'lg'}
-                        px={2}
-                        py={2}
+                        px="0.5cqw"
+                        py="0.5cqh"
                         flex={1}
                         height={'100%'}
                         display="flex"
@@ -603,12 +650,11 @@ const RaiseInputBox = ({
                         alignItems="center"
                         border="2px solid"
                         borderColor="brand.navy"
-                        className="raise-bet-container"
+                        className="raise-landscape-bet-container"
                     >
                         <Text
                             whiteSpace={'nowrap'}
-                            fontSize={{ base: 'sm', md: 'lg' }}
-                            display={{ base: 'none', md: 'block' }}
+                            fontSize="1cqw"
                             color="white"
                             fontWeight="bold"
                         >
@@ -618,7 +664,7 @@ const RaiseInputBox = ({
                             bg={'brand.navy'}
                             border={'2px solid'}
                             borderColor="brand.green"
-                            fontSize={{ base: 'xs', md: 'xl' }}
+                            fontSize={{ base: 'xs', sm: 'sm', md: 'lg' }}
                             size={{ base: 'xs', md: 'md' }}
                             type="number"
                             value={betInput}
@@ -633,14 +679,12 @@ const RaiseInputBox = ({
                             onBlur={handleInputOnBlur}
                             color="white"
                             fontWeight="bold"
-                            className="raise-bet-input"
+                            className="raise-landscape-bet-input"
                             ref={desktopInputRef}
                             mt={'auto'}
                             width="100%"
+                            height="100%"
                         />
-                    </Box>
-                    <Box display={{ base: 'inline-flex', lg: 'none' }} flex={2}>
-                        {actionButtons()}
                     </Box>
                 </Flex>
                 <Flex
@@ -650,12 +694,18 @@ const RaiseInputBox = ({
                     flex={1}
                     justifyContent={'center'}
                     overflow={'hidden'}
-                    maxW={'95vw'}
+                    maxW={'60cqw'}
                     border="2px solid"
                     borderColor="brand.navy"
-                    className="raise-slider-container"
+                    className="raise-landscape-slider-container"
                 >
-                    <Flex flex={1} gap={2} p={2}>
+                    <Flex
+                        className="raise-landscape-pot-buttons"
+                        flex={1}
+                        height="60%"
+                        gap="0.3cqw"
+                        p="0.3cqw"
+                    >
                         <Button
                             variant={'raiseActionButton'}
                             isDisabled={gameIsPaused || !isCurrentTurn}
@@ -721,6 +771,7 @@ const RaiseInputBox = ({
                         </Button>
                     </Flex>
                     <Flex
+                        className="raise-landscape-slider-track"
                         alignItems={'center'}
                         flex={1}
                         bg={'brand.navy'}
@@ -731,15 +782,15 @@ const RaiseInputBox = ({
                             bg={'brand.darkNavy'}
                             height={'100%'}
                             alignItems={'center'}
-                            p={1}
+                            p="0.3cqw"
                             color="white"
                             onClick={handleDecreaseRaise}
                         >
                             <LuMinus />
                         </Button>
                         <Slider
-                            aria-label="slider-ex-1"
-                            marginX={3}
+                            aria-label="raise-slider-landscape"
+                            marginX="0.5cqw"
                             value={betValue}
                             max={maxTotalBet}
                             min={sliderMinValue}
@@ -767,8 +818,8 @@ const RaiseInputBox = ({
                     </Flex>
                 </Flex>
                 <Flex
-                    ml={2}
-                    display={{ base: 'none', lg: 'flex' }}
+                    className="raise-landscape-actions-wrapper"
+                    ml="0.5cqw"
                     alignItems="stretch"
                 >
                     {actionButtons()}

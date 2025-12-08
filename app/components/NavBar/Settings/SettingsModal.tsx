@@ -169,20 +169,19 @@ const SettingsModal = ({
                                     minW="fit-content"
                                     px={{ base: 3, md: 4 }}
                                     py={2}
-                                    color="gray.600"
                                     _hover={{
-                                        bg: 'white',
+                                        bg: 'input.white',
                                         color: 'brand.green',
                                         boxShadow:
                                             '0 4px 8px rgba(54, 163, 123, 0.2)',
                                     }}
                                     _selected={{
                                         bg: 'brand.green',
-                                        color: 'white !important',
+                                        color: 'text.white !important',
                                         boxShadow:
                                             '0 4px 12px rgba(54, 163, 123, 0.3)',
                                         '& *': {
-                                            color: 'white !important',
+                                            color: 'text.white !important',
                                         },
                                     }}
                                     borderRadius="12px"
@@ -198,9 +197,12 @@ const SettingsModal = ({
                                         <Icon
                                             as={FiUsers}
                                             boxSize={{ base: 4, md: 5 }}
-                                            color={'text.gray600'}
+                                            color={'text.primary'}
                                         />
-                                        <Text color={'text.gray600'}>
+                                        <Text
+                                            textTransform={'capitalize'}
+                                            color={'text.primary'}
+                                        >
                                             Players
                                         </Text>
                                     </HStack>

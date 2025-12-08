@@ -23,11 +23,18 @@ const AwayButton = ({
     // State 1: Away & Requested to Rejoin -> Show "Cancel Rejoin"
     if (isAway && readyNextHand) {
         return (
-            <Tooltip label="Cancel request to rejoin" aria-label="Cancel rejoin">
+            <Tooltip
+                label="Cancel request to rejoin"
+                aria-label="Cancel rejoin"
+            >
                 <IconButton
-                    icon={<Icon as={FaCoffee} boxSize={{ base: 5, md: 6 }} />}
+                    icon={<Icon as={FaCoffee} boxSize={{ base: 4, md: 5 }} />}
                     aria-label="Cancel rejoin"
-                    size="lg"
+                    size={{ base: 'md', md: 'md' }}
+                    px={2}
+                    py={2}
+                    width={{ base: '40px', sm: '40px', md: '48px' }}
+                    height={{ base: '40px', sm: '40px', md: '48px' }}
                     onClick={handleCancelRejoin}
                     bg="brand.green"
                     color="white"
@@ -50,9 +57,15 @@ const AwayButton = ({
         return (
             <Tooltip label="I'm back" aria-label="I'm back">
                 <IconButton
-                    icon={<Icon as={FaUserCheck} boxSize={{ base: 5, md: 6 }} />}
+                    icon={
+                        <Icon as={FaUserCheck} boxSize={{ base: 4, md: 5 }} />
+                    }
                     aria-label="I'm back"
-                    size="lg"
+                    size={{ base: 'md', md: 'md' }}
+                    px={2}
+                    py={2}
+                    width={{ base: '40px', sm: '40px', md: '48px' }}
+                    height={{ base: '40px', sm: '40px', md: '48px' }}
                     onClick={handleReturnReady}
                     bg="brand.green"
                     color="white"
@@ -76,13 +89,21 @@ const AwayButton = ({
 
     return (
         <Tooltip
-            label={isSitOutNext ? 'Cancel sit out request' : 'Sit out next hand'}
+            label={
+                isSitOutNext ? 'Cancel sit out request' : 'Sit out next hand'
+            }
             aria-label="Away toggle"
         >
             <IconButton
-                icon={<Icon as={FaCoffee} boxSize={{ base: 5, md: 6 }} />}
-                aria-label={isSitOutNext ? 'Cancel sit out' : 'Sit out next hand'}
-                size="lg"
+                icon={<Icon as={FaCoffee} boxSize={{ base: 4, md: 5 }} />}
+                aria-label={
+                    isSitOutNext ? 'Cancel sit out' : 'Sit out next hand'
+                }
+                size={{ base: 'md', md: 'md' }}
+                px={2}
+                py={2}
+                width={{ base: '40px', sm: '40px', md: '48px' }}
+                height={{ base: '40px', sm: '40px', md: '48px' }}
                 onClick={handleSitOutNext}
                 bg={isSitOutNext ? 'brand.pink' : 'btn.lightGray'}
                 color={isSitOutNext ? 'white' : 'text.secondary'}

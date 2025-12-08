@@ -4,12 +4,10 @@ import {
     Flex,
     Text,
     ResponsiveValue,
-    PositionProps,
     HStack,
     Progress,
     Tooltip,
     Tag,
-    useBreakpointValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import {
@@ -146,101 +144,148 @@ const TakenSeatButton = ({
     const shortEthAddress = address
         ? `${address.slice(0, 2)}...${address.slice(-2)}`
         : '0x00...00';
-    const isMobile = useBreakpointValue({ base: true, lg: false }) ?? true;
     const isSelf = appState.clientID
         ? player.uuid === appState.clientID
         : false;
     const prefersReducedMotion = useReducedMotion();
 
-    const chipPositions: {
-        [key: number]: {
-            [key: string]: ResponsiveValue<
-                PositionProps['top' | 'right' | 'left'] | 'row' | 'column'
-            >;
-        };
-    } = {
+    // Chip positions based on orientation - portrait uses column layouts, landscape uses row layouts
+    // Each seat has portrait and landscape positioning defined via CSS media queries
+    const chipPositionStyles: { [key: number]: object } = {
         1: {
-            top: {
-                base: '-46%',
-                md: isMobile ? '-45%' : '-16%',
-                '2xl': '-18%',
+            justifyContent: 'center',
+            '@media (orientation: portrait)': {
+                top: '-46%',
             },
-            justifyContent: { base: 'center' },
+            '@media (orientation: landscape)': {
+                top: '-16%',
+            },
         },
         2: {
-            top: { base: '-15%', md: isMobile ? '15%' : '-16%', '2xl': '-18%' },
-            right: { base: '-105%', md: isMobile ? '-70%' : 0, '2xl': 0 },
-            flexDirection: { base: 'column', md: 'row' },
-            justifyContent: { base: 'center' },
+            justifyContent: 'center',
+            '@media (orientation: portrait)': {
+                top: '15%',
+                right: '-70%',
+                flexDirection: 'column',
+            },
+            '@media (orientation: landscape)': {
+                top: '-16%',
+                right: 0,
+                flexDirection: 'row',
+            },
         },
         3: {
-            bottom: { base: '18%', md: '40%', lg: '23%' },
-            right: { base: '-105%', md: '-105%', lg: '-110%' },
-            flexDirection: { base: 'column', md: 'row' },
+            '@media (orientation: portrait)': {
+                bottom: '18%',
+                right: '-105%',
+                flexDirection: 'column',
+            },
+            '@media (orientation: landscape)': {
+                bottom: '23%',
+                right: '-110%',
+                flexDirection: 'row',
+            },
         },
         4: {
-            top: { base: '15%', md: '40%', lg: '30%' },
-            right: { base: '-107%', md: '-105%', lg: '-110%' },
-            flexDirection: { base: 'column', md: 'row' },
+            '@media (orientation: portrait)': {
+                top: '15%',
+                right: '-107%',
+                flexDirection: 'column',
+            },
+            '@media (orientation: landscape)': {
+                top: '30%',
+                right: '-110%',
+                flexDirection: 'row',
+            },
         },
         5: {
-            bottom: {
-                base: '10%',
-                md: isMobile ? '20%' : '-30%',
-                '2xl': '-30%',
+            justifyContent: 'center',
+            alignItems: 'start',
+            '@media (orientation: portrait)': {
+                bottom: '20%',
+                right: '-70%',
+                flexDirection: 'column',
             },
-            right: { base: '-107%', md: isMobile ? '-70%' : 0, '2xl': 0 },
-            flexDirection: { base: 'column', md: 'row' },
-            alignItems: { base: 'left', md: 'start' },
-            justifyContent: { base: 'center' },
+            '@media (orientation: landscape)': {
+                bottom: '-30%',
+                right: 0,
+                flexDirection: 'row',
+            },
         },
         6: {
-            bottom: {
-                base: '-50%',
-                md: isMobile ? '-45%' : '-30%',
-                '2xl': '-30%',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            '@media (orientation: portrait)': {
+                bottom: '-45%',
+                right: 0,
             },
-            right: { base: 0, md: 0, '2xl': 0 },
-            flexDirection: { base: 'row', md: 'row' },
-            justifyContent: { base: 'center' },
+            '@media (orientation: landscape)': {
+                bottom: '-30%',
+                right: 0,
+            },
         },
         7: {
-            bottom: {
-                base: '10%',
-                md: isMobile ? '20%' : '-30%',
-                '2xl': '-30%',
+            justifyContent: 'center',
+            alignItems: 'start',
+            '@media (orientation: portrait)': {
+                bottom: '20%',
+                left: '-70%',
+                flexDirection: 'column',
             },
-            left: { base: '-105%', md: isMobile ? '-70%' : 0, '2xl': 0 },
-            flexDirection: { base: 'column', md: 'row-reverse' },
-            alignItems: { base: 'end', md: 'start' },
-            justifyContent: { base: 'center' },
+            '@media (orientation: landscape)': {
+                bottom: '-30%',
+                left: 0,
+                flexDirection: 'row-reverse',
+            },
         },
         8: {
-            top: { base: '15%', md: '40%', lg: '30%' },
-            left: { base: '-105%', md: '-105%', lg: '-110%' },
-            flexDirection: { base: 'column', md: 'row-reverse' },
-            alignItems: { base: 'end', md: 'start' },
+            alignItems: 'start',
+            '@media (orientation: portrait)': {
+                top: '15%',
+                left: '-105%',
+                flexDirection: 'column',
+            },
+            '@media (orientation: landscape)': {
+                top: '30%',
+                left: '-110%',
+                flexDirection: 'row-reverse',
+            },
         },
         9: {
-            bottom: { base: '18%', md: '40%', lg: '23%' },
-            left: { base: '-105%', md: isMobile ? '-105%' : 0, lg: '-110%' },
-            flexDirection: { base: 'column', md: 'row-reverse' },
-            alignItems: { base: 'end', md: 'start' },
+            alignItems: 'start',
+            '@media (orientation: portrait)': {
+                bottom: '18%',
+                left: '-105%',
+                flexDirection: 'column',
+            },
+            '@media (orientation: landscape)': {
+                bottom: '23%',
+                left: '-110%',
+                flexDirection: 'row-reverse',
+            },
         },
         10: {
-            top: { base: '-15%', md: isMobile ? '15%' : '-16%', '2xl': '-18%' },
-            left: { base: '-105%', md: isMobile ? '-68%' : '0%', '2xl': '0%' },
-            flexDirection: {
-                base: 'column',
-                md: isMobile ? 'row-reverse' : 'row',
+            justifyContent: 'center',
+            alignItems: 'start',
+            '@media (orientation: portrait)': {
+                top: '15%',
+                left: '-68%',
+                flexDirection: 'row-reverse',
             },
-            alignItems: { base: 'end', md: 'start' },
-            justifyContent: { base: 'center' },
+            '@media (orientation: landscape)': {
+                top: '-16%',
+                left: '0%',
+                flexDirection: 'row',
+            },
         },
     };
 
-    const defaultPosition = { top: '100%', flexDirection: 'row' };
-    const chipPosition = chipPositions[player?.seatID || 4] || defaultPosition;
+    const defaultPositionStyles = {
+        top: '100%',
+        flexDirection: 'row',
+    };
+    const chipPositionSx =
+        chipPositionStyles[player?.seatID || 4] || defaultPositionStyles;
 
     // Countdown timer logic
     const deadline = appState.game?.actionDeadline ?? 0;
@@ -397,11 +442,12 @@ const TakenSeatButton = ({
         >
             {/* Away badge moved into player info container below */}
             <Flex
+                className="chip-position-container"
                 position={'absolute'}
                 key="betbox"
-                {...chipPosition}
                 width={'100%'}
                 gap={2}
+                sx={chipPositionSx}
             >
                 {appState.game.running &&
                     appState.game.dealer == player.position && (
@@ -435,7 +481,7 @@ const TakenSeatButton = ({
                         alignItems="center"
                         justifyContent="center"
                         variant={'seatText'}
-                        fontSize={{ base: '10px', md: '16px' }}
+                        fontSize={{ base: '10px', sm: '10px', md: '14px' }}
                         zIndex={3}
                         boxShadow="0 2px 8px rgba(253, 197, 29, 0.3)"
                     >
@@ -539,7 +585,7 @@ const TakenSeatButton = ({
                     width={'100%'}
                     paddingX={0}
                     paddingTop={{ base: 1 }}
-                    paddingBottom={{ base: 2, md: 6 }}
+                    paddingBottom={{ base: 2, sm: 2, md: '8%' }}
                     justifySelf={'flex-end'}
                     justifyContent={'center'}
                     alignItems={'flex-start'}
@@ -737,7 +783,7 @@ const TakenSeatButton = ({
                                 <Progress
                                     className="player-timer-bar"
                                     value={progress}
-                                    height={{ base: 1.5, md: 2 }}
+                                    height={{ base: 1.5, sm: 1.5, md: 2 }}
                                     width="100%"
                                     colorScheme={barScheme}
                                     borderRadius={0}

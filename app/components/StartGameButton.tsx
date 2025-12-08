@@ -48,8 +48,12 @@ const StartGameButton = () => {
                 {/* Icon button for mobile */}
                 <IconButton
                     aria-label="Start Game"
-                    icon={<Icon as={FaPlay} boxSize={{ base: 5, md: 5 }} />}
-                    size="lg"
+                    icon={<Icon as={FaPlay} boxSize={{ base: 4, md: 5 }} />}
+                    px={2}
+                    py={2}
+                    width={{ base: '40px', sm: '40px', md: '48px' }}
+                    height={{ base: '40px', sm: '40px', md: '48px' }}
+                    size={{ base: 'md', md: 'md' }}
                     onClick={() => onClickStartGame(socket)}
                     isDisabled={isDisabled}
                     display={{ base: 'inline-flex', md: 'none' }}

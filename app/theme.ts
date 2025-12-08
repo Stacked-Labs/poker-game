@@ -76,6 +76,10 @@ const semanticTokens = {
             default: 'rgba(255, 255, 255, 0.85)',
             _dark: 'rgba(46, 46, 54, 0.95)',
         },
+        'bg.letterbox': {
+            default: '#D8D8DD',
+            _dark: '#141418',
+        },
 
         // Text colors
         'text.primary': {
@@ -406,12 +410,12 @@ const components = {
                 },
             },
             raiseActionButton: {
-                fontSize: { base: '11px', sm: '12px', md: 'sm', lg: 'md' },
-                width: { base: '80px', sm: '85px', md: '90px', lg: '95px' },
+                fontSize: { base: '8px', sm: '10px', md: 'sm', lg: 'sm' },
+                width: { base: '70px', sm: '75px', md: '80px', lg: '85px' },
                 height: 'auto',
-                minH: { base: '36px', sm: '38px', md: '40px', lg: '42px' },
-                maxH: { base: '40px', sm: '42px', md: '44px', lg: '46px' },
-                padding: { base: 1.5, sm: 2, md: 2, lg: 2.5 },
+                minH: { base: '28px', sm: '28px', md: '34px', lg: '36px' },
+                maxH: { base: '34px', sm: '36px', md: '38px', lg: '40px' },
+                padding: { base: 1 },
                 bg: 'brand.navy',
                 color: 'white',
                 border: 'none',
@@ -516,19 +520,19 @@ const components = {
                 },
             },
             homeNav: {
-                size: "lg",
-                fontWeight: "semibold",
-                bg: "btn.lightGray",
-                color: "text.secondary",
-                borderRadius: "16px",
-                height: "56px",
-                justifyContent: "flex-start",
+                size: 'lg',
+                fontWeight: 'semibold',
+                bg: 'btn.lightGray',
+                color: 'text.secondary',
+                borderRadius: '16px',
+                height: '56px',
+                justifyContent: 'flex-start',
                 px: 6,
-                transition: "all 0.2s ease",
+                transition: 'all 0.2s ease',
                 _hover: {
                     bg: 'rgba(12, 21, 49, 0.12)',
                     transform: 'translateX(4px)',
-                }
+                },
             },
         },
         sizes: {

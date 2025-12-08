@@ -32,10 +32,14 @@ const LeaveButton = ({
     return (
         <Tooltip label={tooltipLabel}>
             <IconButton
-                icon={<Icon as={FiLogOut} boxSize={{ base: 5, md: 6 }} />}
+                icon={<Icon as={FiLogOut} boxSize={{ base: 4, md: 5 }} />}
                 aria-label={buttonLabel}
                 aria-pressed={isLeaveRequested}
-                size="lg"
+                size={{ base: 'md', md: 'md' }}
+                px={2}
+                py={2}
+                width={{ base: '40px', sm: '40px', md: '48px' }}
+                height={{ base: '40px', sm: '40px', md: '48px' }}
                 onClick={handleLeaveTable}
                 bg={bgColor}
                 border="none"

@@ -1,22 +1,36 @@
-import { Button, useColorMode, IconButton, Icon, Tooltip } from "@chakra-ui/react";
-import { FaMoon } from "react-icons/fa";
-import { IoMdSunny } from "react-icons/io";
+import {
+    Button,
+    useColorMode,
+    IconButton,
+    Icon,
+    Tooltip,
+} from '@chakra-ui/react';
+import { FaMoon } from 'react-icons/fa';
+import { IoMdSunny } from 'react-icons/io';
 
-export function ColorModeButton({ variant = "default" }: { variant?: "default" | "menu" }) {
+export function ColorModeButton({
+    variant = 'default',
+}: {
+    variant?: 'default' | 'menu';
+}) {
     const { colorMode, toggleColorMode } = useColorMode();
 
-    if (variant === "menu") {
+    if (variant === 'menu') {
         return (
             <Tooltip label="Toggle theme" aria-label="Toggle theme">
                 <IconButton
                     icon={
                         <Icon
-                            as={colorMode === "light" ? IoMdSunny : FaMoon}
-                            boxSize={{ base: 5, md: 6 }}
+                            as={colorMode === 'light' ? IoMdSunny : FaMoon}
+                            boxSize={{ base: 4, md: 5 }}
                         />
                     }
                     aria-label="Toggle color mode"
-                    size="lg"
+                    size={{ base: 'md', md: 'md' }}
+                    px={2}
+                    py={2}
+                    width={{ base: '40px', sm: '40px', md: '48px' }}
+                    height={{ base: '40px', sm: '40px', md: '48px' }}
                     onClick={toggleColorMode}
                     bg="btn.lightGray"
                     color="text.secondary"
@@ -41,9 +55,7 @@ export function ColorModeButton({ variant = "default" }: { variant?: "default" |
             variant={'themeButton'}
             onClick={toggleColorMode}
         >
-            {
-                colorMode === "light" ? <IoMdSunny /> : <FaMoon />
-            }
+            {colorMode === 'light' ? <IoMdSunny /> : <FaMoon />}
         </Button>
     );
 }

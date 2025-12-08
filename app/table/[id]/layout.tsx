@@ -3,37 +3,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { SocketProvider } from '@/app/contexts/WebSocketProvider';
 import Navbar from '@/app/components/NavBar';
-import {
-    Flex,
-    Modal,
-    Text,
-    useDisclosure,
-    Box,
-    Heading,
-} from '@chakra-ui/react';
+import { Flex, Modal, useDisclosure, Box, Heading } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
 import GameConfigWatermark from '@/app/components/Footer/GameConfigWatermark';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import LobbyBanner from '@/app/components/LobbyBanner';
-import LandscapeScreen from '@/app/components/LandscapeScreen';
-import { AnimatePresence, motion } from 'framer-motion';
-import { keyframes } from '@emotion/react';
-
-const MotionFlex = motion(Flex);
-const MotionText = motion(Text);
-
-// Animations
-const float = keyframes`
-    0%, 100% { transform: translateY(0px) translateX(0px); }
-    33% { transform: translateY(-15px) translateX(10px); }
-    66% { transform: translateY(10px) translateX(-15px); }
-`;
-
-const float2 = keyframes`
-    0%, 100% { transform: translateY(0px) translateX(0px); }
-    33% { transform: translateY(12px) translateX(-12px); }
-    66% { transform: translateY(-10px) translateX(15px); }
-`;
+import GameViewport from '@/app/components/GameViewport';
 
 const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
@@ -60,163 +35,73 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
     }, [appState.game?.players, onClose]);
 
     return (
-        <>
-            {loading && (
-                <AnimatePresence>
-                    {loading && (
-                        <MotionFlex
-                            key="loading-screen"
-                            justify="center"
-                            align="center"
-                            w="100vw"
-                            h="var(--full-vh)"
-                            position="fixed"
-                            zIndex={9999}
-                            backdropFilter="blur(10px)"
-                            sx={{
-                                backdropFilter: 'blur(10px)',
-                                WebkitBackdropFilter: 'blur(10px)',
-                            }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.3, ease: 'easeInOut' }}
-                        >
-                            <MotionText
-                                color="text.white"
-                                fontSize={{
-                                    base: '50px',
-                                    md: '120px',
-                                    lg: '150px',
-                                }}
-                                mb={{ base: '10%', md: '4%' }}
-                                fontWeight="extrabold"
-                                lineHeight={1.1}
-                                letterSpacing={{ base: '0.05em' }}
-                                textShadow="2px 2px 10px rgba(0,0,0,0.5)"
-                            >
-                                {'LOADING'.split('').map((char, index) => (
-                                    <span
-                                        key={`${char}-${index}`}
-                                        className={`loading-letter loading-variant-${index % 8}`}
-                                        style={{
-                                            animationDelay: `${index * 700}ms`,
-                                        }}
-                                    >
-                                        {char}
-                                    </span>
-                                ))}
-                            </MotionText>
-                        </MotionFlex>
-                    )}
-                </AnimatePresence>
-            )}
+        <GameViewport showLoading={loading}>
+            {/* Content Layer - fills the fixed-ratio container */}
             <Flex
-                direction="column"
-                w="100vw"
-                h="var(--full-vh)"
-                zIndex="auto"
-                transformOrigin="center center"
-                bg="bg.default"
-                filter={loading ? 'blur(3px)' : 'none'}
-                transition="0.5s ease-in-out"
+                className="game-content"
                 position="relative"
-                overflow="hidden"
+                zIndex={1}
+                width="100%"
+                height="100%"
+                direction="column"
+                bg="transparent"
             >
-                {/* Animated Background Glow Elements */}
-                <Box
-                    position="absolute"
-                    width="600px"
-                    height="600px"
-                    borderRadius="50%"
-                    bg="brand.pink"
-                    filter="blur(150px)"
-                    opacity={0.12}
-                    animation={`${float} 20s ease-in-out infinite`}
-                    top="10%"
-                    left="15%"
-                    zIndex={0}
-                    pointerEvents="none"
-                />
-                <Box
-                    position="absolute"
-                    width="500px"
-                    height="500px"
-                    borderRadius="50%"
-                    bg="brand.green"
-                    filter="blur(140px)"
-                    opacity={0.1}
-                    animation={`${float2} 25s ease-in-out infinite`}
-                    bottom="20%"
-                    right="10%"
-                    zIndex={0}
-                    pointerEvents="none"
-                />
-                <Box
-                    position="absolute"
-                    width="450px"
-                    height="450px"
-                    borderRadius="50%"
-                    bg="brand.yellow"
-                    filter="blur(130px)"
-                    opacity={0.08}
-                    animation={`${float} 22s ease-in-out infinite 5s`}
-                    top="40%"
-                    right="25%"
-                    zIndex={0}
-                    pointerEvents="none"
-                />
+                <SocketProvider tableId={params.id}>
+                    {/* Navbar - absolutely positioned, overlays at top */}
+                    <Navbar isLoading={loading} />
 
-                {/* Content Layer */}
-                <Box
-                    position="relative"
-                    zIndex={1}
-                    width="100%"
-                    height="100%"
-                    display="flex"
-                    flexDirection="column"
-                    bg={'transparent'}
-                >
-                    <SocketProvider tableId={params.id}>
-                        <Navbar isLoading={loading} />
-                        {appState.game?.paused && (
-                            <Box
-                                className="pause-banner"
-                                position="fixed"
-                                top="80px"
-                                left="50%"
-                                transform="translateX(-50%)"
-                                bg="brand.yellow"
-                                color="text.white"
-                                px={8}
-                                py={4}
-                                borderRadius="16px"
-                                boxShadow="0 8px 24px rgba(253, 197, 29, 0.4)"
-                                zIndex={990}
-                                textAlign="center"
-                                border="2px solid white"
-                            >
-                                <Heading size="md" fontWeight="bold">
-                                    Game Paused
-                                </Heading>
-                            </Box>
-                        )}
-                        <Flex
-                            flex={1}
-                            direction={'column'}
-                            filter={
-                                appState.game?.paused ? 'blur(4px)' : 'none'
-                            }
-                            transition="filter 0.3s ease-in-out"
-                            height={'full'}
-                            gap={4}
+                    {/* Pause Banner */}
+                    {appState.game?.paused && (
+                        <Box
+                            className="pause-banner"
+                            position="absolute"
+                            top="12%"
+                            left="50%"
+                            transform="translateX(-50%)"
+                            bg="brand.yellow"
+                            color="text.white"
+                            px="3%"
+                            py="1.5%"
+                            borderRadius="16px"
+                            boxShadow="0 8px 24px rgba(253, 197, 29, 0.4)"
+                            zIndex={990}
+                            textAlign="center"
+                            border="2px solid white"
                         >
-                            {children}
-                            <Box position="relative" width="100%">
-                                <GameConfigWatermark />
-                                <Footer />
-                            </Box>
-                        </Flex>
-                    </SocketProvider>
+                            <Heading size="md" fontWeight="bold">
+                                Game Paused
+                            </Heading>
+                        </Box>
+                    )}
 
+                    {/* Main Content Area */}
+                    <Flex
+                        className="main-content-area"
+                        flex={1}
+                        direction="column"
+                        filter={appState.game?.paused ? 'blur(1px)' : 'none'}
+                        transition="filter 0.3s ease-in-out"
+                        minHeight={0}
+                        overflow="hidden"
+                    >
+                        {children}
+                        <Box
+                            className="footer-wrapper"
+                            position="relative"
+                            width="100%"
+                            height="10%"
+                            gap={{ base: 2, md: 3 }}
+                            px={{ base: 1, md: 4 }}
+                            py={{ base: 0, md: 1 }}
+                            maxHeight={{ base: '70px', md: '100px' }}
+                            minHeight={{ base: '50px', md: '70px' }}
+                        >
+                            <GameConfigWatermark />
+                            <Footer />
+                        </Box>
+                    </Flex>
+
+                    {/* Modal - inside container so it scales with game */}
                     <Modal
                         isOpen={isOpen}
                         onClose={onClose}
@@ -225,11 +110,9 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                     >
                         <LobbyBanner onClose={onClose} />
                     </Modal>
-
-                    <LandscapeScreen />
-                </Box>
+                </SocketProvider>
             </Flex>
-        </>
+        </GameViewport>
     );
 };
 

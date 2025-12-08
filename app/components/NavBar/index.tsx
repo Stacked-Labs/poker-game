@@ -105,21 +105,24 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
     return (
         <>
             <Flex
+                className="table-navbar"
                 as="nav"
                 align="center"
                 justify="space-between"
                 wrap="wrap"
-                padding={{ base: '0.75rem 1rem', md: '1rem 1.5rem' }}
+                padding="0.5%"
                 bg="none"
                 color="text.secondary"
                 zIndex={99}
                 opacity={isLoading ? 0 : 1}
-                position="fixed"
+                position="absolute"
                 top={0}
-                width="100%"
+                left={0}
+                right={0}
                 pointerEvents={'none'}
             >
                 <HStack
+                    className="navbar-left-controls"
                     spacing={{ base: 1, md: 2 }}
                     alignItems="stretch"
                     pointerEvents={'auto'}
@@ -128,21 +131,29 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                         isUserSeated={isUserSeated}
                         isAway={isAway}
                     />
-                    <Box position="relative">
+                    <Box
+                        className="navbar-settings-wrapper"
+                        position="relative"
+                    >
                         <IconButton
                             icon={
                                 <Icon
                                     as={FiSettings}
-                                    boxSize={{ base: 5, md: 6 }}
+                                    boxSize={{ base: 4, md: 5 }}
                                 />
                             }
                             aria-label="Settings"
                             onClick={onOpen}
+                            px={2}
+                            py={2}
+                            width={{ base: '40px', sm: '40px', md: '48px' }}
+                            height={{ base: '40px', sm: '40px', md: '48px' }}
                             variant={'gameSettingsButton'}
-                            size={'lg'}
+                            size={{ base: 'md', md: 'md' }}
                         />
                         {pendingCount > 0 && (
                             <Flex
+                                className="navbar-pending-badge"
                                 position="absolute"
                                 top="-6px"
                                 right="-6px"
@@ -169,7 +180,17 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                         )}
                     </Box>
                     {isUserSeated && (
-                        <Box display={{ base: 'none', md: 'block' }}>
+                        <Box
+                            className="navbar-away-wrapper"
+                            sx={{
+                                '@media (orientation: portrait)': {
+                                    display: 'none',
+                                },
+                                '@media (orientation: landscape)': {
+                                    display: 'block',
+                                },
+                            }}
+                        >
                             <AwayButton
                                 isAway={isAway}
                                 sitOutNextHand={localPlayer?.sitOutNextHand}
@@ -188,7 +209,17 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                     )}
                     <StartGameButton />
                     {isOwner && appState.game?.running && socket && (
-                        <Box display={{ base: 'none', lg: 'block' }}>
+                        <Box
+                            className="navbar-pause-wrapper"
+                            sx={{
+                                '@media (orientation: portrait)': {
+                                    display: 'none',
+                                },
+                                '@media (orientation: landscape)': {
+                                    display: 'block',
+                                },
+                            }}
+                        >
                             <Tooltip
                                 label={
                                     appState.game?.paused
@@ -204,9 +235,15 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                                 <IconButton
                                     icon={
                                         appState.game?.paused ? (
-                                            <FaPlay />
+                                            <Icon
+                                                as={FaPlay}
+                                                boxSize={{ base: 4, md: 5 }}
+                                            />
                                         ) : (
-                                            <FaPause />
+                                            <Icon
+                                                as={FaPause}
+                                                boxSize={{ base: 4, md: 5 }}
+                                            />
                                         )
                                     }
                                     aria-label={
@@ -214,7 +251,19 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                                             ? 'Resume Game'
                                             : 'Pause Game'
                                     }
-                                    size="lg"
+                                    size={{ base: 'md', md: 'md' }}
+                                    px={2}
+                                    py={2}
+                                    width={{
+                                        base: '40px',
+                                        sm: '40px',
+                                        md: '48px',
+                                    }}
+                                    height={{
+                                        base: '40px',
+                                        sm: '40px',
+                                        md: '48px',
+                                    }}
                                     onClick={() => {
                                         if (appState.game?.paused) {
                                             sendResumeGameCommand(socket);
@@ -241,49 +290,85 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             </Tooltip>
                         </Box>
                     )}
-                    <Box display={{ base: 'none', lg: 'block' }}>
+                    <Box
+                        className="navbar-colormode-wrapper"
+                        sx={{
+                            '@media (orientation: portrait)': {
+                                display: 'none',
+                            },
+                            '@media (orientation: landscape)': {
+                                display: 'block',
+                            },
+                        }}
+                    >
                         <ColorModeButton />
                     </Box>
                 </HStack>
                 <HStack
+                    className="navbar-right-controls"
                     spacing={{ base: 1, md: 2 }}
                     alignItems="center"
                     pointerEvents={'auto'}
                 >
-                    <Box display={{ base: 'none', md: 'block' }}>
+                    <Box
+                        className="navbar-volume-wrapper"
+                        sx={{
+                            '@media (orientation: portrait)': {
+                                display: 'none',
+                            },
+                            '@media (orientation: landscape)': {
+                                display: 'block',
+                            },
+                        }}
+                    >
                         <VolumeButton />
                     </Box>
                     {/* Away toggle is now placed on the left next to Settings */}
                     {isUserSeated && (
-                        <Box display={{ base: 'none', md: 'block' }}>
-                                <LeaveButton
-                                    isUserSeated
-                                    isLeaveRequested={leaveAfterHandRequested}
-                                    handleLeaveTable={() =>
-                                        handleLeaveTable(
-                                            socket,
-                                            info,
-                                            leaveAfterHandRequested
-                                        )
-                                    }
-                                />
+                        <Box
+                            className="navbar-leave-wrapper"
+                            sx={{
+                                '@media (orientation: portrait)': {
+                                    display: 'none',
+                                },
+                                '@media (orientation: landscape)': {
+                                    display: 'block',
+                                },
+                            }}
+                        >
+                            <LeaveButton
+                                isUserSeated
+                                isLeaveRequested={leaveAfterHandRequested}
+                                handleLeaveTable={() =>
+                                    handleLeaveTable(
+                                        socket,
+                                        info,
+                                        leaveAfterHandRequested
+                                    )
+                                }
+                            />
                         </Box>
                     )}
-                    <Box position="relative">
+                    <Box className="navbar-chat-wrapper" position="relative">
                         <IconButton
                             icon={
                                 <Icon
                                     as={FiMessageSquare}
-                                    boxSize={{ base: 5, md: 6 }}
+                                    boxSize={{ base: 4, md: 5 }}
                                 />
                             }
                             aria-label="Chat"
                             onClick={handleChatToggle}
                             variant={'gameSettingsButton'}
-                            size={'lg'}
+                            size={{ base: 'md', md: 'md' }}
+                            px={2}
+                            py={2}
+                            width={{ base: '40px', sm: '40px', md: '48px' }}
+                            height={{ base: '40px', sm: '40px', md: '48px' }}
                         />
                         {unreadMessageCount > 0 && (
                             <Flex
+                                className="navbar-unread-badge"
                                 position="absolute"
                                 top="-6px"
                                 right="-6px"
@@ -309,7 +394,17 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                             </Flex>
                         )}
                     </Box>
-                    <Box display={{ base: 'none', md: 'inline-flex' }}>
+                    <Box
+                        className="navbar-wallet-wrapper"
+                        sx={{
+                            '@media (orientation: portrait)': {
+                                display: 'none',
+                            },
+                            '@media (orientation: landscape)': {
+                                display: 'inline-flex',
+                            },
+                        }}
+                    >
                         <WalletButton />
                     </Box>
                 </HStack>
@@ -317,9 +412,12 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
                 <SettingsModal isOpen={isOpen} onClose={onClose} />
             </Flex>
             <Flex
-                height={'var(--full-vh)'}
-                width={'100vw'}
+                className="chat-overlay-backdrop"
+                height={'100%'}
+                width={'100%'}
                 position={'absolute'}
+                top={0}
+                left={0}
                 zIndex={999}
                 onClick={handleChatToggle}
                 display={isOpenChat ? 'block' : 'none'}

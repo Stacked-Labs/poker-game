@@ -284,16 +284,31 @@ const FooterWithActionButtons = ({
                 <GuardModal handleFold={handleFold} onClose={onClose} />
             </Modal>
             <Flex
-                justifyContent={{ base: 'space-between', md: 'end' }}
-                gap={{ base: 1, md: 2 }}
-                p={1}
-                height={{ base: '100px', md: '120px' }}
+                className="footer-action-buttons"
                 overflow={'visible'}
                 alignItems={'center'}
                 zIndex={showRaise && isCurrentTurn ? 100 : 0}
                 bg="transparent"
                 width="100%"
                 position="relative"
+                sx={{
+                    // Portrait/Vertical mode: Compact layout
+                    '@media (orientation: portrait)': {
+                        justifyContent: 'space-between',
+                        gap: '1%',
+                        padding: '1%',
+                        height: '100%',
+                        maxHeight: '70px',
+                        minHeight: '50px',
+                    },
+                    // Landscape/Horizontal mode: Full layout
+                    '@media (orientation: landscape)': {
+                        justifyContent: 'flex-end',
+                        gap: '0.8%',
+
+                        height: '100%',
+                    },
+                }}
             >
                 {showRaise && isCurrentTurn ? (
                     <RaiseInputBox

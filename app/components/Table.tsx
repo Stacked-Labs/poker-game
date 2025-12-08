@@ -34,12 +34,12 @@ const seatIndices = [
     { id: 'ten', value: 10 },
 ];
 
-const templateGridLarge = `"a five six seven b"
+const templateGridLandscape = `"a five six seven b"
                         "four felt felt felt eight"
                         "three felt felt felt nine"
                         "c two one ten d"`;
 
-const templateGridSmall = `"a six b"
+const templateGridPortrait = `"a six b"
                         "five c seven"
                         "four d eight"
                         "felt felt felt"
@@ -70,12 +70,6 @@ function getWinners(game: GameType): Player[] {
     return winners;
 }
 
-function getWinner(game: GameType) {
-    // For backward compatibility, return the first winner
-    const winners = getWinners(game);
-    return winners.length > 0 ? winners[0] : null;
-}
-
 function getRevealedPlayers(game: GameType) {
     const revealedNums = game.pots[game.pots.length - 1].eligiblePlayerNums;
     // if only one player was eligible for the pot (everyone else folded), then they do not have to reveal
@@ -97,14 +91,6 @@ const Table = () => {
     const [players, setPlayers] = useState(initialPlayers);
     const [winningPlayers, setWinningPlayers] = useState<Player[]>([]);
     const [activePotIndex, setActivePotIndex] = useState<number | null>(null);
-    const imageRef = React.useRef<HTMLImageElement>(null);
-    const [imageDimensions, setImageDimensions] = useState({
-        width: 0,
-        height: 0,
-        top: 0,
-        left: 0,
-    });
-    const [isGridReady, setIsGridReady] = useState(false);
     const potHighlightTimeouts = useRef<number[]>([]);
     const [tableColorKey, setTableColorKey] = useState<string>('green');
     const tableColorObj = tableColors[tableColorKey];
@@ -133,52 +119,6 @@ const Table = () => {
             window.removeEventListener('tableColorChanged', onStorage);
         };
     }, []);
-
-    useEffect(() => {
-        if (imageDimensions.width > 0 && imageDimensions.height > 0) {
-            setIsGridReady(true);
-        }
-    }, [imageDimensions.height, imageDimensions.width]);
-
-    // Track actual rendered image dimensions
-    useEffect(() => {
-        const updateImageDimensions = () => {
-            if (imageRef.current) {
-                const img = imageRef.current;
-                const rect = img.getBoundingClientRect();
-                setImageDimensions({
-                    width: rect.width,
-                    height: rect.height,
-                    top:
-                        rect.top -
-                        img.parentElement!.parentElement!.getBoundingClientRect()
-                            .top,
-                    left:
-                        rect.left -
-                        img.parentElement!.parentElement!.getBoundingClientRect()
-                            .left,
-                });
-            }
-        };
-
-        updateImageDimensions();
-
-        // Update on window resize
-        window.addEventListener('resize', updateImageDimensions);
-
-        // Use ResizeObserver for more accurate tracking
-        const resizeObserver = new ResizeObserver(updateImageDimensions);
-        if (imageRef.current) {
-            resizeObserver.observe(imageRef.current);
-        }
-
-        return () => {
-            window.removeEventListener('resize', updateImageDimensions);
-            resizeObserver.disconnect();
-        };
-    }, []);
-
-    // Use CSS media queries for orientation to avoid SSR/CSR mismatch
 
     // map game players to their visual seats
     useEffect(() => {
@@ -337,154 +277,105 @@ const Table = () => {
         return total;
     };
 
-    // Build winning card set to be used by children for highlighting if needed
-    // no-op local computation reserved for future selection logic
-
     return (
         <Flex
             className="table-container"
-            position={'relative'}
-            justify={'center'}
-            width={{
-                base: '100vw',
-                lg: '80vw',
-                xl: '70vw',
-                '2xl': '70vw',
-            }}
+            position="relative"
+            justify="center"
+            align="center"
+            width="100%"
+            py={'2%'}
             height="100%"
-            maxHeight="100%"
-            maxWidth="100%"
+            flex={1}
             overflow="hidden"
-            bg={'transparent'}
+            bg="transparent"
         >
+            {/* Table image - switches via CSS media query */}
             <Box
                 as="picture"
-                className="table-image"
                 height="100%"
-                width="auto"
-                maxW="100%"
-                maxH="100%"
+                width="100%"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
             >
                 <source
                     media="(orientation: portrait)"
                     srcSet={'/' + tableColorObj.vertical}
                 />
-                <img
-                    ref={imageRef}
+                <Box
+                    as="img"
                     src={'/' + tableColorObj.horizontal}
                     alt="Poker table"
-                    style={{
-                        objectFit: 'contain',
-                        height: '100%',
-                        width: 'auto',
-                        maxWidth: '100%',
-                        maxHeight: '100%',
-                    }}
-                    onLoad={() => {
-                        // Update dimensions immediately after image loads
-                        if (imageRef.current) {
-                            const img = imageRef.current;
-                            const rect = img.getBoundingClientRect();
-                            const containerRect =
-                                img.parentElement!.parentElement!.getBoundingClientRect();
-                            setImageDimensions({
-                                width: rect.width,
-                                height: rect.height,
-                                top: rect.top - containerRect.top,
-                                left: rect.left - containerRect.left,
-                            });
-                        }
-                    }}
+                    height="100%"
+                    width="100%"
+                    objectFit="contain"
                 />
             </Box>
-            {!isGridReady && (
-                <Box
-                    position="absolute"
-                    width="70vw"
-                    maxWidth="100%"
-                    aspectRatio={{ base: '3 / 4', md: '4 / 3', lg: '16 / 9' }}
-                    bg="transparent"
-                />
-            )}
-            {isGridReady && (
-                <Grid
-                    className="table-grid"
-                    p={1}
-                    position={'absolute'}
-                    width={
-                        imageDimensions.width
-                            ? `${imageDimensions.width}px`
-                            : '100%'
-                    }
-                    height={
-                        imageDimensions.height
-                            ? `${imageDimensions.height}px`
-                            : '100%'
-                    }
-                    top={imageDimensions.top ? `${imageDimensions.top}px` : 0}
-                    left={
-                        imageDimensions.left ? `${imageDimensions.left}px` : 0
-                    }
-                    templateAreas={templateGridLarge}
-                    gridTemplateRows={'repeat(4, minmax(0, 1fr))'}
-                    gridTemplateColumns={'repeat(5, 1fr)'}
-                    sx={{
-                        '@media (orientation: portrait)': {
-                            gridTemplateAreas: templateGridSmall,
-                            gridTemplateRows: 'repeat(7, minmax(0, 1fr))',
-                            gridTemplateColumns: 'repeat(3, 1fr)',
-                        },
-                    }}
-                    gap={{ base: 2, md: 2, lg: 4 }}
-                    placeItems="center"
-                    justifyContent={'center'}
-                    opacity={isGridReady ? 1 : 0}
-                    pointerEvents={isGridReady ? 'auto' : 'none'}
-                    transition="opacity 0.2s ease-in-out"
-                >
-                    {players &&
-                        seatIndices.map(({ id, value }) => {
-                            const player: Player | null = players[value - 1];
-                            return (
-                                <GridItem
-                                    key={value}
-                                    className={`seat seat-${value}`}
-                                    area={id}
-                                    display={'flex'}
-                                    justifyContent={'center'}
-                                    alignItems={'center'}
-                                    sx={{
-                                        '@media (orientation: portrait)': {
-                                            alignItems:
-                                                value === 1
-                                                    ? 'end'
-                                                    : value === 10
-                                                      ? 'top'
-                                                      : 'center',
-                                        },
-                                    }}
-                                    width={'100%'}
-                                    height={'100%'}
-                                >
-                                    {player && player !== null ? (
-                                        <TakenSeatButton
-                                            player={player}
-                                            isCurrentTurn={isPlayerTurn(player)}
-                                            isWinner={isPlayerWinner(player)}
-                                            isRevealed={isPlayerRevealed(
-                                                player
-                                            )}
-                                            winnings={getPlayerWinnings(player)}
-                                            activePotIndex={activePotIndex}
-                                        />
-                                    ) : (() => {
+
+            {/* Grid overlay - fills container and manages its own padding */}
+            <Grid
+                className="table-grid"
+                position="absolute"
+                inset={0}
+                py="2%"
+                mx="auto"
+                width={{ base: '100%', md: '80%' }}
+                templateAreas={templateGridLandscape}
+                gridTemplateRows="repeat(4, 1fr)"
+                gridTemplateColumns="repeat(5, 1fr)"
+                sx={{
+                    '@media (orientation: portrait)': {
+                        gridTemplateAreas: templateGridPortrait,
+                        gridTemplateRows: 'repeat(7, 1fr)',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                    },
+                }}
+                gap={{ base: '1%', md: '3%' }}
+                placeItems="center"
+                justifyContent="center"
+            >
+                {players &&
+                    seatIndices.map(({ id, value }) => {
+                        const player: Player | null = players[value - 1];
+                        return (
+                            <GridItem
+                                key={value}
+                                className={`seat seat-${value}`}
+                                area={id}
+                                display="flex"
+                                justifyContent="center"
+                                alignItems="center"
+                                sx={{
+                                    '@media (orientation: portrait)': {
+                                        alignItems:
+                                            value === 1
+                                                ? 'end'
+                                                : value === 10
+                                                  ? 'start'
+                                                  : 'center',
+                                    },
+                                }}
+                                width="100%"
+                                height="100%"
+                            >
+                                {player && player !== null ? (
+                                    <TakenSeatButton
+                                        player={player}
+                                        isCurrentTurn={isPlayerTurn(player)}
+                                        isWinner={isPlayerWinner(player)}
+                                        isRevealed={isPlayerRevealed(player)}
+                                        winnings={getPlayerWinnings(player)}
+                                        activePotIndex={activePotIndex}
+                                    />
+                                ) : (
+                                    (() => {
                                         const isDisabled =
                                             appState.game?.players?.some(
                                                 (player) =>
                                                     player.uuid ===
                                                     appState.clientID
-                                            ) ||
-                                            appState.seatRequested != null;
+                                            ) || appState.seatRequested != null;
 
                                         return isDisabled ? null : (
                                             <EmptySeatButton
@@ -492,21 +383,23 @@ const Table = () => {
                                                 disabled={false}
                                             />
                                         );
-                                    })()}
-                                </GridItem>
-                            );
-                        })}
-                    <GridItem
-                        height={{ base: '100%', md: '70%', lg: '60%' }}
-                        width={'80%'}
-                        area={'felt'}
-                        className="grid-felt"
-                        justifyContent={'center'}
-                    >
-                        <Felt activePotIndex={activePotIndex} />
-                    </GridItem>
-                </Grid>
-            )}
+                                    })()
+                                )}
+                            </GridItem>
+                        );
+                    })}
+                <GridItem
+                    height="100%"
+                    width="80%"
+                    area="felt"
+                    className="grid-felt"
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                >
+                    <Felt activePotIndex={activePotIndex} />
+                </GridItem>
+            </Grid>
         </Flex>
     );
 };

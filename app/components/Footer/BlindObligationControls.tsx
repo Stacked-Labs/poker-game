@@ -80,19 +80,14 @@ const BlindObligationControls = () => {
         const defaultAction = options.includes('post_now')
             ? 'post_now'
             : options.includes('wait_bb')
-            ? 'wait_bb'
-            : null;
+              ? 'wait_bb'
+              : null;
 
         if (!defaultAction) return;
 
         setQueuedBlindAction(defaultAction);
         setAutoQueueKey(key);
-    }, [
-        obligation,
-        options,
-        waitingForBB,
-        autoQueueKey,
-    ]);
+    }, [obligation, options, waitingForBB, autoQueueKey]);
 
     useEffect(() => {
         if (!submitting) return;
@@ -128,10 +123,7 @@ const BlindObligationControls = () => {
             switch (choice) {
                 case 'post_now':
                     payOwedBlinds(socket);
-                    toast.info(
-                        'Posting blinds',
-                        'We will seat you next hand.'
-                    );
+                    toast.info('Posting blinds', 'We will seat you next hand.');
                     break;
                 case 'wait_bb':
                     sendWaitForBB(socket);
@@ -178,7 +170,12 @@ const BlindObligationControls = () => {
         }
 
         previousStageRef.current = stage;
-    }, [game?.stage, game?.betting, queuedBlindAction, executeQueuedBlindChoice]);
+    }, [
+        game?.stage,
+        game?.betting,
+        queuedBlindAction,
+        executeQueuedBlindChoice,
+    ]);
 
     const handleChoice = (choice: 'post_now' | 'wait_bb' | 'sit_out') => {
         if (!socket || !localPlayer) {
@@ -241,10 +238,13 @@ const BlindObligationControls = () => {
 
     return (
         <Flex
+            className="blind-obligation-controls"
             justifyContent={{ base: 'space-between', md: 'center' }}
             gap={{ base: 1, md: 2 }}
             p={2}
-            height={{ base: '100px', md: '120px' }}
+            height="auto"
+            maxHeight={{ base: '70px', md: '100px' }}
+            minHeight={{ base: '50px', md: '70px' }}
             overflow={'visible'}
             alignItems={'center'}
             zIndex={1}
@@ -284,35 +284,35 @@ const BlindObligationControls = () => {
                     position={'relative'}
                     zIndex={10}
                     opacity={
-                        queuedBlindAction === 'wait_bb' ? 1 : waitingForBB ? 0.7 : 0.85
+                        queuedBlindAction === 'wait_bb'
+                            ? 1
+                            : waitingForBB
+                              ? 0.7
+                              : 0.85
                     }
                     _hover={{
-                        bg:
-                            !(submitting !== null || waitingForBB)
-                                ? 'rgba(253, 197, 29, 0.12)'
-                                : 'transparent',
-                        transform:
-                            !(submitting !== null || waitingForBB)
-                                ? 'translateY(-1px)'
-                                : 'none',
-                        boxShadow:
-                            !(submitting !== null || waitingForBB)
-                                ? 'lg'
-                                : 'none',
+                        bg: !(submitting !== null || waitingForBB)
+                            ? 'rgba(253, 197, 29, 0.12)'
+                            : 'transparent',
+                        transform: !(submitting !== null || waitingForBB)
+                            ? 'translateY(-1px)'
+                            : 'none',
+                        boxShadow: !(submitting !== null || waitingForBB)
+                            ? 'lg'
+                            : 'none',
                     }}
                     _active={{
-                        transform:
-                            !(submitting !== null || waitingForBB)
-                                ? 'translateY(0px)'
-                                : 'none',
+                        transform: !(submitting !== null || waitingForBB)
+                            ? 'translateY(0px)'
+                            : 'none',
                     }}
                     transition="all 0.2s"
                 >
                     {waitingForBB
                         ? 'Waiting for BB'
                         : queuedBlindAction === 'wait_bb'
-                        ? 'Wait for BB (Queued)'
-                        : 'Wait for BB'}
+                          ? 'Wait for BB (Queued)'
+                          : 'Wait for BB'}
                 </Button>
             )}
             {options.includes('post_now') && (

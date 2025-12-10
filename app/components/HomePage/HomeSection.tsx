@@ -8,6 +8,7 @@ import {
 } from '@chakra-ui/react';
 import React, { useRef, useEffect } from 'react';
 import HomeCard from './HomeCard';
+import ScrollIndicator from './ScrollIndicator';
 import { keyframes } from '@emotion/react';
 
 const fadeIn = keyframes`
@@ -224,6 +225,9 @@ const HomeSection = () => {
                     </VStack>
                 )}
             </Flex>
+
+            {/* Scroll Indicator */}
+            <ScrollIndicator />
         </Box>
     );
 };

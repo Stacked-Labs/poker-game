@@ -24,11 +24,6 @@ const gradientShift = keyframes`
     100% { background-position: 0% 50%; }
 `;
 
-const float = keyframes`
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-`;
-
 const slideUp = keyframes`
     from { 
         opacity: 0; 
@@ -66,7 +61,6 @@ const HomeCard = () => {
                 bg="brand.pink"
                 filter="blur(120px)"
                 opacity={0.15}
-                animation={`${float} 6s ease-in-out infinite`}
                 zIndex={0}
             />
 
@@ -79,20 +73,13 @@ const HomeCard = () => {
                 minWidth="320px"
                 minHeight="320px"
                 height="fit-content"
-                bg='card.white'
+                bg="card.white"
                 boxShadow="0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)"
                 overflow="hidden"
-                animation={`${slideUp} 0.6s ease-out, ${float} 3s ease-in-out infinite 0.6s`}
+                animation={`${slideUp} 0.6s ease-out`}
                 backdropFilter="blur(10px)"
                 border="1px solid"
                 borderColor="rgba(255, 255, 255, 0.8)"
-                _hover={{
-                    animation: `${slideUp} 0.6s ease-out`,
-                    transform: 'translateY(-4px)',
-                    boxShadow:
-                        '0 30px 80px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)',
-                }}
-                transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
             >
                 {/* Animated Gradient Border */}
                 <Box
@@ -194,10 +181,7 @@ const HomeCard = () => {
                             Play Now
                         </Button>
 
-                        <WalletButton
-                            width="100%"
-                            height="76px"
-                        />
+                        <WalletButton width="100%" height="76px" />
                     </Stack>
 
                     {/* Social Links */}
@@ -216,12 +200,6 @@ const HomeCard = () => {
                                 size={{ base: 'md', md: 'lg' }}
                                 variant={'social'}
                                 color="#000000"
-                                _hover={{
-                                    bg: '#000000',
-                                    color: 'white',
-                                    transform: 'translateY(-4px) rotate(5deg)',
-                                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)',
-                                }}
                             />
                         </Link>
                         <Link href="https://discord.gg/896EhkVYbd" isExternal>
@@ -231,14 +209,6 @@ const HomeCard = () => {
                                 size={{ base: 'md', md: 'lg' }}
                                 variant={'social'}
                                 color="#5865F2"
-                                _hover={{
-                                    bg: '#5865F2',
-                                    color: 'white',
-                                    transform: 'translateY(-4px) rotate(-5deg)',
-                                    boxShadow:
-                                        '0 8px 16px rgba(88, 101, 242, 0.3)',
-                                }}
-                                transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
                             />
                         </Link>
                         <Link
@@ -251,14 +221,6 @@ const HomeCard = () => {
                                 size={{ base: 'md', md: 'lg' }}
                                 variant={'social'}
                                 color="#855DCD"
-                                _hover={{
-                                    bg: '#855DCD',
-                                    color: 'white',
-                                    transform: 'translateY(-4px) rotate(5deg)',
-                                    boxShadow:
-                                        '0 8px 16px rgba(133, 93, 205, 0.3)',
-                                }}
-                                transition="all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
                             />
                         </Link>
                     </Flex>

@@ -51,7 +51,7 @@ const HomePage: React.FC = () => {
                 borderColor="rgba(235, 11, 92, 0.2)"
                 boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
                 dangerouslySetInnerHTML={{
-                    __html: `<gecko-coin-price-marquee-widget dark-mode="${colorMode == 'dark' ? 'true' : 'false'}" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
+                    __html: `<gecko-coin-price-marquee-widget dark-mode="false" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
                 }}
             />
             <Box w="100vw" bgColor={'gray.200'}>

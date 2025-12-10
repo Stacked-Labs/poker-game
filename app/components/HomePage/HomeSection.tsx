@@ -1,5 +1,12 @@
-import { Box, Flex, Text, VStack, useBreakpointValue } from '@chakra-ui/react';
-import React from 'react';
+import {
+    Box,
+    Flex,
+    Text,
+    VStack,
+    useBreakpointValue,
+    Show,
+} from '@chakra-ui/react';
+import React, { useRef, useEffect } from 'react';
 import HomeCard from './HomeCard';
 import { keyframes } from '@emotion/react';
 
@@ -62,6 +69,7 @@ const float6 = keyframes`
 `;
 
 const HomeSection = () => {
+    const videoRef = useRef<HTMLVideoElement>(null);
     const showArenaText = useBreakpointValue({
         base: false, // Mobile
         sm: false, // Small screens
@@ -76,6 +84,15 @@ const HomeSection = () => {
         []
     );
 
+    // Ensure video plays on mount (some browsers block autoplay)
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.play().catch(() => {
+                // Autoplay was prevented, video will remain paused
+            });
+        }
+    }, []);
+
     return (
         <Box
             position="relative"
@@ -86,12 +103,53 @@ const HomeSection = () => {
             bgSize="cover"
             bgPosition={{ base: 'right', lg: 'center' }}
             bgImage={''}
+            overflow="hidden"
         >
+            {/* Video Background - Desktop Only */}
+            <Show above="md">
+                <Box
+                    as="video"
+                    ref={videoRef}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    position="absolute"
+                    top="50%"
+                    left="50%"
+                    transform="translate(-50%, -50%)"
+                    minWidth="100%"
+                    minHeight="100%"
+                    width="auto"
+                    height="auto"
+                    objectFit="cover"
+                    zIndex={0}
+                    opacity={0.85}
+                    sx={{
+                        pointerEvents: 'none',
+                    }}
+                >
+                    <source src="/video/background.webm" type="video/webm" />
+                    <source src="/video/background.mp4" type="video/mp4" />
+                </Box>
+                {/* Subtle overlay for better content readability */}
+                <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.3) 100%)"
+                    zIndex={1}
+                    pointerEvents="none"
+                />
+            </Show>
             <Flex
                 position="relative"
                 width="100%"
                 flexWrap={{ base: 'wrap', lg: 'nowrap' }}
                 gap={0}
+                zIndex={2}
             >
                 <Box width={{ base: '100%', lg: '40%' }}>
                     <HomeCard />

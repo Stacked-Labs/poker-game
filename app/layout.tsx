@@ -15,37 +15,26 @@ import React from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-    title: 'Stacked - Poker with Friends',
-    description:
-        'The easiest way to play poker for free or with crypto. No download, no sign up needed.',
-    icons: {
-        icon: '/favicon.ico',
-    },
-    openGraph: {
-        title: 'Stacked - Poker with Friends',
-        description:
-            'The easiest way to play poker for free or for crypto. No download, no sign up needed.',
-        url: 'https://stackedpoker.io',
-        siteName: 'Stacked Poker',
-        images: [
-            {
-                url: '',
-                width: 1200,
-                height: 630,
-                alt: 'Stacked Poker',
-            },
-        ],
-        locale: 'en_US',
-        type: 'website',
-    },
-    twitter: {
-        title: 'Stacked - Poker with Friends',
-        description:
-            'The easiest way to play poker for free or with crypto. No download, no sign up needed.',
-        images: [''],
-    },
-};
+export async function generateMetadata(): Promise<Metadata> {
+    return {
+        other: {
+            'fc:miniapp': JSON.stringify({
+                version: 'next',
+                imageUrl: 'https://images.pexels.com/photos/34194627/pexels-photo-34194627.jpeg', // Placeholder for testing
+                button: {
+                    title: 'Stacked Poker',
+                    action: {
+                        type: 'launch_miniapp',
+                        name: 'Stacked Poker',
+                        url: 'https://throneless-leadingly-rob.ngrok-free.dev', // This is a placeholder for testing, replace with actual stacked URL.
+                        splashImageUrl: 'https://images.pexels.com/photos/34194627/pexels-photo-34194627.jpeg', // Placeholder for testing
+                        splashBackgroundColor: '#000000', // Placeholder for testing
+                    },
+                },
+            }),
+        },
+    };
+}
 
 export default function RootLayout({
     children,
@@ -69,3 +58,4 @@ export default function RootLayout({
         </html>
     );
 }
+

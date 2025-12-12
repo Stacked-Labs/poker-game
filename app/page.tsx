@@ -19,6 +19,37 @@ const HomePage: React.FC = () => {
         }
     }, [appState.table, router]);
 
+    // Inject styles for CoinGecko widget in dark mode
+    useEffect(() => {
+        const styleId = 'coingecko-dark-mode-styles';
+        let styleElement = document.getElementById(styleId);
+
+        if (!styleElement) {
+            styleElement = document.createElement('style');
+            styleElement.id = styleId;
+            document.head.appendChild(styleElement);
+        }
+
+        if (colorMode === 'dark') {
+            styleElement.textContent = `
+                gecko-coin-price-marquee-widget,
+                gecko-coin-price-marquee-widget * {
+                    color: white !important;
+                }
+            `;
+        } else {
+            styleElement.textContent = '';
+        }
+
+        return () => {
+            // Cleanup on unmount
+            const element = document.getElementById(styleId);
+            if (element) {
+                element.remove();
+            }
+        };
+    }, [colorMode]);
+
     return (
         <>
             <Head>
@@ -51,7 +82,7 @@ const HomePage: React.FC = () => {
                 borderColor="rgba(235, 11, 92, 0.2)"
                 boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
                 dangerouslySetInnerHTML={{
-                    __html: `<gecko-coin-price-marquee-widget dark-mode="false" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
+                    __html: `<gecko-coin-price-marquee-widget dark-mode="${colorMode === 'dark'}" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
                 }}
             />
             <Box w="100vw" bgColor={'gray.200'}>

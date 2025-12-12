@@ -130,7 +130,7 @@ const HomeSection = () => {
                         pointerEvents: 'none',
                     }}
                 >
-                    <source src="/video/background.webm" type="video/webm" />
+                    <source src="/video/background2.webm" type="video/webm" />
                     <source src="/video/background.mp4" type="video/mp4" />
                 </Box>
                 {/* Subtle overlay for better content readability */}

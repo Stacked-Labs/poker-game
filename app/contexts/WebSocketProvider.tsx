@@ -51,17 +51,20 @@ export function SocketProvider(props: SocketProviderProps) {
         error: originalError,
         success: originalSuccess,
         info: originalInfo,
+        connectionLost: originalConnectionLost,
     } = useToastHelper();
 
     const toastErrorRef = useRef(originalError);
     const toastSuccessRef = useRef(originalSuccess);
     const toastInfoRef = useRef(originalInfo);
+    const toastConnectionLostRef = useRef(originalConnectionLost);
 
     useEffect(() => {
         toastErrorRef.current = originalError;
         toastSuccessRef.current = originalSuccess;
         toastInfoRef.current = originalInfo;
-    }, [originalError, originalSuccess, originalInfo]);
+        toastConnectionLostRef.current = originalConnectionLost;
+    }, [originalError, originalSuccess, originalInfo, originalConnectionLost]);
 
     const [isReconnecting, setIsReconnecting] = useState(false);
     const [reconnectionAttempts, setReconnectionAttempts] = useState(0);
@@ -183,10 +186,8 @@ export function SocketProvider(props: SocketProviderProps) {
 
                 // Only show error toast on first disconnect, not during reconnection attempts
                 if (!hasShownInitialErrorRef.current) {
-                    toastErrorRef.current(
-                        'Connection Lost',
-                        'Attempting to reconnect...',
-                        5000,
+                    toastConnectionLostRef.current(
+                        null, // persist until closed
                         TOAST_ID_RECONNECTING
                     );
                     hasShownInitialErrorRef.current = true;
@@ -265,8 +266,8 @@ export function SocketProvider(props: SocketProviderProps) {
                             type: 'setSeatRequested',
                             payload: null,
                         });
-                        return; // Message handled
                     }
+                    return; // Message handled
                 }
 
                 switch (eventData.action) {
@@ -424,18 +425,10 @@ export function SocketProvider(props: SocketProviderProps) {
                             `Game paused by ${eventData.pausedBy || 'table owner'}.`,
                             5000
                         );
-                        // The backend will also send a full 'update-game'.
-                        // For immediate UI update, we can dispatch an update to the game state here.
-                        if (appStateRef.current.game) {
-                            const updatedGame = {
-                                ...appStateRef.current.game,
-                                paused: true,
-                            };
-                            dispatch({
-                                type: 'updateGame',
-                                payload: updatedGame,
-                            });
-                        }
+                        // The backend sends a full 'update-game' before this message
+                        // with the correct paused state and actionDeadline: 0.
+                        // Do NOT dispatch a redundant updateGame here as it would use
+                        // stale appStateRef data and overwrite the correct actionDeadline.
                         return;
                     }
                     case 'game-resumed': {
@@ -444,19 +437,19 @@ export function SocketProvider(props: SocketProviderProps) {
                             `Game resumed by ${eventData.resumedBy || 'table owner'}.`,
                             5000
                         );
-                        if (appStateRef.current.game) {
-                            const updatedGame = {
-                                ...appStateRef.current.game,
-                                paused: false,
-                            };
-                            dispatch({
-                                type: 'updateGame',
-                                payload: updatedGame,
-                            });
-                        }
+                        // The backend sends a full 'update-game' before this message
+                        // with the correct paused state and restored actionDeadline.
+                        // Do NOT dispatch a redundant updateGame here as it would use
+                        // stale appStateRef data and overwrite the correct actionDeadline.
                         return;
                     }
                     case 'update-player-uuid': {
+                        // Update ref immediately so subsequent messages (like update-game)
+                        // can use the clientID right away, before the async state update propagates
+                        appStateRef.current = {
+                            ...appStateRef.current,
+                            clientID: eventData.uuid,
+                        };
                         dispatch({
                             type: 'updatePlayerID',
                             payload: eventData.uuid,
@@ -515,10 +508,9 @@ export function SocketProvider(props: SocketProviderProps) {
                 isReconnectingRef.current = false;
                 setIsReconnecting(false);
                 hasShownInitialErrorRef.current = false; // Reset for next connection attempt
-                toastErrorRef.current(
-                    'Connection Failed',
-                    'Unable to connect. Please refresh the page.',
-                    5000
+                toastConnectionLostRef.current(
+                    null, // persist until closed or user refreshes
+                    'connectionFailed'
                 );
             }
             return;

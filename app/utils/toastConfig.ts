@@ -1,5 +1,6 @@
 // utils/toastConfig.ts
-import { UseToastOptions } from '@chakra-ui/react';
+import { UseToastOptions, ToastId } from '@chakra-ui/react';
+import { ReactNode } from 'react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -12,7 +13,7 @@ export interface ToastParams {
 }
 
 // Define the type for the toast function
-type ToastFunction = (options: UseToastOptions) => void;
+type ToastFunction = (options: UseToastOptions) => ToastId;
 
 const DEFAULT_DURATION = 3500;
 const DEFAULT_POSITION: UseToastOptions['position'] = 'top-right';
@@ -80,3 +81,29 @@ export const showInfoToast = (
     duration?: number,
     id?: string
 ) => showToast(toast, { title, description, type: 'info', duration, id });
+
+// Custom toast with render function support
+export const showCustomToast = (
+    toast: ToastFunction,
+    {
+        render,
+        duration,
+        id,
+        position = DEFAULT_POSITION,
+        containerStyle = DEFAULT_CONTAINER_STYLE,
+    }: {
+        render: (props: { id?: ToastId; onClose: () => void }) => ReactNode;
+        duration?: number | null; // null = persist until closed
+        id?: string;
+        position?: UseToastOptions['position'];
+        containerStyle?: UseToastOptions['containerStyle'];
+    }
+) => {
+    toast({
+        id,
+        duration: duration === null ? null : (duration ?? DEFAULT_DURATION),
+        position,
+        containerStyle,
+        render,
+    });
+};

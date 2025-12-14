@@ -5,7 +5,9 @@ import {
     showErrorToast,
     showWarningToast,
     showInfoToast,
+    showCustomToast,
 } from '../utils/toastConfig';
+import ConnectionLostToast from '../components/Toasts/ConnectionLostToast';
 
 const useToastHelper = () => {
     const toast = useToast();
@@ -50,7 +52,24 @@ const useToastHelper = () => {
         showInfoToast(toast, title, description, duration, id);
     };
 
-    return { success, error, warning, info };
+    const connectionLost = (duration?: number | null, id?: string) => {
+        if (id && toast.isActive(id)) return;
+        showCustomToast(toast, {
+            id,
+            duration: duration ?? null, // null = persist until closed
+            containerStyle: {
+                marginTop: '0px',
+                marginBottom: '0px',
+                maxWidth: '340px',
+                minWidth: '340px',
+                width: '340px',
+                marginInline: 'auto',
+            },
+            render: ({ onClose }) => ConnectionLostToast({ onClose }),
+        });
+    };
+
+    return { success, error, warning, info, connectionLost };
 };
 
 export default useToastHelper;

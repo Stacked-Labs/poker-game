@@ -12,6 +12,11 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
             alignItems={'center'}
             justifyContent={'center'}
             position={'relative'}
+            sx={{
+                '@media (orientation: portrait)': {
+                    width: '90%',
+                },
+            }}
             gap={{ base: 1, md: 2, lg: 3 }}
         >
             <Pot activePotIndex={activePotIndex} />

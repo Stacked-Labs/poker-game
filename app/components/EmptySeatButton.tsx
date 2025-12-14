@@ -81,6 +81,11 @@ const EmptySeatButton = ({
                         boxShadow: 'none',
                     },
                 }}
+                sx={{
+                    '@media (orientation: portrait)': {
+                        width: '90%',
+                    },
+                }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 isDisabled={disabled}

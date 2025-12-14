@@ -75,6 +75,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                 : 'none';
         return (
             <Flex
+                className="felt-pot"
                 padding={2}
                 sx={{
                     backgroundColor: 'rgba(0, 0, 0, 0.2)',
@@ -98,7 +99,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                 alignItems={'center'}
                 gap={1}
                 position={'absolute'}
-                top={{ base: '-8', md: '-6', lg: '-6' }}
+                top={{ base: '-8', md: '-12', lg: '-12' }}
                 left={'50%'}
                 transform="translateX(-50%)"
                 transition="transform 0.3s ease"

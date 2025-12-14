@@ -69,7 +69,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                             border="2px solid white"
                         >
                             <Heading size="md" fontWeight="bold">
-                                Game Paused
+                                Paused
                             </Heading>
                         </Box>
                     )}

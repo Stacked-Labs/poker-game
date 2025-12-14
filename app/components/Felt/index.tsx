@@ -7,7 +7,7 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
     return (
         <Flex
             className="felt-container"
-            height={'100%'}
+            height={'auto'}
             width={'100%'}
             alignItems={'center'}
             justifyContent={'center'}

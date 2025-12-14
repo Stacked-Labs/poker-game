@@ -320,18 +320,20 @@ const Table = () => {
                 inset={0}
                 py="2%"
                 mx="auto"
-                width={{ base: '100%', md: '80%' }}
+                width="80%"
                 templateAreas={templateGridLandscape}
                 gridTemplateRows="repeat(4, 1fr)"
                 gridTemplateColumns="repeat(5, 1fr)"
+                gap="3%"
                 sx={{
                     '@media (orientation: portrait)': {
+                        width: '100%',
+                        gap: '1%',
                         gridTemplateAreas: templateGridPortrait,
                         gridTemplateRows: 'repeat(7, 1fr)',
                         gridTemplateColumns: 'repeat(3, 1fr)',
                     },
                 }}
-                gap={{ base: '1%', md: '3%' }}
                 placeItems="center"
                 justifyContent="center"
             >

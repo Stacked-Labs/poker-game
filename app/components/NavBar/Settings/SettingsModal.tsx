@@ -232,7 +232,6 @@ const SettingsModal = ({
                                     color="brand.navy"
                                     icon={FiHelpCircle}
                                 />
-                                <ColorModeButton />
                             </TabList>
                             <IconButton
                                 aria-label="Close"

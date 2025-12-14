@@ -436,6 +436,11 @@ const TakenSeatButton = ({
             className="taken-seat-button"
             width={'100%'}
             height={'100%'}
+            sx={{
+                '@media (orientation: portrait)': {
+                    width: '90%',
+                },
+            }}
             position={'relative'}
             alignItems={'center'}
             justifyContent={'center'}

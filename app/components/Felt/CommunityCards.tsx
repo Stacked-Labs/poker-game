@@ -123,7 +123,7 @@ const CommunityCards = ({
     if (communityCards && isGameRunning) {
         return (
             <>
-                {cards.map((num, i) => 
+                {cards.map((num, i) =>
                     appState.game?.communityCards[num] && revealed[num] ? (
                         <CardComponent
                             key={i}
@@ -146,8 +146,7 @@ const CommunityCards = ({
                                     appState.game &&
                                         appState.game.stage === 1 &&
                                         !appState.game.betting &&
-                                        (appState.game.pots?.length || 0) >
-                                            0
+                                        (appState.game.pots?.length || 0) > 0
                                 ) &&
                                 !winningSet.has(
                                     Number(

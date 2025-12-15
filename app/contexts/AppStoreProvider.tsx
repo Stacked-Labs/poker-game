@@ -1,5 +1,12 @@
 import React, { createContext, useReducer, ReactChild, useEffect } from 'react';
-import { AppState, Message, Game, Log, PendingPlayer } from '@/app/interfaces';
+import {
+    AppState,
+    Message,
+    Game,
+    Log,
+    PendingPlayer,
+    SeatAccepted,
+} from '@/app/interfaces';
 import { isTableOwner as fetchIsTableOwner } from '@/app/hooks/server_actions';
 
 const initialState: AppState = {
@@ -14,6 +21,7 @@ const initialState: AppState = {
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,
+    seatAccepted: null,
     pendingPlayers: [],
     blindObligation: null,
     isTableOwner: null,
@@ -32,6 +40,7 @@ export type ACTIONTYPE =
     | { type: 'resetUnreadCount' }
     | { type: 'setChatOpen'; payload: boolean }
     | { type: 'setSeatRequested'; payload: number | null }
+    | { type: 'setSeatAccepted'; payload: SeatAccepted | null }
     | { type: 'setPendingPlayers'; payload: PendingPlayer[] }
     | { type: 'setBlindObligation'; payload: AppState['blindObligation'] }
     | { type: 'clearBlindObligation' }
@@ -53,6 +62,8 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 clientID: null,
                 username: null,
                 game: null,
+                seatRequested: null,
+                seatAccepted: null,
                 pendingPlayers: [],
                 isTableOwner: null,
             };
@@ -83,6 +94,8 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, isChatOpen: action.payload };
         case 'setSeatRequested':
             return { ...state, seatRequested: action.payload };
+        case 'setSeatAccepted':
+            return { ...state, seatAccepted: action.payload };
         case 'setPendingPlayers':
             return { ...state, pendingPlayers: action.payload };
         case 'setBlindObligation':

@@ -340,14 +340,21 @@ export function SocketProvider(props: SocketProviderProps) {
                                 return p.uuid === appStateRef.current.clientID;
                             }
                         );
-                        if (
-                            isPlayerSeated &&
-                            appStateRef.current.seatRequested
-                        ) {
-                            dispatch({
-                                type: 'setSeatRequested',
-                                payload: null,
-                            });
+                        if (isPlayerSeated) {
+                            // Clear pending request state
+                            if (appStateRef.current.seatRequested) {
+                                dispatch({
+                                    type: 'setSeatRequested',
+                                    payload: null,
+                                });
+                            }
+                            // Clear accepted state - player is now fully seated
+                            if (appStateRef.current.seatAccepted) {
+                                dispatch({
+                                    type: 'setSeatAccepted',
+                                    payload: null,
+                                });
+                            }
                         }
 
                         // Update blind obligation helper for the local seat
@@ -467,6 +474,27 @@ export function SocketProvider(props: SocketProviderProps) {
                             type: 'updatePlayerID',
                             payload: eventData.uuid,
                         });
+                        return;
+                    }
+                    case 'seat-request-accepted': {
+                        // Player's seat request was accepted by the table owner
+                        dispatch({
+                            type: 'setSeatAccepted',
+                            payload: {
+                                seatId: eventData.seatId,
+                                buyIn: eventData.buyIn,
+                                queued: eventData.queued,
+                                message: eventData.message,
+                            },
+                        });
+                        // Clear the pending state since we're now accepted
+                        dispatch({ type: 'setSeatRequested', payload: null });
+                        // Show success toast
+                        toastSuccessRef.current(
+                            'Seat Accepted',
+                            eventData.message,
+                            5000
+                        );
                         return;
                     }
                     case 'error':

@@ -1,5 +1,5 @@
 import { Flex } from '@chakra-ui/react';
-import CancelSeatRequestButton from './CancelSeatRequestButton';
+import SeatRequestStatusBadge from './SeatRequestStatusBadge';
 
 const EmptyFooter = () => {
     return (
@@ -15,7 +15,7 @@ const EmptyFooter = () => {
             zIndex={1}
             bg="transparent"
         >
-            <CancelSeatRequestButton />
+            <SeatRequestStatusBadge />
         </Flex>
     );
 };

@@ -11,6 +11,13 @@ export type Log = {
     timestamp: string;
 };
 
+export type SeatAccepted = {
+    seatId: number;
+    buyIn: number;
+    queued: boolean;
+    message: string;
+};
+
 export type AppState = {
     messages: Message[];
     logs: Log[];
@@ -23,6 +30,7 @@ export type AppState = {
     unreadMessageCount: number;
     isChatOpen: boolean; // Track if chat is currently open
     seatRequested: number | null;
+    seatAccepted: SeatAccepted | null; // Accepted seat request (waiting to join)
     pendingPlayers: PendingPlayer[]; // Added for storing pending players
     blindObligation: BlindObligation | null;
     isTableOwner: boolean | null;
@@ -169,9 +177,9 @@ export type EventsResponse = {
 // Predefined event type filters for common use cases
 export const FINANCIAL_EVENT_TYPES: EventType[] = [
     'player_joined',
-    'player_accepted', 
+    'player_accepted',
     'player_left',
-    'player_kicked'
+    'player_kicked',
 ];
 
 // Ledger Types

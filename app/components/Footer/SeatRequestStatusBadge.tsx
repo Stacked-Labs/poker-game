@@ -47,7 +47,9 @@ const SeatRequestStatusBadge = () => {
                 <Text opacity={0.9} fontSize="sm">
                     (Seat {appState.seatAccepted.seatId})
                 </Text>
-                {appState.seatAccepted.queued && <Spinner size="sm" ml={1} />}
+                {appState.seatAccepted.queued && (
+                    <Spinner size="sm" ml={1} />
+                )}
             </Flex>
         );
     }

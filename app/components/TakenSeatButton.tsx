@@ -155,29 +155,29 @@ const TakenSeatButton = ({
         1: {
             justifyContent: 'center',
             '@media (orientation: portrait)': {
-                top: '-46%',
+                top: '-30%',
             },
             '@media (orientation: landscape)': {
-                top: '-16%',
+                top: '-25%',
             },
         },
         2: {
             justifyContent: 'center',
             '@media (orientation: portrait)': {
                 top: '15%',
-                right: '-70%',
+                right: '-110%',
                 flexDirection: 'column',
             },
             '@media (orientation: landscape)': {
-                top: '-16%',
+                top: '-25%',
                 right: 0,
                 flexDirection: 'row',
             },
         },
         3: {
             '@media (orientation: portrait)': {
-                bottom: '18%',
-                right: '-105%',
+                top: '15%',
+                right: '-110%',
                 flexDirection: 'column',
             },
             '@media (orientation: landscape)': {
@@ -188,8 +188,8 @@ const TakenSeatButton = ({
         },
         4: {
             '@media (orientation: portrait)': {
-                top: '15%',
-                right: '-107%',
+                bottom: '20%',
+                right: '-110%',
                 flexDirection: 'column',
             },
             '@media (orientation: landscape)': {
@@ -203,7 +203,7 @@ const TakenSeatButton = ({
             alignItems: 'start',
             '@media (orientation: portrait)': {
                 bottom: '20%',
-                right: '-70%',
+                right: '-110%',
                 flexDirection: 'column',
             },
             '@media (orientation: landscape)': {
@@ -216,7 +216,7 @@ const TakenSeatButton = ({
             justifyContent: 'center',
             flexDirection: 'row',
             '@media (orientation: portrait)': {
-                bottom: '-45%',
+                bottom: '-30%',
                 right: 0,
             },
             '@media (orientation: landscape)': {
@@ -226,23 +226,23 @@ const TakenSeatButton = ({
         },
         7: {
             justifyContent: 'center',
-            alignItems: 'start',
+            alignItems: 'end',
             '@media (orientation: portrait)': {
                 bottom: '20%',
-                left: '-70%',
+                left: '-110%',
                 flexDirection: 'column',
             },
             '@media (orientation: landscape)': {
                 bottom: '-30%',
                 left: 0,
-                flexDirection: 'row-reverse',
+                flexDirection: 'row',
             },
         },
         8: {
-            alignItems: 'start',
+            alignItems: 'end',
             '@media (orientation: portrait)': {
-                top: '15%',
-                left: '-105%',
+                bottom: '20%',
+                left: '-110%',
                 flexDirection: 'column',
             },
             '@media (orientation: landscape)': {
@@ -252,10 +252,10 @@ const TakenSeatButton = ({
             },
         },
         9: {
-            alignItems: 'start',
+            alignItems: 'end',
             '@media (orientation: portrait)': {
-                bottom: '18%',
-                left: '-105%',
+                top: '15%',
+                left: '-110%',
                 flexDirection: 'column',
             },
             '@media (orientation: landscape)': {
@@ -266,14 +266,14 @@ const TakenSeatButton = ({
         },
         10: {
             justifyContent: 'center',
-            alignItems: 'start',
+            alignItems: 'end',
             '@media (orientation: portrait)': {
                 top: '15%',
-                left: '-68%',
-                flexDirection: 'row-reverse',
+                left: '-110%',
+                flexDirection: 'column',
             },
             '@media (orientation: landscape)': {
-                top: '-16%',
+                top: '-25%',
                 left: '0%',
                 flexDirection: 'row',
             },

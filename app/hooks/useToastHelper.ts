@@ -69,7 +69,19 @@ const useToastHelper = () => {
         });
     };
 
-    return { success, error, warning, info, connectionLost };
+    // Close a specific toast by ID
+    const close = (id: string) => {
+        if (toast.isActive(id)) {
+            toast.close(id);
+        }
+    };
+
+    // Close all toasts
+    const closeAll = () => {
+        toast.closeAll();
+    };
+
+    return { success, error, warning, info, connectionLost, close, closeAll };
 };
 
 export default useToastHelper;

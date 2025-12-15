@@ -52,19 +52,28 @@ export function SocketProvider(props: SocketProviderProps) {
         success: originalSuccess,
         info: originalInfo,
         connectionLost: originalConnectionLost,
+        close: originalClose,
     } = useToastHelper();
 
     const toastErrorRef = useRef(originalError);
     const toastSuccessRef = useRef(originalSuccess);
     const toastInfoRef = useRef(originalInfo);
     const toastConnectionLostRef = useRef(originalConnectionLost);
+    const toastCloseRef = useRef(originalClose);
 
     useEffect(() => {
         toastErrorRef.current = originalError;
         toastSuccessRef.current = originalSuccess;
         toastInfoRef.current = originalInfo;
         toastConnectionLostRef.current = originalConnectionLost;
-    }, [originalError, originalSuccess, originalInfo, originalConnectionLost]);
+        toastCloseRef.current = originalClose;
+    }, [
+        originalError,
+        originalSuccess,
+        originalInfo,
+        originalConnectionLost,
+        originalClose,
+    ]);
 
     const [isReconnecting, setIsReconnecting] = useState(false);
     const [reconnectionAttempts, setReconnectionAttempts] = useState(0);
@@ -154,10 +163,14 @@ export function SocketProvider(props: SocketProviderProps) {
                 setReconnectionAttempts(0); // Reset attempts on successful open
                 hasShownInitialErrorRef.current = false; // Reset error flag on successful connection
 
+                // Close any connection lost toasts
+                toastCloseRef.current(TOAST_ID_RECONNECTING);
+                toastCloseRef.current('connectionFailed');
+
                 if (wasReconnecting) {
                     // This flag might still be true if this open is from a reconnect attempt
                     toastSuccessRef.current(
-                        'Reconnected successfully',
+                        'Reconnected',
                         'Connection restored',
                         2000,
                         TOAST_ID_RECONNECTED
@@ -564,6 +577,91 @@ export function SocketProvider(props: SocketProviderProps) {
             setSocket(socketRef.current);
         }
     }, [socket, socketRef.current]); // Watch socketRef.current as well
+
+    // Handle visibility change (tab focus) and online/offline events
+    // When user returns to the tab or network comes back, attempt reconnection
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                console.log(
+                    'Tab became visible, checking WebSocket connection...'
+                );
+
+                // Check if socket is disconnected or in a bad state
+                const isDisconnected =
+                    !socketRef.current ||
+                    socketRef.current.readyState === WebSocket.CLOSED ||
+                    socketRef.current.readyState === WebSocket.CLOSING;
+
+                if (isDisconnected && !isReconnectingRef.current) {
+                    console.log(
+                        'WebSocket disconnected, resetting attempts and reconnecting...'
+                    );
+                    // Reset reconnection attempts for a fresh start
+                    setReconnectionAttempts(0);
+                    hasShownInitialErrorRef.current = false;
+
+                    // Clear any pending reconnection timeout
+                    if (reconnectTimeoutRef.current) {
+                        clearTimeout(reconnectTimeoutRef.current);
+                        reconnectTimeoutRef.current = null;
+                    }
+
+                    // Attempt immediate reconnection
+                    connectWebSocket();
+                }
+            }
+        };
+
+        const handleOnline = () => {
+            console.log('Network came back online, checking WebSocket...');
+
+            // Only attempt if tab is visible and socket is disconnected
+            if (document.visibilityState !== 'visible') {
+                console.log(
+                    'Tab not visible, skipping reconnection on online event'
+                );
+                return;
+            }
+
+            const isDisconnected =
+                !socketRef.current ||
+                socketRef.current.readyState === WebSocket.CLOSED ||
+                socketRef.current.readyState === WebSocket.CLOSING;
+
+            if (isDisconnected && !isReconnectingRef.current) {
+                console.log('Network online + disconnected, reconnecting...');
+                setReconnectionAttempts(0);
+                hasShownInitialErrorRef.current = false;
+
+                if (reconnectTimeoutRef.current) {
+                    clearTimeout(reconnectTimeoutRef.current);
+                    reconnectTimeoutRef.current = null;
+                }
+
+                connectWebSocket();
+            }
+        };
+
+        const handleOffline = () => {
+            console.log('Network went offline');
+            // Optionally show a toast or update UI state
+        };
+
+        // Add event listeners
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            document.removeEventListener(
+                'visibilitychange',
+                handleVisibilityChange
+            );
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, [connectWebSocket]);
 
     return (
         <SocketContext.Provider value={socket}>

@@ -45,6 +45,17 @@ const pulseBorderYellow = keyframes`
   }
 `;
 
+const bubbleFadeIn = keyframes`
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 const StackValue = ({
     value,
     color,
@@ -473,6 +484,29 @@ const TakenSeatButton = ({
                             D
                         </Text>
                     )}
+                {/* Check bubble - shows when player has called with no bet (checked) */}
+                {appState.game.running && player.called && player.bet === 0 && (
+                    <Text
+                        borderRadius="1.5rem"
+                        px={{ base: 2, md: 3 }}
+                        py={0}
+                        w={'fit-content'}
+                        bg="brand.lightGray"
+                        fontWeight="bold"
+                        color="brand.darkNavy"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        variant={'seatText'}
+                        fontSize={{ base: '10px', sm: '10px', md: '14px' }}
+                        zIndex={3}
+                        boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
+                        animation={`${bubbleFadeIn} 0.25s ease-out`}
+                    >
+                        Check
+                    </Text>
+                )}
+                {/* Bet amount - shows when player has bet (replaces Check if they bet later) */}
                 {player.bet !== 0 && (
                     <Text
                         borderRadius="1.5rem"
@@ -489,6 +523,7 @@ const TakenSeatButton = ({
                         fontSize={{ base: '10px', sm: '10px', md: '14px' }}
                         zIndex={3}
                         boxShadow="0 2px 8px rgba(253, 197, 29, 0.3)"
+                        animation={`${bubbleFadeIn} 0.25s ease-out`}
                     >
                         {player.bet}
                     </Text>
@@ -505,17 +540,39 @@ const TakenSeatButton = ({
                 transform="translateX(-50%)"
                 marginTop={{ base: 0, md: '12px' }}
             >
-                {appState.game.running &&
-                    Number(player.cards[0]) !== -1 &&
-                    player.cards.map((card: Card, index: number) => {
-                        // Determine if we are in showdown state
-                        const isShowdown = Boolean(
-                            appState.game &&
-                                appState.game.stage === 1 &&
-                                !appState.game.betting &&
-                                (appState.game.pots?.length || 0) > 0
-                        );
+                {(() => {
+                    // Determine if this is the current user's cards (needed for render condition)
+                    const isSelfPlayer = appState.clientID
+                        ? player.uuid === appState.clientID
+                        : false;
 
+                    // Determine if we are in showdown state
+                    const isShowdown = Boolean(
+                        appState.game &&
+                            appState.game.stage === 1 &&
+                            !appState.game.betting &&
+                            (appState.game.pots?.length || 0) > 0
+                    );
+
+                    // Check if player has real (revealed) cards - not [0,0] or [-1,-1]
+                    const hasRevealedCards =
+                        Number(player.cards[0]) > 0 &&
+                        Number(player.cards[1]) > 0;
+
+                    // Only render cards if:
+                    // - Player is still in hand, OR
+                    // - It's the current user (so they can see their folded cards dimmed), OR
+                    // - It's showdown AND player has revealed cards (backend sends real values for showdown participants)
+                    const shouldRenderCards =
+                        appState.game.running &&
+                        Number(player.cards[0]) !== -1 &&
+                        (player.in ||
+                            isSelfPlayer ||
+                            (isShowdown && hasRevealedCards));
+
+                    if (!shouldRenderCards) return null;
+
+                    return player.cards.map((card: Card, index: number) => {
                         const isCardWinning = winningSet.has(Number(card));
 
                         // Dimming rules:
@@ -530,13 +587,9 @@ const TakenSeatButton = ({
                         // Folded visual (for non-showdown states) still uses folded prop
                         const foldedVisual = !isShowdown && !player.in;
 
-                        // Determine if this is the current user's cards
-                        const isSelf = appState.clientID
-                            ? player.uuid === appState.clientID
-                            : false;
-
-                        // Skip flip animation for enemy players - they should show front immediately
-                        const skipAnimation = !isSelf;
+                        // Skip flip animation for enemy players only when NOT in showdown
+                        // During showdown, allow flip animation so opponent cards reveal smoothly
+                        const skipAnimation = !isSelfPlayer && !isShowdown;
 
                         return (
                             <Box
@@ -569,7 +622,8 @@ const TakenSeatButton = ({
                                 />
                             </Box>
                         );
-                    })}
+                    });
+                })()}
             </Flex>
             <Box
                 className="player-info-wrapper"

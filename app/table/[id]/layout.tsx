@@ -79,7 +79,6 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                         className="main-content-area"
                         flex={1}
                         direction="column"
-                        filter={appState.game?.paused ? 'blur(1px)' : 'none'}
                         transition="filter 0.3s ease-in-out"
                         minHeight={0}
                         overflow="hidden"

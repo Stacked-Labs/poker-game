@@ -1,17 +1,23 @@
 'use client';
 
 import { Box } from '@chakra-ui/react';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import GameContainer from './GameContainer';
 import LoadingScreen from './LoadingScreen';
 
-interface GameViewportProps {
-    children: ReactNode;
-    showLoading?: boolean;
-}
+const GameViewport = ({ children }: { children: ReactNode }) => {
+    const [showLoading, setLoading] = useState(true);
 
-const GameViewport = ({ children, showLoading = false }: GameViewportProps) => {
+    useEffect(() => {
+
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
     return (
         <>
             {/* Loading screen - OUTSIDE container, covers full viewport */}

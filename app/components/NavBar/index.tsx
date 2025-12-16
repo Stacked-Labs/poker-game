@@ -44,7 +44,7 @@ const pulseAnimation = keyframes`
   100% { transform: scale(1); }
 `;
 
-const Navbar = ({ isLoading }: { isLoading: boolean }) => {
+const Navbar = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { isOpen: isOpenChat, onToggle: onToggleChat } = useDisclosure();
     const { appState, dispatch } = useContext(AppContext);
@@ -55,6 +55,7 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
     const unreadMessageCount = appState.unreadMessageCount;
     const { info } = useToastHelper();
     const isOwner = useIsTableOwner();
+    const [isLoading, setLoading] = useState(true);
 
     // Check if the current user is seated at the table
     const isUserSeated = appState.game?.players?.some(
@@ -101,6 +102,15 @@ const Navbar = ({ isLoading }: { isLoading: boolean }) => {
         // Toggle the UI
         onToggleChat();
     };
+
+    useEffect(() => {
+
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <>

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Box, Flex, Grid, GridItem } from '@chakra-ui/react';
 import EmptySeatButton from './EmptySeatButton';
@@ -7,6 +9,9 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
 import { tableColors } from '../utils/tableColors';
+import { isTableExisting } from '../hooks/server_actions';
+import useToastHelper from '../hooks/useToastHelper';
+import { useRouter } from 'next/navigation';
 
 const initialPlayers: (Player | null)[] = [
     null,
@@ -84,9 +89,9 @@ function getRevealedPlayers(game: GameType) {
 
 const SHOWDOWN_SPOTLIGHT_DURATION = 8000;
 
-const Table = () => {
+const Table = ({ tableId }: { tableId: string }) => {
     const socket = useContext(SocketContext);
-    const { appState } = useContext(AppContext);
+    const { appState, dispatch } = useContext(AppContext);
     const [revealedPlayers, setRevealedPlayers] = useState<Player[]>([]);
     const [players, setPlayers] = useState(initialPlayers);
     const [winningPlayers, setWinningPlayers] = useState<Player[]>([]);
@@ -94,6 +99,11 @@ const Table = () => {
     const potHighlightTimeouts = useRef<number[]>([]);
     const [tableColorKey, setTableColorKey] = useState<string>('green');
     const tableColorObj = tableColors[tableColorKey];
+    const router = useRouter();
+    const toast = useToastHelper();
+    const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
+        'checking'
+    );
 
     const clearPotHighlightTimers = () => {
         potHighlightTimeouts.current.forEach((timeout) => {
@@ -276,6 +286,33 @@ const Table = () => {
         }
         return total;
     };
+
+    useEffect(() => {
+        const verifyAndJoinTable = async () => {
+            if (tableId) {
+                try {
+                    const result = await isTableExisting(tableId);
+                    if (result.status === 'success') {
+                        dispatch({ type: 'setTablename', payload: tableId });
+                        setTableStatus('success');
+                    } else {
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, 5000)
+                        );
+                        router.push('/create-game');
+                    }
+                } catch (error) {
+                    console.error('Error checking table existence:', error);
+                    toast.error('Table does not exist.');
+                    await new Promise((resolve) => setTimeout(resolve, 5000));
+                    router.push('/create-game');
+                }
+            }
+        };
+
+        verifyAndJoinTable();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tableId]);
 
     return (
         <Flex

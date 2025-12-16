@@ -1,3 +1,5 @@
+'use client'
+
 import {
     Box,
     CloseButton,
@@ -11,12 +13,15 @@ import {
     Tooltip,
     useClipboard,
     Icon,
+    Modal,
+    useDisclosure,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { ReactElement } from 'react';
+import { ReactElement, useContext, useEffect } from 'react';
 import { FaDiscord, FaCopy, FaCheck } from 'react-icons/fa';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { SiFarcaster } from 'react-icons/si';
+import { AppContext } from '../contexts/AppStoreProvider';
 
 const pulse = keyframes`
   0% { 
@@ -151,126 +156,142 @@ const SocialButton = ({
     );
 };
 
-const LobbyBanner = ({ onClose }: { onClose: () => void }) => {
+const LobbyBanner = () => {
+    const { appState } = useContext(AppContext);
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
+    useEffect(() => {
+        if (appState.game?.players && appState.game?.players.length > 1) {
+            onClose();
+        }
+    }, [appState.game?.players, onClose]);
+
     return (
-        <ModalContent
-            bg={'card.white'}
-            borderRadius={{ base: '20px', md: '24px' }}
-            overflow="hidden"
-            boxShadow="0 20px 60px rgba(0, 0, 0, 0.25)"
-            border="1px solid"
-            borderColor="rgba(0, 0, 0, 0.08)"
-            display="flex"
-            flexDirection="column"
-            animation={`${fadeIn} 0.4s ease-out`}
-            maxW="420px"
-            mx={{ base: 3, md: 0 }}
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            isCentered
+            size={'xs'}
         >
-            {/* Header */}
-            <Flex
-                justifyContent="space-between"
-                alignItems="center"
-                py={{ base: 3, md: 4 }}
-                px={{ base: 4, md: 5 }}
-                bg={'card.lightGray'}
-                borderBottom="1px solid"
-                borderColor="rgba(0, 0, 0, 0.08)"
-            >
-                <Stack gap={1}>
-                    <Text
-                        fontWeight="extrabold"
-                        fontSize="xl"
-                        color="text.secondary"
-                        fontFamily="heading"
-                    >
-                        Lobby
-                    </Text>
-                    <Flex gap={2} alignItems="center">
-                        <Box
-                            height={2}
-                            width={2}
-                            bg="brand.green"
-                            borderRadius="full"
-                            animation={`${pulse} 2s ease-in-out infinite`}
-                            boxShadow="0 0 8px rgba(54, 163, 123, 0.6)"
-                        />
-                        <Text
-                            fontSize="sm"
-                            color="text.secondary"
-                            fontWeight="medium"
-                            opacity={0.7}
-                        >
-                            Waiting for players
-                        </Text>
-                    </Flex>
-                </Stack>
-                <CloseButton
-                    onClick={onClose}
-                    color="text.secondary"
-                    borderRadius="8px"
-                    _hover={{
-                        bg: 'rgba(51, 68, 121, 0.1)',
-                    }}
-                />
-            </Flex>
-
-            {/* Content */}
-            <Stack
-                py={{ base: 3, md: 4 }}
-                px={{ base: 4, md: 5 }}
-                gap={{ base: 3, md: 4 }}
-                overflow="auto"
-                flex={1}
-                minHeight={0}
-                alignItems="center"
+            <ModalContent
                 bg={'card.white'}
+                borderRadius={{ base: '20px', md: '24px' }}
+                overflow="hidden"
+                boxShadow="0 20px 60px rgba(0, 0, 0, 0.25)"
+                border="1px solid"
+                borderColor="rgba(0, 0, 0, 0.08)"
+                display="flex"
+                flexDirection="column"
+                animation={`${fadeIn} 0.4s ease-out`}
+                maxW="420px"
+                mx={{ base: 3, md: 0 }}
             >
-                <LinkBox />
-
-                {/* Social Buttons */}
+                {/* Header */}
                 <Flex
-                    gap={{ base: 3, md: 4 }}
+                    justifyContent="space-between"
                     alignItems="center"
-                    justifyContent="center"
+                    py={{ base: 3, md: 4 }}
+                    px={{ base: 4, md: 5 }}
+                    bg={'card.lightGray'}
+                    borderBottom="1px solid"
+                    borderColor="rgba(0, 0, 0, 0.08)"
                 >
-                    <Link href="https://x.com/stacked_poker" isExternal>
-                        <SocialButton
-                            icon={<RiTwitterXLine size={20} />}
-                            label="X (Twitter)"
-                            color="#000000"
-                            rotation="5deg"
-                        />
-                    </Link>
-                    <Link href="https://discord.gg/896EhkVYbd" isExternal>
-                        <SocialButton
-                            icon={<FaDiscord size={20} />}
-                            label="Discord"
-                            color="#5865F2"
-                            rotation="-5deg"
-                        />
-                    </Link>
-                    <Link href="https://warpcast.com/stackedpoker" isExternal>
-                        <SocialButton
-                            icon={<SiFarcaster size={20} />}
-                            label="Farcaster"
-                            color="#855DCD"
-                            rotation="5deg"
-                        />
-                    </Link>
+                    <Stack gap={1}>
+                        <Text
+                            fontWeight="extrabold"
+                            fontSize="xl"
+                            color="text.secondary"
+                            fontFamily="heading"
+                        >
+                            Lobby
+                        </Text>
+                        <Flex gap={2} alignItems="center">
+                            <Box
+                                height={2}
+                                width={2}
+                                bg="brand.green"
+                                borderRadius="full"
+                                animation={`${pulse} 2s ease-in-out infinite`}
+                                boxShadow="0 0 8px rgba(54, 163, 123, 0.6)"
+                            />
+                            <Text
+                                fontSize="sm"
+                                color="text.secondary"
+                                fontWeight="medium"
+                                opacity={0.7}
+                            >
+                                Waiting for players
+                            </Text>
+                        </Flex>
+                    </Stack>
+                    <CloseButton
+                        onClick={onClose}
+                        color="text.secondary"
+                        borderRadius="8px"
+                        _hover={{
+                            bg: 'rgba(51, 68, 121, 0.1)',
+                        }}
+                    />
                 </Flex>
 
-                {/* Hint Text */}
-                <Text
-                    fontSize="xs"
-                    color="text.secondary"
-                    opacity={0.6}
-                    textAlign="center"
-                    maxW="300px"
+                {/* Content */}
+                <Stack
+                    py={{ base: 3, md: 4 }}
+                    px={{ base: 4, md: 5 }}
+                    gap={{ base: 3, md: 4 }}
+                    overflow="auto"
+                    flex={1}
+                    minHeight={0}
+                    alignItems="center"
+                    bg={'card.white'}
                 >
-                    Share the link above to invite players to your table
-                </Text>
-            </Stack>
-        </ModalContent>
+                    <LinkBox />
+
+                    {/* Social Buttons */}
+                    <Flex
+                        gap={{ base: 3, md: 4 }}
+                        alignItems="center"
+                        justifyContent="center"
+                    >
+                        <Link href="https://x.com/stacked_poker" isExternal>
+                            <SocialButton
+                                icon={<RiTwitterXLine size={20} />}
+                                label="X (Twitter)"
+                                color="#000000"
+                                rotation="5deg"
+                            />
+                        </Link>
+                        <Link href="https://discord.gg/896EhkVYbd" isExternal>
+                            <SocialButton
+                                icon={<FaDiscord size={20} />}
+                                label="Discord"
+                                color="#5865F2"
+                                rotation="-5deg"
+                            />
+                        </Link>
+                        <Link href="https://warpcast.com/stackedpoker" isExternal>
+                            <SocialButton
+                                icon={<SiFarcaster size={20} />}
+                                label="Farcaster"
+                                color="#855DCD"
+                                rotation="5deg"
+                            />
+                        </Link>
+                    </Flex>
+
+                    {/* Hint Text */}
+                    <Text
+                        fontSize="xs"
+                        color="text.secondary"
+                        opacity={0.6}
+                        textAlign="center"
+                        maxW="300px"
+                    >
+                        Share the link above to invite players to your table
+                    </Text>
+                </Stack>
+            </ModalContent>
+        </Modal>
     );
 };
 

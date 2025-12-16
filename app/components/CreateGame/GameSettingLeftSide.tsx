@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import {
     VStack,

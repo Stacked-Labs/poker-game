@@ -1,30 +1,40 @@
-'use client';
-
-import React from 'react';
-import { Box, Flex } from '@chakra-ui/react';
 import GameSettingLeftSide from '../components/CreateGame/GameSettingLeftSide';
 import Head from 'next/head';
-import { keyframes } from '@emotion/react';
+import { Metadata } from 'next';
+import Background from '../components/CreateGame/Background';
 
-// Animations
-const fadeIn = keyframes`
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-`;
-
-const float = keyframes`
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-`;
-
-const floatSlow = keyframes`
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(-10px, -15px); }
-`;
+export const metadata: Metadata = {
+    title: 'Create Poker Game - Stacked Poker',
+    description:
+        'Create your own online poker table to play Texas Hold\'em and other variants for free or with crypto on Stacked Poker. Fast setup, customizable blinds, exclusive invite code, no sign up required.',
+    icons: {
+        icon: '/favicon.ico',
+    },
+    openGraph: {
+        title: 'Create Poker Game - Stacked Poker',
+        description:
+            'Set up your private online poker game in seconds. Choose table stakes, variants, and invite friends to play for free or with crypto. No account needed.',
+        url: 'https://stackedpoker.io/create-game',
+        siteName: 'Stacked Poker',
+        images: [
+            {
+                url: '/seo/create_preview.png',
+                width: 1200,
+                height: 630,
+                alt: 'Create Poker Game - Stacked Poker',
+            },
+        ],
+        locale: 'en_US',
+        type: 'website',
+    },
+    twitter: {
+        title: 'Create Poker Game - Stacked Poker',
+        description:
+            'Launch a poker table and invite friends. Customize buy-ins, choose free or crypto play, and host Texas Hold\'em or your favorite variant easily.',
+        images: ['/seo/create_preview.png'],
+    },
+    keywords: ["poker, online poker, Texas Hold'em, card game, multiplayer, create game"]
+};
 
 const CreateGamePage: React.FC = () => {
     return (
@@ -39,71 +49,9 @@ const CreateGamePage: React.FC = () => {
                     href="https://challenges.cloudflare.com"
                 />
             </Head>
-            <Box
-                minHeight="var(--full-vh)"
-                position="relative"
-                overflow="hidden"
-                animation={`${fadeIn} 0.6s ease-out`}
-                bg={'bg.default'}
-            >
-                {/* Decorative Floating Gradient Orbs */}
-                <Box
-                    position="absolute"
-                    top={{ base: '10%', md: '5%' }}
-                    right={{ base: '-10%', md: '5%' }}
-                    width={{ base: '200px', md: '300px' }}
-                    height={{ base: '200px', md: '300px' }}
-                    borderRadius="50%"
-                    bg="brand.pink"
-                    filter="blur(100px)"
-                    opacity={0.12}
-                    animation={`${float} 8s ease-in-out infinite`}
-                    zIndex={0}
-                    pointerEvents="none"
-                />
-
-                <Box
-                    position="absolute"
-                    bottom={{ base: '5%', md: '10%' }}
-                    left={{ base: '-10%', md: '5%' }}
-                    width={{ base: '180px', md: '250px' }}
-                    height={{ base: '180px', md: '250px' }}
-                    borderRadius="50%"
-                    bg="brand.green"
-                    filter="blur(80px)"
-                    opacity={0.1}
-                    animation={`${floatSlow} 10s ease-in-out infinite`}
-                    zIndex={0}
-                    pointerEvents="none"
-                />
-
-                <Box
-                    position="absolute"
-                    top={{ base: '45%', md: '50%' }}
-                    left={{ base: '50%', md: '50%' }}
-                    transform="translate(-50%, -50%)"
-                    width={{ base: '150px', md: '200px' }}
-                    height={{ base: '150px', md: '200px' }}
-                    borderRadius="50%"
-                    bg="brand.yellow"
-                    filter="blur(60px)"
-                    opacity={0.08}
-                    animation={`${float} 12s ease-in-out infinite`}
-                    zIndex={0}
-                    pointerEvents="none"
-                />
-
-                {/* Main Content */}
-                <Flex
-                    flex="1"
-                    justifyContent="center"
-                    position="relative"
-                    zIndex={1}
-                    minHeight="var(--full-vh)"
-                >
-                    <GameSettingLeftSide />
-                </Flex>
-            </Box>
+            <Background>
+                <GameSettingLeftSide />
+            </Background>
         </>
     );
 };

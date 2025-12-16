@@ -319,7 +319,7 @@ const FooterWithActionButtons = ({
                 ) : (
                     <>
                         <ActionButton
-                            text={'Raise'}
+                            text={maxBet === 0 ? 'Bet' : 'Raise'}
                             color="green"
                             clickHandler={() => setShowRaise(true)}
                             isDisabled={!isCurrentTurn || gameIsPaused}

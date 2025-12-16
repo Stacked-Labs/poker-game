@@ -18,7 +18,7 @@ export const metadata: Metadata = {
         siteName: 'Stacked Poker',
         images: [
             {
-                url: '/seo/create_preview.png',
+                url: 'https://stackedpoker.io/previews/create_preview.png',
                 width: 1200,
                 height: 630,
                 alt: 'Create Poker Game - Stacked Poker',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
         title: 'Create Poker Game - Stacked Poker',
         description:
             'Launch a poker table and invite friends. Customize buy-ins, choose free or crypto play, and host Texas Hold\'em or your favorite variant easily.',
-        images: ['/seo/create_preview.png'],
+        images: ['https://stackedpoker.io/previews/create_preview.png'],
     },
     keywords: ["poker, online poker, Texas Hold'em, card game, multiplayer, create game"]
 };

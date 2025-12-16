@@ -15,6 +15,7 @@ import {
     animate,
     useAnimationControls,
     useReducedMotion,
+    AnimatePresence,
 } from 'framer-motion';
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
@@ -540,90 +541,101 @@ const TakenSeatButton = ({
                 transform="translateX(-50%)"
                 marginTop={{ base: 0, md: '12px' }}
             >
-                {(() => {
-                    // Determine if this is the current user's cards (needed for render condition)
-                    const isSelfPlayer = appState.clientID
-                        ? player.uuid === appState.clientID
-                        : false;
+                <AnimatePresence mode="wait">
+                    {(() => {
+                        // Determine if this is the current user's cards (needed for render condition)
+                        const isSelfPlayer = appState.clientID
+                            ? player.uuid === appState.clientID
+                            : false;
 
-                    // Determine if we are in showdown state
-                    const isShowdown = Boolean(
-                        appState.game &&
-                            appState.game.stage === 1 &&
-                            !appState.game.betting &&
-                            (appState.game.pots?.length || 0) > 0
-                    );
-
-                    // Check if player has real (revealed) cards - not [0,0] or [-1,-1]
-                    const hasRevealedCards =
-                        Number(player.cards[0]) > 0 &&
-                        Number(player.cards[1]) > 0;
-
-                    // Only render cards if:
-                    // - Player is still in hand, OR
-                    // - It's the current user (so they can see their folded cards dimmed), OR
-                    // - It's showdown AND player has revealed cards (backend sends real values for showdown participants)
-                    const shouldRenderCards =
-                        appState.game.running &&
-                        Number(player.cards[0]) !== -1 &&
-                        (player.in ||
-                            isSelfPlayer ||
-                            (isShowdown && hasRevealedCards));
-
-                    if (!shouldRenderCards) return null;
-
-                    return player.cards.map((card: Card, index: number) => {
-                        const isCardWinning = winningSet.has(Number(card));
-
-                        // Dimming rules:
-                        // - During showdown: winners dim ONLY non-winning cards; losers dim all cards
-                        // - Otherwise: dim players who folded / are not in hand
-                        const dimThisCard = isShowdown
-                            ? playerWinsActivePot
-                                ? !isCardWinning
-                                : true
-                            : !player.in;
-
-                        // Folded visual (for non-showdown states) still uses folded prop
-                        const foldedVisual = !isShowdown && !player.in;
-
-                        // Skip flip animation for enemy players only when NOT in showdown
-                        // During showdown, allow flip animation so opponent cards reveal smoothly
-                        const skipAnimation = !isSelfPlayer && !isShowdown;
-
-                        return (
-                            <Box
-                                key={`${card}-${index}`}
-                                className={`player-card seat-${player.seatID}-card-${index}`}
-                                width={{ base: '48%' }} // narrower than 50% so the pair is centred, bigger on md screens
-                                display="flex"
-                                alignItems="flex-start"
-                                justifyContent="flex-start"
-                                p={0}
-                                m={0}
-                                ml={
-                                    index === 1
-                                        ? { base: '0%', md: '-2%', lg: '0%' }
-                                        : '0'
-                                }
-                                mr={
-                                    index === 0
-                                        ? { base: '0%', md: '-2%', lg: '0%' }
-                                        : '0'
-                                }
-                            >
-                                <CardComponent
-                                    card={card}
-                                    placeholder={false}
-                                    folded={foldedVisual}
-                                    highlighted={isCardWinning}
-                                    dimmed={dimThisCard}
-                                    skipAnimation={skipAnimation}
-                                />
-                            </Box>
+                        // Determine if we are in showdown state
+                        const isShowdown = Boolean(
+                            appState.game &&
+                                appState.game.stage === 1 &&
+                                !appState.game.betting &&
+                                (appState.game.pots?.length || 0) > 0
                         );
-                    });
-                })()}
+
+                        // Check if player has real (revealed) cards - not [0,0] or [-1,-1]
+                        const hasRevealedCards =
+                            Number(player.cards[0]) > 0 &&
+                            Number(player.cards[1]) > 0;
+
+                        // Only render cards if:
+                        // - Player is still in hand, OR
+                        // - It's the current user (so they can see their folded cards dimmed), OR
+                        // - It's showdown AND player has revealed cards (backend sends real values for showdown participants), OR
+                        // - This player is the winner (so their cards remain visible even if they win by fold)
+                        const shouldRenderCards =
+                            appState.game.running &&
+                            Number(player.cards[0]) !== -1 &&
+                            (player.in ||
+                                isSelfPlayer ||
+                                (isShowdown && hasRevealedCards) ||
+                                showWinnerHighlight);
+
+                        if (!shouldRenderCards) return null;
+
+                        return player.cards.map((card: Card, index: number) => {
+                            const isCardWinning = winningSet.has(Number(card));
+
+                            // Dimming rules:
+                            // - During showdown: winners dim ONLY non-winning cards; losers dim all cards
+                            // - Otherwise: dim players who folded / are not in hand, but NEVER dim the overall winner highlight
+                            const dimThisCard = isShowdown
+                                ? playerWinsActivePot
+                                    ? !isCardWinning
+                                    : true
+                                : !player.in && !showWinnerHighlight;
+
+                            // Folded visual (for non-showdown states) still uses folded prop,
+                            // but do not treat winner's cards as folded (they should remain visible)
+                            const foldedVisual =
+                                !isShowdown &&
+                                !player.in &&
+                                !showWinnerHighlight;
+
+                            // Skip flip animation for enemy players only when NOT in showdown
+                            // During showdown, allow flip animation so opponent cards reveal smoothly
+                            const skipAnimation = !isSelfPlayer && !isShowdown;
+
+                            return (
+                                <motion.div
+                                    key={`${player.seatID}-card-${index}`}
+                                    className={`player-card seat-${player.seatID}-card-${index}`}
+                                    initial={{ opacity: 1, scale: 1 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{
+                                        opacity: 0,
+                                        scale: 0.9,
+                                        y: 20,
+                                        transition: {
+                                            duration: 0.5,
+                                            ease: 'easeOut',
+                                        },
+                                    }}
+                                    style={{
+                                        width: '48%',
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        justifyContent: 'flex-start',
+                                        padding: 0,
+                                        margin: 0,
+                                    }}
+                                >
+                                    <CardComponent
+                                        card={card}
+                                        placeholder={false}
+                                        folded={foldedVisual}
+                                        highlighted={isCardWinning}
+                                        dimmed={dimThisCard}
+                                        skipAnimation={skipAnimation}
+                                    />
+                                </motion.div>
+                            );
+                        });
+                    })()}
+                </AnimatePresence>
             </Flex>
             <Box
                 className="player-info-wrapper"

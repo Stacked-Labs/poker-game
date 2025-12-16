@@ -271,6 +271,7 @@ const SVGCard = ({
         'back'
     );
     const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const prevCardStringRef = useRef<string | null>(null);
 
     const cardString = useMemo(() => cardToString(card), [card]);
     const cardData = useMemo(() => {
@@ -285,13 +286,19 @@ const SVGCard = ({
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
 
+        const prevCardString = prevCardStringRef.current;
+        const hasPrev = prevCardString !== null;
+        const cardChanged = !hasPrev || prevCardString !== cardString;
+        prevCardStringRef.current = cardString;
+
         if (placeholder) {
             setFlipState('back');
             return;
         }
 
         // If skipAnimation is true, show front immediately without animation
-        if (skipAnimation) {
+        // Also skip animation if the effective card value did not change (e.g. back → back)
+        if (skipAnimation || (hasPrev && !cardChanged)) {
             setFlipState('front');
             return;
         }
@@ -321,7 +328,7 @@ const SVGCard = ({
             timersRef.current.forEach(clearTimeout);
             timersRef.current = [];
         };
-    }, [card, placeholder, skipAnimation]);
+    }, [cardString, placeholder, skipAnimation]);
 
     if (cardString === '2\u0000') return null;
 

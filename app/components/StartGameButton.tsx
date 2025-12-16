@@ -26,7 +26,7 @@ const StartGameButton = () => {
     // Pulse animation keyframes
     const pulseKeyframes = keyframes`
         0% { transform: scale(1); }
-        50% { transform: scale(1.08); }
+        50% { transform: scale(1.02); }
         100% { transform: scale(1); }
     `;
 
@@ -79,7 +79,7 @@ const StartGameButton = () => {
 
                 {/* Full button for tablet/desktop */}
                 <Button
-                    size="lg"
+                    size="md"
                     paddingX={{ md: 12 }}
                     onClick={() => onClickStartGame(socket)}
                     isDisabled={isDisabled}

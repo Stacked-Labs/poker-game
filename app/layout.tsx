@@ -1,5 +1,4 @@
 import './globals.css';
-import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from './providers';
 import '@fontsource/luckiest-guy';
@@ -14,38 +13,6 @@ import HomeNavBar from './components/HomePage/HomeNavBar';
 import React from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-    title: 'Stacked - Poker with Friends',
-    description:
-        'The easiest way to play poker for free or with crypto. No download, no sign up needed.',
-    icons: {
-        icon: '/favicon.ico',
-    },
-    openGraph: {
-        title: 'Stacked - Poker with Friends',
-        description:
-            'The easiest way to play poker for free or for crypto. No download, no sign up needed.',
-        url: 'https://stackedpoker.io',
-        siteName: 'Stacked Poker',
-        images: [
-            {
-                url: '',
-                width: 1200,
-                height: 630,
-                alt: 'Stacked Poker',
-            },
-        ],
-        locale: 'en_US',
-        type: 'website',
-    },
-    twitter: {
-        title: 'Stacked - Poker with Friends',
-        description:
-            'The easiest way to play poker for free or with crypto. No download, no sign up needed.',
-        images: [''],
-    },
-};
 
 export default function RootLayout({
     children,

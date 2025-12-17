@@ -8,7 +8,9 @@ import {
     Progress,
     Tooltip,
     Tag,
+    Icon,
 } from '@chakra-ui/react';
+import { MdWifiOff } from 'react-icons/md';
 import { keyframes } from '@emotion/react';
 import {
     motion,
@@ -43,6 +45,15 @@ const pulseBorderYellow = keyframes`
   }
   100% {
     box-shadow: 0 0 0 0 rgba(253, 197, 29, 0);
+  }
+`;
+
+const offlinePulse = keyframes`
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.75;
   }
 `;
 
@@ -160,6 +171,9 @@ const TakenSeatButton = ({
         ? player.uuid === appState.clientID
         : false;
     const prefersReducedMotion = useReducedMotion();
+
+    // Offline status - default to true if undefined (backwards compatibility)
+    const isOffline = player.isOnline === false;
 
     // Chip positions based on orientation - portrait uses column layouts, landscape uses row layouts
     // Each seat has portrait and landscape positioning defined via CSS media queries
@@ -445,13 +459,20 @@ const TakenSeatButton = ({
 
     return (
         <Flex
-            className="taken-seat-button"
+            className={`taken-seat-button ${isOffline ? 'offline' : ''}`}
             width={'100%'}
             height={'100%'}
             sx={{
                 '@media (orientation: portrait)': {
                     width: '90%',
                 },
+                // Offline styling - grayscale with subtle pulsing animation
+                ...(isOffline && {
+                    filter: 'grayscale(100%)',
+                    animation: prefersReducedMotion
+                        ? 'none'
+                        : `${offlinePulse} 3s ease-in-out infinite`,
+                }),
             }}
             position={'relative'}
             alignItems={'center'}
@@ -674,6 +695,39 @@ const TakenSeatButton = ({
                     animation={highlightPulse}
                 >
                     {/* Status badges rendered above the container without affecting layout */}
+                    {/* Disconnected badge - shown when player loses connection */}
+                    {isOffline && (
+                        <Tag
+                            position="absolute"
+                            top={{ base: -2, md: -3 }}
+                            left={0}
+                            bg="gray.600"
+                            color="gray.100"
+                            variant="solid"
+                            size={{ base: 'xs', md: 'sm' }}
+                            fontSize={{ base: '8px', md: 'sm' }}
+                            px={{ base: 1, md: 2 }}
+                            py={{ base: 0.1, md: 0.2 }}
+                            zIndex={5}
+                            fontWeight="bold"
+                            borderRadius="6px"
+                            boxShadow="0 2px 8px rgba(0, 0, 0, 0.3)"
+                            display="flex"
+                            alignItems="center"
+                            gap={1}
+                        >
+                            <Icon
+                                as={MdWifiOff}
+                                boxSize={{ base: 2.5, md: 3 }}
+                            />
+                            <Text
+                                as="span"
+                                display={{ base: 'none', md: 'inline' }}
+                            >
+                                Offline
+                            </Text>
+                        </Tag>
+                    )}
                     {player.stack > 0 &&
                         !player.ready &&
                         (!isSelf || !player.in) && (
@@ -730,7 +784,8 @@ const TakenSeatButton = ({
                         <Tag
                             position="absolute"
                             top={{ base: -2, md: -3 }}
-                            left={0}
+                            // Offset left position if offline badge is also shown
+                            left={isOffline ? { base: '50px', md: '70px' } : 0}
                             bg="brand.pink"
                             color="white"
                             variant="solid"

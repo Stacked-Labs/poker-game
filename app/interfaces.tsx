@@ -54,6 +54,7 @@ export type Player = {
     readyNextHand?: boolean;
     sitOutNextHand?: boolean;
     leaveAfterHand?: boolean;
+    isOnline?: boolean; // Whether player has active WebSocket connection
 };
 
 export type Game = {

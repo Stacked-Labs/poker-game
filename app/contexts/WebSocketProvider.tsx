@@ -16,9 +16,12 @@ import {
     Log,
     Player,
     BlindObligationOptions,
+    GameEventRecord,
 } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
+import { soundManager } from '../utils/SoundManager';
+import { formatGameEvent } from '../utils/formatGameEvent';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -305,6 +308,25 @@ export function SocketProvider(props: SocketProviderProps) {
                         };
 
                         dispatch({ type: 'addLog', payload: newLog });
+                        return;
+                    }
+                    case 'game-event': {
+                        const event = eventData.event as GameEventRecord;
+
+                        // 1. Play sound immediately (event-driven, no state watching)
+                        soundManager.play(event.event_type);
+
+                        // 2. Format and add to logs (if applicable)
+                        const logMessage = formatGameEvent(event);
+                        if (logMessage) {
+                            dispatch({
+                                type: 'addLog',
+                                payload: {
+                                    message: logMessage,
+                                    timestamp: event.timestamp,
+                                },
+                            });
+                        }
                         return;
                     }
                     case 'update-game': {

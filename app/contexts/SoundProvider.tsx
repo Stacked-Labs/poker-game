@@ -1,14 +1,20 @@
 'use client';
 
-import { createContext, ReactNode, useEffect, useContext } from 'react';
+import {
+    createContext,
+    ReactNode,
+    useEffect,
+    useContext,
+    useCallback,
+    useRef,
+} from 'react';
 import { AppContext } from './AppStoreProvider';
-import useAudio from '../hooks/useAudio';
+import { soundManager } from '../utils/SoundManager';
 
+// Context type - exposes the play function for direct sound triggering
 export const SoundContext = createContext<{
-    playFlip: () => void;
-    playCheck: () => void;
-    playChips: () => void;
-    playRaise: () => void;
+    play: (soundType: string) => void;
+    isReady: () => boolean;
 } | null>(null);
 
 type SoundProviderProps = {
@@ -17,75 +23,96 @@ type SoundProviderProps = {
 
 export function SoundProvider({ children }: SoundProviderProps) {
     const { appState } = useContext(AppContext);
+    const isInitializedRef = useRef(false);
+    const prevMessagesLengthRef = useRef(0);
 
-    const { play: playFlip, setVolume: setVolumeFlip } = useAudio(
-        '/sound/card_flip_1.mp3'
-    );
-    const { play: playCheck, setVolume: setVolumeCheck } =
-        useAudio('/sound/check_1.mp3');
-    const { play: playChips, setVolume: setVolumeChips } =
-        useAudio('/sound/chips_1.mp3');
-    const { play: playRaise, setVolume: setVolumeRaise } = useAudio(
-        '/sound/chips_allin.mp3'
-    );
-    const { play: playChatNotif, setVolume: setVolumeChatNotif } = useAudio(
-        '/sound/chat_notif.mp3'
-    );
-
-    // Update volume for all sounds when app volume changes
+    // Initialize the sound manager on mount
     useEffect(() => {
-        setVolumeFlip(appState.volume);
-        setVolumeCheck(appState.volume);
-        setVolumeChips(appState.volume);
-        setVolumeRaise(appState.volume);
-        setVolumeChatNotif(appState.volume);
-    }, [
-        appState.volume,
-        setVolumeFlip,
-        setVolumeCheck,
-        setVolumeChips,
-        setVolumeRaise,
-        setVolumeChatNotif
-    ]);
+        if (isInitializedRef.current) return;
+        isInitializedRef.current = true;
 
-    // Play sounds based on log messages
+        soundManager.init().catch((error) => {
+            console.error('Failed to initialize sound manager:', error);
+        });
+
+        return () => {
+            // Don't dispose on unmount - singleton should persist
+        };
+    }, []);
+
+    // Handle iOS audio unlock on first user interaction
     useEffect(() => {
-        const logs = appState.logs;
-        if (logs.length === 0) return;
+        const unlock = () => {
+            soundManager.unlock();
+            document.removeEventListener('touchstart', unlock);
+            document.removeEventListener('touchend', unlock);
+            document.removeEventListener('click', unlock);
+        };
 
-        const latestLog = logs[logs.length - 1];
+        document.addEventListener('touchstart', unlock, { once: true });
+        document.addEventListener('touchend', unlock, { once: true });
+        document.addEventListener('click', unlock, { once: true });
 
-        if (latestLog.message.includes('calls')) {
-            playChips();
-        } else if (latestLog.message.includes('checks')) {
-            playCheck();
-        } else if (latestLog.message.includes('folds')) {
-            playFlip();
-        } else if (latestLog.message.includes('raises')) {
-            playRaise();
-        }
-    }, [appState.logs, playChips, playCheck, playFlip, playRaise]);
+        return () => {
+            document.removeEventListener('touchstart', unlock);
+            document.removeEventListener('touchend', unlock);
+            document.removeEventListener('click', unlock);
+        };
+    }, []);
 
+    // Update volume when app volume changes
+    useEffect(() => {
+        soundManager.setVolume(appState.volume);
+    }, [appState.volume]);
+
+    // Chat notification sound - keep this reactive trigger for chat messages
     useEffect(() => {
         const messages = appState.messages;
-        if (messages.length === 0) return;
+
+        // Skip if no messages or on initial load
+        if (messages.length === 0) {
+            prevMessagesLengthRef.current = 0;
+            return;
+        }
+
+        // Only play sound for NEW messages (not on initial load)
+        if (messages.length <= prevMessagesLengthRef.current) {
+            prevMessagesLengthRef.current = messages.length;
+            return;
+        }
+
+        prevMessagesLengthRef.current = messages.length;
 
         const latest = messages[messages.length - 1];
+
+        // Don't play sound for own messages
         if (latest.name === appState.username) return;
 
-        playChatNotif();
-    }, [appState.messages, appState.clientID, appState.username, playChatNotif]);
+        // Play chat notification sound
+        soundManager.play('chat');
+    }, [appState.messages, appState.username]);
+
+    // Expose play function via context
+    const play = useCallback((soundType: string) => {
+        soundManager.play(soundType);
+    }, []);
+
+    const isReady = useCallback(() => {
+        return soundManager.isReady();
+    }, []);
 
     return (
-        <SoundContext.Provider
-            value={{
-                playFlip,
-                playCheck,
-                playChips,
-                playRaise,
-            }}
-        >
+        <SoundContext.Provider value={{ play, isReady }}>
             {children}
         </SoundContext.Provider>
     );
+}
+
+// Custom hook for easy sound access
+export function useSound() {
+    const context = useContext(SoundContext);
+    if (!context) {
+        throw new Error('useSound must be used within a SoundProvider');
+    }
+    return context;
 }

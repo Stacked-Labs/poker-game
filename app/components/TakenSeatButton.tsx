@@ -50,10 +50,10 @@ const pulseBorderYellow = keyframes`
 
 const offlinePulse = keyframes`
   0%, 100% {
-    opacity: 0.6;
+    opacity: 0.75;
   }
   50% {
-    opacity: 0.75;
+    opacity: 0.85;
   }
 `;
 

@@ -1,21 +1,29 @@
+'use client';
+
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import {
     VStack,
     Text,
-    SimpleGrid,
     Button,
     Flex,
     Input,
-    FormControl,
-    FormLabel,
     Tooltip,
     Spinner,
     Box,
     Heading,
+    Select,
+    Icon,
+    Divider,
+    HStack,
 } from '@chakra-ui/react';
-import { FaInfoCircle } from 'react-icons/fa';
+import {
+    FaInfoCircle,
+    FaUsers,
+    FaArrowRight,
+    FaCheckCircle,
+} from 'react-icons/fa';
 import PlayTypeToggle from './PlayTypeToggle';
-import OptionCard from './OptionCard';
+import NetworkCard from './NetworkCard';
 import gameData from '../../create-game/gameOptions.json';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -26,10 +34,10 @@ import Turnstile from 'react-turnstile';
 import { keyframes } from '@emotion/react';
 
 // Animations
-const slideUp = keyframes`
+const fadeIn = keyframes`
     from { 
         opacity: 0; 
-        transform: translateY(30px); 
+        transform: translateY(20px); 
     }
     to { 
         opacity: 1; 
@@ -37,9 +45,8 @@ const slideUp = keyframes`
     }
 `;
 
-const LeftSideContent: React.FC = () => {
-    // const wallet = useActiveWallet();
-    const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
+const GameSettingLeftSide: React.FC = () => {
+    const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Crypto');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
     const [selectedNetwork, setSelectedNetwork] = useState<string>('Optimism');
@@ -63,73 +70,34 @@ const LeftSideContent: React.FC = () => {
         return Boolean(turnstileToken) || turnstileError;
     }, [isTurnstileConfigured, turnstileToken, turnstileError]);
 
-    const turnstileStatusText = useMemo(() => {
-        if (!isTurnstileConfigured) {
-            return 'Cloudflare Turnstile is disabled for this environment.';
-        }
-
-        if (turnstileError) {
-            return 'Cloudflare verification temporarily unavailable — you can still create a game.';
-        }
-
-        if (turnstileToken) {
-            return 'Verified by Cloudflare. You are clear to create a game.';
-        }
-
-        return 'Waiting for Cloudflare Turnstile to verify your browser…';
-    }, [isTurnstileConfigured, turnstileError, turnstileToken]);
-
-    const turnstileStatusColor = useMemo(() => {
-        if (!isTurnstileConfigured) {
-            return 'text.secondary';
-        }
-        if (turnstileError) {
-            return 'brand.yellow';
-        }
-        if (turnstileToken) {
-            return 'brand.green';
-        }
-        return 'text.secondary';
-    }, [isTurnstileConfigured, turnstileError, turnstileToken]);
-
     const { gameModes, networks } = gameData;
 
-    // Debug logging for Turnstile setup
-    useEffect(() => {
-        console.log('🔍 Turnstile Debug Info:');
-        console.log('- Site Key configured:', isTurnstileConfigured);
-        console.log(
-            '- Site Key (first 10 chars):',
-            turnstileSiteKey.substring(0, 10)
-        );
-        console.log('- Current hostname:', window.location.hostname);
-        console.log('- Current protocol:', window.location.protocol);
+    // Get the description for the selected game mode
+    const selectedGameModeDescription = useMemo(() => {
+        const mode = gameModes.find((m) => m.name === selectedGameMode);
+        return mode?.description || '';
+    }, [selectedGameMode, gameModes]);
 
-        // Check CSP
-        const cspMetaTags = document.querySelectorAll(
-            'meta[http-equiv="Content-Security-Policy"]'
-        );
-        console.log('- CSP meta tags found:', cspMetaTags.length);
-        cspMetaTags.forEach((tag, i) => {
-            const content = (tag as HTMLMetaElement).content;
-            const hasScriptSrc = content.includes('script-src');
-            const hasCloudflareCom = content.includes('cloudflare.com');
-            console.log(
-                `  Tag ${i}: script-src present: ${hasScriptSrc}, cloudflare.com allowed: ${hasCloudflareCom}`
-            );
-        });
-    }, []);
+    const blindsErrorMessage = useMemo(() => {
+        if (smallBlind <= 0 || bigBlind <= 0) {
+            return 'Blinds must be positive values.';
+        }
+        if (bigBlind < smallBlind) {
+            return 'Big blind must be greater than or equal to small blind.';
+        }
+        return '';
+    }, [smallBlind, bigBlind]);
 
     useEffect(() => {
         const validateForm = () => {
             const isSmallBlindValid =
                 !isNaN(smallBlind) &&
                 smallBlind >= 0.01 &&
-                /^\d+(\.\d{2})?$/.test(smallBlind.toString());
+                /^\d+(\.\d{1,2})?$/.test(smallBlind.toString());
             const isBigBlindValid =
                 !isNaN(bigBlind) &&
                 bigBlind >= smallBlind &&
-                /^\d+(\.\d{2})?$/.test(bigBlind.toString());
+                /^\d+(\.\d{1,2})?$/.test(bigBlind.toString());
             const isGameModeSelected = selectedGameMode !== '';
             const isNetworkSelected =
                 playType === 'Free' ||
@@ -156,7 +124,6 @@ const LeftSideContent: React.FC = () => {
     ]);
 
     const handleCreateGame = async () => {
-        // If Turnstile is configured but has an error or no token, warn but allow proceed
         if (
             !turnstileToken &&
             !turnstileError &&
@@ -232,11 +199,10 @@ const LeftSideContent: React.FC = () => {
                         bigBlind: bigBlind,
                         isCrypto: playType === 'Crypto',
                         chain: playType === 'Crypto' ? selectedNetwork : '',
-                        cfTurnstileToken: turnstileToken || '', // Send empty string if no token (fallback mode)
+                        cfTurnstileToken: turnstileToken || '',
                     }),
                 }
             );
-            console.log('create response:', response);
 
             if (response.ok) {
                 const data = await response.json();
@@ -245,14 +211,9 @@ const LeftSideContent: React.FC = () => {
                         'Game Created',
                         `Successfully created game: ${data.tablename}`
                     );
-
                     dispatch({ type: 'setTablename', payload: data.tablename });
                     router.push(`/table/${data.tablename}`);
                 } else {
-                    console.error(
-                        'Create response OK but missing tablename:',
-                        data
-                    );
                     toast.error(
                         'Create Error',
                         'Received invalid response from server.'
@@ -280,213 +241,126 @@ const LeftSideContent: React.FC = () => {
         }
     };
 
+    const handleJoinPublicGame = () => {
+        // Placeholder - will be implemented later
+        toast.info('Coming Soon', 'Public game lobby will be available soon!');
+    };
+
     return (
         <VStack
-            spacing={4}
+            spacing={1}
             alignItems="center"
             width="100%"
-            maxWidth="900px"
-            pt={{ base: 20, md: 20 }}
+            maxWidth="720px"
+            pt={{ base: 24, md: 28 }}
             pb={8}
             px={{ base: 4, md: 6 }}
+            animation={`${fadeIn} 0.5s ease-out`}
         >
-            {/* Title */}
-            <Heading
-                as="h1"
-                fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
-                fontWeight="extrabold"
-                color='text.primary'
-                textAlign="center"
-                animation={`${slideUp} 0.6s ease-out`}
+            {/* Header Section */}
+            <Flex
+                width="100%"
+                justifyContent="space-between"
+                alignItems="flex-end"
+                mb={2}
             >
-                Game Settings
-            </Heading>
+                <Box>
+                    <Heading
+                        as="h1"
+                        fontSize={{ base: '2xl', md: '3xl' }}
+                        fontWeight="extrabold"
+                        color="text.primary"
+                    >
+                        Game Settings
+                    </Heading>
+                    <Text fontSize="sm" color="gray.500" mt={1}>
+                        Configure your table parameters
+                    </Text>
+                </Box>
+                <Button
+                    variant="outline"
+                    size="md"
+                    bg="card.white"
+                    color="text.primary"
+                    borderColor="border.lightGray"
+                    borderWidth="2px"
+                    borderRadius="full"
+                    px={4}
+                    py={2}
+                    fontWeight="semibold"
+                    fontSize="sm"
+                    onClick={handleJoinPublicGame}
+                    _hover={{
+                        borderColor: 'brand.pink',
+                        bg: 'card.white',
+                    }}
+                    leftIcon={<Icon as={FaUsers} color="brand.pink" />}
+                    rightIcon={<Icon as={FaArrowRight} boxSize={3} />}
+                >
+                    Join Public Game
+                </Button>
+            </Flex>
 
-            {/* Play Type Section */}
+            {/* Main Settings Card */}
             <Box
                 width="100%"
-                animation={`${slideUp} 0.6s ease-out 0.1s backwards`}
+                bg="card.white"
+                borderRadius="24px"
+                boxShadow="0 4px 24px rgba(0, 0, 0, 0.08)"
+                overflow="hidden"
             >
-                <Flex justifyContent="center" width="100%">
+                {/* Play Mode Section */}
+                <Flex
+                    px={{ base: 5, md: 8 }}
+                    py={3}
+                    justifyContent="space-between"
+                    alignItems="flex-start"
+                >
+                    <Box>
+                        <Text
+                            fontWeight="bold"
+                            fontSize="md"
+                            color="text.primary"
+                        >
+                            Play Mode
+                        </Text>
+                        <Text fontSize="sm" color="gray.500">
+                            Select currency type
+                        </Text>
+                    </Box>
                     <PlayTypeToggle
                         playType={playType}
                         setPlayType={setPlayType}
                     />
                 </Flex>
-            </Box>
 
-            {/* Blinds Section */}
-            <Box
-                width="100%"
-                maxW="450px"
-                bg="card.white"
-                borderRadius="20px"
-                pt={{ base: 4, md: 5 }}
-                pb={{ base: 6, md: 8 }}
-                px={{ base: 6, md: 8 }}
-                boxShadow="0 4px 16px rgba(0, 0, 0, 0.08)"
-                animation={`${slideUp} 0.6s ease-out 0.2s backwards`}
-            >
-                <FormControl>
-                    <Flex
-                        justifyContent="center"
-                        alignItems="center"
-                        mb={3}
-                        gap={2}
-                    >
-                        <FormLabel variant={'createGame'}>
-                            Blinds
-                        </FormLabel>
-                        <Tooltip
-                            label="Blinds must be in increments of 0.01 minimum"
-                            aria-label="Blinds info"
-                            bg="brand.darkNavy"
-                            color="white"
-                            borderRadius="8px"
-                            px={3}
-                            py={2}
-                        >
-                            <Box display="flex" alignItems="center">
-                                <FaInfoCircle color="#EB0B5C" size={18} />
-                            </Box>
-                        </Tooltip>
-                    </Flex>
-                    <Flex
-                        justifyContent="center"
-                        alignItems="center"
-                        gap={4}
-                        flexDirection={{ base: 'column', sm: 'row' }}
-                    >
-                        <Flex alignItems="center" gap={2}>
-                            <Text
-                                color="brand.pink"
-                                fontWeight="bold"
-                                fontSize="md"
-                                minWidth="fit-content"
-                            >
-                                SB:
-                            </Text>
-                            <Input
-                                variant={'white'}
-                                type="number"
-                                step="0.01"
-                                min="0.01"
-                                placeholder="Small Blind"
-                                value={smallBlind}
-                                onChange={(e) =>
-                                    setSmallBlind(Number(e.target.value))
-                                }
-                            />
-                        </Flex>
-                        <Flex alignItems="center" gap={2}>
-                            <Text
-                                color="brand.pink"
-                                fontWeight="bold"
-                                fontSize="md"
-                                minWidth="fit-content"
-                            >
-                                BB:
-                            </Text>
-                            <Input
-                                variant={'white'}
-                                type="number"
-                                step="0.01"
-                                min="0.01"
-                                placeholder="Big Blind"
-                                value={bigBlind}
-                                onChange={(e) =>
-                                    setBigBlind(Number(e.target.value))
-                                }
-                            />
-                        </Flex>
-                    </Flex>
-                </FormControl>
-            </Box>
+                <Divider borderColor="gray.100" />
 
-            {/* Game Mode Section */}
-            <Box
-                width="100%"
-                maxW="500px"
-                bg="card.white"
-                borderRadius="20px"
-                pt={{ base: 4, md: 5 }}
-                pb={{ base: 6, md: 8 }}
-                px={{ base: 6, md: 8 }}
-                boxShadow="0 4px 16px rgba(0, 0, 0, 0.08)"
-                animation={`${slideUp} 0.6s ease-out 0.3s backwards`}
-            >
-                <FormControl>
-                    <Flex
-                        justifyContent="center"
-                        alignItems="center"
-                        mb={4}
-                        gap={2}
-                    >
-                        <FormLabel variant={'createGame'}>
-                            Game Mode
-                        </FormLabel>
-                        <Tooltip
-                            label="Choose the poker variant you want to play"
-                            aria-label="Game mode info"
-                            bg="brand.darkNavy"
-                            color="white"
-                            borderRadius="8px"
-                            px={3}
-                            py={2}
-                        >
-                            <Box display="flex" alignItems="center">
-                                <FaInfoCircle color="#EB0B5C" size={18} />
-                            </Box>
-                        </Tooltip>
-                    </Flex>
-                    <Flex justifyContent="center" width="100%">
-                        <SimpleGrid
-                            columns={2}
-                            spacing={4}
-                            justifyItems="center"
-                        >
-                            {gameModes.map((mode) => (
-                                <OptionCard
-                                    key={mode.name}
-                                    name={mode.name}
-                                    description={mode.description}
-                                    isSelected={selectedGameMode === mode.name}
-                                    onClick={() =>
-                                        setSelectedGameMode(mode.name)
-                                    }
-                                    disabled={mode.disabled}
-                                />
-                            ))}
-                        </SimpleGrid>
-                    </Flex>
-                </FormControl>
-            </Box>
-
-            {/* Network Selection - Only for Crypto */}
-            {playType === 'Crypto' && (
-                <Box
-                    width="100%"
-                    bg="card.white"
-                    borderRadius="20px"
-                    pt={{ base: 4, md: 5 }}
-                    pb={{ base: 6, md: 8 }}
-                    px={{ base: 6, md: 8 }}
-                    boxShadow="0 4px 16px rgba(0, 0, 0, 0.08)"
-                    animation={`${slideUp} 0.6s ease-out 0.4s backwards`}
+                {/* Game Mode Section */}
+                <Flex
+                    px={{ base: 5, md: 8 }}
+                    py={3}
+                    justifyContent="space-between"
+                    alignItems={{ base: 'flex-start', sm: 'center' }}
+                    flexDirection={{ base: 'column', sm: 'row' }}
+                    gap={4}
                 >
-                    <FormControl>
-                        <Flex
-                            justifyContent="center"
-                            alignItems="center"
-                            mb={4}
-                            gap={2}
-                        >
-                            <FormLabel variant={'createGame'}>
-                                Network
-                            </FormLabel>
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        justifyContent="center"
+                        alignItems="flex-start"
+                    >
+                        <Flex alignItems="center" gap={2}>
+                            <Text
+                                fontWeight="bold"
+                                fontSize="md"
+                                color="text.primary"
+                            >
+                                Game Mode
+                            </Text>
                             <Tooltip
-                                label="Select the blockchain network for your crypto game"
-                                aria-label="Network info"
+                                label="Choose the poker variant you want to play"
                                 bg="brand.darkNavy"
                                 color="white"
                                 borderRadius="8px"
@@ -494,18 +368,259 @@ const LeftSideContent: React.FC = () => {
                                 py={2}
                             >
                                 <Box display="flex" alignItems="center">
-                                    <FaInfoCircle color="#EB0B5C" size={18} />
+                                    <FaInfoCircle color="#EB0B5C" size={14} />
                                 </Box>
                             </Tooltip>
                         </Flex>
-                        <Flex justifyContent="center" width="100%">
-                            <SimpleGrid
-                                columns={{ base: 2, sm: 3, md: 4 }}
-                                spacing={4}
-                                justifyItems="center"
+                        <Text fontSize="sm" color="gray.500">
+                            Choose the poker variant
+                        </Text>
+                    </Box>
+                    <Box
+                        width={{ base: '100%', sm: '200px' }}
+                        mt={{ base: 3, sm: 0 }}
+                    >
+                        <Select
+                            value={selectedGameMode}
+                            onChange={(e) =>
+                                setSelectedGameMode(e.target.value)
+                            }
+                            bg="card.lightGray"
+                            borderColor="transparent"
+                            borderRadius="12px"
+                            fontWeight="semibold"
+                            fontSize="sm"
+                            color="text.primary"
+                            height="44px"
+                            _hover={{
+                                borderColor: 'brand.green',
+                            }}
+                            _focus={{
+                                borderColor: 'brand.pink',
+                                boxShadow: '0 0 0 1px #EB0B5C',
+                            }}
+                            iconColor="gray.500"
+                        >
+                            {gameModes.map((mode) => (
+                                <option
+                                    key={mode.name}
+                                    value={mode.name}
+                                    disabled={mode.disabled}
+                                >
+                                    {mode.name}
+                                </option>
+                            ))}
+                        </Select>
+                        <Text
+                            fontSize="xs"
+                            color="gray.500"
+                            mt={2}
+                            textAlign="right"
+                        >
+                            {selectedGameModeDescription}
+                        </Text>
+                    </Box>
+                </Flex>
+
+                <Divider borderColor="gray.100" />
+
+                {/* Blinds Section */}
+                <Flex
+                    px={{ base: 5, md: 8 }}
+                    py={3}
+                    justifyContent="space-between"
+                    alignItems={{ base: 'flex-start', sm: 'center' }}
+                    flexDirection={{ base: 'column', sm: 'row' }}
+                    gap={4}
+                >
+                    <Box mt={{ base: 3, sm: 0 }}>
+                        <Flex alignItems="center" gap={2}>
+                            <Text
+                                fontWeight="bold"
+                                fontSize="md"
+                                color="text.primary"
+                                zIndex={1}
+                            >
+                                Blinds
+                            </Text>
+                            <Tooltip
+                                label="Blinds must be in increments of 1 minimum"
+                                bg="brand.darkNavy"
+                                color="white"
+                                borderRadius="8px"
+                                px={3}
+                                py={2}
+                                zIndex={1}
+                            >
+                                <Box display="flex" alignItems="center">
+                                    <FaInfoCircle color="#EB0B5C" size={14} />
+                                </Box>
+                            </Tooltip>
+                        </Flex>
+                        <Text fontSize="sm" color="gray.500">
+                            Set the table stakes
+                        </Text>
+                    </Box>
+                    <Box>
+                        <HStack spacing={3} alignItems="flex-end">
+                            {/* Small Blind */}
+                            <Box position="relative">
+                                <Text
+                                    fontSize="11px"
+                                    fontWeight="bold"
+                                    color="brand.pink"
+                                    letterSpacing="wide"
+                                    position="absolute"
+                                    top="-2"
+                                    left="3"
+                                    px="1.5"
+                                    zIndex={10}
+                                    py="0.5"
+                                    borderRadius="full"
+                                >
+                                    SB
+                                </Text>
+                                <Input
+                                    type="number"
+                                    step="1"
+                                    min="1"
+                                    value={smallBlind}
+                                    onChange={(e) =>
+                                        setSmallBlind(Number(e.target.value))
+                                    }
+                                    bg="input.white"
+                                    borderWidth="1px"
+                                    borderColor="border.lightGray"
+                                    borderRadius="14px"
+                                    width="96px"
+                                    height="48px"
+                                    textAlign="right"
+                                    pr={4}
+                                    fontWeight="semibold"
+                                    fontSize="md"
+                                    color="text.primary"
+                                    _hover={{
+                                        borderColor: 'gray.300',
+                                    }}
+                                    _focus={{
+                                        borderColor: 'brand.pink',
+                                        boxShadow:
+                                            '0 0 0 2px rgba(235, 11, 92, 0.2)',
+                                    }}
+                                />
+                            </Box>
+                            <Text
+                                color="gray.400"
+                                fontSize="xl"
+                                fontWeight="light"
+                                pb={2}
+                            >
+                                /
+                            </Text>
+                            {/* Big Blind */}
+                            <Box position="relative">
+                                <Text
+                                    fontSize="11px"
+                                    fontWeight="bold"
+                                    color="brand.pink"
+                                    letterSpacing="wide"
+                                    position="absolute"
+                                    top="-2"
+                                    left="3"
+                                    px="1.5"
+                                    zIndex={10}
+                                    py="0.5"
+                                    borderRadius="full"
+                                >
+                                    BB
+                                </Text>
+                                <Input
+                                    type="number"
+                                    step="1"
+                                    min="1"
+                                    value={bigBlind}
+                                    onChange={(e) =>
+                                        setBigBlind(Number(e.target.value))
+                                    }
+                                    bg="input.white"
+                                    borderWidth="1px"
+                                    borderColor="border.lightGray"
+                                    borderRadius="14px"
+                                    width="96px"
+                                    height="48px"
+                                    textAlign="right"
+                                    pr={4}
+                                    fontWeight="semibold"
+                                    fontSize="md"
+                                    color="text.primary"
+                                    _hover={{
+                                        borderColor: 'gray.300',
+                                    }}
+                                    _focus={{
+                                        borderColor: 'brand.pink',
+                                        boxShadow:
+                                            '0 0 0 2px rgba(235, 11, 92, 0.2)',
+                                    }}
+                                />
+                            </Box>
+                        </HStack>
+                        {blindsErrorMessage && (
+                            <Box mt={1} maxW="220px">
+                                <Text
+                                    fontSize="10px"
+                                    color="red.100"
+                                    fontWeight="medium"
+                                    lineHeight="shorter"
+                                >
+                                    {blindsErrorMessage}
+                                </Text>
+                            </Box>
+                        )}
+                    </Box>
+                </Flex>
+
+                {/* Network Section - Only for Crypto */}
+                {playType === 'Crypto' && (
+                    <>
+                        <Divider borderColor="gray.100" />
+                        <Box px={{ base: 5, md: 8 }} py={3}>
+                            <Flex alignItems="center" gap={2} mb={1}>
+                                <Text
+                                    fontWeight="bold"
+                                    fontSize="md"
+                                    color="text.primary"
+                                >
+                                    Network
+                                </Text>
+                                <Tooltip
+                                    label="Select the blockchain network for your crypto game"
+                                    bg="brand.darkNavy"
+                                    color="white"
+                                    borderRadius="8px"
+                                    px={3}
+                                    py={2}
+                                >
+                                    <Box display="flex" alignItems="center">
+                                        <FaInfoCircle
+                                            color="#EB0B5C"
+                                            size={14}
+                                        />
+                                    </Box>
+                                </Tooltip>
+                            </Flex>
+                            <Text fontSize="sm" color="gray.500" mb={4}>
+                                Select blockchain to play on
+                            </Text>
+                            <Flex
+                                gap={3}
+                                flexWrap="wrap"
+                                justifyContent={{
+                                    base: 'center',
+                                    sm: 'flex-start',
+                                }}
                             >
                                 {networks.map((network) => (
-                                    <OptionCard
+                                    <NetworkCard
                                         key={network.name}
                                         name={network.name}
                                         image={network.image}
@@ -518,90 +633,67 @@ const LeftSideContent: React.FC = () => {
                                         disabled={network.disabled}
                                     />
                                 ))}
-                            </SimpleGrid>
-                        </Flex>
-                    </FormControl>
-                </Box>
-            )}
-
-            {/* Turnstile Section */}
-            <Box
-                width="100%"
-                maxW="500px"
-                bg="card.white"
-                borderRadius="20px"
-                p={{ base: 4, md: 6 }}
-                boxShadow="0 4px 16px rgba(0, 0, 0, 0.08)"
-                animation={`${slideUp} 0.6s ease-out 0.5s backwards`}
-            >
-                <VStack spacing={3} align="center" textAlign="center">
-                    {isTurnstileConfigured ? (
-                        <>
-                            <Turnstile
-                                sitekey={turnstileSiteKey}
-                                onSuccess={(token: string) => {
-                                    console.log(
-                                        '✅ Turnstile verification successful'
-                                    );
-                                    setTurnstileToken(token);
-                                    setTurnstileError(false);
-                                }}
-                                onExpire={() => {
-                                    console.log('⏱️ Turnstile token expired');
-                                    setTurnstileToken(null);
-                                }}
-                                onError={(errorCode?: string) => {
-                                    console.error(
-                                        '❌ Turnstile error:',
-                                        errorCode
-                                    );
-                                    console.log(
-                                        'CSP Check - Current meta tags:',
-                                        Array.from(
-                                            document.querySelectorAll(
-                                                'meta[http-equiv="Content-Security-Policy"]'
-                                            )
-                                        ).map(
-                                            (m) =>
-                                                (m as HTMLMetaElement).content
-                                        )
-                                    );
-                                    setTurnstileError(true);
-                                    setTurnstileToken(null);
-
-                                    if (errorCode === '600010') {
-                                        toast.warning(
-                                            'Verification Issue',
-                                            'Bot verification failed. You can still create a game.'
-                                        );
-                                    }
-                                }}
-                                theme="light"
-                                size="normal"
-                                retry="auto"
-                                refreshExpired="auto"
-                                retryInterval={3000}
-                            />
-                            {turnstileError && (
-                                <Text
-                                    color="brand.yellow"
-                                    fontSize="xs"
-                                    textAlign="center"
-                                >
-                                    Verification temporarily unavailable
-                                </Text>
-                            )}
-                        </>
-                    ) : (
-                        <Text color="brand.yellow" fontSize="sm">
-                            ⚠️ Turnstile is not configured for this environment.
-                        </Text>
-                    )}
-                    <Text fontSize="sm" color={turnstileStatusColor}>
-                        {turnstileStatusText}
-                    </Text>
-                </VStack>
+                            </Flex>
+                        </Box>
+                    </>
+                )}
             </Box>
+
+            {/* Cloudflare Verification */}
+            <Flex alignItems="center" justifyContent="center" gap={2} py={4}>
+                {isTurnstileConfigured && !turnstileToken && !turnstileError ? (
+                    <Turnstile
+                        sitekey={turnstileSiteKey}
+                        onSuccess={(token: string) => {
+                            setTurnstileToken(token);
+                            setTurnstileError(false);
+                        }}
+                        onExpire={() => {
+                            setTurnstileToken(null);
+                        }}
+                        onError={() => {
+                            setTurnstileError(true);
+                            setTurnstileToken(null);
+                        }}
+                        theme="light"
+                        size="normal"
+                        retry="auto"
+                        refreshExpired="auto"
+                        retryInterval={3000}
+                    />
+                ) : (
+                    <Box
+                        bg="card.white"
+                        borderRadius="full"
+                        px={4}
+                        py={2}
+                        borderWidth="1px"
+                        borderColor="border.lightGray"
+                        boxShadow="sm"
+                        display="flex"
+                        alignItems="center"
+                        gap={2}
+                    >
+                        <Icon
+                            as={FaCheckCircle}
+                            color={
+                                turnstileError ? 'brand.yellow' : 'brand.green'
+                            }
+                            boxSize={4}
+                        />
+                        <Text
+                            fontSize="sm"
+                            color={turnstileError ? 'brand.yellow' : 'gray.500'}
+                        >
+                            {turnstileError
+                                ? 'Verification unavailable — you can still create'
+                                : isTurnstileConfigured
+                                  ? 'Verified by Cloudflare'
+                                  : 'Verified locally'}
+                        </Text>
+                    </Box>
+                )}
+            </Flex>
 
             {/* Create Game Button */}
             <Button
@@ -609,10 +701,10 @@ const LeftSideContent: React.FC = () => {
                 color="white"
                 onClick={handleCreateGame}
                 size="lg"
-                height="60px"
-                width={{ base: '100%', sm: '280px' }}
-                maxW="400px"
-                fontSize="lg"
+                height="56px"
+                width="100%"
+                maxW="480px"
+                fontSize="md"
                 fontWeight="bold"
                 borderRadius="16px"
                 border="none"
@@ -624,27 +716,10 @@ const LeftSideContent: React.FC = () => {
                     isFormValid && isCloudflareReady ? 'pointer' : 'not-allowed'
                 }
                 disabled={!isFormValid || !isCloudflareReady}
-                animation={`${slideUp} 0.6s ease-out 0.6s backwards`}
-                position="relative"
-                overflow="hidden"
-                _before={{
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    bg: 'linear-gradient(135deg, transparent, rgba(255,255,255,0.2), transparent)',
-                    transform: 'translateX(-100%)',
-                    transition: 'transform 0.6s',
-                }}
                 _hover={{
-                    bg: 'brand.green',
+                    bg: '#2d9268',
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 12px 24px rgba(54, 163, 123, 0.35)',
-                    _before: {
-                        transform: 'translateX(100%)',
-                    },
+                    boxShadow: '0 8px 20px rgba(54, 163, 123, 0.35)',
                 }}
                 _active={{
                     transform: 'translateY(0)',
@@ -657,4 +732,4 @@ const LeftSideContent: React.FC = () => {
     );
 };
 
-export default LeftSideContent;
+export default GameSettingLeftSide;

@@ -461,7 +461,11 @@ const GameSettingLeftSide: React.FC = () => {
                             Set the table stakes
                         </Text>
                     </Box>
-                    <Box>
+                    <Box
+                        width={{ base: '100%', sm: 'auto' }}
+                        display="flex"
+                        justifyContent={{ base: 'center', sm: 'flex-start' }}
+                    >
                         <HStack spacing={3} alignItems="flex-end">
                             {/* Small Blind */}
                             <Box position="relative">

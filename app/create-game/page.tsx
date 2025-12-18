@@ -1,7 +1,6 @@
 import GameSettingLeftSide from '../components/CreateGame/GameSettingLeftSide';
 import Head from 'next/head';
 import { Metadata } from 'next';
-import Background from '../components/CreateGame/Background';
 
 export const metadata: Metadata = {
     title: 'Create Poker Game - Stacked Poker',
@@ -49,9 +48,23 @@ const CreateGamePage: React.FC = () => {
                     href="https://challenges.cloudflare.com"
                 />
             </Head>
-            <Background>
-                <GameSettingLeftSide />
-            </Background>
+            <Box
+                minHeight="var(--full-vh)"
+                position="relative"
+                overflow="hidden"
+                bg="bg.default"
+            >
+                {/* Main Content */}
+                <Flex
+                    flex="1"
+                    justifyContent="center"
+                    position="relative"
+                    zIndex={1}
+                    minHeight="var(--full-vh)"
+                >
+                    <GameSettingLeftSide />
+                </Flex>
+            </Box>
         </>
     );
 };

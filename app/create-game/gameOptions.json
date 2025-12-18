@@ -2,7 +2,7 @@
     "gameModes": [
         {
             "name": "Texas Holdem",
-            "description": "The Rolls Royce of Poker.",
+            "description": "Standard, Two cards per player. The Rolls Royce of poker.",
             "disabled": false
         },
         {

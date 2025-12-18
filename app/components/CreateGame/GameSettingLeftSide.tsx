@@ -1,6 +1,5 @@
 'use client';
 
-
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import {
     VStack,
@@ -47,7 +46,7 @@ const fadeIn = keyframes`
 `;
 
 const GameSettingLeftSide: React.FC = () => {
-    const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Crypto');
+    const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
     const [selectedNetwork, setSelectedNetwork] = useState<string>('Optimism');

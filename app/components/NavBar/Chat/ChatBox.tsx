@@ -1,3 +1,5 @@
+'use client'
+
 import { Box, Input, IconButton, Text, Flex } from '@chakra-ui/react';
 import { IoIosSend } from 'react-icons/io';
 import { useContext, useEffect, useRef, useState } from 'react';

@@ -1,3 +1,5 @@
+'use client'
+
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { Box } from '@chakra-ui/react';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';

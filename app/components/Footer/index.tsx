@@ -1,3 +1,5 @@
+'use client'
+
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { useContext } from 'react';

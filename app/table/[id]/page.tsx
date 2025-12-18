@@ -1,63 +1,64 @@
-'use client';
-
-import { useEffect, useState, useContext } from 'react';
-import { isTableExisting } from '@/app/hooks/server_actions';
 import Table from '@/app/components/Table';
-import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { Box, Flex, Heading } from '@chakra-ui/react';
-import { useRouter } from 'next/navigation';
-import useToastHelper from '@/app/hooks/useToastHelper';
+import { Flex } from '@chakra-ui/react';
+
+export async function generateMetadata({ params }: { params: { id: string } }) {
+    const url = `https://stackedpoker.io/table/${params.id}`;
+    return {
+        title: 'Poker Table - Stacked Poker',
+        description:
+            "Play Texas Hold'em online with friends for free or crypto! Join your private poker table, enjoy real-time multiplayer action, and experience the excitement of the game – no downloads or sign-up required.",
+        icons: {
+            icon: '/favicon.ico',
+        },
+        openGraph: {
+            title: 'Play Poker Table - Stacked Poker',
+            description:
+                "Jump into a live poker table on Stacked Poker. Play Hold'em online with your friends or others, manage your seat, and view the action real-time.",
+            url,
+            siteName: 'Stacked Poker',
+            images: [
+                {
+                    url: 'https://stackedpoker.io/previews/table_preview.png',
+                    width: 1200,
+                    height: 630,
+                    alt: 'Table Game - Stacked Poker',
+                },
+            ],
+            locale: 'en_US',
+            type: 'website',
+        },
+        twitter: {
+            title: 'Poker Table - Stacked Poker',
+            description:
+                "Join a poker table and play Hold'em online privately or with the public. No account needed to start playing right away.",
+            images: ['https://stackedpoker.io/previews/table_preview.png'],
+        },
+        keywords: [
+            'poker table',
+            'online poker',
+            "Texas Hold'em",
+            'multiplayer poker',
+            'poker with friends',
+            'real-time poker',
+            'crypto poker',
+            'card game'
+        ]
+    };
+}
 
 const TablePage = ({ params }: { params: { id: string } }) => {
-    const router = useRouter();
-    const toast = useToastHelper();
-    const { appState, dispatch } = useContext(AppContext);
-    const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
-        'checking'
-    );
-    const tableId = params.id;
-
-    useEffect(() => {
-        const verifyAndJoinTable = async () => {
-            if (tableId) {
-                try {
-                    const result = await isTableExisting(tableId);
-                    if (result.status === 'success') {
-                        dispatch({ type: 'setTablename', payload: tableId });
-                        setTableStatus('success');
-                    } else {
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, 5000)
-                        );
-                        router.push('/create-game');
-                    }
-                } catch (error) {
-                    console.error('Error checking table existence:', error);
-                    toast.error('Table does not exist.');
-                    await new Promise((resolve) => setTimeout(resolve, 5000));
-                    router.push('/create-game');
-                }
-            }
-        };
-
-        verifyAndJoinTable();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tableId]);
-
     return (
-        <>
-            <Flex
-                className="game-page-container"
-                flex={1}
-                minHeight={0}
-                overflow="hidden"
-                justifyContent={'center'}
-                position={'relative'}
-                bg={'transparent'}
-            >
-                <Table />
-            </Flex>
-        </>
+        <Flex
+            className="game-page-container"
+            flex={1}
+            minHeight={0}
+            overflow="hidden"
+            justifyContent={'center'}
+            position={'relative'}
+            bg={'transparent'}
+        >
+            <Table tableId={params.id} />
+        </Flex>
     );
 };
 

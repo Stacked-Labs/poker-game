@@ -1,8 +1,17 @@
 import Table from '@/app/components/Table';
 import { Flex } from '@chakra-ui/react';
+import { Metadata, ResolvingMetadata } from 'next';
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-    const url = `https://stackedpoker.io/table/${params.id}`;
+type Props = {
+    params: Promise<{ id: string }>
+}
+
+export async function generateMetadata(
+    { params }: Props,
+    parent: ResolvingMetadata
+): Promise<Metadata> {
+    const { id } = await params;
+    const url = `https://stackedpoker.io/table/${id}`;
     return {
         title: 'Poker Table - Stacked Poker',
         description:
@@ -14,7 +23,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
             title: 'Play Poker Table - Stacked Poker',
             description:
                 "Jump into a live poker table on Stacked Poker. Play Hold'em online with your friends or others, manage your seat, and view the action real-time.",
-            url,
+            url: url,
             siteName: 'Stacked Poker',
             images: [
                 {
@@ -46,7 +55,9 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     };
 }
 
-const TablePage = ({ params }: { params: { id: string } }) => {
+const TablePage = async ({ params }: Props) => {
+    const { id } = await params;
+
     return (
         <Flex
             className="game-page-container"
@@ -57,7 +68,7 @@ const TablePage = ({ params }: { params: { id: string } }) => {
             position={'relative'}
             bg={'transparent'}
         >
-            <Table tableId={params.id} />
+            <Table tableId={id} />
         </Flex>
     );
 };

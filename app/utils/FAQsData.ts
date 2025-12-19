@@ -2,39 +2,23 @@ import { FAQ } from '../interfaces';
 
 export const FAQs: FAQ[] = [
     {
-        question:
-            'Pariatur consequat ullamco ex et nulla reprehenderit esse in consequat sit Lorem?',
-        answer: 'Est est deserunt elit est ad esse laborum voluptate. Nisi eiusmod dolor dolore mollit anim amet consectetur. Aliqua magna nulla pariatur id ex veniam minim cillum ipsum duis exercitation in voluptate. Nulla commodo tempor ut dolor veniam reprehenderit aliqua. Non non ea elit labore cillum est velit nulla est consectetur officia. Sit nulla elit ut adipisicing dolore cillum laborum eu.',
+        question: 'Do I need crypto to play?',
+        answer: 'No, you can play with various options. While we support crypto for on-chain features, we offer multiple ways to join and play.',
     },
     {
-        question: 'Non mollit occaecat tempor eu cupidatat laborum ut fugiat?',
-        answer: 'Est est deserunt elit est ad esse laborum voluptate. Nisi eiusmod dolor dolore mollit anim amet consectetur. Aliqua magna nulla pariatur id ex veniam minim cillum ipsum duis exercitation in voluptate. Nulla commodo tempor ut dolor veniam reprehenderit aliqua. Non non ea elit labore cillum est velit nulla est consectetur officia. Sit nulla elit ut adipisicing dolore cillum laborum eu.',
+        question: 'How do I sign in for crypto play?',
+        answer: 'You can sign in using your favorite social account (Google, Discord, X) via Thirdweb, or connect your Web3 wallet directly for a seamless experience.',
     },
     {
-        question: 'Qui minim nostrud proident aliquip labore adipisicing?',
-        answer: 'Est est deserunt elit est ad esse laborum voluptate. Nisi eiusmod dolor dolore mollit anim amet consectetur. Aliqua magna nulla pariatur id ex veniam minim cillum ipsum duis exercitation in voluptate. Nulla commodo tempor ut dolor veniam reprehenderit aliqua. Non non ea elit labore cillum est velit nulla est consectetur officia. Sit nulla elit ut adipisicing dolore cillum laborum eu.',
+        question: 'Is it legal in my country?',
+        answer: 'Legality depends on your local jurisdiction. Please consult with legal professionals in your area regarding online gaming and cryptocurrency regulations.',
     },
     {
-        question:
-            'Est minim excepteur aute occaecat nostrud veniam ex laborum enim cillum eiusmod sint?',
-        answer: 'Est est deserunt elit est ad esse laborum voluptate. Nisi eiusmod dolor dolore mollit anim amet consectetur. Aliqua magna nulla pariatur id ex veniam minim cillum ipsum duis exercitation in voluptate. Nulla commodo tempor ut dolor veniam reprehenderit aliqua. Non non ea elit labore cillum est velit nulla est consectetur officia. Sit nulla elit ut adipisicing dolore cillum laborum eu.',
+        question: 'What is On-chain Poker?',
+        answer: 'On-chain poker uses blockchain technology to handle game logic, assets (like chips), and transparency, ensuring a fair and verifiable gaming experience.',
     },
     {
-        question: 'Qui minim nostrud proident aliquip labore adipisicing?',
-        answer: 'Est est deserunt elit est ad esse laborum voluptate. Nisi eiusmod dolor dolore mollit anim amet consectetur. Aliqua magna nulla pariatur id ex veniam minim cillum ipsum duis exercitation in voluptate. Nulla commodo tempor ut dolor veniam reprehenderit aliqua. Non non ea elit labore cillum est velit nulla est consectetur officia. Sit nulla elit ut adipisicing dolore cillum laborum eu.',
-    },
-    {
-        question:
-            'Voluptate dolor amet eu ad ad mollit aliquip laboris qui minim duis consequat?',
-        answer: 'Est est deserunt elit est ad esse laborum voluptate. Nisi eiusmod dolor dolore mollit anim amet consectetur. Aliqua magna nulla pariatur id ex veniam minim cillum ipsum duis exercitation in voluptate. Nulla commodo tempor ut dolor veniam reprehenderit aliqua. Non non ea elit labore cillum est velit nulla est consectetur officia. Sit nulla elit ut adipisicing dolore cillum laborum eu.',
-    },
-    {
-        question: 'Qui minim nostrud proident aliquip labore adipisicing?',
-        answer: 'Est est deserunt elit est ad esse laborum voluptate. Nisi eiusmod dolor dolore mollit anim amet consectetur. Aliqua magna nulla pariatur id ex veniam minim cillum ipsum duis exercitation in voluptate. Nulla commodo tempor ut dolor veniam reprehenderit aliqua. Non non ea elit labore cillum est velit nulla est consectetur officia. Sit nulla elit ut adipisicing dolore cillum laborum eu.',
-    },
-    {
-        question:
-            'Laboris dolore eiusmod et laboris amet anim in labore qui nulla Lorem?',
-        answer: 'Est est deserunt elit est ad esse laborum voluptate. Nisi eiusmod dolor dolore mollit anim amet consectetur. Aliqua magna nulla pariatur id ex veniam minim cillum ipsum duis exercitation in voluptate. Nulla commodo tempor ut dolor veniam reprehenderit aliqua. Non non ea elit labore cillum est velit nulla est consectetur officia. Sit nulla elit ut adipisicing dolore cillum laborum eu.',
+        question: 'How are my funds secured?',
+        answer: 'We use industry-standard protocols and Thirdweb integration to ensure that your assets are self-custodied and secure at all times.',
     },
 ];

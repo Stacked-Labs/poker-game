@@ -461,10 +461,10 @@ const GameSettingLeftSide: React.FC = () => {
                             Set the table stakes
                         </Text>
                     </Box>
-                    <Box
+                    <Flex
                         width={{ base: '100%', sm: 'auto' }}
-                        display="flex"
-                        justifyContent={{ base: 'center', sm: 'flex-start' }}
+                        flexDirection="column"
+                        alignItems={{ base: 'center', sm: 'flex-start' }}
                     >
                         <HStack spacing={3} alignItems="flex-end">
                             {/* Small Blind */}
@@ -580,7 +580,7 @@ const GameSettingLeftSide: React.FC = () => {
                                 </Text>
                             </Box>
                         )}
-                    </Box>
+                    </Flex>
                 </Flex>
 
                 {/* Network Section - Only for Crypto */}

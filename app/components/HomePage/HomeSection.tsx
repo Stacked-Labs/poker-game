@@ -1,17 +1,11 @@
-'use client'
+'use client';
 
-import {
-    Box,
-    Flex,
-    Text,
-    VStack,
-    useBreakpointValue,
-    Show,
-} from '@chakra-ui/react';
+import { Box, Flex, Text, VStack, Show } from '@chakra-ui/react';
 import React, { useRef, useEffect } from 'react';
 import HomeCard from './HomeCard';
 import ScrollIndicator from './ScrollIndicator';
 import { keyframes } from '@emotion/react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -71,16 +65,22 @@ const float6 = keyframes`
   85% { transform: translate(2px, -7px); }
 `;
 
+const MotionBox = motion(Box);
+
 const HomeSection = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const showArenaText = useBreakpointValue({
-        base: false, // Mobile
-        sm: false, // Small screens
-        md: true, // Medium screens
-        lg: true, // Large screens
-        xl: true, // Extra large screens
-        '2xl': true, // 2x Extra large screens (optional)
+    const sectionRef = useRef<HTMLDivElement>(null);
+
+    const { scrollYProgress } = useScroll({
+        target: sectionRef,
+        offset: ['start start', 'end start'],
     });
+
+    // Parallax and Scale transforms for the video
+    // Increased range from 10% to 20% travel to make the parallax more pronounced
+    const videoY = useTransform(scrollYProgress, [0, 1], ['0%', '-12%']);
+    const videoScale = useTransform(scrollYProgress, [0, 1], [1.05, 1.0]);
+
     const words = React.useMemo(() => ['HOST', 'YOUR', 'POKER', 'GAME'], []);
     const floatAnimations = React.useMemo(
         () => [float1, float2, float3, float4, float5, float6],
@@ -98,19 +98,17 @@ const HomeSection = () => {
 
     return (
         <Box
+            ref={sectionRef}
             position="relative"
             width="100vw"
+            bg="white"
             height={{ base: '100%', lg: 'var(--full-vh)' }}
-            bgAttachment="fixed"
-            bgColor="brand.lightGray"
-            bgSize="cover"
             bgPosition={{ base: 'right', lg: 'center' }}
-            bgImage={''}
             overflow="hidden"
         >
             {/* Video Background - Desktop Only */}
             <Show above="md">
-                <Box
+                <MotionBox
                     as="video"
                     ref={videoRef}
                     autoPlay
@@ -118,23 +116,26 @@ const HomeSection = () => {
                     muted
                     playsInline
                     position="absolute"
-                    top="50%"
-                    left="50%"
-                    transform="translate(-50%, -50%)"
-                    minWidth="100%"
-                    minHeight="100%"
-                    width="auto"
-                    height="auto"
+                    top="-8%"
+                    left="0"
+                    width="100%"
+                    height="120%"
                     objectFit="cover"
                     zIndex={0}
                     opacity={0.85}
+                    style={{
+                        y: videoY,
+                        scale: videoScale,
+                        transformOrigin: '70% center',
+                    }}
                     sx={{
                         pointerEvents: 'none',
+                        objectPosition: '70% center',
                     }}
                 >
                     <source src="/video/background2.webm" type="video/webm" />
                     <source src="/video/background.mp4" type="video/mp4" />
-                </Box>
+                </MotionBox>
                 {/* Subtle overlay for better content readability */}
                 <Box
                     position="absolute"
@@ -147,6 +148,7 @@ const HomeSection = () => {
                     pointerEvents="none"
                 />
             </Show>
+
             <Flex
                 position="relative"
                 width="100%"

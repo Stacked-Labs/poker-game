@@ -25,16 +25,16 @@ const gradientMove = keyframes`
 
 const OnchainInfoSection = () => {
     return (
-        <Box bg="white" py={{ base: 12, md: 20 }} width="100%">
+        <Box bg="bg.default" py={{ base: 12, md: 20 }} width="100%">
             <Container maxW="container.xl">
                 <VStack spacing={20} align="stretch">
                     {/* Part 1: Why Onchain? */}
                     <Box
-                        bg="white"
+                        bg="card.white"
                         borderRadius="32px"
                         p={{ base: 8, md: 16 }}
                         border="1px solid"
-                        borderColor="gray.100"
+                        borderColor="border.lightGray"
                         boxShadow="0 10px 40px rgba(0,0,0,0.04)"
                     >
                         <VStack align="start" spacing={8}>
@@ -46,7 +46,7 @@ const OnchainInfoSection = () => {
                                     borderRadius="full"
                                 />
                                 <Text
-                                    color="gray.500"
+                                    color="text.gray600"
                                     fontSize="sm"
                                     fontWeight="bold"
                                     letterSpacing="0.1em"
@@ -59,7 +59,7 @@ const OnchainInfoSection = () => {
                             <Heading
                                 fontSize={{ base: '3xl', md: '4xl' }}
                                 fontWeight="extrabold"
-                                color="brand.darkNavy"
+                                color="text.primary"
                             >
                                 Trust, but verify everything.
                             </Heading>
@@ -67,7 +67,7 @@ const OnchainInfoSection = () => {
                             <VStack align="start" spacing={6} maxW="3xl">
                                 <Text
                                     fontSize="lg"
-                                    color="brand.navy"
+                                    color="text.secondary"
                                     lineHeight="tall"
                                 >
                                     Traditional online poker requires you to
@@ -77,7 +77,7 @@ const OnchainInfoSection = () => {
                                 </Text>
                                 <Text
                                     fontSize="lg"
-                                    color="brand.navy"
+                                    color="text.secondary"
                                     lineHeight="tall"
                                 >
                                     Stacked uses <b>Smart Contracts</b>. These
@@ -110,7 +110,7 @@ const OnchainInfoSection = () => {
                                     }}
                                 >
                                     <Box
-                                        bg="white"
+                                        bg="card.white"
                                         p={10}
                                         borderRadius="28px"
                                         height="100%"
@@ -124,14 +124,14 @@ const OnchainInfoSection = () => {
                                             <Heading
                                                 fontSize="xl"
                                                 fontWeight="bold"
-                                                color="brand.darkNavy"
+                                                color="text.primary"
                                                 letterSpacing="-0.01em"
                                             >
                                                 Self-Custody
                                             </Heading>
                                         </HStack>
                                         <Text
-                                            color="brand.navy"
+                                            color="text.secondary"
                                             lineHeight="tall"
                                             fontSize="md"
                                             fontWeight="medium"
@@ -158,7 +158,7 @@ const OnchainInfoSection = () => {
                                     }}
                                 >
                                     <Box
-                                        bg="white"
+                                        bg="card.white"
                                         p={10}
                                         borderRadius="28px"
                                         height="100%"
@@ -172,14 +172,14 @@ const OnchainInfoSection = () => {
                                             <Heading
                                                 fontSize="xl"
                                                 fontWeight="bold"
-                                                color="brand.darkNavy"
+                                                color="text.primary"
                                                 letterSpacing="-0.01em"
                                             >
                                                 Transparency
                                             </Heading>
                                         </HStack>
                                         <Text
-                                            color="brand.navy"
+                                            color="text.secondary"
                                             lineHeight="tall"
                                             fontSize="md"
                                             fontWeight="medium"
@@ -244,7 +244,7 @@ const OnchainInfoSection = () => {
                                 <VStack align="start" spacing={6}>
                                     <Text
                                         fontSize="lg"
-                                        color="gray.300"
+                                        color="brand.lightGray"
                                         lineHeight="tall"
                                     >
                                         In Stacked, your poker chips are
@@ -255,7 +255,7 @@ const OnchainInfoSection = () => {
                                     </Text>
                                     <Text
                                         fontSize="lg"
-                                        color="gray.300"
+                                        color="brand.lightGray"
                                         lineHeight="tall"
                                     >
                                         Instead of buying chips from a cashier

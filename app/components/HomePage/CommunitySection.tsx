@@ -16,6 +16,7 @@ import {
     HStack,
     Image,
     Icon,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { MdCheckCircle, MdFlashOn } from 'react-icons/md';
 import { SiThirdweb } from 'react-icons/si';
@@ -25,6 +26,8 @@ import { RiTwitterXLine } from 'react-icons/ri';
 import React from 'react';
 
 const CommunitySection = () => {
+    const iconColor = useColorModeValue('#000000', '#FFFFFF');
+
     const authOptions: {
         name: string;
         icon: string | React.ElementType;
@@ -45,7 +48,7 @@ const CommunitySection = () => {
             name: 'X',
             icon: RiTwitterXLine,
             isReactIcon: true,
-            color: '#000000',
+            color: iconColor,
         },
         {
             name: 'Discord',
@@ -57,12 +60,12 @@ const CommunitySection = () => {
             name: 'Apple',
             icon: FaApple,
             isReactIcon: true,
-            color: '#000000',
+            color: iconColor,
         },
     ];
 
     return (
-        <Box bg="white" py={{ base: 8, md: 16 }} width="100%">
+        <Box bg="bg.default" py={{ base: 8, md: 16 }} width="100%">
             <Container maxW="container.xl">
                 {/* Header Section */}
                 <VStack
@@ -74,7 +77,7 @@ const CommunitySection = () => {
                         fontSize={{ base: '3xl', md: '5xl', lg: '6xl' }}
                         fontWeight="extrabold"
                         lineHeight={1.2}
-                        color="brand.darkNavy"
+                        color="text.primary"
                     >
                         A Social & Interactive{' '}
                         <Text
@@ -87,7 +90,7 @@ const CommunitySection = () => {
                     </Heading>
                     <Text
                         fontSize={{ base: 'lg', md: 'xl' }}
-                        color="brand.navy"
+                        color="text.secondary"
                         maxW="2xl"
                         mx="auto"
                         fontWeight="medium"
@@ -107,7 +110,7 @@ const CommunitySection = () => {
                         alignItems="center"
                     >
                         <Box
-                            bg="brand.lightGray"
+                            bg="card.lightGray"
                             borderRadius="3xl"
                             height={{ base: '300px', md: '400px' }}
                             display="flex"
@@ -116,9 +119,9 @@ const CommunitySection = () => {
                             position="relative"
                             overflow="hidden"
                             border="1px solid"
-                            borderColor="gray.200"
+                            borderColor="border.lightGray"
                         >
-                            <Text color="gray.400" fontWeight="bold">
+                            <Text color="text.gray600" fontWeight="bold">
                                 IMAGE PLACEHOLDER
                             </Text>
                             {/* Red X Overlay for the guide */}
@@ -183,7 +186,7 @@ const CommunitySection = () => {
                             <Heading
                                 fontSize={{ base: '3xl', md: '4xl' }}
                                 fontWeight="extrabold"
-                                color="brand.darkNavy"
+                                color="text.primary"
                                 letterSpacing="-0.02em"
                             >
                                 Instant Free Play.
@@ -192,7 +195,7 @@ const CommunitySection = () => {
                             </Heading>
                             <Text
                                 fontSize="lg"
-                                color="brand.navy"
+                                color="text.secondary"
                                 lineHeight="tall"
                             >
                                 We believe in &quot;Show up and play&quot;.
@@ -212,7 +215,7 @@ const CommunitySection = () => {
                                         alignItems="center"
                                         fontSize="md"
                                         fontWeight="semibold"
-                                        color="brand.navy"
+                                        color="text.secondary"
                                     >
                                         <ListIcon
                                             as={MdCheckCircle}
@@ -257,14 +260,14 @@ const CommunitySection = () => {
                             <Heading
                                 fontSize={{ base: '3xl', md: '4xl' }}
                                 fontWeight="extrabold"
-                                color="brand.darkNavy"
+                                color="text.primary"
                                 letterSpacing="-0.02em"
                             >
                                 Crypto Play & Auth
                             </Heading>
                             <Text
                                 fontSize="lg"
-                                color="brand.navy"
+                                color="text.secondary"
                                 lineHeight="tall"
                             >
                                 Ready for real stakes? We use{' '}
@@ -293,11 +296,11 @@ const CommunitySection = () => {
                                     <Text
                                         fontWeight="bold"
                                         fontSize="md"
-                                        color="white"
+                                        color="text.white"
                                     >
                                         How it works:
                                     </Text>
-                                    <Text fontSize="sm" color="gray.300">
+                                    <Text fontSize="sm" color="brand.lightGray">
                                         Thirdweb handles the complexity. You
                                         simply log in using your favorite social
                                         account (Google, Discord, X) or connect
@@ -310,19 +313,19 @@ const CommunitySection = () => {
                                 {authOptions.map((option) => (
                                     <HStack
                                         key={option.name}
-                                        bg="white"
+                                        bg="card.white"
                                         px={4}
                                         py={2.5}
                                         borderRadius="xl"
                                         border="1px solid"
-                                        borderColor="brand.lightGray"
+                                        borderColor="border.lightGray"
                                         boxShadow="sm"
                                         spacing={3}
                                         transition="all 0.2s"
                                         _hover={{
                                             transform: 'translateY(-2px)',
                                             boxShadow: 'md',
-                                            borderColor: 'purple.200',
+                                            borderColor: 'brand.pink',
                                         }}
                                     >
                                         <Flex
@@ -360,7 +363,7 @@ const CommunitySection = () => {
                                         <Text
                                             fontSize="sm"
                                             fontWeight="bold"
-                                            color="brand.navy"
+                                            color="text.secondary"
                                         >
                                             {option.name}
                                         </Text>
@@ -370,7 +373,7 @@ const CommunitySection = () => {
                         </VStack>
 
                         <Box
-                            bg="rgba(133, 93, 205, 0.05)"
+                            bg="card.lighterGray"
                             borderRadius="3xl"
                             height={{ base: '300px', md: '400px' }}
                             display="flex"
@@ -380,9 +383,9 @@ const CommunitySection = () => {
                             overflow="hidden"
                             order={{ base: 1, lg: 2 }}
                             border="1px solid"
-                            borderColor="purple.100"
+                            borderColor="border.lightGray"
                         >
-                            <Text color="purple.200" fontWeight="bold">
+                            <Text color="text.gray600" fontWeight="bold">
                                 IMAGE PLACEHOLDER
                             </Text>
                             {/* Red X Overlay for the guide */}
@@ -392,7 +395,7 @@ const CommunitySection = () => {
                                 left="0"
                                 right="0"
                                 bottom="0"
-                                bg="rgba(255, 0, 0, 0.03)"
+                                bg="rgba(235, 11, 92, 0.03)"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"

@@ -101,7 +101,7 @@ const HomeSection = () => {
             ref={sectionRef}
             position="relative"
             width="100vw"
-            bg="white"
+            bg="bg.default"
             height={{ base: '100%', lg: 'var(--full-vh)' }}
             bgPosition={{ base: 'right', lg: 'center' }}
             overflow="hidden"

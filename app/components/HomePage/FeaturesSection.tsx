@@ -30,11 +30,11 @@ const FeatureCard = ({
     iconColor: string;
 }) => (
     <Box
-        bg="white"
+        bg="card.white"
         p={6}
         borderRadius="24px"
         border="1px solid"
-        borderColor="gray.100"
+        borderColor="border.lightGray"
         boxShadow="sm"
         transition="all 0.2s"
         _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
@@ -52,11 +52,11 @@ const FeatureCard = ({
             >
                 <Icon as={icon} />
             </Flex>
-            <Heading fontSize="xl" fontWeight="bold" color="brand.darkNavy">
+            <Heading fontSize="xl" fontWeight="bold" color="text.primary">
                 {title}
             </Heading>
         </HStack>
-        <Text color="brand.navy" fontSize="md" lineHeight="tall">
+        <Text color="text.secondary" fontSize="md" lineHeight="tall">
             {description}
         </Text>
     </Box>
@@ -64,7 +64,7 @@ const FeatureCard = ({
 
 const FeaturesSection = () => {
     return (
-        <Box bg="white" py={{ base: 12, md: 20 }} width="100%">
+        <Box bg="bg.default" py={{ base: 12, md: 20 }} width="100%">
             <Container maxW="container.xl">
                 <SimpleGrid
                     columns={{ base: 1, lg: 2 }}
@@ -77,14 +77,14 @@ const FeaturesSection = () => {
                             <Heading
                                 fontSize={{ base: '3xl', md: '5xl' }}
                                 fontWeight="extrabold"
-                                color="brand.darkNavy"
+                                color="text.primary"
                                 letterSpacing="-0.02em"
                             >
                                 Simply Put...
                             </Heading>
                             <Text
                                 fontSize={{ base: 'lg', md: 'xl' }}
-                                color="brand.navy"
+                                color="text.secondary"
                                 lineHeight="tall"
                                 fontWeight="medium"
                                 maxW="2xl"
@@ -124,7 +124,7 @@ const FeaturesSection = () => {
 
                     {/* Right Side: Video Placeholder */}
                     <Box
-                        bg="brand.lightGray"
+                        bg="card.lightGray"
                         borderRadius="32px"
                         width="100%"
                         height={{ base: '300px', md: '500px', lg: '600px' }}
@@ -134,11 +134,11 @@ const FeaturesSection = () => {
                         position="relative"
                         overflow="hidden"
                         border="1px solid"
-                        borderColor="gray.200"
+                        borderColor="border.lightGray"
                     >
                         <VStack spacing={4}>
                             <Box
-                                bg="white"
+                                bg="card.white"
                                 p={4}
                                 borderRadius="full"
                                 boxShadow="lg"
@@ -157,7 +157,7 @@ const FeaturesSection = () => {
                                 />
                             </Box>
                             <Text
-                                color="brand.navy"
+                                color="text.secondary"
                                 fontWeight="bold"
                                 fontSize="lg"
                             >

@@ -21,7 +21,7 @@ import { HiLightningBolt } from 'react-icons/hi';
 
 const Footer = () => {
     return (
-        <Box bg="brand.lightGray" color="brand.darkNavy" pt={16} pb={8}>
+        <Box bg="bg.default" color="text.primary" pt={16} pb={8}>
             <Container maxW="container.xl">
                 <SimpleGrid
                     columns={{ base: 1, md: 2, lg: 4 }}
@@ -42,18 +42,18 @@ const Footer = () => {
                                 fontSize="2xl"
                                 fontWeight="extrabold"
                                 letterSpacing="tight"
+                                color="text.primary"
                             >
                                 STACKED
                             </Text>
                         </Flex>
                         <Text
-                            color="brand.navy"
+                            color="text.secondary"
                             fontSize="md"
                             lineHeight="tall"
                         >
-                            The easiest way to play poker with friends,
-                            on-chain. No downloads, no hassle—just pure poker
-                            action.
+                            The easiest way to play poker with friends, onchain.
+                            No downloads, no hassle—just pure poker action.
                         </Text>
                         <HStack spacing={4}>
                             <Link
@@ -63,7 +63,7 @@ const Footer = () => {
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
-                                bg="rgba(0, 0, 0, 0.05)"
+                                bg="card.lightGray"
                                 borderRadius="full"
                                 _hover={{
                                     bg: 'brand.pink',
@@ -80,7 +80,7 @@ const Footer = () => {
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
-                                bg="rgba(0, 0, 0, 0.05)"
+                                bg="card.lightGray"
                                 borderRadius="full"
                                 _hover={{
                                     bg: 'brand.pink',
@@ -93,13 +93,17 @@ const Footer = () => {
                         </HStack>
                     </Stack>
 
-                    {/* Product Links */}
                     <VStack align="flex-start" spacing={4}>
-                        <Text fontWeight="bold" fontSize="lg">
+                        <Text
+                            fontWeight="bold"
+                            fontSize="lg"
+                            color="text.primary"
+                        >
                             Product
                         </Text>
                         <Link
                             href="/"
+                            color="text.secondary"
                             _hover={{ color: 'brand.pink' }}
                             transition="0.2s"
                         >
@@ -107,6 +111,7 @@ const Footer = () => {
                         </Link>
                         <Link
                             href="/create-game"
+                            color="text.secondary"
                             _hover={{ color: 'brand.pink' }}
                             transition="0.2s"
                         >
@@ -116,12 +121,17 @@ const Footer = () => {
 
                     {/* Resources Links */}
                     <VStack align="flex-start" spacing={4}>
-                        <Text fontWeight="bold" fontSize="lg">
+                        <Text
+                            fontWeight="bold"
+                            fontSize="lg"
+                            color="text.primary"
+                        >
                             Resources
                         </Text>
                         <Link
                             href="https://docs.stackedpoker.io/docs/introduction"
                             isExternal
+                            color="text.secondary"
                             _hover={{ color: 'brand.pink' }}
                             transition="0.2s"
                         >
@@ -129,6 +139,7 @@ const Footer = () => {
                         </Link>
                         <Link
                             href="#faq"
+                            color="text.secondary"
                             _hover={{ color: 'brand.pink' }}
                             transition="0.2s"
                         >
@@ -136,6 +147,7 @@ const Footer = () => {
                         </Link>
                         <Link
                             href="#how-to-play"
+                            color="text.secondary"
                             _hover={{ color: 'brand.pink' }}
                             transition="0.2s"
                         >
@@ -145,12 +157,17 @@ const Footer = () => {
 
                     {/* Support Section */}
                     <VStack align="flex-start" spacing={4}>
-                        <Text fontWeight="bold" fontSize="lg">
+                        <Text
+                            fontWeight="bold"
+                            fontSize="lg"
+                            color="text.primary"
+                        >
                             Support
                         </Text>
                         <Link
                             href="https://discord.gg/XMWfksjt"
                             isExternal
+                            color="text.secondary"
                             _hover={{ color: 'brand.pink' }}
                             transition="0.2s"
                         >
@@ -159,6 +176,7 @@ const Footer = () => {
                         <Link
                             href="https://x.com/stacked_poker"
                             isExternal
+                            color="text.secondary"
                             _hover={{ color: 'brand.pink' }}
                             transition="0.2s"
                         >
@@ -167,7 +185,7 @@ const Footer = () => {
                     </VStack>
                 </SimpleGrid>
 
-                <Divider borderColor="rgba(0, 0, 0, 0.1)" mb={6} />
+                <Divider borderColor="border.lightGray" mb={6} />
 
                 <Flex
                     direction={{ base: 'column', md: 'row' }}
@@ -175,16 +193,16 @@ const Footer = () => {
                     align="center"
                     gap={4}
                 >
-                    <Text color="gray.500" fontSize="sm">
+                    <Text color="text.gray600" fontSize="sm">
                         © {new Date().getFullYear()} Stacked Poker. All rights
                         reserved.
                     </Text>
                     <HStack spacing={6}>
-                        <Text color="gray.500" fontSize="xs">
+                        <Text color="text.gray600" fontSize="xs">
                             Built with Thirdweb
                         </Text>
-                        <Text color="gray.500" fontSize="xs">
-                            Made for On-Chain Friends
+                        <Text color="text.gray600" fontSize="xs">
+                            Made for Onchain Friends
                         </Text>
                     </HStack>
                 </Flex>

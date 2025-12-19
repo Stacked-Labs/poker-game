@@ -10,6 +10,7 @@ import {
     Box,
     Heading,
     Text,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord } from 'react-icons/fa';
@@ -55,6 +56,7 @@ const shimmer = keyframes`
 const HomeCard = () => {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const xIconColor = useColorModeValue('#000000', '#FFFFFF');
 
     const handlePlayNow = () => {
         setIsLoading(true);
@@ -263,17 +265,17 @@ const HomeCard = () => {
                         gap={3}
                         pt={1}
                     >
-                        <Box flex={1} height="1px" bg="brand.lightGray" />
+                        <Box flex={1} height="1px" bg="border.lightGray" />
                         <Text
                             fontSize="xs"
-                            color="gray.400"
+                            color="text.gray600"
                             fontWeight="semibold"
                             textTransform="uppercase"
                             letterSpacing="0.12em"
                         >
                             Connect
                         </Text>
-                        <Box flex={1} height="1px" bg="brand.lightGray" />
+                        <Box flex={1} height="1px" bg="border.lightGray" />
                     </Flex>
 
                     {/* Social Links */}
@@ -291,7 +293,7 @@ const HomeCard = () => {
                                 icon={<RiTwitterXLine size={20} />}
                                 size="lg"
                                 variant="social"
-                                color="#000000"
+                                color={xIconColor}
                                 borderRadius="12px"
                                 w={{ base: '48px', md: '52px' }}
                                 h={{ base: '48px', md: '52px' }}

@@ -17,7 +17,7 @@ import React from 'react';
 
 const NewsletterSection = () => {
     return (
-        <Box bg="white" py={{ base: 4, md: 12 }} width="100%">
+        <Box bg="bg.default" py={{ base: 4, md: 12 }} width="100%">
             <Container maxW="container.xl">
                 <Box
                     position="relative"
@@ -95,7 +95,7 @@ const NewsletterSection = () => {
                             </Heading>
 
                             <Text
-                                color="gray.400"
+                                color="brand.lightGray"
                                 fontSize={{ base: 'md', md: 'lg' }}
                                 lineHeight="tall"
                                 fontWeight="medium"
@@ -159,7 +159,7 @@ const NewsletterSection = () => {
                                 </HStack>
                             </Box>
                             <Text
-                                color="gray.600"
+                                color="text.gray600"
                                 fontSize="xs"
                                 fontWeight="medium"
                                 px={2}

@@ -16,19 +16,14 @@ import { FAQs } from '../../utils/FAQsData';
 
 const FAQSection = () => {
     return (
-        <Box
-            as="section"
-            py={{ base: 16, md: 24 }}
-            bg="brand.lightGray"
-            w="100%"
-        >
+        <Box as="section" py={{ base: 16, md: 24 }} bg="bg.default" w="100%">
             <Container maxW="container.lg">
                 <VStack spacing={12} align="stretch">
                     <Heading
                         as="h2"
                         size="2xl"
                         textAlign="left"
-                        color="brand.darkNavy"
+                        color="text.primary"
                         fontWeight="extrabold"
                     >
                         Frequently Asked Questions
@@ -40,7 +35,7 @@ const FAQSection = () => {
                                 key={index}
                                 border="none"
                                 mb={4}
-                                bg="white"
+                                bg="card.white"
                                 borderRadius="xl"
                                 boxShadow="sm"
                                 overflow="hidden"
@@ -49,7 +44,7 @@ const FAQSection = () => {
                                     <AccordionButton
                                         py={6}
                                         px={8}
-                                        _hover={{ bg: 'gray.50' }}
+                                        _hover={{ bg: 'card.lightGray' }}
                                         display="flex"
                                         justifyContent="space-between"
                                     >
@@ -58,12 +53,12 @@ const FAQSection = () => {
                                             textAlign="left"
                                             fontWeight="bold"
                                             fontSize="xl"
-                                            color="brand.darkNavy"
+                                            color="text.primary"
                                         >
                                             {faq.question}
                                         </Box>
                                         <AccordionIcon
-                                            color="brand.navy"
+                                            color="text.secondary"
                                             fontSize="24px"
                                         />
                                     </AccordionButton>
@@ -71,7 +66,7 @@ const FAQSection = () => {
                                 <AccordionPanel
                                     pb={8}
                                     px={8}
-                                    color="brand.navy"
+                                    color="text.secondary"
                                     fontSize="lg"
                                     lineHeight="tall"
                                 >

@@ -3,7 +3,7 @@ import { FAQ } from '../interfaces';
 export const FAQs: FAQ[] = [
     {
         question: 'Do I need crypto to play?',
-        answer: 'No, you can play with various options. While we support crypto for on-chain features, we offer multiple ways to join and play.',
+        answer: 'No, you can play with various options. While we support crypto for onchain features, we offer multiple ways to join and play.',
     },
     {
         question: 'How do I sign in for crypto play?',
@@ -14,8 +14,8 @@ export const FAQs: FAQ[] = [
         answer: 'Legality depends on your local jurisdiction. Please consult with legal professionals in your area regarding online gaming and cryptocurrency regulations.',
     },
     {
-        question: 'What is On-chain Poker?',
-        answer: 'On-chain poker uses blockchain technology to handle game logic, assets (like chips), and transparency, ensuring a fair and verifiable gaming experience.',
+        question: 'What is Onchain Poker?',
+        answer: 'Onchain poker uses blockchain technology to handle game logic, assets (like chips), and transparency, ensuring a fair and verifiable gaming experience.',
     },
     {
         question: 'How are my funds secured?',

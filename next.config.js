@@ -75,5 +75,34 @@ const nextConfig = {
         NEXT_PUBLIC_THIRDWEB_CLIENT_ID:
             process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
     },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'media0.giphy.com',
+                pathname: '/media/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'media1.giphy.com',
+                pathname: '/media/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'media2.giphy.com',
+                pathname: '/media/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'media3.giphy.com',
+                pathname: '/media/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'media4.giphy.com',
+                pathname: '/media/**',
+            },
+        ],
+    },
 };
 module.exports = nextConfig;

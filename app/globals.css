@@ -212,3 +212,15 @@ a {
     --lf-y2: 9px;
     --lf-r2: -3deg;
 }
+
+.bxsZVO {
+    background: #ffffff !important;
+}
+
+.bxsZVO.dark-theme {
+    background: #8a8a8a !important;
+}
+
+.iTTiWD {
+    background: #4e4e4e !important;
+}

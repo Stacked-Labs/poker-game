@@ -14,7 +14,7 @@ export const metadata: Metadata = {
         title: 'Stacked - Poker with Friends',
         description:
             'The easiest way to play poker for free or for crypto. No download, no sign up needed.',
-        url: 'https://stackedpoker.io',
+        url: 'https://stackedpoker.io/',
         siteName: 'Stacked Poker',
         images: [
             {

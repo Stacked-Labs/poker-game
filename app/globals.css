@@ -213,12 +213,12 @@ a {
     --lf-r2: -3deg;
 }
 
-.bxsZVO {
-    background: #ffffff !important;
-}
-
-.bxsZVO.dark-theme {
-    background: #8a8a8a !important;
+/* Giphy Search */
+.giphy-search-bar {
+    background: #c7c9cf !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
 }
 
 .iTTiWD {

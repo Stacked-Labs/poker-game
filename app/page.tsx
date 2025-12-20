@@ -8,6 +8,7 @@ import FAQSection from './components/HomePage/FAQSection';
 import Footer from './components/HomePage/Footer';
 import { Metadata } from 'next';
 import CoinGecko from './components/HomePage/CoinGecko';
+import BackToTopButton from './components/HomePage/BackToTopButton';
 
 export const metadata: Metadata = {
     title: 'Stacked - Poker with Friends',
@@ -63,6 +64,7 @@ const HomePage: React.FC = () => {
                     <Footer />
                 </VStack>
             </Box>
+            <BackToTopButton />
         </>
     );
 };

@@ -10,21 +10,21 @@ import { Metadata } from 'next';
 import CoinGecko from './components/HomePage/CoinGecko';
 
 export const metadata: Metadata = {
-    title: 'Stacked - Poker with Friends',
+    title: 'Stacked | Poker with Friends',
     description:
         'The easiest way to play poker for free or with crypto. No download, no sign up needed.',
     icons: {
         icon: '/favicon.ico',
     },
     openGraph: {
-        title: 'Stacked - Poker with Friends',
+        title: 'Stacked | Poker with Friends',
         description:
             'The easiest way to play poker for free or for crypto. No download, no sign up needed.',
-        url: 'https://stackedpoker.io/',
+        url: '/',
         siteName: 'Stacked Poker',
         images: [
             {
-                url: 'https://stackedpoker.io/previews/home_preview.png',
+                url: '/previews/home_preview.png',
                 width: 1200,
                 height: 630,
                 alt: 'Stacked Poker',
@@ -34,10 +34,10 @@ export const metadata: Metadata = {
         type: 'website',
     },
     twitter: {
-        title: 'Stacked - Poker with Friends',
+        title: 'Stacked | Poker with Friends',
         description:
             'The easiest way to play poker for free or with crypto. No download, no sign up needed.',
-        images: ['https://stackedpoker.io/previews/home_preview.png'],
+        images: ['/previews/home_preview.png'],
     },
     keywords: ["poker, online poker, Texas Hold'em, card game, multiplayer"],
 };

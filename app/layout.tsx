@@ -11,8 +11,27 @@ import '@fontsource/geist-sans/800.css'; // Geist ExtraBold
 import '@fontsource/geist-sans/900.css'; // Geist Black
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import React from 'react';
+import { Metadata } from 'next';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const metadata: Metadata = {
+    metadataBase: new URL('https://stackedpoker.io'),
+    title: {
+        template: '%s | Stacked Poker',
+        default: 'Stacked - Poker with Friends',
+    },
+    alternates: {
+        canonical: '/',
+        languages: {
+            'en-US': '/en-US',
+        },
+    },
+    openGraph: {
+        title: '%s | Stacked Poker',
+        images: '/previews/home_preview.png',
+    },
+};
 
 export default function RootLayout({
     children,

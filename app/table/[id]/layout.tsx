@@ -7,10 +7,14 @@ import GameViewport from '@/app/components/GameViewport';
 import LobbyBanner from '@/app/components/LobbyBanner';
 import PauseBanner from '@/app/components/PauseBanner';
 
-const TableLayout: React.FC<{ params: { id: string } }> = ({
+const TableLayout = async ({
     children,
     params,
-}: React.PropsWithChildren<{ params: { id: string } }>) => {
+}: {
+    children: React.ReactNode;
+    params: Promise<{ id: string }>;
+}) => {
+    const { id } = await params;
     return (
         <GameViewport>
             {/* Content Layer - fills the fixed-ratio container */}
@@ -23,7 +27,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                 direction="column"
                 bg="transparent"
             >
-                <SocketProvider tableId={params.id}>
+                <SocketProvider tableId={id}>
                     {/* Navbar - absolutely positioned, overlays at top */}
                     <Navbar />
 

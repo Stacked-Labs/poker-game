@@ -79,28 +79,13 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'media0.giphy.com',
-                pathname: '/media/**',
+                hostname: 'tenor.com',
+                pathname: '/**',
             },
             {
                 protocol: 'https',
-                hostname: 'media1.giphy.com',
-                pathname: '/media/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'media2.giphy.com',
-                pathname: '/media/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'media3.giphy.com',
-                pathname: '/media/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'media4.giphy.com',
-                pathname: '/media/**',
+                hostname: 'media.tenor.com',
+                pathname: '/**',
             },
         ],
     },

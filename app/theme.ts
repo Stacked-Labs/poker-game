@@ -76,9 +76,13 @@ const semanticTokens = {
             default: 'rgba(255, 255, 255, 0.85)',
             _dark: 'rgba(46, 46, 54, 0.95)',
         },
-        'bg.letterbox': {
-            default: '#D8D8DD',
-            _dark: '#141418',
+        'bg.scrollIndicator': {
+            default: 'white',
+            _dark: '#191919',
+        },
+        'bg.scrollIndicatorMid': {
+            default: 'rgba(255, 255, 255, 0.5)',
+            _dark: 'rgba(25, 25, 25, 0.5)',
         },
 
         // Text colors
@@ -150,9 +154,13 @@ const semanticTokens = {
             default: 'brand.lightGray',
             _dark: 'legacy.grayDark',
         },
-        'card.lighterGray': {
-            default: 'rgba(236, 238, 245, 0.5)',
-            _dark: 'rgba(53, 53, 53, 0.5)',
+        'card.heroBg': {
+            default: 'white',
+            _dark: 'rgba(23, 23, 23, 0.8)',
+        },
+        'card.heroInnerBg': {
+            default: 'white',
+            _dark: '#171717',
         },
 
         // Chat UI
@@ -215,6 +223,11 @@ const semanticTokens = {
         'chat.inputFocus': {
             default: '0 0 0 2px rgba(51, 68, 121, 0.2)',
             _dark: '0 0 0 2px rgba(255, 255, 255, 0.2)',
+        },
+        'card.hero': {
+            default:
+                '0 25px 80px rgba(0, 0, 0, 0.12), 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.9)',
+            _dark: '0 25px 80px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)',
         },
     },
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import { Tooltip, IconButton, Icon, useColorModeValue } from '@chakra-ui/react';
+import { Tooltip, IconButton, Icon } from '@chakra-ui/react';
 import { FiLogOut } from 'react-icons/fi';
 
 interface LeaveButtonProps {
@@ -20,8 +20,7 @@ const LeaveButton = ({
     const buttonLabel = isLeaveRequested
         ? 'Cancel leave request'
         : 'Leave Table';
-    const defaultBg = useColorModeValue('brand.lightGray', 'charcoal.600');
-    const bgColor = isLeaveRequested ? 'brand.pink' : defaultBg;
+    const bgColor = isLeaveRequested ? 'brand.pink' : 'btn.lightGray';
     const iconColor = isLeaveRequested ? 'white' : 'brand.pink';
     const hoverShadow = isLeaveRequested
         ? '0 4px 12px rgba(235, 11, 92, 0.4)'

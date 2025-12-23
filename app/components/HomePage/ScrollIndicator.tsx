@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Flex, VStack, Text, useColorModeValue } from '@chakra-ui/react';
+import { Box, VStack, Text } from '@chakra-ui/react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { HiChevronDown } from 'react-icons/hi2';
 
@@ -9,11 +9,6 @@ const MotionBox = motion(Box);
 
 const ScrollIndicator = () => {
     const { scrollY } = useScroll();
-    const bgColor = useColorModeValue('white', '#191919');
-    const midColor = useColorModeValue(
-        'rgba(255, 255, 255, 0.5)',
-        'rgba(25, 25, 25, 0.5)'
-    );
 
     // Fade out as we scroll down.
     // Start at 1, reach 0 after scrolling 500px
@@ -36,19 +31,19 @@ const ScrollIndicator = () => {
                 left={0}
                 right={0}
                 height="100px"
-                bgGradient={`linear(to-t, ${bgColor} 0%, ${midColor} 40%, transparent 100%)`}
+                bgGradient="linear(to-t, bg.scrollIndicator 0%, bg.scrollIndicatorMid 40%, transparent 100%)"
                 style={{ opacity }}
                 pointerEvents="none"
                 zIndex={0}
             />
             <MotionVStack
                 position="absolute"
-                bottom={{ base: '20px', md: '30px' }}
+                bottom={{ base: '12px', md: '30px' }}
                 left={0}
                 right={0}
                 mx="auto"
                 width="fit-content"
-                spacing={2}
+                spacing={1}
                 cursor="pointer"
                 onClick={handleClick}
                 style={{ opacity, y: translateY }}
@@ -62,29 +57,34 @@ const ScrollIndicator = () => {
             >
                 <VStack spacing={0}>
                     <Text
-                        fontSize="xs"
-                        fontWeight="black"
+                        fontSize={{ base: '10px', md: 'xl' }}
+                        fontWeight="extrabold"
                         color="brand.green"
-                        letterSpacing="0.3em"
+                        letterSpacing="0.2em"
                         textTransform="uppercase"
-                        mb={1}
+                        mb={0}
                     >
                         Learn More
                     </Text>
 
                     <MotionBox
                         animate={{
-                            y: [0, 8, 0],
+                            y: [0, 5, 0],
                         }}
                         transition={{
                             duration: 1.5,
                             repeat: Infinity,
                             ease: 'easeInOut',
                         }}
+                        fontWeight="extrabold"
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
                     >
                         <HiChevronDown
-                            size={24}
+                            size={20}
                             color="var(--chakra-colors-brand-green)"
+                            style={{ fontWeight: 900 }}
                         />
                     </MotionBox>
                 </VStack>

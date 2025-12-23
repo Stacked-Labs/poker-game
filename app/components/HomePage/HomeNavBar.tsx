@@ -57,7 +57,7 @@ const HomeNavBar: React.FC = () => {
             </Button>
             <Button
                 as="a"
-                href="https://discord.gg/XMWfksjt"
+                href="https://discord.gg/347RBVcvpn"
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="navLink"
@@ -149,11 +149,9 @@ const HomeNavBar: React.FC = () => {
                 isOpen={isOpen}
                 size="xs"
             >
-                <DrawerOverlay
-                    backdropFilter="blur(4px)"
-                />
+                <DrawerOverlay backdropFilter="blur(4px)" />
                 <DrawerContent
-                    bg='bg.navbar'
+                    bg="bg.navbar"
                     backdropFilter="blur(12px)"
                     borderLeft="1px solid"
                     borderColor="rgba(12, 21, 49, 0.08)"
@@ -205,10 +203,10 @@ const HomeNavBar: React.FC = () => {
                             </Button>
                             <Button
                                 as="a"
-                                href="https://discord.gg/XMWfksjt"
+                                href="https://discord.gg/347RBVcvpn"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                aria-label='Support'
+                                aria-label="Support"
                                 variant={'homeNav'}
                                 onClick={onClose}
                             >

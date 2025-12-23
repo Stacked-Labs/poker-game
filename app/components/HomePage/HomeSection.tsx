@@ -102,7 +102,7 @@ const HomeSection = () => {
             position="relative"
             width="100vw"
             bg="bg.default"
-            height={{ base: '100%', lg: 'var(--full-vh)' }}
+            height="var(--full-vh)"
             bgPosition={{ base: 'right', lg: 'center' }}
             overflow="hidden"
         >
@@ -152,6 +152,7 @@ const HomeSection = () => {
             <Flex
                 position="relative"
                 width="100%"
+                height="100%"
                 flexWrap={{ base: 'wrap', lg: 'nowrap' }}
                 gap={0}
                 zIndex={2}

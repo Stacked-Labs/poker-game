@@ -3,7 +3,9 @@ import HomeSection from './components/HomePage/HomeSection';
 import CommunitySection from './components/HomePage/CommunitySection';
 import FeaturesSection from './components/HomePage/FeaturesSection';
 import NewsletterSection from './components/HomePage/NewsletterSection';
-import OnchainInfoSection from './components/HomePage/OnchainInfoSection';
+import YourTableVaultSection from './components/HomePage/YourTableVaultSection';
+import OddsAndRandomnessSection from './components/HomePage/OddsAndRandomnessSection';
+import CustomChipValueSection from './components/HomePage/CustomChipValueSection';
 import FAQSection from './components/HomePage/FAQSection';
 import Footer from './components/HomePage/Footer';
 import { Metadata } from 'next';
@@ -59,7 +61,9 @@ const HomePage: React.FC = () => {
                     <CommunitySection />
                     <NewsletterSection />
                     <FeaturesSection />
-                    <OnchainInfoSection />
+                    <CustomChipValueSection />
+                    <YourTableVaultSection />
+                    <OddsAndRandomnessSection />
                     <FAQSection />
                     <Footer />
                 </VStack>

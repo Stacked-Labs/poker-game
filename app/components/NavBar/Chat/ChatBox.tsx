@@ -40,7 +40,6 @@ function getRandomHexColor(): string {
     do {
         const hex = Math.floor(Math.random() * 0xffffff).toString(16);
         color = `#${hex.padStart(6, '0')}`;
-        const rgb = hexToRgb(color);
         attempts++;
         // forbidden colors and those too close to each other
     } while (

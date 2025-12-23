@@ -12,11 +12,9 @@ import {
     ListItem,
     ListIcon,
     Badge,
-    Stack,
     HStack,
     Image,
     Icon,
-    useColorModeValue,
 } from '@chakra-ui/react';
 import { MdCheckCircle, MdFlashOn } from 'react-icons/md';
 import { SiThirdweb } from 'react-icons/si';
@@ -26,8 +24,6 @@ import { RiTwitterXLine } from 'react-icons/ri';
 import React from 'react';
 
 const CommunitySection = () => {
-    const iconColor = useColorModeValue('#000000', '#FFFFFF');
-
     const authOptions: {
         name: string;
         icon: string | React.ElementType;
@@ -48,7 +44,7 @@ const CommunitySection = () => {
             name: 'X',
             icon: RiTwitterXLine,
             isReactIcon: true,
-            color: iconColor,
+            color: 'text.primary',
         },
         {
             name: 'Discord',
@@ -60,33 +56,26 @@ const CommunitySection = () => {
             name: 'Apple',
             icon: FaApple,
             isReactIcon: true,
-            color: iconColor,
+            color: 'text.primary',
         },
     ];
 
     return (
-        <Box bg="bg.default" py={{ base: 8, md: 16 }} width="100%">
+        <Box bg="bg.default" py={{ base: 4, md: 8 }} width="100%">
             <Container maxW="container.xl">
                 {/* Header Section */}
                 <VStack
                     spacing={6}
                     textAlign="center"
-                    mb={{ base: 10, md: 16 }}
+                    mb={{ base: 10, md: 12 }}
                 >
                     <Heading
-                        fontSize={{ base: '3xl', md: '5xl', lg: '6xl' }}
+                        fontSize={{ base: '3xl', md: '6xl', lg: '7xl' }}
                         fontWeight="extrabold"
                         lineHeight={1.2}
                         color="text.primary"
                     >
-                        A Social & Interactive{' '}
-                        <Text
-                            as="span"
-                            bgGradient="linear(to-r, brand.yellow, brand.pink)"
-                            bgClip="text"
-                        >
-                            Poker Community
-                        </Text>
+                        Poker Night is Back 🤑
                     </Heading>
                     <Text
                         fontSize={{ base: 'lg', md: 'xl' }}
@@ -95,9 +84,9 @@ const CommunitySection = () => {
                         mx="auto"
                         fontWeight="medium"
                     >
-                        Experience a vibrant, close-knit platform where every
-                        hand is a conversation and every game brings people
-                        together.
+                        We brought the Friday night home game to your browser.
+                        Talk trash in the chat, throw emojis at your friends,
+                        and settle the score without leaving your couch.
                     </Text>
                 </VStack>
 
@@ -181,7 +170,7 @@ const CommunitySection = () => {
                                 letterSpacing="wider"
                             >
                                 <Icon as={MdFlashOn} mr={1} />
-                                ZERO FRICTION
+                                ZERO BRAINPOWER NEEDED
                             </Badge>
                             <Heading
                                 fontSize={{ base: '3xl', md: '4xl' }}
@@ -189,32 +178,47 @@ const CommunitySection = () => {
                                 color="text.primary"
                                 letterSpacing="-0.02em"
                             >
-                                Instant Free Play.
+                                Play in seconds.
                                 <br />
-                                No Sign-in Required.
+                                Just send the link.
                             </Heading>
                             <Text
                                 fontSize="lg"
                                 color="text.secondary"
                                 lineHeight="tall"
                             >
-                                We believe in &quot;Show up and play&quot;.
-                                Create a guest account in one click and sit at a
-                                table immediately. It&apos;s the fastest way to
-                                play poker online with friends.
+                                You didn&apos;t come here to fill out forms. You
+                                came to play. Test our game engine, check the
+                                vibes, and bluff your friends using a completely
+                                anonymous guest account.{' '}
+                                <Text
+                                    as="span"
+                                    fontWeight="bold"
+                                    color="brand.green"
+                                >
+                                    No strings attached.
+                                </Text>
                             </Text>
                             <List spacing={4}>
                                 {[
-                                    'No email address needed',
-                                    'No KYC verification',
-                                    'Play immediately with free chips',
+                                    {
+                                        main: '100% Anonymous',
+                                        detail: "We don't want your data",
+                                    },
+                                    {
+                                        main: 'No Downloads',
+                                        detail: 'Browser-based action',
+                                    },
+                                    {
+                                        main: 'Free to Play',
+                                        detail: 'Practice with free chips',
+                                    },
                                 ].map((item) => (
                                     <ListItem
-                                        key={item}
+                                        key={item.main}
                                         display="flex"
                                         alignItems="center"
                                         fontSize="md"
-                                        fontWeight="semibold"
                                         color="text.secondary"
                                     >
                                         <ListIcon
@@ -222,7 +226,22 @@ const CommunitySection = () => {
                                             color="brand.green"
                                             fontSize="xl"
                                         />
-                                        {item}
+                                        <Text
+                                            as="span"
+                                            fontWeight="bold"
+                                            color="text.primary"
+                                        >
+                                            {item.main}
+                                        </Text>
+                                        <Text
+                                            as="span"
+                                            fontWeight="normal"
+                                            color="text.secondary"
+                                            opacity={0.7}
+                                            ml={1}
+                                        >
+                                            ({item.detail})
+                                        </Text>
                                     </ListItem>
                                 ))}
                             </List>
@@ -263,7 +282,7 @@ const CommunitySection = () => {
                                 color="text.primary"
                                 letterSpacing="-0.02em"
                             >
-                                Crypto Play & Auth
+                                Auth & Crypto Play
                             </Heading>
                             <Text
                                 fontSize="lg"
@@ -325,7 +344,6 @@ const CommunitySection = () => {
                                         _hover={{
                                             transform: 'translateY(-2px)',
                                             boxShadow: 'md',
-                                            borderColor: 'brand.pink',
                                         }}
                                     >
                                         <Flex
@@ -373,61 +391,23 @@ const CommunitySection = () => {
                         </VStack>
 
                         <Box
-                            bg="card.lighterGray"
-                            borderRadius="3xl"
-                            height={{ base: '300px', md: '400px' }}
+                            height={{ base: '300px', md: '500px' }}
                             display="flex"
                             alignItems="center"
                             justifyContent="center"
                             position="relative"
-                            overflow="hidden"
                             order={{ base: 1, lg: 2 }}
-                            border="1px solid"
-                            borderColor="border.lightGray"
                         >
-                            <Text color="text.gray600" fontWeight="bold">
-                                IMAGE PLACEHOLDER
-                            </Text>
-                            {/* Red X Overlay for the guide */}
-                            <Box
-                                position="absolute"
-                                top="0"
-                                left="0"
-                                right="0"
-                                bottom="0"
-                                bg="rgba(235, 11, 92, 0.03)"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                            >
-                                <Box
-                                    width="100%"
-                                    height="100%"
-                                    position="relative"
-                                    _before={{
-                                        content: '""',
-                                        position: 'absolute',
-                                        width: '2px',
-                                        height: '141%',
-                                        bg: 'brand.pink',
-                                        opacity: 0.4,
-                                        transform: 'rotate(45deg)',
-                                        left: '50%',
-                                        top: '-20%',
-                                    }}
-                                    _after={{
-                                        content: '""',
-                                        position: 'absolute',
-                                        width: '2px',
-                                        height: '141%',
-                                        bg: 'brand.pink',
-                                        opacity: 0.4,
-                                        transform: 'rotate(-45deg)',
-                                        left: '50%',
-                                        top: '-20%',
-                                    }}
-                                />
-                            </Box>
+                            <Image
+                                src="/homepage/thirdwebLogin.png"
+                                alt="Thirdweb Login"
+                                width="100%"
+                                height="100%"
+                                objectFit="contain"
+                                borderRadius="2xl"
+                                transition="transform 0.3s ease"
+                                _hover={{ transform: 'scale(1.02)' }}
+                            />
                         </Box>
                     </SimpleGrid>
                 </VStack>

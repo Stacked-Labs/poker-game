@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
     Box,
@@ -158,7 +158,7 @@ const SocialButton = ({
 
 const LobbyBanner = () => {
     const { appState } = useContext(AppContext);
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const { isOpen, onClose } = useDisclosure();
 
     useEffect(() => {
         if (appState.game?.players && appState.game?.players.length > 1) {
@@ -167,12 +167,7 @@ const LobbyBanner = () => {
     }, [appState.game?.players, onClose]);
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            isCentered
-            size={'xs'}
-        >
+        <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
             <ModalContent
                 bg={'card.white'}
                 borderRadius={{ base: '20px', md: '24px' }}
@@ -261,7 +256,7 @@ const LobbyBanner = () => {
                                 rotation="5deg"
                             />
                         </Link>
-                        <Link href="https://discord.gg/896EhkVYbd" isExternal>
+                        <Link href="https://discord.gg/347RBVcvpn" isExternal>
                             <SocialButton
                                 icon={<FaDiscord size={20} />}
                                 label="Discord"
@@ -269,7 +264,10 @@ const LobbyBanner = () => {
                                 rotation="-5deg"
                             />
                         </Link>
-                        <Link href="https://warpcast.com/stackedpoker" isExternal>
+                        <Link
+                            href="https://warpcast.com/stackedpoker"
+                            isExternal
+                        >
                             <SocialButton
                                 icon={<SiFarcaster size={20} />}
                                 label="Farcaster"

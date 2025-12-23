@@ -21,7 +21,7 @@ import { HiLightningBolt } from 'react-icons/hi';
 
 const Footer = () => {
     return (
-        <Box bg="bg.default" color="text.primary" pt={16} pb={8}>
+        <Box bg="bg.default" color="text.primary" pt={10} pb={6}>
             <Container maxW="container.xl">
                 <SimpleGrid
                     columns={{ base: 1, md: 2, lg: 4 }}
@@ -74,7 +74,7 @@ const Footer = () => {
                                 <Icon as={RiTwitterXLine} boxSize={5} />
                             </Link>
                             <Link
-                                href="https://discord.gg/XMWfksjt"
+                                href="https://discord.gg/347RBVcvpn"
                                 isExternal
                                 boxSize="40px"
                                 display="flex"
@@ -165,7 +165,7 @@ const Footer = () => {
                             Support
                         </Text>
                         <Link
-                            href="https://discord.gg/XMWfksjt"
+                            href="https://discord.gg/347RBVcvpn"
                             isExternal
                             color="text.secondary"
                             _hover={{ color: 'brand.pink' }}

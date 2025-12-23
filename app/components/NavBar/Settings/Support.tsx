@@ -113,7 +113,7 @@ const Support = () => {
 
                         <Button
                             as={Link}
-                            href="https://discord.gg/XMWfksjt"
+                            href="https://discord.gg/347RBVcvpn"
                             target="_blank"
                             rel="noopener noreferrer"
                             size={{ base: 'md', md: 'lg' }}

@@ -10,13 +10,15 @@ import {
     AccordionButton,
     AccordionPanel,
     AccordionIcon,
+    Link,
+    Text,
     VStack,
 } from '@chakra-ui/react';
 import { FAQs } from '../../utils/FAQsData';
 
 const FAQSection = () => {
     return (
-        <Box as="section" py={{ base: 16, md: 24 }} bg="bg.default" w="100%">
+        <Box as="section" py={{ base: 10, md: 14 }} bg="bg.default" w="100%">
             <Container maxW="container.lg">
                 <VStack spacing={12} align="stretch">
                     <Heading
@@ -70,7 +72,24 @@ const FAQSection = () => {
                                     fontSize="lg"
                                     lineHeight="tall"
                                 >
-                                    {faq.answer}
+                                    {faq.question ===
+                                    'How can I get in touch with you?' ? (
+                                        <>
+                                            {faq.answer}{' '}
+                                            <Link
+                                                href="https://discord.gg/347RBVcvpn"
+                                                isExternal
+                                                textDecoration="underline"
+                                                fontWeight="bold"
+                                                color="text.primary"
+                                            >
+                                                here
+                                            </Link>
+                                            .
+                                        </>
+                                    ) : (
+                                        <Text as="span">{faq.answer}</Text>
+                                    )}
                                 </AccordionPanel>
                             </AccordionItem>
                         ))}

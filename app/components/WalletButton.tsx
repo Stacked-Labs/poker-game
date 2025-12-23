@@ -9,14 +9,15 @@ import {
     supportedTokens,
     wallets,
 } from '@/app/thirdwebclient';
-import { useColorMode } from "@chakra-ui/react";
-import { theme } from "@/app/theme";
+import { useColorMode } from '@chakra-ui/react';
+import { theme } from '@/app/theme';
 
 interface WalletButtonProps {
     width?: string;
     height?: string;
     className?: string;
     label?: string;
+    variant?: 'default' | 'link';
 }
 
 const WalletButton: React.FC<WalletButtonProps> = ({
@@ -24,6 +25,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     height,
     className,
     label = 'Sign In',
+    variant = 'default',
 }) => {
     // Use compact on mobile/small screens, wide on larger screens
     const [isLargerScreen] = useMediaQuery('(min-width: 768px)');
@@ -37,21 +39,32 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                   ...(width && { width }),
                   ...(height && { height, minHeight: height }),
               }
-            : undefined;
+            : variant === 'link'
+              ? {
+                    background: 'transparent',
+                    border: 'none',
+                    color: colorMode === 'light' ? '#334479' : '#ECEEF5', // brand.navy / brand.lightGray
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    textDecoration: 'underline',
+                    padding: 0,
+                    height: 'auto',
+                    minHeight: 'auto',
+                }
+              : undefined;
 
     const customLightTheme = lightTheme({
         colors: {
             primaryButtonBg: theme.colors.legacy.grayDark,
-        }
-    })
-
+        },
+    });
 
     const customDarkTheme = darkTheme({
         colors: {
             primaryButtonBg: theme.colors.legacy.grayDarkest,
-            primaryButtonText: 'white'
-        }
-    })
+            primaryButtonText: 'white',
+        },
+    });
 
     return (
         <ConnectButton
@@ -89,7 +102,8 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                 className: className,
                 style: {
                     ...sizeStyle,
-                    borderRadius: theme.radii.bigButton,
+                    borderRadius:
+                        variant === 'link' ? '0' : theme.radii.bigButton,
                 },
             }}
             connectModal={{

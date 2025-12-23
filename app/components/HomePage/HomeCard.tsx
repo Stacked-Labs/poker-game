@@ -5,12 +5,14 @@ import {
     Button,
     IconButton,
     Stack,
+    VStack,
+    HStack,
     Link,
     Spinner,
     Box,
     Heading,
     Text,
-    useColorModeValue,
+    Badge,
 } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord } from 'react-icons/fa';
@@ -48,15 +50,9 @@ const pulse = keyframes`
     }
 `;
 
-const shimmer = keyframes`
-    0% { transform: translateX(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) rotate(45deg); }
-`;
-
 const HomeCard = () => {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
-    const xIconColor = useColorModeValue('#000000', '#FFFFFF');
 
     const handlePlayNow = () => {
         setIsLoading(true);
@@ -67,9 +63,11 @@ const HomeCard = () => {
         <Flex
             justifyContent="center"
             alignItems="center"
-            minHeight="var(--full-vh)"
+            height="100%"
             width="100%"
-            p={{ base: 3, md: 4 }}
+            pt={{ base: '110px', md: '130px', lg: 0 }}
+            pb={{ base: '40px', lg: 0 }}
+            px={{ base: 3, md: 4 }}
         >
             {/* Animated Background Glow */}
             <Box
@@ -114,8 +112,8 @@ const HomeCard = () => {
                 className="home-card-container"
                 minWidth={{ base: '280px', sm: '320px' }}
                 height="fit-content"
-                bg="card.white"
-                boxShadow="0 25px 80px rgba(0, 0, 0, 0.12), 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.9)"
+                bg="card.heroBg"
+                boxShadow="card.hero"
                 overflow="hidden"
                 animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1)`}
                 backdropFilter="blur(20px)"
@@ -137,24 +135,43 @@ const HomeCard = () => {
                     <Box
                         width="100%"
                         height="100%"
-                        bg="card.white"
+                        bg="card.heroInnerBg"
                         borderRadius={{ base: '21px', md: '24px', lg: '28px' }}
                     />
                 </Box>
 
                 {/* Content */}
                 <Stack
-                    gap={{ base: 6, md: 6 }}
+                    gap={{ base: 3, md: 6 }}
                     flex={1}
                     justifyContent="center"
                     width="100%"
                     className="home-card-content"
                     alignItems="center"
-                    py={{ base: 10, md: 10, lg: 12 }}
+                    py={{ base: 6, md: 10, lg: 12 }}
                     px={{ base: 5, sm: 8, md: 10, lg: 12 }}
                     position="relative"
                     zIndex={1}
                 >
+                    {/* Pill Badge */}
+                    <Box
+                        animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s backwards`}
+                    >
+                        <Badge
+                            bg="rgba(54, 163, 123, 0.15)"
+                            color="brand.green"
+                            px={4}
+                            py={1.5}
+                            borderRadius="full"
+                            fontSize="xs"
+                            fontWeight="extrabold"
+                            letterSpacing="0.05em"
+                            textTransform="uppercase"
+                        >
+                            ⚡ INSTANT GUEST PLAY
+                        </Badge>
+                    </Box>
+
                     {/* Logo/Title Section */}
                     <Box
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards`}
@@ -163,23 +180,25 @@ const HomeCard = () => {
                     >
                         <Heading
                             fontSize={{
-                                base: '3.25rem',
-                                sm: '3.5rem',
-                                md: '3.75rem',
-                                lg: '4rem',
+                                base: '2.25rem',
+                                sm: '2.75rem',
+                                md: '3rem',
+                                lg: '3.25rem',
                             }}
-                            fontWeight="extrabold"
-                            lineHeight={1}
-                            letterSpacing={{ base: '-0.03em', md: '-0.03em' }}
-                            bgGradient="linear(to-r, brand.darkNavy, brand.navy)"
-                            bgClip="text"
-                            _dark={{
-                                bgGradient: 'none',
-                                bgClip: 'unset',
-                                color: 'brand.lightGray',
-                            }}
+                            fontWeight="900"
+                            lineHeight={1.05}
+                            letterSpacing="-0.04em"
+                            color="text.primary"
                         >
-                            STACKED
+                            Your{' '}
+                            <Text as="span" color="brand.green">
+                                Table.
+                            </Text>
+                            <br />
+                            Your{' '}
+                            <Text as="span" color="brand.pink">
+                                Rules.
+                            </Text>
                         </Heading>
                     </Box>
 
@@ -187,39 +206,44 @@ const HomeCard = () => {
                     <Box
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards`}
                         textAlign="center"
-                        maxW={{ base: '280px', sm: '320px' }}
-                        px={2}
+                        maxW={{ base: '300px', sm: '360px' }}
+                        px={1}
                     >
-                        <Text
-                            fontSize={{ base: 'md', md: 'md' }}
-                            color="text.secondary"
-                            lineHeight={1.6}
-                            fontWeight="medium"
-                        >
-                            Create a table, invite friends, play in seconds.{' '}
+                        <VStack>
                             <Text
-                                as="span"
-                                color="brand.green"
-                                fontWeight="bold"
+                                fontSize={{ base: 'md', md: 'lg' }}
+                                color="text.gray600"
+                                lineHeight={1.5}
+                                fontWeight="normal"
                             >
-                                No sign up required.
+                                Host a game and invite the crew.
                             </Text>
-                        </Text>
+
+                            {/* Trust Indicators */}
+                            <Text
+                                fontSize={{ base: 'md', md: 'lg' }}
+                                color="text.gray600"
+                                lineHeight={1.5}
+                                fontWeight="semibold"
+                            >
+                                No Download • No Sign-up
+                            </Text>
+                        </VStack>
                     </Box>
 
                     {/* Buttons Section */}
                     <Stack
-                        gap={{ base: 3, md: 3 }}
+                        gap={{ base: 4, md: 4 }}
                         width="100%"
                         maxW={{ base: '100%', sm: '320px' }}
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s backwards`}
                         pt={1}
                     >
                         <Button
-                            height={{ base: '60px', md: '60px' }}
-                            fontSize={{ base: 'md', md: 'lg' }}
-                            fontWeight="bold"
-                            borderRadius={{ base: '14px', md: '16px' }}
+                            height={{ base: '64px', md: '64px' }}
+                            fontSize={{ base: 'lg', md: 'xl' }}
+                            fontWeight="900"
+                            borderRadius="18px"
                             bg="brand.green"
                             color="white"
                             border="none"
@@ -233,59 +257,34 @@ const HomeCard = () => {
                             transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                             position="relative"
                             overflow="hidden"
-                            boxShadow="0 4px 14px rgba(54, 163, 123, 0.4)"
-                            _before={{
-                                content: '""',
-                                position: 'absolute',
-                                top: 0,
-                                left: '-100%',
-                                width: '200%',
-                                height: '100%',
-                                bg: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                                animation: `${shimmer} 3s ease-in-out infinite`,
-                            }}
+                            boxShadow="0 10px 25px rgba(54, 163, 123, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.3)"
                             _hover={{
                                 bg: 'brand.green',
                                 transform: 'translateY(-2px)',
-                                boxShadow: '0 8px 25px rgba(54, 163, 123, 0.5)',
+                                boxShadow:
+                                    '0 15px 30px rgba(54, 163, 123, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
                             }}
                         >
-                            Play Now
+                            [ DEAL ME IN ]
                         </Button>
 
-                        <WalletButton width="100%" height="60px" />
+                        <Flex justify="center" pt={1}>
+                            <WalletButton
+                                label="Already have an account? Sign In"
+                                variant="link"
+                            />
+                        </Flex>
                     </Stack>
-
-                    {/* Divider with text */}
-                    <Flex
-                        align="center"
-                        width="100%"
-                        maxW={{ base: '100%', sm: '320px' }}
-                        animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards`}
-                        gap={3}
-                        pt={1}
-                    >
-                        <Box flex={1} height="1px" bg="border.lightGray" />
-                        <Text
-                            fontSize="xs"
-                            color="text.gray600"
-                            fontWeight="semibold"
-                            textTransform="uppercase"
-                            letterSpacing="0.12em"
-                        >
-                            Connect
-                        </Text>
-                        <Box flex={1} height="1px" bg="border.lightGray" />
-                    </Flex>
 
                     {/* Social Links */}
                     <Flex
                         direction="row"
                         justify="center"
                         align="center"
-                        gap={{ base: 4, md: 4 }}
+                        gap={{ base: 6, md: 6 }}
                         width="100%"
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s backwards`}
+                        pt={{ base: 1, md: 2 }}
                     >
                         <Link href="https://x.com/stacked_poker" isExternal>
                             <IconButton
@@ -293,7 +292,7 @@ const HomeCard = () => {
                                 icon={<RiTwitterXLine size={20} />}
                                 size="lg"
                                 variant="social"
-                                color={xIconColor}
+                                color="text.primary"
                                 borderRadius="12px"
                                 w={{ base: '48px', md: '52px' }}
                                 h={{ base: '48px', md: '52px' }}
@@ -306,7 +305,7 @@ const HomeCard = () => {
                                 transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                             />
                         </Link>
-                        <Link href="https://discord.gg/896EhkVYbd" isExternal>
+                        <Link href="https://discord.gg/347RBVcvpn" isExternal>
                             <IconButton
                                 aria-label="Discord"
                                 icon={<FaDiscord size={20} />}
@@ -351,32 +350,6 @@ const HomeCard = () => {
                         </Link>
                     </Flex>
                 </Stack>
-
-                {/* Decorative corner accents */}
-                <Box
-                    position="absolute"
-                    top="-30px"
-                    left="-30px"
-                    width="80px"
-                    height="80px"
-                    borderRadius="50%"
-                    bg="brand.yellow"
-                    opacity={0.08}
-                    filter="blur(30px)"
-                    pointerEvents="none"
-                />
-                <Box
-                    position="absolute"
-                    bottom="-20px"
-                    right="-20px"
-                    width="100px"
-                    height="100px"
-                    borderRadius="50%"
-                    bg="brand.green"
-                    opacity={0.1}
-                    filter="blur(40px)"
-                    pointerEvents="none"
-                />
             </Flex>
         </Flex>
     );

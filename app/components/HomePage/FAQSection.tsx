@@ -11,7 +11,6 @@ import {
     AccordionPanel,
     AccordionIcon,
     Link,
-    Text,
     VStack,
 } from '@chakra-ui/react';
 import { FAQs } from '../../utils/FAQsData';
@@ -35,10 +34,11 @@ const FAQSection = () => {
                         {FAQs.map((faq, index) => (
                             <AccordionItem
                                 key={index}
-                                border="none"
                                 mb={4}
                                 bg="card.white"
                                 borderRadius="xl"
+                                border="1px solid"
+                                borderColor="border.lightGray"
                                 boxShadow="sm"
                                 overflow="hidden"
                             >
@@ -88,7 +88,7 @@ const FAQSection = () => {
                                             .
                                         </>
                                     ) : (
-                                        <Text as="span">{faq.answer}</Text>
+                                        faq.answer
                                     )}
                                 </AccordionPanel>
                             </AccordionItem>

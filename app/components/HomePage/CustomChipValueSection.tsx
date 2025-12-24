@@ -7,6 +7,7 @@ import {
     Text,
     VStack,
     HStack,
+    Stack,
     SimpleGrid,
     Icon,
     Badge,
@@ -186,34 +187,48 @@ const CustomChipValueSection = () => {
                         {/* Conversion Graphic */}
                         <Box
                             bg="rgba(0, 0, 0, 0.3)"
-                            p={{ base: 12, md: 18 }}
+                            p={{ base: 6, sm: 8, md: 18 }}
                             borderRadius="30px"
                             border="1px solid"
                             borderColor="rgba(255, 255, 255, 0.15)"
                             backdropFilter="blur(20px)"
+                            maxW={{ base: '380px', lg: 'none' }}
+                            mx={{ base: 'auto', lg: 0 }}
                         >
-                            <VStack spacing={12} align="stretch">
-                                <HStack
+                            <VStack spacing={{ base: 7, md: 12 }} align="stretch">
+                                <Stack
+                                    direction={{ base: 'column', sm: 'row' }}
                                     justify="center"
-                                    spacing={{ base: 6, md: 10 }}
+                                    spacing={{ base: 4, sm: 6, md: 10 }}
+                                    align="center"
                                 >
-                                    <HStack spacing={6}>
+                                    <HStack spacing={{ base: 4, md: 6 }}>
                                         <Image
                                             src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
                                             alt="USDC"
-                                            boxSize="72px"
+                                            boxSize={{
+                                                base: '44px',
+                                                sm: '56px',
+                                                md: '72px',
+                                            }}
                                         />
                                         <VStack align="flex-start" spacing={0}>
                                             <Text
                                                 color="white"
                                                 fontWeight="bold"
-                                                fontSize="2xl"
+                                                fontSize={{
+                                                    base: 'xl',
+                                                    md: '2xl',
+                                                }}
                                             >
                                                 USDC
                                             </Text>
                                             <Text
                                                 color="gray.300"
-                                                fontSize="md"
+                                                fontSize={{
+                                                    base: 'sm',
+                                                    md: 'md',
+                                                }}
                                                 fontWeight="medium"
                                             >
                                                 {currentUsdcPerChip} USDC
@@ -224,20 +239,40 @@ const CustomChipValueSection = () => {
                                     <Icon
                                         as={MdArrowForward}
                                         color="gray.500"
-                                        fontSize="36px"
+                                        fontSize={{
+                                            base: '28px',
+                                            md: '36px',
+                                        }}
+                                        transform={{
+                                            base: 'rotate(90deg)',
+                                            sm: 'none',
+                                        }}
                                     />
 
-                                    <HStack spacing={6}>
+                                    <HStack spacing={{ base: 4, md: 6 }}>
                                         <Box
                                             position="relative"
-                                            w="78px"
-                                            h="78px"
+                                            w={{
+                                                base: '56px',
+                                                sm: '64px',
+                                                md: '78px',
+                                            }}
+                                            h={{
+                                                base: '56px',
+                                                sm: '64px',
+                                                md: '78px',
+                                            }}
                                             borderRadius="full"
                                             bg="brand.green"
                                             display="flex"
                                             alignItems="center"
                                             justifyContent="center"
-                                            border="6px dashed rgba(255,255,255,0.4)"
+                                            borderStyle="dashed"
+                                            borderColor="rgba(255,255,255,0.4)"
+                                            borderWidth={{
+                                                base: '4px',
+                                                md: '6px',
+                                            }}
                                             boxShadow="0 6px 16px rgba(0,0,0,0.35), inset 0 0 20px rgba(0,0,0,0.25)"
                                             _before={{
                                                 content: '""',
@@ -251,7 +286,10 @@ const CustomChipValueSection = () => {
                                             <Text
                                                 color="white"
                                                 fontWeight="black"
-                                                fontSize="2xl"
+                                                fontSize={{
+                                                    base: 'xl',
+                                                    md: '2xl',
+                                                }}
                                                 zIndex={1}
                                             >
                                                 S
@@ -261,26 +299,32 @@ const CustomChipValueSection = () => {
                                             <Text
                                                 color="white"
                                                 fontWeight="bold"
-                                                fontSize="2xl"
+                                                fontSize={{
+                                                    base: 'xl',
+                                                    md: '2xl',
+                                                }}
                                             >
                                                 Chips
                                             </Text>
                                             <Text
                                                 color="gray.300"
-                                                fontSize="md"
+                                                fontSize={{
+                                                    base: 'sm',
+                                                    md: 'md',
+                                                }}
                                                 fontWeight="medium"
                                             >
                                                 1 Chip
                                             </Text>
                                         </VStack>
                                     </HStack>
-                                </HStack>
+                                </Stack>
 
                                 <Box h="1px" bg="rgba(255, 255, 255, 0.1)" />
 
                                 <Text
                                     color="gray.400"
-                                    fontSize="md"
+                                    fontSize={{ base: 'sm', md: 'md' }}
                                     textAlign="center"
                                     lineHeight="tall"
                                 >

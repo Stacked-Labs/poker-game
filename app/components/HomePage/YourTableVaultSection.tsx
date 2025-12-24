@@ -10,6 +10,8 @@ import {
     SimpleGrid,
     Icon,
     Badge,
+    Wrap,
+    WrapItem,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { MdStorage, MdSecurity } from 'react-icons/md';
@@ -78,11 +80,11 @@ const YourTableVaultSection = () => {
                         </VStack>
 
                         {/* Split Diagram: Game Engine + The Banker */}
-                        <Box width="100%" pt={8} pb={4}>
+                        <Box width="100%" pt={{ base: 6, md: 8 }} pb={4}>
                             <Box
                                 bg="linear-gradient(135deg, rgba(66, 153, 225, 0.05) 0%, rgba(54, 163, 123, 0.05) 100%)"
                                 borderRadius="24px"
-                                p={{ base: 6, md: 10 }}
+                                p={{ base: 4, md: 10 }}
                                 border="1px solid"
                                 borderColor="border.lightGray"
                                 position="relative"
@@ -96,14 +98,14 @@ const YourTableVaultSection = () => {
                                     {/* Left Side: Game Engine (Go) */}
                                     <VStack
                                         align="center"
-                                        spacing={6}
+                                        spacing={{ base: 4, md: 6 }}
                                         position="relative"
                                     >
                                         <Box
                                             position="relative"
-                                            w="120px"
-                                            h="120px"
-                                            borderRadius="24px"
+                                            w={{ base: '96px', md: '120px' }}
+                                            h={{ base: '96px', md: '120px' }}
+                                            borderRadius={{ base: '20px', md: '24px' }}
                                             bgGradient="linear(135deg, blue.400, blue.600)"
                                             display="flex"
                                             alignItems="center"
@@ -124,56 +126,77 @@ const YourTableVaultSection = () => {
                                             <Icon
                                                 as={MdStorage}
                                                 color="white"
-                                                fontSize="56px"
+                                                fontSize={{
+                                                    base: '44px',
+                                                    md: '56px',
+                                                }}
                                             />
                                         </Box>
                                         <VStack spacing={2} align="center">
                                             <Heading
-                                                fontSize="xl"
+                                                fontSize={{ base: 'lg', md: 'xl' }}
                                                 fontWeight="bold"
                                                 color="text.primary"
                                             >
                                                 Game Engine (Go)
                                             </Heading>
-                                            <VStack
-                                                spacing={1}
-                                                align="center"
-                                                mt={2}
+                                            <Wrap
+                                                justify="center"
+                                                spacing={{ base: 2, md: 3 }}
+                                                mt={{ base: 1, md: 2 }}
                                             >
-                                                <Badge
-                                                    bg="blue.50"
-                                                    color="blue.600"
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius="full"
-                                                    fontSize="xs"
-                                                    fontWeight="semibold"
-                                                >
-                                                    Whitelist Handling
-                                                </Badge>
-                                                <Badge
-                                                    bg="blue.50"
-                                                    color="blue.600"
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius="full"
-                                                    fontSize="xs"
-                                                    fontWeight="semibold"
-                                                >
-                                                    Shuffling
-                                                </Badge>
-                                                <Badge
-                                                    bg="blue.50"
-                                                    color="blue.600"
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius="full"
-                                                    fontSize="xs"
-                                                    fontWeight="semibold"
-                                                >
-                                                    Pot Calculation
-                                                </Badge>
-                                            </VStack>
+                                                <WrapItem>
+                                                    <Badge
+                                                        bg="blue.50"
+                                                        color="blue.600"
+                                                        px={{ base: 2, md: 3 }}
+                                                        py={{ base: 0.5, md: 1 }}
+                                                        borderRadius="full"
+                                                        fontSize={{
+                                                            base: '10px',
+                                                            md: 'xs',
+                                                        }}
+                                                        fontWeight="semibold"
+                                                        textAlign="center"
+                                                    >
+                                                        Whitelist Handling
+                                                    </Badge>
+                                                </WrapItem>
+                                                <WrapItem>
+                                                    <Badge
+                                                        bg="blue.50"
+                                                        color="blue.600"
+                                                        px={{ base: 2, md: 3 }}
+                                                        py={{ base: 0.5, md: 1 }}
+                                                        borderRadius="full"
+                                                        fontSize={{
+                                                            base: '10px',
+                                                            md: 'xs',
+                                                        }}
+                                                        fontWeight="semibold"
+                                                        textAlign="center"
+                                                    >
+                                                        Shuffling
+                                                    </Badge>
+                                                </WrapItem>
+                                                <WrapItem>
+                                                    <Badge
+                                                        bg="blue.50"
+                                                        color="blue.600"
+                                                        px={{ base: 2, md: 3 }}
+                                                        py={{ base: 0.5, md: 1 }}
+                                                        borderRadius="full"
+                                                        fontSize={{
+                                                            base: '10px',
+                                                            md: 'xs',
+                                                        }}
+                                                        fontWeight="semibold"
+                                                        textAlign="center"
+                                                    >
+                                                        Pot Calculation
+                                                    </Badge>
+                                                </WrapItem>
+                                            </Wrap>
                                         </VStack>
                                     </VStack>
 
@@ -236,14 +259,14 @@ const YourTableVaultSection = () => {
                                     {/* Right Side: The Banker (Contract) */}
                                     <VStack
                                         align="center"
-                                        spacing={6}
+                                        spacing={{ base: 4, md: 6 }}
                                         position="relative"
                                     >
                                         <Box
                                             position="relative"
-                                            w="120px"
-                                            h="120px"
-                                            borderRadius="24px"
+                                            w={{ base: '96px', md: '120px' }}
+                                            h={{ base: '96px', md: '120px' }}
+                                            borderRadius={{ base: '20px', md: '24px' }}
                                             bgGradient="linear(135deg, brand.green, green.600)"
                                             display="flex"
                                             alignItems="center"
@@ -264,56 +287,77 @@ const YourTableVaultSection = () => {
                                             <Icon
                                                 as={SiEthereum}
                                                 color="white"
-                                                fontSize="56px"
+                                                fontSize={{
+                                                    base: '44px',
+                                                    md: '56px',
+                                                }}
                                             />
                                         </Box>
                                         <VStack spacing={2} align="center">
                                             <Heading
-                                                fontSize="xl"
+                                                fontSize={{ base: 'lg', md: 'xl' }}
                                                 fontWeight="bold"
                                                 color="text.primary"
                                             >
                                                 The Banker (Contract)
                                             </Heading>
-                                            <VStack
-                                                spacing={1}
-                                                align="center"
-                                                mt={2}
+                                            <Wrap
+                                                justify="center"
+                                                spacing={{ base: 2, md: 3 }}
+                                                mt={{ base: 1, md: 2 }}
                                             >
-                                                <Badge
-                                                    bg="green.50"
-                                                    color="brand.lightGray"
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius="full"
-                                                    fontSize="xs"
-                                                    fontWeight="semibold"
-                                                >
-                                                    Custody
-                                                </Badge>
-                                                <Badge
-                                                    bg="green.50"
-                                                    color="brand.lightGray"
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius="full"
-                                                    fontSize="xs"
-                                                    fontWeight="semibold"
-                                                >
-                                                    Payouts
-                                                </Badge>
-                                                <Badge
-                                                    bg="green.50"
-                                                    color="brand.lightGray"
-                                                    px={3}
-                                                    py={1}
-                                                    borderRadius="full"
-                                                    fontSize="xs"
-                                                    fontWeight="semibold"
-                                                >
-                                                    Settlement
-                                                </Badge>
-                                            </VStack>
+                                                <WrapItem>
+                                                    <Badge
+                                                        bg="green.50"
+                                                        color="brand.lightGray"
+                                                        px={{ base: 2, md: 3 }}
+                                                        py={{ base: 0.5, md: 1 }}
+                                                        borderRadius="full"
+                                                        fontSize={{
+                                                            base: '10px',
+                                                            md: 'xs',
+                                                        }}
+                                                        fontWeight="semibold"
+                                                        textAlign="center"
+                                                    >
+                                                        Custody
+                                                    </Badge>
+                                                </WrapItem>
+                                                <WrapItem>
+                                                    <Badge
+                                                        bg="green.50"
+                                                        color="brand.lightGray"
+                                                        px={{ base: 2, md: 3 }}
+                                                        py={{ base: 0.5, md: 1 }}
+                                                        borderRadius="full"
+                                                        fontSize={{
+                                                            base: '10px',
+                                                            md: 'xs',
+                                                        }}
+                                                        fontWeight="semibold"
+                                                        textAlign="center"
+                                                    >
+                                                        Payouts
+                                                    </Badge>
+                                                </WrapItem>
+                                                <WrapItem>
+                                                    <Badge
+                                                        bg="green.50"
+                                                        color="brand.lightGray"
+                                                        px={{ base: 2, md: 3 }}
+                                                        py={{ base: 0.5, md: 1 }}
+                                                        borderRadius="full"
+                                                        fontSize={{
+                                                            base: '10px',
+                                                            md: 'xs',
+                                                        }}
+                                                        fontWeight="semibold"
+                                                        textAlign="center"
+                                                    >
+                                                        Settlement
+                                                    </Badge>
+                                                </WrapItem>
+                                            </Wrap>
                                         </VStack>
                                     </VStack>
                                 </SimpleGrid>
@@ -342,18 +386,24 @@ const YourTableVaultSection = () => {
                             >
                                 <Box
                                     bg="card.white"
-                                    p={10}
+                                    p={{ base: 6, md: 10 }}
                                     borderRadius="28px"
                                     height="100%"
                                 >
-                                    <HStack spacing={4} mb={5}>
+                                    <HStack
+                                        spacing={{ base: 3, md: 4 }}
+                                        mb={{ base: 4, md: 5 }}
+                                    >
                                         <Icon
                                             as={MdStorage}
                                             color="blue.400"
-                                            fontSize="28px"
+                                            fontSize={{
+                                                base: '22px',
+                                                md: '28px',
+                                            }}
                                         />
                                         <Heading
-                                            fontSize="xl"
+                                            fontSize={{ base: 'lg', md: 'xl' }}
                                             fontWeight="bold"
                                             color="text.primary"
                                             letterSpacing="-0.01em"
@@ -363,8 +413,8 @@ const YourTableVaultSection = () => {
                                     </HStack>
                                     <Text
                                         color="text.secondary"
-                                        lineHeight="tall"
-                                        fontSize="md"
+                                        lineHeight={{ base: 'taller', md: 'tall' }}
+                                        fontSize={{ base: 'sm', md: 'md' }}
                                         fontWeight="medium"
                                     >
                                         No predictable seeds. We use
@@ -392,18 +442,24 @@ const YourTableVaultSection = () => {
                             >
                                 <Box
                                     bg="card.white"
-                                    p={10}
+                                    p={{ base: 6, md: 10 }}
                                     borderRadius="28px"
                                     height="100%"
                                 >
-                                    <HStack spacing={4} mb={5}>
+                                    <HStack
+                                        spacing={{ base: 3, md: 4 }}
+                                        mb={{ base: 4, md: 5 }}
+                                    >
                                         <Icon
                                             as={MdSecurity}
                                             color="brand.green"
-                                            fontSize="28px"
+                                            fontSize={{
+                                                base: '22px',
+                                                md: '28px',
+                                            }}
                                         />
                                         <Heading
-                                            fontSize="xl"
+                                            fontSize={{ base: 'lg', md: 'xl' }}
                                             fontWeight="bold"
                                             color="text.primary"
                                             letterSpacing="-0.01em"
@@ -413,8 +469,8 @@ const YourTableVaultSection = () => {
                                     </HStack>
                                     <Text
                                         color="text.secondary"
-                                        lineHeight="tall"
-                                        fontSize="md"
+                                        lineHeight={{ base: 'taller', md: 'tall' }}
+                                        fontSize={{ base: 'sm', md: 'md' }}
                                         fontWeight="medium"
                                     >
                                         Every table deploys its own

@@ -2,15 +2,17 @@
 
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import FooterWithActionButtons from './FooterWithActionButtons';
 import EmptyFooter from './EmptyFooter';
 import BlindObligationControls from './BlindObligationControls';
-import { Flex } from '@chakra-ui/react';
+import ShowCardsFooter from './ShowCardsFooter';
+import { revealCards } from '@/app/hooks/server_actions';
 
 const Footer = () => {
     const { appState } = useContext(AppContext);
     const socket = useContext(SocketContext);
+    const [showCardsSubmitted, setShowCardsSubmitted] = useState(false);
 
     // Check if the current user is a spectator (not in the game)
     const isSpectator = () => {
@@ -44,6 +46,44 @@ const Footer = () => {
 
     const isInHand = Boolean(localPlayer?.in);
 
+    const game = appState.game;
+    const inRevealWindow = Boolean(
+        game &&
+            game.running &&
+            game.stage === 1 &&
+            !game.betting &&
+            game.actionDeadline === 0
+    );
+
+    useEffect(() => {
+        if (!inRevealWindow) {
+            setShowCardsSubmitted(false);
+        }
+    }, [inRevealWindow]);
+
+    const hasRevealableCards = Boolean(
+        localPlayer?.cards &&
+            localPlayer.cards.length >= 2 &&
+            Number(localPlayer.cards[0]) > 0 &&
+            Number(localPlayer.cards[1]) > 0
+    );
+
+    const shouldShowCardsFooter = Boolean(
+        socketConnected &&
+            inRevealWindow &&
+            localPlayer &&
+            localPlayer.seatID > 0 &&
+            localPlayer.ready &&
+            !localPlayer.sitOutNextHand &&
+            !localPlayer.left &&
+            hasRevealableCards &&
+            !isSpectator()
+    );
+
+    const showCardsDisabled = Boolean(
+        !socketConnected || showCardsSubmitted || localPlayer?.hasRevealed
+    );
+
     const showActionButtons =
         socketConnected &&
         appState.game &&
@@ -59,6 +99,16 @@ const Footer = () => {
                 appState.clientID ===
                 appState.game!.players[appState.game!.action].uuid
             }
+        />
+    ) : shouldShowCardsFooter ? (
+        <ShowCardsFooter
+            onShowCards={() => {
+                if (socket) {
+                    setShowCardsSubmitted(true);
+                    revealCards(socket);
+                }
+            }}
+            isDisabled={showCardsDisabled}
         />
     ) : hasBlindObligation ? null : (
         <EmptyFooter />

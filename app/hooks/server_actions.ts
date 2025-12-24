@@ -122,6 +122,12 @@ export function playerFold(socket: WebSocket) {
     });
 }
 
+export function revealCards(socket: WebSocket) {
+    sendWebSocketMessage(socket, {
+        action: 'reveal-cards',
+    });
+}
+
 export function requestLeave(socket: WebSocket) {
     sendWebSocketMessage(socket, {
         action: 'request-leave',

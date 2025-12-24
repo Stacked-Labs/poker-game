@@ -569,12 +569,18 @@ const TakenSeatButton = ({
                             ? player.uuid === appState.clientID
                             : false;
 
-                        // Determine if we are in showdown state
+                        const game = appState.game;
+
+                        // Determine if we are in showdown/reveal window state (hand ended, before next hand starts)
                         const isShowdown = Boolean(
-                            appState.game &&
-                                appState.game.stage === 1 &&
-                                !appState.game.betting &&
-                                (appState.game.pots?.length || 0) > 0
+                            game &&
+                                game.stage === 1 &&
+                                !game.betting &&
+                                (game.actionDeadline ?? 0) === 0 &&
+                                ((game.pots?.length || 0) > 0 ||
+                                    (game.communityCards || []).some(
+                                        (card) => Number(card) > 0
+                                    ))
                         );
 
                         // Check if player has real (revealed) cards - not [0,0] or [-1,-1]

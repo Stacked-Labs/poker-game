@@ -110,49 +110,13 @@ const CommunitySection = () => {
                             border="1px solid"
                             borderColor="border.lightGray"
                         >
-                            <Text color="text.gray600" fontWeight="bold">
-                                IMAGE PLACEHOLDER
-                            </Text>
-                            {/* Red X Overlay for the guide */}
-                            <Box
-                                position="absolute"
-                                top="0"
-                                left="0"
-                                right="0"
-                                bottom="0"
-                                bg="rgba(235, 11, 92, 0.03)"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                            >
-                                <Box
-                                    width="100%"
-                                    height="100%"
-                                    position="relative"
-                                    _before={{
-                                        content: '""',
-                                        position: 'absolute',
-                                        width: '2px',
-                                        height: '141%',
-                                        bg: 'brand.pink',
-                                        opacity: 0.4,
-                                        transform: 'rotate(45deg)',
-                                        left: '50%',
-                                        top: '-20%',
-                                    }}
-                                    _after={{
-                                        content: '""',
-                                        position: 'absolute',
-                                        width: '2px',
-                                        height: '141%',
-                                        bg: 'brand.pink',
-                                        opacity: 0.4,
-                                        transform: 'rotate(-45deg)',
-                                        left: '50%',
-                                        top: '-20%',
-                                    }}
-                                />
-                            </Box>
+                            <Image
+                                src="/homepage/lobbyPic.png"
+                                alt="Poker lobby"
+                                width="100%"
+                                height="100%"
+                                objectFit="cover"
+                            />
                         </Box>
 
                         <VStack align="start" spacing={6}>

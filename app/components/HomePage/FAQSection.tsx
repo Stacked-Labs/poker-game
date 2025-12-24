@@ -87,6 +87,21 @@ const FAQSection = () => {
                                             </Link>
                                             .
                                         </>
+                                    ) : faq.question ===
+                                      'Where can I learn more?' ? (
+                                        <>
+                                            You can find our roadmap, game rules, and technical architecture in the docs{' '}
+                                            <Link
+                                                href="https://docs.stackedpoker.io"
+                                                isExternal
+                                                textDecoration="underline"
+                                                fontWeight="bold"
+                                                color="text.primary"
+                                            >
+                                                here
+                                            </Link>
+                                            .
+                                        </>
                                     ) : (
                                         faq.answer
                                     )}

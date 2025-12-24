@@ -15,11 +15,26 @@ import {
 } from '@chakra-ui/react';
 import { MdArrowForward } from 'react-icons/md';
 import React, { useEffect, useState } from 'react';
+import { keyframes } from '@emotion/react';
+import { useReducedMotion } from 'framer-motion';
 
 const USDC_PER_CHIP_OPTIONS = ['0.1', '1', '10'];
 
+const pulseBorderPink = keyframes`
+  0% {
+    box-shadow: 0 0 0 0 rgba(235, 11, 92, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(235, 11, 92, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(235, 11, 92, 0);
+  }
+`;
+
 const CustomChipValueSection = () => {
     const [usdcPerChipIndex, setUsdcPerChipIndex] = useState(0);
+    const prefersReducedMotion = useReducedMotion();
 
     useEffect(() => {
         const interval = setInterval(
@@ -35,6 +50,10 @@ const CustomChipValueSection = () => {
 
     const currentUsdcPerChip = USDC_PER_CHIP_OPTIONS[usdcPerChipIndex];
 
+    const highlightPulse = !prefersReducedMotion
+        ? `${pulseBorderPink} 2s ease-out infinite`
+        : 'none';
+
     return (
         <Box bg="bg.default" py={{ base: 8, md: 12 }} width="100%">
             <Container maxW="container.xl">
@@ -46,8 +65,9 @@ const CustomChipValueSection = () => {
                     overflow="hidden"
                     boxShadow="0 20px 80px rgba(0, 0, 0, 0.8), inset 0 0 100px rgba(0, 0, 0, 0.5)"
                     border="4px solid"
-                    borderColor="#0a5238"
+                    borderColor="brand.pink"
                     transition="all 0.5s ease"
+                    animation={highlightPulse}
                     _hover={{
                         transform: 'translateY(-2px)',
                         boxShadow:
@@ -195,7 +215,10 @@ const CustomChipValueSection = () => {
                             maxW={{ base: '380px', lg: 'none' }}
                             mx={{ base: 'auto', lg: 0 }}
                         >
-                            <VStack spacing={{ base: 7, md: 12 }} align="stretch">
+                            <VStack
+                                spacing={{ base: 7, md: 12 }}
+                                align="stretch"
+                            >
                                 <Stack
                                     direction={{ base: 'column', sm: 'row' }}
                                     justify="center"

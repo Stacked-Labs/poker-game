@@ -158,7 +158,7 @@ const SocialButton = ({
 
 const LobbyBanner = () => {
     const { appState } = useContext(AppContext);
-    const { isOpen, onClose } = useDisclosure();
+    const { isOpen, onClose } = useDisclosure({ defaultIsOpen: true });
 
     useEffect(() => {
         if (appState.game?.players && appState.game?.players.length > 1) {

@@ -92,6 +92,13 @@ interface PlayerEliminatedMetadata {
     hand_number?: number;
 }
 
+interface PlayerRevealedCardsMetadata {
+    hole_cards?: [string, string] | string[];
+    hand_number?: number;
+    seat_id?: number;
+    player_uuid?: string;
+}
+
 // Helper function to convert backend card string to EvalCard format
 const convertBackendCardToInt = (cardStr: string): EvalCard | null => {
     if (!cardStr || cardStr.length < 2) return null;
@@ -811,6 +818,63 @@ const GameLog = () => {
                             <> before Hand #{handRef}</>
                         )}
                     </>
+                );
+            }
+
+            case 'player_revealed_cards': {
+                const meta = metadata as Partial<PlayerRevealedCardsMetadata>;
+                const displayName = player_name || 'Player';
+                const cards = Array.isArray(meta.hole_cards)
+                    ? meta.hole_cards
+                    : null;
+
+                return (
+                    <Box>
+                        <Text as="span" fontWeight="bold" color="text.primary">
+                            {displayName}{' '}
+                            <Text
+                                as="span"
+                                color="purple.600"
+                                fontWeight="bold"
+                            >
+                                revealed
+                            </Text>{' '}
+                            cards
+                            {cards && cards.length > 0 ? (
+                                <>
+                                    :{' '}
+                                    <Text
+                                        as="span"
+                                        color="text.secondary"
+                                        fontWeight="bold"
+                                    >
+                                        {convertCardsToEmojis(cards)}
+                                    </Text>
+                                </>
+                            ) : null}
+                        </Text>
+                        {(meta.hand_number !== undefined ||
+                            meta.seat_id !== undefined) && (
+                            <Text
+                                fontSize="xs"
+                                color="text.gray600"
+                                mt={0.5}
+                                ml={4}
+                                fontWeight="bold"
+                            >
+                                {meta.hand_number !== undefined
+                                    ? `Hand #${meta.hand_number}`
+                                    : null}
+                                {meta.hand_number !== undefined &&
+                                meta.seat_id !== undefined
+                                    ? ' • '
+                                    : null}
+                                {meta.seat_id !== undefined
+                                    ? `Seat ${meta.seat_id}`
+                                    : null}
+                            </Text>
+                        )}
+                    </Box>
                 );
             }
 

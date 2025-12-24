@@ -63,6 +63,9 @@ const GameSettingLeftSide: React.FC = () => {
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
     const isTurnstileConfigured = Boolean(turnstileSiteKey);
 
+    const isCloudflareVerifying =
+        isTurnstileConfigured && !turnstileToken && !turnstileError;
+
     const isCloudflareReady = useMemo(() => {
         if (!isTurnstileConfigured) {
             return true;
@@ -644,27 +647,72 @@ const GameSettingLeftSide: React.FC = () => {
             </Box>
 
             {/* Cloudflare Verification */}
-            <Flex alignItems="center" justifyContent="center" gap={2} py={4}>
-                {isTurnstileConfigured && !turnstileToken && !turnstileError ? (
-                    <Turnstile
-                        sitekey={turnstileSiteKey}
-                        onSuccess={(token: string) => {
-                            setTurnstileToken(token);
-                            setTurnstileError(false);
-                        }}
-                        onExpire={() => {
-                            setTurnstileToken(null);
-                        }}
-                        onError={() => {
-                            setTurnstileError(true);
-                            setTurnstileToken(null);
-                        }}
-                        theme="light"
-                        size="normal"
-                        retry="auto"
-                        refreshExpired="auto"
-                        retryInterval={3000}
-                    />
+            <Flex alignItems="center" justifyContent="center" py={4}>
+                {isCloudflareVerifying ? (
+                    <VStack spacing={3} alignItems="center">
+                        <Box
+                            role="status"
+                            aria-live="polite"
+                            bg="card.white"
+                            borderRadius="full"
+                            px={4}
+                            py={2}
+                            borderWidth="1px"
+                            borderColor="border.lightGray"
+                            boxShadow="sm"
+                            display="flex"
+                            alignItems="center"
+                            gap={2}
+                        >
+                            <Spinner size="sm" color="brand.green" />
+                            <Text fontSize="sm" color="gray.600">
+                                Verifying with Cloudflare…
+                            </Text>
+                            <Tooltip
+                                label="We run a quick bot check in the background. The Create Game button unlocks automatically when it finishes."
+                                hasArrow
+                                placement="top"
+                            >
+                                <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    color="gray.500"
+                                >
+                                    <FaInfoCircle size={14} />
+                                </Box>
+                            </Tooltip>
+                        </Box>
+
+                        <Text
+                            fontSize="xs"
+                            color="gray.500"
+                            textAlign="center"
+                            maxW="420px"
+                        >
+                            This usually takes a few seconds. If you’re blocked
+                            by an ad/tracker blocker, verification may not load.
+                        </Text>
+
+                        <Turnstile
+                            sitekey={turnstileSiteKey}
+                            onSuccess={(token: string) => {
+                                setTurnstileToken(token);
+                                setTurnstileError(false);
+                            }}
+                            onExpire={() => {
+                                setTurnstileToken(null);
+                            }}
+                            onError={() => {
+                                setTurnstileError(true);
+                                setTurnstileToken(null);
+                            }}
+                            theme="light"
+                            size="normal"
+                            retry="auto"
+                            refreshExpired="auto"
+                            retryInterval={3000}
+                        />
+                    </VStack>
                 ) : (
                     <Box
                         bg="card.white"
@@ -700,38 +748,48 @@ const GameSettingLeftSide: React.FC = () => {
             </Flex>
 
             {/* Create Game Button */}
-            <Button
-                bg="brand.green"
-                color="white"
-                onClick={handleCreateGame}
-                size="lg"
-                height="56px"
-                width="100%"
-                maxW="480px"
-                fontSize="md"
-                fontWeight="bold"
-                borderRadius="16px"
-                border="none"
-                isLoading={isLoading}
-                loadingText="Creating..."
-                spinner={<Spinner size="md" color="white" />}
-                opacity={isFormValid && isCloudflareReady ? 1 : 0.6}
-                cursor={
-                    isFormValid && isCloudflareReady ? 'pointer' : 'not-allowed'
-                }
-                disabled={!isFormValid || !isCloudflareReady}
-                _hover={{
-                    bg: '#2d9268',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 20px rgba(54, 163, 123, 0.35)',
-                }}
-                _active={{
-                    transform: 'translateY(0)',
-                }}
-                transition="all 0.2s ease"
+            <Tooltip
+                label="Waiting for Cloudflare verification to finish…"
+                isDisabled={!isCloudflareVerifying}
+                hasArrow
+                placement="top"
             >
-                Create Game
-            </Button>
+                <Box width="100%" maxW="480px">
+                    <Button
+                        bg="brand.green"
+                        color="white"
+                        onClick={handleCreateGame}
+                        size="lg"
+                        height="56px"
+                        width="100%"
+                        fontSize="md"
+                        fontWeight="bold"
+                        borderRadius="16px"
+                        border="none"
+                        isLoading={isLoading}
+                        loadingText="Creating..."
+                        spinner={<Spinner size="md" color="white" />}
+                        opacity={isFormValid && isCloudflareReady ? 1 : 0.6}
+                        cursor={
+                            isFormValid && isCloudflareReady
+                                ? 'pointer'
+                                : 'not-allowed'
+                        }
+                        disabled={!isFormValid || !isCloudflareReady}
+                        _hover={{
+                            bg: '#2d9268',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 8px 20px rgba(54, 163, 123, 0.35)',
+                        }}
+                        _active={{
+                            transform: 'translateY(0)',
+                        }}
+                        transition="all 0.2s ease"
+                    >
+                        Create Game
+                    </Button>
+                </Box>
+            </Tooltip>
         </VStack>
     );
 };

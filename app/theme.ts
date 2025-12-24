@@ -84,6 +84,10 @@ const semanticTokens = {
             default: 'rgba(255, 255, 255, 0.5)',
             _dark: 'rgba(25, 25, 25, 0.5)',
         },
+        'bg.letterbox': {
+            default: '#D8D8DD',
+            _dark: '#141418',
+        },
 
         // Text colors
         'text.primary': {

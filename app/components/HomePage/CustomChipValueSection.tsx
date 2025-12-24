@@ -64,8 +64,6 @@ const CustomChipValueSection = () => {
                     p={{ base: 8, md: 16 }}
                     overflow="hidden"
                     boxShadow="0 20px 80px rgba(0, 0, 0, 0.8), inset 0 0 100px rgba(0, 0, 0, 0.5)"
-                    border="4px solid"
-                    borderColor="brand.pink"
                     transition="all 0.5s ease"
                     animation={highlightPulse}
                     _hover={{

@@ -212,3 +212,15 @@ a {
     --lf-y2: 9px;
     --lf-r2: -3deg;
 }
+
+/* Giphy Search */
+.giphy-search-bar {
+    background: #c7c9cf !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
+}
+
+.iTTiWD {
+    background: #4e4e4e !important;
+}

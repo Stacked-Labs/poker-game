@@ -75,5 +75,19 @@ const nextConfig = {
         NEXT_PUBLIC_THIRDWEB_CLIENT_ID:
             process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
     },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'tenor.com',
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'media.tenor.com',
+                pathname: '/**',
+            },
+        ],
+    },
 };
 module.exports = nextConfig;

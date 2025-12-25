@@ -7,6 +7,8 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { sendMessage } from '@/app/hooks/server_actions';
 import { IoClose } from 'react-icons/io5';
+import MediaButton from './MediaButton';
+import { Image } from '@chakra-ui/next-js';
 
 function hexToRgb(hex: string): [number, number, number] {
     hex = hex.replace('#', '');
@@ -26,8 +28,8 @@ function colorDistance(
 ): number {
     return Math.sqrt(
         Math.pow(rgb1[0] - rgb2[0], 2) +
-            Math.pow(rgb1[1] - rgb2[1], 2) +
-            Math.pow(rgb1[2] - rgb2[2], 2)
+        Math.pow(rgb1[1] - rgb2[1], 2) +
+        Math.pow(rgb1[2] - rgb2[2], 2)
     );
 }
 
@@ -68,7 +70,7 @@ const Chatbox = ({
     shouldAutoFocus?: boolean;
 }) => {
     const socket = useContext(SocketContext);
-    const [message, setMessage] = useState('');
+    const [message, setMessage] = useState<string>('');
     const appState = useContext(AppContext);
     const { username, clientID } = appState.appState;
     const inputRef = useRef<HTMLInputElement | null>(null);
@@ -116,6 +118,29 @@ const Chatbox = ({
     const handleKeyPress = (event: React.KeyboardEvent) => {
         if (event.key === 'Enter') {
             handleSendMessage();
+        }
+    };
+
+    const isGifUrl = (text: string) => {
+        const trimmed = text.trim();
+        return (
+            /^https?:\/\/.*\.(gif|webp|mp4)(\?.*)?$/i.test(trimmed) ||
+            trimmed.includes('giphy.com/embed')
+        );
+    };
+
+    const handleSendGifMessage = (gifUrl: string) => {
+        if (socket && gifUrl) {
+            sendMessage(socket, gifUrl);
+
+            setTimeout(() => {
+                if (messagesEndRef.current) {
+                    messagesEndRef.current.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'end',
+                    });
+                }
+            }, 100);
         }
     };
 
@@ -216,8 +241,17 @@ const Chatbox = ({
                             >
                                 {msg.name}:
                             </Text>
-                            {msg.message}
+                            {isGifUrl(msg.message) ? null : msg.message}
                         </Text>
+                        {isGifUrl(msg.message) && (
+                            <Image
+                                src={msg.message.trim()}
+                                alt="GIF"
+                                width="200"
+                                height={"200"}
+                                mt={2}
+                            />
+                        )}
                     </Box>
                 ))}
                 <div ref={messagesEndRef} />
@@ -261,6 +295,7 @@ const Chatbox = ({
                         }}
                         transition="all 0.2s ease"
                     />
+                    <MediaButton onSendGif={handleSendGifMessage} setMessage={setMessage} />
                     <IconButton
                         icon={<IoIosSend size={28} />}
                         onClick={handleSendMessage}

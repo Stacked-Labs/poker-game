@@ -48,6 +48,18 @@ const pulseBorderYellow = keyframes`
   }
 `;
 
+const pulseBorderGreen = keyframes`
+  0% {
+    box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(54, 163, 123, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(54, 163, 123, 0);
+  }
+`;
+
 const offlinePulse = keyframes`
   0%, 100% {
     opacity: 0.75;
@@ -174,6 +186,7 @@ const TakenSeatButton = ({
 
     // Offline status - default to true if undefined (backwards compatibility)
     const isOffline = player.isOnline === false;
+    const seatId = player?.seatID || 4;
 
     // Chip positions based on orientation - portrait uses column layouts, landscape uses row layouts
     // Each seat has portrait and landscape positioning defined via CSS media queries
@@ -256,7 +269,9 @@ const TakenSeatButton = ({
             '@media (orientation: portrait)': {
                 bottom: '20%',
                 left: '-110%',
-                flexDirection: 'column',
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
             },
             '@media (orientation: landscape)': {
                 bottom: '-30%',
@@ -269,12 +284,16 @@ const TakenSeatButton = ({
             '@media (orientation: portrait)': {
                 bottom: '20%',
                 left: '-110%',
-                flexDirection: 'column',
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
             },
             '@media (orientation: landscape)': {
                 top: '30%',
                 left: '-110%',
-                flexDirection: 'row-reverse',
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
             },
         },
         9: {
@@ -282,12 +301,16 @@ const TakenSeatButton = ({
             '@media (orientation: portrait)': {
                 top: '15%',
                 left: '-110%',
-                flexDirection: 'column',
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
             },
             '@media (orientation: landscape)': {
                 bottom: '23%',
                 left: '-110%',
-                flexDirection: 'row-reverse',
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
             },
         },
         10: {
@@ -296,7 +319,9 @@ const TakenSeatButton = ({
             '@media (orientation: portrait)': {
                 top: '15%',
                 left: '-110%',
-                flexDirection: 'column',
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
             },
             '@media (orientation: landscape)': {
                 top: '-25%',
@@ -311,7 +336,7 @@ const TakenSeatButton = ({
         flexDirection: 'row',
     };
     const chipPositionSx =
-        chipPositionStyles[player?.seatID || 4] || defaultPositionStyles;
+        chipPositionStyles[seatId] || defaultPositionStyles;
 
     // Countdown timer logic
     const deadline = appState.game?.actionDeadline ?? 0;
@@ -369,6 +394,14 @@ const TakenSeatButton = ({
               : 'green'
         : 'gray';
 
+    const timerColorMap: Record<typeof barScheme, string> = {
+        red: 'brand.pink',
+        yellow: 'brand.yellow',
+        green: 'brand.green',
+        gray: 'gray.400',
+    };
+    const timerColor = timerColorMap[barScheme] || 'brand.navy';
+
     const pots = appState.game?.pots ?? [];
     const resolvedPot =
         typeof activePotIndex === 'number' &&
@@ -394,13 +427,17 @@ const TakenSeatButton = ({
           : null;
     const highlightBorderColor =
         highlightVariant === 'active'
-            ? 'brand.pink'
+            ? timerColor
             : highlightVariant === 'winner'
               ? 'brand.yellow'
               : 'brand.darkNavy';
     const highlightShadow =
         highlightVariant === 'active'
-            ? '0 6px 18px rgba(235, 11, 92, 0.35)'
+            ? barScheme === 'green'
+                ? '0 6px 18px rgba(54, 163, 123, 0.3)'
+                : barScheme === 'yellow'
+                  ? '0 6px 18px rgba(253, 197, 29, 0.3)'
+                  : '0 6px 18px rgba(235, 11, 92, 0.35)'
             : highlightVariant === 'winner'
               ? '0 6px 18px rgba(253, 197, 29, 0.3)'
               : '0 2px 8px rgba(11, 20, 48, 0.3)';
@@ -408,7 +445,11 @@ const TakenSeatButton = ({
         highlightVariant && !prefersReducedMotion
             ? `${
                   highlightVariant === 'active'
-                      ? pulseBorderPink
+                      ? barScheme === 'green'
+                          ? pulseBorderGreen
+                          : barScheme === 'yellow'
+                            ? pulseBorderYellow
+                            : pulseBorderPink
                       : pulseBorderYellow
               } 2s ease-out infinite`
             : 'none';
@@ -457,6 +498,23 @@ const TakenSeatButton = ({
         return null;
     }
 
+    const showDealerBadge =
+        appState.game.running && appState.game.dealer == player.position;
+    const showCheckBubble =
+        appState.game.running && player.called && player.bet === 0;
+    const showBetBubble = player.bet !== 0;
+    const showActionBubble = showCheckBubble || showBetBubble;
+    const dealerBadgeBoxSize = { base: 4, md: 6, lg: 6, xl: 6, '2xl': 8 };
+    const actionBubbleSlotWidth = {
+        base: '56px',
+        md: '72px',
+        lg: '76px',
+        xl: '76px',
+        '2xl': '92px',
+    };
+    const reverseDealerGroupInPortrait = seatId === 7 || seatId === 8 || seatId === 9 || seatId === 10;
+    const reverseDealerGroupInLandscape = seatId === 8 || seatId === 9;
+
     return (
         <Flex
             className={`taken-seat-button ${isOffline ? 'offline' : ''}`}
@@ -481,8 +539,25 @@ const TakenSeatButton = ({
                 sx={chipPositionSx}
                 zIndex={5}
             >
-                {appState.game.running &&
-                    appState.game.dealer == player.position && (
+                {showDealerBadge ? (
+                    <Flex
+                        width="fit-content"
+                        alignItems="center"
+                        gap={1}
+                        pointerEvents="none"
+                        sx={{
+                            '@media (orientation: portrait)': {
+                                flexDirection: reverseDealerGroupInPortrait
+                                    ? 'row-reverse'
+                                    : 'row',
+                            },
+                            '@media (orientation: landscape)': {
+                                flexDirection: reverseDealerGroupInLandscape
+                                    ? 'row-reverse'
+                                    : 'row',
+                            },
+                        }}
+                    >
                         <Text
                             fontWeight="bold"
                             display="inline-flex"
@@ -491,17 +566,81 @@ const TakenSeatButton = ({
                             borderRadius="full"
                             bg="brand.lightGray"
                             color="brand.navy"
-                            width={{ base: 4, md: 6, lg: 6, xl: 6, '2xl': 8 }}
-                            height={{ base: 4, md: 6, lg: 6, xl: 6, '2xl': 8 }}
+                            width={dealerBadgeBoxSize}
+                            height={dealerBadgeBoxSize}
                             variant={'seatText'}
                             zIndex={3}
                             boxShadow="0 2px 8px rgba(51, 68, 121, 0.3)"
+                            flexShrink={0}
                         >
                             D
                         </Text>
-                    )}
+                        <Flex
+                            width={actionBubbleSlotWidth}
+                            justifyContent="flex-start"
+                            pointerEvents="none"
+                            sx={{
+                                '@media (orientation: portrait)': {
+                                    justifyContent: reverseDealerGroupInPortrait
+                                        ? 'flex-end'
+                                        : 'flex-start',
+                                },
+                                '@media (orientation: landscape)': {
+                                    justifyContent: reverseDealerGroupInLandscape
+                                        ? 'flex-end'
+                                        : 'flex-start',
+                                },
+                            }}
+                        >
+                            <Text
+                                borderRadius="1.5rem"
+                                px={{ base: 2, md: 3 }}
+                                py={0}
+                                width="fit-content"
+                                maxWidth="100%"
+                                bg={
+                                    showBetBubble
+                                        ? 'brand.yellow'
+                                        : 'brand.lightGray'
+                                }
+                                fontWeight="bold"
+                                color={
+                                    showBetBubble
+                                        ? 'brand.navy'
+                                        : 'brand.darkNavy'
+                                }
+                                display="inline-flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                variant={'seatText'}
+                                fontSize={{
+                                    base: '10px',
+                                    sm: '10px',
+                                    md: '14px',
+                                }}
+                                zIndex={3}
+                                boxShadow={
+                                    showBetBubble
+                                        ? '0 2px 8px rgba(253, 197, 29, 0.3)'
+                                        : '0 2px 8px rgba(54, 163, 123, 0.3)'
+                                }
+                                animation={
+                                    showActionBubble
+                                        ? `${bubbleFadeIn} 0.25s ease-out`
+                                        : undefined
+                                }
+                                visibility={
+                                    showActionBubble ? 'visible' : 'hidden'
+                                }
+                                noOfLines={1}
+                            >
+                                {showBetBubble ? player.bet : 'Check'}
+                            </Text>
+                        </Flex>
+                    </Flex>
+                ) : null}
                 {/* Check bubble - shows when player has called with no bet (checked) */}
-                {appState.game.running && player.called && player.bet === 0 && (
+                {!showDealerBadge && showCheckBubble && (
                     <Text
                         borderRadius="1.5rem"
                         px={{ base: 2, md: 3 }}
@@ -523,7 +662,7 @@ const TakenSeatButton = ({
                     </Text>
                 )}
                 {/* Bet amount - shows when player has bet (replaces Check if they bet later) */}
-                {player.bet !== 0 && (
+                {!showDealerBadge && showBetBubble && (
                     <Text
                         borderRadius="1.5rem"
                         px={{ base: 2, md: 3 }}
@@ -562,385 +701,383 @@ const TakenSeatButton = ({
                     }),
                 }}
             >
-            <Flex
-                className="player-cards-container"
-                position={'absolute'}
-                justifyContent={'center'}
-                width={'100%'}
-                height={'100%'}
-                gap={0}
-                left="50%"
-                transform="translateX(-50%)"
-                marginTop={{ base: 0, md: '12px' }}
-            >
-                <AnimatePresence mode="wait">
-                    {(() => {
-                        // Determine if this is the current user's cards (needed for render condition)
-                        const isSelfPlayer = appState.clientID
-                            ? player.uuid === appState.clientID
-                            : false;
+                <Flex
+                    className="player-cards-container"
+                    position={'absolute'}
+                    justifyContent={'center'}
+                    width={'100%'}
+                    height={'100%'}
+                    gap={0}
+                    left="50%"
+                    transform="translateX(-50%)"
+                    marginTop={{ base: 0, md: '12px' }}
+                >
+                    <AnimatePresence mode="wait">
+                        {(() => {
+                            // Determine if this is the current user's cards (needed for render condition)
+                            const isSelfPlayer = appState.clientID
+                                ? player.uuid === appState.clientID
+                                : false;
 
-                        const game = appState.game;
+                            const game = appState.game;
 
-                        // Determine if we are in showdown/reveal window state (hand ended, before next hand starts)
-                        const isShowdown = Boolean(
-                            game &&
-                                game.stage === 1 &&
-                                !game.betting &&
-                                (game.actionDeadline ?? 0) === 0 &&
-                                ((game.pots?.length || 0) > 0 ||
-                                    (game.communityCards || []).some(
-                                        (card) => Number(card) > 0
-                                    ))
-                        );
+                            // Determine if we are in showdown/reveal window state (hand ended, before next hand starts)
+                            const isShowdown = Boolean(
+                                game &&
+                                    game.stage === 1 &&
+                                    !game.betting &&
+                                    (game.actionDeadline ?? 0) === 0 &&
+                                    ((game.pots?.length || 0) > 0 ||
+                                        (game.communityCards || []).some(
+                                            (card) => Number(card) > 0
+                                        ))
+                            );
 
-                        // Check if player has real (revealed) cards - not [0,0] or [-1,-1]
-                        const hasRevealedCards =
-                            Number(player.cards[0]) > 0 &&
-                            Number(player.cards[1]) > 0;
+                            // Check if player has real (revealed) cards - not [0,0] or [-1,-1]
+                            const hasRevealedCards =
+                                Number(player.cards[0]) > 0 &&
+                                Number(player.cards[1]) > 0;
 
-                        // Only render cards if:
-                        // - Player is still in hand, OR
-                        // - It's the current user (so they can see their folded cards dimmed), OR
-                        // - It's showdown AND player has revealed cards (backend sends real values for showdown participants), OR
-                        // - This player is the winner (so their cards remain visible even if they win by fold)
-                        const shouldRenderCards =
-                            appState.game.running &&
-                            Number(player.cards[0]) !== -1 &&
-                            (player.in ||
-                                isSelfPlayer ||
-                                (isShowdown && hasRevealedCards) ||
-                                showWinnerHighlight);
+                            // Only render cards if:
+                            // - Player is still in hand, OR
+                            // - It's the current user (so they can see their folded cards dimmed), OR
+                            // - It's showdown AND player has revealed cards (backend sends real values for showdown participants), OR
+                            // - This player is the winner (so their cards remain visible even if they win by fold)
+                            const shouldRenderCards =
+                                appState.game.running &&
+                                Number(player.cards[0]) !== -1 &&
+                                (player.in ||
+                                    isSelfPlayer ||
+                                    (isShowdown && hasRevealedCards) ||
+                                    showWinnerHighlight);
 
-                        if (!shouldRenderCards) return null;
+                            if (!shouldRenderCards) return null;
 
-                        return player.cards.map((card: Card, index: number) => {
-                            const isCardWinning = winningSet.has(Number(card));
+                            return player.cards.map(
+                                (card: Card, index: number) => {
+                                    const isCardWinning = winningSet.has(
+                                        Number(card)
+                                    );
 
-                            // Dimming rules:
-                            // - During showdown: winners dim ONLY non-winning cards; losers dim all cards
-                            // - Otherwise: dim players who folded / are not in hand, but NEVER dim the overall winner highlight
-                            const dimThisCard = isShowdown
-                                ? playerWinsActivePot
-                                    ? !isCardWinning
-                                    : true
-                                : !player.in && !showWinnerHighlight;
+                                    // Dimming rules:
+                                    // - During showdown: winners dim ONLY non-winning cards; losers dim all cards
+                                    // - Otherwise: dim players who folded / are not in hand, but NEVER dim the overall winner highlight
+                                    const dimThisCard = isShowdown
+                                        ? playerWinsActivePot
+                                            ? !isCardWinning
+                                            : true
+                                        : !player.in && !showWinnerHighlight;
 
-                            // Folded visual (for non-showdown states) still uses folded prop,
-                            // but do not treat winner's cards as folded (they should remain visible)
-                            const foldedVisual =
-                                !isShowdown &&
-                                !player.in &&
-                                !showWinnerHighlight;
+                                    // Folded visual (for non-showdown states) still uses folded prop,
+                                    // but do not treat winner's cards as folded (they should remain visible)
+                                    const foldedVisual =
+                                        !isShowdown &&
+                                        !player.in &&
+                                        !showWinnerHighlight;
 
-                            // Skip flip animation for enemy players only when NOT in showdown
-                            // During showdown, allow flip animation so opponent cards reveal smoothly
-                            const skipAnimation = !isSelfPlayer && !isShowdown;
+                                    // Skip flip animation for enemy players only when NOT in showdown
+                                    // During showdown, allow flip animation so opponent cards reveal smoothly
+                                    const skipAnimation =
+                                        !isSelfPlayer && !isShowdown;
+
+                                    return (
+                                        <motion.div
+                                            key={`${player.seatID}-card-${index}`}
+                                            className={`player-card seat-${player.seatID}-card-${index}`}
+                                            initial={{ opacity: 1, scale: 1 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{
+                                                opacity: 0,
+                                                scale: 0.9,
+                                                y: 20,
+                                                transition: {
+                                                    duration: 0.5,
+                                                    ease: 'easeOut',
+                                                },
+                                            }}
+                                            style={{
+                                                width: '48%',
+                                                display: 'flex',
+                                                alignItems: 'flex-start',
+                                                justifyContent: 'flex-start',
+                                                padding: 0,
+                                                margin: 0,
+                                            }}
+                                        >
+                                            <CardComponent
+                                                card={card}
+                                                placeholder={false}
+                                                folded={foldedVisual}
+                                                highlighted={isCardWinning}
+                                                dimmed={dimThisCard}
+                                                skipAnimation={skipAnimation}
+                                            />
+                                        </motion.div>
+                                    );
+                                }
+                            );
+                        })()}
+                    </AnimatePresence>
+                </Flex>
+                <Box
+                    className="player-info-wrapper"
+                    position={'relative'}
+                    width={'110%'}
+                    zIndex={1}
+                    alignSelf={'flex-end'}
+                >
+                    <Flex
+                        className="player-info-container"
+                        direction={'column'}
+                        bg={
+                            isCurrentTurn || showWinnerHighlight
+                                ? 'white'
+                                : 'brand.darkNavy'
+                        }
+                        borderRadius={4}
+                        width={'100%'}
+                        paddingX={0}
+                        paddingTop={{ base: 1 }}
+                        paddingBottom={{ base: 2, sm: 2, md: '8%' }}
+                        justifySelf={'flex-end'}
+                        justifyContent={'center'}
+                        alignItems={'flex-start'}
+                        transition={'all 0.5s ease-in-out'}
+                        position={'relative'}
+                        border="2px solid"
+                        borderColor={
+                            highlightVariant
+                                ? highlightBorderColor
+                                : showWinnerHighlight
+                                  ? 'brand.yellow'
+                                  : 'brand.darkNavy'
+                        }
+                        boxShadow={highlightShadow}
+                        animation={highlightPulse}
+                    >
+                        {/* Status badges rendered above the container without affecting layout */}
+                        {/* Disconnected badge - shown when player loses connection */}
+                        {isOffline && (
+                            <Tag
+                                position="absolute"
+                                top={{ base: -2, md: -3 }}
+                                left={0}
+                                bg="gray.600"
+                                color="gray.100"
+                                variant="solid"
+                                size={{ base: 'xs', md: 'sm' }}
+                                fontSize={{ base: '8px', md: 'sm' }}
+                                px={{ base: 1, md: 2 }}
+                                py={{ base: 0.1, md: 0.2 }}
+                                zIndex={5}
+                                fontWeight="bold"
+                                borderRadius="6px"
+                                boxShadow="0 2px 8px rgba(0, 0, 0, 0.3)"
+                                display="flex"
+                                alignItems="center"
+                                gap={1}
+                            >
+                                <Icon
+                                    as={MdWifiOff}
+                                    boxSize={{ base: 2.5, md: 3 }}
+                                />
+                                <Text
+                                    as="span"
+                                    display={{ base: 'none', md: 'inline' }}
+                                >
+                                    Offline
+                                </Text>
+                            </Tag>
+                        )}
+                        {player.stack > 0 &&
+                            !player.ready &&
+                            (!isSelf || !player.in) && (
+                                <Tag
+                                    position="absolute"
+                                    top={{ base: -2, md: -3 }}
+                                    right={0}
+                                    bg={
+                                        player.readyNextHand
+                                            ? 'brand.lightGray'
+                                            : 'brand.yellow'
+                                    }
+                                    color={
+                                        player.readyNextHand
+                                            ? 'brand.darkNavy'
+                                            : 'text.secondary'
+                                    }
+                                    variant="solid"
+                                    size={{ base: 'xs', md: 'sm' }}
+                                    fontSize={{ base: '8px', md: 'sm' }}
+                                    px={{ base: 1, md: 1 }}
+                                    py={{ base: 0.1, md: 0.2 }}
+                                    zIndex={3}
+                                    fontWeight="bold"
+                                    borderRadius="6px"
+                                >
+                                    {player.readyNextHand
+                                        ? 'Joining next hand'
+                                        : 'Away'}
+                                </Tag>
+                            )}
+                        {player.sitOutNextHand &&
+                            player.ready &&
+                            (!isSelf || !player.in) && (
+                                <Tag
+                                    position="absolute"
+                                    top={{ base: -2, md: -3 }}
+                                    right={0}
+                                    bg="brand.lightGray"
+                                    color="brand.darkNavy"
+                                    variant="solid"
+                                    size={{ base: 'xs', md: 'sm' }}
+                                    fontSize={{ base: '8px', md: 'sm' }}
+                                    px={{ base: 1, md: 1 }}
+                                    py={{ base: 0.1, md: 0.2 }}
+                                    zIndex={3}
+                                    fontWeight="bold"
+                                    borderRadius="6px"
+                                >
+                                    Sitting out..
+                                </Tag>
+                            )}
+                        {player.leaveAfterHand && (!isSelf || !player.in) && (
+                            <Tag
+                                position="absolute"
+                                top={{ base: -2, md: -3 }}
+                                // Offset left position if offline badge is also shown
+                                left={
+                                    isOffline ? { base: '50px', md: '70px' } : 0
+                                }
+                                bg="brand.pink"
+                                color="white"
+                                variant="solid"
+                                size={{ base: 'xs', md: 'sm' }}
+                                fontSize={{ base: '8px', md: 'sm' }}
+                                px={{ base: 1, md: 2 }}
+                                py={{ base: 0.1, md: 0.2 }}
+                                zIndex={3}
+                                fontWeight="bold"
+                                borderRadius="6px"
+                                boxShadow="0 2px 8px rgba(235, 11, 92, 0.4)"
+                            >
+                                Leaving soon
+                            </Tag>
+                        )}
+                        {strengthLabel && (
+                            <Tag
+                                position="absolute"
+                                top={{ base: -1, md: -3 }}
+                                left={'50%'}
+                                transform={'translateX(-50%)'}
+                                bg="brand.green"
+                                color="white"
+                                variant="solid"
+                                size={{ base: 'xs', md: 'sm' }}
+                                fontSize={{ base: '8px', md: 'sm' }}
+                                px={{ base: 1, md: 2 }}
+                                py={{ base: 0, md: 0.5 }}
+                                whiteSpace="nowrap"
+                                pointerEvents="none"
+                                zIndex={4}
+                                fontWeight="bold"
+                                borderRadius="6px"
+                                boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
+                            >
+                                {strengthLabel}
+                            </Tag>
+                        )}
+                        <Box width="100%" px={{ base: 1, md: 1 }}>
+                            <HStack
+                                spacing={2}
+                                className="player-info-header"
+                                width="100%"
+                                justifyContent="space-between"
+                            >
+                                <Tooltip
+                                    label={shortEthAddress}
+                                    hasArrow
+                                    bg="brand.navy"
+                                    color="white"
+                                    borderRadius="md"
+                                >
+                                    <Text
+                                        className="player-username"
+                                        variant={'seatText'}
+                                        fontSize={{
+                                            base: '10px',
+                                            md: 'xs',
+                                            lg: 'sm',
+                                        }}
+                                        fontWeight={'bold'}
+                                        color={
+                                            isCurrentTurn || showWinnerHighlight
+                                                ? 'brand.darkNavy'
+                                                : 'white'
+                                        }
+                                        cursor="pointer"
+                                    >
+                                        {player.username}
+                                    </Text>
+                                </Tooltip>
+                                <Flex
+                                    className="player-stack-container"
+                                    alignItems={'center'}
+                                    justifyContent={'center'}
+                                >
+                                    <StackValue
+                                        value={player.stack}
+                                        color={stackColor}
+                                        fontSize={{
+                                            base: 'xs',
+                                            md: 'sm',
+                                            lg: 'md',
+                                        }}
+                                    />
+                                </Flex>
+                            </HStack>
+                        </Box>
+
+                        {/* Countdown timer – progress only, stretches edge to edge */}
+                        {(() => {
+                            const timerVisible =
+                                isCurrentTurn && deadline > 0 && remaining > 0;
 
                             return (
-                                <motion.div
-                                    key={`${player.seatID}-card-${index}`}
-                                    className={`player-card seat-${player.seatID}-card-${index}`}
-                                    initial={{ opacity: 1, scale: 1 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{
-                                        opacity: 0,
-                                        scale: 0.9,
-                                        y: 20,
-                                        transition: {
-                                            duration: 0.5,
-                                            ease: 'easeOut',
-                                        },
-                                    }}
-                                    style={{
-                                        width: '48%',
-                                        display: 'flex',
-                                        alignItems: 'flex-start',
-                                        justifyContent: 'flex-start',
-                                        padding: 0,
-                                        margin: 0,
-                                    }}
-                                >
-                                    <CardComponent
-                                        card={card}
-                                        placeholder={false}
-                                        folded={foldedVisual}
-                                        highlighted={isCardWinning}
-                                        dimmed={dimThisCard}
-                                        skipAnimation={skipAnimation}
-                                    />
-                                </motion.div>
-                            );
-                        });
-                    })()}
-                </AnimatePresence>
-            </Flex>
-            <Box
-                className="player-info-wrapper"
-                position={'relative'}
-                width={'110%'}
-                zIndex={1}
-                alignSelf={'flex-end'}
-            >
-                <Flex
-                    className="player-info-container"
-                    direction={'column'}
-                    bg={
-                        isCurrentTurn || showWinnerHighlight
-                            ? 'white'
-                            : 'brand.darkNavy'
-                    }
-                    borderRadius={4}
-                    width={'100%'}
-                    paddingX={0}
-                    paddingTop={{ base: 1 }}
-                    paddingBottom={{ base: 2, sm: 2, md: '8%' }}
-                    justifySelf={'flex-end'}
-                    justifyContent={'center'}
-                    alignItems={'flex-start'}
-                    transition={'all 0.5s ease-in-out'}
-                    position={'relative'}
-                    border="2px solid"
-                    borderColor={
-                        highlightVariant
-                            ? highlightBorderColor
-                            : showWinnerHighlight
-                              ? 'brand.yellow'
-                              : 'brand.darkNavy'
-                    }
-                    boxShadow={highlightShadow}
-                    animation={highlightPulse}
-                >
-                    {/* Status badges rendered above the container without affecting layout */}
-                    {/* Disconnected badge - shown when player loses connection */}
-                    {isOffline && (
-                        <Tag
-                            position="absolute"
-                            top={{ base: -2, md: -3 }}
-                            left={0}
-                            bg="gray.600"
-                            color="gray.100"
-                            variant="solid"
-                            size={{ base: 'xs', md: 'sm' }}
-                            fontSize={{ base: '8px', md: 'sm' }}
-                            px={{ base: 1, md: 2 }}
-                            py={{ base: 0.1, md: 0.2 }}
-                            zIndex={5}
-                            fontWeight="bold"
-                            borderRadius="6px"
-                            boxShadow="0 2px 8px rgba(0, 0, 0, 0.3)"
-                            display="flex"
-                            alignItems="center"
-                            gap={1}
-                        >
-                            <Icon
-                                as={MdWifiOff}
-                                boxSize={{ base: 2.5, md: 3 }}
-                            />
-                            <Text
-                                as="span"
-                                display={{ base: 'none', md: 'inline' }}
-                            >
-                                Offline
-                            </Text>
-                        </Tag>
-                    )}
-                    {player.stack > 0 &&
-                        !player.ready &&
-                        (!isSelf || !player.in) && (
-                            <Tag
-                                position="absolute"
-                                top={{ base: -2, md: -3 }}
-                                right={0}
-                                bg={
-                                    player.readyNextHand
-                                        ? 'brand.lightGray'
-                                        : 'brand.yellow'
-                                }
-                                color={
-                                    player.readyNextHand
-                                        ? 'brand.darkNavy'
-                                        : 'text.secondary'
-                                }
-                                variant="solid"
-                                size={{ base: 'xs', md: 'sm' }}
-                                fontSize={{ base: '8px', md: 'sm' }}
-                                px={{ base: 1, md: 1 }}
-                                py={{ base: 0.1, md: 0.2 }}
-                                zIndex={3}
-                                fontWeight="bold"
-                                borderRadius="6px"
-                            >
-                                {player.readyNextHand
-                                    ? 'Joining next hand'
-                                    : 'Away'}
-                            </Tag>
-                        )}
-                    {player.sitOutNextHand &&
-                        player.ready &&
-                        (!isSelf || !player.in) && (
-                            <Tag
-                                position="absolute"
-                                top={{ base: -2, md: -3 }}
-                                right={0}
-                                bg="brand.lightGray"
-                                color="brand.darkNavy"
-                                variant="solid"
-                                size={{ base: 'xs', md: 'sm' }}
-                                fontSize={{ base: '8px', md: 'sm' }}
-                                px={{ base: 1, md: 1 }}
-                                py={{ base: 0.1, md: 0.2 }}
-                                zIndex={3}
-                                fontWeight="bold"
-                                borderRadius="6px"
-                            >
-                                Sitting out..
-                            </Tag>
-                        )}
-                    {player.leaveAfterHand && (!isSelf || !player.in) && (
-                        <Tag
-                            position="absolute"
-                            top={{ base: -2, md: -3 }}
-                            // Offset left position if offline badge is also shown
-                            left={isOffline ? { base: '50px', md: '70px' } : 0}
-                            bg="brand.pink"
-                            color="white"
-                            variant="solid"
-                            size={{ base: 'xs', md: 'sm' }}
-                            fontSize={{ base: '8px', md: 'sm' }}
-                            px={{ base: 1, md: 2 }}
-                            py={{ base: 0.1, md: 0.2 }}
-                            zIndex={3}
-                            fontWeight="bold"
-                            borderRadius="6px"
-                            boxShadow="0 2px 8px rgba(235, 11, 92, 0.4)"
-                        >
-                            Leaving soon
-                        </Tag>
-                    )}
-                    {strengthLabel && (
-                        <Tag
-                            position="absolute"
-                            top={{ base: -1, md: -3 }}
-                            left={'50%'}
-                            transform={'translateX(-50%)'}
-                            bg="brand.green"
-                            color="white"
-                            variant="solid"
-                            size={{ base: 'xs', md: 'sm' }}
-                            fontSize={{ base: '8px', md: 'sm' }}
-                            px={{ base: 1, md: 2 }}
-                            py={{ base: 0, md: 0.5 }}
-                            whiteSpace="nowrap"
-                            pointerEvents="none"
-                            zIndex={4}
-                            fontWeight="bold"
-                            borderRadius="6px"
-                            boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
-                        >
-                            {strengthLabel}
-                        </Tag>
-                    )}
-                    <Box width="100%" px={{ base: 1, md: 1 }}>
-                        <HStack
-                            spacing={2}
-                            className="player-info-header"
-                            width="100%"
-                            justifyContent="space-between"
-                        >
-                            <Tooltip
-                                label={shortEthAddress}
-                                hasArrow
-                                bg="brand.navy"
-                                color="white"
-                                borderRadius="md"
-                            >
-                                <Text
-                                    className="player-username"
-                                    variant={'seatText'}
-                                    fontSize={{
-                                        base: '10px',
-                                        md: 'xs',
-                                        lg: 'sm',
-                                    }}
-                                    fontWeight={'bold'}
-                                    color={
-                                        isCurrentTurn || showWinnerHighlight
-                                            ? 'brand.darkNavy'
-                                            : 'white'
-                                    }
-                                    cursor="pointer"
-                                >
-                                    {player.username}
-                                </Text>
-                            </Tooltip>
-                            <Flex
-                                className="player-stack-container"
-                                alignItems={'center'}
-                                justifyContent={'center'}
-                            >
-                                <StackValue
-                                    value={player.stack}
-                                    color={stackColor}
-                                    fontSize={{
-                                        base: 'xs',
-                                        md: 'sm',
-                                        lg: 'md',
-                                    }}
-                                />
-                            </Flex>
-                        </HStack>
-                    </Box>
-
-                    {/* Countdown timer – progress only, stretches edge to edge */}
-                    {(() => {
-                        const timerVisible =
-                            isCurrentTurn && deadline > 0 && remaining > 0;
-
-                        // Brand color scheme mapping
-                        const timerColorMap = {
-                            red: 'brand.pink',
-                            yellow: 'brand.yellow',
-                            green: 'brand.green',
-                            gray: 'gray.400',
-                        };
-
-                        const timerColor =
-                            timerColorMap[barScheme] || 'brand.navy';
-
-                        return (
-                            <Box
-                                className="player-timer-container"
-                                width="100%"
-                                display="flex"
-                                flexDirection="row"
-                                alignItems="center"
-                                position="absolute"
-                                left={0}
-                                right={0}
-                                bottom={0}
-                                visibility={timerVisible ? 'visible' : 'hidden'}
-                                overflow="hidden"
-                                pointerEvents="none"
-                            >
-                                <Progress
-                                    className="player-timer-bar"
-                                    value={progress}
-                                    height={{ base: 1.5, sm: 1.5, md: 2 }}
+                                <Box
+                                    className="player-timer-container"
                                     width="100%"
-                                    colorScheme={barScheme}
-                                    borderRadius={0}
-                                    sx={{
-                                        '& > div': {
-                                            bg: timerColor,
-                                        },
-                                    }}
-                                />
-                            </Box>
-                        );
-                    })()}
-                </Flex>
-            </Box>
+                                    display="flex"
+                                    flexDirection="row"
+                                    alignItems="center"
+                                    position="absolute"
+                                    left={0}
+                                    right={0}
+                                    bottom={0}
+                                    visibility={
+                                        timerVisible ? 'visible' : 'hidden'
+                                    }
+                                    overflow="hidden"
+                                    pointerEvents="none"
+                                >
+                                    <Progress
+                                        className="player-timer-bar"
+                                        value={progress}
+                                        height={{ base: 1.5, sm: 1.5, md: 2 }}
+                                        width="100%"
+                                        colorScheme={barScheme}
+                                        borderRadius={0}
+                                        sx={{
+                                            '& > div': {
+                                                bg: timerColor,
+                                            },
+                                        }}
+                                    />
+                                </Box>
+                            );
+                        })()}
+                    </Flex>
+                </Box>
             </Flex>
         </Flex>
     );

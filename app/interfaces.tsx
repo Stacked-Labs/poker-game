@@ -51,6 +51,7 @@ export type Player = {
     bet: number;
     totalBet: number;
     cards: string[];
+    hasRevealed?: boolean;
     readyNextHand?: boolean;
     sitOutNextHand?: boolean;
     leaveAfterHand?: boolean;
@@ -131,6 +132,7 @@ export type EventType =
     | 'player_set_ready'
     | 'player_set_away'
     | 'player_eliminated'
+    | 'player_revealed_cards'
     // Game events
     | 'hand_started'
     | 'cards_dealt'

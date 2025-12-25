@@ -20,7 +20,7 @@ import {
     Text,
     useColorMode,
 } from '@chakra-ui/react';
-import { PiCirclesFour } from 'react-icons/pi';
+import { FiSmile } from 'react-icons/fi';
 import {
     Dispatch,
     RefObject,
@@ -151,19 +151,19 @@ const GifPicker = ({
                 placeholder="Find a GIF"
                 disabled={loading}
                 position={'sticky'}
-                top={2}
+                top={1}
                 zIndex={2}
                 flex={1}
-                height="48px"
+                height="36px"
                 bg="input.lightGray"
                 color="text.secondary"
                 border="none"
-                borderRadius="12px"
-                fontSize="md"
+                borderRadius="10px"
+                fontSize="sm"
                 fontWeight="light"
-                px={4}
-                mb={4}
-                boxShadow={'lg'}
+                px={3}
+                mb={2}
+                boxShadow={'sm'}
                 _placeholder={{
                     color: 'text.primary',
                 }}
@@ -229,8 +229,10 @@ const MediaButton = ({
     const { colorMode } = useColorMode();
     const scrollParentRef = useRef<HTMLDivElement>(null);
 
-    const handleEmojiClick = (emoji: any) => {
-        setMessage((prev) => (prev ? prev + emoji.native : emoji.native));
+    const handleEmojiClick = (emoji: { native?: string }) => {
+        if (!emoji.native) return;
+        const emojiNative = emoji.native;
+        setMessage((prev) => (prev ? prev + emojiNative : emojiNative));
     };
 
     return (
@@ -238,23 +240,29 @@ const MediaButton = ({
             <Popover>
                 <PopoverTrigger>
                     <IconButton
-                        icon={<PiCirclesFour size={28} />}
+                        icon={<FiSmile size={22} />}
                         aria-label={'Send GIFs, stickers, emojis'}
                         size="lg"
                         height="48px"
                         width="48px"
+                        bg="transparent"
+                        color="text.secondary"
+                        border="1px solid"
+                        borderColor="chat.border"
+                        borderRadius="12px"
                         _hover={{
-                            bg: 'brand.green',
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 4px 12px rgba(54, 163, 123, 0.4)',
+                            bg: 'card.lightGray',
+                            color: 'text.primary',
                         }}
                         _active={{
-                            transform: 'translateY(0)',
+                            bg: 'card.lighterGray',
                         }}
+                        _focus={{ outline: 'none', boxShadow: 'none' }}
                         _disabled={{
                             opacity: 0.5,
                             cursor: 'not-allowed',
                         }}
+                        transition="background 0.15s ease, color 0.15s ease"
                     />
                 </PopoverTrigger>
                 <PopoverContent
@@ -263,7 +271,7 @@ const MediaButton = ({
                     boxShadow={'lg'}
                 >
                     <PopoverArrow border={'none'} boxShadow={'lg'} />
-                    <PopoverBody bg={'card.white'} py={3}>
+                    <PopoverBody bg={'card.white'} p={2}>
                         <Tabs
                             size={{ base: 'sm', md: 'md' }}
                             variant="soft-rounded"
@@ -275,89 +283,62 @@ const MediaButton = ({
                             flexDirection="column"
                         >
                             <TabList
-                                justifyContent={'center'}
-                                gap={{ base: 1, md: 2 }}
+                                width="100%"
+                                justifyContent="space-between"
+                                alignItems="center"
                                 bg="card.lightGray"
-                                p={{ base: 2, md: 3 }}
-                                borderRadius="20px"
-                                flexWrap={{ base: 'nowrap', sm: 'wrap' }}
-                                overflowX="auto"
-                                flex={1}
-                                boxShadow="0 4px 12px rgba(0, 0, 0, 0.05)"
-                                sx={{
-                                    '&::-webkit-scrollbar': {
-                                        height: '6px',
-                                    },
-                                    '&::-webkit-scrollbar-track': {
-                                        bg: 'card.white',
-                                        borderRadius: 'full',
-                                    },
-                                    '&::-webkit-scrollbar-thumb': {
-                                        bg: 'text.secondary',
-                                        borderRadius: 'full',
-                                        _hover: {
-                                            bg: 'brand.pink',
-                                        },
-                                    },
-                                }}
+                                p="0px"
+                                borderRadius="999px"
+                                height="36px"
+                                boxShadow="sm"
                             >
                                 <Tab
-                                    minW="fit-content"
-                                    px={{ base: 3, md: 4 }}
-                                    py={2}
+                                    flex={1}
+                                    height="32px"
+                                    px={0}
+                                    py={0}
                                     _hover={{
                                         bg: 'input.white',
                                         color: 'brand.green',
-                                        boxShadow:
-                                            '0 4px 8px rgba(54, 163, 123, 0.2)',
                                     }}
                                     _selected={{
                                         bg: 'brand.green',
                                         color: 'text.white !important',
                                         boxShadow:
-                                            '0 4px 12px rgba(54, 163, 123, 0.3)',
+                                            '0 6px 16px rgba(54, 163, 123, 0.28)',
                                         '& *': {
                                             color: 'text.white !important',
                                         },
                                     }}
-                                    borderRadius="12px"
-                                    fontWeight="bold"
-                                    fontSize={{
-                                        base: 'xs',
-                                        sm: 'sm',
-                                        md: 'md',
-                                    }}
+                                    borderRadius="999px"
+                                    fontWeight="semibold"
+                                    fontSize="sm"
                                     transition="all 0.2s ease"
                                     color={'text.primary'}
                                 >
                                     GIFs
                                 </Tab>
                                 <Tab
-                                    minW="fit-content"
-                                    px={{ base: 3, md: 4 }}
-                                    py={2}
+                                    flex={1}
+                                    height="32px"
+                                    px={0}
+                                    py={0}
                                     _hover={{
                                         bg: 'input.white',
                                         color: 'brand.green',
-                                        boxShadow:
-                                            '0 4px 8px rgba(54, 163, 123, 0.2)',
                                     }}
                                     _selected={{
                                         bg: 'brand.green',
                                         color: 'text.white !important',
                                         boxShadow:
-                                            '0 4px 12px rgba(54, 163, 123, 0.3)',
+                                            '0 6px 16px rgba(54, 163, 123, 0.28)',
                                         '& *': {
                                             color: 'text.white !important',
                                         },
                                     }}
-                                    borderRadius="12px"
-                                    fontWeight="bold"
-                                    fontSize={{
-                                        base: 'xs',
-                                        sm: 'sm',
-                                        md: 'md',
-                                    }}
+                                    borderRadius="999px"
+                                    fontWeight="semibold"
+                                    fontSize="sm"
                                     transition="all 0.2s ease"
                                     color={'text.primary'}
                                 >
@@ -390,17 +371,17 @@ const MediaButton = ({
                                 <TabPanel
                                     ref={scrollParentRef}
                                     sx={{ scrollBehavior: 'smooth' }}
+                                    p={1}
                                 >
                                     <GifPicker
                                         onSendGif={onSendGif}
                                         scrollParentRef={scrollParentRef}
                                     />
                                 </TabPanel>
-                                <TabPanel p={0}>
+                                <TabPanel>
                                     <Flex
                                         justifyContent={'center'}
                                         width={'100%'}
-                                        pt={2}
                                     >
                                         <Picker
                                             data={data}
@@ -410,10 +391,7 @@ const MediaButton = ({
                                                     ? 'light'
                                                     : 'dark'
                                             }
-                                            perLine={6}
-                                            sx={{
-                                                background: 'red',
-                                            }}
+                                            perLine={8}
                                         />
                                     </Flex>
                                 </TabPanel>

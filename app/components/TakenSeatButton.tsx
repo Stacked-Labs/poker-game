@@ -466,13 +466,6 @@ const TakenSeatButton = ({
                 '@media (orientation: portrait)': {
                     width: '90%',
                 },
-                // Offline styling - grayscale with subtle pulsing animation
-                ...(isOffline && {
-                    filter: 'grayscale(100%)',
-                    animation: prefersReducedMotion
-                        ? 'none'
-                        : `${offlinePulse} 3s ease-in-out infinite`,
-                }),
             }}
             position={'relative'}
             alignItems={'center'}
@@ -486,6 +479,7 @@ const TakenSeatButton = ({
                 width={'100%'}
                 gap={2}
                 sx={chipPositionSx}
+                zIndex={5}
             >
                 {appState.game.running &&
                     appState.game.dealer == player.position && (
@@ -551,6 +545,23 @@ const TakenSeatButton = ({
                     </Text>
                 )}
             </Flex>
+            <Flex
+                className="seat-core"
+                width="100%"
+                height="100%"
+                position="relative"
+                alignItems="center"
+                justifyContent="center"
+                zIndex={1}
+                sx={{
+                    ...(isOffline && {
+                        filter: 'grayscale(100%)',
+                        animation: prefersReducedMotion
+                            ? 'none'
+                            : `${offlinePulse} 3s ease-in-out infinite`,
+                    }),
+                }}
+            >
             <Flex
                 className="player-cards-container"
                 position={'absolute'}
@@ -930,6 +941,7 @@ const TakenSeatButton = ({
                     })()}
                 </Flex>
             </Box>
+            </Flex>
         </Flex>
     );
 };

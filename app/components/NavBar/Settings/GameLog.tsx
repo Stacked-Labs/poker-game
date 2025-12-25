@@ -255,17 +255,6 @@ const GameLog = () => {
     const formatLogMessage = (event: GameEventRecord) => {
         const { event_type, metadata, amount, player_name } = event;
 
-        // Debug logging for all events
-        console.log('[GameLog Event]', {
-            event_type,
-            event_category: event.event_category,
-            player_name,
-            amount,
-            stage: event.stage ?? null, // stage is optional (omitted for meta events)
-            metadata,
-            full_event: event,
-        });
-
         switch (event_type) {
             case 'hand_started': {
                 const meta = metadata as unknown as HandStartedMetadata;
@@ -1014,9 +1003,8 @@ const GameLog = () => {
                 return (
                     <>
                         <Text as="span" color="orange.500" fontWeight="bold">
-                            [UNHANDLED EVENT]
-                        </Text>{' '}
-                        {event_type.replace(/_/g, ' ')}
+                            {event_type.replace(/_/g, ' ')}
+                        </Text>
                         {player_name && <> by {player_name}</>}
                         {amount !== null &&
                             amount !== undefined &&
@@ -1118,7 +1106,7 @@ const GameLog = () => {
                     <Text
                         fontSize="xs"
                         fontWeight="bold"
-                        color="white"
+                        color="gray.700"
                         fontFamily="mono"
                     >
                         EVENT LOG — {events.length} entries
@@ -1167,53 +1155,37 @@ const GameLog = () => {
                                             ? 'input.white'
                                             : 'input.lightGray'
                                     }
+                                    borderLeft="3px solid"
+                                    borderLeftColor={getBadgeColor(
+                                        event.event_category
+                                    )}
                                 >
                                     <HStack
-                                        gap={{ base: 0.25, md: 1 }}
-                                        flexWrap="wrap"
-                                        align="baseline"
-                                        rowGap={0}
+                                        gap={{ base: 2, md: 3 }}
+                                        align="flex-start"
                                     >
                                         <Text
                                             color="gray.500"
                                             fontWeight="bold"
-                                            minW="fit-content"
+                                            minW={{ base: '78px', md: '92px' }}
+                                            whiteSpace="nowrap"
                                             fontSize={{
                                                 base: '10px',
                                                 md: 'xs',
                                             }}
-                                            mr={{ base: 1, md: 0 }}
                                         >
                                             [{formatTime(event.timestamp)}]
-                                        </Text>
-                                        <Text
-                                            color={getBadgeColor(
-                                                event.event_category
-                                            )}
-                                            fontWeight="bold"
-                                            textTransform="uppercase"
-                                            fontSize={{
-                                                base: '9px',
-                                                md: '10px',
-                                            }}
-                                            minW="fit-content"
-                                            mr={{ base: 1, md: 0 }}
-                                        >
-                                            [
-                                            {event.event_category.replace(
-                                                '_',
-                                                '-'
-                                            )}
-                                            ]
                                         </Text>
                                         <Text
                                             color="text.primary"
                                             wordBreak="break-word"
                                             fontSize={{
-                                                base: '11px',
-                                                md: 'xs',
+                                                base: '12px',
+                                                md: 'sm',
                                             }}
-                                            fontWeight="bold"
+                                            fontWeight="medium"
+                                            flex="1"
+                                            pr={1}
                                         >
                                             {formatLogMessage(event)}
                                         </Text>

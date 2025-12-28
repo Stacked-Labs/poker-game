@@ -246,6 +246,23 @@ const FooterWithActionButtons = ({
         clearAutoActionTimeout,
     ]);
 
+    // Reset queued actions when game stage changes (new street dealt)
+    useEffect(() => {
+        resetQueuedActions();
+    }, [appState.game?.stage, resetQueuedActions]);
+
+    // Reset invalid queued actions when betting situation changes within same betting round
+    useEffect(() => {
+        // If player had check queued but can no longer check (someone bet), reset it
+        if (queuedActions.check && !canCheck && !needsToCall) {
+            setQueuedActions((prev) => ({ ...prev, check: false }));
+        }
+        // If player had call queued but can now check instead, reset it (they should re-queue)
+        if (queuedActions.call && canCheck && !needsToCall) {
+            setQueuedActions((prev) => ({ ...prev, call: false }));
+        }
+    }, [canCheck, needsToCall, queuedActions.check, queuedActions.call]);
+
     if (!socket || !appState || !appState.game || !localPlayer) {
         return null;
     }

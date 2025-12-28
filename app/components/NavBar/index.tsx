@@ -218,6 +218,91 @@ const Navbar = () => {
                         </Box>
                     )}
                     <StartGameButton />
+                    {isUserSeated && isAway && (
+                        <Box
+                            className="navbar-away-portrait-wrapper"
+                            sx={{
+                                '@media (orientation: portrait)': {
+                                    display: 'block',
+                                },
+                                '@media (orientation: landscape)': {
+                                    display: 'none',
+                                },
+                            }}
+                        >
+                            <AwayButton
+                                isAway={isAway}
+                                sitOutNextHand={localPlayer?.sitOutNextHand}
+                                readyNextHand={localPlayer?.readyNextHand}
+                                handleReturnReady={() =>
+                                    handleReturnReady(socket, info)
+                                }
+                                handleSitOutNext={() =>
+                                    handleSitOutNext(socket, info)
+                                }
+                                handleCancelRejoin={() =>
+                                    handleCancelRejoin(socket, info)
+                                }
+                            />
+                        </Box>
+                    )}
+                    {isOwner &&
+                        appState.game?.running &&
+                        appState.game?.paused &&
+                        socket && (
+                            <Box
+                                className="navbar-resume-wrapper"
+                                sx={{
+                                    '@media (orientation: portrait)': {
+                                        display: 'block',
+                                    },
+                                    '@media (orientation: landscape)': {
+                                        display: 'none',
+                                    },
+                                }}
+                            >
+                                <Tooltip
+                                    label="Resume Game"
+                                    aria-label="Resume game tooltip"
+                                >
+                                    <IconButton
+                                        icon={
+                                            <Icon
+                                                as={FaPlay}
+                                                boxSize={{ base: 4, md: 5 }}
+                                            />
+                                        }
+                                        aria-label="Resume Game"
+                                        size={{ base: 'md', md: 'md' }}
+                                        px={2}
+                                        py={2}
+                                        width={{
+                                            base: '40px',
+                                            sm: '40px',
+                                            md: '48px',
+                                        }}
+                                        height={{
+                                            base: '40px',
+                                            sm: '40px',
+                                            md: '48px',
+                                        }}
+                                        onClick={() =>
+                                            sendResumeGameCommand(socket)
+                                        }
+                                        bg="brand.green"
+                                        color="white"
+                                        border="none"
+                                        borderRadius="12px"
+                                        _hover={{
+                                            transform: 'translateY(-2px)',
+                                            boxShadow:
+                                                '0 4px 12px rgba(54, 163, 123, 0.4)',
+                                        }}
+                                        transition="all 0.2s ease"
+                                    />
+                                </Tooltip>
+                            </Box>
+                        )}
                     {isOwner && appState.game?.running && socket && (
                         <Box
                             className="navbar-pause-wrapper"

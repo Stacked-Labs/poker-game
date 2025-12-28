@@ -22,6 +22,7 @@ import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
 import { soundManager } from '../utils/SoundManager';
 import { formatGameEvent } from '../utils/formatGameEvent';
+import SeatRequestConflictModal from '../components/SeatRequestConflictModal';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -83,6 +84,10 @@ export function SocketProvider(props: SocketProviderProps) {
     const maxReconnectionAttempts = 5;
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const hasShownInitialErrorRef = useRef(false);
+    const [seatRequestConflict, setSeatRequestConflict] = useState<{
+        seatId: number | null;
+        message?: string;
+    } | null>(null);
 
     useEffect(() => {
         appStateRef.current = appState;
@@ -520,15 +525,42 @@ export function SocketProvider(props: SocketProviderProps) {
                         return;
                     }
                     case 'error':
-                        // Handle error
+                        // Special-case: the user tried to request a seat that is already being requested.
+                        // Use a modal instead of a long toast (better UX on small screens).
+                        if (
+                            eventData.message ===
+                            'A player is already requesting for this seat.'
+                        ) {
+                            const requestedSeatId =
+                                typeof eventData.seatId === 'number'
+                                    ? eventData.seatId
+                                    : (appStateRef.current
+                                          .seatRequested as number | null);
+
+                            setSeatRequestConflict({
+                                seatId:
+                                    typeof requestedSeatId === 'number'
+                                        ? requestedSeatId
+                                        : null,
+                                message: eventData.message,
+                            });
+
+                            if (appStateRef.current.seatRequested) {
+                                dispatch({
+                                    type: 'setSeatRequested',
+                                    payload: null,
+                                });
+                            }
+                            return;
+                        }
+
+                        // Handle other errors with toast fallback
                         toastErrorRef.current(
                             `Error ${eventData.code}: ${eventData.message}`
                         );
                         // If seat request was denied (message check), reset the flag
                         if (
-                            (eventData.message === 'Seat request denied.' ||
-                                eventData.message ===
-                                    'A player is already requesting for this seat.') &&
+                            eventData.message === 'Seat request denied.' &&
                             appStateRef.current.seatRequested
                         ) {
                             dispatch({
@@ -714,8 +746,15 @@ export function SocketProvider(props: SocketProviderProps) {
     }, [connectWebSocket]);
 
     return (
-        <SocketContext.Provider value={socket}>
-            {props.children}
-        </SocketContext.Provider>
+        <>
+            <SocketContext.Provider value={socket}>
+                {props.children}
+            </SocketContext.Provider>
+            <SeatRequestConflictModal
+                isOpen={Boolean(seatRequestConflict)}
+                onClose={() => setSeatRequestConflict(null)}
+                seatId={seatRequestConflict?.seatId}
+            />
+        </>
     );
 }

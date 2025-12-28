@@ -41,8 +41,8 @@ const PlayerCard = ({
                 transform: 'translateY(-2px)',
             }}
             transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-            flexDirection={{ base: 'column', sm: 'row' }}
-            gap={{ base: 2.5, sm: 0 }}
+            flexDirection="row"
+            gap={{ base: 3, sm: 3, md: 0 }}
         >
             <VStack
                 flex={1}
@@ -50,7 +50,8 @@ const PlayerCard = ({
                 alignItems={'start'}
                 textAlign={'left'}
                 gap={{ base: 1.5, md: 2 }}
-                w={{ base: '100%', sm: 'auto' }}
+                minW={0}
+                w="auto"
             >
                 <Flex
                     alignItems="center"
@@ -143,8 +144,9 @@ const PlayerCard = ({
                 handleDenyPlayer && (
                     <Flex
                         gap={{ base: 1.5, lg: 2 }}
-                        w={{ base: '100%', sm: 'auto' }}
-                        justifyContent={{ base: 'flex-end', sm: 'flex-start' }}
+                        flexShrink={0}
+                        w="auto"
+                        justifyContent="flex-end"
                     >
                         <Tooltip
                             label="Accept Player"

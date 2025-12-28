@@ -15,7 +15,7 @@ import VolumeButton from '../VolumeButton';
 import WalletButton from '../WalletButton';
 import { ReactElement, useContext } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
-import { FaPlay, FaPause } from 'react-icons/fa';
+import { FaPause } from 'react-icons/fa';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import {
     handleLeaveTable,
@@ -30,7 +30,6 @@ import LeaveButton from './LeaveButton';
 import { ColorModeButton } from '../ColorModeButton';
 import {
     sendPauseGameCommand,
-    sendResumeGameCommand,
 } from '@/app/hooks/server_actions';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 
@@ -131,7 +130,7 @@ const TableMenuBurger = ({
                     padding={0}
                 >
                     <Item button={<WalletButton />} />
-                    {isUserSeated && (
+                    {isUserSeated && !isAway && (
                         <Item
                             button={
                                 <AwayButton
@@ -152,40 +151,24 @@ const TableMenuBurger = ({
                         />
                     )}
                     <Item button={<VolumeButton />} />
-                    {isOwner && appState.game?.running && socket && (
+                    {isOwner &&
+                        appState.game?.running &&
+                        !appState.game?.paused &&
+                        socket && (
                         <Item
                             button={
                                 <Tooltip
-                                    label={
-                                        appState.game?.paused
-                                            ? 'Resume Game'
-                                            : 'Pause Game'
-                                    }
-                                    aria-label={
-                                        appState.game?.paused
-                                            ? 'Resume game tooltip'
-                                            : 'Pause game tooltip'
-                                    }
+                                    label="Pause Game"
+                                    aria-label="Pause game tooltip"
                                 >
                                     <IconButton
                                         icon={
-                                            appState.game?.paused ? (
-                                                <Icon
-                                                    as={FaPlay}
-                                                    boxSize={{ base: 4, md: 5 }}
-                                                />
-                                            ) : (
-                                                <Icon
-                                                    as={FaPause}
-                                                    boxSize={{ base: 4, md: 5 }}
-                                                />
-                                            )
+                                            <Icon
+                                                as={FaPause}
+                                                boxSize={{ base: 4, md: 5 }}
+                                            />
                                         }
-                                        aria-label={
-                                            appState.game?.paused
-                                                ? 'Resume Game'
-                                                : 'Pause Game'
-                                        }
+                                        aria-label="Pause Game"
                                         size={{ base: 'md', md: 'md' }}
                                         px={2}
                                         py={2}
@@ -200,25 +183,16 @@ const TableMenuBurger = ({
                                             md: '48px',
                                         }}
                                         onClick={() => {
-                                            if (appState.game?.paused) {
-                                                sendResumeGameCommand(socket);
-                                            } else {
-                                                sendPauseGameCommand(socket);
-                                            }
+                                            sendPauseGameCommand(socket);
                                         }}
-                                        bg={
-                                            appState.game?.paused
-                                                ? 'brand.green'
-                                                : 'brand.yellow'
-                                        }
+                                        bg="brand.yellow"
                                         color="white"
                                         border="none"
                                         borderRadius="12px"
                                         _hover={{
                                             transform: 'translateY(-2px)',
-                                            boxShadow: appState.game?.paused
-                                                ? '0 4px 12px rgba(54, 163, 123, 0.4)'
-                                                : '0 4px 12px rgba(253, 197, 29, 0.4)',
+                                            boxShadow:
+                                                '0 4px 12px rgba(253, 197, 29, 0.4)',
                                         }}
                                         transition="all 0.2s ease"
                                     />

@@ -36,3 +36,8 @@ next-env.d.ts
 .env.local
 .env
 .diff
+
+# Codex project state (keep skills committed)
+.codex/*
+!.codex/skills/
+!.codex/skills/**

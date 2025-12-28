@@ -1,4 +1,4 @@
-export type Card = string;
+export type Card = string | number;
 
 export type Message = {
     name: string;
@@ -50,7 +50,7 @@ export type Player = {
     stack: number;
     bet: number;
     totalBet: number;
-    cards: string[];
+    cards: Card[];
     hasRevealed?: boolean;
     readyNextHand?: boolean;
     sitOutNextHand?: boolean;
@@ -105,8 +105,13 @@ export type Pot = {
     amount: number;
     eligiblePlayerNums: number[];
     winningPlayerNums: number[];
-    winningHand: Card[];
     winningScore: number;
+    winners?: Array<{
+        playerNum: number;
+        uuid: string;
+        share: number;
+        winningHand?: Card[];
+    }>;
 };
 
 export type FAQ = {

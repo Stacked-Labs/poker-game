@@ -40,11 +40,12 @@ const suitConfig = {
 
 // (Suit paths not needed currently since we render suit symbols as text)
 
-const cardToString = (card: string) => {
-    if (card === '?') return '?';
+const cardToString = (card: CardType) => {
+    if (card === '?' || card === 'placeholder') return '?';
 
-    const c = Number.parseInt(card);
-    if (isNaN(c)) return '?';
+    const c =
+        typeof card === 'number' ? card : Number.parseInt(String(card), 10);
+    if (Number.isNaN(c)) return '?';
 
     const rank = (c >> 8) & 0x0f;
     const suit = c & 0xf000;

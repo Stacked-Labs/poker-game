@@ -26,6 +26,8 @@ const initialPlayers: (Player | null)[] = [
     null,
 ];
 
+const SEAT_COUNT = 10;
+
 const seatIndices = [
     { id: 'one', value: 1 },
     { id: 'two', value: 2 },
@@ -134,11 +136,11 @@ const Table = ({ tableId }: { tableId: string }) => {
     useEffect(() => {
         if (!appState.game?.players) return;
 
-        const updatedPlayers: (Player | null)[] = Array(10).fill(null);
+        const updatedPlayers: (Player | null)[] = Array(SEAT_COUNT).fill(null);
 
         // Assign players to their correct seats
         appState.game.players.forEach((player) => {
-            if (player.seatID >= 1 && player.seatID <= 10) {
+            if (player.seatID >= 1 && player.seatID <= SEAT_COUNT) {
                 updatedPlayers[player.seatID - 1] = player;
             }
         });
@@ -210,7 +212,8 @@ const Table = ({ tableId }: { tableId: string }) => {
             const pot = game.pots[i];
             const hasWinner =
                 (pot.winningPlayerNums && pot.winningPlayerNums.length > 0) ||
-                (pot.winningHand && pot.winningHand.length > 0);
+                pot.winners?.some((w) => (w.winningHand?.length ?? 0) > 0) ||
+                (pot.winners?.length ?? 0) > 0;
             if (hasWinner) {
                 indices.push(i);
             }
@@ -276,12 +279,18 @@ const Table = ({ tableId }: { tableId: string }) => {
         }
         let total = 0;
         for (const pot of game.pots) {
-            if (pot.winningPlayerNums && pot.winningPlayerNums.length > 0) {
-                if (pot.winningPlayerNums.includes(player.position)) {
-                    const share =
-                        pot.amount / Math.max(pot.winningPlayerNums.length, 1);
-                    total += share;
-                }
+            const winner = pot.winners?.find(
+                (w) => w.playerNum === player.position
+            );
+            if (winner) {
+                total += winner.share;
+                continue;
+            }
+            if (
+                pot.winningPlayerNums &&
+                pot.winningPlayerNums.includes(player.position)
+            ) {
+                total += pot.amount / Math.max(pot.winningPlayerNums.length, 1);
             }
         }
         return total;
@@ -313,6 +322,20 @@ const Table = ({ tableId }: { tableId: string }) => {
         verifyAndJoinTable();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tableId]);
+
+    const povAnchorSeatId = (() => {
+        const clientId = appState.clientID;
+        const seatedPlayer = clientId
+            ? appState.game?.players?.find((p) => p.uuid === clientId)
+            : undefined;
+        const seatId = seatedPlayer?.seatID;
+        return seatId && seatId >= 1 && seatId <= SEAT_COUNT ? seatId : null;
+    })();
+
+    const getActualSeatIdForVisualSeat = (visualSeatId: number): number => {
+        if (!povAnchorSeatId) return visualSeatId;
+        return ((povAnchorSeatId + (visualSeatId - 1) - 1) % SEAT_COUNT) + 1;
+    };
 
     return (
         <Flex
@@ -376,7 +399,8 @@ const Table = ({ tableId }: { tableId: string }) => {
             >
                 {players &&
                     seatIndices.map(({ id, value }) => {
-                        const player: Player | null = players[value - 1];
+                        const actualSeatId = getActualSeatIdForVisualSeat(value);
+                        const player: Player | null = players[actualSeatId - 1];
                         return (
                             <GridItem
                                 key={value}
@@ -401,6 +425,7 @@ const Table = ({ tableId }: { tableId: string }) => {
                                 {player && player !== null ? (
                                     <TakenSeatButton
                                         player={player}
+                                        visualSeatId={value}
                                         isCurrentTurn={isPlayerTurn(player)}
                                         isWinner={isPlayerWinner(player)}
                                         isRevealed={isPlayerRevealed(player)}
@@ -418,7 +443,7 @@ const Table = ({ tableId }: { tableId: string }) => {
 
                                         return isDisabled ? null : (
                                             <EmptySeatButton
-                                                seatId={value}
+                                                seatId={actualSeatId}
                                                 disabled={false}
                                             />
                                         );

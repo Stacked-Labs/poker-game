@@ -22,13 +22,17 @@ const CommunityCards = ({
             return appState.game.pots[activePotIndex];
         }
         return appState.game?.pots?.find(
-            (pot) => pot.winningHand && pot.winningHand.length > 0
+            (pot) => pot.winners?.some((w) => (w.winningHand?.length ?? 0) > 0)
         );
     }, [activePotIndex, appState.game?.pots]);
-    const winningHand = resolvedPot?.winningHand ?? [];
-    const winningSet = new Set<number>(
-        winningHand.map((c: number | string) => Number(c))
-    );
+    const winningSet = useMemo(() => {
+        const set = new Set<number>();
+        const winners = resolvedPot?.winners ?? [];
+        winners.forEach((w) => {
+            (w.winningHand ?? []).forEach((c) => set.add(Number(c)));
+        });
+        return set;
+    }, [resolvedPot?.winners]);
     const hasWinningCombination = winningSet.size > 0;
 
     const isGameRunning = appState.game?.running;

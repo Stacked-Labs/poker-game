@@ -161,6 +161,7 @@ const StackValue = ({
 
 const TakenSeatButton = ({
     player,
+    visualSeatId,
     isCurrentTurn,
     isWinner,
     isRevealed,
@@ -168,6 +169,7 @@ const TakenSeatButton = ({
     activePotIndex,
 }: {
     player: Player;
+    visualSeatId?: number;
     isCurrentTurn: boolean;
     isWinner: boolean;
     isRevealed: boolean;
@@ -186,7 +188,7 @@ const TakenSeatButton = ({
 
     // Offline status - default to true if undefined (backwards compatibility)
     const isOffline = player.isOnline === false;
-    const seatId = player?.seatID || 4;
+    const seatId = visualSeatId ?? player?.seatID ?? 4;
 
     // Chip positions based on orientation - portrait uses column layouts, landscape uses row layouts
     // Each seat has portrait and landscape positioning defined via CSS media queries
@@ -382,7 +384,7 @@ const TakenSeatButton = ({
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
         };
-    }, [deadline, actionIndex, isCurrentTurn, player.seatID]);
+    }, [deadline, actionIndex, isCurrentTurn, seatId]);
 
     const total = initialDuration || 1; // avoid divide by zero
     const progress = Math.min((remaining / total) * 100, 100);
@@ -408,16 +410,22 @@ const TakenSeatButton = ({
         activePotIndex >= 0 &&
         activePotIndex < pots.length
             ? pots[activePotIndex]
-            : pots.find((pot) => pot.winningHand && pot.winningHand.length > 0);
+            : pots.find((pot) =>
+                  pot.winners?.some((w) => (w.winningHand?.length ?? 0) > 0)
+              );
     const playerWinsActivePot = resolvedPot
         ? Boolean(resolvedPot.winningPlayerNums?.includes(player.position))
         : isWinner;
     const winningSet = new Set<number>();
-    if (playerWinsActivePot && resolvedPot?.winningHand) {
-        resolvedPot.winningHand.forEach((card) => {
+    if (playerWinsActivePot) {
+        const winner = resolvedPot?.winners?.find(
+            (w) => w.playerNum === player.position
+        );
+        (winner?.winningHand ?? []).forEach((card) => {
             winningSet.add(Number(card));
         });
     }
+    const hasWinningComboForPlayer = winningSet.size > 0;
     const showWinnerHighlight =
         activePotIndex === null ? isWinner : playerWinsActivePot;
     const highlightVariant = isCurrentTurn
@@ -764,7 +772,9 @@ const TakenSeatButton = ({
                                     // - Otherwise: dim players who folded / are not in hand, but NEVER dim the overall winner highlight
                                     const dimThisCard = isShowdown
                                         ? playerWinsActivePot
-                                            ? !isCardWinning
+                                            ? hasWinningComboForPlayer
+                                                ? !isCardWinning
+                                                : false
                                             : true
                                         : !player.in && !showWinnerHighlight;
 

@@ -12,7 +12,6 @@ const initialPot: PotType[] = [
         amount: 0,
         eligiblePlayerNums: [],
         winningPlayerNums: [],
-        winningHand: [],
         winningScore: 0,
     },
 ];

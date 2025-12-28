@@ -50,6 +50,7 @@ export function SocketProvider(props: SocketProviderProps) {
     const appStateRef = useRef(appState);
     const isReconnectingRef = useRef(false);
     const manualCloseRef = useRef(false);
+    const winSoundPlayedRef = useRef(false);
 
     const {
         error: originalError,
@@ -359,6 +360,50 @@ export function SocketProvider(props: SocketProviderProps) {
                                 eventData.actionDeadline ??
                                 0,
                         };
+
+                        const hasAnyCommunityCard = (
+                            newGame.communityCards ?? []
+                        ).some((card) => Number(card) > 0);
+                        if (!hasAnyCommunityCard) {
+                            winSoundPlayedRef.current = false;
+                        }
+
+                        const isShowdown =
+                            newGame.stage === 1 &&
+                            !newGame.betting &&
+                            (newGame.pots?.length ?? 0) > 0 &&
+                            hasAnyCommunityCard;
+                        const localUuid = appStateRef.current.clientID;
+                        const localPlayerNum =
+                            newGame.players?.find(
+                                (p: Player) => p.uuid === localUuid
+                            )?.position ?? null;
+                        const localIsWinner =
+                            Boolean(localUuid) &&
+                            localPlayerNum !== null &&
+                            (newGame.pots ?? []).some((pot) => {
+                                const winsByNums =
+                                    (pot.winningPlayerNums ?? []).includes(
+                                        localPlayerNum
+                                    );
+                                const winsByWinnersArray = (
+                                    pot.winners ?? []
+                                ).some((w) => {
+                                    if (w.uuid === localUuid) return true;
+                                    return w.playerNum === localPlayerNum;
+                                });
+                                return winsByNums || winsByWinnersArray;
+                            });
+
+                        if (
+                            isShowdown &&
+                            localIsWinner &&
+                            !winSoundPlayedRef.current
+                        ) {
+                            winSoundPlayedRef.current = true;
+                            soundManager.play('win');
+                        }
+
                         dispatch({ type: 'updateGame', payload: newGame });
 
                         // If player was just successfully seated, reset the flags

@@ -1,4 +1,11 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import {
     Box,
     Flex,
@@ -21,6 +28,7 @@ import {
 } from 'framer-motion';
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
+import { useSound } from '../contexts/SoundProvider';
 import CardComponent from './Card';
 import { currentHandLabel } from '@/app/lib/poker/pokerHandEval';
 
@@ -177,6 +185,8 @@ const TakenSeatButton = ({
     activePotIndex: number | null;
 }) => {
     const { appState } = useContext(AppContext);
+    const { play } = useSound();
+    const playCardFlip = useCallback(() => play('card_flip'), [play]);
     const address = player?.address;
     const shortEthAddress = address
         ? `${address.slice(0, 2)}...${address.slice(-2)}`
@@ -345,6 +355,10 @@ const TakenSeatButton = ({
     const [remaining, setRemaining] = useState<number>(0);
     const [initialDuration, setInitialDuration] = useState<number>(0); // ms
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const tickTockPlayedForDeadlineRef = useRef<number | null>(null);
+    const tickTockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
 
     const actionIndex = appState.game?.action;
 
@@ -356,6 +370,11 @@ const TakenSeatButton = ({
                 intervalRef.current = null;
             }
             setRemaining(0);
+            tickTockPlayedForDeadlineRef.current = null;
+            if (tickTockTimeoutRef.current) {
+                clearTimeout(tickTockTimeoutRef.current);
+                tickTockTimeoutRef.current = null;
+            }
             return;
         }
 
@@ -367,6 +386,11 @@ const TakenSeatButton = ({
 
         if (!deadline || deadline === 0) {
             setRemaining(0);
+            tickTockPlayedForDeadlineRef.current = null;
+            if (tickTockTimeoutRef.current) {
+                clearTimeout(tickTockTimeoutRef.current);
+                tickTockTimeoutRef.current = null;
+            }
             return;
         }
 
@@ -385,6 +409,36 @@ const TakenSeatButton = ({
             if (intervalRef.current) clearInterval(intervalRef.current);
         };
     }, [deadline, actionIndex, isCurrentTurn, seatId]);
+
+    useEffect(() => {
+        if (tickTockTimeoutRef.current) {
+            clearTimeout(tickTockTimeoutRef.current);
+            tickTockTimeoutRef.current = null;
+        }
+
+        if (!isSelf || !isCurrentTurn || !deadline) return;
+
+        const alreadyPlayedForThisDeadline =
+            tickTockPlayedForDeadlineRef.current === deadline;
+
+        if (alreadyPlayedForThisDeadline) return;
+
+        const now = Date.now();
+        if (deadline <= now) return;
+
+        const msUntilPlay = Math.max(deadline - now - 5000, 0);
+        tickTockTimeoutRef.current = setTimeout(() => {
+            tickTockPlayedForDeadlineRef.current = deadline;
+            play('tick_tock');
+        }, msUntilPlay);
+
+        return () => {
+            if (tickTockTimeoutRef.current) {
+                clearTimeout(tickTockTimeoutRef.current);
+                tickTockTimeoutRef.current = null;
+            }
+        };
+    }, [deadline, isCurrentTurn, isSelf, play]);
 
     const total = initialDuration || 1; // avoid divide by zero
     const progress = Math.min((remaining / total) * 100, 100);
@@ -821,6 +875,7 @@ const TakenSeatButton = ({
                                                 highlighted={isCardWinning}
                                                 dimmed={dimThisCard}
                                                 skipAnimation={skipAnimation}
+                                                onFlipStart={playCardFlip}
                                             />
                                         </motion.div>
                                     );

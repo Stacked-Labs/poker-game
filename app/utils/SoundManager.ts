@@ -12,10 +12,15 @@ const SOUND_FILES: Record<string, string> = {
     // Player actions
     call: '/sound/chips_1.mp3',
     check: '/sound/check_1.mp3',
-    fold: '/sound/card_flip_1.mp3',
+    fold: '/sound/fold_1.mp3',
     raise: '/sound/chips_allin.mp3',
     bet: '/sound/chips_2.mp3',
     all_in: '/sound/chips_allin.mp3',
+
+    // Game flow
+    card_flip: '/sound/card_flip.mp3',
+    tick_tock: '/sound/tick_tock.mp3',
+    win: '/sound/coin_win.mp3',
 
     // Chat
     chat: '/sound/chat_notif.mp3',

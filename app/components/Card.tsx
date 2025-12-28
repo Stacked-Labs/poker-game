@@ -11,6 +11,7 @@ type CardProps = {
     highlighted?: boolean;
     dimmed?: boolean;
     skipAnimation?: boolean; // Skip flip animation for enemy players
+    onFlipStart?: () => void;
 };
 
 // Card rank mapping
@@ -267,12 +268,14 @@ const SVGCard = ({
     highlighted = false,
     dimmed = false,
     skipAnimation = false,
+    onFlipStart,
 }: CardProps) => {
     const [flipState, setFlipState] = useState<'back' | 'flipping' | 'front'>(
         'back'
     );
     const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
     const prevCardStringRef = useRef<string | null>(null);
+    const onFlipStartRef = useRef<CardProps['onFlipStart']>(onFlipStart);
 
     const cardString = useMemo(() => cardToString(card), [card]);
     const cardData = useMemo(() => {
@@ -281,6 +284,10 @@ const SVGCard = ({
         const suit = cardString[1];
         return { rank: rankMap[rank] || rank, suit };
     }, [cardString]);
+
+    useEffect(() => {
+        onFlipStartRef.current = onFlipStart;
+    }, [onFlipStart]);
 
     useEffect(() => {
         // Reset and clear any queued timeouts when card/placeholder changes
@@ -311,6 +318,7 @@ const SVGCard = ({
             // Start the flip animation after 300ms
             timersRef.current.push(
                 setTimeout(() => {
+                    onFlipStartRef.current?.();
                     setFlipState('flipping');
                     // Switch to front face at the perfect midpoint (150ms)
                     timersRef.current.push(

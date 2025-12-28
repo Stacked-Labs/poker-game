@@ -1,8 +1,8 @@
 'use client'
 
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { Box } from '@chakra-ui/react';
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useSound } from '@/app/contexts/SoundProvider';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import CardComponent from '../Card';
 
 const CommunityCards = ({
@@ -11,6 +11,8 @@ const CommunityCards = ({
     activePotIndex: number | null;
 }) => {
     const { appState } = useContext(AppContext);
+    const { play } = useSound();
+    const playCardFlip = useCallback(() => play('card_flip'), [play]);
     const communityCards = appState.game?.communityCards;
     const resolvedPot = useMemo(() => {
         if (
@@ -137,6 +139,7 @@ const CommunityCards = ({
                             placeholder={false}
                             // During showdown, dim community cards that are not part of winning hand
                             folded={false}
+                            onFlipStart={playCardFlip}
                             highlighted={winningSet.has(
                                 Number(
                                     appState.game.communityCards[

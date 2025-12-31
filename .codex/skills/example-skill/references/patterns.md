@@ -38,3 +38,4 @@ Use Chakra's responsive array syntax:
 3. Follow existing component patterns
 4. Keep components under 200 lines when possible
 
+

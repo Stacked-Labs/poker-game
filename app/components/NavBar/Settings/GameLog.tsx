@@ -1106,7 +1106,7 @@ const GameLog = () => {
                     <Text
                         fontSize="xs"
                         fontWeight="bold"
-                        color="gray.700"
+                        color="brand.lightGray"
                         fontFamily="mono"
                     >
                         EVENT LOG — {events.length} entries

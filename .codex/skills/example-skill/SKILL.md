@@ -21,3 +21,4 @@ This is a demonstration skill showing all possible subdirectories.
 - `assets/` - Templates and resources
 - `examples/` - Real code examples
 
+

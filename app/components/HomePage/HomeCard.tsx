@@ -265,7 +265,7 @@ const HomeCard = () => {
                                     '0 15px 30px rgba(54, 163, 123, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
                             }}
                         >
-                            [ DEAL ME IN ]
+                            [ PLAY NOW ]
                         </Button>
 
                         <Flex justify="center" pt={1}>

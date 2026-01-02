@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Flex, Text, VStack, Show } from '@chakra-ui/react';
-import React, { useRef, useEffect } from 'react';
+import { Box, Flex, Text, VStack } from '@chakra-ui/react';
+import React, { useRef, useEffect, useState } from 'react';
 import HomeCard from './HomeCard';
 import ScrollIndicator from './ScrollIndicator';
 import { keyframes } from '@emotion/react';
@@ -67,9 +67,12 @@ const float6 = keyframes`
 
 const MotionBox = motion(Box);
 
+const VIDEO_POSTER_SRC = '/video/bgplaceholder.png';
+
 const HomeSection = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const sectionRef = useRef<HTMLDivElement>(null);
+    const [videoError, setVideoError] = useState(false);
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
@@ -87,67 +90,114 @@ const HomeSection = () => {
         []
     );
 
-    // Ensure video plays on mount (some browsers block autoplay)
+    // Handle video loading and playback
     useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.play().catch(() => {
-                // Autoplay was prevented, video will remain paused
+        const video = videoRef.current;
+        if (!video) return;
+
+        setVideoError(false);
+
+        const tryPlay = () => {
+            // Try to play as soon as the browser says it can; poster remains until playback starts.
+            video.play().catch(() => {
+                // Autoplay was prevented; poster remains visible.
             });
-        }
+        };
+
+        const handleError = () => {
+            setVideoError(true);
+        };
+
+        // Defensive: if the browser doesn't honor `loop` for some reason, restart manually.
+        const handleEnded = () => {
+            try {
+                video.currentTime = 0;
+            } catch {
+                // ignore
+            }
+            tryPlay();
+        };
+
+        video.addEventListener('canplay', tryPlay);
+        video.addEventListener('error', handleError);
+        video.addEventListener('ended', handleEnded);
+
+        // If we attach after the event already fired (e.g. StrictMode/dev timing), still attempt playback.
+        if (video.readyState >= 3) tryPlay();
+
+        return () => {
+            video.removeEventListener('canplay', tryPlay);
+            video.removeEventListener('error', handleError);
+            video.removeEventListener('ended', handleEnded);
+        };
     }, []);
 
     return (
         <Box
             ref={sectionRef}
             position="relative"
+            className="home-section"
             width="100vw"
             bg="bg.default"
             height="var(--full-vh)"
             bgPosition={{ base: 'right', lg: 'center' }}
             overflow="hidden"
         >
-            {/* Video Background - Desktop Only */}
-            <Show above="md">
-                <MotionBox
-                    as="video"
-                    ref={videoRef}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    position="absolute"
-                    top="-8%"
-                    left="0"
-                    width="100%"
-                    height="120%"
-                    objectFit="cover"
-                    zIndex={0}
-                    opacity={0.85}
-                    style={{
-                        y: videoY,
-                        scale: videoScale,
-                        transformOrigin: '70% center',
-                    }}
-                    sx={{
-                        pointerEvents: 'none',
-                        objectPosition: '70% center',
-                    }}
-                >
-                    <source src="/video/background2.webm" type="video/webm" />
-                    <source src="/video/background.mp4" type="video/mp4" />
-                </MotionBox>
-                {/* Subtle overlay for better content readability */}
-                <Box
-                    position="absolute"
-                    top={0}
-                    left={0}
-                    right={0}
-                    bottom={0}
-                    bg="linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.3) 100%)"
-                    zIndex={1}
-                    pointerEvents="none"
-                />
-            </Show>
+            {/* Background Media (use poster on the same <video> element to avoid img-vs-video fit differences) */}
+            <MotionBox
+                position="absolute"
+                top="-8%"
+                left="0"
+                width="100%"
+                height="120%"
+                zIndex={0}
+                style={{
+                    y: videoY,
+                    scale: videoScale,
+                    transformOrigin: '70% center',
+                }}
+                sx={{
+                    pointerEvents: 'none',
+                }}
+            >
+                {videoError ? (
+                    <Box
+                        as="img"
+                        src={VIDEO_POSTER_SRC}
+                        alt=""
+                        aria-hidden="true"
+                        position="absolute"
+                        inset={0}
+                        width="100%"
+                        height="100%"
+                        objectFit="cover"
+                        objectPosition="70% center"
+                    />
+                ) : (
+                    <MotionBox
+                        as="video"
+                        ref={videoRef}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="auto"
+                        poster={VIDEO_POSTER_SRC}
+                        position="absolute"
+                        inset={0}
+                        width="100%"
+                        height="100%"
+                        objectFit="cover"
+                        objectPosition="70% center"
+                    >
+                        <source
+                            src="/video/background2.webm"
+                            type="video/webm"
+                        />
+                        <source src="/video/background.mp4" type="video/mp4" />
+                    </MotionBox>
+                )}
+            </MotionBox>
 
             <Flex
                 position="relative"

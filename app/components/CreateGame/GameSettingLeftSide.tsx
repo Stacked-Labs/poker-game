@@ -32,7 +32,11 @@ import WalletButton from '@/app/components/WalletButton';
 import { useAuth } from '@/app/contexts/AuthContext';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { initSession } from '@/app/hooks/server_actions';
-import { useActiveAccount, useActiveWallet, useDisconnect } from 'thirdweb/react';
+import {
+    useActiveAccount,
+    useActiveWallet,
+    useDisconnect,
+} from 'thirdweb/react';
 import Turnstile from 'react-turnstile';
 import { keyframes } from '@emotion/react';
 
@@ -841,9 +845,9 @@ const GameSettingLeftSide: React.FC = () => {
             </Box>
 
             {/* Cloudflare Verification */}
-            <Flex alignItems="center" justifyContent="center" py={2}>
+            <Flex alignItems="center" justifyContent="center" py={0}>
                 {isCloudflareVerifying ? (
-                    <VStack spacing={3} alignItems="center">
+                    <VStack spacing={1} alignItems="center">
                         <Box
                             role="status"
                             aria-live="polite"
@@ -912,7 +916,7 @@ const GameSettingLeftSide: React.FC = () => {
                         bg="card.white"
                         borderRadius="full"
                         px={3}
-                        py={1.5}
+                        py={2}
                         borderWidth="1px"
                         borderColor="rgba(0, 0, 0, 0.06)"
                         boxShadow="none"

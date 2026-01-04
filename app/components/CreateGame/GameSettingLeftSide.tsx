@@ -15,6 +15,7 @@ import {
     Icon,
     Divider,
     HStack,
+    Image,
 } from '@chakra-ui/react';
 import {
     FaInfoCircle,
@@ -27,6 +28,7 @@ import NetworkCard from './NetworkCard';
 import gameData from '../../create-game/gameOptions.json';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import WalletButton from '@/app/components/WalletButton';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { initSession } from '@/app/hooks/server_actions';
 import { useActiveAccount } from 'thirdweb/react';
@@ -81,26 +83,73 @@ const GameSettingLeftSide: React.FC = () => {
         return mode?.description || '';
     }, [selectedGameMode, gameModes]);
 
+    const usdcLogoUrl = 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png';
+    const blindInputWidth = { base: '140px', md: '160px' };
+    const chipsPerUsdc = 100;
+    const usdcPerChip = 1 / chipsPerUsdc;
+    const blindsMinChips = useMemo(() => {
+        if (playType === 'Crypto') {
+            return { small: 5, big: 10 };
+        }
+        return { small: 1, big: 1 };
+    }, [playType]);
+
+    const formatUsdc = (value: number) => {
+        const safeValue = Number.isFinite(value) ? value : 0;
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(safeValue);
+    };
+
+    const smallBlindUsdc = useMemo(
+        () => smallBlind * usdcPerChip,
+        [smallBlind, usdcPerChip]
+    );
+    const bigBlindUsdc = useMemo(
+        () => bigBlind * usdcPerChip,
+        [bigBlind, usdcPerChip]
+    );
+
     const blindsErrorMessage = useMemo(() => {
-        if (smallBlind <= 0 || bigBlind <= 0) {
-            return 'Blinds must be positive values.';
+        if (!Number.isFinite(smallBlind) || !Number.isFinite(bigBlind)) {
+            return 'Blinds must be valid numbers.';
+        }
+        if (
+            smallBlind < blindsMinChips.small ||
+            bigBlind < blindsMinChips.big
+        ) {
+            return playType === 'Crypto'
+                ? 'Minimum stakes for crypto games are 5/10 chips.'
+                : 'Blinds must be positive values.';
+        }
+        if (!Number.isInteger(smallBlind) || !Number.isInteger(bigBlind)) {
+            return 'Blinds must be whole-chip amounts.';
         }
         if (bigBlind < smallBlind) {
             return 'Big blind must be greater than or equal to small blind.';
         }
         return '';
-    }, [smallBlind, bigBlind]);
+    }, [
+        smallBlind,
+        bigBlind,
+        blindsMinChips.big,
+        blindsMinChips.small,
+        playType,
+    ]);
 
     useEffect(() => {
         const validateForm = () => {
             const isSmallBlindValid =
                 !isNaN(smallBlind) &&
-                smallBlind >= 0.01 &&
-                /^\d+(\.\d{1,2})?$/.test(smallBlind.toString());
+                smallBlind >= blindsMinChips.small &&
+                Number.isInteger(smallBlind);
             const isBigBlindValid =
                 !isNaN(bigBlind) &&
-                bigBlind >= smallBlind &&
-                /^\d+(\.\d{1,2})?$/.test(bigBlind.toString());
+                bigBlind >= Math.max(blindsMinChips.big, smallBlind) &&
+                Number.isInteger(bigBlind);
             const isGameModeSelected = selectedGameMode !== '';
             const isNetworkSelected =
                 playType === 'Free' ||
@@ -124,7 +173,15 @@ const GameSettingLeftSide: React.FC = () => {
         playType,
         selectedNetwork,
         address,
+        blindsMinChips.big,
+        blindsMinChips.small,
     ]);
+
+    useEffect(() => {
+        if (playType !== 'Crypto') return;
+        setSmallBlind((prev) => (prev < 5 ? 5 : prev));
+        setBigBlind((prev) => (prev < 10 ? 10 : prev));
+    }, [playType]);
 
     const handleCreateGame = async () => {
         if (
@@ -153,10 +210,18 @@ const GameSettingLeftSide: React.FC = () => {
                     'You are creating a free game without connecting a wallet.'
                 );
             }
-            if (smallBlind <= 0 || bigBlind <= 0 || bigBlind < smallBlind) {
+            if (
+                smallBlind < blindsMinChips.small ||
+                bigBlind < blindsMinChips.big ||
+                bigBlind < smallBlind ||
+                !Number.isInteger(smallBlind) ||
+                !Number.isInteger(bigBlind)
+            ) {
                 toast.warning(
                     'Invalid Blinds',
-                    'Please enter valid positive blinds (big >= small).'
+                    playType === 'Crypto'
+                        ? 'Minimum stakes are 5/10 chips. Blinds must be whole-chip amounts (big ≥ small).'
+                        : 'Please enter valid blinds (big ≥ small).'
                 );
                 return;
             }
@@ -447,7 +512,11 @@ const GameSettingLeftSide: React.FC = () => {
                                 Blinds
                             </Text>
                             <Tooltip
-                                label="Blinds must be in increments of 1 minimum"
+                                label={
+                                    playType === 'Crypto'
+                                        ? 'Crypto blinds are in chips. Amounts shown in USDC. Min 5/10 • 1 chip = $0.01 USDC.'
+                                        : 'Blinds must be whole-chip amounts.'
+                                }
                                 bg="brand.darkNavy"
                                 color="white"
                                 borderRadius="8px"
@@ -465,13 +534,18 @@ const GameSettingLeftSide: React.FC = () => {
                         </Text>
                     </Box>
                     <Flex
-                        width={{ base: '100%', sm: 'auto' }}
+                        width="100%"
                         flexDirection="column"
-                        alignItems={{ base: 'center', sm: 'flex-start' }}
+                        alignItems="flex-end"
                     >
-                        <HStack spacing={3} alignItems="flex-end">
+                        <HStack
+                            spacing={{ base: 3, md: 4 }}
+                            alignItems="flex-start"
+                            width="100%"
+                            justifyContent="flex-end"
+                        >
                             {/* Small Blind */}
-                            <Box position="relative">
+                            <Box position="relative" width={blindInputWidth}>
                                 <Text
                                     fontSize="11px"
                                     fontWeight="bold"
@@ -490,7 +564,7 @@ const GameSettingLeftSide: React.FC = () => {
                                 <Input
                                     type="number"
                                     step="1"
-                                    min="1"
+                                    min={blindsMinChips.small}
                                     value={smallBlind}
                                     onChange={(e) =>
                                         setSmallBlind(Number(e.target.value))
@@ -499,8 +573,8 @@ const GameSettingLeftSide: React.FC = () => {
                                     borderWidth="1px"
                                     borderColor="border.lightGray"
                                     borderRadius="14px"
-                                    width="96px"
-                                    height="48px"
+                                    width={blindInputWidth}
+                                    height={{ base: '52px', md: '56px' }}
                                     textAlign="right"
                                     pr={4}
                                     fontWeight="semibold"
@@ -515,17 +589,59 @@ const GameSettingLeftSide: React.FC = () => {
                                             '0 0 0 2px rgba(235, 11, 92, 0.2)',
                                     }}
                                 />
+                                {playType === 'Crypto' && (
+                                    <Tooltip
+                                        label={`${formatUsdc(smallBlindUsdc)} USDC`}
+                                        isDisabled={
+                                            `${formatUsdc(smallBlindUsdc)} USDC`
+                                                .length <= 12
+                                        }
+                                        hasArrow
+                                        placement="top"
+                                    >
+                                        <Flex
+                                            mt={1}
+                                            width="full"
+                                            maxW={blindInputWidth}
+                                            fontSize="xs"
+                                            color="text.gray600"
+                                            fontWeight="medium"
+                                            justifyContent="flex-end"
+                                            alignItems="center"
+                                            gap={1.5}
+                                            pr={1.5}
+                                            lineHeight="short"
+                                            overflow="hidden"
+                                        >
+                                            <Image
+                                                src={usdcLogoUrl}
+                                                alt="USDC"
+                                                boxSize="14px"
+                                                loading="lazy"
+                                                flexShrink={0}
+                                            />
+                                            <Text
+                                                as="span"
+                                                color="inherit"
+                                                isTruncated
+                                            >
+                                                {formatUsdc(smallBlindUsdc)}{' '}
+                                                USDC
+                                            </Text>
+                                        </Flex>
+                                    </Tooltip>
+                                )}
                             </Box>
                             <Text
                                 color="gray.400"
                                 fontSize="xl"
                                 fontWeight="light"
-                                pb={2}
+                                pt={2}
                             >
                                 /
                             </Text>
                             {/* Big Blind */}
-                            <Box position="relative">
+                            <Box position="relative" width={blindInputWidth}>
                                 <Text
                                     fontSize="11px"
                                     fontWeight="bold"
@@ -544,7 +660,7 @@ const GameSettingLeftSide: React.FC = () => {
                                 <Input
                                     type="number"
                                     step="1"
-                                    min="1"
+                                    min={blindsMinChips.big}
                                     value={bigBlind}
                                     onChange={(e) =>
                                         setBigBlind(Number(e.target.value))
@@ -553,8 +669,8 @@ const GameSettingLeftSide: React.FC = () => {
                                     borderWidth="1px"
                                     borderColor="border.lightGray"
                                     borderRadius="14px"
-                                    width="96px"
-                                    height="48px"
+                                    width={blindInputWidth}
+                                    height={{ base: '52px', md: '56px' }}
                                     textAlign="right"
                                     pr={4}
                                     fontWeight="semibold"
@@ -569,6 +685,47 @@ const GameSettingLeftSide: React.FC = () => {
                                             '0 0 0 2px rgba(235, 11, 92, 0.2)',
                                     }}
                                 />
+                                {playType === 'Crypto' && (
+                                    <Tooltip
+                                        label={`${formatUsdc(bigBlindUsdc)} USDC`}
+                                        isDisabled={
+                                            `${formatUsdc(bigBlindUsdc)} USDC`
+                                                .length <= 12
+                                        }
+                                        hasArrow
+                                        placement="top"
+                                    >
+                                        <Flex
+                                            mt={1}
+                                            width="full"
+                                            maxW={blindInputWidth}
+                                            fontSize="xs"
+                                            color="text.gray600"
+                                            fontWeight="medium"
+                                            justifyContent="flex-end"
+                                            alignItems="center"
+                                            gap={1.5}
+                                            pr={1.5}
+                                            lineHeight="short"
+                                            overflow="hidden"
+                                        >
+                                            <Image
+                                                src={usdcLogoUrl}
+                                                alt="USDC"
+                                                boxSize="14px"
+                                                loading="lazy"
+                                                flexShrink={0}
+                                            />
+                                            <Text
+                                                as="span"
+                                                color="inherit"
+                                                isTruncated
+                                            >
+                                                {formatUsdc(bigBlindUsdc)} USDC
+                                            </Text>
+                                        </Flex>
+                                    </Tooltip>
+                                )}
                             </Box>
                         </HStack>
                         {blindsErrorMessage && (
@@ -582,6 +739,28 @@ const GameSettingLeftSide: React.FC = () => {
                                     {blindsErrorMessage}
                                 </Text>
                             </Box>
+                        )}
+                        {playType === 'Crypto' && (
+                            <Flex
+                                mt={2}
+                                width="100%"
+                                justifyContent="flex-end"
+                                alignItems="center"
+                                gap={2}
+                                fontSize="xs"
+                                fontWeight="medium"
+                                color="text.gray600"
+                                lineHeight="short"
+                                whiteSpace="nowrap"
+                                _dark={{
+                                    fontWeight: 'semibold',
+                                }}
+                            >
+                                <Text as="span" color="inherit">
+                                    1 chip = {formatUsdc(usdcPerChip)} USDC •
+                                    Min 5/10
+                                </Text>
+                            </Flex>
                         )}
                     </Flex>
                 </Flex>
@@ -647,7 +826,7 @@ const GameSettingLeftSide: React.FC = () => {
             </Box>
 
             {/* Cloudflare Verification */}
-            <Flex alignItems="center" justifyContent="center" py={4}>
+            <Flex alignItems="center" justifyContent="center" py={2}>
                 {isCloudflareVerifying ? (
                     <VStack spacing={3} alignItems="center">
                         <Box
@@ -717,11 +896,11 @@ const GameSettingLeftSide: React.FC = () => {
                     <Box
                         bg="card.white"
                         borderRadius="full"
-                        px={4}
-                        py={2}
+                        px={3}
+                        py={1.5}
                         borderWidth="1px"
-                        borderColor="border.lightGray"
-                        boxShadow="sm"
+                        borderColor="rgba(0, 0, 0, 0.06)"
+                        boxShadow="none"
                         display="flex"
                         alignItems="center"
                         gap={2}
@@ -747,49 +926,69 @@ const GameSettingLeftSide: React.FC = () => {
                 )}
             </Flex>
 
-            {/* Create Game Button */}
-            <Tooltip
-                label="Waiting for Cloudflare verification to finish…"
-                isDisabled={!isCloudflareVerifying}
-                hasArrow
-                placement="top"
-            >
+            {/* Create Game CTA */}
+            {playType === 'Crypto' && !address ? (
                 <Box width="100%" maxW="480px">
-                    <Button
-                        bg="brand.green"
-                        color="white"
-                        onClick={handleCreateGame}
-                        size="lg"
-                        height="56px"
-                        width="100%"
-                        fontSize="md"
-                        fontWeight="bold"
-                        borderRadius="16px"
-                        border="none"
-                        isLoading={isLoading}
-                        loadingText="Creating..."
-                        spinner={<Spinner size="md" color="white" />}
-                        opacity={isFormValid && isCloudflareReady ? 1 : 0.6}
-                        cursor={
-                            isFormValid && isCloudflareReady
-                                ? 'pointer'
-                                : 'not-allowed'
-                        }
-                        disabled={!isFormValid || !isCloudflareReady}
-                        _hover={{
-                            bg: '#2d9268',
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 8px 20px rgba(54, 163, 123, 0.35)',
-                        }}
-                        _active={{
-                            transform: 'translateY(0)',
-                        }}
-                        transition="all 0.2s ease"
-                    >
-                        Create Game
-                    </Button>
+                    <Flex direction="column" align="center" gap={3} py={2}>
+                        <Text
+                            fontSize="sm"
+                            color="text.gray600"
+                            textAlign="center"
+                        >
+                            Sign in with your wallet to create a crypto game.
+                        </Text>
+                        <WalletButton
+                            width="100%"
+                            height="56px"
+                            label="Sign In"
+                        />
+                    </Flex>
                 </Box>
-            </Tooltip>
+            ) : (
+                <Tooltip
+                    label="Waiting for Cloudflare verification to finish…"
+                    isDisabled={!isCloudflareVerifying}
+                    hasArrow
+                    placement="top"
+                >
+                    <Box width="100%" maxW="480px">
+                        <Button
+                            bg="brand.green"
+                            color="white"
+                            onClick={handleCreateGame}
+                            size="lg"
+                            height="56px"
+                            width="100%"
+                            fontSize="md"
+                            fontWeight="bold"
+                            borderRadius="16px"
+                            border="none"
+                            isLoading={isLoading}
+                            loadingText="Creating..."
+                            spinner={<Spinner size="md" color="white" />}
+                            opacity={isFormValid && isCloudflareReady ? 1 : 0.6}
+                            cursor={
+                                isFormValid && isCloudflareReady
+                                    ? 'pointer'
+                                    : 'not-allowed'
+                            }
+                            disabled={!isFormValid || !isCloudflareReady}
+                            _hover={{
+                                bg: '#2d9268',
+                                transform: 'translateY(-2px)',
+                                boxShadow:
+                                    '0 8px 20px rgba(54, 163, 123, 0.35)',
+                            }}
+                            _active={{
+                                transform: 'translateY(0)',
+                            }}
+                            transition="all 0.2s ease"
+                        >
+                            Create Game
+                        </Button>
+                    </Box>
+                </Tooltip>
+            )}
         </VStack>
     );
 };

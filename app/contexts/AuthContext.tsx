@@ -13,12 +13,16 @@ import { useWalletAuth } from '../hooks/useWalletAuth';
 
 interface AuthContextProps {
     isAuthenticated: boolean;
+    isAuthenticating: boolean;
     userAddress: string | null;
+    requestAuthentication: () => void;
 }
 
 const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
+    isAuthenticating: false,
     userAddress: null,
+    requestAuthentication: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -32,7 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     // Handle wallet authentication - runs once at provider level
-    useWalletAuth();
+    const { isAuthenticating, requestAuthentication } = useWalletAuth();
 
     useEffect(() => {
         const checkAuthentication = async () => {
@@ -61,7 +65,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const value: AuthContextProps = {
         isAuthenticated,
+        isAuthenticating,
         userAddress: account?.address || null,
+        requestAuthentication,
     };
 
     return (

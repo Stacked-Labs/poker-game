@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     useActiveAccount,
     useActiveWallet,
@@ -24,15 +24,15 @@ export const useWalletAuth = () => {
     // Use ref to prevent duplicate authentication attempts
     const authAttemptRef = useRef<string | null>(null);
 
-    useEffect(() => {
-        const authenticate = async () => {
+    const authenticate = useCallback(
+        async (force = false) => {
             if (!account?.address || !wallet) {
                 authAttemptRef.current = null;
                 return;
             }
 
             // Prevent duplicate auth attempts for the same address
-            if (authAttemptRef.current === account.address) {
+            if (!force && authAttemptRef.current === account.address) {
                 return;
             }
 
@@ -47,51 +47,29 @@ export const useWalletAuth = () => {
                 // Check if already authenticated
                 const authenticated = await isAuth();
                 if (authenticated) {
-                    console.log('Already authenticated');
-                    setIsAuthenticating(false);
                     return;
                 }
 
-                console.log(
-                    'Starting SIWE authentication for:',
-                    account.address
-                );
-
                 // Step 1: Get SIWE payload and formatted message from backend
-                console.log(
-                    'Getting auth payload for address:',
-                    account.address
-                );
-                const { payload, message } = await getAuthPayload(
-                    account.address
-                );
-                console.log('Received auth payload:', payload);
-                console.log('📝 Message to sign:', message);
-                console.log('Payload:', payload);
+                const { payload, message } = await getAuthPayload(account.address);
 
                 // Step 2: Sign the MESSAGE string (not the payload!)
                 const signature = await account.signMessage({
-                    message: message, // Sign the formatted SIWE message string
+                    message: message,
                 });
-                console.log('✍️ Signature:', signature);
 
                 // Step 3: Send payload + signature to backend for verification
-                console.log('Verifying signed payload:', payload);
                 const result = await verifySignedPayload({
                     payload,
                     signature,
                 });
-                console.log('Verification result:', result);
 
                 if (result.success) {
-                    console.log('✅ User authenticated:', result.address);
                     success(
                         'Authentication Successful',
                         'You have been successfully authenticated.'
                     );
                 } else {
-                    // Authentication failed - disconnect wallet
-                    console.error('❌ Authentication verification failed');
                     authAttemptRef.current = null;
                     disconnect(wallet);
                     showError(
@@ -103,7 +81,6 @@ export const useWalletAuth = () => {
                 console.error('Authentication error:', err);
                 authAttemptRef.current = null;
 
-                // Check if user rejected the signature
                 const error = err as {
                     message?: string;
                     code?: number | string;
@@ -115,17 +92,12 @@ export const useWalletAuth = () => {
                     error?.code === 4001 ||
                     error?.code === 'ACTION_REJECTED'
                 ) {
-                    // User cancelled - disconnect wallet
-                    console.log(
-                        'User cancelled signature - disconnecting wallet'
-                    );
                     disconnect(wallet);
                     warning(
                         'Authentication Required',
                         'You must sign the message to use the app.'
                     );
                 } else {
-                    // Other error - disconnect for security
                     disconnect(wallet);
                     showError(
                         'Authentication Failed',
@@ -135,10 +107,26 @@ export const useWalletAuth = () => {
             } finally {
                 setIsAuthenticating(false);
             }
-        };
+        },
+        [
+            account,
+            disconnect,
+            isAuthenticating,
+            showError,
+            success,
+            wallet,
+            warning,
+        ]
+    );
 
-        authenticate();
-    }, [account?.address, wallet]);
+    useEffect(() => {
+        authenticate(false);
+    }, [authenticate]);
 
-    return { isAuthenticating };
+    const requestAuthentication = useCallback(() => {
+        authAttemptRef.current = null;
+        authenticate(true);
+    }, [authenticate]);
+
+    return { isAuthenticating, requestAuthentication };
 };

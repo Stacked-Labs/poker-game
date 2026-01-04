@@ -29,9 +29,10 @@ import gameData from '../../create-game/gameOptions.json';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import WalletButton from '@/app/components/WalletButton';
+import { useAuth } from '@/app/contexts/AuthContext';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { initSession } from '@/app/hooks/server_actions';
-import { useActiveAccount } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useDisconnect } from 'thirdweb/react';
 import Turnstile from 'react-turnstile';
 import { keyframes } from '@emotion/react';
 
@@ -54,6 +55,10 @@ const GameSettingLeftSide: React.FC = () => {
     const [selectedNetwork, setSelectedNetwork] = useState<string>('Base');
     const [isLoading, setIsLoading] = useState(false);
     const address = useActiveAccount()?.address;
+    const wallet = useActiveWallet();
+    const { disconnect } = useDisconnect();
+    const { isAuthenticated, isAuthenticating, requestAuthentication } =
+        useAuth();
     const router = useRouter();
     const { dispatch } = useContext(AppContext);
     const toast = useToastHelper();
@@ -154,7 +159,8 @@ const GameSettingLeftSide: React.FC = () => {
             const isNetworkSelected =
                 playType === 'Free' ||
                 (playType === 'Crypto' && selectedNetwork !== '');
-            const isWalletConnected = playType === 'Free' || !!address;
+            const isWalletConnected =
+                playType === 'Free' || (!!address && isAuthenticated);
 
             setIsFormValid(
                 isSmallBlindValid &&
@@ -173,6 +179,7 @@ const GameSettingLeftSide: React.FC = () => {
         playType,
         selectedNetwork,
         address,
+        isAuthenticated,
         blindsMinChips.big,
         blindsMinChips.small,
     ]);
@@ -197,10 +204,12 @@ const GameSettingLeftSide: React.FC = () => {
         }
 
         if (!isFormValid) {
-            if (playType === 'Crypto' && !address) {
+            if (playType === 'Crypto' && (!address || !isAuthenticated)) {
                 toast.warning(
-                    'Wallet Not Connected',
-                    'Please connect your wallet for Crypto play.'
+                    'Authentication Required',
+                    !address
+                        ? 'Please sign in with your wallet for crypto play.'
+                        : 'Please sign the message in your wallet to continue.'
                 );
                 return;
             }
@@ -312,6 +321,12 @@ const GameSettingLeftSide: React.FC = () => {
     const handleJoinPublicGame = () => {
         // Placeholder - will be implemented later
         toast.info('Coming Soon', 'Public game lobby will be available soon!');
+    };
+
+    const handleDisconnectWallet = () => {
+        if (wallet) {
+            disconnect(wallet);
+        }
     };
 
     return (
@@ -927,7 +942,7 @@ const GameSettingLeftSide: React.FC = () => {
             </Flex>
 
             {/* Create Game CTA */}
-            {playType === 'Crypto' && !address ? (
+            {playType === 'Crypto' && (!address || !isAuthenticated) ? (
                 <Box width="100%" maxW="480px">
                     <Flex direction="column" align="center" gap={3} py={2}>
                         <Text
@@ -935,13 +950,68 @@ const GameSettingLeftSide: React.FC = () => {
                             color="text.gray600"
                             textAlign="center"
                         >
-                            Sign in with your wallet to create a crypto game.
+                            {!address
+                                ? 'Sign in with your wallet to create a crypto game.'
+                                : isAuthenticating
+                                  ? 'Check your wallet to sign the message…'
+                                  : 'Sign the message in your wallet to continue.'}
                         </Text>
-                        <WalletButton
-                            width="100%"
-                            height="56px"
-                            label="Sign In"
-                        />
+                        <Flex width="100%" gap={3}>
+                            {!address ? (
+                                <WalletButton
+                                    width="100%"
+                                    height="56px"
+                                    label="Sign In"
+                                />
+                            ) : (
+                                <>
+                                    <Button
+                                        flex="1"
+                                        height="56px"
+                                        bg="brand.green"
+                                        color="white"
+                                        fontWeight="bold"
+                                        borderRadius="16px"
+                                        onClick={requestAuthentication}
+                                        isLoading={isAuthenticating}
+                                        loadingText="Waiting…"
+                                        _hover={{
+                                            bg: '#2d9268',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow:
+                                                '0 8px 20px rgba(54, 163, 123, 0.35)',
+                                        }}
+                                        _active={{
+                                            transform: 'translateY(0)',
+                                        }}
+                                        transition="all 0.2s ease"
+                                    >
+                                        Finish Sign-In
+                                    </Button>
+                                    <Button
+                                        flex="1"
+                                        height="56px"
+                                        bg="brand.pink"
+                                        color="white"
+                                        fontWeight="bold"
+                                        borderRadius="16px"
+                                        onClick={handleDisconnectWallet}
+                                        _hover={{
+                                            bg: '#d50a52',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow:
+                                                '0 8px 20px rgba(235, 11, 92, 0.25)',
+                                        }}
+                                        _active={{
+                                            transform: 'translateY(0)',
+                                        }}
+                                        transition="all 0.2s ease"
+                                    >
+                                        Disconnect
+                                    </Button>
+                                </>
+                            )}
+                        </Flex>
                     </Flex>
                 </Box>
             ) : (

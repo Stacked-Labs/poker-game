@@ -10,6 +10,11 @@ import { SoundProvider } from '@/app/contexts/SoundProvider';
 import { AuthProvider } from '@/app/contexts/AuthContext';
 import { AutoConnect, ThirdwebProvider } from 'thirdweb/react';
 import { client } from './thirdwebclient';
+import {
+    TOAST_BANNER_CONTAINER_STYLE,
+    TOAST_BANNER_DURATION_MS,
+    TOAST_BANNER_POSITION,
+} from './utils/toastDefaults';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
@@ -18,17 +23,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 theme={theme}
                 toastOptions={{
                     defaultOptions: {
-                        position: 'top-right',
-                        duration: 3500,
-                        isClosable: true,
-                        containerStyle: {
-                            marginTop: '0px',
-                            marginBottom: '0px',
-                            maxWidth: '260px',
-                            minWidth: '260px',
-                            width: '260px',
-                            marginInline: 'auto',
-                        },
+                        position: TOAST_BANNER_POSITION,
+                        duration: TOAST_BANNER_DURATION_MS,
+                        isClosable: false,
+                        containerStyle: TOAST_BANNER_CONTAINER_STYLE,
                     },
                 }}
             >

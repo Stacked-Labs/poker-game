@@ -39,6 +39,7 @@ const colors = {
         pink: '#EB0B5C',
         green: '#36A37B',
         yellow: '#FDC51D',
+        yellowDark: '#B78900',
     },
     // Legacy colors (consider migrating)
     legacy: {

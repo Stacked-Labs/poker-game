@@ -1,6 +1,15 @@
-// utils/toastConfig.ts
-import { UseToastOptions, ToastId } from '@chakra-ui/react';
+// utils/toastConfig.tsx
+import { ToastId, UseToastOptions } from '@chakra-ui/react';
 import { ReactNode } from 'react';
+import ToastBanner, {
+    ToastBannerVariant,
+} from '../components/Toasts/ToastBanner';
+import {
+    TOAST_BANNER_CONTAINER_STYLE,
+    TOAST_BANNER_DURATION_MS,
+    TOAST_BANNER_POSITION,
+    TOAST_BANNER_ANIMATION_MS,
+} from './toastDefaults';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -15,18 +24,7 @@ export interface ToastParams {
 // Define the type for the toast function
 type ToastFunction = (options: UseToastOptions) => ToastId;
 
-const DEFAULT_DURATION = 3500;
-const DEFAULT_POSITION: UseToastOptions['position'] = 'top-right';
-const DEFAULT_CONTAINER_STYLE: UseToastOptions['containerStyle'] = {
-    marginTop: '0px',
-    marginBottom: '0px',
-    maxWidth: '260px',
-    minWidth: '260px',
-    width: '260px',
-    marginInline: 'auto',
-};
-
-const statusMap: Record<ToastType, UseToastOptions['status']> = {
+const variantMap: Record<ToastType, ToastBannerVariant> = {
     success: 'success',
     error: 'error',
     warning: 'warning',
@@ -37,15 +35,29 @@ export const showToast = (
     toast: ToastFunction,
     { title, description, type = 'info', duration, id }: ToastParams
 ) => {
+    const autoCloseMs =
+        typeof duration === 'number' ? duration : TOAST_BANNER_DURATION_MS;
+
     toast({
         id,
+        duration: null,
+        position: TOAST_BANNER_POSITION,
+        containerStyle: TOAST_BANNER_CONTAINER_STYLE,
+        render: ({ onClose }) => (
+            <ToastBanner
+                variant={variantMap[type]}
+                title={title}
+                description={description}
+                onClose={onClose}
+                autoCloseMs={autoCloseMs}
+                animationMs={TOAST_BANNER_ANIMATION_MS}
+            />
+        ),
+        // Keep these for callers that might still rely on Chakra semantics.
         title,
         description,
-        status: statusMap[type],
-        duration: duration ?? DEFAULT_DURATION,
-        isClosable: true,
-        position: DEFAULT_POSITION,
-        containerStyle: DEFAULT_CONTAINER_STYLE,
+        status: type,
+        isClosable: false,
     });
 };
 
@@ -89,8 +101,8 @@ export const showCustomToast = (
         render,
         duration,
         id,
-        position = DEFAULT_POSITION,
-        containerStyle = DEFAULT_CONTAINER_STYLE,
+        position = TOAST_BANNER_POSITION,
+        containerStyle = TOAST_BANNER_CONTAINER_STYLE,
     }: {
         render: (props: { id?: ToastId; onClose: () => void }) => ReactNode;
         duration?: number | null; // null = persist until closed
@@ -101,7 +113,10 @@ export const showCustomToast = (
 ) => {
     toast({
         id,
-        duration: duration === null ? null : (duration ?? DEFAULT_DURATION),
+        duration:
+            duration === null
+                ? null
+                : (duration ?? TOAST_BANNER_DURATION_MS),
         position,
         containerStyle,
         render,

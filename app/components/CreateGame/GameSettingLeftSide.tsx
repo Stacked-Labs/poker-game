@@ -16,13 +16,16 @@ import {
     Divider,
     HStack,
     Image,
+    Link,
 } from '@chakra-ui/react';
 import {
     FaInfoCircle,
     FaUsers,
     FaArrowRight,
     FaCheckCircle,
+    FaDiscord,
 } from 'react-icons/fa';
+import { RiTwitterXLine } from 'react-icons/ri';
 import PlayTypeToggle from './PlayTypeToggle';
 import NetworkCard from './NetworkCard';
 import gameData from '../../create-game/gameOptions.json';
@@ -165,7 +168,11 @@ const GameSettingLeftSide: React.FC = () => {
                 playType === 'Free' ||
                 (playType === 'Crypto' && selectedNetwork !== '');
             const isWalletConnected =
-                playType === 'Free' || (!!address && isAuthenticated);
+                playType === 'Free' ||
+                (playType === 'Crypto' &&
+                    isCryptoEnabled &&
+                    !!address &&
+                    isAuthenticated);
 
             setIsFormValid(
                 isSmallBlindValid &&
@@ -185,15 +192,10 @@ const GameSettingLeftSide: React.FC = () => {
         selectedNetwork,
         address,
         isAuthenticated,
+        isCryptoEnabled,
         blindsMinChips.big,
         blindsMinChips.small,
     ]);
-
-    useEffect(() => {
-        if (!isCryptoEnabled && playType === 'Crypto') {
-            setPlayType('Free');
-        }
-    }, [isCryptoEnabled, playType]);
 
     useEffect(() => {
         if (playType !== 'Crypto') return;
@@ -202,6 +204,14 @@ const GameSettingLeftSide: React.FC = () => {
     }, [playType]);
 
     const handleCreateGame = async () => {
+        if (playType === 'Crypto' && !isCryptoEnabled) {
+            toast.info(
+                'Coming Soon',
+                'Crypto games are coming soon. Follow us on social media for updates.'
+            );
+            return;
+        }
+
         if (
             !turnstileToken &&
             !turnstileError &&
@@ -215,10 +225,15 @@ const GameSettingLeftSide: React.FC = () => {
         }
 
         if (!isFormValid) {
-            if (playType === 'Crypto' && (!address || !isAuthenticated)) {
+            if (
+                playType === 'Crypto' &&
+                (!isCryptoEnabled || !address || !isAuthenticated)
+            ) {
                 toast.warning(
                     'Authentication Required',
-                    !address
+                    !isCryptoEnabled
+                        ? 'Crypto games are coming soon.'
+                        : !address
                         ? 'Please sign in with your wallet for crypto play.'
                         : 'Please sign the message in your wallet to continue.'
                 );
@@ -954,7 +969,50 @@ const GameSettingLeftSide: React.FC = () => {
             </Flex>
 
             {/* Create Game CTA */}
-            {playType === 'Crypto' && (!address || !isAuthenticated) ? (
+            {playType === 'Crypto' && !isCryptoEnabled ? (
+                <Box width="100%" maxW="480px">
+                    <Flex direction="column" align="center" gap={3} py={2}>
+                        <Text
+                            fontSize="sm"
+                            color="text.gray600"
+                            textAlign="center"
+                        >
+                            Crypto games coming soon — we&apos;re working
+                            tirelessly. Follow us for updates.
+                        </Text>
+                        <HStack spacing={3}>
+                            <Button
+                                as={Link}
+                                href="https://x.com/stacked_poker"
+                                isExternal
+                                variant="outline"
+                                bg="card.white"
+                                borderColor="border.lightGray"
+                                borderWidth="2px"
+                                borderRadius="14px"
+                                size="sm"
+                                leftIcon={<Icon as={RiTwitterXLine} />}
+                            >
+                                X
+                            </Button>
+                            <Button
+                                as={Link}
+                                href="https://discord.gg/347RBVcvpn"
+                                isExternal
+                                variant="outline"
+                                bg="card.white"
+                                borderColor="border.lightGray"
+                                borderWidth="2px"
+                                borderRadius="14px"
+                                size="sm"
+                                leftIcon={<Icon as={FaDiscord} />}
+                            >
+                                Discord
+                            </Button>
+                        </HStack>
+                    </Flex>
+                </Box>
+            ) : playType === 'Crypto' && (!address || !isAuthenticated) ? (
                 <Box width="100%" maxW="480px">
                     <Flex direction="column" align="center" gap={3} py={2}>
                         <Text

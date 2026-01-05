@@ -26,11 +26,7 @@ export default function PlayTypeToggle({
             <Box
                 position="absolute"
                 top="4px"
-                left={
-                    playType === 'Free' || !isCryptoEnabled
-                        ? '4px'
-                        : 'calc(50% + 4px)'
-                }
+                left={playType === 'Free' ? '4px' : 'calc(50% + 4px)'}
                 width="calc(50% - 8px)"
                 height="32px"
                 bg="brand.pink"
@@ -88,24 +84,21 @@ export default function PlayTypeToggle({
                         display="flex"
                         alignItems="center"
                         justifyContent="center"
-                        cursor={isCryptoEnabled ? 'pointer' : 'not-allowed'}
-                        onClick={() =>
-                            isCryptoEnabled ? setPlayType('Crypto') : undefined
-                        }
+                        cursor="pointer"
+                        onClick={() => setPlayType('Crypto')}
                         background="transparent"
-                        opacity={isCryptoEnabled ? 1 : 0.6}
                     >
                         <Text
                             fontSize="sm"
                             fontWeight="semibold"
                             color={
-                                isCryptoEnabled && playType === 'Crypto'
+                                playType === 'Crypto'
                                     ? 'brand.lightGray'
                                     : 'gray.500'
                             }
                             whiteSpace="nowrap"
                         >
-                            {isCryptoEnabled ? 'Crypto' : 'Crypto (Soon)'}
+                            Crypto
                         </Text>
                     </Box>
                 </Tooltip>

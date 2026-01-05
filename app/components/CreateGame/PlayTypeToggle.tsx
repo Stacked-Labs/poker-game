@@ -1,14 +1,16 @@
 import React from 'react';
-import { Box, Flex, Text } from '@chakra-ui/react';
+import { Box, Flex, Text, Tooltip } from '@chakra-ui/react';
 
 interface PlayTypeToggleProps {
     playType: 'Free' | 'Crypto';
     setPlayType: (type: 'Free' | 'Crypto') => void;
+    isCryptoEnabled?: boolean;
 }
 
 export default function PlayTypeToggle({
     playType,
     setPlayType,
+    isCryptoEnabled = true,
 }: PlayTypeToggleProps) {
     return (
         <Box position="relative" width="220px" height="40px">
@@ -24,7 +26,11 @@ export default function PlayTypeToggle({
             <Box
                 position="absolute"
                 top="4px"
-                left={playType === 'Free' ? '4px' : 'calc(50% + 4px)'}
+                left={
+                    playType === 'Free' || !isCryptoEnabled
+                        ? '4px'
+                        : 'calc(50% + 4px)'
+                }
                 width="calc(50% - 8px)"
                 height="32px"
                 bg="brand.pink"
@@ -68,31 +74,41 @@ export default function PlayTypeToggle({
                 </Box>
 
                 {/* Crypto */}
-                <Box
-                    as="button"
-                    type="button"
-                    flex="1"
-                    height="full"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    cursor="pointer"
-                    onClick={() => setPlayType('Crypto')}
-                    background="transparent"
+                <Tooltip
+                    label={isCryptoEnabled ? '' : 'Coming soon'}
+                    isDisabled={isCryptoEnabled}
+                    hasArrow
+                    placement="top"
                 >
-                    <Text
-                        fontSize="sm"
-                        fontWeight="semibold"
-                        color={
-                            playType === 'Crypto'
-                                ? 'brand.lightGray'
-                                : 'gray.500'
+                    <Box
+                        as="button"
+                        type="button"
+                        flex="1"
+                        height="full"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        cursor={isCryptoEnabled ? 'pointer' : 'not-allowed'}
+                        onClick={() =>
+                            isCryptoEnabled ? setPlayType('Crypto') : undefined
                         }
-                        whiteSpace="nowrap"
+                        background="transparent"
+                        opacity={isCryptoEnabled ? 1 : 0.6}
                     >
-                        Crypto
-                    </Text>
-                </Box>
+                        <Text
+                            fontSize="sm"
+                            fontWeight="semibold"
+                            color={
+                                isCryptoEnabled && playType === 'Crypto'
+                                    ? 'brand.lightGray'
+                                    : 'gray.500'
+                            }
+                            whiteSpace="nowrap"
+                        >
+                            {isCryptoEnabled ? 'Crypto' : 'Crypto (Soon)'}
+                        </Text>
+                    </Box>
+                </Tooltip>
             </Flex>
         </Box>
     );

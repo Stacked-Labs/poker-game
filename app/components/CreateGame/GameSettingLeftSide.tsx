@@ -53,6 +53,7 @@ const fadeIn = keyframes`
 `;
 
 const GameSettingLeftSide: React.FC = () => {
+    const isCryptoEnabled = process.env.NODE_ENV === 'development';
     const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
@@ -187,6 +188,12 @@ const GameSettingLeftSide: React.FC = () => {
         blindsMinChips.big,
         blindsMinChips.small,
     ]);
+
+    useEffect(() => {
+        if (!isCryptoEnabled && playType === 'Crypto') {
+            setPlayType('Free');
+        }
+    }, [isCryptoEnabled, playType]);
 
     useEffect(() => {
         if (playType !== 'Crypto') return;
@@ -418,6 +425,7 @@ const GameSettingLeftSide: React.FC = () => {
                     <PlayTypeToggle
                         playType={playType}
                         setPlayType={setPlayType}
+                        isCryptoEnabled={isCryptoEnabled}
                     />
                 </Flex>
 

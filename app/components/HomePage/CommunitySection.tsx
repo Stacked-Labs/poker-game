@@ -13,9 +13,9 @@ import {
     ListIcon,
     Badge,
     HStack,
-    Image,
     Icon,
 } from '@chakra-ui/react';
+import { Image } from '@chakra-ui/next-js';
 import { MdCheckCircle, MdFlashOn } from 'react-icons/md';
 import { SiThirdweb } from 'react-icons/si';
 import { FaDiscord, FaApple } from 'react-icons/fa';
@@ -113,9 +113,9 @@ const CommunitySection = () => {
                             <Image
                                 src="/homepage/lobbyPic.png"
                                 alt="Poker lobby"
-                                width="100%"
-                                height="100%"
-                                objectFit="cover"
+                                fill
+                                sizes="(max-width: 992px) 100vw, 50vw"
+                                style={{ objectFit: 'cover' }}
                             />
                         </Box>
 
@@ -329,9 +329,12 @@ const CommunitySection = () => {
                                                 <Image
                                                     src={option.icon as string}
                                                     alt={option.name}
-                                                    width="100%"
-                                                    height="100%"
-                                                    objectFit="contain"
+                                                    width={24}
+                                                    height={24}
+                                                    sizes="24px"
+                                                    style={{
+                                                        objectFit: 'contain',
+                                                    }}
                                                 />
                                             ) : (
                                                 <Box
@@ -360,17 +363,18 @@ const CommunitySection = () => {
                             alignItems="center"
                             justifyContent="center"
                             position="relative"
+                            borderRadius="2xl"
+                            overflow="hidden"
                             order={{ base: 1, lg: 2 }}
+                            transition="transform 0.3s ease"
+                            _hover={{ transform: 'scale(1.02)' }}
                         >
                             <Image
                                 src="/homepage/thirdwebLogin.png"
                                 alt="Thirdweb Login"
-                                width="100%"
-                                height="100%"
-                                objectFit="contain"
-                                borderRadius="2xl"
-                                transition="transform 0.3s ease"
-                                _hover={{ transform: 'scale(1.02)' }}
+                                fill
+                                sizes="(max-width: 992px) 100vw, 50vw"
+                                style={{ objectFit: 'contain' }}
                             />
                         </Box>
                     </SimpleGrid>

@@ -11,8 +11,8 @@ import {
     SimpleGrid,
     Icon,
     Badge,
-    Image,
 } from '@chakra-ui/react';
+import { Image } from '@chakra-ui/next-js';
 import { MdArrowForward } from 'react-icons/md';
 import React, { useEffect, useState } from 'react';
 import { keyframes } from '@emotion/react';
@@ -224,15 +224,24 @@ const CustomChipValueSection = () => {
                                     align="center"
                                 >
                                     <HStack spacing={{ base: 4, md: 6 }}>
-                                        <Image
-                                            src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
-                                            alt="USDC"
+                                        <Box
+                                            position="relative"
                                             boxSize={{
                                                 base: '44px',
                                                 sm: '56px',
                                                 md: '72px',
                                             }}
-                                        />
+                                        >
+                                            <Image
+                                                src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+                                                alt="USDC"
+                                                fill
+                                                sizes="(max-width: 30em) 44px, (max-width: 48em) 56px, 72px"
+                                                style={{
+                                                    objectFit: 'contain',
+                                                }}
+                                            />
+                                        </Box>
                                         <VStack align="flex-start" spacing={0}>
                                             <Text
                                                 color="white"

@@ -9,8 +9,13 @@ import CustomChipValueSection from './components/HomePage/CustomChipValueSection
 import FAQSection from './components/HomePage/FAQSection';
 import Footer from './components/HomePage/Footer';
 import { Metadata } from 'next';
-import CoinGecko from './components/HomePage/CoinGecko';
+import dynamic from 'next/dynamic';
 import BackToTopButton from './components/HomePage/BackToTopButton';
+
+const CoinGecko = dynamic(
+    () => import('./components/HomePage/CoinGecko'),
+    { ssr: false }
+);
 
 export const metadata: Metadata = {
     title: 'Stacked - Poker with Friends',

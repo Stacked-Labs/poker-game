@@ -43,7 +43,7 @@ const CoinGecko = () => {
             {/* Load CoinGecko widget script */}
             <Script
                 src="https://widgets.coingecko.com/gecko-coin-price-marquee-widget.js"
-                strategy="afterInteractive"
+                strategy="lazyOnload"
             />
             {/* CoinGecko price marquee placed directly under the navbar */}
             <Box

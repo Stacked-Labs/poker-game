@@ -2,7 +2,6 @@
 import {
     Button,
     Flex,
-    Image,
     IconButton,
     useDisclosure,
     Drawer,
@@ -13,6 +12,7 @@ import {
     Box,
     Text,
 } from '@chakra-ui/react';
+import { Image } from '@chakra-ui/next-js';
 import React from 'react';
 import { RiMenu3Line, RiCloseLine } from 'react-icons/ri';
 import WalletButton from '../WalletButton';
@@ -21,6 +21,7 @@ import { keyframes } from '@emotion/react';
 import { ColorModeButton } from '../ColorModeButton';
 
 const logoImage = '/IconLogo.png';
+const logoSizes = '(max-width: 48em) 56px, (max-width: 62em) 64px, 72px';
 
 // Animations
 const fadeIn = keyframes`
@@ -101,17 +102,23 @@ const HomeNavBar: React.FC = () => {
                         transform: 'scale(0.95)',
                     }}
                 >
-                    <Image
-                        alt="Stacked Logo"
-                        src={logoImage}
+                    <Box
+                        position="relative"
                         width={{ base: '56px', md: '64px', lg: '72px' }}
                         height={{ base: '56px', md: '64px', lg: '72px' }}
-                        style={{ objectFit: 'contain' }}
                         transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                         _hover={{
                             transform: 'rotate(-8deg) scale(1.08)',
                         }}
-                    />
+                    >
+                        <Image
+                            alt="Stacked Logo"
+                            src={logoImage}
+                            fill
+                            sizes={logoSizes}
+                            style={{ objectFit: 'contain' }}
+                        />
+                    </Box>
                 </Flex>
                 <ColorModeButton />
             </Flex>

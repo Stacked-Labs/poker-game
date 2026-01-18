@@ -17,7 +17,7 @@ import {
     Tag,
     Icon,
 } from '@chakra-ui/react';
-import { MdWifiOff } from 'react-icons/md';
+import { MdWifiOff, MdLocalCafe, MdLogout, MdPerson } from 'react-icons/md';
 import { keyframes } from '@emotion/react';
 import {
     motion,
@@ -347,8 +347,7 @@ const TakenSeatButton = ({
         top: '100%',
         flexDirection: 'row',
     };
-    const chipPositionSx =
-        chipPositionStyles[seatId] || defaultPositionStyles;
+    const chipPositionSx = chipPositionStyles[seatId] || defaultPositionStyles;
 
     // Countdown timer logic
     const deadline = appState.game?.actionDeadline ?? 0;
@@ -574,7 +573,8 @@ const TakenSeatButton = ({
         xl: '76px',
         '2xl': '92px',
     };
-    const reverseDealerGroupInPortrait = seatId === 7 || seatId === 8 || seatId === 9 || seatId === 10;
+    const reverseDealerGroupInPortrait =
+        seatId === 7 || seatId === 8 || seatId === 9 || seatId === 10;
     const reverseDealerGroupInLandscape = seatId === 8 || seatId === 9;
 
     return (
@@ -648,9 +648,10 @@ const TakenSeatButton = ({
                                         : 'flex-start',
                                 },
                                 '@media (orientation: landscape)': {
-                                    justifyContent: reverseDealerGroupInLandscape
-                                        ? 'flex-end'
-                                        : 'flex-start',
+                                    justifyContent:
+                                        reverseDealerGroupInLandscape
+                                            ? 'flex-end'
+                                            : 'flex-start',
                                 },
                             }}
                         >
@@ -902,7 +903,7 @@ const TakenSeatButton = ({
                         borderRadius={4}
                         width={'100%'}
                         paddingX={0}
-                        paddingTop={{ base: 1 }}
+                        paddingTop={{ base: 1, sm: 1, md: 2 }}
                         paddingBottom={{ base: 2, sm: 2, md: '8%' }}
                         justifySelf={'flex-end'}
                         justifyContent={'center'}
@@ -956,7 +957,9 @@ const TakenSeatButton = ({
                         )}
                         {player.stack > 0 &&
                             !player.ready &&
-                            (!isSelf || !player.in) && (
+                            (!isSelf || !player.in) &&
+                            !isOffline &&
+                            !player.leaveAfterHand && (
                                 <Tag
                                     position="absolute"
                                     top={{ base: -2, md: -3 }}
@@ -966,69 +969,105 @@ const TakenSeatButton = ({
                                             ? 'brand.lightGray'
                                             : 'brand.yellow'
                                     }
-                                    color={
-                                        player.readyNextHand
-                                            ? 'brand.darkNavy'
-                                            : 'text.secondary'
-                                    }
+                                    color="brand.lightGray"
                                     variant="solid"
                                     size={{ base: 'xs', md: 'sm' }}
                                     fontSize={{ base: '8px', md: 'sm' }}
-                                    px={{ base: 1, md: 1 }}
+                                    px={{ base: 1, md: 2 }}
                                     py={{ base: 0.1, md: 0.2 }}
                                     zIndex={3}
                                     fontWeight="bold"
                                     borderRadius="6px"
+                                    display="flex"
+                                    alignItems="center"
+                                    gap={1}
                                 >
-                                    {player.readyNextHand
-                                        ? 'Joining next hand'
-                                        : 'Away'}
+                                    <Icon
+                                        as={MdPerson}
+                                        boxSize={{ base: 2.5, md: 3 }}
+                                    />
+                                    <Text
+                                        as="span"
+                                        display={{ base: 'none', md: 'inline' }}
+                                    >
+                                        {player.readyNextHand
+                                            ? 'Joining...'
+                                            : 'Away'}
+                                    </Text>
                                 </Tag>
                             )}
                         {player.sitOutNextHand &&
                             player.ready &&
-                            (!isSelf || !player.in) && (
+                            (!isSelf || !player.in) &&
+                            !isOffline &&
+                            !player.leaveAfterHand && (
                                 <Tag
                                     position="absolute"
                                     top={{ base: -2, md: -3 }}
                                     right={0}
-                                    bg="brand.lightGray"
-                                    color="brand.darkNavy"
+                                    bg="brand.yellow"
+                                    color="brand.lightNavy"
                                     variant="solid"
                                     size={{ base: 'xs', md: 'sm' }}
                                     fontSize={{ base: '8px', md: 'sm' }}
-                                    px={{ base: 1, md: 1 }}
+                                    px={{ base: 1, md: 2 }}
                                     py={{ base: 0.1, md: 0.2 }}
                                     zIndex={3}
                                     fontWeight="bold"
                                     borderRadius="6px"
+                                    display="flex"
+                                    alignItems="center"
+                                    gap={1}
                                 >
-                                    Sitting out..
+                                    <Icon
+                                        as={MdLocalCafe}
+                                        color="brand.lightNavy"
+                                        boxSize={{ base: 2.5, md: 3 }}
+                                    />
+                                    <Text
+                                        as="span"
+                                        color="brand.lightNavy"
+                                        display={{ base: 'none', md: 'inline' }}
+                                    >
+                                        Away..
+                                    </Text>
                                 </Tag>
                             )}
-                        {player.leaveAfterHand && (!isSelf || !player.in) && (
-                            <Tag
-                                position="absolute"
-                                top={{ base: -2, md: -3 }}
-                                // Offset left position if offline badge is also shown
-                                left={
-                                    isOffline ? { base: '50px', md: '70px' } : 0
-                                }
-                                bg="brand.pink"
-                                color="white"
-                                variant="solid"
-                                size={{ base: 'xs', md: 'sm' }}
-                                fontSize={{ base: '8px', md: 'sm' }}
-                                px={{ base: 1, md: 2 }}
-                                py={{ base: 0.1, md: 0.2 }}
-                                zIndex={3}
-                                fontWeight="bold"
-                                borderRadius="6px"
-                                boxShadow="0 2px 8px rgba(235, 11, 92, 0.4)"
-                            >
-                                Leaving soon
-                            </Tag>
-                        )}
+                        {player.leaveAfterHand &&
+                            (!isSelf || !player.in) &&
+                            !isOffline && (
+                                <Tag
+                                    position="absolute"
+                                    top={{ base: -2, md: -3 }}
+                                    left={0}
+                                    bg="brand.pink"
+                                    color="brand.lightGray"
+                                    variant="solid"
+                                    size={{ base: 'xs', md: 'sm' }}
+                                    fontSize={{ base: '8px', md: 'sm' }}
+                                    px={{ base: 1, md: 2 }}
+                                    py={{ base: 0.1, md: 0.2 }}
+                                    zIndex={4}
+                                    fontWeight="bold"
+                                    borderRadius="6px"
+                                    boxShadow="0 2px 8px rgba(235, 11, 92, 0.4)"
+                                    display="flex"
+                                    alignItems="center"
+                                    gap={1}
+                                >
+                                    <Icon
+                                        as={MdLogout}
+                                        boxSize={{ base: 2.5, md: 3 }}
+                                    />
+                                    <Text
+                                        as="span"
+                                        color="brand.lightGray"
+                                        display={{ base: 'none', md: 'inline' }}
+                                    >
+                                        Leaving..
+                                    </Text>
+                                </Tag>
+                            )}
                         {strengthLabel && (
                             <Tag
                                 position="absolute"

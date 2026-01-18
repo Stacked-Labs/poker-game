@@ -1,8 +1,16 @@
-import { Box, Flex, IconButton, useMediaQuery } from '@chakra-ui/react';
+import { Box, Flex, useMediaQuery } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import Chatbox from './ChatBox';
-import { FaChevronRight, FaChevronLeft } from 'react-icons/fa';
-import { IoClose } from 'react-icons/io5';
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const Chatbox = dynamic(() => import('./ChatBox'), {
+    ssr: false,
+    loading: () => (
+        <Box px={4} py={6} color="text.secondary" fontSize="sm">
+            Loading chat...
+        </Box>
+    ),
+});
 
 const SideBarChat = ({
     isOpen,
@@ -12,6 +20,13 @@ const SideBarChat = ({
     onToggle: () => void;
 }) => {
     const [isLargerScreen] = useMediaQuery('(min-width: 770px)');
+    const [hasOpened, setHasOpened] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setHasOpened(true);
+        }
+    }, [isOpen]);
 
     return (
         <Flex
@@ -34,10 +49,12 @@ const SideBarChat = ({
             borderLeft="1px solid"
             borderColor="rgba(0, 0, 0, 0.08)"
         >
-            <Chatbox
-                onToggle={onToggle}
-                shouldAutoFocus={isOpen && isLargerScreen}
-            />
+            {hasOpened && (
+                <Chatbox
+                    onToggle={onToggle}
+                    shouldAutoFocus={isOpen && isLargerScreen}
+                />
+            )}
         </Flex>
     );
 };

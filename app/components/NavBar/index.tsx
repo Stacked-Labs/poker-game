@@ -35,7 +35,6 @@ import {
 import TableMenuBurger from './TableMenuBurger';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
-import { ColorModeButton } from '../ColorModeButton';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -385,19 +384,6 @@ const Navbar = () => {
                             </Tooltip>
                         </Box>
                     )}
-                    <Box
-                        className="navbar-colormode-wrapper"
-                        sx={{
-                            '@media (orientation: portrait)': {
-                                display: 'none',
-                            },
-                            '@media (orientation: landscape)': {
-                                display: 'block',
-                            },
-                        }}
-                    >
-                        <ColorModeButton />
-                    </Box>
                 </HStack>
                 <HStack
                     className="navbar-right-controls"

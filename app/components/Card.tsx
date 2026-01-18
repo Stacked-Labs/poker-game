@@ -132,9 +132,9 @@ const SVGCardFace = ({
                 x="2"
                 y="10"
                 fontSize="10"
-                fontWeight="800"
+                fontWeight="700"
                 fill={isRed ? '#DC143C' : '#000000'}
-                fontFamily="'Geist Sans', 'Poppins', sans-serif"
+                fontFamily="var(--font-poppins), sans-serif"
             >
                 {rank}
             </text>

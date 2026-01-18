@@ -41,6 +41,7 @@ const Footer = () => {
                                     alt="Stacked Logo"
                                     fill
                                     sizes="(max-width: 48em) 32px, (max-width: 62em) 36px, 40px"
+                                    quality={60}
                                     style={{ objectFit: 'contain' }}
                                 />
                             </Box>

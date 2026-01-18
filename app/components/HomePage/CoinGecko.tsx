@@ -1,11 +1,13 @@
 'use client'
 
-import { Box, useColorMode } from "@chakra-ui/react";
-import Script from "next/script";
-import { useEffect } from "react";
+import { Box, useColorMode } from '@chakra-ui/react';
+import Script from 'next/script';
+import { useEffect, useState } from 'react';
 
 const CoinGecko = () => {
     const { colorMode } = useColorMode();
+    const [shouldLoad, setShouldLoad] = useState(false);
+    const coinIds = 'bitcoin,ethereum,usd-coin,tether';
 
     // Inject styles for CoinGecko widget in dark mode
     useEffect(() => {
@@ -38,14 +40,28 @@ const CoinGecko = () => {
         };
     }, [colorMode]);
 
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (window.requestIdleCallback) {
+            const handle = window.requestIdleCallback(
+                () => setShouldLoad(true),
+                { timeout: 2500 }
+            );
+            return () => window.cancelIdleCallback?.(handle);
+        }
+
+        const timeout = window.setTimeout(() => setShouldLoad(true), 1500);
+        return () => window.clearTimeout(timeout);
+    }, []);
+
     return (
         <>
-            {/* Load CoinGecko widget script */}
-            <Script
-                src="https://widgets.coingecko.com/gecko-coin-price-marquee-widget.js"
-                strategy="lazyOnload"
-            />
-            {/* CoinGecko price marquee placed directly under the navbar */}
+            {shouldLoad && (
+                <Script
+                    src="https://widgets.coingecko.com/gecko-coin-price-marquee-widget.js"
+                    strategy="lazyOnload"
+                />
+            )}
             <Box
                 width="100%"
                 bgColor="card.white"
@@ -58,12 +74,20 @@ const CoinGecko = () => {
                 borderBottom="1px solid"
                 borderColor="rgba(235, 11, 92, 0.2)"
                 boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
-                dangerouslySetInnerHTML={{
-                    __html: `<gecko-coin-price-marquee-widget dark-mode="${colorMode === 'dark'}" locale="en" transparent-background="true" coin-ids="bitcoin,ethereum,usd-coin,tether,spx6900,virtual-protocol,aerodrome-finance,based-brett,degen-base,cookie,ponke" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
-                }}
+                minHeight={{ base: '32px', md: '40px' }}
+                visibility={shouldLoad ? 'visible' : 'hidden'}
+                dangerouslySetInnerHTML={
+                    shouldLoad
+                        ? {
+                              __html: `<gecko-coin-price-marquee-widget dark-mode="${
+                                  colorMode === 'dark'
+                              }" locale="en" transparent-background="true" coin-ids="${coinIds}" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
+                          }
+                        : undefined
+                }
             />
         </>
-    )
+    );
 }
 
-export default CoinGecko
+export default CoinGecko;

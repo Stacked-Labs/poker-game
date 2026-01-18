@@ -68,7 +68,7 @@ const float6 = keyframes`
 
 const MotionBox = motion(Box);
 
-const VIDEO_POSTER_SRC = '/video/bgplaceholder.png';
+const VIDEO_POSTER_SRC = '/video/bgplaceholder.webp';
 
 const HomeSection = () => {
     const videoRef = useRef<HTMLVideoElement>(null);

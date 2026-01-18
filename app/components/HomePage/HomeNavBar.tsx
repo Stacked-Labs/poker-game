@@ -116,6 +116,7 @@ const HomeNavBar: React.FC = () => {
                             src={logoImage}
                             fill
                             sizes={logoSizes}
+                            quality={60}
                             style={{ objectFit: 'contain' }}
                         />
                     </Box>

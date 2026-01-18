@@ -96,7 +96,8 @@ const NewsletterSection = () => {
                         inset={0}
                         opacity="0.4"
                         pointerEvents="none"
-                        backgroundImage="url('https://www.transparenttextures.com/patterns/felt.png')"
+                        backgroundImage="radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.12) 0, rgba(255, 255, 255, 0.12) 1px, transparent 1px)"
+                        backgroundSize="6px 6px"
                     />
 
                     {/* Spotlight Effect */}

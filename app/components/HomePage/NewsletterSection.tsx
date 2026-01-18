@@ -11,9 +11,45 @@ import {
     Input,
     Button,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useState } from 'react';
 
 const NewsletterSection = () => {
+    const [email, setEmail] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email || isSubmitting) return;
+
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch('/api/newsletter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email }),
+            });
+
+            if (response.ok) {
+                setIsSubmitted(true);
+                setEmail('');
+                // Reset success message after 5 seconds
+                setTimeout(() => setIsSubmitted(false), 5000);
+            } else {
+                throw new Error('Failed to subscribe');
+            }
+        } catch (error) {
+            console.error('Newsletter subscription error:', error);
+            // You could add toast notification here
+            alert('Failed to subscribe. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <Box
             bg="bg.default"
@@ -209,13 +245,15 @@ const NewsletterSection = () => {
                             }}
                         >
                             <Box
+                                as="form"
+                                onSubmit={handleSubmit}
                                 position="relative"
                                 w="100%"
                                 bg="rgba(0, 0, 0, 0.4)"
                                 p={1.5}
                                 borderRadius="20px"
                                 border="2px solid"
-                                borderColor="whiteAlpha.300"
+                                borderColor={isSubmitted ? 'brand.green' : 'whiteAlpha.300'}
                                 backdropFilter="blur(25px)"
                                 transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                                 _focusWithin={{
@@ -227,18 +265,24 @@ const NewsletterSection = () => {
                             >
                                 <HStack spacing={0}>
                                     <Input
+                                        type="email"
                                         placeholder="your@email.com"
                                         variant="unstyled"
                                         color="white"
                                         px={6}
                                         fontSize="md"
                                         fontWeight="medium"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        disabled={isSubmitting || isSubmitted}
                                         _placeholder={{
                                             color: 'whiteAlpha.400',
                                         }}
+                                        required
                                     />
                                     <Button
-                                        bg="brand.green"
+                                        type="submit"
+                                        bg={isSubmitted ? '#2d8a68' : 'brand.green'}
                                         color="white"
                                         px={8}
                                         height="48px"
@@ -248,18 +292,24 @@ const NewsletterSection = () => {
                                         textTransform="uppercase"
                                         letterSpacing="0.05em"
                                         transition="all 0.2s ease"
+                                        disabled={isSubmitting || isSubmitted}
                                         _hover={{
-                                            bg: '#2d8a68',
-                                            transform: 'translateY(-1px)',
-                                            boxShadow:
-                                                '0 4px 12px rgba(54, 163, 123, 0.3)',
+                                            bg: isSubmitted ? '#2d8a68' : '#2d8a68',
+                                            transform: isSubmitted ? 'none' : 'translateY(-1px)',
+                                            boxShadow: isSubmitted
+                                                ? 'none'
+                                                : '0 4px 12px rgba(54, 163, 123, 0.3)',
                                         }}
                                         _active={{
                                             transform: 'translateY(0)',
                                             filter: 'brightness(0.9)',
                                         }}
                                     >
-                                        Save My Seat
+                                        {isSubmitting
+                                            ? 'Saving...'
+                                            : isSubmitted
+                                            ? 'Saved! 🎉'
+                                            : 'Save My Seat'}
                                     </Button>
                                 </HStack>
                             </Box>

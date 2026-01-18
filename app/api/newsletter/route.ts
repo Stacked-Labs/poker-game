@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
                 {
                     method: 'POST',
                     headers: {
-                        'Authorization': `apikey ${MAILCHIMP_API_KEY}`,
+                        Authorization: `apikey ${MAILCHIMP_API_KEY}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
@@ -72,16 +72,21 @@ export async function POST(request: NextRequest) {
         }
 
         // Fallback: Log to console for development/testing
-        console.log('Newsletter subscription:', { email, timestamp: new Date().toISOString() });
+        console.log('Newsletter subscription:', {
+            email,
+            timestamp: new Date().toISOString(),
+        });
 
         // You could also save to a database here
         // Example: await saveToDatabase(email);
 
         return NextResponse.json(
-            { message: 'Subscription logged (configure email service for production)' },
+            {
+                message:
+                    'Subscription logged (configure email service for production)',
+            },
             { status: 200 }
         );
-
     } catch (error) {
         console.error('Newsletter API error:', error);
         return NextResponse.json(
@@ -95,6 +100,10 @@ export async function POST(request: NextRequest) {
 export async function GET() {
     return NextResponse.json({
         message: 'Newsletter API is working',
-        configured: !!(MAILCHIMP_API_KEY && MAILCHIMP_SERVER_PREFIX && MAILCHIMP_LIST_ID)
+        configured: !!(
+            MAILCHIMP_API_KEY &&
+            MAILCHIMP_SERVER_PREFIX &&
+            MAILCHIMP_LIST_ID
+        ),
     });
 }

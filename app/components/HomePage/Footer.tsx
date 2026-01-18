@@ -8,13 +8,13 @@ import {
     Stack,
     Text,
     Flex,
-    Image,
     Link,
     Icon,
     HStack,
     VStack,
     Divider,
 } from '@chakra-ui/react';
+import { Image } from '@chakra-ui/next-js';
 import { FaDiscord } from 'react-icons/fa';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { HiLightningBolt } from 'react-icons/hi';
@@ -30,23 +30,29 @@ const Footer = () => {
                 >
                     {/* Brand Section */}
                     <Stack spacing={6}>
-                        <Flex alignItems="center">
-                            <Image
-                                src="/IconLogo.png"
-                                alt="Stacked Logo"
-                                boxSize="48px"
-                                objectFit="contain"
-                            />
+                        <HStack spacing={3} align="center">
+                            <Box
+                                position="relative"
+                                boxSize={{ base: '32px', md: '36px', lg: '40px' }}
+                                flexShrink={0}
+                            >
+                                <Image
+                                    src="/IconLogo.png"
+                                    alt="Stacked Logo"
+                                    fill
+                                    sizes="(max-width: 48em) 32px, (max-width: 62em) 36px, 40px"
+                                    style={{ objectFit: 'contain' }}
+                                />
+                            </Box>
                             <Text
-                                ml={3}
-                                fontSize="2xl"
+                                fontSize={{ base: 'xl', md: '2xl' }}
                                 fontWeight="extrabold"
                                 letterSpacing="tight"
                                 color="text.primary"
                             >
                                 STACKED
                             </Text>
-                        </Flex>
+                        </HStack>
                         <Text
                             color="text.secondary"
                             fontSize="md"

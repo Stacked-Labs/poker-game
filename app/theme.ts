@@ -241,18 +241,18 @@ const semanticTokens = {
 // 4. TYPOGRAPHY
 // ============================================
 const fonts = {
-    heading: `'Geist Sans', 'Poppins', sans-serif`,
-    body: `'Geist Sans', 'Poppins', sans-serif`,
+    heading: 'var(--font-poppins), system-ui, sans-serif',
+    body: 'var(--font-poppins), system-ui, sans-serif',
 };
 
 const fontWeights = {
-    heading: 800, // Geist ExtraBold - Thicker headings
-    body: 600, // Geist SemiBold - Thicker body text
+    heading: 700,
+    body: 500,
     normal: 500,
     medium: 600,
-    semibold: 700,
-    bold: 800,
-    extrabold: 900, // Geist Black - Heaviest weight
+    semibold: 600,
+    bold: 700,
+    extrabold: 700,
 };
 
 // ============================================

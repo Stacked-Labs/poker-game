@@ -27,7 +27,6 @@ import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
-import { ColorModeButton } from '../ColorModeButton';
 import {
     sendPauseGameCommand,
 } from '@/app/hooks/server_actions';
@@ -217,7 +216,6 @@ const TableMenuBurger = ({
                             }
                         />
                     )}
-                    <Item button={<ColorModeButton variant="menu" />} />
                 </MenuList>
             </Menu>
         </Box>

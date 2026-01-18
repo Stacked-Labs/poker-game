@@ -7,8 +7,20 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { sendMessage } from '@/app/hooks/server_actions';
 import { IoClose } from 'react-icons/io5';
-import MediaButton from './MediaButton';
 import { Image } from '@chakra-ui/next-js';
+import dynamic from 'next/dynamic';
+
+const MediaButton = dynamic(() => import('./MediaButton'), {
+    ssr: false,
+    loading: () => (
+        <Box
+            width="48px"
+            height="48px"
+            borderRadius="12px"
+            bg="card.lightGray"
+        />
+    ),
+});
 
 function hexToRgb(hex: string): [number, number, number] {
     hex = hex.replace('#', '');

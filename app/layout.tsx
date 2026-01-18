@@ -1,18 +1,22 @@
 import './globals.css';
-import { Inter } from 'next/font/google';
 import { Providers } from './providers';
-import '@fontsource/luckiest-guy';
-import '@fontsource/poppins';
-import '@fontsource/libre-barcode-39-text';
-import '@fontsource/geist-sans/500.css'; // Geist Medium
-import '@fontsource/geist-sans/600.css'; // Geist SemiBold
-import '@fontsource/geist-sans/700.css'; // Geist Bold
-import '@fontsource/geist-sans/800.css'; // Geist ExtraBold
-import '@fontsource/geist-sans/900.css'; // Geist Black
+import { Libre_Barcode_39_Text, Poppins } from 'next/font/google';
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import React from 'react';
 
-const inter = Inter({ subsets: ['latin'] });
+const poppins = Poppins({
+    subsets: ['latin'],
+    weight: ['500', '600', '700'],
+    display: 'swap',
+    variable: '--font-poppins',
+});
+
+const libreBarcode = Libre_Barcode_39_Text({
+    subsets: ['latin'],
+    weight: '400',
+    display: 'swap',
+    variable: '--font-barcode',
+});
 
 export default function RootLayout({
     children,
@@ -31,7 +35,9 @@ export default function RootLayout({
                     href="https://challenges.cloudflare.com"
                 />
             </head>
-            <body className={inter.className}>
+            <body
+                className={`${poppins.className} ${poppins.variable} ${libreBarcode.variable}`}
+            >
                 <Providers>
                     <HomeNavBar />
                     <main>{children}</main>

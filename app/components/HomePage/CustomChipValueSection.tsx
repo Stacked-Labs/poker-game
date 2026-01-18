@@ -11,14 +11,12 @@ import {
     SimpleGrid,
     Icon,
     Badge,
-    Image,
 } from '@chakra-ui/react';
+import { Image } from '@chakra-ui/next-js';
 import { MdArrowForward } from 'react-icons/md';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { keyframes } from '@emotion/react';
 import { useReducedMotion } from 'framer-motion';
-
-const USDC_PER_CHIP_OPTIONS = ['0.1', '1', '10'];
 
 const pulseBorderPink = keyframes`
   0% {
@@ -33,22 +31,7 @@ const pulseBorderPink = keyframes`
 `;
 
 const CustomChipValueSection = () => {
-    const [usdcPerChipIndex, setUsdcPerChipIndex] = useState(0);
     const prefersReducedMotion = useReducedMotion();
-
-    useEffect(() => {
-        const interval = setInterval(
-            () =>
-                setUsdcPerChipIndex(
-                    (prev) => (prev + 1) % USDC_PER_CHIP_OPTIONS.length
-                ),
-            1500
-        );
-
-        return () => clearInterval(interval);
-    }, []);
-
-    const currentUsdcPerChip = USDC_PER_CHIP_OPTIONS[usdcPerChipIndex];
 
     const highlightPulse = !prefersReducedMotion
         ? `${pulseBorderPink} 2s ease-out infinite`
@@ -121,7 +104,7 @@ const CustomChipValueSection = () => {
                                 fontWeight="bold"
                                 letterSpacing="wider"
                             >
-                                CUSTOM CHIP VALUE
+                                CHIP VALUE SYSTEM
                             </Badge>
 
                             <Heading
@@ -129,7 +112,7 @@ const CustomChipValueSection = () => {
                                 fontWeight="extrabold"
                                 color="white"
                             >
-                                You Decide What a Chip is Worth.
+                                1 Chip = 0.01 USDC. Always.
                             </Heading>
 
                             <VStack align="start" spacing={5}>
@@ -138,17 +121,17 @@ const CustomChipValueSection = () => {
                                     color="brand.lightGray"
                                     lineHeight="tall"
                                 >
-                                    In Stacked, the chip count is standard, but
-                                    the value is{' '}
+                                    Simple, predictable, and enforced by smart
+                                    contracts. When you create a game, you set
+                                    the blind structure in{' '}
                                     <Box
                                         as="span"
                                         color="white"
                                         fontWeight="semibold"
                                     >
-                                        up to you
+                                        chips
                                     </Box>
-                                    . As the host, when creating a game, you
-                                    assign a{' '}
+                                    , and the{' '}
                                     <Box
                                         as="span"
                                         color="blue.400"
@@ -156,48 +139,29 @@ const CustomChipValueSection = () => {
                                     >
                                         USDC value
                                     </Box>{' '}
-                                    to the chips by setting the Small Blind and
-                                    Big Blind. Make a{' '}
-                                    <Box
-                                        as="span"
-                                        px={2}
-                                        py={0.5}
-                                        borderRadius="full"
-                                        bg="rgba(255,255,255,0.08)"
-                                        color="brand.yellow"
-                                        fontWeight="semibold"
-                                    >
-                                        1/2 game = 0.10 / 0.20
-                                    </Box>{' '}
-                                    for a friendly night, or{' '}
-                                    <Box
-                                        as="span"
-                                        px={2}
-                                        py={0.5}
-                                        borderRadius="full"
-                                        bg="rgba(255,255,255,0.08)"
-                                        color="brand.yellow"
-                                        fontWeight="semibold"
-                                    >
-                                        10 / 20
-                                    </Box>{' '}
-                                    for high-stakes action.
+                                    is automatically calculated.
                                 </Text>
                                 <Text
                                     fontSize="lg"
                                     color="brand.lightGray"
                                     lineHeight="tall"
                                 >
-                                    Players buy in with{' '}
+                                    A{' '}
                                     <Box
                                         as="span"
-                                        color="blue.400"
+                                        px={2}
+                                        py={0.5}
+                                        borderRadius="full"
+                                        bg="rgba(255,255,255,0.08)"
+                                        color="brand.yellow"
                                         fontWeight="semibold"
                                     >
-                                        USDC
-                                    </Box>
-                                    , get the exact correct amount of chips for
-                                    your table&apos;s ratio.
+                                        10/20 chip game
+                                    </Box>{' '}
+                                    means blinds of 10/20 chips (0.10/0.20 USDC).
+                                    Players buy in with USDC and receive the
+                                    exact chip amount for your table&apos;s
+                                    structure.
                                 </Text>
                             </VStack>
                         </VStack>
@@ -205,7 +169,7 @@ const CustomChipValueSection = () => {
                         {/* Conversion Graphic */}
                         <Box
                             bg="rgba(0, 0, 0, 0.3)"
-                            p={{ base: 6, sm: 8, md: 18 }}
+                            p={{ base: 6, sm: 8, md: 12 }}
                             borderRadius="30px"
                             border="1px solid"
                             borderColor="rgba(255, 255, 255, 0.15)"
@@ -213,147 +177,158 @@ const CustomChipValueSection = () => {
                             maxW={{ base: '380px', lg: 'none' }}
                             mx={{ base: 'auto', lg: 0 }}
                         >
-                            <VStack
-                                spacing={{ base: 7, md: 12 }}
-                                align="stretch"
-                            >
-                                <Stack
-                                    direction={{ base: 'column', sm: 'row' }}
-                                    justify="center"
-                                    spacing={{ base: 4, sm: 6, md: 10 }}
-                                    align="center"
-                                >
-                                    <HStack spacing={{ base: 4, md: 6 }}>
-                                        <Image
-                                            src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
-                                            alt="USDC"
-                                            boxSize={{
-                                                base: '44px',
-                                                sm: '56px',
-                                                md: '72px',
+                            <VStack spacing={8} align="stretch">
+                                {/* Fixed Rate Display */}
+                                <VStack spacing={4}>
+                                    <Text
+                                        color="gray.300"
+                                        fontSize="sm"
+                                        fontWeight="medium"
+                                        textAlign="center"
+                                    >
+                                        FIXED EXCHANGE RATE
+                                    </Text>
+                                    <HStack spacing={4} justify="center" align="center">
+                                        <HStack spacing={3}>
+                                            <Box
+                                                position="relative"
+                                                width={{
+                                                    base: '32px',
+                                                    md: '40px',
+                                                }}
+                                                height={{
+                                                    base: '32px',
+                                                    md: '40px',
+                                                }}
+                                                flexShrink={0}
+                                            >
+                                                <Image
+                                                    src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+                                                    alt="USDC"
+                                                    fill
+                                                    sizes="(max-width: 48em) 32px, 40px"
+                                                    style={{
+                                                        objectFit: 'contain',
+                                                        width: '100%',
+                                                        height: '100%',
+                                                    }}
+                                                />
+                                            </Box>
+                                            <Text
+                                                color="white"
+                                                fontWeight="bold"
+                                                fontSize={{
+                                                    base: 'lg',
+                                                    md: 'xl',
+                                                }}
+                                            >
+                                                0.01 USDC
+                                            </Text>
+                                        </HStack>
+
+                                        <Icon
+                                            as={MdArrowForward}
+                                            color="brand.green"
+                                            fontSize={{
+                                                base: '20px',
+                                                md: '24px',
                                             }}
                                         />
-                                        <VStack align="flex-start" spacing={0}>
+
+                                        <HStack spacing={3}>
+                                            <Box
+                                                w={{
+                                                    base: '40px',
+                                                    md: '48px',
+                                                }}
+                                                h={{
+                                                    base: '40px',
+                                                    md: '48px',
+                                                }}
+                                                borderRadius="full"
+                                                bg="brand.green"
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                border="2px solid rgba(255,255,255,0.3)"
+                                                boxShadow="0 4px 12px rgba(0,0,0,0.3)"
+                                            >
+                                                <Text
+                                                    color="white"
+                                                    fontWeight="black"
+                                                    fontSize={{
+                                                        base: 'lg',
+                                                        md: 'xl',
+                                                    }}
+                                                >
+                                                    1
+                                                </Text>
+                                            </Box>
                                             <Text
                                                 color="white"
                                                 fontWeight="bold"
                                                 fontSize={{
-                                                    base: 'xl',
-                                                    md: '2xl',
+                                                    base: 'lg',
+                                                    md: 'xl',
                                                 }}
                                             >
-                                                USDC
+                                                Chip
                                             </Text>
-                                            <Text
-                                                color="gray.300"
-                                                fontSize={{
-                                                    base: 'sm',
-                                                    md: 'md',
-                                                }}
-                                                fontWeight="medium"
-                                            >
-                                                {currentUsdcPerChip} USDC
-                                            </Text>
-                                        </VStack>
+                                        </HStack>
                                     </HStack>
-
-                                    <Icon
-                                        as={MdArrowForward}
-                                        color="gray.500"
-                                        fontSize={{
-                                            base: '28px',
-                                            md: '36px',
-                                        }}
-                                        transform={{
-                                            base: 'rotate(90deg)',
-                                            sm: 'none',
-                                        }}
-                                    />
-
-                                    <HStack spacing={{ base: 4, md: 6 }}>
-                                        <Box
-                                            position="relative"
-                                            w={{
-                                                base: '56px',
-                                                sm: '64px',
-                                                md: '78px',
-                                            }}
-                                            h={{
-                                                base: '56px',
-                                                sm: '64px',
-                                                md: '78px',
-                                            }}
-                                            borderRadius="full"
-                                            bg="brand.green"
-                                            display="flex"
-                                            alignItems="center"
-                                            justifyContent="center"
-                                            borderStyle="dashed"
-                                            borderColor="rgba(255,255,255,0.4)"
-                                            borderWidth={{
-                                                base: '4px',
-                                                md: '6px',
-                                            }}
-                                            boxShadow="0 6px 16px rgba(0,0,0,0.35), inset 0 0 20px rgba(0,0,0,0.25)"
-                                            _before={{
-                                                content: '""',
-                                                position: 'absolute',
-                                                width: '78%',
-                                                height: '78%',
-                                                borderRadius: 'full',
-                                                border: '1px solid rgba(255,255,255,0.2)',
-                                            }}
-                                        >
-                                            <Text
-                                                color="white"
-                                                fontWeight="black"
-                                                fontSize={{
-                                                    base: 'xl',
-                                                    md: '2xl',
-                                                }}
-                                                zIndex={1}
-                                            >
-                                                S
-                                            </Text>
-                                        </Box>
-                                        <VStack align="flex-start" spacing={0}>
-                                            <Text
-                                                color="white"
-                                                fontWeight="bold"
-                                                fontSize={{
-                                                    base: 'xl',
-                                                    md: '2xl',
-                                                }}
-                                            >
-                                                Chips
-                                            </Text>
-                                            <Text
-                                                color="gray.300"
-                                                fontSize={{
-                                                    base: 'sm',
-                                                    md: 'md',
-                                                }}
-                                                fontWeight="medium"
-                                            >
-                                                1 Chip
-                                            </Text>
-                                        </VStack>
-                                    </HStack>
-                                </Stack>
+                                </VStack>
 
                                 <Box h="1px" bg="rgba(255, 255, 255, 0.1)" />
 
-                                <Text
-                                    color="gray.400"
-                                    fontSize={{ base: 'sm', md: 'md' }}
-                                    textAlign="center"
-                                    lineHeight="tall"
-                                >
-                                    You choose how much 1 Chip is worth (e.g.
-                                    0.1, 1, or 10 USDC). The exchange rate is
-                                    enforced by the smart contract, keeping it
-                                    stable and automatic.
-                                </Text>
+                                {/* Example Blinds */}
+                                <VStack spacing={3}>
+                                    <Text
+                                        color="gray.300"
+                                        fontSize="sm"
+                                        fontWeight="medium"
+                                        textAlign="center"
+                                    >
+                                        EXAMPLE GAMES
+                                    </Text>
+                                    <SimpleGrid columns={2} spacing={4} w="full">
+                                        <VStack spacing={1}>
+                                            <Text
+                                                color="brand.yellow"
+                                                fontSize="sm"
+                                                fontWeight="bold"
+                                            >
+                                                5/10 GAME
+                                            </Text>
+                                            <Text
+                                                color="gray.400"
+                                                fontSize="xs"
+                                                textAlign="center"
+                                            >
+                                                5/10 chips
+                                                <br />
+                                                0.05/0.10 USDC
+                                            </Text>
+                                        </VStack>
+                                        <VStack spacing={1}>
+                                            <Text
+                                                color="brand.yellow"
+                                                fontSize="sm"
+                                                fontWeight="bold"
+                                            >
+                                                25/50 GAME
+                                            </Text>
+                                            <Text
+                                                color="gray.400"
+                                                fontSize="xs"
+                                                textAlign="center"
+                                            >
+                                                25/50 chips
+                                                <br />
+                                                0.25/0.50 USDC
+                                            </Text>
+                                        </VStack>
+                                    </SimpleGrid>
+                                </VStack>
                             </VStack>
                         </Box>
                     </SimpleGrid>

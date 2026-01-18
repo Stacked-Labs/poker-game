@@ -237,7 +237,7 @@ const MediaButton = ({
 
     return (
         <>
-            <Popover>
+            <Popover isLazy lazyBehavior="unmount">
                 <PopoverTrigger>
                     <IconButton
                         icon={<FiSmile size={22} />}

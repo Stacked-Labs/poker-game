@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, Flex, Text, VStack } from '@chakra-ui/react';
+import Image from 'next/image';
 import React, { useRef, useEffect, useState } from 'react';
 import HomeCard from './HomeCard';
 import ScrollIndicator from './ScrollIndicator';
@@ -161,17 +162,16 @@ const HomeSection = () => {
                 }}
             >
                 {videoError ? (
-                    <Box
-                        as="img"
+                    <Image
                         src={VIDEO_POSTER_SRC}
                         alt=""
                         aria-hidden="true"
-                        position="absolute"
-                        inset={0}
-                        width="100%"
-                        height="100%"
-                        objectFit="cover"
-                        objectPosition="70% center"
+                        fill
+                        sizes="100vw"
+                        style={{
+                            objectFit: 'cover',
+                            objectPosition: '70% center',
+                        }}
                     />
                 ) : (
                     <MotionBox
@@ -181,7 +181,7 @@ const HomeSection = () => {
                         loop
                         muted
                         playsInline
-                        preload="auto"
+                        preload="metadata"
                         poster={VIDEO_POSTER_SRC}
                         position="absolute"
                         inset={0}
@@ -272,7 +272,7 @@ const HomeSection = () => {
                                 color="white"
                                 animation={`${revealFromLeft} 3s ease-out 2s forwards`}
                                 opacity={0}
-                                fontFamily={`'Libre Barcode 39 Text', system-ui`}
+                                fontFamily="var(--font-barcode), system-ui"
                             >
                                 HOST AND PLAY FOR ANY ERC20
                             </Text>

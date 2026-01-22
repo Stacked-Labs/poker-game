@@ -1,12 +1,12 @@
 'use client';
 
-import { Box, Flex, Text, VStack } from '@chakra-ui/react';
+import { Box, Flex, Text, VStack, useBreakpointValue } from '@chakra-ui/react';
 import Image from 'next/image';
 import React, { useRef, useEffect, useState } from 'react';
 import HomeCard from './HomeCard';
 import ScrollIndicator from './ScrollIndicator';
 import { keyframes } from '@emotion/react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import FloatingDecor from './FloatingDecor';
 
 const fadeIn = keyframes`
@@ -75,6 +75,9 @@ const HomeSection = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const sectionRef = useRef<HTMLDivElement>(null);
     const [videoError, setVideoError] = useState(false);
+    const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+    const prefersReducedMotion = useReducedMotion();
+    const isDesktop = useBreakpointValue({ base: false, lg: true }) ?? false;
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
@@ -92,8 +95,23 @@ const HomeSection = () => {
         []
     );
 
+    useEffect(() => {
+        if (!isDesktop || prefersReducedMotion) {
+            setShouldLoadVideo(false);
+            return;
+        }
+
+        const connection = (
+            navigator as Navigator & { connection?: { saveData?: boolean } }
+        ).connection;
+        const saveData = connection?.saveData ?? false;
+
+        setShouldLoadVideo(!saveData);
+    }, [isDesktop, prefersReducedMotion]);
+
     // Handle video loading and playback
     useEffect(() => {
+        if (!shouldLoadVideo) return;
         const video = videoRef.current;
         if (!video) return;
 
@@ -132,7 +150,9 @@ const HomeSection = () => {
             video.removeEventListener('error', handleError);
             video.removeEventListener('ended', handleEnded);
         };
-    }, []);
+    }, [shouldLoadVideo]);
+
+    const enableParallax = shouldLoadVideo && !prefersReducedMotion;
 
     return (
         <Box
@@ -153,28 +173,32 @@ const HomeSection = () => {
                 width="100%"
                 height="120%"
                 zIndex={0}
-                style={{
-                    y: videoY,
-                    scale: videoScale,
-                    transformOrigin: '70% center',
-                }}
+                style={
+                    enableParallax
+                        ? {
+                              y: videoY,
+                              scale: videoScale,
+                              transformOrigin: '70% center',
+                          }
+                        : undefined
+                }
                 sx={{
                     pointerEvents: 'none',
                 }}
             >
-                {videoError ? (
-                    <Image
-                        src={VIDEO_POSTER_SRC}
-                        alt=""
-                        aria-hidden="true"
-                        fill
-                        sizes="100vw"
-                        style={{
-                            objectFit: 'cover',
-                            objectPosition: '70% center',
-                        }}
-                    />
-                ) : (
+                <Image
+                    src={VIDEO_POSTER_SRC}
+                    alt=""
+                    aria-hidden="true"
+                    fill
+                    sizes="100vw"
+                    priority
+                    style={{
+                        objectFit: 'cover',
+                        objectPosition: '70% center',
+                    }}
+                />
+                {shouldLoadVideo && !videoError ? (
                     <MotionBox
                         as="video"
                         ref={videoRef}
@@ -197,7 +221,7 @@ const HomeSection = () => {
                         />
                         <source src="/video/background.mp4" type="video/mp4" />
                     </MotionBox>
-                )}
+                ) : null}
             </MotionBox>
 
             <FloatingDecor density="light" />

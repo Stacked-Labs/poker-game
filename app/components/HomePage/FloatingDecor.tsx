@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Icon, Text } from '@chakra-ui/react';
+import { Box, Icon, Text, useBreakpointValue } from '@chakra-ui/react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { SiBitcoin, SiEthereum } from 'react-icons/si';
 import { type ReactNode } from 'react';
@@ -26,8 +26,11 @@ const MotionBox = motion(Box);
 
 const FloatingDecor = ({ density = 'light' }: FloatingDecorProps) => {
     const prefersReducedMotion = useReducedMotion();
+    const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
     const levelMap = { minimal: 1, light: 2, dense: 3 };
     const level = levelMap[density];
+
+    if (isMobile) return null;
 
     const items: DecorItem[] = [
         {

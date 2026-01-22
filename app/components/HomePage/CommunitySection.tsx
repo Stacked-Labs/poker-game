@@ -15,6 +15,7 @@ import {
     Badge,
     HStack,
     Icon,
+    useBreakpointValue,
 } from '@chakra-ui/react';
 import { Image } from '@chakra-ui/next-js';
 import { MdCheckCircle, MdFlashOn } from 'react-icons/md';
@@ -31,16 +32,18 @@ const MotionVStack = motion(VStack);
 
 const CommunitySection = () => {
     const prefersReducedMotion = useReducedMotion();
+    const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
+    const shouldAnimate = !prefersReducedMotion && !isMobile;
 
     const getFadeUpMotion = (delay = 0) =>
-        prefersReducedMotion
-            ? {}
-            : {
+        shouldAnimate
+            ? {
                   initial: { opacity: 0, y: 22 },
                   whileInView: { opacity: 1, y: 0 },
                   viewport: { once: true, amount: 0.35 },
                   transition: { duration: 0.6, ease: 'easeOut', delay },
-              };
+              }
+            : {};
 
     const authOptions: {
         name: string;
@@ -118,14 +121,14 @@ const CommunitySection = () => {
                                 bg="brand.pink"
                                 boxShadow="0 0 0 6px rgba(235, 11, 92, 0.12)"
                                 animate={
-                                    prefersReducedMotion
-                                        ? undefined
-                                        : { y: [0, -6, 0], rotate: [0, 12, 0] }
+                                    shouldAnimate
+                                        ? { y: [0, -6, 0], rotate: [0, 12, 0] }
+                                        : undefined
                                 }
                                 transition={
-                                    prefersReducedMotion
-                                        ? undefined
-                                        : { duration: 3.4, repeat: Infinity, ease: 'easeInOut' }
+                                    shouldAnimate
+                                        ? { duration: 3.4, repeat: Infinity, ease: 'easeInOut' }
+                                        : undefined
                                 }
                             />
                             <MotionBox
@@ -139,14 +142,14 @@ const CommunitySection = () => {
                                 borderRadius="4px"
                                 boxShadow="0 0 0 6px rgba(253, 197, 29, 0.18)"
                                 animate={
-                                    prefersReducedMotion
-                                        ? undefined
-                                        : { y: [0, 6, 0], rotate: [20, 8, 20] }
+                                    shouldAnimate
+                                        ? { y: [0, 6, 0], rotate: [20, 8, 20] }
+                                        : undefined
                                 }
                                 transition={
-                                    prefersReducedMotion
-                                        ? undefined
-                                        : { duration: 4, repeat: Infinity, ease: 'easeInOut' }
+                                    shouldAnimate
+                                        ? { duration: 4, repeat: Infinity, ease: 'easeInOut' }
+                                        : undefined
                                 }
                             />
                             <Box
@@ -197,14 +200,14 @@ const CommunitySection = () => {
                                 boxShadow="0 8px 18px rgba(235, 11, 92, 0.35)"
                                 ml={1}
                                 animate={
-                                    prefersReducedMotion
-                                        ? undefined
-                                        : { y: [0, -6, 0], rotate: [6, 2, 6] }
+                                    shouldAnimate
+                                        ? { y: [0, -6, 0], rotate: [6, 2, 6] }
+                                        : undefined
                                 }
                                 transition={
-                                    prefersReducedMotion
-                                        ? undefined
-                                        : { duration: 3, repeat: Infinity, ease: 'easeInOut' }
+                                    shouldAnimate
+                                        ? { duration: 3, repeat: Infinity, ease: 'easeInOut' }
+                                        : undefined
                                 }
                             >
                                 🤑

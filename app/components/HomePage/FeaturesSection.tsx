@@ -12,6 +12,7 @@ import {
     SimpleGrid,
     Icon,
     useToken,
+    useBreakpointValue,
 } from '@chakra-ui/react';
 import { IoWallet } from 'react-icons/io5';
 import { MdTableBar } from 'react-icons/md';
@@ -155,15 +156,17 @@ const Highlight = ({
 
 const FeaturesSection = () => {
     const prefersReducedMotion = useReducedMotion();
+    const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
+    const shouldAnimate = !prefersReducedMotion && !isMobile;
     const fadeUp = (delay = 0) =>
-        prefersReducedMotion
-            ? {}
-            : {
+        shouldAnimate
+            ? {
                   initial: { opacity: 0, y: 24 },
                   whileInView: { opacity: 1, y: 0 },
                   viewport: { once: true, amount: 0.35 },
                   transition: { duration: 0.6, ease: 'easeOut', delay },
-              };
+              }
+            : {};
 
     return (
         <Box
@@ -414,14 +417,14 @@ const FeaturesSection = () => {
                             fontSize="40px"
                             color="brand.pink"
                             animate={
-                                prefersReducedMotion
-                                    ? undefined
-                                    : { y: [0, -10, 0], rotate: [15, 8, 15] }
+                                shouldAnimate
+                                    ? { y: [0, -10, 0], rotate: [15, 8, 15] }
+                                    : undefined
                             }
                             transition={
-                                prefersReducedMotion
-                                    ? undefined
-                                    : { duration: 4.2, repeat: Infinity, ease: 'easeInOut' }
+                                shouldAnimate
+                                    ? { duration: 4.2, repeat: Infinity, ease: 'easeInOut' }
+                                    : undefined
                             }
                         >
                             ♥
@@ -444,14 +447,14 @@ const FeaturesSection = () => {
                             fontSize="40px"
                             color="text.primary"
                             animate={
-                                prefersReducedMotion
-                                    ? undefined
-                                    : { y: [0, 8, 0], rotate: [-12, -6, -12] }
+                                shouldAnimate
+                                    ? { y: [0, 8, 0], rotate: [-12, -6, -12] }
+                                    : undefined
                             }
                             transition={
-                                prefersReducedMotion
-                                    ? undefined
-                                    : { duration: 3.6, repeat: Infinity, ease: 'easeInOut' }
+                                shouldAnimate
+                                    ? { duration: 3.6, repeat: Infinity, ease: 'easeInOut' }
+                                    : undefined
                             }
                         >
                             ♠

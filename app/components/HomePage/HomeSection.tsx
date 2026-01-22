@@ -7,6 +7,7 @@ import HomeCard from './HomeCard';
 import ScrollIndicator from './ScrollIndicator';
 import { keyframes } from '@emotion/react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import FloatingDecor from './FloatingDecor';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -198,6 +199,8 @@ const HomeSection = () => {
                     </MotionBox>
                 )}
             </MotionBox>
+
+            <FloatingDecor density="light" />
 
             <Flex
                 position="relative"

@@ -10,8 +10,11 @@ import {
     HStack,
     Input,
     Button,
+    Icon,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
+import { MdArrowForward } from 'react-icons/md';
+import FloatingDecor from './FloatingDecor';
 
 const NewsletterSection = () => {
     const [email, setEmail] = useState('');
@@ -58,7 +61,8 @@ const NewsletterSection = () => {
             position="relative"
             overflow="hidden"
         >
-            <Container maxW="container.xl">
+            <FloatingDecor density="light" />
+            <Container maxW="container.xl" position="relative" zIndex={1}>
                 <Box
                     position="relative"
                     borderRadius={{ base: '24px', md: '40px' }}
@@ -117,8 +121,8 @@ const NewsletterSection = () => {
                         zIndex={1}
                     >
                         {/* Text Content */}
-                        <VStack align="start" spacing={8} maxW="2xl">
-                            <HStack spacing={4}>
+                        <VStack align="start" spacing={5} maxW="2xl">
+                            <HStack spacing={3}>
                                 <Flex align="center" gap={2}>
                                     <Box
                                         w="10px"
@@ -150,8 +154,9 @@ const NewsletterSection = () => {
                                 color="white"
                                 fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
                                 fontWeight="black"
-                                lineHeight={0.9}
+                                lineHeight={1.05}
                                 letterSpacing="-0.05em"
+                                pb="0.08em"
                             >
                                 A Seat is{' '}
                                 <Box
@@ -160,6 +165,8 @@ const NewsletterSection = () => {
                                     bgGradient="linear(to-r, brand.yellow, brand.pink)"
                                     bgClip="text"
                                     transform="rotate(-1deg)"
+                                    lineHeight="1.05"
+                                    pb="0.08em"
                                 >
                                     Waiting
                                 </Box>{' '}
@@ -168,15 +175,14 @@ const NewsletterSection = () => {
 
                             <Text
                                 color="whiteAlpha.800"
-                                fontSize={{ base: 'lg', md: 'xl' }}
+                                fontSize={{ base: 'md', md: 'lg' }}
                                 lineHeight="relaxed"
                                 fontWeight="semibold"
                                 maxW="xl"
                             >
                                 The world&apos;s funnest digital poker party.
-                                Unhinged players, massive pots. Get invites to
-                                private community games and exclusive developer
-                                Q&As.
+                                Big pots, bigger personalities. Get invites to
+                                private games and dev Q&As.
                             </Text>
                         </VStack>
 
@@ -238,102 +244,68 @@ const NewsletterSection = () => {
                             align={{ base: 'stretch', lg: 'flex-end' }}
                             spacing={6}
                             w={{ base: '100%', lg: 'md' }}
-                            transition="all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
-                            _groupHover={{
-                                transform: {
-                                    lg: 'translateX(-10px) rotate(0.5deg)',
-                                },
-                            }}
                         >
-                            <Box
+                            <VStack
                                 as="form"
                                 onSubmit={handleSubmit}
-                                position="relative"
                                 w="100%"
-                                bg="rgba(0, 0, 0, 0.4)"
-                                p={1.5}
-                                borderRadius="20px"
-                                border="2px solid"
-                                borderColor={isSubmitted ? 'brand.green' : 'whiteAlpha.300'}
-                                backdropFilter="blur(25px)"
-                                transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                                _focusWithin={{
-                                    borderColor: 'brand.green',
-                                    boxShadow:
-                                        '0 0 0 4px rgba(54, 163, 123, 0.15)',
-                                    bg: 'rgba(0, 0, 0, 0.5)',
-                                }}
+                                spacing={3}
+                                align="stretch"
                             >
-                                <HStack spacing={0}>
-                                    <Input
-                                        type="email"
-                                        placeholder="your@email.com"
-                                        variant="unstyled"
-                                        color="white"
-                                        px={6}
-                                        fontSize="md"
-                                        fontWeight="medium"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        disabled={isSubmitting || isSubmitted}
-                                        _placeholder={{
-                                            color: 'whiteAlpha.400',
-                                        }}
-                                        required
-                                    />
-                                    <Button
-                                        type="submit"
-                                        bg={isSubmitted ? '#2d8a68' : 'brand.green'}
-                                        color="white"
-                                        px={8}
-                                        height="48px"
-                                        borderRadius="14px"
-                                        fontSize="sm"
-                                        fontWeight="bold"
-                                        textTransform="uppercase"
-                                        letterSpacing="0.05em"
-                                        transition="all 0.2s ease"
-                                        disabled={isSubmitting || isSubmitted}
-                                        _hover={{
-                                            bg: isSubmitted ? '#2d8a68' : '#2d8a68',
-                                            transform: isSubmitted ? 'none' : 'translateY(-1px)',
-                                            boxShadow: isSubmitted
-                                                ? 'none'
-                                                : '0 4px 12px rgba(54, 163, 123, 0.3)',
-                                        }}
-                                        _active={{
-                                            transform: 'translateY(0)',
-                                            filter: 'brightness(0.9)',
-                                        }}
-                                    >
-                                        {isSubmitting
-                                            ? 'Saving...'
-                                            : isSubmitted
-                                            ? 'Saved! 🎉'
-                                            : 'Save My Seat'}
-                                    </Button>
-                                </HStack>
-                            </Box>
-                            <VStack
-                                align={{ base: 'center', lg: 'flex-end' }}
-                                spacing={1}
-                            >
-                                <Text
-                                    color="whiteAlpha.500"
+                                <Input
+                                    type="email"
+                                    placeholder="your@email.com"
+                                    variant="unstyled"
+                                    color="white"
+                                    px={5}
+                                    height="48px"
+                                    fontSize="sm"
+                                    fontWeight="medium"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    disabled={isSubmitting || isSubmitted}
+                                    bg="rgba(255, 255, 255, 0.12)"
+                                    borderRadius="12px"
+                                    border="1px solid"
+                                    borderColor={isSubmitted ? 'brand.green' : 'whiteAlpha.400'}
+                                    _placeholder={{
+                                        color: 'whiteAlpha.600',
+                                    }}
+                                    _focus={{
+                                        borderColor: 'brand.green',
+                                    }}
+                                    required
+                                />
+                                <Button
+                                    type="submit"
+                                    bg="brand.green"
+                                    color="white"
+                                    px={8}
+                                    height="46px"
+                                    width="100%"
+                                    borderRadius="12px"
                                     fontSize="sm"
                                     fontWeight="bold"
-                                    px={4}
+                                    textTransform="uppercase"
+                                    letterSpacing="0.06em"
+                                    border="1px solid"
+                                    borderColor="whiteAlpha.500"
+                                    transition="background 0.2s ease"
+                                    disabled={isSubmitting || isSubmitted}
+                                    _hover={{
+                                        bg: 'rgba(54, 163, 123, 0.9)',
+                                    }}
+                                    _active={{
+                                        bg: 'rgba(54, 163, 123, 0.85)',
+                                    }}
+                                    rightIcon={<Icon as={MdArrowForward} />}
                                 >
-                                    Limited availability for early access
-                                </Text>
-                                <Text
-                                    color="whiteAlpha.400"
-                                    fontSize="xs"
-                                    fontWeight="medium"
-                                    px={4}
-                                >
-                                    No spam, unsubscribe anytime.
-                                </Text>
+                                    {isSubmitting
+                                        ? 'Saving...'
+                                        : isSubmitted
+                                        ? 'Saved! 🎉'
+                                        : 'Save My Seat'}
+                                </Button>
                             </VStack>
                         </VStack>
                     </Flex>

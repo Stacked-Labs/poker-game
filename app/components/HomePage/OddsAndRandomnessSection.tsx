@@ -18,6 +18,11 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { MdAutoGraph, MdContentCopy, MdShuffle } from 'react-icons/md';
+import { motion, useReducedMotion } from 'framer-motion';
+import FloatingDecor from './FloatingDecor';
+
+const MotionBox = motion(Box);
+const MotionVStack = motion(VStack);
 
 const gradientMove = keyframes`
   0% { background-position: 0% 50%; }
@@ -213,10 +218,30 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
 }
 
 const OddsAndRandomnessSection = () => {
+    const prefersReducedMotion = useReducedMotion();
+    const fadeUp = (delay = 0) =>
+        prefersReducedMotion
+            ? {}
+            : {
+                  initial: { opacity: 0, y: 24 },
+                  whileInView: { opacity: 1, y: 0 },
+                  viewport: { once: true, amount: 0.35 },
+                  transition: { duration: 0.6, ease: 'easeOut', delay },
+              };
+
     return (
-        <Box as="section" py={{ base: 10, md: 14 }} bg="bg.default" w="100%">
-            <Container maxW="container.xl">
-                <Box
+        <Box
+            as="section"
+            py={{ base: 10, md: 14 }}
+            bg="bg.default"
+            w="100%"
+            position="relative"
+            overflow="hidden"
+        >
+            <FloatingDecor density="light" />
+            <Container maxW="container.xl" position="relative" zIndex={1}>
+                <MotionBox {...fadeUp(0)}>
+                    <Box
                     position="relative"
                     p="2px"
                     borderRadius="36px"
@@ -238,6 +263,77 @@ const OddsAndRandomnessSection = () => {
                             bgGradient="radial(circle at 20% 0%, rgba(235, 11, 92, 0.08) 0%, transparent 55%), radial(circle at 100% 30%, rgba(54, 163, 123, 0.08) 0%, transparent 55%)"
                             pointerEvents="none"
                         />
+                        <MotionBox
+                            position="absolute"
+                            top={{ base: '12px', md: '18px' }}
+                            right={{ base: '16px', md: '22px' }}
+                            fontSize={{ base: '22px', md: '28px' }}
+                            color="brand.pink"
+                            opacity={0.35}
+                            pointerEvents="none"
+                            animate={
+                                prefersReducedMotion
+                                    ? undefined
+                                    : { y: [0, -6, 0], rotate: [8, -4, 8] }
+                            }
+                            transition={
+                                prefersReducedMotion
+                                    ? undefined
+                                    : { duration: 4.2, repeat: Infinity, ease: 'easeInOut' }
+                            }
+                        >
+                            ♥
+                        </MotionBox>
+                        <MotionBox
+                            position="absolute"
+                            bottom={{ base: '14px', md: '22px' }}
+                            left={{ base: '18px', md: '26px' }}
+                            fontSize={{ base: '22px', md: '28px' }}
+                            color="brand.green"
+                            opacity={0.35}
+                            pointerEvents="none"
+                            animate={
+                                prefersReducedMotion
+                                    ? undefined
+                                    : { y: [0, 6, 0], rotate: [-8, 4, -8] }
+                            }
+                            transition={
+                                prefersReducedMotion
+                                    ? undefined
+                                    : { duration: 4.6, repeat: Infinity, ease: 'easeInOut' }
+                            }
+                        >
+                            ♣
+                        </MotionBox>
+                        <MotionBox
+                            position="absolute"
+                            top={{ base: '40%', md: '46%' }}
+                            left={{ base: '-6px', md: '10px' }}
+                            bg="brand.yellow"
+                            color="brand.darkNavy"
+                            px={3}
+                            py={1}
+                            borderRadius="full"
+                            fontSize="xs"
+                            fontWeight="bold"
+                            letterSpacing="0.12em"
+                            textTransform="uppercase"
+                            boxShadow="0 8px 18px rgba(253, 197, 29, 0.28)"
+                            transform="rotate(-6deg)"
+                            pointerEvents="none"
+                            animate={
+                                prefersReducedMotion
+                                    ? undefined
+                                    : { rotate: [-6, 2, -6] }
+                            }
+                            transition={
+                                prefersReducedMotion
+                                    ? undefined
+                                    : { duration: 5, repeat: Infinity, ease: 'easeInOut' }
+                            }
+                        >
+                            Fair Play
+                        </MotionBox>
 
                         <SimpleGrid
                             columns={{ base: 1, lg: 2 }}
@@ -246,7 +342,12 @@ const OddsAndRandomnessSection = () => {
                             position="relative"
                             zIndex={1}
                         >
-                            <VStack align="start" spacing={7} alignSelf="start">
+                            <MotionVStack
+                                align="start"
+                                spacing={7}
+                                alignSelf="start"
+                                {...fadeUp(0.1)}
+                            >
                                 <Badge
                                     bg="rgba(12, 21, 49, 0.06)"
                                     color="text.gray600"
@@ -304,7 +405,26 @@ const OddsAndRandomnessSection = () => {
                                         border="1px solid"
                                         borderColor="border.lightGray"
                                         boxShadow="0 10px 30px rgba(0,0,0,0.03)"
+                                        position="relative"
+                                        overflow="hidden"
                                     >
+                                        <Box
+                                            position="absolute"
+                                            inset={0}
+                                            bgGradient="radial(circle at 0% 0%, rgba(66, 153, 225, 0.12) 0%, transparent 55%)"
+                                            pointerEvents="none"
+                                        />
+                                        <Box
+                                            position="absolute"
+                                            top="12px"
+                                            right="12px"
+                                            fontSize="20px"
+                                            color="blue.400"
+                                            opacity={0.6}
+                                            pointerEvents="none"
+                                        >
+                                            ♠
+                                        </Box>
                                         <HStack spacing={3} mb={3}>
                                             <Flex
                                                 w="44px"
@@ -348,7 +468,26 @@ const OddsAndRandomnessSection = () => {
                                         border="1px solid"
                                         borderColor="border.lightGray"
                                         boxShadow="0 10px 30px rgba(0,0,0,0.03)"
+                                        position="relative"
+                                        overflow="hidden"
                                     >
+                                        <Box
+                                            position="absolute"
+                                            inset={0}
+                                            bgGradient="radial(circle at 100% 0%, rgba(235, 11, 92, 0.12) 0%, transparent 55%)"
+                                            pointerEvents="none"
+                                        />
+                                        <Box
+                                            position="absolute"
+                                            top="12px"
+                                            right="12px"
+                                            fontSize="20px"
+                                            color="brand.pink"
+                                            opacity={0.6}
+                                            pointerEvents="none"
+                                        >
+                                            ♦
+                                        </Box>
                                         <HStack spacing={3} mb={3}>
                                             <Flex
                                                 w="44px"
@@ -399,17 +538,55 @@ const OddsAndRandomnessSection = () => {
                                         </Text>
                                     </Box>
                                 </SimpleGrid>
-                            </VStack>
+                            </MotionVStack>
 
-                            <VStack
+                            <MotionVStack
                                 align="stretch"
                                 spacing={5}
                                 alignSelf="start"
+                                {...fadeUp(0.2)}
                             >
-                                <CodeBlock
-                                    label="Secure Shuffle (Go)"
-                                    code={GO_SECURE_SHUFFLE_SNIPPET}
-                                />
+                                <Box position="relative">
+                                    <Box
+                                        position="absolute"
+                                        top="-10px"
+                                        right="12px"
+                                        bg="brand.green"
+                                        color="white"
+                                        px={3}
+                                        py={1}
+                                        borderRadius="full"
+                                        fontSize="xs"
+                                        fontWeight="bold"
+                                        letterSpacing="0.12em"
+                                        textTransform="uppercase"
+                                        boxShadow="0 6px 16px rgba(54, 163, 123, 0.35)"
+                                    >
+                                        Shuffle Seal
+                                    </Box>
+                                    <Box
+                                        position="absolute"
+                                        bottom="-18px"
+                                        left="16px"
+                                        bg="brand.pink"
+                                        color="white"
+                                        px={3}
+                                        py={1}
+                                        borderRadius="full"
+                                        fontSize="xs"
+                                        fontWeight="bold"
+                                        letterSpacing="0.1em"
+                                        textTransform="uppercase"
+                                        boxShadow="0 6px 16px rgba(235, 11, 92, 0.35)"
+                                        transform="rotate(-4deg)"
+                                    >
+                                        52! Decks
+                                    </Box>
+                                    <CodeBlock
+                                        label="Secure Shuffle (Go)"
+                                        code={GO_SECURE_SHUFFLE_SNIPPET}
+                                    />
+                                </Box>
                                 <HStack
                                     spacing={3}
                                     flexWrap="wrap"
@@ -435,10 +612,11 @@ const OddsAndRandomnessSection = () => {
                                         </Badge>
                                     ))}
                                 </HStack>
-                            </VStack>
+                            </MotionVStack>
                         </SimpleGrid>
                     </Box>
                 </Box>
+                </MotionBox>
             </Container>
         </Box>
     );

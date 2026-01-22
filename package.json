@@ -9,7 +9,9 @@
         "lint": "next lint --fix",
         "test": "",
         "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
-        "format": "prettier --write '*/**/*.{js,jsx,ts,tsx,json,css,scss,md}'"
+        "format": "prettier --write '*/**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
+        "lighthouse:desktop": "npx lighthouse http://localhost:3000 --view --preset=desktop",
+        "lighthouse:mobile": "npx lighthouse http://localhost:3000 --view --emulated-form-factor=mobile"
     },
     "dependencies": {
         "@chakra-ui/next-js": "^2.1.5",

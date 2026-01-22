@@ -7,7 +7,6 @@ import {
     Text,
     VStack,
     HStack,
-    Stack,
     SimpleGrid,
     Icon,
     Badge,
@@ -16,7 +15,11 @@ import { Image } from '@chakra-ui/next-js';
 import { MdArrowForward } from 'react-icons/md';
 import React from 'react';
 import { keyframes } from '@emotion/react';
-import { useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import FloatingDecor from './FloatingDecor';
+
+const MotionBox = motion(Box);
+const MotionVStack = motion(VStack);
 
 const pulseBorderPink = keyframes`
   0% {
@@ -36,10 +39,26 @@ const CustomChipValueSection = () => {
     const highlightPulse = !prefersReducedMotion
         ? `${pulseBorderPink} 2s ease-out infinite`
         : 'none';
+    const fadeUp = (delay = 0) =>
+        prefersReducedMotion
+            ? {}
+            : {
+                  initial: { opacity: 0, y: 24 },
+                  whileInView: { opacity: 1, y: 0 },
+                  viewport: { once: true, amount: 0.35 },
+                  transition: { duration: 0.6, ease: 'easeOut', delay },
+              };
 
     return (
-        <Box bg="bg.default" py={{ base: 8, md: 12 }} width="100%">
-            <Container maxW="container.xl">
+        <Box
+            bg="bg.default"
+            py={{ base: 8, md: 12 }}
+            width="100%"
+            position="relative"
+            overflow="hidden"
+        >
+            <FloatingDecor density="light" />
+            <Container maxW="container.xl" position="relative" zIndex={1}>
                 <Box
                     position="relative"
                     borderRadius="32px"
@@ -87,6 +106,30 @@ const CustomChipValueSection = () => {
                         pointerEvents="none"
                     />
 
+                    <MotionBox
+                        position="absolute"
+                        top={{ base: '10%', lg: '14%' }}
+                        right={{ base: '8%', lg: '10%' }}
+                        w={{ base: '44px', md: '56px' }}
+                        h={{ base: '44px', md: '56px' }}
+                        borderRadius="full"
+                        bg="rgba(255, 255, 255, 0.12)"
+                        border="1px solid"
+                        borderColor="rgba(255, 255, 255, 0.25)"
+                        boxShadow="inset 0 0 0 6px rgba(253, 197, 29, 0.12)"
+                        pointerEvents="none"
+                        animate={
+                            prefersReducedMotion
+                                ? undefined
+                                : { y: [0, -8, 0], rotate: [0, 6, 0] }
+                        }
+                        transition={
+                            prefersReducedMotion
+                                ? undefined
+                                : { duration: 3.8, repeat: Infinity, ease: 'easeInOut' }
+                        }
+                    />
+
                     <SimpleGrid
                         columns={{ base: 1, lg: 2 }}
                         spacing={12}
@@ -94,7 +137,7 @@ const CustomChipValueSection = () => {
                         position="relative"
                         zIndex={1}
                     >
-                        <VStack align="start" spacing={8}>
+                        <MotionVStack align="start" spacing={8} {...fadeUp(0)}>
                             <Badge
                                 bg="rgba(255, 255, 255, 0.1)"
                                 color="white"
@@ -165,10 +208,11 @@ const CustomChipValueSection = () => {
                                     structure.
                                 </Text>
                             </VStack>
-                        </VStack>
+                        </MotionVStack>
 
                         {/* Conversion Graphic */}
-                        <Box
+                        <MotionBox {...fadeUp(0.15)}>
+                            <Box
                             bg="rgba(0, 0, 0, 0.3)"
                             p={{ base: 6, sm: 8, md: 12 }}
                             borderRadius="30px"
@@ -331,7 +375,8 @@ const CustomChipValueSection = () => {
                                     </SimpleGrid>
                                 </VStack>
                             </VStack>
-                        </Box>
+                            </Box>
+                        </MotionBox>
                     </SimpleGrid>
                 </Box>
             </Container>

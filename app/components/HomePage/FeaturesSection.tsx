@@ -14,6 +14,7 @@ import {
     useToken,
     useBreakpointValue,
 } from '@chakra-ui/react';
+import NextImage from 'next/image';
 import { IoWallet } from 'react-icons/io5';
 import { MdTableBar } from 'react-icons/md';
 import { HiLink } from 'react-icons/hi';
@@ -273,8 +274,9 @@ const FeaturesSection = () => {
                                             <Highlight color="pink">
                                                 private room
                                             </Highlight>
-                                            . Set the blinds, choose the game speed,
-                                            and control exactly who sits down. It’s{' '}
+                                            . Set the blinds, choose the game
+                                            speed, and control exactly who sits
+                                            down. It’s{' '}
                                             <Highlight color="pink">
                                                 your rules
                                             </Highlight>
@@ -313,152 +315,73 @@ const FeaturesSection = () => {
                         </VStack>
                     </VStack>
 
-                    {/* Right Side: Video Placeholder */}
-                    <MotionBox {...fadeUp(0.15)}>
+                    {/* Right Side: iPhone Mockup Video */}
+                    <MotionBox {...fadeUp(0.15)} alignSelf="center">
                         <Box
-                            bg="card.white"
-                            borderRadius="48px"
                             width="100%"
-                            height={{ base: '400px', md: '500px', lg: '700px' }}
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
+                            className="iphone-mockup"
+                            maxW={{ base: '272px', md: '336px', lg: '416px' }}
+                            ml={{ base: 'auto', lg: 'auto' }}
+                            mr={{ base: 'auto', lg: 0 }}
                             position="relative"
-                            overflow="hidden"
-                            border="1px solid"
-                            borderColor="border.lightGray"
-                            boxShadow="2xl"
+                            aspectRatio={751 / 1510}
                         >
-                        {/* Background Gradient */}
-                        <Box
-                            position="absolute"
-                            top="0"
-                            left="0"
-                            right="0"
-                            bottom="0"
-                            bgGradient="radial(circle at 20% 20%, brand.pink, transparent 40%), radial(circle at 80% 80%, brand.green, transparent 40%)"
-                            opacity={0.03}
-                        />
-
-                        {/* Complex Grid */}
-                        <Box
-                            position="absolute"
-                            top="0"
-                            left="0"
-                            right="0"
-                            bottom="0"
-                            backgroundImage="radial-gradient(circle, #000 1px, transparent 1px)"
-                            backgroundSize="40px 40px"
-                            opacity={0.05}
-                            _dark={{
-                                backgroundImage:
-                                    'radial-gradient(circle, #fff 1px, transparent 1px)',
-                            }}
-                        />
-
-                        <VStack spacing={6} zIndex={1}>
                             <Box
-                                bg="card.white"
-                                p={6}
-                                borderRadius="full"
-                                boxShadow="0 20px 40px rgba(235, 11, 92, 0.2)"
-                                cursor="pointer"
-                                transition="all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
-                                _hover={{
-                                    transform: 'scale(1.15) rotate(5deg)',
-                                }}
+                                className="iphone-mockup-frame"
+                                position="absolute"
+                                inset="0"
+                                zIndex={2}
+                                pointerEvents="none"
                             >
                                 <Box
-                                    width="0"
-                                    height="0"
-                                    borderTop="20px solid transparent"
-                                    borderBottom="20px solid transparent"
-                                    borderLeft="30px solid"
-                                    borderLeftColor="brand.pink"
-                                    ml={2}
-                                />
+                                    position="relative"
+                                    width="100%"
+                                    height="100%"
+                                >
+                                    <NextImage
+                                        src="/homepage/iphonemock.png"
+                                        alt="iPhone mockup frame"
+                                        fill
+                                        sizes="(max-width: 48em) 272px, (max-width: 62em) 336px, 416px"
+                                        style={{ objectFit: 'contain' }}
+                                    />
+                                </Box>
                             </Box>
-                            <VStack spacing={1}>
-                                <Text
-                                    color="text.primary"
-                                    fontWeight="900"
-                                    fontSize="2xl"
-                                    letterSpacing="0.1em"
-                                >
-                                    WATCH DEMO
-                                </Text>
-                                <Text
-                                    color="text.secondary"
-                                    fontWeight="bold"
-                                    fontSize="md"
-                                    opacity={0.6}
-                                >
-                                    SEE HOW IT WORKS
-                                </Text>
-                            </VStack>
-                        </VStack>
 
-                        {/* Decorative floating elements */}
-                        <MotionBox
-                            position="absolute"
-                            top="10%"
-                            right="10%"
-                            w="80px"
-                            h="110px"
-                            bg="card.white"
-                            borderRadius="12px"
-                            border="1px solid"
-                            borderColor="border.lightGray"
-                            transform="rotate(15deg)"
-                            boxShadow="xl"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            fontSize="40px"
-                            color="brand.pink"
-                            animate={
-                                shouldAnimate
-                                    ? { y: [0, -10, 0], rotate: [15, 8, 15] }
-                                    : undefined
-                            }
-                            transition={
-                                shouldAnimate
-                                    ? { duration: 4.2, repeat: Infinity, ease: 'easeInOut' }
-                                    : undefined
-                            }
-                        >
-                            ♥
-                        </MotionBox>
-                        <MotionBox
-                            position="absolute"
-                            bottom="15%"
-                            left="12%"
-                            w="80px"
-                            h="110px"
-                            bg="card.white"
-                            borderRadius="12px"
-                            border="1px solid"
-                            borderColor="border.lightGray"
-                            transform="rotate(-12deg)"
-                            boxShadow="xl"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            fontSize="40px"
-                            color="text.primary"
-                            animate={
-                                shouldAnimate
-                                    ? { y: [0, 8, 0], rotate: [-12, -6, -12] }
-                                    : undefined
-                            }
-                            transition={
-                                shouldAnimate
-                                    ? { duration: 3.6, repeat: Infinity, ease: 'easeInOut' }
-                                    : undefined
-                            }
-                        >
-                            ♠
-                        </MotionBox>
+                            <Box
+                                className="iphone-mockup-video"
+                                position="absolute"
+                                top="2.38%"
+                                bottom="2.38%"
+                                left="5.46%"
+                                right="5.06%"
+                                borderRadius="28px"
+                                overflow="hidden"
+                                bg="black"
+                                zIndex={1}
+                            >
+                                <Box
+                                    className="iphone-mockup-video-inner"
+                                    as="video"
+                                    width="100%"
+                                    height="100%"
+                                    objectFit="cover"
+                                    autoPlay
+                                    muted
+                                    loop
+                                    playsInline
+                                    preload="metadata"
+                                >
+                                    <source
+                                        src="/video/demoiphone.webm"
+                                        type="video/webm"
+                                    />
+                                    <source
+                                        src="/video/demoiphone.mp4"
+                                        type="video/mp4"
+                                    />
+                                </Box>
+                            </Box>
                         </Box>
                     </MotionBox>
                 </SimpleGrid>

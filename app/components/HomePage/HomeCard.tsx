@@ -20,6 +20,7 @@ import { SiFarcaster } from 'react-icons/si';
 import WalletButton from '@/app/components/WalletButton';
 import { useRouter } from 'next/navigation';
 import { keyframes } from '@emotion/react';
+import { useReducedMotion } from 'framer-motion';
 
 // Animations
 const gradientShift = keyframes`
@@ -50,9 +51,35 @@ const pulse = keyframes`
     }
 `;
 
+const swapPrimary = keyframes`
+    0%, 45% { opacity: 1; transform: translateY(0); }
+    50%, 95% { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
+`;
+
+const swapSecondary = keyframes`
+    0%, 45% { opacity: 0; transform: translateY(4px); }
+    50%, 95% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(4px); }
+`;
+
 const HomeCard = () => {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const prefersReducedMotion = useReducedMotion();
+    const allowMotion = !prefersReducedMotion;
+    const swapPrimaryMotion = allowMotion
+        ? `${swapPrimary} 2.8s ease-in-out infinite`
+        : 'none';
+    const swapSecondaryMotion = allowMotion
+        ? `${swapSecondary} 2.8s ease-in-out infinite`
+        : 'none';
+    const swapHeadingPrimaryMotion = allowMotion
+        ? `${swapPrimary} 4.8s ease-in-out infinite`
+        : 'none';
+    const swapHeadingSecondaryMotion = allowMotion
+        ? `${swapSecondary} 4.8s ease-in-out infinite`
+        : 'none';
 
     const handlePlayNow = () => {
         setIsLoading(true);
@@ -153,6 +180,87 @@ const HomeCard = () => {
                     position="relative"
                     zIndex={1}
                 >
+                    {/* Decorative corner stickers */}
+                    <Box
+                        position="absolute"
+                        top={{ base: 5, md: 6 }}
+                        right={{ base: 5, md: 6 }}
+                        bg="brand.yellow"
+                        color="brand.darkNavy"
+                        px={3}
+                        py={1}
+                        borderRadius="full"
+                        fontSize="xs"
+                        fontWeight="bold"
+                        letterSpacing="0.12em"
+                        textTransform="uppercase"
+                        boxShadow="0 8px 18px rgba(253, 197, 29, 0.35)"
+                        border="1px solid rgba(255, 255, 255, 0.35)"
+                        transform="rotate(6deg)"
+                        pointerEvents="none"
+                    >
+                        <Box position="relative" minW="70px" height="16px">
+                            <Text
+                                position="absolute"
+                                inset={0}
+                                textAlign="center"
+                                opacity={1}
+                                animation={swapPrimaryMotion}
+                            >
+                                FLUSH!
+                            </Text>
+                            <Text
+                                position="absolute"
+                                inset={0}
+                                textAlign="center"
+                                opacity={allowMotion ? undefined : 0}
+                                animation={swapSecondaryMotion}
+                            >
+                                ♣♣♣
+                            </Text>
+                        </Box>
+                    </Box>
+                    <Box
+                        position="absolute"
+                        top={{ base: 5, md: 7 }}
+                        left={{ base: 5, md: 6 }}
+                        bg="brand.pink"
+                        color="white"
+                        px={2.5}
+                        py={1}
+                        borderRadius="full"
+                        fontSize="xs"
+                        fontWeight="bold"
+                        letterSpacing="0.1em"
+                        textTransform="uppercase"
+                        boxShadow="0 8px 18px rgba(235, 11, 92, 0.35)"
+                        border="1px solid rgba(255, 255, 255, 0.4)"
+                        transform="rotate(-6deg)"
+                        pointerEvents="none"
+                    >
+                        🔥 HOT!
+                    </Box>
+                    <Box
+                        position="absolute"
+                        bottom={{ base: 4, md: 4 }}
+                        right={{ base: 6, md: 6 }}
+                        bg="brand.green"
+                        color="white"
+                        px={2.5}
+                        py={1}
+                        borderRadius="full"
+                        fontSize="xs"
+                        fontWeight="bold"
+                        letterSpacing="0.12em"
+                        textTransform="uppercase"
+                        boxShadow="0 8px 18px rgba(54, 163, 123, 0.35)"
+                        border="1px solid rgba(255, 255, 255, 0.35)"
+                        transform="rotate(4deg)"
+                        pointerEvents="none"
+                    >
+                        SUCK OUT 😛
+                    </Box>
+
                     {/* Pill Badge */}
                     <Box
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s backwards`}
@@ -186,19 +294,79 @@ const HomeCard = () => {
                                 lg: '3.25rem',
                             }}
                             fontWeight="900"
-                            lineHeight={1.05}
+                            lineHeight={1.1}
                             letterSpacing="-0.04em"
                             color="text.primary"
+                            whiteSpace="nowrap"
                         >
-                            Your{' '}
-                            <Text as="span" color="brand.green">
-                                Table.
-                            </Text>
-                            <br />
-                            Your{' '}
-                            <Text as="span" color="brand.pink">
-                                Rules.
-                            </Text>
+                            <Box
+                                as="span"
+                                display="inline-flex"
+                                alignItems="center"
+                                gap="0.25ch"
+                            >
+                                <Box as="span">Your</Box>
+                                <Box
+                                    as="span"
+                                    position="relative"
+                                    display="inline-flex"
+                                    alignItems="center"
+                                    minW={{ base: '4.5ch', md: '4.5ch' }}
+                                    height="1em"
+                                >
+                                    <Box
+                                        position="absolute"
+                                        inset={0}
+                                        display="inline-flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        animation={swapHeadingPrimaryMotion}
+                                    >
+                                        <Box
+                                            as="span"
+                                            color="brand.green"
+                                            position="relative"
+                                            display="inline-block"
+                                        >
+                                            Table
+                                            <Box
+                                                as="span"
+                                                position="absolute"
+                                                left="-4px"
+                                                right="-4px"
+                                                bottom="4px"
+                                                height="10px"
+                                                bg="brand.green"
+                                                opacity={0.2}
+                                                borderRadius="full"
+                                                zIndex={-1}
+                                            />
+                                        </Box>
+                                    </Box>
+                                    <Box
+                                        position="absolute"
+                                        inset={0}
+                                        display="inline-flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        opacity={allowMotion ? undefined : 0}
+                                        animation={swapHeadingSecondaryMotion}
+                                    >
+                                        <Box
+                                            as="span"
+                                            bg="brand.pink"
+                                            color="white"
+                                            px={2}
+                                            borderRadius="md"
+                                            display="inline-block"
+                                            transform="rotate(-1deg)"
+                                        >
+                                            Rules
+                                        </Box>
+                                    </Box>
+                                </Box>
+                                <Box as="span">.</Box>
+                            </Box>
                         </Heading>
                     </Box>
 
@@ -220,14 +388,24 @@ const HomeCard = () => {
                             </Text>
 
                             {/* Trust Indicators */}
-                            <Text
-                                fontSize={{ base: 'md', md: 'lg' }}
+                            <HStack
+                                spacing={2}
+                                fontSize={{ base: 'sm', md: 'md' }}
                                 color="text.gray600"
-                                lineHeight={1.5}
+                                lineHeight={1.4}
                                 fontWeight="semibold"
+                                textTransform="uppercase"
+                                letterSpacing="0.08em"
                             >
-                                No Download • No Sign-up
-                            </Text>
+                                <Text>NO DOWNLOAD</Text>
+                                <Box
+                                    w="6px"
+                                    h="6px"
+                                    bg="brand.green"
+                                    borderRadius="full"
+                                />
+                                <Text>NO SIGN-UP</Text>
+                            </HStack>
                         </VStack>
                     </Box>
 
@@ -244,7 +422,7 @@ const HomeCard = () => {
                             fontSize={{ base: 'lg', md: 'xl' }}
                             fontWeight="900"
                             borderRadius="18px"
-                            bg="brand.green"
+                            bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.85))"
                             color="white"
                             border="none"
                             onClick={handlePlayNow}
@@ -257,9 +435,10 @@ const HomeCard = () => {
                             transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                             position="relative"
                             overflow="hidden"
-                            boxShadow="0 10px 25px rgba(54, 163, 123, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.3)"
+                            boxShadow="0 12px 26px rgba(54, 163, 123, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.3)"
                             _hover={{
-                                bg: 'brand.green',
+                                bgGradient:
+                                    'linear(to-r, rgba(54, 163, 123, 0.95), rgba(54, 163, 123, 0.8))',
                                 transform: 'translateY(-2px)',
                                 boxShadow:
                                     '0 15px 30px rgba(54, 163, 123, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
@@ -277,78 +456,95 @@ const HomeCard = () => {
                     </Stack>
 
                     {/* Social Links */}
-                    <Flex
-                        direction="row"
-                        justify="center"
-                        align="center"
-                        gap={{ base: 6, md: 6 }}
-                        width="100%"
+                    <VStack
+                        spacing={2}
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s backwards`}
                         pt={{ base: 1, md: 2 }}
                     >
-                        <Link href="https://x.com/stacked_poker" isExternal>
-                            <IconButton
-                                aria-label="X"
-                                icon={<RiTwitterXLine size={20} />}
-                                size="lg"
-                                variant="social"
-                                color="text.primary"
-                                borderRadius="12px"
-                                w={{ base: '48px', md: '52px' }}
-                                h={{ base: '48px', md: '52px' }}
-                                _hover={{
-                                    bg: '#000000',
-                                    color: 'white',
-                                    transform: 'translateY(-3px)',
-                                    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
-                                }}
-                                transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
-                            />
-                        </Link>
-                        <Link href="https://discord.gg/347RBVcvpn" isExternal>
-                            <IconButton
-                                aria-label="Discord"
-                                icon={<FaDiscord size={20} />}
-                                size="lg"
-                                variant="social"
-                                color="#5865F2"
-                                borderRadius="12px"
-                                w={{ base: '48px', md: '52px' }}
-                                h={{ base: '48px', md: '52px' }}
-                                _hover={{
-                                    bg: '#5865F2',
-                                    color: 'white',
-                                    transform: 'translateY(-3px)',
-                                    boxShadow:
-                                        '0 6px 20px rgba(88, 101, 242, 0.3)',
-                                }}
-                                transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
-                            />
-                        </Link>
-                        <Link
-                            href="https://warpcast.com/stackedpoker"
-                            isExternal
+                        <Text
+                            fontSize="xs"
+                            color="text.gray600"
+                            letterSpacing="0.2em"
+                            textTransform="uppercase"
+                            fontWeight="bold"
                         >
-                            <IconButton
-                                aria-label="Warpcast"
-                                icon={<SiFarcaster size={20} />}
-                                size="lg"
-                                variant="social"
-                                color="#855DCD"
-                                borderRadius="12px"
-                                w={{ base: '48px', md: '52px' }}
-                                h={{ base: '48px', md: '52px' }}
-                                _hover={{
-                                    bg: '#855DCD',
-                                    color: 'white',
-                                    transform: 'translateY(-3px)',
-                                    boxShadow:
-                                        '0 6px 20px rgba(133, 93, 205, 0.3)',
-                                }}
-                                transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
-                            />
-                        </Link>
-                    </Flex>
+                            Follow the action
+                        </Text>
+                        <Flex
+                            direction="row"
+                            justify="center"
+                            align="center"
+                            gap={{ base: 6, md: 6 }}
+                            width="100%"
+                        >
+                            <Link href="https://x.com/stacked_poker" isExternal>
+                                <IconButton
+                                    aria-label="X"
+                                    icon={<RiTwitterXLine size={20} />}
+                                    size="lg"
+                                    variant="social"
+                                    color="text.primary"
+                                    borderRadius="12px"
+                                    w={{ base: '48px', md: '52px' }}
+                                    h={{ base: '48px', md: '52px' }}
+                                    _hover={{
+                                        bg: '#000000',
+                                        color: 'white',
+                                        transform: 'translateY(-3px)',
+                                        boxShadow:
+                                            '0 6px 20px rgba(0, 0, 0, 0.25)',
+                                    }}
+                                    transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                                />
+                            </Link>
+                            <Link
+                                href="https://discord.gg/347RBVcvpn"
+                                isExternal
+                            >
+                                <IconButton
+                                    aria-label="Discord"
+                                    icon={<FaDiscord size={20} />}
+                                    size="lg"
+                                    variant="social"
+                                    color="#5865F2"
+                                    borderRadius="12px"
+                                    w={{ base: '48px', md: '52px' }}
+                                    h={{ base: '48px', md: '52px' }}
+                                    _hover={{
+                                        bg: '#5865F2',
+                                        color: 'white',
+                                        transform: 'translateY(-3px)',
+                                        boxShadow:
+                                            '0 6px 20px rgba(88, 101, 242, 0.3)',
+                                    }}
+                                    transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                                />
+                            </Link>
+                            <Link
+                                href="https://warpcast.com/stackedpoker"
+                                isExternal
+                            >
+                                <IconButton
+                                    aria-label="Warpcast"
+                                    icon={<SiFarcaster size={20} />}
+                                    size="lg"
+                                    variant="social"
+                                    color="#855DCD"
+                                    borderRadius="12px"
+                                    w={{ base: '48px', md: '52px' }}
+                                    h={{ base: '48px', md: '52px' }}
+                                    _hover={{
+                                        bg: '#855DCD',
+                                        color: 'white',
+                                        transform: 'translateY(-3px)',
+                                        boxShadow:
+                                            '0 6px 20px rgba(133, 93, 205, 0.3)',
+                                    }}
+                                    transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                                />
+                            </Link>
+                        </Flex>
+                    </VStack>
                 </Stack>
             </Flex>
         </Flex>

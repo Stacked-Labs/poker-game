@@ -1,12 +1,16 @@
 'use client';
 
 import { Box, Flex, Text, VStack, useBreakpointValue } from '@chakra-ui/react';
-import Image from 'next/image';
 import React, { useRef, useEffect, useState } from 'react';
 import HomeCard from './HomeCard';
 import ScrollIndicator from './ScrollIndicator';
 import { keyframes } from '@emotion/react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import {
+    motion,
+    useReducedMotion,
+    useScroll,
+    useTransform,
+} from 'framer-motion';
 import FloatingDecor from './FloatingDecor';
 
 const fadeIn = keyframes`
@@ -152,7 +156,7 @@ const HomeSection = () => {
         };
     }, [shouldLoadVideo]);
 
-    const enableParallax = shouldLoadVideo && !prefersReducedMotion;
+    const enableParallax = isDesktop && !prefersReducedMotion;
 
     return (
         <Box
@@ -186,42 +190,43 @@ const HomeSection = () => {
                     pointerEvents: 'none',
                 }}
             >
-                <Image
-                    src={VIDEO_POSTER_SRC}
-                    alt=""
-                    aria-hidden="true"
-                    fill
-                    sizes="100vw"
-                    priority
-                    style={{
-                        objectFit: 'cover',
-                        objectPosition: '70% center',
-                    }}
-                />
-                {shouldLoadVideo && !videoError ? (
-                    <MotionBox
-                        as="video"
-                        ref={videoRef}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="metadata"
-                        poster={VIDEO_POSTER_SRC}
-                        position="absolute"
-                        inset={0}
-                        width="100%"
-                        height="100%"
-                        objectFit="cover"
-                        objectPosition="70% center"
-                    >
-                        <source
-                            src="/video/background2.webm"
-                            type="video/webm"
-                        />
-                        <source src="/video/background.mp4" type="video/mp4" />
-                    </MotionBox>
-                ) : null}
+                <MotionBox
+                    as="video"
+                    ref={videoRef}
+                    autoPlay={shouldLoadVideo}
+                    loop={shouldLoadVideo}
+                    muted
+                    playsInline
+                    preload={shouldLoadVideo ? 'metadata' : 'none'}
+                    poster={VIDEO_POSTER_SRC}
+                    position="absolute"
+                    inset={0}
+                    width="100%"
+                    height="100%"
+                    objectFit="cover"
+                    objectPosition="70% center"
+                    style={
+                        !shouldLoadVideo
+                            ? {
+                                  transform: 'scale(1.05)',
+                                  transformOrigin: '70% center',
+                              }
+                            : undefined
+                    }
+                >
+                    {shouldLoadVideo && !videoError ? (
+                        <>
+                            <source
+                                src="/video/background2.webm"
+                                type="video/webm"
+                            />
+                            <source
+                                src="/video/background.mp4"
+                                type="video/mp4"
+                            />
+                        </>
+                    ) : null}
+                </MotionBox>
             </MotionBox>
 
             <FloatingDecor density="light" />

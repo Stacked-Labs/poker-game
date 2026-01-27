@@ -110,6 +110,12 @@ const Chatbox = ({
     );
     const emoteError = useEmoteStore((state) => state.error);
     const emotesLoading = useEmoteStore((state) => state.isLoading);
+    const hydrateRecentEmotes = useEmoteStore(
+        (state) => state.hydrateRecentEmotes
+    );
+    const addRecentEmoteId = useEmoteStore(
+        (state) => state.addRecentEmoteId
+    );
     const hydrateFromCache = useEmoteStore((state) => state.hydrateFromCache);
     const fetchGlobalEmotes = useEmoteStore(
         (state) => state.fetchGlobalEmotes
@@ -146,8 +152,9 @@ const Chatbox = ({
 
     useEffect(() => {
         hydrateFromCache();
+        hydrateRecentEmotes();
         fetchGlobalEmotes();
-    }, [hydrateFromCache, fetchGlobalEmotes]);
+    }, [hydrateFromCache, hydrateRecentEmotes, fetchGlobalEmotes]);
 
     // Auto-scroll to bottom when chat opens
     useEffect(() => {
@@ -219,6 +226,16 @@ const Chatbox = ({
         console.log(appState.appState);
 
         if (socket && message.trim() !== '') {
+            const tokens = tokenizeMessage(
+                message,
+                emotesByName,
+                emotesByNameLower
+            );
+            tokens.forEach((token) => {
+                if (token.type === 'emote') {
+                    addRecentEmoteId(token.id);
+                }
+            });
             sendMessage(socket, message);
             setMessage('');
             setAutocompleteOpen(false);

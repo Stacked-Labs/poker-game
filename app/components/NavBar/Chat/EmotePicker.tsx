@@ -24,8 +24,10 @@ const EmotePicker = ({
     isDisabled?: boolean;
 }) => {
     const emotesByName = useEmoteStore((state) => state.emotesByName);
+    const emotesById = useEmoteStore((state) => state.emotesById);
     const emotesLoading = useEmoteStore((state) => state.isLoading);
     const emotesError = useEmoteStore((state) => state.error);
+    const recentEmoteIds = useEmoteStore((state) => state.recentEmoteIds);
     const [search, setSearch] = useState('');
     const [visibleCount, setVisibleCount] = useState(80);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -47,6 +49,15 @@ const EmotePicker = ({
     const visibleEmotes = useMemo(
         () => filteredEmotes.slice(0, visibleCount),
         [filteredEmotes, visibleCount]
+    );
+
+    const recentEmotes = useMemo(
+        () =>
+            recentEmoteIds
+                .map((id) => emotesById[id])
+                .filter(Boolean)
+                .slice(0, 10),
+        [recentEmoteIds, emotesById]
     );
 
     useEffect(() => {
@@ -113,12 +124,86 @@ const EmotePicker = ({
                         }}
                         _focus={{
                             bg: 'input.white',
-                            boxShadow: 'var(--chakra-shadows-chat-inputFocus)',
+                            boxShadow:
+                                'var(--chakra-shadows-chat-inputFocus)',
                         }}
                     />
+                    {recentEmotes.length > 0 && (
+                        <>
+                            <Text
+                                fontSize="sm"
+                                fontWeight="semibold"
+                                color="text.secondary"
+                                mb={2}
+                            >
+                                Recent
+                            </Text>
+                            <Box
+                                display="grid"
+                                gridTemplateColumns="repeat(5, 1fr)"
+                                gap={2}
+                                mb={4}
+                            >
+                                {recentEmotes.map((emote) => (
+                                    <Tooltip
+                                        key={emote.id}
+                                        label={`Type :${emote.name}:`}
+                                        placement="top"
+                                        hasArrow
+                                    >
+                                        <Box
+                                            as="button"
+                                            onClick={() =>
+                                                onSelectEmote(emote.name)
+                                            }
+                                            position="relative"
+                                            p={2}
+                                            borderRadius="md"
+                                            width="100%"
+                                            height={{
+                                                base: '56px',
+                                                md: '64px',
+                                            }}
+                                            _hover={{ bg: 'card.lightGray' }}
+                                            _active={{
+                                                bg: 'card.lighterGray',
+                                            }}
+                                        >
+                                            <Box
+                                                as="img"
+                                                src={emote.url}
+                                                alt={emote.name}
+                                                height={{
+                                                    base: '32px',
+                                                    md: '40px',
+                                                }}
+                                                minWidth={{
+                                                    base: '32px',
+                                                    md: '40px',
+                                                }}
+                                                width="auto"
+                                                display="inline-block"
+                                                verticalAlign="middle"
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
+                                        </Box>
+                                    </Tooltip>
+                                ))}
+                            </Box>
+                        </>
+                    )}
+                    <Text
+                        fontSize="sm"
+                        fontWeight="semibold"
+                        color="text.secondary"
+                        mb={2}
+                    >
+                        Other
+                    </Text>
                     <Box
                         ref={scrollRef}
-                        maxH="360px"
+                        maxH={{ base: '184px', md: '208px' }}
                         overflowY="scroll"
                         overscrollBehavior="contain"
                         sx={{
@@ -157,13 +242,19 @@ const EmotePicker = ({
                                 >
                                     <Box
                                         as="button"
-                                        onClick={() => onSelectEmote(emote.name)}
+                                        onClick={() =>
+                                            onSelectEmote(emote.name)
+                                        }
                                         position="relative"
                                         p={2}
                                         borderRadius="md"
                                         width="100%"
-                                        height={{ base: '56px', md: '64px' }}
-                                        _hover={{ bg: 'gray.100' }}
+                                        height={{
+                                            base: '56px',
+                                            md: '64px',
+                                        }}
+                                        _hover={{ bg: 'card.lightGray' }}
+                                        _active={{ bg: 'card.lighterGray' }}
                                     >
                                         <Box
                                             as="img"
@@ -197,11 +288,7 @@ const EmotePicker = ({
                             </Text>
                         )}
                         {filteredEmotes.length > visibleEmotes.length && (
-                            <Text
-                                color="text.secondary"
-                                fontSize="xs"
-                                mt={2}
-                            >
+                            <Text color="text.secondary" fontSize="xs" mt={2}>
                                 Scroll for more emotes
                             </Text>
                         )}

@@ -15,11 +15,14 @@ type EmoteStore = {
     emotesByName: Record<string, Emote>;
     emotesByNameLower: Record<string, Emote>;
     emotesById: Record<string, Emote>;
+    recentEmoteIds: string[];
     lastFetchedAt: number;
     isLoading: boolean;
     error?: string;
     hydrateFromCache: () => void;
+    hydrateRecentEmotes: () => void;
     fetchGlobalEmotes: (options?: { force?: boolean }) => Promise<void>;
+    addRecentEmoteId: (emoteId: string) => void;
     getEmoteByName: (name: string) => Emote | undefined;
 };
 
@@ -33,10 +36,12 @@ const CURATED_EMOTE_SET_IDS: string[] = [
 const EMOTE_CACHE_KEY = `pulse_emotes_cache_v2_${CURATED_EMOTE_SET_IDS.join(
     '-'
 )}`;
+const RECENT_EMOTES_KEY = 'pulse_recent_emotes_v1';
 const EMOTE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const SEVEN_TV_GLOBAL_SET_PROXY_URL = '/api/7tv/emote-sets/global';
 const SEVEN_TV_SET_PROXY_URL = (setId: string) =>
     `/api/7tv/emote-sets/${setId}`;
+const RECENT_EMOTES_MAX = 10;
 
 function buildMaps(emotes: Emote[]) {
     const byName: Record<string, Emote> = {};
@@ -80,10 +85,35 @@ function safeWriteCache(cache: EmoteCache) {
     }
 }
 
+function safeReadRecents(): string[] {
+    if (typeof window === 'undefined') return [];
+
+    try {
+        const raw = localStorage.getItem(RECENT_EMOTES_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw) as string[];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        console.warn('Failed to read recent emotes:', error);
+        return [];
+    }
+}
+
+function safeWriteRecents(recents: string[]) {
+    if (typeof window === 'undefined') return;
+
+    try {
+        localStorage.setItem(RECENT_EMOTES_KEY, JSON.stringify(recents));
+    } catch (error) {
+        console.warn('Failed to write recent emotes:', error);
+    }
+}
+
 export const useEmoteStore = create<EmoteStore>((set, get) => ({
     emotesByName: {},
     emotesByNameLower: {},
     emotesById: {},
+    recentEmoteIds: [],
     lastFetchedAt: 0,
     isLoading: false,
     error: undefined,
@@ -99,6 +129,10 @@ export const useEmoteStore = create<EmoteStore>((set, get) => ({
             lastFetchedAt: cached.lastFetchedAt,
             error: undefined,
         });
+    },
+    hydrateRecentEmotes: () => {
+        const recent = safeReadRecents();
+        set({ recentEmoteIds: recent.slice(0, RECENT_EMOTES_MAX) });
     },
     fetchGlobalEmotes: async (options) => {
         const { force = false } = options ?? {};
@@ -191,5 +225,16 @@ export const useEmoteStore = create<EmoteStore>((set, get) => ({
             state.emotesByName[name] ??
             state.emotesByNameLower[name.toLowerCase()]
         );
+    },
+    addRecentEmoteId: (emoteId) => {
+        if (!emoteId) return;
+        set((state) => {
+            const next = [
+                emoteId,
+                ...state.recentEmoteIds.filter((id) => id !== emoteId),
+            ].slice(0, RECENT_EMOTES_MAX);
+            safeWriteRecents(next);
+            return { recentEmoteIds: next };
+        });
     },
 }));

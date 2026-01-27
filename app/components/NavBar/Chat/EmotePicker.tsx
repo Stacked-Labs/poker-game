@@ -106,104 +106,9 @@ const EmotePicker = ({
             >
                 <PopoverArrow border="none" boxShadow="lg" />
                 <PopoverBody bg="card.white" p={3}>
-                    <Input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search emotes"
-                        height="36px"
-                        bg="input.lightGray"
-                        color="text.secondary"
-                        border="none"
-                        borderRadius="10px"
-                        fontSize="sm"
-                        fontWeight="light"
-                        px={3}
-                        mb={3}
-                        _placeholder={{
-                            color: 'text.primary',
-                        }}
-                        _focus={{
-                            bg: 'input.white',
-                            boxShadow:
-                                'var(--chakra-shadows-chat-inputFocus)',
-                        }}
-                    />
-                    {recentEmotes.length > 0 && (
-                        <>
-                            <Text
-                                fontSize="sm"
-                                fontWeight="semibold"
-                                color="text.secondary"
-                                mb={2}
-                            >
-                                Recent
-                            </Text>
-                            <Box
-                                display="grid"
-                                gridTemplateColumns="repeat(5, 1fr)"
-                                gap={2}
-                                mb={4}
-                            >
-                                {recentEmotes.map((emote) => (
-                                    <Tooltip
-                                        key={emote.id}
-                                        label={`Type :${emote.name}:`}
-                                        placement="top"
-                                        hasArrow
-                                    >
-                                        <Box
-                                            as="button"
-                                            onClick={() =>
-                                                onSelectEmote(emote.name)
-                                            }
-                                            position="relative"
-                                            p={2}
-                                            borderRadius="md"
-                                            width="100%"
-                                            height={{
-                                                base: '56px',
-                                                md: '64px',
-                                            }}
-                                            _hover={{ bg: 'card.lightGray' }}
-                                            _active={{
-                                                bg: 'card.lighterGray',
-                                            }}
-                                        >
-                                            <Box
-                                                as="img"
-                                                src={emote.url}
-                                                alt={emote.name}
-                                                height={{
-                                                    base: '32px',
-                                                    md: '40px',
-                                                }}
-                                                minWidth={{
-                                                    base: '32px',
-                                                    md: '40px',
-                                                }}
-                                                width="auto"
-                                                display="inline-block"
-                                                verticalAlign="middle"
-                                                loading="lazy"
-                                                decoding="async"
-                                            />
-                                        </Box>
-                                    </Tooltip>
-                                ))}
-                            </Box>
-                        </>
-                    )}
-                    <Text
-                        fontSize="sm"
-                        fontWeight="semibold"
-                        color="text.secondary"
-                        mb={2}
-                    >
-                        Other
-                    </Text>
                     <Box
                         ref={scrollRef}
-                        maxH={{ base: '184px', md: '208px' }}
+                        maxH={{ base: '360px', md: '420px' }}
                         overflowY="scroll"
                         overscrollBehavior="contain"
                         sx={{
@@ -228,6 +133,103 @@ const EmotePicker = ({
                             }
                         }}
                     >
+                        <Input
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Search emotes"
+                            height="36px"
+                            bg="input.lightGray"
+                            color="text.secondary"
+                            border="none"
+                            borderRadius="10px"
+                            fontSize="sm"
+                            fontWeight="light"
+                            px={3}
+                            mb={3}
+                            _placeholder={{
+                                color: 'text.primary',
+                            }}
+                            _focus={{
+                                bg: 'input.white',
+                                boxShadow:
+                                    'var(--chakra-shadows-chat-inputFocus)',
+                            }}
+                        />
+                        {recentEmotes.length > 0 && (
+                            <>
+                                <Text
+                                    fontSize="sm"
+                                    fontWeight="semibold"
+                                    color="text.secondary"
+                                    mb={2}
+                                >
+                                    Recent
+                                </Text>
+                                <Box
+                                    display="grid"
+                                    gridTemplateColumns="repeat(5, 1fr)"
+                                    gap={2}
+                                    mb={4}
+                                >
+                                    {recentEmotes.map((emote) => (
+                                        <Tooltip
+                                            key={emote.id}
+                                            label={`Type :${emote.name}:`}
+                                            placement="top"
+                                            hasArrow
+                                        >
+                                            <Box
+                                                as="button"
+                                                onClick={() =>
+                                                    onSelectEmote(emote.name)
+                                                }
+                                                position="relative"
+                                                p={2}
+                                                borderRadius="md"
+                                                width="100%"
+                                                height={{
+                                                    base: '56px',
+                                                    md: '64px',
+                                                }}
+                                                _hover={{
+                                                    bg: 'card.lightGray',
+                                                }}
+                                                _active={{
+                                                    bg: 'card.lighterGray',
+                                                }}
+                                            >
+                                                <Box
+                                                    as="img"
+                                                    src={emote.url}
+                                                    alt={emote.name}
+                                                    height={{
+                                                        base: '32px',
+                                                        md: '40px',
+                                                    }}
+                                                    minWidth={{
+                                                        base: '32px',
+                                                        md: '40px',
+                                                    }}
+                                                    width="auto"
+                                                    display="inline-block"
+                                                    verticalAlign="middle"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                />
+                                            </Box>
+                                        </Tooltip>
+                                    ))}
+                                </Box>
+                            </>
+                        )}
+                        <Text
+                            fontSize="sm"
+                            fontWeight="semibold"
+                            color="text.secondary"
+                            mb={2}
+                        >
+                            Other
+                        </Text>
                         <Box
                             display="grid"
                             gridTemplateColumns="repeat(5, 1fr)"

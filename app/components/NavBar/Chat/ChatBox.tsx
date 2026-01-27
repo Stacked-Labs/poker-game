@@ -2,25 +2,42 @@
 
 import { Box, Input, IconButton, Text, Flex } from '@chakra-ui/react';
 import { IoIosSend } from 'react-icons/io';
-import { useContext, useEffect, useRef, useState } from 'react';
+import {
+    forwardRef,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type HTMLAttributes,
+} from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { sendMessage } from '@/app/hooks/server_actions';
 import { IoClose } from 'react-icons/io5';
-import { Image } from '@chakra-ui/next-js';
-import dynamic from 'next/dynamic';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { useEmoteStore } from '@/app/stores/emotes';
+import { tokenizeMessage } from '@/app/utils/chatTokenizer';
+import MessageRenderer from './MessageRenderer';
+import EmotePicker from './EmotePicker';
 
-const MediaButton = dynamic(() => import('./MediaButton'), {
-    ssr: false,
-    loading: () => (
-        <Box
-            width="48px"
-            height="48px"
-            borderRadius="12px"
-            bg="card.lightGray"
-        />
-    ),
-});
+const ChatScroller = forwardRef<
+    HTMLDivElement,
+    HTMLAttributes<HTMLDivElement>
+>((props, ref) => (
+    <Box
+        ref={ref}
+        {...props}
+        sx={{
+            scrollbarWidth: 'none',
+            '&::-webkit-scrollbar': {
+                display: 'none',
+            },
+        }}
+    />
+));
+
+ChatScroller.displayName = 'ChatScroller';
 
 function hexToRgb(hex: string): [number, number, number] {
     hex = hex.replace('#', '');
@@ -86,8 +103,36 @@ const Chatbox = ({
     const appState = useContext(AppContext);
     const { username, clientID } = appState.appState;
     const inputRef = useRef<HTMLInputElement | null>(null);
-    const messagesEndRef = useRef<HTMLDivElement | null>(null);
-    const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+    const virtuosoRef = useRef<VirtuosoHandle | null>(null);
+    const emotesByName = useEmoteStore((state) => state.emotesByName);
+    const emotesByNameLower = useEmoteStore(
+        (state) => state.emotesByNameLower
+    );
+    const emoteError = useEmoteStore((state) => state.error);
+    const emotesLoading = useEmoteStore((state) => state.isLoading);
+    const hydrateFromCache = useEmoteStore((state) => state.hydrateFromCache);
+    const fetchGlobalEmotes = useEmoteStore(
+        (state) => state.fetchGlobalEmotes
+    );
+    const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+    const [autocompleteQuery, setAutocompleteQuery] = useState('');
+    const [autocompleteIndex, setAutocompleteIndex] = useState(0);
+    const [autocompleteRange, setAutocompleteRange] = useState<{
+        start: number;
+        end: number;
+    } | null>(null);
+
+    const emoteList = useMemo(() => Object.values(emotesByName), [emotesByName]);
+    const filteredEmotes = useMemo(() => {
+        if (!autocompleteOpen) return [];
+        const query = autocompleteQuery.trim().toLowerCase();
+        if (!query) {
+            return emoteList.slice(0, 40);
+        }
+        return emoteList
+            .filter((emote) => emote.name.toLowerCase().startsWith(query))
+            .slice(0, 40);
+    }, [autocompleteOpen, autocompleteQuery, emoteList]);
 
     useEffect(() => {
         if (!shouldAutoFocus) {
@@ -99,60 +144,125 @@ const Chatbox = ({
         }
     }, [username, clientID, shouldAutoFocus]);
 
-    // Auto-scroll to bottom when new messages arrive or chat opens
     useEffect(() => {
-        if (appState.appState.isChatOpen && messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({
+        hydrateFromCache();
+        fetchGlobalEmotes();
+    }, [hydrateFromCache, fetchGlobalEmotes]);
+
+    // Auto-scroll to bottom when chat opens
+    useEffect(() => {
+        if (!appState.appState.isChatOpen) return;
+
+        if (virtuosoRef.current && appState.appState.messages.length > 0) {
+            virtuosoRef.current.scrollToIndex({
+                index: appState.appState.messages.length - 1,
+                align: 'end',
                 behavior: 'smooth',
-                block: 'end',
             });
         }
-    }, [appState.appState.messages, appState.appState.isChatOpen]);
+    }, [appState.appState.isChatOpen, appState.appState.messages.length]);
+
+    const handleUpdateAutocomplete = (
+        value: string,
+        cursorPosition?: number | null
+    ) => {
+        const cursor = cursorPosition ?? value.length;
+        const lastColon = value.lastIndexOf(':', cursor - 1);
+        if (lastColon === -1) {
+            setAutocompleteOpen(false);
+            return;
+        }
+
+        const prevChar = value[lastColon - 1];
+        if (lastColon > 0 && prevChar && !/\s/.test(prevChar)) {
+            setAutocompleteOpen(false);
+            return;
+        }
+
+        const segment = value.slice(lastColon + 1, cursor);
+        if (segment.includes(' ') || segment.includes('\n')) {
+            setAutocompleteOpen(false);
+            return;
+        }
+
+        setAutocompleteOpen(true);
+        setAutocompleteQuery(segment);
+        setAutocompleteRange({ start: lastColon, end: cursor });
+        setAutocompleteIndex(0);
+    };
+
+    const handleInsertEmote = (
+        emoteName: string,
+        range?: { start: number; end: number }
+    ) => {
+        const inputEl = inputRef.current;
+        const cursor = inputEl?.selectionStart ?? message.length;
+        const insertion = `:${emoteName}: `;
+        const start = range?.start ?? cursor;
+        const end = range?.end ?? cursor;
+        const nextValue = `${message.slice(0, start)}${insertion}${message.slice(
+            end
+        )}`;
+
+        setMessage(nextValue);
+        setAutocompleteOpen(false);
+
+        requestAnimationFrame(() => {
+            if (!inputEl) return;
+            const nextCursor = start + insertion.length;
+            inputEl.focus();
+            inputEl.setSelectionRange(nextCursor, nextCursor);
+        });
+    };
 
     const handleSendMessage = () => {
         console.log(appState.appState);
 
-        if (socket && message != '') {
+        if (socket && message.trim() !== '') {
             sendMessage(socket, message);
             setMessage('');
-            // Scroll to bottom after sending message
-            setTimeout(() => {
-                if (messagesEndRef.current) {
-                    messagesEndRef.current.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'end',
-                    });
-                }
-            }, 100);
+            setAutocompleteOpen(false);
+            setAutocompleteQuery('');
+            setAutocompleteRange(null);
         }
     };
 
-    const handleKeyPress = (event: React.KeyboardEvent) => {
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (autocompleteOpen && filteredEmotes.length > 0) {
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                setAutocompleteIndex((prev) =>
+                    prev + 1 >= filteredEmotes.length ? 0 : prev + 1
+                );
+                return;
+            }
+
+            if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                setAutocompleteIndex((prev) =>
+                    prev - 1 < 0 ? filteredEmotes.length - 1 : prev - 1
+                );
+                return;
+            }
+
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const selected = filteredEmotes[autocompleteIndex];
+                if (selected && autocompleteRange) {
+                    handleInsertEmote(selected.name, autocompleteRange);
+                }
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                setAutocompleteOpen(false);
+                return;
+            }
+        }
+
         if (event.key === 'Enter') {
             handleSendMessage();
-        }
-    };
-
-    const isGifUrl = (text: string) => {
-        const trimmed = text.trim();
-        return (
-            /^https?:\/\/.*\.(gif|webp|mp4)(\?.*)?$/i.test(trimmed) ||
-            trimmed.includes('giphy.com/embed')
-        );
-    };
-
-    const handleSendGifMessage = (gifUrl: string) => {
-        if (socket && gifUrl) {
-            sendMessage(socket, gifUrl);
-
-            setTimeout(() => {
-                if (messagesEndRef.current) {
-                    messagesEndRef.current.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'end',
-                    });
-                }
-            }, 100);
         }
     };
 
@@ -197,76 +307,65 @@ const Chatbox = ({
             </Flex>
 
             {/* Messages Area */}
-            <Box
-                ref={messagesContainerRef}
-                flex={1}
-                overflowY="auto"
-                px={4}
-                py={3}
-                bg="transparent"
-                css={{
-                    '&::-webkit-scrollbar': {
-                        width: '8px',
-                    },
-                    '&::-webkit-scrollbar-track': {
-                        background: 'transparent',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                        backgroundColor:
-                            'var(--chakra-colors-chat-scrollThumb)',
-                        borderRadius: '4px',
-                    },
-                    '&::-webkit-scrollbar-thumb:hover': {
-                        backgroundColor:
-                            'var(--chakra-colors-chat-scrollThumbHover)',
-                    },
-                }}
-            >
-                {appState.appState.messages.map((msg, index) => (
-                    <Box
-                        key={index}
-                        mb={0}
-                        py={2}
-                        px={4}
-                        mx={-4}
-                        borderRadius="0"
-                        bg={index % 2 === 0 ? 'chat.rowEven' : 'chat.rowOdd'}
-                        transition="all 0.2s ease"
-                        _hover={{
-                            bg:
-                                index % 2 === 0
-                                    ? 'chat.rowEvenHover'
-                                    : 'chat.rowOddHover',
-                        }}
-                    >
-                        <Text
-                            color="text.secondary"
-                            fontSize="md"
-                            whiteSpace="break-spaces"
-                            lineHeight="1.5"
-                        >
-                            <Text
-                                as="span"
-                                color={getColorForUsername(msg.name)}
-                                fontWeight="bold"
-                                mr={1}
+            <Box flex={1} overflow="hidden" bg="transparent">
+                <Virtuoso
+                    ref={virtuosoRef}
+                    data={appState.appState.messages}
+                    overscan={200}
+                    followOutput={
+                        appState.appState.isChatOpen ? 'smooth' : false
+                    }
+                    style={{ height: '100%' }}
+                    components={{ Scroller: ChatScroller }}
+                    itemContent={(index, msg) => {
+                        const tokens = tokenizeMessage(
+                            msg.message,
+                            emotesByName,
+                            emotesByNameLower
+                        );
+                        return (
+                            <Box
+                                key={`${msg.timestamp}-${index}`}
+                                mb={0}
+                                width="100%"
+                                py={{ base: 2, md: 3 }}
+                                px={{ base: 4, md: 6 }}
+                                borderRadius="0"
+                                bg={
+                                    index % 2 === 0
+                                        ? 'chat.rowEven'
+                                        : 'chat.rowOdd'
+                                }
+                                transition="all 0.2s ease"
+                                _hover={{
+                                    bg:
+                                        index % 2 === 0
+                                            ? 'chat.rowEvenHover'
+                                            : 'chat.rowOddHover',
+                                }}
                             >
-                                {msg.name}:
-                            </Text>
-                            {isGifUrl(msg.message) ? null : msg.message}
-                        </Text>
-                        {isGifUrl(msg.message) && (
-                            <Image
-                                src={msg.message.trim()}
-                                alt="GIF"
-                                width="200"
-                                height={"200"}
-                                mt={2}
-                            />
-                        )}
-                    </Box>
-                ))}
-                <div ref={messagesEndRef} />
+                                <Text
+                                    color="text.secondary"
+                                    fontSize={{ base: 'lg', md: 'xl' }}
+                                    whiteSpace="break-spaces"
+                                    lineHeight={{ base: '1.5', md: '1.6' }}
+                                    display="block"
+                                    width="100%"
+                                >
+                                    <Text
+                                        as="span"
+                                        color={getColorForUsername(msg.name)}
+                                        fontWeight="bold"
+                                        mr={{ base: 2, md: 3 }}
+                                    >
+                                        {msg.name}:
+                                    </Text>
+                                    <MessageRenderer tokens={tokens} />
+                                </Text>
+                            </Box>
+                        );
+                    }}
+                />
             </Box>
 
             {/* Input Area */}
@@ -281,9 +380,29 @@ const Chatbox = ({
                     <Input
                         ref={inputRef}
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}
+                        onChange={(e) => {
+                            setMessage(e.target.value);
+                            handleUpdateAutocomplete(
+                                e.target.value,
+                                e.target.selectionStart
+                            );
+                        }}
                         placeholder="Type a message..."
-                        onKeyDown={handleKeyPress}
+                        onKeyDown={handleKeyDown}
+                        onClick={(e) => {
+                            const target = e.target as HTMLInputElement;
+                            handleUpdateAutocomplete(
+                                target.value,
+                                target.selectionStart
+                            );
+                        }}
+                        onKeyUp={(e) => {
+                            const target = e.currentTarget;
+                            handleUpdateAutocomplete(
+                                target.value,
+                                target.selectionStart
+                            );
+                        }}
                         disabled={!username && !clientID}
                         flex={1}
                         height="48px"
@@ -307,7 +426,10 @@ const Chatbox = ({
                         }}
                         transition="all 0.2s ease"
                     />
-                    <MediaButton onSendGif={handleSendGifMessage} setMessage={setMessage} />
+                    <EmotePicker
+                        onSelectEmote={(name) => handleInsertEmote(name)}
+                        isDisabled={!username && !clientID}
+                    />
                     <IconButton
                         icon={<IoIosSend size={28} />}
                         onClick={handleSendMessage}
@@ -335,6 +457,78 @@ const Chatbox = ({
                         transition="all 0.2s ease"
                     />
                 </Flex>
+                {autocompleteOpen && (
+                    <Box
+                        mt={2}
+                        bg="card.white"
+                        border="1px solid"
+                        borderColor="chat.border"
+                        borderRadius="12px"
+                        boxShadow="lg"
+                        maxH={{ base: '180px', md: '200px' }}
+                        overflowY="scroll"
+                        sx={{
+                            scrollbarWidth: 'none',
+                            '&::-webkit-scrollbar': {
+                                display: 'none',
+                            },
+                        }}
+                    >
+                        {filteredEmotes.length > 0 ? (
+                            filteredEmotes.map((emote, idx) => (
+                                <Flex
+                                    key={emote.id}
+                                    align="center"
+                                    gap={2}
+                                    px={3}
+                                    py={2}
+                                    cursor="pointer"
+                                    bg={
+                                        idx === autocompleteIndex
+                                            ? 'chat.rowEven'
+                                            : 'transparent'
+                                    }
+                                    _hover={{ bg: 'chat.rowEvenHover' }}
+                                    onMouseDown={(event) => {
+                                        event.preventDefault();
+                                        if (!autocompleteRange) return;
+                                        handleInsertEmote(
+                                            emote.name,
+                                            autocompleteRange
+                                        );
+                                    }}
+                                >
+                                <Box
+                                    as="img"
+                                    src={emote.url}
+                                    alt={emote.name}
+                                    height={{ base: '24px', md: '28px' }}
+                                    minWidth={{ base: '24px', md: '28px' }}
+                                    width="auto"
+                                    display="inline-block"
+                                    verticalAlign="middle"
+                                />
+                                <Text
+                                    fontSize={{ base: 'sm', md: 'md' }}
+                                    color="text.secondary"
+                                >
+                                    {emote.name}
+                                </Text>
+                                </Flex>
+                            ))
+                        ) : (
+                            <Box px={3} py={2}>
+                                <Text fontSize="sm" color="text.secondary">
+                                    {emoteError
+                                        ? 'Emotes failed to load.'
+                                        : emotesLoading
+                                            ? 'Loading emotes...'
+                                            : 'No emotes found.'}
+                                </Text>
+                            </Box>
+                        )}
+                    </Box>
+                )}
             </Box>
         </Flex>
     );

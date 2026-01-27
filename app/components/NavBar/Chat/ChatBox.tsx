@@ -494,7 +494,7 @@ const Chatbox = ({
                             filteredEmotes.map((emote, idx) => (
                                 <Tooltip
                                     key={emote.id}
-                                    label={`Type :${emote.name}:`}
+                                    label={`:${emote.name}:`}
                                     placement="right"
                                     hasArrow
                                 >

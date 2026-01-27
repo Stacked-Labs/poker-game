@@ -172,12 +172,12 @@ const EmotePicker = ({
                                     mb={4}
                                 >
                                     {recentEmotes.map((emote) => (
-                                        <Tooltip
-                                            key={emote.id}
-                                            label={`Type :${emote.name}:`}
-                                            placement="top"
-                                            hasArrow
-                                        >
+                                    <Tooltip
+                                        key={emote.id}
+                                        label={`:${emote.name}:`}
+                                        placement="top"
+                                        hasArrow
+                                    >
                                             <Box
                                                 as="button"
                                                 onClick={() =>
@@ -238,7 +238,7 @@ const EmotePicker = ({
                             {visibleEmotes.map((emote) => (
                                 <Tooltip
                                     key={emote.id}
-                                    label={`Type :${emote.name}:`}
+                                    label={`:${emote.name}:`}
                                     placement="top"
                                     hasArrow
                                 >

@@ -1,4 +1,4 @@
-import { Box, Text } from '@chakra-ui/react';
+import { Box, Text, Tooltip } from '@chakra-ui/react';
 import type { ChatToken } from '@/app/utils/chatTokenizer';
 
 const MessageRenderer = ({ tokens }: { tokens: ChatToken[] }) => {
@@ -7,19 +7,25 @@ const MessageRenderer = ({ tokens }: { tokens: ChatToken[] }) => {
             {tokens.map((token, index) => {
                 if (token.type === 'emote') {
                     return (
-                        <Box
+                        <Tooltip
                             key={`${token.id}-${index}`}
-                            as="img"
-                            src={token.url}
-                            alt={token.name}
-                            height={{ base: '32px', md: '40px' }}
-                            minWidth={{ base: '32px', md: '40px' }}
-                            width="auto"
-                            display="inline-block"
-                            verticalAlign="middle"
-                            loading="lazy"
-                            decoding="async"
-                        />
+                            label={`:${token.name}:`}
+                            placement="top"
+                            hasArrow
+                        >
+                            <Box
+                                as="img"
+                                src={token.url}
+                                alt={token.name}
+                                height={{ base: '32px', md: '40px' }}
+                                minWidth={{ base: '32px', md: '40px' }}
+                                width="auto"
+                                display="inline-block"
+                                verticalAlign="middle"
+                                loading="lazy"
+                                decoding="async"
+                            />
+                        </Tooltip>
                     );
                 }
 
@@ -37,7 +43,11 @@ const MessageRenderer = ({ tokens }: { tokens: ChatToken[] }) => {
                 }
 
                 return (
-                    <Text as="span" key={`${token.content}-${index}`}>
+                    <Text
+                        as="span"
+                        key={`${token.content}-${index}`}
+                        color="text.primary"
+                    >
                         {token.content}
                     </Text>
                 );

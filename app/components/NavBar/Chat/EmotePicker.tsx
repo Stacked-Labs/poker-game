@@ -2,7 +2,6 @@
 
 import {
     Box,
-    Flex,
     IconButton,
     Input,
     Popover,
@@ -11,6 +10,7 @@ import {
     PopoverContent,
     PopoverTrigger,
     Text,
+    Tooltip,
 } from '@chakra-ui/react';
 import { FiSmile } from 'react-icons/fi';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -149,30 +149,42 @@ const EmotePicker = ({
                             gap={2}
                         >
                             {visibleEmotes.map((emote) => (
-                                <Box
+                                <Tooltip
                                     key={emote.id}
-                                    as="button"
-                                    onClick={() => onSelectEmote(emote.name)}
-                                    position="relative"
-                                    p={2}
-                                    borderRadius="md"
-                                    width="100%"
-                                    height={{ base: '56px', md: '64px' }}
-                                    _hover={{ bg: 'gray.100' }}
+                                    label={`Type :${emote.name}:`}
+                                    placement="top"
+                                    hasArrow
                                 >
                                     <Box
-                                        as="img"
-                                        src={emote.url}
-                                        alt={emote.name}
-                                        height={{ base: '32px', md: '40px' }}
-                                        minWidth={{ base: '32px', md: '40px' }}
-                                        width="auto"
-                                        display="inline-block"
-                                        verticalAlign="middle"
-                                        loading="lazy"
-                                        decoding="async"
-                                    />
-                                </Box>
+                                        as="button"
+                                        onClick={() => onSelectEmote(emote.name)}
+                                        position="relative"
+                                        p={2}
+                                        borderRadius="md"
+                                        width="100%"
+                                        height={{ base: '56px', md: '64px' }}
+                                        _hover={{ bg: 'gray.100' }}
+                                    >
+                                        <Box
+                                            as="img"
+                                            src={emote.url}
+                                            alt={emote.name}
+                                            height={{
+                                                base: '32px',
+                                                md: '40px',
+                                            }}
+                                            minWidth={{
+                                                base: '32px',
+                                                md: '40px',
+                                            }}
+                                            width="auto"
+                                            display="inline-block"
+                                            verticalAlign="middle"
+                                            loading="lazy"
+                                            decoding="async"
+                                        />
+                                    </Box>
+                                </Tooltip>
                             ))}
                         </Box>
                         {filteredEmotes.length === 0 && (

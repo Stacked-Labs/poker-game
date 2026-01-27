@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Input, IconButton, Text, Flex } from '@chakra-ui/react';
+import { Box, Input, IconButton, Text, Flex, Tooltip } from '@chakra-ui/react';
 import { IoIosSend } from 'react-icons/io';
 import {
     forwardRef,
@@ -345,7 +345,6 @@ const Chatbox = ({
                                 }}
                             >
                                 <Text
-                                    color="text.secondary"
                                     fontSize={{ base: 'lg', md: 'xl' }}
                                     whiteSpace="break-spaces"
                                     lineHeight={{ base: '1.5', md: '1.6' }}
@@ -476,45 +475,57 @@ const Chatbox = ({
                     >
                         {filteredEmotes.length > 0 ? (
                             filteredEmotes.map((emote, idx) => (
-                                <Flex
+                                <Tooltip
                                     key={emote.id}
-                                    align="center"
-                                    gap={2}
-                                    px={3}
-                                    py={2}
-                                    cursor="pointer"
-                                    bg={
-                                        idx === autocompleteIndex
-                                            ? 'chat.rowEven'
-                                            : 'transparent'
-                                    }
-                                    _hover={{ bg: 'chat.rowEvenHover' }}
-                                    onMouseDown={(event) => {
-                                        event.preventDefault();
-                                        if (!autocompleteRange) return;
-                                        handleInsertEmote(
-                                            emote.name,
-                                            autocompleteRange
-                                        );
-                                    }}
+                                    label={`Type :${emote.name}:`}
+                                    placement="right"
+                                    hasArrow
                                 >
-                                <Box
-                                    as="img"
-                                    src={emote.url}
-                                    alt={emote.name}
-                                    height={{ base: '24px', md: '28px' }}
-                                    minWidth={{ base: '24px', md: '28px' }}
-                                    width="auto"
-                                    display="inline-block"
-                                    verticalAlign="middle"
-                                />
-                                <Text
-                                    fontSize={{ base: 'sm', md: 'md' }}
-                                    color="text.secondary"
-                                >
-                                    {emote.name}
-                                </Text>
-                                </Flex>
+                                    <Flex
+                                        align="center"
+                                        gap={2}
+                                        px={3}
+                                        py={2}
+                                        cursor="pointer"
+                                        bg={
+                                            idx === autocompleteIndex
+                                                ? 'chat.rowEven'
+                                                : 'transparent'
+                                        }
+                                        _hover={{ bg: 'chat.rowEvenHover' }}
+                                        onMouseDown={(event) => {
+                                            event.preventDefault();
+                                            if (!autocompleteRange) return;
+                                            handleInsertEmote(
+                                                emote.name,
+                                                autocompleteRange
+                                            );
+                                        }}
+                                    >
+                                        <Box
+                                            as="img"
+                                            src={emote.url}
+                                            alt={emote.name}
+                                            height={{
+                                                base: '24px',
+                                                md: '28px',
+                                            }}
+                                            minWidth={{
+                                                base: '24px',
+                                                md: '28px',
+                                            }}
+                                            width="auto"
+                                            display="inline-block"
+                                            verticalAlign="middle"
+                                        />
+                                        <Text
+                                            fontSize={{ base: 'sm', md: 'md' }}
+                                            color="text.secondary"
+                                        >
+                                            {emote.name}
+                                        </Text>
+                                    </Flex>
+                                </Tooltip>
                             ))
                         ) : (
                             <Box px={3} py={2}>

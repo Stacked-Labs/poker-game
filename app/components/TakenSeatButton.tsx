@@ -1030,6 +1030,7 @@ const TakenSeatButton = ({
                                 >
                                     <Icon
                                         as={MdPerson}
+                                        color="brand.lightGray"
                                         boxSize={{ base: 2.5, md: 3 }}
                                     />
                                     <Text

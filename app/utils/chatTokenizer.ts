@@ -23,25 +23,22 @@ export function tokenizeMessage(
             continue;
         }
 
-        let candidate = part;
-        if (candidate.startsWith(':') && candidate.endsWith(':')) {
-            const inner = candidate.slice(1, -1);
-            if (inner.length > 0) {
-                candidate = inner;
+        const isWrappedEmote =
+            part.length > 2 && part.startsWith(':') && part.endsWith(':');
+        if (isWrappedEmote) {
+            const candidate = part.slice(1, -1);
+            const emote =
+                emotesByName[candidate] ??
+                emotesByNameLower[candidate.toLowerCase()];
+            if (emote) {
+                tokens.push({
+                    type: 'emote',
+                    id: emote.id,
+                    url: emote.url,
+                    name: emote.name,
+                });
+                continue;
             }
-        }
-
-        const emote =
-            emotesByName[candidate] ??
-            emotesByNameLower[candidate.toLowerCase()];
-        if (emote) {
-            tokens.push({
-                type: 'emote',
-                id: emote.id,
-                url: emote.url,
-                name: emote.name,
-            });
-            continue;
         }
 
         if (part.startsWith('@') && part.length > 1) {

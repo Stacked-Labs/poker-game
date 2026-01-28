@@ -16,8 +16,10 @@ import {
     Tooltip,
     Tag,
     Icon,
+    IconButton,
 } from '@chakra-ui/react';
 import { MdWifiOff, MdLocalCafe, MdLogout, MdPerson } from 'react-icons/md';
+import { FiSmile } from 'react-icons/fi';
 import { keyframes } from '@emotion/react';
 import {
     motion,
@@ -28,9 +30,15 @@ import {
 } from 'framer-motion';
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
+import { SocketContext } from '../contexts/WebSocketProvider';
 import { useSound } from '../contexts/SoundProvider';
 import CardComponent from './Card';
 import { currentHandLabel } from '@/app/lib/poker/pokerHandEval';
+import { sendMessage } from '@/app/hooks/server_actions';
+import type { Emote } from '@/app/stores/emotes';
+import { useSeatReactionsStore } from '@/app/stores/seatReactions';
+import { buildSeatReactionMessage } from '@/app/utils/seatReaction';
+import EmotePicker from './NavBar/Chat/EmotePicker';
 
 const pulseBorderPink = keyframes`
   0% {
@@ -185,6 +193,7 @@ const TakenSeatButton = ({
     activePotIndex: number | null;
 }) => {
     const { appState } = useContext(AppContext);
+    const socket = useContext(SocketContext);
     const { play } = useSound();
     const playCardFlip = useCallback(() => play('card_flip'), [play]);
     const address = player?.address;
@@ -195,6 +204,9 @@ const TakenSeatButton = ({
         ? player.uuid === appState.clientID
         : false;
     const prefersReducedMotion = useReducedMotion();
+    const seatReaction = useSeatReactionsStore(
+        (state) => state.reactionsByTarget[player.uuid]
+    );
 
     // Offline status - default to true if undefined (backwards compatibility)
     const isOffline = player.isOnline === false;
@@ -514,6 +526,40 @@ const TakenSeatButton = ({
                       : pulseBorderYellow
               } 2s ease-out infinite`
             : 'none';
+    const emoteIconColor =
+        isCurrentTurn || showWinnerHighlight ? 'gray.400' : 'whiteAlpha.600';
+    const emoteIconHoverBg =
+        isCurrentTurn || showWinnerHighlight
+            ? 'blackAlpha.50'
+            : 'whiteAlpha.100';
+    const emoteIconActiveBg =
+        isCurrentTurn || showWinnerHighlight
+            ? 'blackAlpha.100'
+            : 'whiteAlpha.200';
+    const canSendSeatReaction =
+        Boolean(socket) &&
+        socket?.readyState === WebSocket.OPEN &&
+        Boolean(appState.username || appState.clientID);
+    const handleSelectSeatEmote = useCallback(
+        (emote: Emote) => {
+            if (!socket || socket.readyState !== WebSocket.OPEN) return;
+            if (!player.uuid) return;
+
+            const payload = buildSeatReactionMessage({
+                targetUuid: player.uuid,
+                emoteId: emote.id,
+                emoteName: emote.name,
+                senderUuid: appState.clientID,
+                nonce: `${Date.now()}-${Math.random()
+                    .toString(36)
+                    .slice(2, 8)}`,
+                ts: Date.now(),
+            });
+
+            sendMessage(socket, payload);
+        },
+        [appState.clientID, player.uuid, socket]
+    );
     const stackColor =
         showWinnerHighlight && winnings > 0
             ? 'brand.green'
@@ -1091,43 +1137,182 @@ const TakenSeatButton = ({
                                 {strengthLabel}
                             </Tag>
                         )}
+                        <AnimatePresence>
+                            {seatReaction && (
+                                <motion.div
+                                    key={seatReaction.id}
+                                    initial={{ opacity: 0, scale: 0.7, y: 8 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.85, y: -6 }}
+                                    transition={{
+                                        duration: 0.35,
+                                        ease: 'easeOut',
+                                    }}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '-1%',
+                                        top: '-65%',
+                                        zIndex: 6,
+                                        pointerEvents: 'none',
+                                    }}
+                                >
+                                    <Flex
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        bg={
+                                            isCurrentTurn || showWinnerHighlight
+                                                ? 'blackAlpha.200'
+                                                : 'whiteAlpha.300'
+                                        }
+                                        borderRadius="4px"
+                                        padding={{ base: 0.5, md: 1 }}
+                                        boxShadow="0 6px 16px rgba(0, 0, 0, 0.25)"
+                                    >
+                                        <Box
+                                            as="img"
+                                            src={seatReaction.emoteUrl}
+                                            alt={seatReaction.emoteName}
+                                            height={{
+                                                base: '24px',
+                                                md: '38px',
+                                            }}
+                                            minWidth={{
+                                                base: '24px',
+                                                md: '42px',
+                                            }}
+                                            maxWidth={{
+                                                base: '50px',
+                                                md: '100px',
+                                            }}
+                                            width="auto"
+                                            display="block"
+                                            borderRadius="4px"
+                                            loading="lazy"
+                                            decoding="async"
+                                        />
+                                    </Flex>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                         <Box width="100%" px={{ base: 1, md: 1 }}>
                             <HStack
                                 spacing={2}
                                 className="player-info-header"
                                 width="100%"
                                 justifyContent="space-between"
+                                alignItems="center"
+                                pb={{ base: 1 }}
                             >
-                                <Tooltip
-                                    label={shortEthAddress}
-                                    hasArrow
-                                    bg="brand.navy"
-                                    color="white"
-                                    borderRadius="md"
+                                <Flex
+                                    alignItems="center"
+                                    gap={{ base: 1 }}
+                                    minWidth={0}
                                 >
-                                    <Text
-                                        className="player-username"
-                                        variant={'seatText'}
-                                        fontSize={{
-                                            base: '10px',
-                                            md: 'xs',
-                                            lg: 'sm',
-                                        }}
-                                        fontWeight={'bold'}
-                                        color={
-                                            isCurrentTurn || showWinnerHighlight
-                                                ? 'brand.darkNavy'
-                                                : 'white'
-                                        }
-                                        cursor="pointer"
+                                    <Tooltip
+                                        label={shortEthAddress}
+                                        hasArrow
+                                        bg="brand.navy"
+                                        color="white"
+                                        borderRadius="md"
                                     >
-                                        {player.username}
-                                    </Text>
-                                </Tooltip>
+                                        <Text
+                                            className="player-username"
+                                            variant={'seatText'}
+                                            fontSize={{
+                                                base: '10px',
+                                                md: 'xs',
+                                                lg: 'sm',
+                                            }}
+                                            fontWeight={'bold'}
+                                            color={
+                                                isCurrentTurn ||
+                                                showWinnerHighlight
+                                                    ? 'brand.darkNavy'
+                                                    : 'white'
+                                            }
+                                            cursor="pointer"
+                                            isTruncated
+                                        >
+                                            {player.username}
+                                        </Text>
+                                    </Tooltip>
+                                    {canSendSeatReaction && isSelf ? (
+                                        <EmotePicker
+                                            onSelectEmote={
+                                                handleSelectSeatEmote
+                                            }
+                                            columns={5}
+                                            maxHeight="220px"
+                                            width={{
+                                                base: '230px',
+                                                md: '260px',
+                                            }}
+                                            showSearch={false}
+                                            popoverContentProps={{
+                                                zIndex: 2000,
+                                                borderWidth: 2,
+                                                borderColor: 'input.lightGray',
+                                                bg: 'card.white',
+                                            }}
+                                            popoverArrowProps={{
+                                                border: 'none',
+                                                boxShadow: 'lg',
+                                                bg: 'card.white',
+                                            }}
+                                            popoverBodyProps={{
+                                                bg: 'card.white',
+                                            }}
+                                            trigger={
+                                                <IconButton
+                                                    aria-label="Seat emotes"
+                                                    icon={
+                                                        <Icon
+                                                            as={FiSmile}
+                                                            boxSize={{
+                                                                base: 3.5,
+                                                                md: 5,
+                                                            }}
+                                                        />
+                                                    }
+                                                    size={{ base: 'xs' }}
+                                                    variant="ghost"
+                                                    color={emoteIconColor}
+                                                    height={{
+                                                        base: '18px',
+                                                        md: '28px',
+                                                    }}
+                                                    width={{
+                                                        base: '18px',
+                                                        md: '28px',
+                                                    }}
+                                                    minW="unset"
+                                                    borderRadius="full"
+                                                    bg="transparent"
+                                                    border="none"
+                                                    boxShadow="none"
+                                                    outline="none"
+                                                    _hover={{
+                                                        bg: emoteIconHoverBg,
+                                                    }}
+                                                    _active={{
+                                                        bg: emoteIconActiveBg,
+                                                    }}
+                                                    _focus={{
+                                                        boxShadow: 'none',
+                                                    }}
+                                                    _focusVisible={{
+                                                        boxShadow: 'none',
+                                                    }}
+                                                />
+                                            }
+                                        />
+                                    ) : null}
+                                </Flex>
                                 <Flex
                                     className="player-stack-container"
-                                    alignItems={'center'}
-                                    justifyContent={'center'}
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    gap={{ base: 1, md: 2 }}
                                 >
                                     <StackValue
                                         value={player.stack}

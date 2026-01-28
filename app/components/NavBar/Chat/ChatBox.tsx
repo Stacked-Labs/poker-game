@@ -16,7 +16,7 @@ import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { sendMessage } from '@/app/hooks/server_actions';
 import { IoClose } from 'react-icons/io5';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
-import { useEmoteStore } from '@/app/stores/emotes';
+import { useEmotesData } from '@/app/hooks/useEmotesData';
 import { tokenizeMessage } from '@/app/utils/chatTokenizer';
 import MessageRenderer from './MessageRenderer';
 import EmotePicker from './EmotePicker';
@@ -104,22 +104,14 @@ const Chatbox = ({
     const { username, clientID } = appState.appState;
     const inputRef = useRef<HTMLInputElement | null>(null);
     const virtuosoRef = useRef<VirtuosoHandle | null>(null);
-    const emotesByName = useEmoteStore((state) => state.emotesByName);
-    const emotesByNameLower = useEmoteStore(
-        (state) => state.emotesByNameLower
-    );
-    const emoteError = useEmoteStore((state) => state.error);
-    const emotesLoading = useEmoteStore((state) => state.isLoading);
-    const hydrateRecentEmotes = useEmoteStore(
-        (state) => state.hydrateRecentEmotes
-    );
-    const addRecentEmoteId = useEmoteStore(
-        (state) => state.addRecentEmoteId
-    );
-    const hydrateFromCache = useEmoteStore((state) => state.hydrateFromCache);
-    const fetchGlobalEmotes = useEmoteStore(
-        (state) => state.fetchGlobalEmotes
-    );
+    const {
+        emotesByName,
+        emotesByNameLower,
+        isLoading: emotesLoading,
+        error: emoteError,
+        ensureLoaded,
+        addRecentEmoteId,
+    } = useEmotesData();
     const [autocompleteOpen, setAutocompleteOpen] = useState(false);
     const [autocompleteQuery, setAutocompleteQuery] = useState('');
     const [autocompleteIndex, setAutocompleteIndex] = useState(0);
@@ -151,10 +143,8 @@ const Chatbox = ({
     }, [username, clientID, shouldAutoFocus]);
 
     useEffect(() => {
-        hydrateFromCache();
-        hydrateRecentEmotes();
-        fetchGlobalEmotes();
-    }, [hydrateFromCache, hydrateRecentEmotes, fetchGlobalEmotes]);
+        ensureLoaded();
+    }, [ensureLoaded]);
 
     // Auto-scroll to bottom when chat opens
     useEffect(() => {
@@ -443,7 +433,9 @@ const Chatbox = ({
                         transition="all 0.2s ease"
                     />
                     <EmotePicker
-                        onSelectEmote={(name) => handleInsertEmote(name)}
+                        onSelectEmote={(emote) =>
+                            handleInsertEmote(emote.name)
+                        }
                         isDisabled={!username && !clientID}
                     />
                     <IconButton

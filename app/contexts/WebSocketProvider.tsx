@@ -23,6 +23,11 @@ import useToastHelper from '../hooks/useToastHelper';
 import { soundManager } from '../utils/SoundManager';
 import { formatGameEvent } from '../utils/formatGameEvent';
 import SeatRequestConflictModal from '../components/SeatRequestConflictModal';
+import { useSeatReactionsStore } from '@/app/stores/seatReactions';
+import {
+    getSeatReactionEmoteUrl,
+    parseSeatReactionMessage,
+} from '@/app/utils/seatReaction';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -294,6 +299,25 @@ export function SocketProvider(props: SocketProviderProps) {
 
                 switch (eventData.action) {
                     case 'new-message': {
+                        const seatReaction = parseSeatReactionMessage(
+                            eventData.message
+                        );
+                        if (seatReaction) {
+                            useSeatReactionsStore.getState().showReaction({
+                                id: seatReaction.nonce,
+                                targetUuid: seatReaction.targetUuid,
+                                emoteId: seatReaction.emoteId,
+                                emoteName: seatReaction.emoteName,
+                                emoteUrl: getSeatReactionEmoteUrl(
+                                    seatReaction.emoteId
+                                ),
+                                senderUuid:
+                                    seatReaction.senderUuid ?? undefined,
+                                createdAt: seatReaction.ts,
+                            });
+                            return;
+                        }
+
                         const newMessage: Message = {
                             name: eventData.username,
                             message: eventData.message,

@@ -70,8 +70,8 @@ const GameSettingLeftSide: React.FC = () => {
     const router = useRouter();
     const { dispatch } = useContext(AppContext);
     const toast = useToastHelper();
-    const [smallBlind, setSmallBlind] = useState<number>(1);
-    const [bigBlind, setBigBlind] = useState<number>(2);
+    const [smallBlind, setSmallBlind] = useState<number>(5);
+    const [bigBlind, setBigBlind] = useState<number>(10);
     const [isFormValid, setIsFormValid] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileError, setTurnstileError] = useState(false);

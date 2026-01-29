@@ -1,7 +1,15 @@
 import { Box, Text, Tooltip } from '@chakra-ui/react';
 import type { ChatToken } from '@/app/utils/chatTokenizer';
 
-const MessageRenderer = ({ tokens }: { tokens: ChatToken[] }) => {
+const MessageRenderer = ({
+    tokens,
+    textColor,
+    mentionColor,
+}: {
+    tokens: ChatToken[];
+    textColor?: string;
+    mentionColor?: string;
+}) => {
     return (
         <>
             {tokens.map((token, index) => {
@@ -17,9 +25,9 @@ const MessageRenderer = ({ tokens }: { tokens: ChatToken[] }) => {
                                 as="img"
                                 src={token.url}
                                 alt={token.name}
-                                height={{ base: '32px', md: '40px' }}
-                                minWidth={{ base: '32px', md: '40px' }}
-                                width="auto"
+                                minHeight={{ base: '26px', md: '32px' }}
+                                minWidth={{ base: '26px', md: '32px' }}
+                                maxWidth={{ base: '60px', md: '80px' }}
                                 display="inline-block"
                                 verticalAlign="middle"
                                 loading="lazy"
@@ -34,7 +42,7 @@ const MessageRenderer = ({ tokens }: { tokens: ChatToken[] }) => {
                         <Text
                             as="span"
                             key={`${token.username}-${index}`}
-                            color="brand.green"
+                            color={mentionColor ?? 'brand.green'}
                             fontWeight="semibold"
                         >
                             @{token.username}
@@ -46,7 +54,7 @@ const MessageRenderer = ({ tokens }: { tokens: ChatToken[] }) => {
                     <Text
                         as="span"
                         key={`${token.content}-${index}`}
-                        color="text.primary"
+                        color={textColor ?? 'text.primary'}
                     >
                         {token.content}
                     </Text>

@@ -35,7 +35,7 @@ const SideBarChat = ({
             as={motion.div}
             initial={false}
             animate={{
-                width: isOpen ? (!isLargerScreen ? '100%' : '40%') : 0,
+                width: isOpen ? (!isLargerScreen ? '100%' : '20%') : 0,
             }}
             overflow="hidden"
             whiteSpace="nowrap"

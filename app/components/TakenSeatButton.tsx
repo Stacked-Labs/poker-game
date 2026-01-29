@@ -1279,12 +1279,12 @@ const TakenSeatButton = ({
                                                     variant="ghost"
                                                     color={emoteIconColor}
                                                     height={{
-                                                        base: '18px',
-                                                        md: '28px',
+                                                        base: '14px',
+                                                        md: '22px',
                                                     }}
                                                     width={{
-                                                        base: '18px',
-                                                        md: '28px',
+                                                        base: '14px',
+                                                        md: '22px',
                                                     }}
                                                     minW="unset"
                                                     borderRadius="full"
@@ -1307,7 +1307,17 @@ const TakenSeatButton = ({
                                                 />
                                             }
                                         />
-                                    ) : null}
+                                    ) : (
+                                        <Box
+                                            aria-hidden
+                                            width={{ base: '14px', md: '22px' }}
+                                            height={{
+                                                base: '14px',
+                                                md: '22px',
+                                            }}
+                                            flexShrink={0}
+                                        />
+                                    )}
                                 </Flex>
                                 <Flex
                                     className="player-stack-container"

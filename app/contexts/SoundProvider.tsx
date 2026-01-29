@@ -88,9 +88,11 @@ export function SoundProvider({ children }: SoundProviderProps) {
         // Don't play sound for own messages
         if (latest.name === appState.username) return;
 
+        if (!appState.chatSoundEnabled) return;
+
         // Play chat notification sound
         soundManager.play('chat');
-    }, [appState.messages, appState.username]);
+    }, [appState.messages, appState.username, appState.chatSoundEnabled]);
 
     // Expose play function via context
     const play = useCallback((soundType: string) => {

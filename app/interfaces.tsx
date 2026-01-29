@@ -27,6 +27,8 @@ export type AppState = {
     table: string | null;
     game: Game | null;
     volume: number;
+    chatSoundEnabled: boolean;
+    chatOverlayEnabled: boolean;
     unreadMessageCount: number;
     isChatOpen: boolean; // Track if chat is currently open
     seatRequested: number | null;

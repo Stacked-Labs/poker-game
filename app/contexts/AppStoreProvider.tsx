@@ -18,6 +18,8 @@ const initialState: AppState = {
     table: null,
     game: null,
     volume: 1,
+    chatSoundEnabled: true,
+    chatOverlayEnabled: true,
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,
@@ -36,6 +38,8 @@ export type ACTIONTYPE =
     | { type: 'updatePlayerID'; payload: string }
     | { type: 'setTablename'; payload: string }
     | { type: 'setVolume'; payload: number }
+    | { type: 'setChatSoundEnabled'; payload: boolean }
+    | { type: 'setChatOverlayEnabled'; payload: boolean }
     | { type: 'incrementUnreadCount' }
     | { type: 'resetUnreadCount' }
     | { type: 'setChatOpen'; payload: boolean }
@@ -76,6 +80,22 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 localStorage.setItem('volume', action.payload.toString());
             }
             return { ...state, volume: action.payload };
+        case 'setChatSoundEnabled':
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(
+                    'chatSoundEnabled',
+                    action.payload.toString()
+                );
+            }
+            return { ...state, chatSoundEnabled: action.payload };
+        case 'setChatOverlayEnabled':
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(
+                    'chatOverlayEnabled',
+                    action.payload.toString()
+                );
+            }
+            return { ...state, chatOverlayEnabled: action.payload };
         case 'incrementUnreadCount':
             return {
                 ...state,
@@ -126,6 +146,22 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
         const storedVolume = localStorage.getItem('volume');
         if (storedVolume) {
             dispatch({ type: 'setVolume', payload: parseFloat(storedVolume) });
+        }
+        const storedChatSoundEnabled =
+            localStorage.getItem('chatSoundEnabled');
+        if (storedChatSoundEnabled !== null) {
+            dispatch({
+                type: 'setChatSoundEnabled',
+                payload: storedChatSoundEnabled === 'true',
+            });
+        }
+        const storedChatOverlayEnabled =
+            localStorage.getItem('chatOverlayEnabled');
+        if (storedChatOverlayEnabled !== null) {
+            dispatch({
+                type: 'setChatOverlayEnabled',
+                payload: storedChatOverlayEnabled === 'true',
+            });
         }
     }, []);
 

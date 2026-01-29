@@ -1,6 +1,14 @@
 'use client'
 
-import { Box, Input, IconButton, Text, Flex, Tooltip } from '@chakra-ui/react';
+import {
+    Box,
+    Input,
+    IconButton,
+    Text,
+    Flex,
+    Tooltip,
+    Icon,
+} from '@chakra-ui/react';
 import { IoIosSend } from 'react-icons/io';
 import {
     forwardRef,
@@ -20,6 +28,8 @@ import { useEmotesData } from '@/app/hooks/useEmotesData';
 import { tokenizeMessage } from '@/app/utils/chatTokenizer';
 import MessageRenderer from './MessageRenderer';
 import EmotePicker from './EmotePicker';
+import { FiEye, FiEyeOff, FiVolume2, FiVolumeX } from 'react-icons/fi';
+import { getColorForUsername } from '@/app/utils/chatColors';
 
 const ChatScroller = forwardRef<
     HTMLDivElement,
@@ -39,58 +49,6 @@ const ChatScroller = forwardRef<
 
 ChatScroller.displayName = 'ChatScroller';
 
-function hexToRgb(hex: string): [number, number, number] {
-    hex = hex.replace('#', '');
-    if (hex.length === 3) {
-        hex = hex
-            .split('')
-            .map((c) => c + c)
-            .join('');
-    }
-    const num = parseInt(hex, 16);
-    return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
-}
-
-function colorDistance(
-    rgb1: [number, number, number],
-    rgb2: [number, number, number]
-): number {
-    return Math.sqrt(
-        Math.pow(rgb1[0] - rgb2[0], 2) +
-        Math.pow(rgb1[1] - rgb2[1], 2) +
-        Math.pow(rgb1[2] - rgb2[2], 2)
-    );
-}
-
-function getRandomHexColor(): string {
-    const forbiddenColors = ['#121212', '#ffffff']; // background
-    const forbiddenRGBs = forbiddenColors.map(hexToRgb);
-    const minDistance = 80; // tweak as needed for contrast
-    let color = '';
-    let attempts = 0;
-    do {
-        const hex = Math.floor(Math.random() * 0xffffff).toString(16);
-        color = `#${hex.padStart(6, '0')}`;
-        attempts++;
-        // forbidden colors and those too close to each other
-    } while (
-        forbiddenRGBs.some(
-            (forbidden) =>
-                colorDistance(hexToRgb(color), forbidden) < minDistance
-        ) &&
-        attempts < 20
-    );
-    return color;
-}
-
-const usernameColorMap: Record<string, string> = {};
-function getColorForUsername(username: string): string {
-    if (!usernameColorMap[username]) {
-        usernameColorMap[username] = getRandomHexColor();
-    }
-    return usernameColorMap[username];
-}
-
 const Chatbox = ({
     onToggle,
     shouldAutoFocus = false,
@@ -100,8 +58,8 @@ const Chatbox = ({
 }) => {
     const socket = useContext(SocketContext);
     const [message, setMessage] = useState<string>('');
-    const appState = useContext(AppContext);
-    const { username, clientID } = appState.appState;
+    const { appState, dispatch } = useContext(AppContext);
+    const { username, clientID } = appState;
     const inputRef = useRef<HTMLInputElement | null>(null);
     const virtuosoRef = useRef<VirtuosoHandle | null>(null);
     const {
@@ -148,16 +106,16 @@ const Chatbox = ({
 
     // Auto-scroll to bottom when chat opens
     useEffect(() => {
-        if (!appState.appState.isChatOpen) return;
+        if (!appState.isChatOpen) return;
 
-        if (virtuosoRef.current && appState.appState.messages.length > 0) {
+        if (virtuosoRef.current && appState.messages.length > 0) {
             virtuosoRef.current.scrollToIndex({
-                index: appState.appState.messages.length - 1,
+                index: appState.messages.length - 1,
                 align: 'end',
                 behavior: 'smooth',
             });
         }
-    }, [appState.appState.isChatOpen, appState.appState.messages.length]);
+    }, [appState.isChatOpen, appState.messages.length]);
 
     const handleUpdateAutocomplete = (
         value: string,
@@ -213,7 +171,7 @@ const Chatbox = ({
     };
 
     const handleSendMessage = () => {
-        console.log(appState.appState);
+        console.log(appState);
 
         if (socket && message.trim() !== '') {
             const tokens = tokenizeMessage(
@@ -296,31 +254,122 @@ const Chatbox = ({
                 >
                     Chat
                 </Text>
-                <IconButton
-                    onClick={onToggle}
-                    icon={<IoClose size={20} />}
-                    aria-label="Close Chat Box"
-                    size="md"
-                    bg="transparent"
-                    color="brand.pink"
-                    border="none"
-                    borderRadius="8px"
-                    _hover={{
-                        bg: 'card.lightGray',
-                    }}
-                    _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
-                    _focus={{ outline: 'none', boxShadow: 'none' }}
-                />
+                <Flex align="center" gap={2}>
+                    <Tooltip
+                        label={
+                            appState.chatOverlayEnabled
+                                ? 'Chat overlay on'
+                                : 'Chat overlay off'
+                        }
+                        placement="top"
+                    >
+                        <IconButton
+                            icon={
+                                <Icon
+                                    as={
+                                        appState.chatOverlayEnabled
+                                            ? FiEye
+                                            : FiEyeOff
+                                    }
+                                    boxSize={4}
+                                />
+                            }
+                            aria-label={
+                                appState.chatOverlayEnabled
+                                    ? 'Chat overlay on'
+                                    : 'Chat overlay off'
+                            }
+                            size="sm"
+                            bg="transparent"
+                            color="text.secondary"
+                            border="none"
+                            borderRadius="8px"
+                            _hover={{ bg: 'card.lightGray' }}
+                            _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
+                            _focus={{ outline: 'none', boxShadow: 'none' }}
+                            onClick={() => {
+                                const nextState = !appState.chatOverlayEnabled;
+                                dispatch({
+                                    type: 'setChatOverlayEnabled',
+                                    payload: nextState,
+                                });
+                                if (nextState && appState.isChatOpen) {
+                                    onToggle();
+                                }
+                            }}
+                            sx={{
+                                '@media (orientation: portrait)': {
+                                    display: 'none',
+                                },
+                            }}
+                        />
+                    </Tooltip>
+                    <Tooltip
+                        label={
+                            appState.chatSoundEnabled
+                                ? 'Chat sound on'
+                                : 'Chat sound muted'
+                        }
+                        placement="top"
+                    >
+                        <IconButton
+                            icon={
+                                <Icon
+                                    as={
+                                        appState.chatSoundEnabled
+                                            ? FiVolume2
+                                            : FiVolumeX
+                                    }
+                                    boxSize={4}
+                                />
+                            }
+                            aria-label={
+                                appState.chatSoundEnabled
+                                    ? 'Chat sound on'
+                                    : 'Chat sound muted'
+                            }
+                            size="sm"
+                            bg="transparent"
+                            color="text.secondary"
+                            border="none"
+                            borderRadius="8px"
+                            _hover={{ bg: 'card.lightGray' }}
+                            _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
+                            _focus={{ outline: 'none', boxShadow: 'none' }}
+                            onClick={() =>
+                                dispatch({
+                                    type: 'setChatSoundEnabled',
+                                    payload: !appState.chatSoundEnabled,
+                                })
+                            }
+                        />
+                    </Tooltip>
+                    <IconButton
+                        onClick={onToggle}
+                        icon={<IoClose size={20} />}
+                        aria-label="Close Chat Box"
+                        size="md"
+                        bg="transparent"
+                        color="brand.pink"
+                        border="none"
+                        borderRadius="8px"
+                        _hover={{
+                            bg: 'card.lightGray',
+                        }}
+                        _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
+                        _focus={{ outline: 'none', boxShadow: 'none' }}
+                    />
+                </Flex>
             </Flex>
 
             {/* Messages Area */}
             <Box flex={1} overflow="hidden" bg="transparent">
                 <Virtuoso
                     ref={virtuosoRef}
-                    data={appState.appState.messages}
+                    data={appState.messages}
                     overscan={200}
                     followOutput={
-                        appState.appState.isChatOpen ? 'smooth' : false
+                        appState.isChatOpen ? 'smooth' : false
                     }
                     style={{ height: '100%' }}
                     components={{ Scroller: ChatScroller }}
@@ -352,7 +401,7 @@ const Chatbox = ({
                                 }}
                             >
                                 <Text
-                                    fontSize={{ base: 'lg', md: 'xl' }}
+                                    fontSize={{ base: 'md', md: 'lg' }}
                                     whiteSpace="break-spaces"
                                     lineHeight={{ base: '1.5', md: '1.6' }}
                                     display="block"

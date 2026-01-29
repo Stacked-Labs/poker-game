@@ -3,6 +3,7 @@ import Navbar from '@/app/components/NavBar';
 import { Flex, Box } from '@chakra-ui/react';
 import Footer from '@/app/components/Footer';
 import GameConfigWatermark from '@/app/components/Footer/GameConfigWatermark';
+import ChatOverlay from '@/app/components/NavBar/Chat/ChatOverlay';
 import GameViewport from '@/app/components/GameViewport';
 import LobbyBanner from '@/app/components/LobbyBanner';
 import PauseBanner from '@/app/components/PauseBanner';
@@ -52,6 +53,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                             minHeight={{ base: '50px', md: '70px' }}
                         >
                             <GameConfigWatermark />
+                            <ChatOverlay />
                             <Footer />
                         </Box>
                     </Flex>

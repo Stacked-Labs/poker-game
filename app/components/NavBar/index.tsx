@@ -102,6 +102,7 @@ const Navbar = () => {
         onToggleChat();
     };
 
+
     useEffect(() => {
 
         const timer = setTimeout(() => {

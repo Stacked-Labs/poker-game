@@ -3,8 +3,8 @@ import { Flex } from '@chakra-ui/react';
 import { Metadata, ResolvingMetadata } from 'next';
 
 type Props = {
-    params: Promise<{ id: string }>
-}
+    params: Promise<{ id: string }>;
+};
 
 export async function generateMetadata(
     { params }: Props,
@@ -13,7 +13,7 @@ export async function generateMetadata(
     const { id } = await params;
     const url = `https://stackedpoker.io/table/${id}`;
     return {
-        title: 'Poker Table - Stacked Poker',
+        title: 'Stacked Poker',
         description:
             "Play Texas Hold'em online with friends for free or crypto! Join your private poker table, enjoy real-time multiplayer action, and experience the excitement of the game – no downloads or sign-up required.",
         icons: {
@@ -22,7 +22,7 @@ export async function generateMetadata(
         openGraph: {
             title: 'Play Poker Table - Stacked Poker',
             description:
-                "Jump into a live poker table on Stacked Poker. Play Hold'em online with your friends or others, manage your seat, and view the action real-time.",
+                "Jump into a live poker table on Stacked. Play Texas Hold'em online with your friends or others, manage your seat, and view the action real-time.",
             url: url,
             siteName: 'Stacked Poker',
             images: [
@@ -50,8 +50,8 @@ export async function generateMetadata(
             'poker with friends',
             'real-time poker',
             'crypto poker',
-            'card game'
-        ]
+            'card game',
+        ],
     };
 }
 

@@ -2,6 +2,7 @@ import { Flex } from '@chakra-ui/react';
 import React from 'react';
 import Pot from './Pot';
 import CommunityCards from './CommunityCards';
+import PauseBanner from '../PauseBanner';
 
 const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
     return (
@@ -21,6 +22,7 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
         >
             <Pot activePotIndex={activePotIndex} />
             <CommunityCards activePotIndex={activePotIndex} />
+            <PauseBanner />
         </Flex>
     );
 };

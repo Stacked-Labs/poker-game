@@ -6,7 +6,6 @@ import GameConfigWatermark from '@/app/components/Footer/GameConfigWatermark';
 import ChatOverlay from '@/app/components/NavBar/Chat/ChatOverlay';
 import GameViewport from '@/app/components/GameViewport';
 import LobbyBanner from '@/app/components/LobbyBanner';
-import PauseBanner from '@/app/components/PauseBanner';
 
 const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
@@ -27,9 +26,6 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                 <SocketProvider tableId={params.id}>
                     {/* Navbar - absolutely positioned, overlays at top */}
                     <Navbar />
-
-                    {/* Pause Banner */}
-                    <PauseBanner />
 
                     {/* Main Content Area */}
                     <Flex

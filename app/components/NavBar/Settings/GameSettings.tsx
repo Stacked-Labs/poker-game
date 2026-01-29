@@ -7,6 +7,8 @@ import {
     Switch,
     HStack,
     Icon,
+    useMediaQuery,
+    VStack,
 } from '@chakra-ui/react';
 import { FaMoon } from 'react-icons/fa';
 import { IoMdSunny } from 'react-icons/io';
@@ -18,8 +20,22 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 const GameSettings = () => {
     const { colorMode, toggleColorMode } = useColorMode();
     const { appState, dispatch } = useContext(AppContext);
+    const [isPortrait] = useMediaQuery('(orientation: portrait)');
     const tableColorKey = localStorage.getItem('tableColorKey') ?? 'green';
     const [selectedColor, onColorChange] = useState<string>(tableColorKey);
+    const suitPalette = appState.fourColorDeckEnabled
+        ? {
+              spade: '#000000',
+              heart: '#DC143C',
+              diamond: '#1E6BD6',
+              club: '#1F8A4C',
+          }
+        : {
+              spade: '#000000',
+              heart: '#DC143C',
+              diamond: '#DC143C',
+              club: '#000000',
+          };
 
     const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const key = e.target.value;
@@ -30,26 +46,31 @@ const GameSettings = () => {
     };
 
     return (
-        <Box>
+        <VStack spacing={{ base: 2, md: 4 }} align="stretch">
             <Box
                 bg="card.white"
                 borderRadius="16px"
                 border="2px solid"
                 borderColor="border.lightGray"
                 p={{ base: 5, md: 6 }}
-                mb={6}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex
-                    direction={{ base: 'column', sm: 'row' }}
+                    direction="row"
                     justify={'space-between'}
-                    align={{ base: 'start', sm: 'center' }}
+                    align="center"
+                    wrap="nowrap"
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'md', md: 'lg' }}
+                        fontSize={{ base: 'sm', md: 'lg' }}
                         fontWeight="bold"
                         color="text.secondary"
+                        flex={1}
+                        minWidth={0}
+                        whiteSpace="nowrap"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
                     >
                         Table Color
                     </Text>
@@ -58,7 +79,7 @@ const GameSettings = () => {
                         value={selectedColor}
                         onChange={handleSelectChange}
                         variant="outline"
-                        width="50%"
+                        width={{ base: '52%', sm: '50%' }}
                         bg={tableColors[selectedColor].color}
                         color={
                             selectedColor == 'white'
@@ -99,26 +120,107 @@ const GameSettings = () => {
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex
-                    direction={{ base: 'column', sm: 'row' }}
+                    direction="row"
                     justify={'space-between'}
-                    align={{ base: 'start', sm: 'center' }}
+                    align="center"
+                    wrap="nowrap"
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'md', md: 'lg' }}
+                        fontSize={{ base: 'sm', md: 'lg' }}
                         fontWeight="bold"
                         color="text.secondary"
+                        flex={1}
+                        minWidth={0}
+                        whiteSpace="nowrap"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                    >
+                        Four Color Deck
+                    </Text>
+                    <HStack spacing={{ base: 1.5, md: 2 }} flexShrink={0}>
+                        <Text
+                            as="span"
+                            fontSize={{ base: 'xl', md: '2xl' }}
+                            fontWeight="bold"
+                            color={suitPalette.heart}
+                        >
+                            ♥
+                        </Text>
+                        <Text
+                            as="span"
+                            fontSize={{ base: 'xl', md: '2xl' }}
+                            fontWeight="bold"
+                            color={suitPalette.spade}
+                        >
+                            ♠
+                        </Text>
+                        <Text
+                            as="span"
+                            fontSize={{ base: 'xl', md: '2xl' }}
+                            fontWeight="bold"
+                            color={suitPalette.diamond}
+                        >
+                            ♦
+                        </Text>
+                        <Text
+                            as="span"
+                            fontSize={{ base: 'xl', md: '2xl' }}
+                            fontWeight="bold"
+                            color={suitPalette.club}
+                        >
+                            ♣
+                        </Text>
+                        <Switch
+                            size={{ base: 'md', md: 'lg' }}
+                            isChecked={appState.fourColorDeckEnabled}
+                            onChange={(event) => {
+                                const nextValue = event.target.checked;
+                                dispatch({
+                                    type: 'setFourColorDeckEnabled',
+                                    payload: nextValue,
+                                });
+                            }}
+                            colorScheme="green"
+                        />
+                    </HStack>
+                </Flex>
+            </Box>
+            <Box
+                bg="card.white"
+                borderRadius="16px"
+                border="2px solid"
+                borderColor="border.lightGray"
+                p={{ base: 5, md: 6 }}
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+            >
+                <Flex
+                    direction="row"
+                    justify={'space-between'}
+                    align="center"
+                    wrap="nowrap"
+                    gap={3}
+                >
+                    <Text
+                        fontSize={{ base: 'sm', md: 'lg' }}
+                        fontWeight="bold"
+                        color="text.secondary"
+                        flex={1}
+                        minWidth={0}
+                        whiteSpace="nowrap"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
                     >
                         Theme
                     </Text>
-                    <HStack spacing={3}>
+                    <HStack spacing={3} flexShrink={0}>
                         <Icon
                             as={colorMode === 'light' ? IoMdSunny : FaMoon}
                             boxSize={{ base: 5, md: 6 }}
                             color="text.secondary"
                         />
                         <Switch
-                            size="lg"
+                            size={{ base: 'md', md: 'lg' }}
                             isChecked={colorMode === 'dark'}
                             onChange={toggleColorMode}
                             colorScheme="green"
@@ -132,50 +234,75 @@ const GameSettings = () => {
                 border="2px solid"
                 borderColor="border.lightGray"
                 p={{ base: 5, md: 6 }}
-                mt={6}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex
-                    direction={{ base: 'column', sm: 'row' }}
+                    direction="row"
                     justify={'space-between'}
-                    align={{ base: 'start', sm: 'center' }}
+                    align="center"
+                    wrap="nowrap"
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'md', md: 'lg' }}
+                        fontSize={{ base: 'sm', md: 'lg' }}
                         fontWeight="bold"
                         color="text.secondary"
+                        flex={1}
+                        minWidth={0}
+                        whiteSpace="nowrap"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
                     >
                         Chat Overlay
                     </Text>
-                    <HStack
-                        spacing={3}
-                        sx={{
-                            '@media (orientation: portrait)': {
-                                display: 'none',
-                            },
-                        }}
-                    >
-                        <Icon
-                            as={
-                                appState.chatOverlayEnabled ? FiEye : FiEyeOff
-                            }
-                            boxSize={{ base: 5, md: 6 }}
-                            color="text.secondary"
-                        />
-                        <Switch
-                            size="lg"
-                            isChecked={appState.chatOverlayEnabled}
-                            onChange={(event) => {
-                                const nextValue = event.target.checked;
-                                dispatch({
-                                    type: 'setChatOverlayEnabled',
-                                    payload: nextValue,
-                                });
-                            }}
-                            colorScheme="green"
-                        />
-                    </HStack>
+                    {isPortrait ? (
+                        <HStack
+                            spacing={2}
+                            px={3}
+                            py={1}
+                            bg="card.lightGray"
+                            borderRadius="full"
+                            flexShrink={0}
+                        >
+                            <Icon
+                                as={FiEyeOff}
+                                boxSize={{ base: 4, md: 5 }}
+                                color="text.secondary"
+                            />
+                            <Text
+                                fontSize={{ base: 'xs', md: 'sm' }}
+                                fontWeight="semibold"
+                                color="text.secondary"
+                                whiteSpace="nowrap"
+                            >
+                                Disabled on portrait
+                            </Text>
+                        </HStack>
+                    ) : (
+                        <HStack spacing={3} flexShrink={0}>
+                            <Icon
+                                as={
+                                    appState.chatOverlayEnabled
+                                        ? FiEye
+                                        : FiEyeOff
+                                }
+                                boxSize={{ base: 5, md: 6 }}
+                                color="text.secondary"
+                            />
+                            <Switch
+                                size={{ base: 'md', md: 'lg' }}
+                                isChecked={appState.chatOverlayEnabled}
+                                onChange={(event) => {
+                                    const nextValue = event.target.checked;
+                                    dispatch({
+                                        type: 'setChatOverlayEnabled',
+                                        payload: nextValue,
+                                    });
+                                }}
+                                colorScheme="green"
+                            />
+                        </HStack>
+                    )}
                 </Flex>
             </Box>
             <Box
@@ -184,23 +311,28 @@ const GameSettings = () => {
                 border="2px solid"
                 borderColor="border.lightGray"
                 p={{ base: 5, md: 6 }}
-                mt={6}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex
-                    direction={{ base: 'column', sm: 'row' }}
+                    direction="row"
                     justify={'space-between'}
-                    align={{ base: 'start', sm: 'center' }}
+                    align="center"
+                    wrap="nowrap"
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'md', md: 'lg' }}
+                        fontSize={{ base: 'sm', md: 'lg' }}
                         fontWeight="bold"
                         color="text.secondary"
+                        flex={1}
+                        minWidth={0}
+                        whiteSpace="nowrap"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
                     >
                         Chat Notification Sound
                     </Text>
-                    <HStack spacing={3}>
+                    <HStack spacing={3} flexShrink={0}>
                         <Icon
                             as={
                                 appState.chatSoundEnabled
@@ -211,7 +343,7 @@ const GameSettings = () => {
                             color="text.secondary"
                         />
                         <Switch
-                            size="lg"
+                            size={{ base: 'md', md: 'lg' }}
                             isChecked={appState.chatSoundEnabled}
                             onChange={(event) => {
                                 const nextValue = event.target.checked;
@@ -225,7 +357,7 @@ const GameSettings = () => {
                     </HStack>
                 </Flex>
             </Box>
-        </Box>
+        </VStack>
     );
 };
 

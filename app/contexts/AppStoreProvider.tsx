@@ -20,6 +20,7 @@ const initialState: AppState = {
     volume: 1,
     chatSoundEnabled: true,
     chatOverlayEnabled: true,
+    fourColorDeckEnabled: false,
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,
@@ -40,6 +41,7 @@ export type ACTIONTYPE =
     | { type: 'setVolume'; payload: number }
     | { type: 'setChatSoundEnabled'; payload: boolean }
     | { type: 'setChatOverlayEnabled'; payload: boolean }
+    | { type: 'setFourColorDeckEnabled'; payload: boolean }
     | { type: 'incrementUnreadCount' }
     | { type: 'resetUnreadCount' }
     | { type: 'setChatOpen'; payload: boolean }
@@ -96,6 +98,14 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 );
             }
             return { ...state, chatOverlayEnabled: action.payload };
+        case 'setFourColorDeckEnabled':
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(
+                    'fourColorDeckEnabled',
+                    action.payload.toString()
+                );
+            }
+            return { ...state, fourColorDeckEnabled: action.payload };
         case 'incrementUnreadCount':
             return {
                 ...state,
@@ -161,6 +171,15 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
             dispatch({
                 type: 'setChatOverlayEnabled',
                 payload: storedChatOverlayEnabled === 'true',
+            });
+        }
+        const storedFourColorDeckEnabled = localStorage.getItem(
+            'fourColorDeckEnabled'
+        );
+        if (storedFourColorDeckEnabled !== null) {
+            dispatch({
+                type: 'setFourColorDeckEnabled',
+                payload: storedFourColorDeckEnabled === 'true',
             });
         }
     }, []);

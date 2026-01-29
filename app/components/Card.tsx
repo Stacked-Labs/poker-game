@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useContext } from 'react';
 import { Box } from '@chakra-ui/react';
 import type { Card as CardType } from '../interfaces';
+import { AppContext } from '../contexts/AppStoreProvider';
 
 type CardProps = {
     card: CardType;
@@ -32,10 +33,17 @@ const rankMap: { [key: string]: string } = {
 };
 
 // Suit symbols and colors - Saturated for better visibility
-const suitConfig = {
+const suitConfigDefault = {
     C: { symbol: '♣', color: '#000000' }, // Clubs - Black
-    D: { symbol: '♦', color: '#DC143C' }, // Diamonds - Crimson Red (more saturated)
-    H: { symbol: '♥', color: '#DC143C' }, // Hearts - Crimson Red (more saturated)
+    D: { symbol: '♦', color: '#DC143C' }, // Diamonds - Crimson Red
+    H: { symbol: '♥', color: '#DC143C' }, // Hearts - Crimson Red
+    S: { symbol: '♠', color: '#000000' }, // Spades - Black
+};
+
+const suitConfigFourColor = {
+    C: { symbol: '♣', color: '#1F8A4C' }, // Clubs - Green
+    D: { symbol: '♦', color: '#1E6BD6' }, // Diamonds - Blue
+    H: { symbol: '♥', color: '#DC143C' }, // Hearts - Red
     S: { symbol: '♠', color: '#000000' }, // Spades - Black
 };
 
@@ -85,15 +93,25 @@ const SVGCardFace = ({
     folded = false,
     highlighted = false,
     dimmed = false,
+    fourColorDeckEnabled = false,
 }: {
     rank: string;
     suit: string;
     folded?: boolean;
     highlighted?: boolean;
     dimmed?: boolean;
+    fourColorDeckEnabled?: boolean;
 }) => {
-    const suitInfo = suitConfig[suit as keyof typeof suitConfig];
-    const isRed = suit === 'D' || suit === 'H';
+    const suitInfo =
+        (fourColorDeckEnabled
+            ? suitConfigFourColor[suit as keyof typeof suitConfigFourColor]
+            : suitConfigDefault[suit as keyof typeof suitConfigDefault]) ??
+        suitConfigDefault.S;
+    const rankColor = fourColorDeckEnabled
+        ? suitInfo.color
+        : suit === 'D' || suit === 'H'
+          ? '#DC143C'
+          : '#000000';
 
     return (
         <svg
@@ -133,7 +151,7 @@ const SVGCardFace = ({
                 y="10"
                 fontSize="10"
                 fontWeight="700"
-                fill={isRed ? '#DC143C' : '#000000'}
+                fill={rankColor}
                 fontFamily="var(--font-poppins), sans-serif"
             >
                 {rank}
@@ -270,6 +288,8 @@ const SVGCard = ({
     skipAnimation = false,
     onFlipStart,
 }: CardProps) => {
+    const { appState } = useContext(AppContext);
+    const fourColorDeckEnabled = appState.fourColorDeckEnabled;
     const [flipState, setFlipState] = useState<'back' | 'flipping' | 'front'>(
         'back'
     );
@@ -408,6 +428,7 @@ const SVGCard = ({
                         folded={folded}
                         highlighted={highlighted}
                         dimmed={dimmed}
+                        fourColorDeckEnabled={fourColorDeckEnabled}
                     />
                 ) : (
                     <CardBack

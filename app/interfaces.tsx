@@ -29,6 +29,7 @@ export type AppState = {
     volume: number;
     chatSoundEnabled: boolean;
     chatOverlayEnabled: boolean;
+    fourColorDeckEnabled: boolean;
     unreadMessageCount: number;
     isChatOpen: boolean; // Track if chat is currently open
     seatRequested: number | null;

@@ -10,11 +10,14 @@ import {
 } from '@chakra-ui/react';
 import { FaMoon } from 'react-icons/fa';
 import { IoMdSunny } from 'react-icons/io';
+import { FiEye, FiEyeOff, FiVolume2, FiVolumeX } from 'react-icons/fi';
 import { useColorMode } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 const GameSettings = () => {
     const { colorMode, toggleColorMode } = useColorMode();
+    const { appState, dispatch } = useContext(AppContext);
     const tableColorKey = localStorage.getItem('tableColorKey') ?? 'green';
     const [selectedColor, onColorChange] = useState<string>(tableColorKey);
 
@@ -118,6 +121,105 @@ const GameSettings = () => {
                             size="lg"
                             isChecked={colorMode === 'dark'}
                             onChange={toggleColorMode}
+                            colorScheme="green"
+                        />
+                    </HStack>
+                </Flex>
+            </Box>
+            <Box
+                bg="card.white"
+                borderRadius="16px"
+                border="2px solid"
+                borderColor="border.lightGray"
+                p={{ base: 5, md: 6 }}
+                mt={6}
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+            >
+                <Flex
+                    direction={{ base: 'column', sm: 'row' }}
+                    justify={'space-between'}
+                    align={{ base: 'start', sm: 'center' }}
+                    gap={3}
+                >
+                    <Text
+                        fontSize={{ base: 'md', md: 'lg' }}
+                        fontWeight="bold"
+                        color="text.secondary"
+                    >
+                        Chat Overlay
+                    </Text>
+                    <HStack
+                        spacing={3}
+                        sx={{
+                            '@media (orientation: portrait)': {
+                                display: 'none',
+                            },
+                        }}
+                    >
+                        <Icon
+                            as={
+                                appState.chatOverlayEnabled ? FiEye : FiEyeOff
+                            }
+                            boxSize={{ base: 5, md: 6 }}
+                            color="text.secondary"
+                        />
+                        <Switch
+                            size="lg"
+                            isChecked={appState.chatOverlayEnabled}
+                            onChange={(event) => {
+                                const nextValue = event.target.checked;
+                                dispatch({
+                                    type: 'setChatOverlayEnabled',
+                                    payload: nextValue,
+                                });
+                            }}
+                            colorScheme="green"
+                        />
+                    </HStack>
+                </Flex>
+            </Box>
+            <Box
+                bg="card.white"
+                borderRadius="16px"
+                border="2px solid"
+                borderColor="border.lightGray"
+                p={{ base: 5, md: 6 }}
+                mt={6}
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+            >
+                <Flex
+                    direction={{ base: 'column', sm: 'row' }}
+                    justify={'space-between'}
+                    align={{ base: 'start', sm: 'center' }}
+                    gap={3}
+                >
+                    <Text
+                        fontSize={{ base: 'md', md: 'lg' }}
+                        fontWeight="bold"
+                        color="text.secondary"
+                    >
+                        Chat Notification Sound
+                    </Text>
+                    <HStack spacing={3}>
+                        <Icon
+                            as={
+                                appState.chatSoundEnabled
+                                    ? FiVolume2
+                                    : FiVolumeX
+                            }
+                            boxSize={{ base: 5, md: 6 }}
+                            color="text.secondary"
+                        />
+                        <Switch
+                            size="lg"
+                            isChecked={appState.chatSoundEnabled}
+                            onChange={(event) => {
+                                const nextValue = event.target.checked;
+                                dispatch({
+                                    type: 'setChatSoundEnabled',
+                                    payload: nextValue,
+                                });
+                            }}
                             colorScheme="green"
                         />
                     </HStack>

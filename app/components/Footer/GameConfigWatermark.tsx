@@ -59,6 +59,10 @@ const GameConfigWatermark = () => {
         const getChainLogo = (chain: string) => {
             const chainLower = chain.toLowerCase();
             if (chainLower === 'base') return '/networkLogos/base-logo.png';
+            if (chainLower === 'base sepolia')
+                return '/networkLogos/base-logo.png';
+            if (chainLower === 'base-sepolia')
+                return '/networkLogos/base-logo.png';
             if (chainLower === 'arbitrum')
                 return '/networkLogos/arbitrum-logo.png';
             if (chainLower === 'optimism')

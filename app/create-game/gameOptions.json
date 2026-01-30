@@ -13,9 +13,15 @@
     ],
     "networks": [
         {
+            "name": "Base Sepolia",
+            "image": "/networkLogos/base-logo.png",
+            "badge": "Testnet",
+            "disabled": false
+        },
+        {
             "name": "Base",
             "image": "/networkLogos/base-logo.png",
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Optimism",
@@ -25,11 +31,6 @@
         {
             "name": "Arbitrum",
             "image": "/networkLogos/arbitrum-logo.png",
-            "disabled": true
-        },
-        {
-            "name": "Solana",
-            "image": "/networkLogos/solana-logo.png",
             "disabled": true
         }
     ]

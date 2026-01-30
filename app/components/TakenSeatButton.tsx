@@ -1030,12 +1030,13 @@ const TakenSeatButton = ({
                                 >
                                     <Icon
                                         as={MdPerson}
-                                        color="brand.lightGray"
+                                        color="brand.darkNavy"
                                         boxSize={{ base: 2.5, md: 3 }}
                                     />
                                     <Text
                                         as="span"
                                         display={{ base: 'none', md: 'inline' }}
+                                        color="brand.darkNavy"
                                     >
                                         {player.readyNextHand
                                             ? 'Joining...'

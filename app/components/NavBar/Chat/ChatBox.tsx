@@ -293,9 +293,6 @@ const Chatbox = ({
                                     type: 'setChatOverlayEnabled',
                                     payload: nextState,
                                 });
-                                if (nextState && appState.isChatOpen) {
-                                    onToggle();
-                                }
                             }}
                             sx={{
                                 '@media (orientation: portrait)': {

@@ -8,11 +8,11 @@
         "ownerAddress": "REPLACE_ME"
     },
     "miniapp": {
-        "version": "1.0",
+        "version": "1",
         "name": "Stacked Poker",
         "subtitle": "Poker with friends, onchain",
         "description": "The easiest way to play poker with friends—free or with crypto. No downloads, no sign-up.",
-        "tagline": "Play in seconds. Just send the link.",
+        "tagline": "Send the link. Play instantly.",
         "primaryCategory": "games",
         "tags": ["poker", "cards", "social", "onchain", "multiplayer"],
         "canonicalDomain": "stackedpoker.io",

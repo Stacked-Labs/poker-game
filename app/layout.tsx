@@ -21,7 +21,7 @@ const libreBarcode = Libre_Barcode_39_Text({
 
 export const metadata: Metadata = {
     other: {
-        'base:app_id': '697e0df32aaf0bc9ad8a2b7',
+        'base:app_id': '697e0df32aafa0bc9ad8a2b7',
         'fc:miniapp': JSON.stringify({
             version: '1',
             imageUrl: 'https://stackedpoker.io/previews/home_preview.png',
@@ -48,10 +48,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <head>
-                <meta
-                    name="base:app_id"
-                    content="697e0df32aaf0bc9ad8a2b7"
-                />
+                <meta name="base:app_id" content="697e0df32aafa0bc9ad8a2b7" />
                 <link
                     rel="preconnect"
                     href="https://challenges.cloudflare.com"

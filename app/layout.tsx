@@ -19,28 +19,26 @@ const libreBarcode = Libre_Barcode_39_Text({
     variable: '--font-barcode',
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-    return {
-        other: {
-            'base:app_id': '697e0df32aaf0bc9ad8a2b7',
-            'fc:miniapp': JSON.stringify({
-                version: '1',
-                imageUrl: 'https://stackedpoker.io/previews/home_preview.png',
-                button: {
-                    title: 'Play Stacked',
-                    action: {
-                        type: 'launch_miniapp',
-                        name: 'Stacked Poker',
-                        url: 'https://stackedpoker.io/',
-                        splashImageUrl:
-                            'https://stackedpoker.io/previews/home_preview.png',
-                        splashBackgroundColor: '#0b1020',
-                    },
+export const metadata: Metadata = {
+    other: {
+        'base:app_id': '697e0df32aaf0bc9ad8a2b7',
+        'fc:miniapp': JSON.stringify({
+            version: '1',
+            imageUrl: 'https://stackedpoker.io/previews/home_preview.png',
+            button: {
+                title: 'Play Stacked',
+                action: {
+                    type: 'launch_miniapp',
+                    name: 'Stacked Poker',
+                    url: 'https://stackedpoker.io/',
+                    splashImageUrl:
+                        'https://stackedpoker.io/previews/home_preview.png',
+                    splashBackgroundColor: '#0b1020',
                 },
-            }),
-        },
-    };
-}
+            },
+        }),
+    },
+};
 
 export default function RootLayout({
     children,

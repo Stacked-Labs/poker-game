@@ -59,14 +59,6 @@ const nextConfig = {
             },
         ];
     },
-    async rewrites() {
-        return [
-            {
-                source: '/.well-known/farcaster.json',
-                destination: '/well-known'
-            },
-        ];
-    },
     compiler: {},
     reactStrictMode: false,
     eslint: {

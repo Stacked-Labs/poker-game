@@ -1,0 +1,32 @@
+{
+    "accountAssociation": {
+        "header": "REPLACE_ME",
+        "payload": "REPLACE_ME",
+        "signature": "REPLACE_ME"
+    },
+    "baseBuilder": {
+        "ownerAddress": "REPLACE_ME"
+    },
+    "miniapp": {
+        "version": "1.0",
+        "name": "Stacked Poker",
+        "subtitle": "Poker with friends, onchain",
+        "description": "The easiest way to play poker with friends—free or with crypto. No downloads, no sign-up.",
+        "tagline": "Play in seconds. Just send the link.",
+        "primaryCategory": "games",
+        "tags": ["poker", "cards", "social", "onchain", "multiplayer"],
+        "canonicalDomain": "stackedpoker.io",
+        "homeUrl": "https://stackedpoker.io/",
+        "iconUrl": "https://stackedpoker.io/IconMain.png",
+        "splashImageUrl": "https://stackedpoker.io/previews/home_preview.png",
+        "splashBackgroundColor": "#0b1020",
+        "heroImageUrl": "https://stackedpoker.io/previews/table_preview.png",
+        "screenshotUrls": [
+            "https://stackedpoker.io/previews/home_preview.png",
+            "https://stackedpoker.io/previews/create_preview.png",
+            "https://stackedpoker.io/previews/table_preview.png"
+        ],
+        "requiredChains": ["eip155:8453", "eip155:84532"],
+        "requiredCapabilities": ["actions.ready"]
+    }
+}

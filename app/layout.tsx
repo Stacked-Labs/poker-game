@@ -22,17 +22,19 @@ const libreBarcode = Libre_Barcode_39_Text({
 export async function generateMetadata(): Promise<Metadata> {
     return {
         other: {
+            'base:app_id': '697e0df32aaf0bc9ad8a2b7',
             'fc:miniapp': JSON.stringify({
-                version: 'next',
-                imageUrl: 'https://images.pexels.com/photos/34194627/pexels-photo-34194627.jpeg', // Placeholder for testing
+                version: '1',
+                imageUrl: 'https://stackedpoker.io/previews/home_preview.png',
                 button: {
-                    title: 'Stacked Poker',
+                    title: 'Play Stacked',
                     action: {
                         type: 'launch_miniapp',
                         name: 'Stacked Poker',
-                        url: 'https://throneless-leadingly-rob.ngrok-free.dev', // This is a placeholder for testing, replace with actual stacked URL.
-                        splashImageUrl: 'https://images.pexels.com/photos/34194627/pexels-photo-34194627.jpeg', // Placeholder for testing
-                        splashBackgroundColor: '#000000', // Placeholder for testing
+                        url: 'https://stackedpoker.io/',
+                        splashImageUrl:
+                            'https://stackedpoker.io/previews/home_preview.png',
+                        splashBackgroundColor: '#0b1020',
                     },
                 },
             }),
@@ -68,4 +70,3 @@ export default function RootLayout({
         </html>
     );
 }
-

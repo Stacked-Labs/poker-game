@@ -36,9 +36,15 @@ description: Implement and debug wallet connection and authentication in this re
    - `verifySignedPayload({ payload, signature })`
    - On failure, disconnect wallet and clear attempt ref
 
+## Mini App notes (Coinbase Wallet / Base)
+- Use `ConnectButton` or `ConnectEmbed` for wallet UI. `ConnectEmbed` is the same UI as the modal, but inline, which is useful for an embedded sign-in screen in a Mini App.
+- Configure wallets explicitly via the `wallets` prop; include `inAppWallet()` and any target wallets (ex: `createWallet("com.coinbase.wallet")`).
+- The Connect UI supports 500+ wallets and in-app wallets, so keep a short, curated list for Mini App UX.
+- The Connect UI can optionally include Auth (SIWE-style), which can be wired to your existing server endpoints.
+- Inference: WebViews typically don’t have browser extensions, so don’t rely on auto-detected EIP-6963 extensions; prefer explicit wallet configuration.
+
 ## What to load next
 
 - For the repo’s exact auth sequence and edge cases: read `references/auth-flow.md`.
 - For CSP gotchas (embedded wallet / Turnstile / Tenor): read `references/csp-and-headers.md`.
 - To quickly sanity-check env vars: run `scripts/check-web3-env.sh`.
-

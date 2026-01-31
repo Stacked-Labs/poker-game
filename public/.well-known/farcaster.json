@@ -18,7 +18,7 @@
         "canonicalDomain": "stackedpoker.io",
         "homeUrl": "https://stackedpoker.io/",
         "iconUrl": "https://stackedpoker.io/IconMain.png",
-        "splashImageUrl": "https://stackedpoker.io/previews/home_preview.png",
+        "splashImageUrl": "https://stackedpoker.io/IconMain.png",
         "splashBackgroundColor": "#0b1020",
         "heroImageUrl": "https://stackedpoker.io/previews/table_preview.png",
         "screenshotUrls": [

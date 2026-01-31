@@ -26,6 +26,10 @@
             "https://stackedpoker.io/previews/create_preview.png",
             "https://stackedpoker.io/previews/table_preview.png"
         ],
+        "ogTitle": "Stacked — Poker with friends, onchain",
+        "ogDescription": "The easiest way to play poker with friends—free or with crypto. No downloads, no sign-up.",
+        "ogImageUrl": "https://stackedpoker.io/previews/home_preview.png",
+        "noindex": false,
         "requiredChains": ["eip155:8453", "eip155:84532"],
         "requiredCapabilities": ["actions.ready"]
     }

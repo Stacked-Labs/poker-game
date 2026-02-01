@@ -18,7 +18,7 @@ import NextImage from 'next/image';
 import { IoWallet } from 'react-icons/io5';
 import { MdTableBar } from 'react-icons/md';
 import { HiLink } from 'react-icons/hi';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import FloatingDecor from './FloatingDecor';
 
@@ -159,6 +159,8 @@ const FeaturesSection = () => {
     const prefersReducedMotion = useReducedMotion();
     const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
     const shouldAnimate = !prefersReducedMotion && !isMobile;
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [videoFailed, setVideoFailed] = useState(false);
     const fadeUp = (delay = 0) =>
         shouldAnimate
             ? {
@@ -168,6 +170,33 @@ const FeaturesSection = () => {
                   transition: { duration: 0.6, ease: 'easeOut', delay },
               }
             : {};
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || videoFailed) return;
+
+        const tryPlay = () => {
+            video.play().catch(() => {
+                // Autoplay may be blocked in WebViews; keep poster visible.
+            });
+        };
+
+        const handleError = () => {
+            setVideoFailed(true);
+        };
+
+        video.addEventListener('canplay', tryPlay);
+        video.addEventListener('error', handleError);
+
+        if (video.readyState >= 3) {
+            tryPlay();
+        }
+
+        return () => {
+            video.removeEventListener('canplay', tryPlay);
+            video.removeEventListener('error', handleError);
+        };
+    }, [videoFailed]);
 
     return (
         <Box
@@ -360,9 +389,19 @@ const FeaturesSection = () => {
                                 bg="black"
                                 zIndex={1}
                             >
+                            {videoFailed ? (
+                                <NextImage
+                                    src="/previews/home_preview.png"
+                                    alt="Stacked Poker preview"
+                                    fill
+                                    sizes="(max-width: 48em) 272px, (max-width: 62em) 336px, 416px"
+                                    style={{ objectFit: 'cover' }}
+                                />
+                            ) : (
                                 <Box
                                     className="iphone-mockup-video-inner"
                                     as="video"
+                                    ref={videoRef}
                                     width="100%"
                                     height="100%"
                                     objectFit="cover"
@@ -371,16 +410,18 @@ const FeaturesSection = () => {
                                     loop
                                     playsInline
                                     preload="metadata"
+                                    poster="/previews/home_preview.png"
                                 >
-                                    <source
-                                        src="/video/demoiphone.webm"
-                                        type="video/webm"
-                                    />
                                     <source
                                         src="/video/demoiphone.mp4"
                                         type="video/mp4"
                                     />
+                                    <source
+                                        src="/video/demoiphone.webm"
+                                        type="video/webm"
+                                    />
                                 </Box>
+                            )}
                             </Box>
                         </Box>
                     </MotionBox>

@@ -103,6 +103,8 @@ export type Config = {
     maxBuyIn: number;
     bb: number;
     sb: number;
+    crypto?: boolean;
+    chain?: string;
 };
 
 export type Pot = {

@@ -28,6 +28,7 @@ import WalletButton from './WalletButton';
 import { newPlayer, takeSeat } from '../hooks/server_actions';
 import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useActiveWallet } from 'thirdweb/react';
@@ -74,10 +75,12 @@ const variants = {
 const USERNAME_MAX_LENGTH = 9;
 
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
-    const address = useActiveWallet()?.getAccount()?.address;
+    const wallet = useActiveWallet();
+    const address = wallet?.getAccount()?.address;
     const appStore = useContext(AppContext);
     const currentUser = useCurrentUser();
     const socket = useContext(SocketContext);
+    const { isAuthenticated, isAuthenticating } = useAuth();
     const [name, setName] = useState('');
     const [buyIn, setBuyIn] = useState(
         appStore.appState.game?.config.maxBuyIn
@@ -85,6 +88,22 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             : null
     );
     const { error } = useToastHelper();
+    const config = appStore.appState.game?.config;
+    const isCryptoGame = Boolean(config?.crypto && config?.chain);
+    const needsWalletSignIn =
+        isCryptoGame && (!address || !isAuthenticated);
+    const cryptoJoinHint = !address
+        ? 'Sign in with your wallet to join this crypto game.'
+        : isAuthenticating
+          ? 'Check your wallet to sign the message…'
+          : 'Sign the message in your wallet to continue.';
+    const isJoinDisabled =
+        name.length === 0 ||
+        name.length > USERNAME_MAX_LENGTH ||
+        buyIn === null ||
+        isNaN(Number(buyIn)) ||
+        buyIn <= 0;
+    const isJoinVisuallyDisabled = isJoinDisabled || needsWalletSignIn;
 
     const handleJoin = () => {
         /* REMOVED Wallet Check
@@ -100,6 +119,10 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         // Basic validation for name, seatId, buyIn
         if (!socket) {
             error('Connection Error', 'Unable to connect to the server.');
+            return;
+        }
+        if (needsWalletSignIn) {
+            error('Authentication Required', cryptoJoinHint);
             return;
         }
         if (name.length === 0) {
@@ -297,61 +320,103 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                         <VStack w="100%" spacing={4}>
                             {/* Wallet Button */}
                             <WalletButton width="100%" height="56px" />
+                            {needsWalletSignIn && (
+                                <Text
+                                    fontSize="xs"
+                                    color="gray.500"
+                                    textAlign="center"
+                                >
+                                    {cryptoJoinHint}
+                                </Text>
+                            )}
 
                             {/* Join Button */}
-                            <Button
-                                w="100%"
-                                h="56px"
-                                fontSize="md"
-                                fontWeight="bold"
-                                borderRadius={'bigButton'}
-                                bg="brand.green"
+                            <Tooltip
+                                label={cryptoJoinHint}
+                                isDisabled={!needsWalletSignIn}
+                                placement="top"
+                                fontSize="xs"
+                                bg="brand.navy"
                                 color="white"
-                                border="none"
-                                isDisabled={
-                                    name.length === 0 ||
-                                    name.length > USERNAME_MAX_LENGTH ||
-                                    buyIn === null ||
-                                    isNaN(Number(buyIn)) ||
-                                    buyIn <= 0
-                                }
-                                _disabled={{
-                                    bg: 'gray.300',
-                                    color: 'gray.500',
-                                    cursor: 'not-allowed',
-                                    opacity: 0.6,
-                                }}
-                                _active={{
-                                    transform: 'translateY(0)',
-                                }}
-                                position="relative"
-                                overflow="hidden"
-                                _before={{
-                                    content: '""',
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    bg: 'linear-gradient(135deg, transparent, rgba(255,255,255,0.3), transparent)',
-                                    transform: 'translateX(-100%)',
-                                    transition: 'transform 0.6s',
-                                }}
-                                _hover={{
-                                    bg: 'brand.green',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 12px 24px rgba(54, 163, 123, 0.35)',
-                                    _before: {
-                                        transform: 'translateX(100%)',
-                                    },
-                                }}
-                                transition="all 0.2s ease"
-                                onClick={handleJoin}
-                                type="submit"
+                                borderRadius="md"
+                                px={2}
+                                py={1}
                             >
-                                Join Game
-                            </Button>
+                                <Button
+                                    w="100%"
+                                    h="56px"
+                                    fontSize="md"
+                                    fontWeight="bold"
+                                    borderRadius={'bigButton'}
+                                    bg={
+                                        isJoinVisuallyDisabled
+                                            ? 'gray.300'
+                                            : 'brand.green'
+                                    }
+                                    color={
+                                        isJoinVisuallyDisabled
+                                            ? 'gray.500'
+                                            : 'white'
+                                    }
+                                    border="none"
+                                    cursor={
+                                        isJoinVisuallyDisabled
+                                            ? 'not-allowed'
+                                            : 'pointer'
+                                    }
+                                    aria-disabled={
+                                        isJoinVisuallyDisabled || undefined
+                                    }
+                                    isDisabled={isJoinDisabled}
+                                    _disabled={{
+                                        bg: 'gray.300',
+                                        color: 'gray.500',
+                                        cursor: 'not-allowed',
+                                        opacity: 0.6,
+                                    }}
+                                    _active={{
+                                        transform: isJoinVisuallyDisabled
+                                            ? 'none'
+                                            : 'translateY(0)',
+                                    }}
+                                    position="relative"
+                                    overflow="hidden"
+                                    _before={{
+                                        content: '""',
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        bg: 'linear-gradient(135deg, transparent, rgba(255,255,255,0.3), transparent)',
+                                        transform: 'translateX(-100%)',
+                                        transition: 'transform 0.6s',
+                                        opacity: isJoinVisuallyDisabled
+                                            ? 0
+                                            : 1,
+                                    }}
+                                    _hover={
+                                        isJoinVisuallyDisabled
+                                            ? {}
+                                            : {
+                                                  bg: 'brand.green',
+                                                  transform:
+                                                      'translateY(-2px)',
+                                                  boxShadow:
+                                                      '0 12px 24px rgba(54, 163, 123, 0.35)',
+                                                  _before: {
+                                                      transform:
+                                                          'translateX(100%)',
+                                                  },
+                                              }
+                                    }
+                                    transition="all 0.2s ease"
+                                    onClick={handleJoin}
+                                    type="submit"
+                                >
+                                    Join Game
+                                </Button>
+                            </Tooltip>
                         </VStack>
                     </ModalFooter>
                 </Box>

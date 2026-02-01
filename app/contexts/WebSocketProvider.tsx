@@ -28,6 +28,7 @@ import {
     getSeatReactionEmoteUrl,
     parseSeatReactionMessage,
 } from '@/app/utils/seatReaction';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 /*  
 WebSocket context creates a single connection to the server per client. 
@@ -56,6 +57,12 @@ export function SocketProvider(props: SocketProviderProps) {
     const isReconnectingRef = useRef(false);
     const manualCloseRef = useRef(false);
     const winSoundPlayedRef = useRef(false);
+    const { isAuthenticated, userAddress } = useAuth();
+    const authRef = useRef({ isAuthenticated, address: userAddress });
+    const authStateAtConnectRef = useRef({
+        isAuthenticated: false,
+        address: null as string | null,
+    });
 
     const {
         error: originalError,
@@ -98,6 +105,10 @@ export function SocketProvider(props: SocketProviderProps) {
     useEffect(() => {
         appStateRef.current = appState;
     }, [appState]);
+
+    useEffect(() => {
+        authRef.current = { isAuthenticated, address: userAddress };
+    }, [isAuthenticated, userAddress]);
 
     const getReconnectDelay = useCallback((attempt: number) => {
         const baseDelay = 1000;
@@ -171,6 +182,10 @@ export function SocketProvider(props: SocketProviderProps) {
 
             _socket.onopen = () => {
                 console.log('WebSocket connected');
+                authStateAtConnectRef.current = {
+                    isAuthenticated: authRef.current.isAuthenticated,
+                    address: authRef.current.address,
+                };
                 const wasReconnecting = isReconnectingRef.current;
                 isReconnectingRef.current = false;
                 setIsReconnecting(false); // Reset reconnection state on successful open
@@ -666,6 +681,35 @@ export function SocketProvider(props: SocketProviderProps) {
         // getReconnectDelay, reconnectionAttempts, maxReconnectionAttempts are for attemptReconnection
     ]);
 
+    const forceReconnect = useCallback(
+        (reason: string) => {
+            if (!socketRef.current) return;
+
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+                reconnectTimeoutRef.current = null;
+            }
+
+            // Avoid reconnection toasts for intentional reconnects.
+            manualCloseRef.current = true;
+            isReconnectingRef.current = false;
+            setIsReconnecting(false);
+            setReconnectionAttempts(0);
+            hasShownInitialErrorRef.current = false;
+
+            try {
+                socketRef.current.close(1000, reason);
+            } catch (error) {
+                console.error('Error closing WebSocket for reconnect:', error);
+            }
+
+            socketRef.current = null;
+            setSocket(null);
+            connectWebSocket();
+        },
+        [connectWebSocket]
+    );
+
     const attemptReconnection = useCallback(() => {
         if (!WS_BASE_URL || reconnectionAttempts >= maxReconnectionAttempts) {
             if (reconnectionAttempts >= maxReconnectionAttempts) {
@@ -720,6 +764,19 @@ export function SocketProvider(props: SocketProviderProps) {
             }
         };
     }, [connectWebSocket, isReconnecting]); // Added isReconnecting to dependencies
+
+    useEffect(() => {
+        if (!socketRef.current || !isAuthenticated || !userAddress) return;
+
+        const authAtConnect = authStateAtConnectRef.current;
+        const needsAuthRefresh =
+            !authAtConnect.isAuthenticated ||
+            authAtConnect.address !== userAddress;
+
+        if (needsAuthRefresh) {
+            forceReconnect('Auth state updated');
+        }
+    }, [forceReconnect, isAuthenticated, userAddress]);
 
     // This useEffect is to ensure the socket state (used by context consumers) is updated
     // when socketRef.current changes. setSocket is batched by React.

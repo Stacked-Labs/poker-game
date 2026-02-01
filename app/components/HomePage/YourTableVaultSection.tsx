@@ -86,7 +86,11 @@ const YourTableVaultSection = () => {
                         transition={
                             prefersReducedMotion
                                 ? undefined
-                                : { duration: 5, repeat: Infinity, ease: 'easeInOut' }
+                                : {
+                                      duration: 5,
+                                      repeat: Infinity,
+                                      ease: 'easeInOut',
+                                  }
                         }
                     >
                         ♦
@@ -115,7 +119,11 @@ const YourTableVaultSection = () => {
                         transition={
                             prefersReducedMotion
                                 ? undefined
-                                : { duration: 6, repeat: Infinity, ease: 'easeInOut' }
+                                : {
+                                      duration: 6,
+                                      repeat: Infinity,
+                                      ease: 'easeInOut',
+                                  }
                         }
                     >
                         ♠
@@ -204,10 +212,9 @@ const YourTableVaultSection = () => {
                                 We built the perfect compromise. Our
                                 high-performance Go backend handles the
                                 shuffling and game logic instantly—so
-                                there&apos;s no lag between hands.
-                                Meanwhile, Smart Contracts act as the
-                                &quot;Banker,&quot; securing your funds
-                                on-chain.
+                                there&apos;s no lag between hands. Meanwhile,
+                                Smart Contracts act as the &quot;Banker,&quot;
+                                securing your funds on-chain.
                             </Text>
                         </VStack>
 
@@ -228,12 +235,13 @@ const YourTableVaultSection = () => {
                                     position="absolute"
                                     top={{ base: '12px', md: '16px' }}
                                     left={{ base: '12px', md: '16px' }}
+                                    zIndex={2}
                                     bg="brand.navy"
                                     color="white"
-                                    px={3}
-                                    py={1}
+                                    px={{ base: 2, md: 3 }}
+                                    py={{ base: 0.5, md: 1 }}
                                     borderRadius="full"
-                                    fontSize="xs"
+                                    fontSize={{ base: '2xs', md: 'xs' }}
                                     fontWeight="bold"
                                     letterSpacing="0.08em"
                                     textTransform="uppercase"
@@ -241,12 +249,19 @@ const YourTableVaultSection = () => {
                                     animate={
                                         prefersReducedMotion
                                             ? undefined
-                                            : { y: [0, -4, 0], rotate: [-2, 2, -2] }
+                                            : {
+                                                  y: [0, -4, 0],
+                                                  rotate: [-2, 2, -2],
+                                              }
                                     }
                                     transition={
                                         prefersReducedMotion
                                             ? undefined
-                                            : { duration: 4, repeat: Infinity, ease: 'easeInOut' }
+                                            : {
+                                                  duration: 4,
+                                                  repeat: Infinity,
+                                                  ease: 'easeInOut',
+                                              }
                                     }
                                 >
                                     Engine ↔ Banker
@@ -266,7 +281,10 @@ const YourTableVaultSection = () => {
                                             position="relative"
                                             w={{ base: '96px', md: '120px' }}
                                             h={{ base: '96px', md: '120px' }}
-                                            borderRadius={{ base: '20px', md: '24px' }}
+                                            borderRadius={{
+                                                base: '20px',
+                                                md: '24px',
+                                            }}
                                             bgGradient="linear(135deg, blue.400, blue.600)"
                                             display="flex"
                                             alignItems="center"
@@ -291,7 +309,11 @@ const YourTableVaultSection = () => {
                                             transition={
                                                 prefersReducedMotion
                                                     ? undefined
-                                                    : { duration: 3.2, repeat: Infinity, ease: 'easeInOut' }
+                                                    : {
+                                                          duration: 3.2,
+                                                          repeat: Infinity,
+                                                          ease: 'easeInOut',
+                                                      }
                                             }
                                         >
                                             <Icon
@@ -305,7 +327,10 @@ const YourTableVaultSection = () => {
                                         </MotionBox>
                                         <VStack spacing={2} align="center">
                                             <Heading
-                                                fontSize={{ base: 'lg', md: 'xl' }}
+                                                fontSize={{
+                                                    base: 'lg',
+                                                    md: 'xl',
+                                                }}
                                                 fontWeight="bold"
                                                 color="text.primary"
                                             >
@@ -321,7 +346,10 @@ const YourTableVaultSection = () => {
                                                         bg="blue.50"
                                                         color="blue.600"
                                                         px={{ base: 2, md: 3 }}
-                                                        py={{ base: 0.5, md: 1 }}
+                                                        py={{
+                                                            base: 0.5,
+                                                            md: 1,
+                                                        }}
                                                         borderRadius="full"
                                                         fontSize={{
                                                             base: '10px',
@@ -338,7 +366,10 @@ const YourTableVaultSection = () => {
                                                         bg="blue.50"
                                                         color="blue.600"
                                                         px={{ base: 2, md: 3 }}
-                                                        py={{ base: 0.5, md: 1 }}
+                                                        py={{
+                                                            base: 0.5,
+                                                            md: 1,
+                                                        }}
                                                         borderRadius="full"
                                                         fontSize={{
                                                             base: '10px',
@@ -355,7 +386,10 @@ const YourTableVaultSection = () => {
                                                         bg="blue.50"
                                                         color="blue.600"
                                                         px={{ base: 2, md: 3 }}
-                                                        py={{ base: 0.5, md: 1 }}
+                                                        py={{
+                                                            base: 0.5,
+                                                            md: 1,
+                                                        }}
                                                         borderRadius="full"
                                                         fontSize={{
                                                             base: '10px',
@@ -411,7 +445,11 @@ const YourTableVaultSection = () => {
                                                 transition={
                                                     prefersReducedMotion
                                                         ? undefined
-                                                        : { duration: 2.6, repeat: Infinity, ease: 'easeInOut' }
+                                                        : {
+                                                              duration: 2.6,
+                                                              repeat: Infinity,
+                                                              ease: 'easeInOut',
+                                                          }
                                                 }
                                             />
                                             <Box
@@ -458,7 +496,10 @@ const YourTableVaultSection = () => {
                                             position="relative"
                                             w={{ base: '96px', md: '120px' }}
                                             h={{ base: '96px', md: '120px' }}
-                                            borderRadius={{ base: '20px', md: '24px' }}
+                                            borderRadius={{
+                                                base: '20px',
+                                                md: '24px',
+                                            }}
                                             bgGradient="linear(135deg, brand.green, green.600)"
                                             display="flex"
                                             alignItems="center"
@@ -483,7 +524,11 @@ const YourTableVaultSection = () => {
                                             transition={
                                                 prefersReducedMotion
                                                     ? undefined
-                                                    : { duration: 3.4, repeat: Infinity, ease: 'easeInOut' }
+                                                    : {
+                                                          duration: 3.4,
+                                                          repeat: Infinity,
+                                                          ease: 'easeInOut',
+                                                      }
                                             }
                                         >
                                             <Icon
@@ -497,7 +542,10 @@ const YourTableVaultSection = () => {
                                         </MotionBox>
                                         <VStack spacing={2} align="center">
                                             <Heading
-                                                fontSize={{ base: 'lg', md: 'xl' }}
+                                                fontSize={{
+                                                    base: 'lg',
+                                                    md: 'xl',
+                                                }}
                                                 fontWeight="bold"
                                                 color="text.primary"
                                             >
@@ -513,7 +561,10 @@ const YourTableVaultSection = () => {
                                                         bg="green.50"
                                                         color="brand.lightGray"
                                                         px={{ base: 2, md: 3 }}
-                                                        py={{ base: 0.5, md: 1 }}
+                                                        py={{
+                                                            base: 0.5,
+                                                            md: 1,
+                                                        }}
                                                         borderRadius="full"
                                                         fontSize={{
                                                             base: '10px',
@@ -530,7 +581,10 @@ const YourTableVaultSection = () => {
                                                         bg="green.50"
                                                         color="brand.lightGray"
                                                         px={{ base: 2, md: 3 }}
-                                                        py={{ base: 0.5, md: 1 }}
+                                                        py={{
+                                                            base: 0.5,
+                                                            md: 1,
+                                                        }}
                                                         borderRadius="full"
                                                         fontSize={{
                                                             base: '10px',
@@ -547,7 +601,10 @@ const YourTableVaultSection = () => {
                                                         bg="green.50"
                                                         color="brand.lightGray"
                                                         px={{ base: 2, md: 3 }}
-                                                        py={{ base: 0.5, md: 1 }}
+                                                        py={{
+                                                            base: 0.5,
+                                                            md: 1,
+                                                        }}
                                                         borderRadius="full"
                                                         fontSize={{
                                                             base: '10px',
@@ -653,7 +710,10 @@ const YourTableVaultSection = () => {
                                                 }}
                                             />
                                             <Heading
-                                                fontSize={{ base: 'lg', md: 'xl' }}
+                                                fontSize={{
+                                                    base: 'lg',
+                                                    md: 'xl',
+                                                }}
                                                 fontWeight="bold"
                                                 color="text.primary"
                                                 letterSpacing="-0.01em"
@@ -663,7 +723,10 @@ const YourTableVaultSection = () => {
                                         </HStack>
                                         <Text
                                             color="text.secondary"
-                                            lineHeight={{ base: 'taller', md: 'tall' }}
+                                            lineHeight={{
+                                                base: 'taller',
+                                                md: 'tall',
+                                            }}
                                             fontSize={{ base: 'sm', md: 'md' }}
                                             fontWeight="medium"
                                         >
@@ -738,7 +801,10 @@ const YourTableVaultSection = () => {
                                                 }}
                                             />
                                             <Heading
-                                                fontSize={{ base: 'lg', md: 'xl' }}
+                                                fontSize={{
+                                                    base: 'lg',
+                                                    md: 'xl',
+                                                }}
                                                 fontWeight="bold"
                                                 color="text.primary"
                                                 letterSpacing="-0.01em"
@@ -748,7 +814,10 @@ const YourTableVaultSection = () => {
                                         </HStack>
                                         <Text
                                             color="text.secondary"
-                                            lineHeight={{ base: 'taller', md: 'tall' }}
+                                            lineHeight={{
+                                                base: 'taller',
+                                                md: 'tall',
+                                            }}
                                             fontSize={{ base: 'sm', md: 'md' }}
                                             fontWeight="medium"
                                         >

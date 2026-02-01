@@ -6,6 +6,7 @@ import GameConfigWatermark from '@/app/components/Footer/GameConfigWatermark';
 import ChatOverlay from '@/app/components/NavBar/Chat/ChatOverlay';
 import GameViewport from '@/app/components/GameViewport';
 import LobbyBanner from '@/app/components/LobbyBanner';
+import SeatRequestPopup from '@/app/components/SeatRequestPopup';
 
 const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
@@ -55,6 +56,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                     </Flex>
 
                     <LobbyBanner />
+                    <SeatRequestPopup />
                 </SocketProvider>
             </Flex>
         </GameViewport>

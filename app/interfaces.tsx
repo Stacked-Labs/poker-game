@@ -35,6 +35,8 @@ export type AppState = {
     seatRequested: number | null;
     seatAccepted: SeatAccepted | null; // Accepted seat request (waiting to join)
     pendingPlayers: PendingPlayer[]; // Added for storing pending players
+    showSeatRequestPopups: boolean;
+    isSettingsOpen: boolean;
     blindObligation: BlindObligation | null;
     isTableOwner: boolean | null;
 };

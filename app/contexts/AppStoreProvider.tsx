@@ -26,6 +26,8 @@ const initialState: AppState = {
     seatRequested: null,
     seatAccepted: null,
     pendingPlayers: [],
+    showSeatRequestPopups: true,
+    isSettingsOpen: false,
     blindObligation: null,
     isTableOwner: null,
 };
@@ -48,6 +50,8 @@ export type ACTIONTYPE =
     | { type: 'setSeatRequested'; payload: number | null }
     | { type: 'setSeatAccepted'; payload: SeatAccepted | null }
     | { type: 'setPendingPlayers'; payload: PendingPlayer[] }
+    | { type: 'setShowSeatRequestPopups'; payload: boolean }
+    | { type: 'setIsSettingsOpen'; payload: boolean }
     | { type: 'setBlindObligation'; payload: AppState['blindObligation'] }
     | { type: 'clearBlindObligation' }
     | { type: 'setIsTableOwner'; payload: boolean | null };
@@ -71,12 +75,20 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 seatRequested: null,
                 seatAccepted: null,
                 pendingPlayers: [],
+                showSeatRequestPopups: true,
+                isSettingsOpen: false,
                 isTableOwner: null,
             };
         case 'updatePlayerID':
             return { ...state, clientID: action.payload };
         case 'setTablename':
-            return { ...state, table: action.payload, isTableOwner: null };
+            return {
+                ...state,
+                table: action.payload,
+                isTableOwner: null,
+                showSeatRequestPopups: true,
+                isSettingsOpen: false,
+            };
         case 'setVolume':
             if (typeof window !== 'undefined') {
                 localStorage.setItem('volume', action.payload.toString());
@@ -128,6 +140,10 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, seatAccepted: action.payload };
         case 'setPendingPlayers':
             return { ...state, pendingPlayers: action.payload };
+        case 'setShowSeatRequestPopups':
+            return { ...state, showSeatRequestPopups: action.payload };
+        case 'setIsSettingsOpen':
+            return { ...state, isSettingsOpen: action.payload };
         case 'setBlindObligation':
             return { ...state, blindObligation: action.payload };
         case 'clearBlindObligation':

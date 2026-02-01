@@ -102,6 +102,16 @@ const Navbar = () => {
         onToggleChat();
     };
 
+    const handleOpenSettings = () => {
+        dispatch({ type: 'setIsSettingsOpen', payload: true });
+        onOpen();
+    };
+
+    const handleCloseSettings = () => {
+        dispatch({ type: 'setIsSettingsOpen', payload: false });
+        onClose();
+    };
+
 
     useEffect(() => {
 
@@ -153,7 +163,7 @@ const Navbar = () => {
                                 />
                             }
                             aria-label="Settings"
-                            onClick={onOpen}
+                            onClick={handleOpenSettings}
                             px={2}
                             py={2}
                             width={{ base: '40px', sm: '40px', md: '48px' }}
@@ -491,7 +501,7 @@ const Navbar = () => {
                     </Box>
                 </HStack>
 
-                <SettingsModal isOpen={isOpen} onClose={onClose} />
+            <SettingsModal isOpen={isOpen} onClose={handleCloseSettings} />
             </Flex>
             <Flex
                 className="chat-overlay-backdrop"

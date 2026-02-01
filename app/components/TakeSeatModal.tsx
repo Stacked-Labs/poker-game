@@ -14,6 +14,7 @@ import {
     Box,
     FormControl,
     FormLabel,
+    FormErrorMessage,
     VStack,
     Center,
     HStack,
@@ -70,6 +71,8 @@ const variants = {
     initial: { scale: 1, rotate: 0 },
 };
 
+const USERNAME_MAX_LENGTH = 9;
+
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const address = useActiveWallet()?.getAccount()?.address;
     const appStore = useContext(AppContext);
@@ -101,6 +104,13 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         }
         if (name.length === 0) {
             error('Missing Information', 'Please enter a username.');
+            return;
+        }
+        if (name.length > USERNAME_MAX_LENGTH) {
+            error(
+                'Invalid Username',
+                `Username must be fewer than 10 characters.`
+            );
             return;
         }
         if (!seatId) {
@@ -230,7 +240,12 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                         <Center>
                             <VStack w="100%" spacing={4}>
                                 {/* Name Input */}
-                                <FormControl>
+                                <FormControl
+                                    isInvalid={
+                                        name.length > 0 &&
+                                        name.length > USERNAME_MAX_LENGTH
+                                    }
+                                >
                                     <FormLabel
                                         color="text.secondary"
                                         fontSize="2xl"
@@ -245,8 +260,13 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             setName(e.target.value)
                                         }
                                         variant={'takeSeatModal'}
+                                        maxLength={USERNAME_MAX_LENGTH}
                                         required
                                     />
+                                    <FormErrorMessage fontSize="xs" mt={1}>
+                                        Username must be fewer than 10
+                                        characters.
+                                    </FormErrorMessage>
                                 </FormControl>
 
                                 {/* Buy-in Input */}
@@ -289,7 +309,8 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 color="white"
                                 border="none"
                                 isDisabled={
-                                    name === '' ||
+                                    name.length === 0 ||
+                                    name.length > USERNAME_MAX_LENGTH ||
                                     buyIn === null ||
                                     isNaN(Number(buyIn)) ||
                                     buyIn <= 0

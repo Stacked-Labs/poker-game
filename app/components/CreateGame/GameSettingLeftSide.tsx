@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useContext, useEffect, useMemo } from 'react';
+import React, { useState, useContext, useEffect, useMemo, useRef } from 'react';
 import {
     VStack,
     Text,
@@ -76,6 +76,7 @@ const GameSettingLeftSide: React.FC = () => {
     const [isFormValid, setIsFormValid] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileError, setTurnstileError] = useState(false);
+    const isCreatingRef = useRef(false);
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
     const isTurnstileConfigured = Boolean(turnstileSiteKey);
 
@@ -205,6 +206,10 @@ const GameSettingLeftSide: React.FC = () => {
     }, [playType]);
 
     const handleCreateGame = async () => {
+        if (isCreatingRef.current) {
+            return;
+        }
+
         if (playType === 'Crypto' && !isCryptoEnabled) {
             toast.info(
                 'Coming Soon',
@@ -284,12 +289,13 @@ const GameSettingLeftSide: React.FC = () => {
             }
         }
 
+        isCreatingRef.current = true;
         setIsLoading(true);
 
-        // Ensure HTTP session is initialized so `credentials: include` works as expected
-        await initSession();
-
+        let didCreate = false;
         try {
+            // Ensure HTTP session is initialized so `credentials: include` works as expected
+            await initSession();
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/create-table`,
                 {
@@ -315,6 +321,7 @@ const GameSettingLeftSide: React.FC = () => {
                         'Game Created',
                         `Successfully created game: ${data.tablename}`
                     );
+                    didCreate = true;
                     dispatch({ type: 'setTablename', payload: data.tablename });
                     router.push(`/table/${data.tablename}`);
                 } else {
@@ -322,7 +329,6 @@ const GameSettingLeftSide: React.FC = () => {
                         'Create Error',
                         'Received invalid response from server.'
                     );
-                    setIsLoading(false);
                 }
             } else {
                 const errorData = await response.text();
@@ -330,18 +336,19 @@ const GameSettingLeftSide: React.FC = () => {
                     'Create Failed',
                     `Failed to create game: ${response.statusText} - ${errorData}`
                 );
-                setIsLoading(false);
             }
-
-            setTurnstileToken(null);
         } catch (error) {
             console.error('Error creating game:', error);
             toast.error(
                 'Create Failed',
                 `An error occurred: ${error instanceof Error ? error.message : String(error)}`
             );
+        } finally {
             setTurnstileToken(null);
-            setIsLoading(false);
+            if (!didCreate) {
+                isCreatingRef.current = false;
+                setIsLoading(false);
+            }
         }
     };
 
@@ -1108,13 +1115,21 @@ const GameSettingLeftSide: React.FC = () => {
                             isLoading={isLoading}
                             loadingText="Creating..."
                             spinner={<Spinner size="md" color="white" />}
-                            opacity={isFormValid && isCloudflareReady ? 1 : 0.6}
+                            opacity={
+                                isFormValid && isCloudflareReady && !isLoading
+                                    ? 1
+                                    : 0.6
+                            }
                             cursor={
-                                isFormValid && isCloudflareReady
+                                isFormValid && isCloudflareReady && !isLoading
                                     ? 'pointer'
                                     : 'not-allowed'
                             }
-                            disabled={!isFormValid || !isCloudflareReady}
+                            disabled={
+                                !isFormValid ||
+                                !isCloudflareReady ||
+                                isLoading
+                            }
                             _hover={{
                                 bg: '#2d9268',
                                 transform: 'translateY(-2px)',

@@ -105,6 +105,7 @@ export type Config = {
     sb: number;
     crypto?: boolean;
     chain?: string;
+    contractAddress?: string;
 };
 
 export type Pot = {

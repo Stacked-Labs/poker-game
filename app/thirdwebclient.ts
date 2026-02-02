@@ -1,5 +1,5 @@
 import { createThirdwebClient } from 'thirdweb';
-import { base } from 'thirdweb/chains';
+import { base, baseSepolia } from 'thirdweb/chains';
 import { createWallet, inAppWallet } from 'thirdweb/wallets';
 
 const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
@@ -14,12 +14,21 @@ export const client = createThirdwebClient({
 
 // Chain configuration - Base mainnet
 export const baseChain = base;
+export const baseSepoliaChain = baseSepolia;
 
 // Supported tokens configuration
 export const supportedTokens = {
-    [base.id]: [
+    // [base.id]: [
+    //     {
+    //         address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    //         name: 'USD Coin',
+    //         symbol: 'USDC',
+    //         icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+    //     },
+    // ],
+        [baseSepolia.id]: [
         {
-            address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+            address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
             name: 'USD Coin',
             symbol: 'USDC',
             icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',

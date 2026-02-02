@@ -20,10 +20,10 @@ import {
     HStack,
     Text,
     Heading,
+    Spinner,
 } from '@chakra-ui/react';
 import { motion, MotionStyle } from 'framer-motion';
 import { keyframes } from '@emotion/react';
-import { FaDiscord } from 'react-icons/fa';
 import WalletButton from './WalletButton';
 import { newPlayer, takeSeat } from '../hooks/server_actions';
 import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
@@ -31,6 +31,7 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { useDepositAndJoin } from '../hooks/useDepositAndJoin';
 import { useActiveWallet } from 'thirdweb/react';
 
 interface TakeSeatModalProps {
@@ -87,9 +88,10 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             ? appStore.appState.game?.config.maxBuyIn
             : null
     );
-    const { error } = useToastHelper();
+    const { error, success } = useToastHelper();
     const config = appStore.appState.game?.config;
-    const isCryptoGame = Boolean(config?.crypto && config?.chain);
+    const isCryptoGame = Boolean(config?.crypto);
+    const contractAddress = config?.contractAddress;
     const needsWalletSignIn =
         isCryptoGame && (!address || !isAuthenticated);
     const cryptoJoinHint = !address
@@ -97,32 +99,66 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         : isAuthenticating
           ? 'Check your wallet to sign the message…'
           : 'Sign the message in your wallet to continue.';
-    const isJoinDisabled =
-        name.length === 0 ||
-        name.length > USERNAME_MAX_LENGTH ||
-        buyIn === null ||
-        isNaN(Number(buyIn)) ||
-        buyIn <= 0;
+
+    // Crypto deposit hook
+    const {
+        depositAndJoin,
+        status: depositStatus,
+        error: depositError,
+        isLoading: isDepositing,
+        reset: resetDeposit,
+    } = useDepositAndJoin(contractAddress);
+
+    const isNameInvalid =
+        !isCryptoGame &&
+        (name.length === 0 || name.length > USERNAME_MAX_LENGTH);
+    const isBuyInInvalid =
+        buyIn === null || isNaN(Number(buyIn)) || buyIn <= 0;
+    const isJoinDisabled = isDepositing || isNameInvalid || isBuyInInvalid;
     const isJoinVisuallyDisabled = isJoinDisabled || needsWalletSignIn;
 
-    const handleJoin = () => {
-        /* REMOVED Wallet Check
-        if (!address) {
-            error(
-                'Wallet Not Connected',
-                'Please connect your wallet to join.'
-            );
+    const handleJoin = async () => {
+        // Basic validation for seatId, buyIn
+        if (!seatId) {
+            error('Missing Information', 'Seat ID is missing.');
             return;
         }
-        */
-
-        // Basic validation for name, seatId, buyIn
-        if (!socket) {
-            error('Connection Error', 'Unable to connect to the server.');
+        if (isBuyInInvalid) {
+            error('Invalid Amount', 'Please enter a valid buy-in amount.');
             return;
         }
         if (needsWalletSignIn) {
             error('Authentication Required', cryptoJoinHint);
+            return;
+        }
+
+        // Crypto game flow: deposit via smart contract
+        if (isCryptoGame) {
+            if (!contractAddress) {
+                error('Contract Error', 'Game contract address not available.');
+                return;
+            }
+
+            const depositSuccess = await depositAndJoin(buyIn);
+
+            if (depositSuccess) {
+                success(
+                    'Deposit Successful',
+                    'Your deposit is being processed. You will be seated once approved.'
+                );
+                onClose();
+            } else {
+                // Error is already set in the hook, just show it
+                if (depositError) {
+                    error('Deposit Failed', depositError);
+                }
+            }
+            return;
+        }
+
+        // Regular game flow: WebSocket
+        if (!socket) {
+            error('Connection Error', 'Unable to connect to the server.');
             return;
         }
         if (name.length === 0) {
@@ -136,26 +172,36 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             );
             return;
         }
-        if (!seatId) {
-            error('Missing Information', 'Seat ID is missing.'); // Should not happen
-            return;
-        }
-        if (buyIn === null || isNaN(Number(buyIn)) || buyIn <= 0) {
-            error('Invalid Amount', 'Please enter a valid buy-in amount.');
-            return;
-        }
-
-        // Proceed with sending messages
         newPlayer(socket, name);
         takeSeat(socket, name, seatId, buyIn);
         appStore.dispatch({ type: 'setUsername', payload: name });
         appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
         currentUser.setCurrentUser({ name, seatId });
-        onClose(); // Close modal after sending
+        onClose();
+    };
+
+    // Reset deposit state when modal closes
+    const handleClose = () => {
+        resetDeposit();
+        onClose();
+    };
+
+    // Get status message for crypto deposit
+    const getDepositStatusMessage = () => {
+        switch (depositStatus) {
+            case 'checking_allowance':
+                return 'Checking USDC balance...';
+            case 'approving':
+                return 'Approving USDC transfer...';
+            case 'depositing':
+                return 'Depositing to table...';
+            default:
+                return null;
+        }
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} isCentered>
+        <Modal isOpen={isOpen} onClose={handleClose} isCentered>
             <ModalOverlay bg="rgba(0, 0, 0, 0.7)" backdropFilter="blur(8px)" />
             <ModalContent
                 zIndex={'modal'}
@@ -254,7 +300,9 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 textAlign="center"
                                 px={4}
                             >
-                                Join the table and start playing
+                                {isCryptoGame
+                                    ? 'Deposit USDC to join the table'
+                                    : 'Join the table and start playing'}
                             </Text>
                         </VStack>
                     </ModalHeader>
@@ -262,35 +310,37 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     <ModalBody px={8} pb={4} pt={2}>
                         <Center>
                             <VStack w="100%" spacing={4}>
-                                {/* Name Input */}
-                                <FormControl
-                                    isInvalid={
-                                        name.length > 0 &&
-                                        name.length > USERNAME_MAX_LENGTH
-                                    }
-                                >
-                                    <FormLabel
-                                        color="text.secondary"
-                                        fontSize="2xl"
-                                        mb={1}
-                                        textAlign="center"
-                                    >
-                                        🕵️
-                                    </FormLabel>
-                                    <Input
-                                        placeholder="Enter your name"
-                                        onChange={(e) =>
-                                            setName(e.target.value)
+                                {/* Name Input - only for non-crypto games */}
+                                {!isCryptoGame && (
+                                    <FormControl
+                                        isInvalid={
+                                            name.length > 0 &&
+                                            name.length > USERNAME_MAX_LENGTH
                                         }
-                                        variant={'takeSeatModal'}
-                                        maxLength={USERNAME_MAX_LENGTH}
-                                        required
-                                    />
-                                    <FormErrorMessage fontSize="xs" mt={1}>
-                                        Username must be fewer than 10
-                                        characters.
-                                    </FormErrorMessage>
-                                </FormControl>
+                                    >
+                                        <FormLabel
+                                            color="text.secondary"
+                                            fontSize="2xl"
+                                            mb={1}
+                                            textAlign="center"
+                                        >
+                                            🕵️
+                                        </FormLabel>
+                                        <Input
+                                            placeholder="Enter your name"
+                                            onChange={(e) =>
+                                                setName(e.target.value)
+                                            }
+                                            variant={'takeSeatModal'}
+                                            maxLength={USERNAME_MAX_LENGTH}
+                                            required
+                                        />
+                                        <FormErrorMessage fontSize="xs" mt={1}>
+                                            Username must be fewer than 10
+                                            characters.
+                                        </FormErrorMessage>
+                                    </FormControl>
+                                )}
 
                                 {/* Buy-in Input */}
                                 <FormControl>
@@ -300,18 +350,44 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         mb={1}
                                         textAlign="center"
                                     >
-                                        💵
+                                        {isCryptoGame ? '💰' : '💵'}
                                     </FormLabel>
                                     <Input
-                                        placeholder="Buy-in amount"
+                                        placeholder={
+                                            isCryptoGame
+                                                ? 'USDC amount (1 USDC = 100 chip)'
+                                                : 'Buy-in amount'
+                                        }
                                         type="number"
                                         onChange={(e) =>
                                             setBuyIn(parseFloat(e.target.value))
                                         }
                                         variant={'takeSeatModal'}
                                         required
+                                        isDisabled={isDepositing}
                                     />
                                 </FormControl>
+
+                                {/* Deposit Status Message */}
+                                {isDepositing && (
+                                    <HStack spacing={2} color="brand.green">
+                                        <Spinner size="sm" />
+                                        <Text fontSize="sm" fontWeight="medium">
+                                            {getDepositStatusMessage()}
+                                        </Text>
+                                    </HStack>
+                                )}
+
+                                {/* Deposit Error Message */}
+                                {depositStatus === 'error' && depositError && (
+                                    <Text
+                                        fontSize="sm"
+                                        color="red.500"
+                                        textAlign="center"
+                                    >
+                                        {depositError}
+                                    </Text>
+                                )}
                             </VStack>
                         </Center>
                     </ModalBody>
@@ -368,6 +444,11 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         isJoinVisuallyDisabled || undefined
                                     }
                                     isDisabled={isJoinDisabled}
+                                    isLoading={isDepositing}
+                                    loadingText={
+                                        getDepositStatusMessage() ||
+                                        'Processing...'
+                                    }
                                     _disabled={{
                                         bg: 'gray.300',
                                         color: 'gray.500',
@@ -414,7 +495,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     onClick={handleJoin}
                                     type="submit"
                                 >
-                                    Join Game
+                                    {isCryptoGame ? 'Deposit & Join' : 'Join Game'}
                                 </Button>
                             </Tooltip>
                         </VStack>

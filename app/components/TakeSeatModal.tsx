@@ -726,7 +726,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 <HStack
                                     spacing={2}
                                     alignItems="flex-start"
-                                    bg="green.50"
+                                    bg="rgba(54, 163, 123, 0.12)"
                                     color="green.700"
                                     borderRadius="md"
                                     px={3}

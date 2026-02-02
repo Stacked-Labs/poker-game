@@ -35,6 +35,7 @@ import {
 import TableMenuBurger from './TableMenuBurger';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
+import WithdrawButton from './WithdrawButton';
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -47,6 +48,7 @@ const Navbar = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { isOpen: isOpenChat, onToggle: onToggleChat } = useDisclosure();
     const { appState, dispatch } = useContext(AppContext);
+    const isCryptoGame = Boolean(appState.game?.config?.crypto);
     const pendingCount = appState.pendingPlayers?.length || 0;
     const [animateBadge, setAnimateBadge] = useState(false);
     const [animateMsgBadge, setAnimateMsgBadge] = useState(false);
@@ -486,6 +488,21 @@ const Navbar = () => {
                             </Flex>
                         )}
                     </Box>
+                    {isCryptoGame && (
+                        <Box
+                            className="navbar-withdraw-wrapper"
+                            sx={{
+                                '@media (orientation: portrait)': {
+                                    display: 'none',
+                                },
+                                '@media (orientation: landscape)': {
+                                    display: 'inline-flex',
+                                },
+                            }}
+                        >
+                            <WithdrawButton />
+                        </Box>
+                    )}
                     <Box
                         className="navbar-wallet-wrapper"
                         sx={{

@@ -47,6 +47,20 @@ export const POKER_TABLE_ABI = [
         stateMutability: 'view',
     },
     {
+        type: 'function',
+        name: 'canWithdraw',
+        inputs: [{ name: 'player', type: 'address', internalType: 'address' }],
+        outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+        stateMutability: 'view',
+    },
+    {
+        type: 'function',
+        name: 'withdrawChips',
+        inputs: [],
+        outputs: [],
+        stateMutability: 'nonpayable',
+    },
+    {
         type: 'event',
         name: 'PlayerDeposited',
         inputs: [

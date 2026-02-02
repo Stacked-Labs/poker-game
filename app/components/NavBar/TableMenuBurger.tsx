@@ -27,6 +27,7 @@ import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
+import WithdrawButton from './WithdrawButton';
 import {
     sendPauseGameCommand,
 } from '@/app/hooks/server_actions';
@@ -59,6 +60,7 @@ const TableMenuBurger = ({
     const socket = useContext(SocketContext);
     const { info } = useToastHelper();
     const isOwner = useIsTableOwner();
+    const isCryptoGame = Boolean(appState.game?.config?.crypto);
     const localPlayer = appState.game?.players?.find(
         (p) => p.uuid === appState.clientID
     );
@@ -129,6 +131,9 @@ const TableMenuBurger = ({
                     padding={0}
                 >
                     <Item button={<WalletButton />} />
+                    {isCryptoGame && (
+                        <Item button={<WithdrawButton />} />
+                    )}
                     {isUserSeated && !isAway && (
                         <Item
                             button={

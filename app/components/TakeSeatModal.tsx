@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import {
     Modal,
     ModalOverlay,
@@ -21,6 +21,9 @@ import {
     Text,
     Heading,
     Spinner,
+    Image,
+    Flex,
+    Icon,
 } from '@chakra-ui/react';
 import { motion, MotionStyle } from 'framer-motion';
 import { keyframes } from '@emotion/react';
@@ -33,6 +36,7 @@ import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useDepositAndJoin } from '../hooks/useDepositAndJoin';
 import { useActiveWallet } from 'thirdweb/react';
+import { FaInfoCircle } from 'react-icons/fa';
 
 interface TakeSeatModalProps {
     isOpen: boolean;
@@ -74,26 +78,38 @@ const variants = {
 };
 
 const USERNAME_MAX_LENGTH = 9;
+const CHIPS_PER_USDC = 100;
+const USDC_LOGO_URL = 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png';
 
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const wallet = useActiveWallet();
     const address = wallet?.getAccount()?.address;
     const appStore = useContext(AppContext);
+    const config = appStore.appState.game?.config;
+    const isCryptoGame = Boolean(config?.crypto);
+    const contractAddress = config?.contractAddress;
+    const initialBuyIn = config?.maxBuyIn ?? null;
     const currentUser = useCurrentUser();
     const socket = useContext(SocketContext);
     const { isAuthenticated, isAuthenticating } = useAuth();
     const [name, setName] = useState('');
-    const [buyIn, setBuyIn] = useState(
-        appStore.appState.game?.config.maxBuyIn
-            ? appStore.appState.game?.config.maxBuyIn
-            : null
+    const [buyIn, setBuyIn] = useState<number | null>(initialBuyIn);
+    const [buyInInput, setBuyInInput] = useState(() => {
+        if (initialBuyIn === null || isNaN(Number(initialBuyIn))) {
+            return '';
+        }
+        if (isCryptoGame) {
+            const usdcValue = initialBuyIn / CHIPS_PER_USDC;
+            const rounded = Math.round(usdcValue * 100) / 100;
+            return rounded.toString();
+        }
+        return initialBuyIn.toString();
+    });
+    const [inputUnit, setInputUnit] = useState<'chips' | 'usdc'>(
+        isCryptoGame ? 'usdc' : 'chips'
     );
     const { error, success } = useToastHelper();
-    const config = appStore.appState.game?.config;
-    const isCryptoGame = Boolean(config?.crypto);
-    const contractAddress = config?.contractAddress;
-    const needsWalletSignIn =
-        isCryptoGame && (!address || !isAuthenticated);
+    const needsWalletSignIn = isCryptoGame && (!address || !isAuthenticated);
     const cryptoJoinHint = !address
         ? 'Sign in with your wallet to join this crypto game.'
         : isAuthenticating
@@ -107,15 +123,91 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         error: depositError,
         isLoading: isDepositing,
         reset: resetDeposit,
+        usdcBalance,
+        refreshBalance,
     } = useDepositAndJoin(contractAddress);
 
     const isNameInvalid =
         !isCryptoGame &&
         (name.length === 0 || name.length > USERNAME_MAX_LENGTH);
-    const isBuyInInvalid =
-        buyIn === null || isNaN(Number(buyIn)) || buyIn <= 0;
+    const isBuyInInvalid = buyIn === null || isNaN(Number(buyIn)) || buyIn <= 0;
     const isJoinDisabled = isDepositing || isNameInvalid || isBuyInInvalid;
     const isJoinVisuallyDisabled = isJoinDisabled || needsWalletSignIn;
+
+    const formattedUsdcBalance = useMemo(() => {
+        if (usdcBalance === null) return null;
+        const numeric = Number(usdcBalance) / 1_000_000;
+        return numeric.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    }, [usdcBalance]);
+
+    const buyInUsdc = useMemo(() => {
+        if (!isCryptoGame || buyIn === null || isNaN(Number(buyIn))) {
+            return null;
+        }
+        return buyIn / CHIPS_PER_USDC;
+    }, [buyIn, isCryptoGame]);
+
+    const formattedChipsEstimate = useMemo(() => {
+        if (buyIn === null || isNaN(Number(buyIn))) return null;
+        return Math.round(buyIn).toLocaleString('en-US');
+    }, [buyIn]);
+
+    const formattedUsdcEstimate = useMemo(() => {
+        if (buyInUsdc === null || isNaN(Number(buyInUsdc))) return null;
+        return buyInUsdc.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    }, [buyInUsdc]);
+
+    const isBalanceInsufficient =
+        isCryptoGame &&
+        usdcBalance !== null &&
+        buyInUsdc !== null &&
+        buyInUsdc > Number(usdcBalance) / 1_000_000;
+
+    const formatUsdcInput = (value: number) => {
+        if (!Number.isFinite(value)) return '';
+        const rounded = Math.round(value * 100) / 100;
+        return rounded.toString();
+    };
+
+    const handleBuyInChange = (value: string) => {
+        if (isCryptoGame) {
+            if (inputUnit === 'usdc') {
+                if (!/^\d*(\.\d{0,2})?$/.test(value)) return;
+                setBuyInInput(value);
+                if (value === '' || value === '.') {
+                    setBuyIn(null);
+                    return;
+                }
+                const usdcValue = Number(value);
+                setBuyIn(Math.round(usdcValue * CHIPS_PER_USDC));
+                return;
+            }
+
+            if (!/^\d*$/.test(value)) return;
+            setBuyInInput(value);
+            if (value === '') {
+                setBuyIn(null);
+                return;
+            }
+            const chips = Number(value);
+            setBuyIn(chips);
+            return;
+        }
+
+        if (!/^\d*$/.test(value)) return;
+        setBuyInInput(value);
+        if (value === '') {
+            setBuyIn(null);
+            return;
+        }
+        setBuyIn(Number(value));
+    };
 
     const handleJoin = async () => {
         // Basic validation for seatId, buyIn
@@ -127,10 +219,15 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             error('Invalid Amount', 'Please enter a valid buy-in amount.');
             return;
         }
+        if (buyIn === null) {
+            return;
+        }
         if (needsWalletSignIn) {
             error('Authentication Required', cryptoJoinHint);
             return;
         }
+
+        const buyInValue = buyIn;
 
         // Crypto game flow: deposit via smart contract
         if (isCryptoGame) {
@@ -139,7 +236,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                 return;
             }
 
-            const depositSuccess = await depositAndJoin(buyIn);
+            const depositSuccess = await depositAndJoin(buyInValue);
 
             if (depositSuccess) {
                 success(
@@ -173,12 +270,37 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             return;
         }
         newPlayer(socket, name);
-        takeSeat(socket, name, seatId, buyIn);
+        takeSeat(socket, name, seatId, buyInValue);
         appStore.dispatch({ type: 'setUsername', payload: name });
         appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
         currentUser.setCurrentUser({ name, seatId });
         onClose();
     };
+
+    useEffect(() => {
+        if (!isCryptoGame && inputUnit !== 'chips') {
+            setInputUnit('chips');
+        }
+    }, [inputUnit, isCryptoGame]);
+
+    const handleUnitChange = (unit: 'chips' | 'usdc') => {
+        if (unit === inputUnit) return;
+        setInputUnit(unit);
+        if (buyIn === null || isNaN(Number(buyIn))) {
+            setBuyInInput('');
+            return;
+        }
+        if (unit === 'usdc') {
+            setBuyInInput(formatUsdcInput(buyIn / CHIPS_PER_USDC));
+            return;
+        }
+        setBuyInInput(Math.round(buyIn).toString());
+    };
+
+    useEffect(() => {
+        if (!isOpen || !isCryptoGame || !refreshBalance) return;
+        refreshBalance();
+    }, [isOpen, isCryptoGame, refreshBalance]);
 
     // Reset deposit state when modal closes
     const handleClose = () => {
@@ -344,50 +466,254 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
                                 {/* Buy-in Input */}
                                 <FormControl>
-                                    <FormLabel
-                                        color="text.secondary"
-                                        fontSize="2xl"
+                                    <Flex
+                                        alignItems="center"
+                                        justifyContent="space-between"
                                         mb={1}
-                                        textAlign="center"
                                     >
-                                        {isCryptoGame ? '💰' : '💵'}
-                                    </FormLabel>
-                                    <Input
-                                        placeholder={
-                                            isCryptoGame
-                                                ? 'USDC amount (1 USDC = 100 chip)'
-                                                : 'Buy-in amount'
-                                        }
-                                        type="number"
-                                        onChange={(e) =>
-                                            setBuyIn(parseFloat(e.target.value))
-                                        }
-                                        variant={'takeSeatModal'}
-                                        required
-                                        isDisabled={isDepositing}
-                                    />
+                                        <FormLabel
+                                            color="text.secondary"
+                                            fontSize="2xl"
+                                            mb={0}
+                                            textAlign="center"
+                                        >
+                                            {isCryptoGame ? '💰' : '💵'}
+                                        </FormLabel>
+                                        {isCryptoGame && (
+                                            <Box
+                                                position="relative"
+                                                width="140px"
+                                                height="28px"
+                                            >
+                                                <Box
+                                                    position="absolute"
+                                                    inset={0}
+                                                    bg="card.lightGray"
+                                                    borderRadius="full"
+                                                />
+                                                <Box
+                                                    position="absolute"
+                                                    top="3px"
+                                                    left={
+                                                        inputUnit === 'chips'
+                                                            ? '3px'
+                                                            : 'calc(50% + 3px)'
+                                                    }
+                                                    width="calc(50% - 6px)"
+                                                    height="22px"
+                                                    bg="white"
+                                                    borderRadius="full"
+                                                    boxShadow="sm"
+                                                    transition="left 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+                                                />
+                                                <Flex
+                                                    position="relative"
+                                                    zIndex={1}
+                                                    alignItems="center"
+                                                    justifyContent="space-between"
+                                                    height="full"
+                                                >
+                                                    <Box
+                                                        as="button"
+                                                        type="button"
+                                                        flex="1"
+                                                        height="full"
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                        cursor="pointer"
+                                                        onClick={() =>
+                                                            handleUnitChange(
+                                                                'chips'
+                                                            )
+                                                        }
+                                                        background="transparent"
+                                                        disabled={isDepositing}
+                                                    >
+                                                        <Text
+                                                            fontSize="xs"
+                                                            fontWeight="semibold"
+                                                            color={
+                                                                inputUnit ===
+                                                                'chips'
+                                                                    ? 'brand.darkNavy'
+                                                                    : 'gray.500'
+                                                            }
+                                                            whiteSpace="nowrap"
+                                                        >
+                                                            Chips
+                                                        </Text>
+                                                    </Box>
+                                                    <Box
+                                                        as="button"
+                                                        type="button"
+                                                        flex="1"
+                                                        height="full"
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                        cursor="pointer"
+                                                        onClick={() =>
+                                                            handleUnitChange(
+                                                                'usdc'
+                                                            )
+                                                        }
+                                                        background="transparent"
+                                                        disabled={isDepositing}
+                                                    >
+                                                        <Text
+                                                            fontSize="xs"
+                                                            fontWeight="semibold"
+                                                            color={
+                                                                inputUnit ===
+                                                                'usdc'
+                                                                    ? 'brand.darkNavy'
+                                                                    : 'gray.500'
+                                                            }
+                                                            whiteSpace="nowrap"
+                                                        >
+                                                            USDC
+                                                        </Text>
+                                                    </Box>
+                                                </Flex>
+                                            </Box>
+                                        )}
+                                    </Flex>
+                                    <Box position="relative">
+                                        <Input
+                                            placeholder={
+                                                isCryptoGame
+                                                    ? inputUnit === 'usdc'
+                                                        ? 'Enter USDC'
+                                                        : 'Enter chips'
+                                                    : 'Buy-in amount'
+                                            }
+                                            type="number"
+                                            step={
+                                                isCryptoGame &&
+                                                inputUnit === 'usdc'
+                                                    ? '0.01'
+                                                    : '1'
+                                            }
+                                            inputMode={
+                                                isCryptoGame &&
+                                                inputUnit === 'usdc'
+                                                    ? 'decimal'
+                                                    : 'numeric'
+                                            }
+                                            onChange={(e) =>
+                                                handleBuyInChange(
+                                                    e.target.value
+                                                )
+                                            }
+                                            variant={'takeSeatModal'}
+                                            required
+                                            isDisabled={isDepositing}
+                                            value={buyInInput}
+                                            pr="70px"
+                                        />
+                                        <Text
+                                            position="absolute"
+                                            right="16px"
+                                            top="50%"
+                                            transform="translateY(-50%)"
+                                            fontSize="xs"
+                                            color="gray.400"
+                                            fontWeight="semibold"
+                                            letterSpacing="0.02em"
+                                            pointerEvents="none"
+                                            textTransform="uppercase"
+                                        >
+                                            {isCryptoGame
+                                                ? inputUnit
+                                                : 'chips'}
+                                        </Text>
+                                    </Box>
+                                    {isCryptoGame && (
+                                        <Flex
+                                            mt={2}
+                                            alignItems="center"
+                                            justifyContent="space-between"
+                                            gap={2}
+                                            fontSize="xs"
+                                            color="gray.500"
+                                            fontWeight="medium"
+                                            lineHeight="short"
+                                        >
+                                            <Flex
+                                                alignItems="center"
+                                                gap={1}
+                                                minWidth={0}
+                                            >
+                                                {inputUnit === 'chips' ? (
+                                                    <>
+                                                        <Text
+                                                            as="span"
+                                                            color="inherit"
+                                                            isTruncated
+                                                        >
+                                                            {CHIPS_PER_USDC}{' '}
+                                                            chips = 1
+                                                        </Text>
+                                                        <Text
+                                                            as="span"
+                                                            color="inherit"
+                                                            isTruncated
+                                                        >
+                                                            USDC
+                                                        </Text>
+                                                        <Image
+                                                            src={USDC_LOGO_URL}
+                                                            alt="USDC"
+                                                            boxSize="14px"
+                                                            loading="lazy"
+                                                            flexShrink={0}
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Text
+                                                            as="span"
+                                                            color="inherit"
+                                                            isTruncated
+                                                        >
+                                                            1 USDC
+                                                        </Text>
+                                                        <Image
+                                                            src={USDC_LOGO_URL}
+                                                            alt="USDC"
+                                                            boxSize="14px"
+                                                            loading="lazy"
+                                                            flexShrink={0}
+                                                        />
+                                                        <Text
+                                                            as="span"
+                                                            color="inherit"
+                                                            isTruncated
+                                                        >
+                                                            = {CHIPS_PER_USDC}{' '}
+                                                            chips
+                                                        </Text>
+                                                    </>
+                                                )}
+                                            </Flex>
+                                            {formattedChipsEstimate &&
+                                                formattedUsdcEstimate && (
+                                                    <Text
+                                                        as="span"
+                                                        color="gray.500"
+                                                        textAlign="right"
+                                                        whiteSpace="nowrap"
+                                                    >
+                                                        {inputUnit === 'chips'
+                                                            ? `~ ${formattedUsdcEstimate} USDC`
+                                                            : `~ ${formattedChipsEstimate} chips`}
+                                                    </Text>
+                                                )}
+                                        </Flex>
+                                    )}
                                 </FormControl>
 
-                                {/* Deposit Status Message */}
-                                {isDepositing && (
-                                    <HStack spacing={2} color="brand.green">
-                                        <Spinner size="sm" />
-                                        <Text fontSize="sm" fontWeight="medium">
-                                            {getDepositStatusMessage()}
-                                        </Text>
-                                    </HStack>
-                                )}
-
-                                {/* Deposit Error Message */}
-                                {depositStatus === 'error' && depositError && (
-                                    <Text
-                                        fontSize="sm"
-                                        color="red.500"
-                                        textAlign="center"
-                                    >
-                                        {depositError}
-                                    </Text>
-                                )}
                             </VStack>
                         </Center>
                     </ModalBody>
@@ -397,13 +723,85 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                             {/* Wallet Button */}
                             <WalletButton width="100%" height="56px" />
                             {needsWalletSignIn && (
-                                <Text
+                                <HStack
+                                    spacing={2}
+                                    alignItems="flex-start"
+                                    bg="green.50"
+                                    color="green.700"
+                                    borderRadius="md"
+                                    px={3}
+                                    py={2}
                                     fontSize="xs"
-                                    color="gray.500"
-                                    textAlign="center"
+                                    fontWeight="medium"
+                                    width="100%"
+                                    alignSelf="stretch"
                                 >
-                                    {cryptoJoinHint}
-                                </Text>
+                                    <Icon
+                                        as={FaInfoCircle}
+                                        boxSize={3.5}
+                                        mt={0.5}
+                                    />
+                                    <Text color="inherit" textAlign="left">
+                                        {cryptoJoinHint}
+                                    </Text>
+                                </HStack>
+                            )}
+                            {isBalanceInsufficient && (
+                                <HStack
+                                    spacing={2}
+                                    alignItems="flex-start"
+                                    bg="red.50"
+                                    color="red.700"
+                                    borderRadius="md"
+                                    px={3}
+                                    py={2}
+                                    fontSize="xs"
+                                    fontWeight="medium"
+                                    width="100%"
+                                    alignSelf="stretch"
+                                >
+                                    <Icon
+                                        as={FaInfoCircle}
+                                        boxSize={3.5}
+                                        mt={0.5}
+                                    />
+                                    <Text color="inherit" textAlign="left">
+                                        Insufficient USDC balance
+                                        {formattedUsdcBalance
+                                            ? ` (balance: ${formattedUsdcBalance} USDC)`
+                                            : ''}
+                                        .
+                                    </Text>
+                                </HStack>
+                            )}
+                            {/* Deposit Error Message */}
+                            {depositStatus === 'error' && depositError && (
+                                <HStack
+                                    spacing={2}
+                                    alignItems="flex-start"
+                                    bg="red.50"
+                                    color="red.700"
+                                    borderRadius="md"
+                                    px={3}
+                                    py={2}
+                                    fontSize="xs"
+                                    fontWeight="medium"
+                                    width="100%"
+                                    alignSelf="stretch"
+                                >
+                                    <Icon
+                                        as={FaInfoCircle}
+                                        boxSize={3.5}
+                                        mt={0.5}
+                                    />
+                                    <Text
+                                        color="inherit"
+                                        textAlign="left"
+                                        wordBreak="break-word"
+                                    >
+                                        {depositError}
+                                    </Text>
+                                </HStack>
                             )}
 
                             {/* Join Button */}
@@ -472,17 +870,14 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         bg: 'linear-gradient(135deg, transparent, rgba(255,255,255,0.3), transparent)',
                                         transform: 'translateX(-100%)',
                                         transition: 'transform 0.6s',
-                                        opacity: isJoinVisuallyDisabled
-                                            ? 0
-                                            : 1,
+                                        opacity: isJoinVisuallyDisabled ? 0 : 1,
                                     }}
                                     _hover={
                                         isJoinVisuallyDisabled
                                             ? {}
                                             : {
                                                   bg: 'brand.green',
-                                                  transform:
-                                                      'translateY(-2px)',
+                                                  transform: 'translateY(-2px)',
                                                   boxShadow:
                                                       '0 12px 24px rgba(54, 163, 123, 0.35)',
                                                   _before: {
@@ -495,7 +890,9 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     onClick={handleJoin}
                                     type="submit"
                                 >
-                                    {isCryptoGame ? 'Deposit & Join' : 'Join Game'}
+                                    {isCryptoGame
+                                        ? 'Deposit & Join'
+                                        : 'Join Game'}
                                 </Button>
                             </Tooltip>
                         </VStack>

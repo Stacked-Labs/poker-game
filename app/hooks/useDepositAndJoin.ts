@@ -15,6 +15,9 @@ export type DepositStatus =
     | 'success'
     | 'error';
 
+const USDC_MICRO_PER_CHIP = BigInt(10_000);
+const CHIPS_PER_USDC = 100;
+
 interface UseDepositAndJoinResult {
     depositAndJoin: (chipAmount: number) => Promise<boolean>;
     status: DepositStatus;
@@ -22,6 +25,7 @@ interface UseDepositAndJoinResult {
     usdcBalance: bigint | null;
     isLoading: boolean;
     reset: () => void;
+    refreshBalance: () => Promise<bigint | null>;
 }
 
 export function useDepositAndJoin(contractAddress: string | undefined): UseDepositAndJoinResult {
@@ -70,8 +74,8 @@ export function useDepositAndJoin(contractAddress: string | undefined): UseDepos
             }
 
             try {
-                // USDC has 6 decimals, 1 chip = 1 USDC
-                const usdcAmount = BigInt(chipAmount) * BigInt(1_000_000);
+                // USDC has 6 decimals, 100 chips = 1 USDC
+                const usdcAmount = BigInt(chipAmount) * USDC_MICRO_PER_CHIP;
 
                 const usdcContract = getContract({
                     client,
@@ -93,8 +97,14 @@ export function useDepositAndJoin(contractAddress: string | undefined): UseDepos
                 });
 
                 if (userBalance < usdcAmount) {
+                    const requiredUsdc = (
+                        chipAmount / CHIPS_PER_USDC
+                    ).toFixed(2);
+                    const availableUsdc = (
+                        Number(userBalance) / 1_000_000
+                    ).toFixed(2);
                     setError(
-                        `Insufficient USDC balance. You have ${Number(userBalance) / 1_000_000} USDC but need ${chipAmount} USDC.`
+                        `Insufficient USDC balance. You have ${availableUsdc} USDC but need ${requiredUsdc} USDC.`
                     );
                     setStatus('error');
                     return false;
@@ -114,7 +124,7 @@ export function useDepositAndJoin(contractAddress: string | undefined): UseDepos
                     const approveTx = approve({
                         contract: usdcContract,
                         spender: contractAddress,
-                        amount: chipAmount, // amount in token units (not wei)
+                        amountWei: usdcAmount,
                     });
 
                     await sendAndConfirm(approveTx);
@@ -150,5 +160,6 @@ export function useDepositAndJoin(contractAddress: string | undefined): UseDepos
         usdcBalance,
         isLoading: status !== 'idle' && status !== 'success' && status !== 'error',
         reset,
+        refreshBalance: fetchUsdcBalance,
     };
 }

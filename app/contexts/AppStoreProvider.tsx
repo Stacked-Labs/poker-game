@@ -8,6 +8,7 @@ import {
     SeatAccepted,
 } from '@/app/interfaces';
 import { isTableOwner as fetchIsTableOwner } from '@/app/hooks/server_actions';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 const initialState: AppState = {
     messages: [],
@@ -167,6 +168,8 @@ export const AppContext = createContext<{
 
 export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
     const [appState, dispatch] = useReducer(reducer, initialState);
+    // Get auth state to re-check ownership when wallet changes (crypto tables)
+    const { isAuthenticated, userAddress } = useAuth();
 
     useEffect(() => {
         const storedVolume = localStorage.getItem('volume');
@@ -200,6 +203,9 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
         }
     }, []);
 
+    // Re-check ownership when table, clientID, or auth state changes
+    // For crypto tables, ownership is based on wallet address (JWT), so we need
+    // to re-check when isAuthenticated or userAddress changes
     useEffect(() => {
         let isCancelled = false;
 
@@ -230,7 +236,7 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
         return () => {
             isCancelled = true;
         };
-    }, [appState.table, appState.clientID]);
+    }, [appState.table, appState.clientID, isAuthenticated, userAddress]);
 
     return (
         <AppContext.Provider value={{ appState, dispatch }}>

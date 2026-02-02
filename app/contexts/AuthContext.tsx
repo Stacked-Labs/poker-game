@@ -6,6 +6,8 @@ import React, {
     ReactNode,
     useEffect,
     useState,
+    useRef,
+    useCallback,
 } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { isAuth } from '../hooks/server_actions';
@@ -15,14 +17,18 @@ interface AuthContextProps {
     isAuthenticated: boolean;
     isAuthenticating: boolean;
     userAddress: string | null;
+    lastAuthenticatedAddress: string | null;
     requestAuthentication: () => void;
+    refreshAuthStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
     isAuthenticating: false,
     userAddress: null,
+    lastAuthenticatedAddress: null,
     requestAuthentication: () => {},
+    refreshAuthStatus: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -34,40 +40,86 @@ type AuthProviderProps = {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const account = useActiveAccount();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    // Track the address that was last successfully authenticated (JWT address)
+    const [lastAuthenticatedAddress, setLastAuthenticatedAddress] = useState<string | null>(null);
+    const previousAddressRef = useRef<string | null>(null);
+
+    // Define checkAuthentication first (needed by refreshAuthStatus)
+    const checkAuthentication = useCallback(async () => {
+        if (!account?.address) {
+            setIsAuthenticated(false);
+            return;
+        }
+
+        try {
+            const authenticated = await isAuth();
+            setIsAuthenticated(authenticated);
+            // If authenticated, store this address as the last authenticated address
+            if (authenticated) {
+                setLastAuthenticatedAddress(account.address);
+            }
+            console.log('Auth status:', authenticated, 'Address:', account.address);
+        } catch (error) {
+            console.error('Error checking authentication:', error);
+            setIsAuthenticated(false);
+        }
+    }, [account?.address]);
+
+    // Expose a method to refresh auth status immediately (called after SIWE completes)
+    // Case 2: This is called by useWalletAuth after successful SIWE to trigger immediate
+    // auth state update, which causes WebSocketProvider to reconnect
+    const refreshAuthStatus = useCallback(async () => {
+        console.log('[AuthContext] refreshAuthStatus called - checking auth immediately');
+        await checkAuthentication();
+    }, [checkAuthentication]);
 
     // Handle wallet authentication - runs once at provider level
-    const { isAuthenticating, requestAuthentication } = useWalletAuth();
+    // Pass refreshAuthStatus so it's called immediately after SIWE success (Case 2)
+    const { isAuthenticating, requestAuthentication } = useWalletAuth(refreshAuthStatus);
 
     useEffect(() => {
-        const checkAuthentication = async () => {
-            if (!account?.address) {
-                setIsAuthenticated(false);
-                return;
-            }
-
-            try {
-                const authenticated = await isAuth();
-                setIsAuthenticated(authenticated);
-                console.log('Auth status:', authenticated);
-            } catch (error) {
-                console.error('Error checking authentication:', error);
-                setIsAuthenticated(false);
-            }
-        };
-
         checkAuthentication();
 
         // Check auth status periodically while wallet is connected
         const interval = setInterval(checkAuthentication, 5000);
 
         return () => clearInterval(interval);
-    }, [account?.address]);
+    }, [checkAuthentication]);
+
+    // Case 1: Detect wallet swap - if wallet changes after auth, logout old session
+    useEffect(() => {
+        const currentAddress = account?.address || null;
+        const prevAddress = previousAddressRef.current;
+
+        // Wallet changed
+        if (prevAddress && currentAddress && prevAddress !== currentAddress) {
+            console.log('[AuthContext] Wallet changed from', prevAddress, 'to', currentAddress);
+
+            // If we were authenticated with the old wallet, we need to logout
+            // because the JWT is still bound to the old wallet address
+            if (lastAuthenticatedAddress && lastAuthenticatedAddress !== currentAddress) {
+                console.log('[AuthContext] Wallet swap detected - logging out old session');
+                logoutUser().then(() => {
+                    setIsAuthenticated(false);
+                    setLastAuthenticatedAddress(null);
+                    // Request authentication with the new wallet
+                    requestAuthentication();
+                }).catch((err) => {
+                    console.error('[AuthContext] Error logging out after wallet swap:', err);
+                });
+            }
+        }
+
+        previousAddressRef.current = currentAddress;
+    }, [account?.address, lastAuthenticatedAddress, requestAuthentication]);
 
     const value: AuthContextProps = {
         isAuthenticated,
         isAuthenticating,
         userAddress: account?.address || null,
+        lastAuthenticatedAddress,
         requestAuthentication,
+        refreshAuthStatus,
     };
 
     return (

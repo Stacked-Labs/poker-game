@@ -56,7 +56,7 @@ const fadeIn = keyframes`
 `;
 
 const GameSettingLeftSide: React.FC = () => {
-    const isCryptoEnabled = process.env.NODE_ENV === 'development';
+    const isCryptoEnabled = true; //process.env.NODE_ENV === 'development';
     const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
@@ -235,8 +235,8 @@ const GameSettingLeftSide: React.FC = () => {
                     !isCryptoEnabled
                         ? 'Crypto games are coming soon.'
                         : !address
-                        ? 'Please sign in with your wallet for crypto play.'
-                        : 'Please sign the message in your wallet to continue.'
+                          ? 'Please sign in with your wallet for crypto play.'
+                          : 'Please sign the message in your wallet to continue.'
                 );
                 return;
             }

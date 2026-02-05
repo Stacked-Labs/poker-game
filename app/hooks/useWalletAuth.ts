@@ -9,12 +9,15 @@ import {
 import { getAuthPayload, verifySignedPayload, isAuth } from './server_actions';
 import useToastHelper from './useToastHelper';
 
+// Callback type for notifying auth completion
+type OnAuthCompleteCallback = () => Promise<void>;
+
 /**
  * Hook to handle wallet authentication via SIWE (Sign-In with Ethereum)
  * This runs once at the provider level to prevent duplicate auth requests
  * when multiple WalletButton components are mounted
  */
-export const useWalletAuth = () => {
+export const useWalletAuth = (onAuthComplete?: OnAuthCompleteCallback) => {
     const account = useActiveAccount();
     const wallet = useActiveWallet();
     const { disconnect } = useDisconnect();
@@ -23,6 +26,12 @@ export const useWalletAuth = () => {
 
     // Use ref to prevent duplicate authentication attempts
     const authAttemptRef = useRef<string | null>(null);
+    const onAuthCompleteRef = useRef(onAuthComplete);
+
+    // Keep ref updated
+    useEffect(() => {
+        onAuthCompleteRef.current = onAuthComplete;
+    }, [onAuthComplete]);
 
     const authenticate = useCallback(
         async (force = false) => {
@@ -47,6 +56,10 @@ export const useWalletAuth = () => {
                 // Check if already authenticated
                 const authenticated = await isAuth();
                 if (authenticated) {
+                    // Already authenticated - still call onAuthComplete to ensure state is synced
+                    if (onAuthCompleteRef.current) {
+                        await onAuthCompleteRef.current();
+                    }
                     return;
                 }
 
@@ -69,6 +82,12 @@ export const useWalletAuth = () => {
                         'Authentication Successful',
                         'You have been successfully authenticated.'
                     );
+                    // Case 2: Immediately refresh auth status after successful SIWE
+                    // This triggers WS reconnect so ownership is recognized without page refresh
+                    console.log('[useWalletAuth] SIWE successful, refreshing auth status');
+                    if (onAuthCompleteRef.current) {
+                        await onAuthCompleteRef.current();
+                    }
                 } else {
                     authAttemptRef.current = null;
                     disconnect(wallet);

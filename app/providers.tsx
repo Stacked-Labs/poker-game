@@ -38,13 +38,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
             >
                 <ThirdwebProvider>
                     <AutoConnect client={client} />
-                    <AppStoreProvider>
-                        <UserProvider>
-                            <AuthProvider>
+                    <AuthProvider>
+                        <AppStoreProvider>
+                            <UserProvider>
                                 <SoundProvider>{children}</SoundProvider>
-                            </AuthProvider>
-                        </UserProvider>
-                    </AppStoreProvider>
+                            </UserProvider>
+                        </AppStoreProvider>
+                    </AuthProvider>
                 </ThirdwebProvider>
             </ChakraProvider>
         </CacheProvider>

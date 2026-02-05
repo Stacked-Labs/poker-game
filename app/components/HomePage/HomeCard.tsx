@@ -64,7 +64,8 @@ const swapSecondary = keyframes`
 `;
 
 const HomeCard = () => {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+    const [showPlayOptions, setShowPlayOptions] = useState(false);
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
     const allowMotion = !prefersReducedMotion;
@@ -82,7 +83,11 @@ const HomeCard = () => {
         : 'none';
 
     const handlePlayNow = () => {
-        setIsLoading(true);
+        setShowPlayOptions(true);
+    };
+
+    const handleCreateGame = () => {
+        setIsCreating(true);
         router.push('/create-game');
     };
 
@@ -434,35 +439,92 @@ const HomeCard = () => {
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s backwards`}
                         pt={1}
                     >
-                        <Button
-                            height={{ base: '64px', md: '64px' }}
-                            fontSize={{ base: 'lg', md: 'xl' }}
-                            fontWeight="900"
-                            borderRadius="18px"
-                            bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.85))"
-                            color="white"
-                            border="none"
-                            onClick={handlePlayNow}
-                            isLoading={isLoading}
-                            loadingText="Loading"
-                            spinner={<Spinner size="md" color="white" />}
-                            _active={{
-                                transform: 'scale(0.98)',
-                            }}
-                            transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
-                            position="relative"
-                            overflow="hidden"
-                            boxShadow="0 12px 26px rgba(54, 163, 123, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.3)"
-                            _hover={{
-                                bgGradient:
-                                    'linear(to-r, rgba(54, 163, 123, 0.95), rgba(54, 163, 123, 0.8))',
-                                transform: 'translateY(-2px)',
-                                boxShadow:
-                                    '0 15px 30px rgba(54, 163, 123, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
-                            }}
-                        >
-                            [ PLAY NOW ]
-                        </Button>
+                        {!showPlayOptions ? (
+                            <Button
+                                height={{ base: '64px', md: '64px' }}
+                                fontSize={{ base: 'lg', md: 'xl' }}
+                                fontWeight="900"
+                                borderRadius="18px"
+                                bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.85))"
+                                color="white"
+                                border="none"
+                                onClick={handlePlayNow}
+                                _active={{
+                                    transform: 'scale(0.98)',
+                                }}
+                                transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                                position="relative"
+                                overflow="hidden"
+                                boxShadow="0 12px 26px rgba(54, 163, 123, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.3)"
+                                _hover={{
+                                    bgGradient:
+                                        'linear(to-r, rgba(54, 163, 123, 0.95), rgba(54, 163, 123, 0.8))',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow:
+                                        '0 15px 30px rgba(54, 163, 123, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
+                                }}
+                            >
+                                [ PLAY NOW ]
+                            </Button>
+                        ) : (
+                            <Stack spacing={{ base: 3, md: 4 }} width="100%">
+                                <Button
+                                    height={{ base: '64px', md: '64px' }}
+                                    fontSize={{ base: 'md', md: 'lg' }}
+                                    fontWeight="900"
+                                    borderRadius="18px"
+                                    bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.9))"
+                                    color="white"
+                                    border="none"
+                                    onClick={handleCreateGame}
+                                    isLoading={isCreating}
+                                    loadingText="Creating"
+                                    spinner={<Spinner size="sm" color="white" />}
+                                    _active={{
+                                        transform: 'scale(0.98)',
+                                    }}
+                                    transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                                    position="relative"
+                                    overflow="hidden"
+                                    boxShadow="0 10px 22px rgba(54, 163, 123, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.3)"
+                                    _hover={{
+                                        bgGradient:
+                                            'linear(to-r, rgba(54, 163, 123, 0.98), rgba(54, 163, 123, 0.85))',
+                                        transform: 'translateY(-2px)',
+                                        boxShadow:
+                                            '0 14px 26px rgba(54, 163, 123, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
+                                    }}
+                                >
+                                    [ CREATE ]
+                                </Button>
+                                <Button
+                                    height={{ base: '64px', md: '64px' }}
+                                    fontSize={{ base: 'md', md: 'lg' }}
+                                    fontWeight="900"
+                                    borderRadius="18px"
+                                    bg="white"
+                                    color="brand.green"
+                                    border="2px solid"
+                                    borderColor="rgba(54, 163, 123, 0.35)"
+                                    onClick={() =>
+                                        router.push('/public-games')
+                                    }
+                                    _active={{
+                                        transform: 'scale(0.98)',
+                                    }}
+                                    transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                                    boxShadow="0 10px 22px rgba(17, 24, 39, 0.08)"
+                                    _hover={{
+                                        bg: 'rgba(54, 163, 123, 0.08)',
+                                        transform: 'translateY(-2px)',
+                                        boxShadow:
+                                            '0 14px 26px rgba(17, 24, 39, 0.12)',
+                                    }}
+                                >
+                                    [ JOIN ]
+                                </Button>
+                            </Stack>
+                        )}
 
                         <Flex justify="center" pt={1}>
                             <WalletButton

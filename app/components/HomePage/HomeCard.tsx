@@ -413,20 +413,20 @@ const HomeCard = () => {
                             <HStack
                                 spacing={2}
                                 fontSize={{ base: 'sm', md: 'md' }}
-                                color="text.gray600"
+                                color="text.muted"
                                 lineHeight={1.4}
                                 fontWeight="semibold"
                                 textTransform="uppercase"
                                 letterSpacing="0.08em"
                             >
-                                <Text>NO DOWNLOAD</Text>
+                                <Text color="text.muted">NO DOWNLOAD</Text>
                                 <Box
                                     w="6px"
                                     h="6px"
                                     bg="brand.green"
                                     borderRadius="full"
                                 />
-                                <Text>NO SIGN-UP</Text>
+                                <Text color="text.muted">NO SIGN-UP</Text>
                             </HStack>
                         </VStack>
                     </Box>
@@ -479,7 +479,9 @@ const HomeCard = () => {
                                     onClick={handleCreateGame}
                                     isLoading={isCreating}
                                     loadingText="Creating"
-                                    spinner={<Spinner size="sm" color="white" />}
+                                    spinner={
+                                        <Spinner size="sm" color="white" />
+                                    }
                                     _active={{
                                         transform: 'scale(0.98)',
                                     }}
@@ -506,9 +508,7 @@ const HomeCard = () => {
                                     color="brand.green"
                                     border="2px solid"
                                     borderColor="rgba(54, 163, 123, 0.35)"
-                                    onClick={() =>
-                                        router.push('/public-games')
-                                    }
+                                    onClick={() => router.push('/public-games')}
                                     _active={{
                                         transform: 'scale(0.98)',
                                     }}

@@ -107,6 +107,10 @@ const semanticTokens = {
             default: 'gray.600',
             _dark: 'gray.400',
         },
+        'text.muted': {
+            default: 'gray.500',
+            _dark: 'gray.400',
+        },
         'text.gray700': {
             default: 'gray.700',
             _dark: 'gray.500',

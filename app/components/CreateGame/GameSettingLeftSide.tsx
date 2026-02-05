@@ -17,6 +17,7 @@ import {
     HStack,
     Image,
     Link,
+    Switch,
 } from '@chakra-ui/react';
 import {
     FaInfoCircle,
@@ -77,6 +78,7 @@ const GameSettingLeftSide: React.FC = () => {
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileError, setTurnstileError] = useState(false);
     const isCreatingRef = useRef(false);
+    const [isPublicGame, setIsPublicGame] = useState(false);
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
     const isTurnstileConfigured = Boolean(turnstileSiteKey);
 
@@ -309,6 +311,7 @@ const GameSettingLeftSide: React.FC = () => {
                         bigBlind: bigBlind,
                         isCrypto: playType === 'Crypto',
                         chain: playType === 'Crypto' ? selectedNetwork : '',
+                        isPublic: isPublicGame,
                         cfTurnstileToken: turnstileToken || '',
                     }),
                 }
@@ -353,8 +356,7 @@ const GameSettingLeftSide: React.FC = () => {
     };
 
     const handleJoinPublicGame = () => {
-        // Placeholder - will be implemented later
-        toast.info('Coming Soon', 'Public game lobby will be available soon!');
+        router.push('/public-games');
     };
 
     const handleDisconnectWallet = () => {
@@ -449,6 +451,38 @@ const GameSettingLeftSide: React.FC = () => {
                         playType={playType}
                         setPlayType={setPlayType}
                         isCryptoEnabled={isCryptoEnabled}
+                    />
+                </Flex>
+
+                <Divider borderColor="gray.100" />
+
+                {/* Public Game Section */}
+                <Flex
+                    px={{ base: 5, md: 8 }}
+                    py={3}
+                    justifyContent="space-between"
+                    alignItems={{ base: 'flex-start', sm: 'center' }}
+                    flexDirection={{ base: 'column', sm: 'row' }}
+                    gap={4}
+                >
+                    <Box>
+                        <Text
+                            fontWeight="bold"
+                            fontSize="md"
+                            color="text.primary"
+                        >
+                            Public
+                        </Text>
+                        <Text fontSize="sm" color="gray.500">
+                            Show this game in the lobby
+                        </Text>
+                    </Box>
+                    <Switch
+                        isChecked={isPublicGame}
+                        onChange={(e) => setIsPublicGame(e.target.checked)}
+                        colorScheme="green"
+                        size="lg"
+                        alignSelf={{ base: 'flex-end', sm: 'center' }}
                     />
                 </Flex>
 
@@ -1126,9 +1160,7 @@ const GameSettingLeftSide: React.FC = () => {
                                     : 'not-allowed'
                             }
                             disabled={
-                                !isFormValid ||
-                                !isCloudflareReady ||
-                                isLoading
+                                !isFormValid || !isCloudflareReady || isLoading
                             }
                             _hover={{
                                 bg: '#2d9268',

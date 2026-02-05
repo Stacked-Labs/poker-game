@@ -394,6 +394,31 @@ const components = {
         },
         variants: {
             base: {},
+            greenGradient: {
+                bgGradient:
+                    'linear(to-r, brand.green, rgba(54, 163, 123, 0.85))',
+                color: 'white',
+                fontWeight: 'bold',
+                border: 'none',
+                _hover: {
+                    bgGradient:
+                        'linear(to-r, rgba(54, 163, 123, 0.98), rgba(54, 163, 123, 0.82))',
+                },
+            },
+            outlineSuccess: {
+                bg: 'white',
+                color: 'brand.green',
+                border: '1px solid',
+                borderColor: 'rgba(54, 163, 123, 0.35)',
+                _hover: { bg: 'rgba(54, 163, 123, 0.08)' },
+            },
+            outlineMuted: {
+                border: '1px solid',
+                borderColor: 'rgba(12, 21, 49, 0.2)',
+                color: 'text.primary',
+                fontWeight: 'bold',
+                _hover: { bg: 'card.lightGray' },
+            },
             themeButton: {
                 border: 'none',
                 bg: 'transparent',

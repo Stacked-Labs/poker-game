@@ -175,25 +175,45 @@ const FeaturesSection = () => {
         const video = videoRef.current;
         if (!video || videoFailed) return;
 
-        const tryPlay = () => {
-            video.play().catch(() => {
-                // Autoplay may be blocked in WebViews; keep poster visible.
-            });
+        let playAttempts = 0;
+        const maxAttempts = 5;
+
+        const tryPlay = async () => {
+            try {
+                await video.play();
+            } catch (error) {
+                // Retry autoplay if it was blocked
+                if (playAttempts < maxAttempts) {
+                    playAttempts++;
+                    setTimeout(tryPlay, 200 * playAttempts);
+                }
+            }
         };
 
         const handleError = () => {
             setVideoFailed(true);
         };
 
-        video.addEventListener('canplay', tryPlay);
+        const handleCanPlay = () => {
+            tryPlay();
+        };
+
+        const handleLoadedData = () => {
+            tryPlay();
+        };
+
+        video.addEventListener('canplay', handleCanPlay);
+        video.addEventListener('loadeddata', handleLoadedData);
         video.addEventListener('error', handleError);
 
-        if (video.readyState >= 3) {
+        // Immediate attempt if video is already ready
+        if (video.readyState >= 2) {
             tryPlay();
         }
 
         return () => {
-            video.removeEventListener('canplay', tryPlay);
+            video.removeEventListener('canplay', handleCanPlay);
+            video.removeEventListener('loadeddata', handleLoadedData);
             video.removeEventListener('error', handleError);
         };
     }, [videoFailed]);
@@ -409,8 +429,13 @@ const FeaturesSection = () => {
                                     muted
                                     loop
                                     playsInline
-                                    preload="metadata"
+                                    preload="auto"
                                     poster="/previews/home_preview.png"
+                                    sx={{
+                                        '&::-webkit-media-controls-start-playback-button': {
+                                            display: 'none !important',
+                                        },
+                                    }}
                                 >
                                     <source
                                         src="/video/demoiphone.mp4"

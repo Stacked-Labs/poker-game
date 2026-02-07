@@ -134,17 +134,30 @@ const Table = ({ tableId }: { tableId: string }) => {
 
     // map game players to their visual seats
     useEffect(() => {
+        console.log('🔄 Table players useEffect triggered', {
+            hasGame: !!appState.game,
+            hasPlayers: !!appState.game?.players,
+            playerCount: appState.game?.players?.length,
+            players: appState.game?.players?.map(p => ({ uuid: p.uuid, username: p.username, seatID: p.seatID, position: p.position })),
+        });
+        
         if (!appState.game?.players) return;
 
         const updatedPlayers: (Player | null)[] = Array(SEAT_COUNT).fill(null);
 
         // Assign players to their correct seats
+        // Backend uses 0-indexed seats (0-9), frontend displays as seats 1-10
         appState.game.players.forEach((player) => {
-            if (player.seatID >= 1 && player.seatID <= SEAT_COUNT) {
-                updatedPlayers[player.seatID - 1] = player;
+            console.log(`🔍 Checking player ${player.username} with seatID=${player.seatID}`);
+            if (player.seatID >= 0 && player.seatID < SEAT_COUNT) {
+                updatedPlayers[player.seatID] = player;
+                console.log(`✅ Placed at index ${player.seatID}`);
+            } else {
+                console.warn(`❌ Invalid seatID ${player.seatID} for player ${player.username}`);
             }
         });
 
+        console.log('🪑 Setting local players state:', updatedPlayers.map((p, i) => p ? `Seat ${i+1}: ${p.username}` : `Seat ${i+1}: empty`));
         setPlayers([...updatedPlayers]);
     }, [appState.game?.players]);
 
@@ -329,12 +342,15 @@ const Table = ({ tableId }: { tableId: string }) => {
             ? appState.game?.players?.find((p) => p.uuid === clientId)
             : undefined;
         const seatId = seatedPlayer?.seatID;
-        return seatId && seatId >= 1 && seatId <= SEAT_COUNT ? seatId : null;
+        // Backend uses 0-indexed seats (0-9)
+        return seatId !== undefined && seatId >= 0 && seatId < SEAT_COUNT ? seatId : null;
     })();
 
     const getActualSeatIdForVisualSeat = (visualSeatId: number): number => {
-        if (!povAnchorSeatId) return visualSeatId;
-        return ((povAnchorSeatId + (visualSeatId - 1) - 1) % SEAT_COUNT) + 1;
+        // visualSeatId is 1-10 (display), we need to return 0-9 (backend index)
+        if (povAnchorSeatId === null) return visualSeatId - 1;
+        // Rotate seats based on current player's position
+        return (povAnchorSeatId + (visualSeatId - 1)) % SEAT_COUNT;
     };
 
     return (
@@ -399,8 +415,8 @@ const Table = ({ tableId }: { tableId: string }) => {
             >
                 {players &&
                     seatIndices.map(({ id, value }) => {
-                        const actualSeatId = getActualSeatIdForVisualSeat(value);
-                        const player: Player | null = players[actualSeatId - 1];
+                        const actualSeatIndex = getActualSeatIdForVisualSeat(value);
+                        const player: Player | null = players[actualSeatIndex];
                         return (
                             <GridItem
                                 key={value}
@@ -443,7 +459,7 @@ const Table = ({ tableId }: { tableId: string }) => {
 
                                         return isDisabled ? null : (
                                             <EmptySeatButton
-                                                seatId={actualSeatId}
+                                                seatId={actualSeatIndex}
                                                 disabled={false}
                                             />
                                         );

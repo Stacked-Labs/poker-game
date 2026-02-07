@@ -211,7 +211,8 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
     const handleJoin = async () => {
         // Basic validation for seatId, buyIn
-        if (!seatId) {
+        // Backend uses 0-indexed seats (0-9), so check for null/undefined not falsy
+        if (seatId === null || seatId === undefined) {
             error('Missing Information', 'Seat ID is missing.');
             return;
         }
@@ -239,6 +240,9 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             const depositSuccess = await depositAndJoin(buyInValue);
 
             if (depositSuccess) {
+                // todo don't show this for owner?
+                // Set seat request state so cancel button appears
+                appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
                 success(
                     'Deposit Successful',
                     'Your deposit is being processed. You will be seated once approved.'

@@ -19,8 +19,9 @@ const Footer = () => {
         if (!appState.game || !appState.clientID) return true;
 
         // Check if the user exists in the players array with a valid seat
+        // Backend uses 0-indexed seats (0-9)
         const userInGame = appState.game.players.some(
-            (player) => player.uuid === appState.clientID && player.seatID > 0
+            (player) => player.uuid === appState.clientID && player.seatID >= 0
         );
 
         return !userInGame;
@@ -29,7 +30,8 @@ const Footer = () => {
     const localPlayer = appState.game?.players?.find(
         (p) => p.uuid === appState.clientID
     );
-    const seatIndex = localPlayer ? localPlayer.seatID - 1 : -1;
+    // Backend uses 0-indexed seats, seatID is already the array index
+    const seatIndex = localPlayer?.seatID ?? -1;
     const owesSB =
         seatIndex >= 0 ? Boolean(appState.game?.owesSB?.[seatIndex]) : false;
     const owesBB =
@@ -72,7 +74,7 @@ const Footer = () => {
         socketConnected &&
             inRevealWindow &&
             localPlayer &&
-            localPlayer.seatID > 0 &&
+            localPlayer.seatID >= 0 &&
             localPlayer.ready &&
             !localPlayer.sitOutNextHand &&
             !localPlayer.left &&

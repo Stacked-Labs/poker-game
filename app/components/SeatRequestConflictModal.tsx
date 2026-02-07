@@ -20,7 +20,7 @@ type Props = {
 };
 
 const SeatRequestConflictModal = ({ isOpen, onClose, seatId }: Props) => {
-    const message = seatId ? `Seat #${seatId} requested already.` : null;
+    const message = seatId !== null ? `Seat #${seatId + 1} requested already.` : null;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} isCentered>

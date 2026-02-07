@@ -161,6 +161,7 @@ const FeaturesSection = () => {
     const shouldAnimate = !prefersReducedMotion && !isMobile;
     const videoRef = useRef<HTMLVideoElement>(null);
     const [videoFailed, setVideoFailed] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
     const fadeUp = (delay = 0) =>
         shouldAnimate
             ? {
@@ -181,6 +182,7 @@ const FeaturesSection = () => {
         const tryPlay = async () => {
             try {
                 await video.play();
+                setIsPlaying(true);
             } catch (error) {
                 // Retry autoplay if it was blocked
                 if (playAttempts < maxAttempts) {
@@ -202,9 +204,19 @@ const FeaturesSection = () => {
             tryPlay();
         };
 
+        const handlePlay = () => {
+            setIsPlaying(true);
+        };
+
+        const handlePause = () => {
+            setIsPlaying(false);
+        };
+
         video.addEventListener('canplay', handleCanPlay);
         video.addEventListener('loadeddata', handleLoadedData);
         video.addEventListener('error', handleError);
+        video.addEventListener('play', handlePlay);
+        video.addEventListener('pause', handlePause);
 
         // Immediate attempt if video is already ready
         if (video.readyState >= 2) {
@@ -215,8 +227,21 @@ const FeaturesSection = () => {
             video.removeEventListener('canplay', handleCanPlay);
             video.removeEventListener('loadeddata', handleLoadedData);
             video.removeEventListener('error', handleError);
+            video.removeEventListener('play', handlePlay);
+            video.removeEventListener('pause', handlePause);
         };
     }, [videoFailed]);
+
+    const handleVideoClick = () => {
+        const video = videoRef.current;
+        if (!video || videoFailed) return;
+
+        if (video.paused) {
+            video.play().catch(() => {
+                // User interaction should allow playback even if autoplay was blocked
+            });
+        }
+    };
 
     return (
         <Box
@@ -408,6 +433,8 @@ const FeaturesSection = () => {
                                 overflow="hidden"
                                 bg="black"
                                 zIndex={1}
+                                cursor={!isPlaying && !videoFailed ? 'pointer' : 'default'}
+                                onClick={handleVideoClick}
                             >
                             {videoFailed ? (
                                 <NextImage
@@ -431,11 +458,6 @@ const FeaturesSection = () => {
                                     playsInline
                                     preload="auto"
                                     poster="/previews/home_preview.png"
-                                    sx={{
-                                        '&::-webkit-media-controls-start-playback-button': {
-                                            display: 'none !important',
-                                        },
-                                    }}
                                 >
                                     <source
                                         src="/video/demoiphone.mp4"

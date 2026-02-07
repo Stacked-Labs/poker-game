@@ -446,12 +446,22 @@ export function SocketProvider(props: SocketProviderProps) {
                         dispatch({ type: 'updateGame', payload: newGame });
 
                         // If player was just successfully seated, reset the flags
-                        const isPlayerSeated = eventData.game.players?.some(
-                            (p: Player) => {
-                                return p.uuid === appStateRef.current.clientID;
-                            }
+                        const currentClientID = appStateRef.current.clientID;
+                        const gamePlayers = eventData.game.players || [];
+                        const isPlayerSeated = gamePlayers.some(
+                            (p: Player) => p.uuid === currentClientID
                         );
+                        
+                        console.log('👥 update-game player check:', {
+                            currentClientID,
+                            gamePlayers: gamePlayers.map((p: Player) => ({ uuid: p.uuid, username: p.username, seatID: p.seatID })),
+                            isPlayerSeated,
+                            hadSeatRequested: appStateRef.current.seatRequested,
+                            hadSeatAccepted: appStateRef.current.seatAccepted,
+                        });
+
                         if (isPlayerSeated) {
+                            console.log('✅ Player is seated! Clearing request states.');
                             // Clear pending request state
                             if (appStateRef.current.seatRequested) {
                                 dispatch({
@@ -474,9 +484,8 @@ export function SocketProvider(props: SocketProviderProps) {
                                 p.uuid === appStateRef.current.clientID
                         );
 
-                        const seatIndex = localPlayer
-                            ? localPlayer.seatID - 1
-                            : -1;
+                        // Backend uses 0-indexed seats, seatID is already the array index
+                        const seatIndex = localPlayer?.seatID ?? -1;
                         const owesSB =
                             seatIndex >= 0
                                 ? Boolean(eventData.game?.owesSB?.[seatIndex])
@@ -589,15 +598,36 @@ export function SocketProvider(props: SocketProviderProps) {
                     }
                     case 'seat-request-accepted': {
                         // Player's seat request was accepted by the table owner
-                        dispatch({
-                            type: 'setSeatAccepted',
-                            payload: {
-                                seatId: eventData.seatId,
-                                buyIn: eventData.buyIn,
-                                queued: eventData.queued,
-                                message: eventData.message,
-                            },
+                        // Check if player is already seated in the game
+                        const currentClientID = appStateRef.current.clientID;
+                        const currentPlayers = appStateRef.current.game?.players || [];
+                        const isAlreadySeated = currentPlayers.some(
+                            (p: Player) => p.uuid === currentClientID
+                        );
+
+                        console.log('🎫 seat-request-accepted DEBUG:', {
+                            seatId: eventData.seatId,
+                            queued: eventData.queued,
+                            currentClientID,
+                            currentPlayers: currentPlayers.map(p => ({ uuid: p.uuid, username: p.username, seatID: p.seatID })),
+                            isAlreadySeated,
                         });
+
+                        // Only set seatAccepted if not already seated (avoids race condition)
+                        if (!isAlreadySeated) {
+                            console.log('Setting seatAccepted - player not yet in players array');
+                            dispatch({
+                                type: 'setSeatAccepted',
+                                payload: {
+                                    seatId: eventData.seatId,
+                                    buyIn: eventData.buyIn,
+                                    queued: eventData.queued,
+                                    message: eventData.message,
+                                },
+                            });
+                        } else {
+                            console.log('Skipping seatAccepted - player already seated');
+                        }
                         // Clear the pending state since we're now accepted
                         dispatch({ type: 'setSeatRequested', payload: null });
                         // Show success toast

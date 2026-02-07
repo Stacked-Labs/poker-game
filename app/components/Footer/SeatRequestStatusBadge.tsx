@@ -45,7 +45,7 @@ const SeatRequestStatusBadge = () => {
                     Joining Next Hand
                 </Text>
                 <Text opacity={0.9} fontSize="sm">
-                    (Seat {appState.seatAccepted.seatId})
+                    (Seat {appState.seatAccepted.seatId + 1})
                 </Text>
                 {appState.seatAccepted.queued && (
                     <Spinner size="sm" ml={1} />
@@ -88,7 +88,7 @@ const SeatRequestStatusBadge = () => {
                 cancelSeatRequest(socket);
             }}
         >
-            Cancel Request ({appState.seatRequested})
+            Cancel Request ({appState.seatRequested + 1})
         </Button>
     );
 };

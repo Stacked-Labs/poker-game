@@ -45,7 +45,7 @@ const SeatRequestStatusBadge = () => {
                     Joining Next Hand
                 </Text>
                 <Text opacity={0.9} fontSize="sm">
-                    (Seat {appState.seatAccepted.seatId})
+                    (Seat {appState.seatAccepted.seatId + 1})
                 </Text>
                 {appState.seatAccepted.queued && <Spinner size="sm" ml={1} />}
             </Flex>

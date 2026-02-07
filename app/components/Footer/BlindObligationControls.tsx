@@ -41,7 +41,8 @@ const BlindObligationControls = () => {
     const localPlayer = game?.players?.find(
         (p) => p.uuid === appState.clientID
     );
-    const seatIndex = localPlayer ? localPlayer.seatID - 1 : -1;
+    // Backend uses 0-indexed seats, seatID is already the array index
+    const seatIndex = localPlayer?.seatID ?? -1;
 
     const owesSB =
         seatIndex >= 0

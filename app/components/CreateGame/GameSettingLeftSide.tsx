@@ -78,7 +78,7 @@ const GameSettingLeftSide: React.FC = () => {
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileError, setTurnstileError] = useState(false);
     const isCreatingRef = useRef(false);
-    const [isPublicGame, setIsPublicGame] = useState(false);
+    const [isPublicGame, setIsPublicGame] = useState(true);
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
     const isTurnstileConfigured = Boolean(turnstileSiteKey);
 

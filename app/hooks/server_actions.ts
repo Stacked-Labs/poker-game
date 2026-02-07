@@ -485,6 +485,25 @@ export async function getTables() {
     }
 }
 
+export async function getPublicGames() {
+    isBackendUrlValid();
+
+    try {
+        const response = await fetch(`${backendUrl}/api/public-games`, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error(
+                `Public games fetch failed: ${response.statusText}`
+            );
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch public games.', error);
+        throw error;
+    }
+}
+
 export async function fetchTableEvents(
     tableName: string,
     limit: number = 50,

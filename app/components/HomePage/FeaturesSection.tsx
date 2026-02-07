@@ -178,22 +178,31 @@ const FeaturesSection = () => {
 
         let playAttempts = 0;
         const maxAttempts = 5;
+        const timeoutIds: NodeJS.Timeout[] = [];
+        let isMounted = true;
 
         const tryPlay = async () => {
+            if (!isMounted) return;
+
             try {
                 await video.play();
-                setIsPlaying(true);
+                if (isMounted) {
+                    setIsPlaying(true);
+                }
             } catch (error) {
                 // Retry autoplay if it was blocked
-                if (playAttempts < maxAttempts) {
+                if (playAttempts < maxAttempts && isMounted) {
                     playAttempts++;
-                    setTimeout(tryPlay, 200 * playAttempts);
+                    const timeoutId = setTimeout(tryPlay, 200 * playAttempts);
+                    timeoutIds.push(timeoutId);
                 }
             }
         };
 
         const handleError = () => {
-            setVideoFailed(true);
+            if (isMounted) {
+                setVideoFailed(true);
+            }
         };
 
         const handleCanPlay = () => {
@@ -205,11 +214,15 @@ const FeaturesSection = () => {
         };
 
         const handlePlay = () => {
-            setIsPlaying(true);
+            if (isMounted) {
+                setIsPlaying(true);
+            }
         };
 
         const handlePause = () => {
-            setIsPlaying(false);
+            if (isMounted) {
+                setIsPlaying(false);
+            }
         };
 
         video.addEventListener('canplay', handleCanPlay);
@@ -224,6 +237,8 @@ const FeaturesSection = () => {
         }
 
         return () => {
+            isMounted = false;
+            timeoutIds.forEach(clearTimeout);
             video.removeEventListener('canplay', handleCanPlay);
             video.removeEventListener('loadeddata', handleLoadedData);
             video.removeEventListener('error', handleError);

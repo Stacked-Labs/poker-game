@@ -12,6 +12,7 @@ import { tableColors } from '../utils/tableColors';
 import { isTableExisting } from '../hooks/server_actions';
 import useToastHelper from '../hooks/useToastHelper';
 import { useRouter } from 'next/navigation';
+import { useEquity } from '../hooks/useEquity';
 
 const initialPlayers: (Player | null)[] = [
     null,
@@ -103,6 +104,7 @@ const Table = ({ tableId }: { tableId: string }) => {
     const tableColorObj = tableColors[tableColorKey];
     const router = useRouter();
     const toast = useToastHelper();
+    const equityMap = useEquity();
     const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
         'checking'
     );
@@ -431,6 +433,7 @@ const Table = ({ tableId }: { tableId: string }) => {
                                         isRevealed={isPlayerRevealed(player)}
                                         winnings={getPlayerWinnings(player)}
                                         activePotIndex={activePotIndex}
+                                        equity={equityMap?.get(player.uuid) ?? null}
                                     />
                                 ) : (
                                     (() => {

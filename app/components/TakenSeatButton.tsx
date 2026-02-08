@@ -183,6 +183,7 @@ const TakenSeatButton = ({
     isRevealed,
     winnings,
     activePotIndex,
+    equity,
 }: {
     player: Player;
     visualSeatId?: number;
@@ -191,6 +192,7 @@ const TakenSeatButton = ({
     isRevealed: boolean;
     winnings: number;
     activePotIndex: number | null;
+    equity: number | null;
 }) => {
     const { appState } = useContext(AppContext);
     const socket = useContext(SocketContext);
@@ -930,6 +932,34 @@ const TakenSeatButton = ({
                             );
                         })()}
                     </AnimatePresence>
+                    {equity !== null && (
+                        <Tag
+                            className="equity-badge"
+                            position="absolute"
+                            top={{ base: '-2px', md: '0px' }}
+                            right={{ base: '-4px', md: '-6px' }}
+                            bg={
+                                equity > 50
+                                    ? '#1B7A4E'
+                                    : equity >= 30
+                                      ? 'gray.500'
+                                      : 'red.500'
+                            }
+                            color="white"
+                            variant="solid"
+                            size={{ base: 'xs', md: 'sm' }}
+                            fontSize={{ base: '8px', md: 'xs' }}
+                            px={{ base: 1, md: 1.5 }}
+                            py={{ base: 0, md: 0.5 }}
+                            whiteSpace="nowrap"
+                            pointerEvents="none"
+                            zIndex={5}
+                            fontWeight="bold"
+                            borderRadius="full"
+                        >
+                            {equity}%
+                        </Tag>
+                    )}
                 </Flex>
                 <Box
                     className="player-info-wrapper"

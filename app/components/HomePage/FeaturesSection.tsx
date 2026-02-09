@@ -161,6 +161,7 @@ const FeaturesSection = () => {
     const shouldAnimate = !prefersReducedMotion && !isMobile;
     const videoRef = useRef<HTMLVideoElement>(null);
     const [videoFailed, setVideoFailed] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
     const fadeUp = (delay = 0) =>
         shouldAnimate
             ? {
@@ -175,28 +176,87 @@ const FeaturesSection = () => {
         const video = videoRef.current;
         if (!video || videoFailed) return;
 
-        const tryPlay = () => {
-            video.play().catch(() => {
-                // Autoplay may be blocked in WebViews; keep poster visible.
-            });
+        let playAttempts = 0;
+        const maxAttempts = 5;
+        const timeoutIds: NodeJS.Timeout[] = [];
+        let isMounted = true;
+
+        const tryPlay = async () => {
+            if (!isMounted) return;
+
+            try {
+                await video.play();
+                if (isMounted) {
+                    setIsPlaying(true);
+                }
+            } catch (error) {
+                // Retry autoplay if it was blocked
+                if (playAttempts < maxAttempts && isMounted) {
+                    playAttempts++;
+                    const timeoutId = setTimeout(tryPlay, 200 * playAttempts);
+                    timeoutIds.push(timeoutId);
+                }
+            }
         };
 
         const handleError = () => {
-            setVideoFailed(true);
+            if (isMounted) {
+                setVideoFailed(true);
+            }
         };
 
-        video.addEventListener('canplay', tryPlay);
-        video.addEventListener('error', handleError);
+        const handleCanPlay = () => {
+            tryPlay();
+        };
 
-        if (video.readyState >= 3) {
+        const handleLoadedData = () => {
+            tryPlay();
+        };
+
+        const handlePlay = () => {
+            if (isMounted) {
+                setIsPlaying(true);
+            }
+        };
+
+        const handlePause = () => {
+            if (isMounted) {
+                setIsPlaying(false);
+            }
+        };
+
+        video.addEventListener('canplay', handleCanPlay);
+        video.addEventListener('loadeddata', handleLoadedData);
+        video.addEventListener('error', handleError);
+        video.addEventListener('play', handlePlay);
+        video.addEventListener('pause', handlePause);
+
+        // Immediate attempt if video is already ready
+        if (video.readyState >= 2) {
             tryPlay();
         }
 
         return () => {
-            video.removeEventListener('canplay', tryPlay);
+            isMounted = false;
+            timeoutIds.forEach(clearTimeout);
+            video.removeEventListener('canplay', handleCanPlay);
+            video.removeEventListener('loadeddata', handleLoadedData);
             video.removeEventListener('error', handleError);
+            video.removeEventListener('play', handlePlay);
+            video.removeEventListener('pause', handlePause);
         };
     }, [videoFailed]);
+
+    const handleVideoClick = () => {
+        const video = videoRef.current;
+        if (!video || videoFailed) return;
+
+        if (video.paused) {
+            video.play().catch(() => {
+                // User interaction should allow playback even if autoplay was blocked
+            });
+        }
+    };
 
     return (
         <Box
@@ -388,6 +448,8 @@ const FeaturesSection = () => {
                                 overflow="hidden"
                                 bg="black"
                                 zIndex={1}
+                                cursor={!isPlaying && !videoFailed ? 'pointer' : 'default'}
+                                onClick={handleVideoClick}
                             >
                             {videoFailed ? (
                                 <NextImage
@@ -409,7 +471,7 @@ const FeaturesSection = () => {
                                     muted
                                     loop
                                     playsInline
-                                    preload="metadata"
+                                    preload="auto"
                                     poster="/previews/home_preview.png"
                                 >
                                     <source

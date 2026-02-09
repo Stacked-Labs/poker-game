@@ -15,7 +15,6 @@ import {
     Icon,
     Grid,
     Tooltip,
-    SimpleGrid,
     Image,
 } from '@chakra-ui/react';
 import {
@@ -27,98 +26,20 @@ import {
     FiChevronDown,
 } from 'react-icons/fi';
 import Footer from '../components/HomePage/Footer';
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { Spinner } from '@chakra-ui/react';
+import { getPublicGames } from '../hooks/server_actions';
 
-const activeGames = [
-    {
-        id: 'table-midnight-spades',
-        name: 'tbl_8f2c',
-        status: 'Active',
-        mode: 'Texas Holdem',
-        stakes: '5 / 10',
-        players: '5 / 8',
-        host: '0x2a1b...c93f',
-        tableId: 'tbl_8f2c',
-        isCrypto: false,
-    },
-    {
-        id: 'table-greenfelt',
-        name: 'tbl_3a91',
-        status: 'Seated',
-        mode: 'Omaha',
-        stakes: '10 / 20',
-        players: '7 / 8',
-        host: '0x91ac...7b2e',
-        tableId: 'tbl_3a91',
-        isCrypto: true,
-    },
-];
-
-const publicGames = [
-    {
-        id: 'table-lucky-river',
-        tableId: 'tbl_7c0b',
-        status: 'Active',
-        mode: 'Texas Holdem',
-        stakes: '2 / 4',
-        players: '4 / 8',
-        host: '0x7c0b...19ad',
-        isCrypto: false,
-    },
-    {
-        id: 'table-night-owl',
-        tableId: 'tbl_bb71',
-        status: 'Active',
-        mode: 'Texas Holdem',
-        stakes: '1 / 2',
-        players: '6 / 8',
-        host: '0xbb71...cc23',
-        isCrypto: true,
-    },
-    {
-        id: 'table-sunset',
-        tableId: 'tbl_04df',
-        status: 'Open',
-        mode: 'Omaha',
-        stakes: '5 / 10',
-        players: '3 / 8',
-        host: '0x04df...a992',
-        isCrypto: false,
-    },
-    {
-        id: 'table-red-diamond',
-        tableId: 'tbl_8170',
-        status: 'Active',
-        mode: 'Texas Holdem',
-        stakes: '25 / 50',
-        players: '7 / 9',
-        host: '0x8170...fe11',
-        isCrypto: true,
-    },
-    {
-        id: 'table-riptide',
-        tableId: 'tbl_3f5a',
-        status: 'Open',
-        mode: 'Texas Holdem',
-        stakes: '10 / 20',
-        players: '2 / 8',
-        host: '0x3f5a...1a10',
-        isCrypto: false,
-    },
-    {
-        id: 'table-velvet',
-        tableId: 'tbl_9d11',
-        status: 'Active',
-        mode: 'Omaha',
-        stakes: '5 / 10',
-        players: '8 / 8',
-        host: '0x9d11...b77b',
-        isCrypto: false,
-    },
-];
-
-type ActiveGame = (typeof activeGames)[number];
-type PublicGame = (typeof publicGames)[number];
+interface PublicGame {
+    name: string;
+    small_blind: number;
+    big_blind: number;
+    is_crypto: boolean;
+    player_count: number;
+    max_players: number;
+    is_active: boolean;
+    created_at: string;
+}
 
 const statusStyles = {
     Active: {
@@ -133,23 +54,13 @@ const statusStyles = {
         dotBg: 'brand.yellow',
         dotShadow: '0 0 8px rgba(253, 197, 29, 0.5)',
     },
-    Seated: {
-        badgeBg: 'brand.yellow',
-        badgeColor: 'brand.darkNavy',
-        dotBg: 'brand.yellow',
-        dotShadow: '0 0 8px rgba(253, 197, 29, 0.5)',
-    },
 };
 
-const getStatusStyle = (status: string) =>
-    statusStyles[status as keyof typeof statusStyles] ?? statusStyles.Open;
-
-const parseStakes = (stakes: string) => {
-    const [small, big] = stakes.split('/').map((value) => Number(value.trim()));
-    if (!Number.isFinite(small) || !Number.isFinite(big)) {
-        return null;
+const getStatusStyle = (status: string | boolean) => {
+    if (typeof status === 'boolean') {
+        return status ? statusStyles.Active : statusStyles.Open;
     }
-    return { small, big };
+    return statusStyles[status as keyof typeof statusStyles] ?? statusStyles.Open;
 };
 
 const formatUsdc = (value: number) => {
@@ -246,258 +157,27 @@ const SearchBar = () => {
     );
 };
 
-const ActiveGameCard = ({
-    name,
-    status,
-    mode,
-    stakes,
-    players,
-    host,
-    tableId,
-    isCrypto,
-}: {
-    name: string;
-    status: string;
-    mode: string;
-    stakes: string;
-    players: string;
-    host: string;
-    tableId: string;
-    isCrypto: boolean;
-}) => {
-    const statusStyle = getStatusStyle(status);
-    const gameTypeBadge = isCrypto
-        ? { bg: 'brand.pink', color: 'white', label: 'CRYPTO' }
-        : { bg: 'card.lightGray', color: 'text.secondary', label: 'FREE' };
-    const parsedStakes = parseStakes(stakes);
-    const chipsPerUsdc = 100;
-    const usdcPerChip = 1 / chipsPerUsdc;
-    const smallBlindUsd = parsedStakes
-        ? parsedStakes.small * usdcPerChip
-        : null;
-    const bigBlindUsd = parsedStakes ? parsedStakes.big * usdcPerChip : null;
-    const hasCryptoBlinds =
-        isCrypto && smallBlindUsd !== null && bigBlindUsd !== null;
-    const blindsLabel = hasCryptoBlinds
-        ? `${formatUsdc(smallBlindUsd)} / ${formatUsdc(bigBlindUsd)}`
-        : stakes;
-
-    return (
-        <Flex
-            direction="column"
-            gap={3}
-            p={{ base: 3, md: 4 }}
-            bg="card.white"
-            borderRadius="18px"
-            border="1px solid"
-            borderColor="card.lightGray"
-            boxShadow="0 14px 32px rgba(12, 21, 49, 0.1)"
-            minW={{ base: 'full', md: '280px' }}
-        >
-            <HStack justify="space-between" align="center">
-                <Text
-                    fontSize={{ base: 'md', md: 'lg' }}
-                    fontWeight="extrabold"
-                    color="text.primary"
-                    lineHeight={1.1}
-                >
-                    {name}
-                </Text>
-                <Badge
-                    bg={statusStyle.badgeBg}
-                    color={statusStyle.badgeColor}
-                    px={2.5}
-                    py={0.5}
-                    borderRadius="full"
-                    fontSize="2xs"
-                    fontWeight="bold"
-                    letterSpacing="0.08em"
-                    textTransform="uppercase"
-                >
-                    {status}
-                </Badge>
-            </HStack>
-            <HStack justify="space-between" align="center">
-                <HStack
-                    spacing={2}
-                    color="text.secondary"
-                    fontSize="sm"
-                    flexWrap="wrap"
-                >
-                    <Badge
-                        bg="card.lightGray"
-                        color="text.primary"
-                        borderRadius="full"
-                        px={2.5}
-                        py={0.5}
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        textTransform="uppercase"
-                    >
-                        {mode}
-                    </Badge>
-                    <Badge
-                        bg={gameTypeBadge.bg}
-                        color={gameTypeBadge.color}
-                        borderRadius="full"
-                        px={2.5}
-                        py={0.5}
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        letterSpacing="0.06em"
-                    >
-                        {gameTypeBadge.label}
-                    </Badge>
-                </HStack>
-                <HStack
-                    spacing={1}
-                    color="text.secondary"
-                    fontSize="xs"
-                    flexShrink={0}
-                    whiteSpace="nowrap"
-                >
-                    <Icon as={FiUsers} />
-                    <Text fontWeight="semibold">{players}</Text>
-                </HStack>
-            </HStack>
-            <Flex w="full" justify="space-between" gap={4} align="flex-start">
-                <VStack align="start" spacing={0.5}>
-                    <HStack spacing={2} align="center">
-                        <Text
-                            fontSize="2xs"
-                            color="text.secondary"
-                            textTransform="uppercase"
-                            letterSpacing="0.08em"
-                            fontWeight="bold"
-                        >
-                            Host
-                        </Text>
-                        <Text
-                            fontSize={{ base: 'xs', md: 'sm', lg: 'md' }}
-                            color="text.primary"
-                            fontFamily="monospace"
-                        >
-                            {host}
-                        </Text>
-                    </HStack>
-                    <HStack spacing={2} align="center">
-                        <Text
-                            fontSize="2xs"
-                            color="text.secondary"
-                            textTransform="uppercase"
-                            letterSpacing="0.08em"
-                            fontWeight="bold"
-                        >
-                            Table ID
-                        </Text>
-                        <Text
-                            fontSize={{ base: 'xs', md: 'sm', lg: 'md' }}
-                            color="text.primary"
-                            fontFamily="monospace"
-                        >
-                            {tableId}
-                        </Text>
-                    </HStack>
-                </VStack>
-                <VStack align="end" spacing={0.5} minW="110px">
-                    <Text
-                        fontSize="2xs"
-                        color="text.secondary"
-                        textTransform="uppercase"
-                        letterSpacing="0.12em"
-                        fontWeight="bold"
-                    >
-                        Blinds
-                    </Text>
-                    {hasCryptoBlinds ? (
-                        <Tooltip label={`${stakes}`} hasArrow>
-                            <HStack spacing={1} align="center">
-                                <Text
-                                    fontSize={{ base: 'md', md: 'md' }}
-                                    fontWeight="extrabold"
-                                    color="text.primary"
-                                    letterSpacing="-0.02em"
-                                >
-                                    {blindsLabel}
-                                </Text>
-                                <Image
-                                    src={usdcLogoUrl}
-                                    alt="USDC"
-                                    boxSize="14px"
-                                />
-                            </HStack>
-                        </Tooltip>
-                    ) : (
-                        <Text
-                            fontSize={{ base: 'md', md: 'md' }}
-                            fontWeight="extrabold"
-                            color="text.primary"
-                            letterSpacing="-0.02em"
-                        >
-                            {blindsLabel}
-                        </Text>
-                    )}
-                </VStack>
-            </Flex>
-            <Flex w="full" justify="flex-end" mt="auto" pt={0.5}>
-                <Button
-                    size="sm"
-                    variant="greenGradient"
-                    borderRadius="14px"
-                    px={4}
-                    _hover={{
-                        boxShadow:
-                            '0 0 0 2px rgba(54, 163, 123, 0.25), 0 10px 18px rgba(54, 163, 123, 0.3)',
-                    }}
-                >
-                    Open
-                </Button>
-            </Flex>
-        </Flex>
-    );
-};
-
-const PublicGameRow = ({
-    tableId,
-    status,
-    mode,
-    stakes,
-    players,
-    host,
-    isCrypto,
-}: {
-    tableId: string;
-    status: string;
-    mode: string;
-    stakes: string;
-    players: string;
-    host: string;
-    isCrypto: boolean;
-}) => {
-    const statusStyle = getStatusStyle(status);
-    const rowAccentColor = isCrypto ? 'blue.500' : 'brand.green';
-    const rowAccentShadow = isCrypto
+const PublicGameRow = ({ game }: { game: PublicGame }) => {
+    const statusStyle = getStatusStyle(game.is_active);
+    const statusLabel = game.is_active ? 'Active' : 'Open';
+    const rowAccentColor = game.is_crypto ? 'blue.500' : 'brand.green';
+    const rowAccentShadow = game.is_crypto
         ? '0 0 8px rgba(59, 130, 246, 0.45)'
         : '0 0 8px rgba(54, 163, 123, 0.45)';
-    const parsedStakes = parseStakes(stakes);
     const chipsPerUsdc = 100;
     const usdcPerChip = 1 / chipsPerUsdc;
-    const smallBlindUsd = parsedStakes
-        ? parsedStakes.small * usdcPerChip
-        : null;
-    const bigBlindUsd = parsedStakes ? parsedStakes.big * usdcPerChip : null;
-    const hasCryptoBlinds =
-        isCrypto && smallBlindUsd !== null && bigBlindUsd !== null;
+    const hasCryptoBlinds = game.is_crypto;
     const blindsLabel = hasCryptoBlinds
-        ? `${formatUsdc(smallBlindUsd)} / ${formatUsdc(bigBlindUsd)}`
-        : stakes;
+        ? `${formatUsdc(game.small_blind * usdcPerChip)} / ${formatUsdc(game.big_blind * usdcPerChip)}`
+        : `${game.small_blind} / ${game.big_blind}`;
+    const seatsLabel = `${game.player_count} / ${game.max_players}`;
 
     return (
         <Grid
             w="full"
             templateColumns={{
                 base: '1fr',
-                md: '24px 2.2fr 1fr 1.4fr 0.8fr auto ',
+                md: '24px 2.2fr 1fr 0.8fr auto',
             }}
             gap={{ base: 3, md: 4 }}
             alignItems="center"
@@ -555,20 +235,8 @@ const PublicGameRow = ({
                             fontFamily="monospace"
                             noOfLines={1}
                         >
-                            {tableId}
+                            {game.name}
                         </Text>
-                        <Badge
-                            bg="card.lightGray"
-                            color="text.primary"
-                            borderRadius="full"
-                            px={2.5}
-                            py={0.5}
-                            fontSize="2xs"
-                            fontWeight="bold"
-                            textTransform="uppercase"
-                        >
-                            {mode}
-                        </Badge>
                         <Badge
                             bg={statusStyle.badgeBg}
                             color={statusStyle.badgeColor}
@@ -579,9 +247,9 @@ const PublicGameRow = ({
                             fontWeight="bold"
                             textTransform="uppercase"
                         >
-                            {status}
+                            {statusLabel}
                         </Badge>
-                        {isCrypto ? (
+                        {game.is_crypto ? (
                             <Badge
                                 bg="blue.500"
                                 color="white"
@@ -601,10 +269,7 @@ const PublicGameRow = ({
                         color="text.secondary"
                         display={{ base: 'block', md: 'none' }}
                     >
-                        {blindsLabel} blinds • {players} seats • Host{' '}
-                        <Box as="span" fontFamily="monospace">
-                            {host}
-                        </Box>
+                        {blindsLabel} blinds • {seatsLabel} seats
                     </Text>
                 </VStack>
             </HStack>
@@ -623,15 +288,14 @@ const PublicGameRow = ({
                     Blinds
                 </Text>
                 {hasCryptoBlinds ? (
-                    <Tooltip label={`Chips ${stakes}`} hasArrow>
+                    <Tooltip label={`${game.small_blind} / ${game.big_blind} chips`} hasArrow>
                         <HStack spacing={1} align="center">
                             <Text
                                 fontSize="sm"
                                 fontWeight="semibold"
                                 color="text.primary"
                             >
-                                {formatUsdc(smallBlindUsd)} /{' '}
-                                {formatUsdc(bigBlindUsd)}
+                                {blindsLabel}
                             </Text>
                             <Image
                                 src={usdcLogoUrl}
@@ -654,30 +318,6 @@ const PublicGameRow = ({
             <VStack
                 align="start"
                 spacing={0.5}
-                minW={0}
-                display={{ base: 'none', md: 'flex' }}
-            >
-                <Text
-                    fontSize="2xs"
-                    color="text.secondary"
-                    textTransform="uppercase"
-                    letterSpacing="0.08em"
-                >
-                    Host
-                </Text>
-                <Text
-                    fontSize="sm"
-                    color="text.primary"
-                    fontFamily="monospace"
-                    noOfLines={1}
-                >
-                    {host}
-                </Text>
-            </VStack>
-
-            <VStack
-                align="start"
-                spacing={0.5}
                 display={{ base: 'none', md: 'flex' }}
             >
                 <Text
@@ -691,12 +331,14 @@ const PublicGameRow = ({
                 <HStack spacing={1} color="text.secondary" fontSize="sm">
                     <Icon as={FiUsers} />
                     <Text fontWeight="semibold" color="text.primary">
-                        {players}
+                        {seatsLabel}
                     </Text>
                 </HStack>
             </VStack>
 
             <Button
+                as={Link}
+                href={`/table/${game.name}`}
                 size="sm"
                 rightIcon={<FiArrowUpRight />}
                 variant="greenGradient"
@@ -710,40 +352,22 @@ const PublicGameRow = ({
             >
                 Join
             </Button>
-            <Box display={{ base: 'none', md: 'block' }} />
         </Grid>
-    );
-};
-
-const ActiveGamesSection = ({ games }: { games: ActiveGame[] }) => {
-    return (
-        <VStack w="full" spacing={{ base: 4, md: 5 }}>
-            <SectionHeader title="Your Active Games" count={games.length} />
-            <SimpleGrid
-                columns={{ base: 1, md: 2, xl: 3 }}
-                spacing={{ base: 4, md: 5 }}
-                w="full"
-            >
-                {games.map((game) => (
-                    <ActiveGameCard key={game.id} {...game} />
-                ))}
-            </SimpleGrid>
-        </VStack>
     );
 };
 
 const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
     const [filter, setFilter] = useState<'all' | 'crypto' | 'free'>('all');
     const [sortConfig, setSortConfig] = useState<{
-        key: 'table' | 'blinds' | 'host' | 'seats' | null;
+        key: 'table' | 'blinds' | 'seats' | null;
         direction: 'asc' | 'desc';
     }>({ key: null, direction: 'asc' });
     const filteredGames = useMemo(() => {
         if (filter === 'crypto') {
-            return games.filter((game) => game.isCrypto);
+            return games.filter((game) => game.is_crypto);
         }
         if (filter === 'free') {
-            return games.filter((game) => !game.isCrypto);
+            return games.filter((game) => !game.is_crypto);
         }
         return games;
     }, [filter, games]);
@@ -753,43 +377,20 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
             return items;
         }
         const directionMultiplier = sortConfig.direction === 'asc' ? 1 : -1;
-        const parseSeats = (players: string) => {
-            const [current, max] = players
-                .split('/')
-                .map((value) => Number(value.trim()));
-            return {
-                current: Number.isFinite(current) ? current : 0,
-                max: Number.isFinite(max) ? max : 0,
-            };
-        };
-        const getBlindValue = (stakes: string) => {
-            const parsed = parseStakes(stakes);
-            return parsed ? parsed.big : 0;
-        };
         items.sort((a, b) => {
             switch (sortConfig.key) {
                 case 'table':
                     return (
-                        a.tableId.localeCompare(b.tableId) * directionMultiplier
+                        a.name.localeCompare(b.name) * directionMultiplier
                     );
-                case 'host':
-                    return a.host.localeCompare(b.host) * directionMultiplier;
                 case 'blinds':
                     return (
-                        (getBlindValue(a.stakes) - getBlindValue(b.stakes)) *
-                        directionMultiplier
+                        (a.big_blind - b.big_blind) * directionMultiplier
                     );
-                case 'seats': {
-                    const aSeats = parseSeats(a.players);
-                    const bSeats = parseSeats(b.players);
-                    if (aSeats.current !== bSeats.current) {
-                        return (
-                            (aSeats.current - bSeats.current) *
-                            directionMultiplier
-                        );
-                    }
-                    return (aSeats.max - bSeats.max) * directionMultiplier;
-                }
+                case 'seats':
+                    return (
+                        (a.player_count - b.player_count) * directionMultiplier
+                    );
                 default:
                     return 0;
             }
@@ -803,7 +404,7 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
         display,
     }: {
         label: string;
-        sortKey: 'table' | 'blinds' | 'host' | 'seats';
+        sortKey: 'table' | 'blinds' | 'seats';
         display?: { base?: string; md?: string };
     }) => {
         const isActive = sortConfig.key === sortKey;
@@ -972,7 +573,7 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
                 <Grid
                     templateColumns={{
                         base: '1fr',
-                        md: '24px 2.2fr 1fr 1.4fr 0.8fr auto 10%',
+                        md: '24px 2.2fr 1fr 0.8fr auto',
                     }}
                     gap={4}
                     alignItems="center"
@@ -990,17 +591,11 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
                         display={{ base: 'none', md: 'inline-flex' }}
                     />
                     <SortHeaderButton
-                        label="Host"
-                        sortKey="host"
-                        display={{ base: 'none', md: 'inline-flex' }}
-                    />
-                    <SortHeaderButton
                         label="Seats"
                         sortKey="seats"
                         display={{ base: 'none', md: 'inline-flex' }}
                     />
                     <Box />
-                    <Box display={{ base: 'none', md: 'block' }} />
                 </Grid>
 
                 <Box position="relative">
@@ -1033,7 +628,7 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
                         }}
                     >
                         {sortedGames.map((game) => (
-                            <PublicGameRow key={game.id} {...game} />
+                            <PublicGameRow key={game.name} game={game} />
                         ))}
                     </VStack>
                 </Box>
@@ -1073,6 +668,32 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
 };
 
 const PublicPage = () => {
+    const [games, setGames] = useState<PublicGame[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchGames = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const data = await getPublicGames();
+            if (data?.success && Array.isArray(data.games)) {
+                setGames(data.games);
+            } else {
+                setError('Unable to load games. Please try again.');
+            }
+        } catch (err) {
+            console.error('Failed to load public games:', err);
+            setError('Unable to load games. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchGames();
+    }, [fetchGames]);
+
     return (
         <Flex
             direction="column"
@@ -1195,9 +816,79 @@ const PublicPage = () => {
 
                         <SearchBar />
 
-                        <ActiveGamesSection games={activeGames} />
-
-                        <PublicGamesSection games={publicGames} />
+                        {isLoading ? (
+                            <Flex
+                                w="full"
+                                justify="center"
+                                align="center"
+                                py={16}
+                            >
+                                <VStack spacing={4}>
+                                    <Spinner
+                                        size="lg"
+                                        color="brand.green"
+                                        thickness="3px"
+                                    />
+                                    <Text
+                                        color="text.secondary"
+                                        fontSize="sm"
+                                        fontWeight="semibold"
+                                    >
+                                        Loading public games...
+                                    </Text>
+                                </VStack>
+                            </Flex>
+                        ) : error ? (
+                            <Flex
+                                w="full"
+                                direction="column"
+                                align="center"
+                                py={16}
+                                gap={4}
+                            >
+                                <Text
+                                    color="text.secondary"
+                                    fontSize="md"
+                                    fontWeight="semibold"
+                                >
+                                    {error}
+                                </Text>
+                                <Button
+                                    variant="greenGradient"
+                                    borderRadius="14px"
+                                    onClick={fetchGames}
+                                >
+                                    Retry
+                                </Button>
+                            </Flex>
+                        ) : games.length === 0 ? (
+                            <Flex
+                                w="full"
+                                direction="column"
+                                align="center"
+                                py={16}
+                                gap={4}
+                            >
+                                <Text
+                                    color="text.secondary"
+                                    fontSize="md"
+                                    fontWeight="semibold"
+                                >
+                                    No public games right now.
+                                </Text>
+                                <Button
+                                    as={Link}
+                                    href="/create-game"
+                                    leftIcon={<FiPlus />}
+                                    variant="greenGradient"
+                                    borderRadius="14px"
+                                >
+                                    Create one
+                                </Button>
+                            </Flex>
+                        ) : (
+                            <PublicGamesSection games={games} />
+                        )}
                     </VStack>
                 </Container>
             </Box>

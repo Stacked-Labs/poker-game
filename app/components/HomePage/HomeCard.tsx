@@ -65,6 +65,7 @@ const swapSecondary = keyframes`
 
 const HomeCard = () => {
     const [isCreating, setIsCreating] = useState(false);
+    const [isJoining, setIsJoining] = useState(false);
     const [showPlayOptions, setShowPlayOptions] = useState(false);
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
@@ -89,6 +90,11 @@ const HomeCard = () => {
     const handleCreateGame = () => {
         setIsCreating(true);
         router.push('/create-game');
+    };
+
+    const handleJoinGame = () => {
+        setIsJoining(true);
+        router.push('/public-games');
     };
 
     return (
@@ -508,7 +514,15 @@ const HomeCard = () => {
                                     color="brand.green"
                                     border="2px solid"
                                     borderColor="rgba(54, 163, 123, 0.35)"
-                                    onClick={() => router.push('/public-games')}
+                                    onClick={handleJoinGame}
+                                    isLoading={isJoining}
+                                    loadingText="Joining"
+                                    spinner={
+                                        <Spinner
+                                            size="sm"
+                                            color="brand.green"
+                                        />
+                                    }
                                     _active={{
                                         transform: 'scale(0.98)',
                                     }}
@@ -519,6 +533,18 @@ const HomeCard = () => {
                                         transform: 'translateY(-2px)',
                                         boxShadow:
                                             '0 14px 26px rgba(17, 24, 39, 0.12)',
+                                    }}
+                                    _dark={{
+                                        bg: 'rgba(255, 255, 255, 0.08)',
+                                        color: 'brand.green',
+                                        borderColor:
+                                            'rgba(255, 255, 255, 0.12)',
+                                        boxShadow: 'none',
+                                        _hover: {
+                                            bg: 'rgba(255, 255, 255, 0.14)',
+                                            boxShadow:
+                                                '0 14px 26px rgba(0, 0, 0, 0.2)',
+                                        },
                                     }}
                                 >
                                     [ JOIN ]

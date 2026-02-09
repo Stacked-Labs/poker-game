@@ -15,7 +15,6 @@ import {
     Icon,
     Grid,
     Tooltip,
-    SimpleGrid,
     Image,
 } from '@chakra-ui/react';
 import {
@@ -42,34 +41,6 @@ interface PublicGame {
     created_at: string;
 }
 
-// Mock active games data (test)
-const activeGames = [
-    {
-        id: 'table-midnight-spades',
-        name: 'tbl_8f2c',
-        status: 'Active',
-        mode: 'Texas Holdem',
-        stakes: '5 / 10',
-        players: '5 / 8',
-        host: '0x2a1b...c93f',
-        tableId: 'tbl_8f2c',
-        isCrypto: false,
-    },
-    {
-        id: 'table-greenfelt',
-        name: 'tbl_3a91',
-        status: 'Seated',
-        mode: 'Omaha',
-        stakes: '10 / 20',
-        players: '7 / 8',
-        host: '0x91ac...7b2e',
-        tableId: 'tbl_3a91',
-        isCrypto: true,
-    },
-];
-
-type ActiveGame = (typeof activeGames)[number];
-
 const statusStyles = {
     Active: {
         badgeBg: 'brand.green',
@@ -83,12 +54,6 @@ const statusStyles = {
         dotBg: 'brand.yellow',
         dotShadow: '0 0 8px rgba(253, 197, 29, 0.5)',
     },
-    Seated: {
-        badgeBg: 'brand.yellow',
-        badgeColor: 'brand.darkNavy',
-        dotBg: 'brand.yellow',
-        dotShadow: '0 0 8px rgba(253, 197, 29, 0.5)',
-    },
 };
 
 const getStatusStyle = (status: string | boolean) => {
@@ -96,14 +61,6 @@ const getStatusStyle = (status: string | boolean) => {
         return status ? statusStyles.Active : statusStyles.Open;
     }
     return statusStyles[status as keyof typeof statusStyles] ?? statusStyles.Open;
-};
-
-const parseStakes = (stakes: string) => {
-    const [small, big] = stakes.split('/').map((value) => Number(value.trim()));
-    if (!Number.isFinite(small) || !Number.isFinite(big)) {
-        return null;
-    }
-    return { small, big };
 };
 
 const formatUsdc = (value: number) => {
@@ -196,217 +153,6 @@ const SearchBar = () => {
                     }}
                 />
             </Box>
-        </Flex>
-    );
-};
-
-const ActiveGameCard = ({
-    name,
-    status,
-    mode,
-    stakes,
-    players,
-    host,
-    tableId,
-    isCrypto,
-}: {
-    name: string;
-    status: string;
-    mode: string;
-    stakes: string;
-    players: string;
-    host: string;
-    tableId: string;
-    isCrypto: boolean;
-}) => {
-    const statusStyle = getStatusStyle(status);
-    const gameTypeBadge = isCrypto
-        ? { bg: 'brand.pink', color: 'white', label: 'CRYPTO' }
-        : { bg: 'card.lightGray', color: 'text.secondary', label: 'FREE' };
-    const parsedStakes = parseStakes(stakes);
-    const chipsPerUsdc = 100;
-    const usdcPerChip = 1 / chipsPerUsdc;
-    const smallBlindUsd = parsedStakes
-        ? parsedStakes.small * usdcPerChip
-        : null;
-    const bigBlindUsd = parsedStakes ? parsedStakes.big * usdcPerChip : null;
-    const hasCryptoBlinds =
-        isCrypto && smallBlindUsd !== null && bigBlindUsd !== null;
-    const blindsLabel = hasCryptoBlinds
-        ? `${formatUsdc(smallBlindUsd)} / ${formatUsdc(bigBlindUsd)}`
-        : stakes;
-
-    return (
-        <Flex
-            direction="column"
-            gap={3}
-            p={{ base: 3, md: 4 }}
-            bg="card.white"
-            borderRadius="18px"
-            border="1px solid"
-            borderColor="card.lightGray"
-            boxShadow="0 14px 32px rgba(12, 21, 49, 0.1)"
-            minW={{ base: 'full', md: '280px' }}
-        >
-            <HStack justify="space-between" align="center">
-                <Text
-                    fontSize={{ base: 'md', md: 'lg' }}
-                    fontWeight="extrabold"
-                    color="text.primary"
-                    lineHeight={1.1}
-                >
-                    {name}
-                </Text>
-                <Badge
-                    bg={statusStyle.badgeBg}
-                    color={statusStyle.badgeColor}
-                    px={2.5}
-                    py={0.5}
-                    borderRadius="full"
-                    fontSize="2xs"
-                    fontWeight="bold"
-                    letterSpacing="0.08em"
-                    textTransform="uppercase"
-                >
-                    {status}
-                </Badge>
-            </HStack>
-            <HStack justify="space-between" align="center">
-                <HStack
-                    spacing={2}
-                    color="text.secondary"
-                    fontSize="sm"
-                    flexWrap="wrap"
-                >
-                    <Badge
-                        bg="card.lightGray"
-                        color="text.primary"
-                        borderRadius="full"
-                        px={2.5}
-                        py={0.5}
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        textTransform="uppercase"
-                    >
-                        {mode}
-                    </Badge>
-                    <Badge
-                        bg={gameTypeBadge.bg}
-                        color={gameTypeBadge.color}
-                        borderRadius="full"
-                        px={2.5}
-                        py={0.5}
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        letterSpacing="0.06em"
-                    >
-                        {gameTypeBadge.label}
-                    </Badge>
-                </HStack>
-                <HStack
-                    spacing={1}
-                    color="text.secondary"
-                    fontSize="xs"
-                    flexShrink={0}
-                    whiteSpace="nowrap"
-                >
-                    <Icon as={FiUsers} />
-                    <Text fontWeight="semibold">{players}</Text>
-                </HStack>
-            </HStack>
-            <Flex w="full" justify="space-between" gap={4} align="flex-start">
-                <VStack align="start" spacing={0.5}>
-                    <HStack spacing={2} align="center">
-                        <Text
-                            fontSize="2xs"
-                            color="text.secondary"
-                            textTransform="uppercase"
-                            letterSpacing="0.08em"
-                            fontWeight="bold"
-                        >
-                            Host
-                        </Text>
-                        <Text
-                            fontSize={{ base: 'xs', md: 'sm', lg: 'md' }}
-                            color="text.primary"
-                            fontFamily="monospace"
-                        >
-                            {host}
-                        </Text>
-                    </HStack>
-                    <HStack spacing={2} align="center">
-                        <Text
-                            fontSize="2xs"
-                            color="text.secondary"
-                            textTransform="uppercase"
-                            letterSpacing="0.08em"
-                            fontWeight="bold"
-                        >
-                            Table ID
-                        </Text>
-                        <Text
-                            fontSize={{ base: 'xs', md: 'sm', lg: 'md' }}
-                            color="text.primary"
-                            fontFamily="monospace"
-                        >
-                            {tableId}
-                        </Text>
-                    </HStack>
-                </VStack>
-                <VStack align="end" spacing={0.5} minW="110px">
-                    <Text
-                        fontSize="2xs"
-                        color="text.secondary"
-                        textTransform="uppercase"
-                        letterSpacing="0.12em"
-                        fontWeight="bold"
-                    >
-                        Blinds
-                    </Text>
-                    {hasCryptoBlinds ? (
-                        <Tooltip label={`${stakes}`} hasArrow>
-                            <HStack spacing={1} align="center">
-                                <Text
-                                    fontSize={{ base: 'md', md: 'md' }}
-                                    fontWeight="extrabold"
-                                    color="text.primary"
-                                    letterSpacing="-0.02em"
-                                >
-                                    {blindsLabel}
-                                </Text>
-                                <Image
-                                    src={usdcLogoUrl}
-                                    alt="USDC"
-                                    boxSize="14px"
-                                />
-                            </HStack>
-                        </Tooltip>
-                    ) : (
-                        <Text
-                            fontSize={{ base: 'md', md: 'md' }}
-                            fontWeight="extrabold"
-                            color="text.primary"
-                            letterSpacing="-0.02em"
-                        >
-                            {blindsLabel}
-                        </Text>
-                    )}
-                </VStack>
-            </Flex>
-            <Flex w="full" justify="flex-end" mt="auto" pt={0.5}>
-                <Button
-                    size="sm"
-                    variant="greenGradient"
-                    borderRadius="14px"
-                    px={4}
-                    _hover={{
-                        boxShadow:
-                            '0 0 0 2px rgba(54, 163, 123, 0.25), 0 10px 18px rgba(54, 163, 123, 0.3)',
-                    }}
-                >
-                    Open
-                </Button>
-            </Flex>
         </Flex>
     );
 };
@@ -607,23 +353,6 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                 Join
             </Button>
         </Grid>
-    );
-};
-
-const ActiveGamesSection = ({ games }: { games: ActiveGame[] }) => {
-    return (
-        <VStack w="full" spacing={{ base: 4, md: 5 }}>
-            <SectionHeader title="Your Active Games" count={games.length} />
-            <SimpleGrid
-                columns={{ base: 1, md: 2, xl: 3 }}
-                spacing={{ base: 4, md: 5 }}
-                w="full"
-            >
-                {games.map((game) => (
-                    <ActiveGameCard key={game.id} {...game} />
-                ))}
-            </SimpleGrid>
-        </VStack>
     );
 };
 
@@ -951,7 +680,7 @@ const PublicPage = () => {
             if (data?.success && Array.isArray(data.games)) {
                 setGames(data.games);
             } else {
-                setGames([]);
+                setError('Unable to load games. Please try again.');
             }
         } catch (err) {
             console.error('Failed to load public games:', err);

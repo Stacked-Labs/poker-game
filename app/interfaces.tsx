@@ -1,3 +1,5 @@
+export type CardBackVariant = 'classic' | 'ruby' | 'emerald' | 'midnight' | 'royal' | 'ocean' | 'amber' | 'gold';
+
 export type Card = string | number;
 
 export type Message = {
@@ -30,6 +32,7 @@ export type AppState = {
     chatSoundEnabled: boolean;
     chatOverlayEnabled: boolean;
     fourColorDeckEnabled: boolean;
+    cardBackDesign: CardBackVariant;
     unreadMessageCount: number;
     isChatOpen: boolean; // Track if chat is currently open
     seatRequested: number | null;

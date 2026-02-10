@@ -1,6 +1,7 @@
 import React, { createContext, useReducer, ReactChild, useEffect } from 'react';
 import {
     AppState,
+    CardBackVariant,
     Message,
     Game,
     Log,
@@ -22,6 +23,7 @@ const initialState: AppState = {
     chatSoundEnabled: true,
     chatOverlayEnabled: true,
     fourColorDeckEnabled: false,
+    cardBackDesign: 'classic',
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,
@@ -45,6 +47,7 @@ export type ACTIONTYPE =
     | { type: 'setChatSoundEnabled'; payload: boolean }
     | { type: 'setChatOverlayEnabled'; payload: boolean }
     | { type: 'setFourColorDeckEnabled'; payload: boolean }
+    | { type: 'setCardBackDesign'; payload: CardBackVariant }
     | { type: 'incrementUnreadCount' }
     | { type: 'resetUnreadCount' }
     | { type: 'setChatOpen'; payload: boolean }
@@ -119,6 +122,11 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 );
             }
             return { ...state, fourColorDeckEnabled: action.payload };
+        case 'setCardBackDesign':
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('cardBackDesign', action.payload);
+            }
+            return { ...state, cardBackDesign: action.payload };
         case 'incrementUnreadCount':
             return {
                 ...state,
@@ -199,6 +207,13 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
             dispatch({
                 type: 'setFourColorDeckEnabled',
                 payload: storedFourColorDeckEnabled === 'true',
+            });
+        }
+        const storedCardBackDesign = localStorage.getItem('cardBackDesign');
+        if (storedCardBackDesign !== null) {
+            dispatch({
+                type: 'setCardBackDesign',
+                payload: storedCardBackDesign as CardBackVariant,
             });
         }
     }, []);

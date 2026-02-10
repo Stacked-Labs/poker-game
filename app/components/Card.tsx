@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useContext } from 'react';
 import { Box } from '@chakra-ui/react';
-import type { Card as CardType } from '../interfaces';
+import type { Card as CardType, CardBackVariant } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 
 type CardProps = {
@@ -173,111 +173,236 @@ const SVGCardFace = ({
     );
 };
 
-const CardBack = ({
-    highlighted = false,
-    dimmed = false,
-    folded = false,
-}: {
-    highlighted?: boolean;
-    dimmed?: boolean;
-    folded?: boolean;
-}) => (
-    <svg
-        width="100%"
-        height="100%"
-        viewBox="0 0 24 32"
-        style={{
-            display: 'block',
-            filter:
-                [
-                    folded || (dimmed && !highlighted) ? 'brightness(50%)' : '',
-                    highlighted
-                        ? 'drop-shadow(0 0 3px rgba(253, 197, 29, 1)) drop-shadow(0 0 6px rgba(253, 197, 29, 0.6))'
-                        : '',
-                ]
-                    .filter(Boolean)
-                    .join(' ')
-                    .trim() || 'none',
-        }}
-    >
-        {/* Card background - brand dark navy */}
-        <rect
-            width="24"
-            height="32"
-            rx="2.5"
-            ry="2.5"
-            fill="#0B1430"
-            stroke={highlighted ? '#FDC51D' : '#334479'}
-            strokeWidth={highlighted ? '0.75' : '0.5'}
-        />
+type CardBackDesignConfig = {
+    bg: string;
+    overlay: string;
+    border: string;
+    pattern: (patternId: string) => React.ReactNode;
+};
 
-        {/* Card back pattern - navy overlay for depth */}
-        <rect
-            x="2"
-            y="2"
-            width="20"
-            height="28"
-            rx="1.5"
-            ry="1.5"
-            fill="#334479"
-            opacity="0.3"
-        />
-
-        {/* Texture pattern - diagonal lines with brand colors */}
-        <defs>
+const cardBackDesigns: Record<CardBackVariant, CardBackDesignConfig> = {
+    classic: {
+        bg: '#0B1430',
+        overlay: '#334479',
+        border: '#334479',
+        pattern: (patternId) => (
             <pattern
-                id="cardTexture"
+                id={patternId}
                 patternUnits="userSpaceOnUse"
                 width="4"
                 height="4"
             >
-                <line
-                    x1="0"
-                    y1="0"
-                    x2="4"
-                    y2="4"
-                    stroke="#36A37B"
-                    strokeWidth="0.5"
-                    opacity="0.15"
-                />
-                <line
-                    x1="4"
-                    y1="0"
-                    x2="0"
-                    y2="4"
-                    stroke="#EB0B5C"
-                    strokeWidth="0.5"
-                    opacity="0.15"
-                />
+                <line x1="0" y1="0" x2="4" y2="4" stroke="#36A37B" strokeWidth="0.5" opacity="0.15" />
+                <line x1="4" y1="0" x2="0" y2="4" stroke="#EB0B5C" strokeWidth="0.5" opacity="0.15" />
             </pattern>
-        </defs>
+        ),
+    },
+    ruby: {
+        bg: '#2D0A1B',
+        overlay: '#5C1A3A',
+        border: '#5C1A3A',
+        pattern: (patternId) => (
+            <pattern
+                id={patternId}
+                patternUnits="userSpaceOnUse"
+                width="6"
+                height="6"
+            >
+                <rect x="3" y="0" width="3" height="3" fill="none" stroke="#D4A843" strokeWidth="0.4" opacity="0.2" transform="rotate(45, 4.5, 1.5)" />
+                <rect x="0" y="3" width="3" height="3" fill="none" stroke="#D4A843" strokeWidth="0.4" opacity="0.2" transform="rotate(45, 1.5, 4.5)" />
+            </pattern>
+        ),
+    },
+    emerald: {
+        bg: '#0A2A1B',
+        overlay: '#1A4D35',
+        border: '#1A4D35',
+        pattern: (patternId) => (
+            <pattern
+                id={patternId}
+                patternUnits="userSpaceOnUse"
+                width="8"
+                height="8"
+            >
+                <rect x="1" y="1" width="6" height="6" rx="1.5" ry="1.5" fill="none" stroke="#2DD4A8" strokeWidth="0.4" opacity="0.18" />
+                <rect x="2.5" y="2.5" width="3" height="3" rx="0.75" ry="0.75" fill="none" stroke="#2DD4A8" strokeWidth="0.3" opacity="0.12" />
+            </pattern>
+        ),
+    },
+    midnight: {
+        bg: '#12121E',
+        overlay: '#2A2A3E',
+        border: '#2A2A3E',
+        pattern: (patternId) => (
+            <pattern
+                id={patternId}
+                patternUnits="userSpaceOnUse"
+                width="4"
+                height="4"
+            >
+                <circle cx="2" cy="2" r="0.5" fill="#C0C0C0" opacity="0.15" />
+            </pattern>
+        ),
+    },
+    royal: {
+        bg: '#1A0A2E',
+        overlay: '#3A1A5E',
+        border: '#3A1A5E',
+        pattern: (patternId) => (
+            <pattern
+                id={patternId}
+                patternUnits="userSpaceOnUse"
+                width="6"
+                height="6"
+            >
+                <line x1="3" y1="0" x2="3" y2="6" stroke="#D4A843" strokeWidth="0.3" opacity="0.15" />
+                <line x1="0" y1="3" x2="6" y2="3" stroke="#D4A843" strokeWidth="0.3" opacity="0.15" />
+                <circle cx="3" cy="3" r="1" fill="none" stroke="#D4A843" strokeWidth="0.4" opacity="0.18" />
+            </pattern>
+        ),
+    },
+    ocean: {
+        bg: '#0A1A2E',
+        overlay: '#153050',
+        border: '#153050',
+        pattern: (patternId) => (
+            <pattern
+                id={patternId}
+                patternUnits="userSpaceOnUse"
+                width="8"
+                height="4"
+            >
+                <path d="M0 2 Q2 0 4 2 Q6 4 8 2" fill="none" stroke="#38BDF8" strokeWidth="0.4" opacity="0.18" />
+            </pattern>
+        ),
+    },
+    amber: {
+        bg: '#2A1A0A',
+        overlay: '#4D3220',
+        border: '#4D3220',
+        pattern: (patternId) => (
+            <pattern
+                id={patternId}
+                patternUnits="userSpaceOnUse"
+                width="6"
+                height="6"
+            >
+                <circle cx="3" cy="3" r="2" fill="none" stroke="#CD7F32" strokeWidth="0.4" opacity="0.18" />
+                <circle cx="0" cy="0" r="2" fill="none" stroke="#CD7F32" strokeWidth="0.4" opacity="0.18" />
+                <circle cx="6" cy="0" r="2" fill="none" stroke="#CD7F32" strokeWidth="0.4" opacity="0.18" />
+                <circle cx="0" cy="6" r="2" fill="none" stroke="#CD7F32" strokeWidth="0.4" opacity="0.18" />
+                <circle cx="6" cy="6" r="2" fill="none" stroke="#CD7F32" strokeWidth="0.4" opacity="0.18" />
+            </pattern>
+        ),
+    },
+    gold: {
+        bg: '#2E2A0A',
+        overlay: '#504A1A',
+        border: '#504A1A',
+        pattern: (patternId) => (
+            <pattern
+                id={patternId}
+                patternUnits="userSpaceOnUse"
+                width="5"
+                height="5"
+            >
+                <line x1="0" y1="0" x2="5" y2="5" stroke="#F0D060" strokeWidth="0.4" opacity="0.18" />
+                <line x1="5" y1="0" x2="0" y2="5" stroke="#F0D060" strokeWidth="0.4" opacity="0.18" />
+            </pattern>
+        ),
+    },
+};
 
-        {/* Apply texture */}
-        <rect
-            x="2"
-            y="2"
-            width="20"
-            height="28"
-            rx="1.5"
-            ry="1.5"
-            fill="url(#cardTexture)"
-        />
+const CardBack = ({
+    highlighted = false,
+    dimmed = false,
+    folded = false,
+    variant = 'classic',
+    idSuffix = '',
+}: {
+    highlighted?: boolean;
+    dimmed?: boolean;
+    folded?: boolean;
+    variant?: CardBackVariant;
+    idSuffix?: string;
+}) => {
+    const design = cardBackDesigns[variant];
+    const patternId = `cardTexture-${variant}${idSuffix}`;
 
-        {/* Subtle border inset to add depth */}
-        <rect
-            x="2.75"
-            y="2.75"
-            width="18.5"
-            height="26.5"
-            rx="1.5"
-            ry="1.5"
-            fill="none"
-            stroke="#334479"
-            strokeWidth="0.5"
-            opacity="0.4"
-        />
-    </svg>
-);
+    return (
+        <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 24 32"
+            style={{
+                display: 'block',
+                filter:
+                    [
+                        folded || (dimmed && !highlighted)
+                            ? 'brightness(50%)'
+                            : '',
+                        highlighted
+                            ? 'drop-shadow(0 0 3px rgba(253, 197, 29, 1)) drop-shadow(0 0 6px rgba(253, 197, 29, 0.6))'
+                            : '',
+                    ]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim() || 'none',
+            }}
+        >
+            {/* Card background */}
+            <rect
+                width="24"
+                height="32"
+                rx="2.5"
+                ry="2.5"
+                fill={design.bg}
+                stroke={highlighted ? '#FDC51D' : design.border}
+                strokeWidth={highlighted ? '0.75' : '0.5'}
+            />
+
+            {/* Overlay for depth */}
+            <rect
+                x="2"
+                y="2"
+                width="20"
+                height="28"
+                rx="1.5"
+                ry="1.5"
+                fill={design.overlay}
+                opacity="0.3"
+            />
+
+            {/* Texture pattern */}
+            <defs>{design.pattern(patternId)}</defs>
+
+            {/* Apply texture */}
+            <rect
+                x="2"
+                y="2"
+                width="20"
+                height="28"
+                rx="1.5"
+                ry="1.5"
+                fill={`url(#${patternId})`}
+            />
+
+            {/* Subtle border inset */}
+            <rect
+                x="2.75"
+                y="2.75"
+                width="18.5"
+                height="26.5"
+                rx="1.5"
+                ry="1.5"
+                fill="none"
+                stroke={design.border}
+                strokeWidth="0.5"
+                opacity="0.4"
+            />
+        </svg>
+    );
+};
 
 const SVGCard = ({
     card,
@@ -290,6 +415,7 @@ const SVGCard = ({
 }: CardProps) => {
     const { appState } = useContext(AppContext);
     const fourColorDeckEnabled = appState.fourColorDeckEnabled;
+    const cardBackDesign = appState.cardBackDesign;
     const [flipState, setFlipState] = useState<'back' | 'flipping' | 'front'>(
         'back'
     );
@@ -375,6 +501,7 @@ const SVGCard = ({
                         highlighted={highlighted}
                         dimmed={dimmed}
                         folded={folded}
+                        variant={cardBackDesign}
                     />
                 </Box>
             </Box>
@@ -435,6 +562,7 @@ const SVGCard = ({
                         highlighted={highlighted}
                         dimmed={dimmed}
                         folded={folded}
+                        variant={cardBackDesign}
                     />
                 )}
             </Box>
@@ -443,4 +571,5 @@ const SVGCard = ({
 };
 
 const MemoizedSVGCard = React.memo(SVGCard);
+export { CardBack };
 export default MemoizedSVGCard;

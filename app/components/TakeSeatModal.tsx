@@ -239,6 +239,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             const depositSuccess = await depositAndJoin(buyInValue);
 
             if (depositSuccess) {
+                appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
                 success(
                     'Deposit Successful',
                     'Your deposit is being processed. You will be seated once approved.'

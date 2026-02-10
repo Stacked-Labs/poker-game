@@ -183,6 +183,7 @@ const TakenSeatButton = ({
     isRevealed,
     winnings,
     activePotIndex,
+    equity,
 }: {
     player: Player;
     visualSeatId?: number;
@@ -191,6 +192,7 @@ const TakenSeatButton = ({
     isRevealed: boolean;
     winnings: number;
     activePotIndex: number | null;
+    equity: number | null;
 }) => {
     const { appState } = useContext(AppContext);
     const socket = useContext(SocketContext);
@@ -930,6 +932,45 @@ const TakenSeatButton = ({
                             );
                         })()}
                     </AnimatePresence>
+                    {equity !== null && (
+                        <Box
+                            className="equity-badge"
+                            position="absolute"
+                            top="-6px"
+                            right="-8px"
+                            bg={
+                                equity > 50
+                                    ? '#1B7A4E'
+                                    : equity >= 30
+                                      ? 'gray.500'
+                                      : 'red.500'
+                            }
+                            color="white"
+                            fontSize="11px"
+                            px="5px"
+                            py="3px"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            lineHeight={1}
+                            whiteSpace="nowrap"
+                            pointerEvents="none"
+                            zIndex={5}
+                            fontWeight="bold"
+                            borderRadius="full"
+                            sx={{
+                                '@media (orientation: portrait)': {
+                                    fontSize: '17px',
+                                    px: '10px',
+                                    py: '5px',
+                                    top: '-10px',
+                                    right: '-12px',
+                                },
+                            }}
+                        >
+                            {equity}%
+                        </Box>
+                    )}
                 </Flex>
                 <Box
                     className="player-info-wrapper"

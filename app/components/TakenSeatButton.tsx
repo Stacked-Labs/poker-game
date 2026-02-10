@@ -933,11 +933,11 @@ const TakenSeatButton = ({
                         })()}
                     </AnimatePresence>
                     {equity !== null && (
-                        <Tag
+                        <Box
                             className="equity-badge"
                             position="absolute"
-                            top={{ base: '-2px', md: '0px' }}
-                            right={{ base: '-4px', md: '-6px' }}
+                            top="-6px"
+                            right="-8px"
                             bg={
                                 equity > 50
                                     ? '#1B7A4E'
@@ -946,19 +946,30 @@ const TakenSeatButton = ({
                                       : 'red.500'
                             }
                             color="white"
-                            variant="solid"
-                            size={{ base: 'xs', md: 'sm' }}
-                            fontSize={{ base: '8px', md: 'xs' }}
-                            px={{ base: 1, md: 1.5 }}
-                            py={{ base: 0, md: 0.5 }}
+                            fontSize="11px"
+                            px="5px"
+                            py="3px"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            lineHeight={1}
                             whiteSpace="nowrap"
                             pointerEvents="none"
                             zIndex={5}
                             fontWeight="bold"
                             borderRadius="full"
+                            sx={{
+                                '@media (orientation: portrait)': {
+                                    fontSize: '17px',
+                                    px: '10px',
+                                    py: '5px',
+                                    top: '-10px',
+                                    right: '-12px',
+                                },
+                            }}
                         >
                             {equity}%
-                        </Tag>
+                        </Box>
                     )}
                 </Flex>
                 <Box

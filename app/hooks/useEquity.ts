@@ -24,11 +24,10 @@ export function useEquity(): EquityMap | null {
     // Conditions:
     //  - Game is running
     //  - Betting is over (all-in or showdown)
-    //  - Stage is 1 (hand in progress, not yet moved to next hand)
     //  - No winners determined yet (once winningPlayerNums is populated, hide equity)
     //  - At least 2 players still in with both hole cards visible
     const calculationInput = useMemo(() => {
-        if (!game || !game.running || game.betting || game.stage !== 1) {
+        if (!game || !game.running || game.betting) {
             return null;
         }
 

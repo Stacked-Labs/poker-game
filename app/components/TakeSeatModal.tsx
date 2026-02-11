@@ -24,6 +24,7 @@ import {
     Image,
     Flex,
     Icon,
+    Link,
 } from '@chakra-ui/react';
 import { motion, MotionStyle } from 'framer-motion';
 import { keyframes } from '@emotion/react';
@@ -896,6 +897,40 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         : 'Join Game'}
                                 </Button>
                             </Tooltip>
+                            {isCryptoGame && (
+                                <Text
+                                    fontSize="2xs"
+                                    color="text.muted"
+                                    textAlign="center"
+                                    lineHeight="short"
+                                    px={2}
+                                    opacity={0.7}
+                                >
+                                    Your USDC is deposited into the table
+                                    contract and converted to chips. Chip
+                                    balances update after each settled hand.
+                                    {' '}{CHIPS_PER_USDC}
+                                    {' '}chips&nbsp;=&nbsp;1&nbsp;USDC.
+                                    {contractAddress && (
+                                        <>
+                                            {' '}
+                                            <Link
+                                                href={`https://sepolia.basescan.org/address/${contractAddress}`}
+                                                isExternal
+                                                color="brand.navy"
+                                                _dark={{
+                                                    color: 'brand.lightGray',
+                                                }}
+                                                fontWeight="semibold"
+                                                textDecoration="underline"
+                                                textUnderlineOffset="2px"
+                                            >
+                                                View contract
+                                            </Link>
+                                        </>
+                                    )}
+                                </Text>
+                            )}
                         </VStack>
                     </ModalFooter>
                 </Box>

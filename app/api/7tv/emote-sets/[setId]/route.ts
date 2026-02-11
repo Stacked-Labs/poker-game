@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 
 const SEVEN_TV_SET_URLS = (setId: string) => [
-    `https://7tv.app/v3/emote-sets/${setId}`,
     `https://7tv.io/v3/emote-sets/${setId}`,
 ];
 

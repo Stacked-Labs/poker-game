@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 
 const SEVEN_TV_GLOBAL_SET_URLS = [
-    'https://7tv.app/v3/emote-sets/global',
     'https://7tv.io/v3/emote-sets/global',
 ];
 

@@ -96,7 +96,7 @@ const bubbleFadeIn = keyframes`
   }
 `;
 
-const StackValue = ({
+const StackValue = React.memo(function StackValue({
     value,
     color,
     fontSize,
@@ -104,7 +104,7 @@ const StackValue = ({
     value: number;
     color: string;
     fontSize: ResponsiveValue<string>;
-}) => {
+}) {
     const prefersReducedMotion = useReducedMotion();
     const animationControls = useAnimationControls();
     const previousValueRef = useRef<number>(value);
@@ -173,6 +173,159 @@ const StackValue = ({
             </motion.span>
         </Text>
     );
+});
+
+const chipPositionStyles: { [key: number]: object } = {
+    1: {
+        justifyContent: 'center',
+        '@media (orientation: portrait)': {
+            top: '-30%',
+        },
+        '@media (orientation: landscape)': {
+            top: '-25%',
+        },
+    },
+    2: {
+        justifyContent: 'center',
+        '@media (orientation: portrait)': {
+            top: '15%',
+            right: '-110%',
+            flexDirection: 'column',
+        },
+        '@media (orientation: landscape)': {
+            top: '-25%',
+            right: 0,
+            flexDirection: 'row',
+        },
+    },
+    3: {
+        '@media (orientation: portrait)': {
+            top: '15%',
+            right: '-110%',
+            flexDirection: 'column',
+        },
+        '@media (orientation: landscape)': {
+            bottom: '23%',
+            right: '-110%',
+            flexDirection: 'row',
+        },
+    },
+    4: {
+        '@media (orientation: portrait)': {
+            bottom: '20%',
+            right: '-110%',
+            flexDirection: 'column',
+        },
+        '@media (orientation: landscape)': {
+            top: '30%',
+            right: '-110%',
+            flexDirection: 'row',
+        },
+    },
+    5: {
+        justifyContent: 'center',
+        alignItems: 'start',
+        '@media (orientation: portrait)': {
+            bottom: '20%',
+            right: '-110%',
+            flexDirection: 'column',
+        },
+        '@media (orientation: landscape)': {
+            bottom: '-30%',
+            right: 0,
+            flexDirection: 'row',
+        },
+    },
+    6: {
+        justifyContent: 'center',
+        flexDirection: 'row',
+        '@media (orientation: portrait)': {
+            bottom: '-30%',
+            right: 0,
+        },
+        '@media (orientation: landscape)': {
+            bottom: '-30%',
+            right: 0,
+        },
+    },
+    7: {
+        justifyContent: 'center',
+        alignItems: 'end',
+        '@media (orientation: portrait)': {
+            bottom: '20%',
+            left: '-110%',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+        },
+        '@media (orientation: landscape)': {
+            bottom: '-30%',
+            left: 0,
+            flexDirection: 'row',
+        },
+    },
+    8: {
+        alignItems: 'end',
+        '@media (orientation: portrait)': {
+            bottom: '20%',
+            left: '-110%',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+        },
+        '@media (orientation: landscape)': {
+            top: '30%',
+            left: '-110%',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+        },
+    },
+    9: {
+        alignItems: 'end',
+        '@media (orientation: portrait)': {
+            top: '15%',
+            left: '-110%',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+        },
+        '@media (orientation: landscape)': {
+            bottom: '23%',
+            left: '-110%',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+        },
+    },
+    10: {
+        justifyContent: 'center',
+        alignItems: 'end',
+        '@media (orientation: portrait)': {
+            top: '15%',
+            left: '-110%',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+        },
+        '@media (orientation: landscape)': {
+            top: '-25%',
+            left: '0%',
+            flexDirection: 'row',
+        },
+    },
+};
+
+const defaultPositionStyles = {
+    top: '100%',
+    flexDirection: 'row',
+};
+
+const timerColorMap: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
+    red: '#FF2D6F',
+    yellow: 'brand.yellow',
+    green: '#3FBD8A',
+    gray: 'gray.400',
 };
 
 const TakenSeatButton = ({
@@ -214,153 +367,6 @@ const TakenSeatButton = ({
     const isOffline = player.isOnline === false;
     const seatId = visualSeatId ?? player?.seatID ?? 4;
 
-    // Chip positions based on orientation - portrait uses column layouts, landscape uses row layouts
-    // Each seat has portrait and landscape positioning defined via CSS media queries
-    const chipPositionStyles: { [key: number]: object } = {
-        1: {
-            justifyContent: 'center',
-            '@media (orientation: portrait)': {
-                top: '-30%',
-            },
-            '@media (orientation: landscape)': {
-                top: '-25%',
-            },
-        },
-        2: {
-            justifyContent: 'center',
-            '@media (orientation: portrait)': {
-                top: '15%',
-                right: '-110%',
-                flexDirection: 'column',
-            },
-            '@media (orientation: landscape)': {
-                top: '-25%',
-                right: 0,
-                flexDirection: 'row',
-            },
-        },
-        3: {
-            '@media (orientation: portrait)': {
-                top: '15%',
-                right: '-110%',
-                flexDirection: 'column',
-            },
-            '@media (orientation: landscape)': {
-                bottom: '23%',
-                right: '-110%',
-                flexDirection: 'row',
-            },
-        },
-        4: {
-            '@media (orientation: portrait)': {
-                bottom: '20%',
-                right: '-110%',
-                flexDirection: 'column',
-            },
-            '@media (orientation: landscape)': {
-                top: '30%',
-                right: '-110%',
-                flexDirection: 'row',
-            },
-        },
-        5: {
-            justifyContent: 'center',
-            alignItems: 'start',
-            '@media (orientation: portrait)': {
-                bottom: '20%',
-                right: '-110%',
-                flexDirection: 'column',
-            },
-            '@media (orientation: landscape)': {
-                bottom: '-30%',
-                right: 0,
-                flexDirection: 'row',
-            },
-        },
-        6: {
-            justifyContent: 'center',
-            flexDirection: 'row',
-            '@media (orientation: portrait)': {
-                bottom: '-30%',
-                right: 0,
-            },
-            '@media (orientation: landscape)': {
-                bottom: '-30%',
-                right: 0,
-            },
-        },
-        7: {
-            justifyContent: 'center',
-            alignItems: 'end',
-            '@media (orientation: portrait)': {
-                bottom: '20%',
-                left: '-110%',
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-            },
-            '@media (orientation: landscape)': {
-                bottom: '-30%',
-                left: 0,
-                flexDirection: 'row',
-            },
-        },
-        8: {
-            alignItems: 'end',
-            '@media (orientation: portrait)': {
-                bottom: '20%',
-                left: '-110%',
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-            },
-            '@media (orientation: landscape)': {
-                top: '30%',
-                left: '-110%',
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-            },
-        },
-        9: {
-            alignItems: 'end',
-            '@media (orientation: portrait)': {
-                top: '15%',
-                left: '-110%',
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-            },
-            '@media (orientation: landscape)': {
-                bottom: '23%',
-                left: '-110%',
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-            },
-        },
-        10: {
-            justifyContent: 'center',
-            alignItems: 'end',
-            '@media (orientation: portrait)': {
-                top: '15%',
-                left: '-110%',
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-            },
-            '@media (orientation: landscape)': {
-                top: '-25%',
-                left: '0%',
-                flexDirection: 'row',
-            },
-        },
-    };
-
-    const defaultPositionStyles = {
-        top: '100%',
-        flexDirection: 'row',
-    };
     const chipPositionSx = chipPositionStyles[seatId] || defaultPositionStyles;
 
     // Countdown timer logic
@@ -463,12 +469,6 @@ const TakenSeatButton = ({
               : 'green'
         : 'gray';
 
-    const timerColorMap: Record<typeof barScheme, string> = {
-        red: '#FF2D6F',
-        yellow: 'brand.yellow',
-        green: '#3FBD8A',
-        gray: 'gray.400',
-    };
     const timerColor = timerColorMap[barScheme] || 'brand.navy';
 
     const pots = appState.game?.pots ?? [];

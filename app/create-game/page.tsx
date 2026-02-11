@@ -1,4 +1,5 @@
 import GameSettingLeftSide from '../components/CreateGame/GameSettingLeftSide';
+import Footer from '../components/HomePage/Footer';
 import { Metadata } from 'next';
 import { Box, Flex } from '@chakra-ui/react';
 
@@ -44,6 +45,8 @@ const CreateGamePage: React.FC = () => {
             position="relative"
             overflow="hidden"
             bg="bg.default"
+            display="flex"
+            flexDirection="column"
         >
             {/* Main Content */}
             <Flex
@@ -51,10 +54,10 @@ const CreateGamePage: React.FC = () => {
                 justifyContent="center"
                 position="relative"
                 zIndex={1}
-                minHeight="var(--full-vh)"
             >
                 <GameSettingLeftSide />
             </Flex>
+            <Footer />
         </Box>
     );
 };

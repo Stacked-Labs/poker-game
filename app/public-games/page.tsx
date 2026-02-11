@@ -176,18 +176,18 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
         <Grid
             w="full"
             templateColumns={{
-                base: '1fr',
+                base: '1fr auto',
                 md: '24px 2.2fr 1fr 0.8fr auto',
             }}
-            gap={{ base: 3, md: 4 }}
+            gap={{ base: 2, md: 4 }}
             alignItems="center"
-            px={{ base: 4, md: 6 }}
-            py={{ base: 3, md: 3.5 }}
-            borderRadius={{ base: '16px', md: '14px' }}
+            px={{ base: 3, md: 6 }}
+            py={{ base: 2.5, md: 3 }}
+            borderRadius={{ base: '12px', md: '14px' }}
             bg="rgba(12, 21, 49, 0.02)"
             border="1px solid"
             borderColor="rgba(12, 21, 49, 0.08)"
-            borderLeft="4px solid"
+            borderLeft="3px solid"
             borderLeftColor={rowAccentColor}
             _dark={{
                 bg: 'rgba(255, 255, 255, 0.04)',
@@ -217,19 +217,20 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                     boxShadow={rowAccentShadow}
                 />
             </Flex>
-            <HStack spacing={3} minW={0}>
+            <HStack spacing={2} minW={0}>
                 <Box
-                    w="8px"
-                    h="8px"
+                    w="6px"
+                    h="6px"
                     borderRadius="full"
                     bg={rowAccentColor}
                     boxShadow={rowAccentShadow}
                     display={{ base: 'block', md: 'none' }}
+                    flexShrink={0}
                 />
-                <VStack align="start" spacing={1} minW={0}>
-                    <HStack spacing={2} flexWrap="wrap" align="center">
+                <VStack align="start" spacing={0} minW={0}>
+                    <HStack spacing={1.5} flexWrap="wrap" align="center">
                         <Text
-                            fontSize={{ base: 'md', md: 'lg' }}
+                            fontSize={{ base: 'sm', md: 'lg' }}
                             fontWeight="bold"
                             color="text.primary"
                             fontFamily="monospace"
@@ -241,11 +242,12 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                             bg={statusStyle.badgeBg}
                             color={statusStyle.badgeColor}
                             borderRadius="full"
-                            px={2.5}
-                            py={0.5}
+                            px={2}
+                            py={0}
                             fontSize="2xs"
                             fontWeight="bold"
                             textTransform="uppercase"
+                            lineHeight="tall"
                         >
                             {statusLabel}
                         </Badge>
@@ -254,11 +256,12 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                                 bg="blue.500"
                                 color="white"
                                 borderRadius="full"
-                                px={2.5}
-                                py={0.5}
+                                px={2}
+                                py={0}
                                 fontSize="2xs"
                                 fontWeight="bold"
                                 textTransform="uppercase"
+                                lineHeight="tall"
                             >
                                 Crypto
                             </Badge>
@@ -339,12 +342,30 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
             <Button
                 as={Link}
                 href={`/table/${game.name}`}
+                size="xs"
+                rightIcon={<FiArrowUpRight />}
+                variant="greenGradient"
+                borderRadius="10px"
+                justifySelf="end"
+                w="auto"
+                display={{ base: 'inline-flex', md: 'none' }}
+                _hover={{
+                    boxShadow:
+                        '0 0 0 2px rgba(54, 163, 123, 0.25), 0 10px 18px rgba(54, 163, 123, 0.3)',
+                }}
+            >
+                Join
+            </Button>
+            <Button
+                as={Link}
+                href={`/table/${game.name}`}
                 size="sm"
                 rightIcon={<FiArrowUpRight />}
                 variant="greenGradient"
                 borderRadius="12px"
                 justifySelf="end"
                 w="auto"
+                display={{ base: 'none', md: 'inline-flex' }}
                 _hover={{
                     boxShadow:
                         '0 0 0 2px rgba(54, 163, 123, 0.25), 0 10px 18px rgba(54, 163, 123, 0.3)',
@@ -601,12 +622,12 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
                 <Box position="relative">
                     <VStack
                         w="full"
-                        spacing={{ base: 2, md: 2 }}
+                        spacing={{ base: 1.5, md: 2 }}
                         maxH={{ base: 'none', lg: '680px' }}
                         overflowY={{ base: 'visible', lg: 'auto' }}
-                        px={{ base: 4, md: 6 }}
-                        py={{ base: 3, md: 4 }}
-                        pr={{ base: 4, lg: 6 }}
+                        px={{ base: 3, md: 6 }}
+                        py={{ base: 2, md: 4 }}
+                        pr={{ base: 3, lg: 6 }}
                         sx={{
                             scrollbarWidth: 'thin',
                             scrollbarColor:

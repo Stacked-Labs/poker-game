@@ -42,13 +42,13 @@ import EmotePicker from './NavBar/Chat/EmotePicker';
 
 const pulseBorderPink = keyframes`
   0% {
-    box-shadow: 0 0 0 0 rgba(235, 11, 92, 0.5);
+    box-shadow: 0 0 0 0 rgba(255, 45, 111, 0.55);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(235, 11, 92, 0);
+    box-shadow: 0 0 0 10px rgba(255, 45, 111, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(235, 11, 92, 0);
+    box-shadow: 0 0 0 0 rgba(255, 45, 111, 0);
   }
 `;
 
@@ -66,13 +66,13 @@ const pulseBorderYellow = keyframes`
 
 const pulseBorderGreen = keyframes`
   0% {
-    box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.5);
+    box-shadow: 0 0 0 0 rgba(63, 189, 138, 0.55);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(54, 163, 123, 0);
+    box-shadow: 0 0 0 10px rgba(63, 189, 138, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(54, 163, 123, 0);
+    box-shadow: 0 0 0 0 rgba(63, 189, 138, 0);
   }
 `;
 
@@ -464,9 +464,9 @@ const TakenSeatButton = ({
         : 'gray';
 
     const timerColorMap: Record<typeof barScheme, string> = {
-        red: 'brand.pink',
+        red: '#FF2D6F',
         yellow: 'brand.yellow',
-        green: 'brand.green',
+        green: '#3FBD8A',
         gray: 'gray.400',
     };
     const timerColor = timerColorMap[barScheme] || 'brand.navy';
@@ -509,10 +509,10 @@ const TakenSeatButton = ({
     const highlightShadow =
         highlightVariant === 'active'
             ? barScheme === 'green'
-                ? '0 6px 18px rgba(54, 163, 123, 0.3)'
+                ? '0 6px 18px rgba(63, 189, 138, 0.35)'
                 : barScheme === 'yellow'
                   ? '0 6px 18px rgba(253, 197, 29, 0.3)'
-                  : '0 6px 18px rgba(235, 11, 92, 0.35)'
+                  : '0 6px 18px rgba(255, 45, 111, 0.4)'
             : highlightVariant === 'winner'
               ? '0 6px 18px rgba(253, 197, 29, 0.3)'
               : '0 2px 8px rgba(11, 20, 48, 0.3)';
@@ -946,9 +946,9 @@ const TakenSeatButton = ({
                                       : 'red.500'
                             }
                             color="white"
-                            fontSize="11px"
-                            px="5px"
-                            py="3px"
+                            fontSize={{ base: '9px', md: '11px' }}
+                            px={{ base: '4px', md: '5px' }}
+                            py={{ base: '2px', md: '3px' }}
                             display="flex"
                             alignItems="center"
                             justifyContent="center"
@@ -960,11 +960,11 @@ const TakenSeatButton = ({
                             borderRadius="full"
                             sx={{
                                 '@media (orientation: portrait)': {
-                                    fontSize: '17px',
-                                    px: '10px',
-                                    py: '5px',
-                                    top: '-10px',
-                                    right: '-12px',
+                                    fontSize: '12px',
+                                    px: '6px',
+                                    py: '3px',
+                                    top: '-7px',
+                                    right: '-8px',
                                 },
                             }}
                         >

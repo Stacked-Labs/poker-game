@@ -1,6 +1,7 @@
-import React, { createContext, useReducer, ReactChild, useEffect } from 'react';
+import React, { createContext, useReducer, ReactChild, useEffect, useMemo } from 'react';
 import {
     AppState,
+    BlindObligation,
     CardBackVariant,
     Message,
     Game,
@@ -58,14 +59,29 @@ export type ACTIONTYPE =
     | { type: 'setIsSettingsOpen'; payload: boolean }
     | { type: 'setBlindObligation'; payload: AppState['blindObligation'] }
     | { type: 'clearBlindObligation' }
-    | { type: 'setIsTableOwner'; payload: boolean | null };
+    | { type: 'setIsTableOwner'; payload: boolean | null }
+    | { type: 'updateGameBundle'; payload: {
+        game: Game;
+        clearSeatRequested?: boolean;
+        clearSeatAccepted?: boolean;
+        blindObligation?: BlindObligation | null;
+      }}
+    | { type: 'seatRequestAcceptedBundle'; payload: { seatAccepted: SeatAccepted } }
+    | { type: 'addMessageWithUnread'; payload: Message };
+
+const MAX_MESSAGES = 500;
+const MAX_LOGS = 1000;
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
-        case 'addMessage':
-            return { ...state, messages: [...state.messages, action.payload] };
-        case 'addLog':
-            return { ...state, logs: [...state.logs, action.payload] };
+        case 'addMessage': {
+            const messages = [...state.messages, action.payload];
+            return { ...state, messages: messages.length > MAX_MESSAGES ? messages.slice(-MAX_MESSAGES) : messages };
+        }
+        case 'addLog': {
+            const logs = [...state.logs, action.payload];
+            return { ...state, logs: logs.length > MAX_LOGS ? logs.slice(-MAX_LOGS) : logs };
+        }
         case 'setUsername':
             return { ...state, username: action.payload };
         case 'updateGame':
@@ -159,6 +175,24 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, blindObligation: null };
         case 'setIsTableOwner':
             return { ...state, isTableOwner: action.payload };
+        case 'updateGameBundle': {
+            const { game, clearSeatRequested, clearSeatAccepted, blindObligation } = action.payload;
+            const next: AppState = { ...state, game };
+            if (clearSeatRequested) next.seatRequested = null;
+            if (clearSeatAccepted) next.seatAccepted = null;
+            if (blindObligation !== undefined) next.blindObligation = blindObligation;
+            return next;
+        }
+        case 'seatRequestAcceptedBundle':
+            return { ...state, seatAccepted: action.payload.seatAccepted, seatRequested: null };
+        case 'addMessageWithUnread': {
+            const messages = [...state.messages, action.payload];
+            return {
+                ...state,
+                messages: messages.length > MAX_MESSAGES ? messages.slice(-MAX_MESSAGES) : messages,
+                unreadMessageCount: state.unreadMessageCount + 1,
+            };
+        }
         default: {
             const exhaustiveCheck: never = action;
             throw new Error(`Unhandled action type: ${exhaustiveCheck}`);
@@ -253,8 +287,10 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
         };
     }, [appState.table, appState.clientID, isAuthenticated, userAddress]);
 
+    const contextValue = useMemo(() => ({ appState, dispatch }), [appState, dispatch]);
+
     return (
-        <AppContext.Provider value={{ appState, dispatch }}>
+        <AppContext.Provider value={contextValue}>
             {children}
         </AppContext.Provider>
     );

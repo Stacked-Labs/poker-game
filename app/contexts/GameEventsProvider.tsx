@@ -52,58 +52,7 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({
     const [offset, setOffset] = useState(0);
     const limit = 50;
 
-    // Helper function to fetch ALL events by paginating through all pages
-    // Optional eventTypes filter reduces data transfer for specific use cases (e.g., Ledger)
-    const fetchAllEvents = useCallback(
-        async (
-            tableName: string,
-            eventTypes?: string[]
-        ): Promise<GameEventRecord[]> => {
-            let allEvents: GameEventRecord[] = [];
-            let currentOffset = 0;
-            let hasMorePages = true;
-
-            const filterDesc =
-                eventTypes && eventTypes.length > 0
-                    ? ` (filtered: ${eventTypes.join(', ')})`
-                    : ' (all events)';
-
-            console.log(
-                '[GameEventsProvider] Starting to fetch events for table:',
-                tableName + filterDesc
-            );
-
-            while (hasMorePages) {
-                const response: EventsResponse = await fetchTableEvents(
-                    tableName,
-                    limit,
-                    currentOffset,
-                    eventTypes
-                );
-
-                allEvents = [...allEvents, ...response.events];
-                hasMorePages = response.has_more;
-                currentOffset += response.events.length;
-
-                console.log('[GameEventsProvider] Fetched page:', {
-                    page_events: response.events.length,
-                    total_so_far: allEvents.length,
-                    has_more: hasMorePages,
-                    applied_filters: response.event_types,
-                });
-            }
-
-            console.log('[GameEventsProvider] Finished fetching events:', {
-                total_count: allEvents.length,
-                filters_applied: eventTypes || 'none',
-            });
-
-            return allEvents;
-        },
-        []
-    );
-
-    // Load initial events when table changes
+    // Load initial page of events when table changes
     useEffect(() => {
         const loadInitialEvents = async () => {
             if (!appState.table) {
@@ -115,21 +64,23 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({
                 setLoading(true);
                 setError(null);
 
-                // Fetch ALL events (with optional filtering)
-                const allEvents = await fetchAllEvents(
+                const response: EventsResponse = await fetchTableEvents(
                     appState.table,
+                    limit,
+                    0,
                     eventTypes
                 );
 
                 console.log('[GameEventsProvider] Initial events loaded:', {
-                    count: allEvents.length,
+                    count: response.events.length,
                     table: appState.table,
+                    has_more: response.has_more,
                     filtered: eventTypes ? 'yes' : 'no',
                 });
 
-                setEvents(allEvents);
-                setHasMore(false); // We loaded everything
-                setOffset(allEvents.length);
+                setEvents(response.events);
+                setHasMore(response.has_more);
+                setOffset(response.events.length);
             } catch (err) {
                 console.error(
                     '[GameEventsProvider] Failed to load events:',
@@ -144,7 +95,7 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({
         };
 
         loadInitialEvents();
-    }, [appState.table, fetchAllEvents, eventTypes]);
+    }, [appState.table, eventTypes]);
 
     // Load more events (pagination)
     const loadMoreEvents = useCallback(async () => {
@@ -180,7 +131,7 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({
         }
     }, [appState.table, loadingMore, hasMore, offset]);
 
-    // Refresh events (reload from beginning)
+    // Refresh events (reload first page)
     const refreshEvents = useCallback(async () => {
         if (!appState.table) return;
 
@@ -188,17 +139,22 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({
             setLoading(true);
             setError(null);
 
-            // Fetch ALL events (with optional filtering)
-            const allEvents = await fetchAllEvents(appState.table, eventTypes);
+            const response: EventsResponse = await fetchTableEvents(
+                appState.table,
+                limit,
+                0,
+                eventTypes
+            );
 
             console.log('[GameEventsProvider] Events refreshed:', {
-                count: allEvents.length,
+                count: response.events.length,
+                has_more: response.has_more,
                 filtered: eventTypes ? 'yes' : 'no',
             });
 
-            setEvents(allEvents);
-            setHasMore(false); // We loaded everything
-            setOffset(allEvents.length);
+            setEvents(response.events);
+            setHasMore(response.has_more);
+            setOffset(response.events.length);
         } catch (err) {
             console.error(
                 '[GameEventsProvider] Failed to refresh events:',
@@ -210,7 +166,7 @@ export const GameEventsProvider: React.FC<GameEventsProviderProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [appState.table, fetchAllEvents, eventTypes]);
+    }, [appState.table, eventTypes]);
 
     // Refresh events when modal opens
     useEffect(() => {

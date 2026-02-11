@@ -90,7 +90,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             lineHeight: 1,
             width: 'auto',
             minWidth: 'unset',
-            maxWidth: isLargerScreen ? '160px' : '140px',
+            maxWidth: isLargerScreen ? '200px' : '200px',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',

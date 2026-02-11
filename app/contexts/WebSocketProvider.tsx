@@ -17,6 +17,7 @@ import {
     Player,
     BlindObligationOptions,
     GameEventRecord,
+    SettlementStatus,
 } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
@@ -97,6 +98,7 @@ export function SocketProvider(props: SocketProviderProps) {
     const maxReconnectionAttempts = 5;
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const hasShownInitialErrorRef = useRef(false);
+    const settlementPendingTimerRef = useRef<NodeJS.Timeout | null>(null);
     const [seatRequestConflict, setSeatRequestConflict] = useState<{
         seatId: number | null;
         message?: string;
@@ -572,6 +574,34 @@ export function SocketProvider(props: SocketProviderProps) {
                         // with the correct paused state and restored actionDeadline.
                         // Do NOT dispatch a redundant updateGame here as it would use
                         // stale appStateRef data and overwrite the correct actionDeadline.
+
+                        // Clear settlement failed banner if it was showing
+                        if (appStateRef.current.settlementStatus === 'failed') {
+                            dispatch({ type: 'setSettlementStatus', payload: null });
+                        }
+                        return;
+                    }
+                    case 'settlement-status': {
+                        const status = eventData.status as SettlementStatus;
+
+                        // Clear any pending delay timer
+                        if (settlementPendingTimerRef.current) {
+                            clearTimeout(settlementPendingTimerRef.current);
+                            settlementPendingTimerRef.current = null;
+                        }
+
+                        if (status === 'pending') {
+                            // Delay showing the spinner so fast settlements stay invisible
+                            settlementPendingTimerRef.current = setTimeout(() => {
+                                dispatch({ type: 'setSettlementStatus', payload: 'pending' });
+                                settlementPendingTimerRef.current = null;
+                            }, 3000);
+                        } else if (status === 'success') {
+                            dispatch({ type: 'setSettlementStatus', payload: null });
+                        } else {
+                            // 'failed' — show immediately
+                            dispatch({ type: 'setSettlementStatus', payload: 'failed' });
+                        }
                         return;
                     }
                     case 'update-player-uuid': {

@@ -8,6 +8,7 @@ import { Player, Game as GameType } from '../interfaces';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import Felt from './Felt';
+import SettlementBanner from './SettlementBanner';
 import { tableColors } from '../utils/tableColors';
 import { isTableExisting } from '../hooks/server_actions';
 import useToastHelper from '../hooks/useToastHelper';
@@ -464,6 +465,7 @@ const Table = ({ tableId }: { tableId: string }) => {
                     <Felt activePotIndex={activePotIndex} />
                 </GridItem>
             </Grid>
+            <SettlementBanner />
         </Flex>
     );
 };

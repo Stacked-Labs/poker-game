@@ -6,6 +6,7 @@ import {
     Log,
     PendingPlayer,
     SeatAccepted,
+    SettlementStatus,
 } from '@/app/interfaces';
 import { isTableOwner as fetchIsTableOwner } from '@/app/hooks/server_actions';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -31,6 +32,7 @@ const initialState: AppState = {
     isSettingsOpen: false,
     blindObligation: null,
     isTableOwner: null,
+    settlementStatus: null,
 };
 
 export type ACTIONTYPE =
@@ -55,7 +57,8 @@ export type ACTIONTYPE =
     | { type: 'setIsSettingsOpen'; payload: boolean }
     | { type: 'setBlindObligation'; payload: AppState['blindObligation'] }
     | { type: 'clearBlindObligation' }
-    | { type: 'setIsTableOwner'; payload: boolean | null };
+    | { type: 'setIsTableOwner'; payload: boolean | null }
+    | { type: 'setSettlementStatus'; payload: SettlementStatus };
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
@@ -79,6 +82,7 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 showSeatRequestPopups: true,
                 isSettingsOpen: false,
                 isTableOwner: null,
+                settlementStatus: null,
             };
         case 'updatePlayerID':
             return { ...state, clientID: action.payload };
@@ -151,6 +155,8 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, blindObligation: null };
         case 'setIsTableOwner':
             return { ...state, isTableOwner: action.payload };
+        case 'setSettlementStatus':
+            return { ...state, settlementStatus: action.payload };
         default: {
             const exhaustiveCheck: never = action;
             throw new Error(`Unhandled action type: ${exhaustiveCheck}`);

@@ -33,7 +33,6 @@ const SettlementBanner = () => {
                 userSelect="none"
                 animation={`${fadeIn} 0.3s ease-out`}
                 role="status"
-                aria-live="polite"
             >
                 <Flex
                     align="center"
@@ -73,7 +72,6 @@ const SettlementBanner = () => {
                 userSelect="none"
                 animation={`${fadeIn} 0.3s ease-out`}
                 role="alert"
-                aria-live="assertive"
             >
                 <Flex
                     align="center"

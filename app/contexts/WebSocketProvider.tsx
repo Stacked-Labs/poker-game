@@ -47,6 +47,7 @@ type SocketProviderProps = {
 
 const TOAST_ID_RECONNECTING = 'attemptReconnection';
 const TOAST_ID_RECONNECTED = 'isReconnected';
+const SETTLEMENT_PENDING_SPINNER_DELAY_MS = 3000;
 
 export function SocketProvider(props: SocketProviderProps) {
     const { tableId } = props;
@@ -595,7 +596,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             settlementPendingTimerRef.current = setTimeout(() => {
                                 dispatch({ type: 'setSettlementStatus', payload: 'pending' });
                                 settlementPendingTimerRef.current = null;
-                            }, 3000);
+                            }, SETTLEMENT_PENDING_SPINNER_DELAY_MS);
                         } else if (status === 'success') {
                             dispatch({ type: 'setSettlementStatus', payload: null });
                         } else {

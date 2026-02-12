@@ -32,6 +32,7 @@ const SettlementBanner = () => {
                 pointerEvents="none"
                 userSelect="none"
                 animation={`${fadeIn} 0.3s ease-out`}
+                role="status"
             >
                 <Flex
                     align="center"
@@ -70,6 +71,7 @@ const SettlementBanner = () => {
                 pointerEvents="none"
                 userSelect="none"
                 animation={`${fadeIn} 0.3s ease-out`}
+                role="alert"
             >
                 <Flex
                     align="center"

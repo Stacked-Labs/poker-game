@@ -20,6 +20,8 @@ export type SeatAccepted = {
     message: string;
 };
 
+export type SettlementStatus = 'pending' | 'success' | 'failed' | null;
+
 export type AppState = {
     messages: Message[];
     logs: Log[];
@@ -42,6 +44,7 @@ export type AppState = {
     isSettingsOpen: boolean;
     blindObligation: BlindObligation | null;
     isTableOwner: boolean | null;
+    settlementStatus: SettlementStatus;
 };
 
 export type Player = {

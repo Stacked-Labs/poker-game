@@ -17,7 +17,6 @@ import {
     Player,
     BlindObligationOptions,
     GameEventRecord,
-    SettlementStatus,
 } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
@@ -582,7 +581,20 @@ export function SocketProvider(props: SocketProviderProps) {
                         return;
                     }
                     case 'settlement-status': {
-                        const status = eventData.status as SettlementStatus;
+                        const status = eventData.status;
+
+                        // Validate status is one of the expected values
+                        if (
+                            status !== 'pending' &&
+                            status !== 'success' &&
+                            status !== 'failed'
+                        ) {
+                            console.warn(
+                                '[WebSocket] Ignoring settlement-status event with unrecognized status:',
+                                status
+                            );
+                            return;
+                        }
 
                         // Clear any pending delay timer
                         if (settlementPendingTimerRef.current) {
@@ -598,7 +610,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             }, 3000);
                         } else if (status === 'success') {
                             dispatch({ type: 'setSettlementStatus', payload: null });
-                        } else {
+                        } else if (status === 'failed') {
                             // 'failed' — show immediately
                             dispatch({ type: 'setSettlementStatus', payload: 'failed' });
                         }

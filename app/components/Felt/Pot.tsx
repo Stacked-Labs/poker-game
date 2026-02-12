@@ -5,6 +5,7 @@ import { AppContext } from '../../contexts/AppStoreProvider';
 import { Pot as PotType } from '../../interfaces';
 import { Box, Flex, Text, usePrefersReducedMotion } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 const initialPot: PotType[] = [
     {
@@ -30,6 +31,7 @@ const pulsePotSecondary = keyframes`
 
 const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
     const { appState } = useContext(AppContext);
+    const { format } = useFormatAmount();
     const isGameRunning = appState.game?.running;
     const game = appState.game;
     const prefersReducedMotion = usePrefersReducedMotion();
@@ -148,7 +150,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                                     }}
                                                     color={'white'}
                                                 >
-                                                    {game.pots[index].amount}
+                                                    {format(game.pots[index].amount)}
                                                 </Text>
                                             </Text>
                                         </Box>
@@ -168,7 +170,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                         color="white"
                                         textAlign="center"
                                     >
-                                        {pot.amount}
+                                        {format(pot.amount)}
                                     </Text>
                                 )}
                             </Fragment>
@@ -226,7 +228,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                         color="black"
                                         whiteSpace="nowrap"
                                     >
-                                        SP{index}: {pot.amount}
+                                        SP{index}: {format(pot.amount)}
                                     </Text>
                                 </Flex>
                             )

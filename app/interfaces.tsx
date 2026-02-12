@@ -1,3 +1,5 @@
+export type DisplayMode = 'chips' | 'bb' | 'usdc';
+
 export type CardBackVariant = 'classic' | 'ruby' | 'emerald' | 'midnight' | 'royal' | 'ocean' | 'amber' | 'gold';
 
 export type Card = string | number;
@@ -45,6 +47,7 @@ export type AppState = {
     blindObligation: BlindObligation | null;
     isTableOwner: boolean | null;
     settlementStatus: SettlementStatus;
+    displayMode: DisplayMode;
 };
 
 export type Player = {

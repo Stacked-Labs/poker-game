@@ -24,6 +24,7 @@ import {
     HOTKEY_RAISE,
 } from './constants';
 import GuardModal from '../GuardModal';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 const AUTO_ACTION_DELAY_MS = 750;
 
@@ -44,6 +45,7 @@ const FooterWithActionButtons = ({
 }) => {
     const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
+    const { format } = useFormatAmount();
     const [showRaise, setShowRaise] = useState<boolean>(false);
     const [queuedActions, setQueuedActions] = useState<QueuedActionState>(() =>
         createInitialQueuedActions()
@@ -344,7 +346,7 @@ const FooterWithActionButtons = ({
                         />
                         {!gameIsPaused && needsToCall && (
                             <ActionButton
-                                text={'Call (' + callAmount + ')'}
+                                text={'Call (' + format(callAmount) + ')'}
                                 color="green"
                                 clickHandler={handleCallButtonClick}
                                 isDisabled={gameIsPaused}

@@ -3,6 +3,7 @@ import {
     AppState,
     BlindObligation,
     CardBackVariant,
+    DisplayMode,
     Message,
     Game,
     Log,
@@ -36,6 +37,7 @@ const initialState: AppState = {
     blindObligation: null,
     isTableOwner: null,
     settlementStatus: null,
+    displayMode: 'chips',
 };
 
 export type ACTIONTYPE =
@@ -70,7 +72,8 @@ export type ACTIONTYPE =
         blindObligation?: BlindObligation | null;
       }}
     | { type: 'seatRequestAcceptedBundle'; payload: { seatAccepted: SeatAccepted } }
-    | { type: 'addMessageWithUnread'; payload: Message };
+    | { type: 'addMessageWithUnread'; payload: Message }
+    | { type: 'setDisplayMode'; payload: DisplayMode };
 
 const MAX_MESSAGES = 500;
 const MAX_LOGS = 1000;
@@ -199,6 +202,11 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 unreadMessageCount: state.unreadMessageCount + 1,
             };
         }
+        case 'setDisplayMode':
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('displayMode', action.payload);
+            }
+            return { ...state, displayMode: action.payload };
         default: {
             const exhaustiveCheck: never = action;
             throw new Error(`Unhandled action type: ${exhaustiveCheck}`);
@@ -254,6 +262,13 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
             dispatch({
                 type: 'setCardBackDesign',
                 payload: storedCardBackDesign as CardBackVariant,
+            });
+        }
+        const storedDisplayMode = localStorage.getItem('displayMode');
+        if (storedDisplayMode === 'chips' || storedDisplayMode === 'bb' || storedDisplayMode === 'usdc') {
+            dispatch({
+                type: 'setDisplayMode',
+                payload: storedDisplayMode,
             });
         }
     }, []);

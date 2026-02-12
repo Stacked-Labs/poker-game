@@ -25,6 +25,7 @@ import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { playerRaise } from '@/app/hooks/server_actions';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { HOTKEY_BACK, HOTKEY_RAISE } from './constants';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 const RaiseInputBox = ({
     isCurrentTurn,
@@ -37,6 +38,7 @@ const RaiseInputBox = ({
 }) => {
     const socket = useContext(SocketContext);
     const { appState } = useContext(AppContext);
+    const { fromChips, toChips, mode: displayMode } = useFormatAmount();
     const gameIsPaused = appState.game?.paused || false;
 
     // Calculate game-dependent values with safe defaults
@@ -94,9 +96,9 @@ const RaiseInputBox = ({
             isTypingRef.current = false;
             const validated = betValidator(value, minRaise, maxTotalBet);
             setBetValue(validated);
-            setBetInput(validated.toString());
+            setBetInput(fromChips(validated).toString());
         },
-        [maxTotalBet, minRaise]
+        [maxTotalBet, minRaise, fromChips]
     );
 
     const half =
@@ -140,11 +142,11 @@ const RaiseInputBox = ({
 
     // Helper to get the current effective bet value for validation/submission
     // Uses betInput if input is focused (user is typing), otherwise uses betValue
-    // Not using useCallback to avoid stale closures - this is called in render
+    // Always returns chips
     const getCurrentBetValue = (): number => {
         if (isInputFocused()) {
             const parsed = parseFloat(betInput);
-            return isNaN(parsed) ? 0 : parsed;
+            return isNaN(parsed) ? 0 : toChips(parsed);
         }
         return betValue;
     };
@@ -242,8 +244,9 @@ const RaiseInputBox = ({
 
     const handleInputOnBlur = () => {
         const parsed = parseFloat(betInput);
+        const chipsValue = toChips(isNaN(parsed) ? fromChips(sliderMinValue) : parsed);
         const validatedBet = betValidator(
-            isNaN(parsed) ? sliderMinValue : parsed,
+            chipsValue,
             minRaise,
             maxTotalBet
         );
@@ -376,7 +379,8 @@ const RaiseInputBox = ({
                         width={'100%'}
                         height={'100%'}
                         type="number"
-                        inputMode="numeric"
+                        inputMode={displayMode === 'chips' ? 'numeric' : 'decimal'}
+                        step={displayMode === 'chips' ? undefined : 'any'}
                         value={betInput}
                         min={sliderMinValue}
                         max={maxTotalBet}
@@ -668,7 +672,8 @@ const RaiseInputBox = ({
                             fontSize={{ base: 'xs', sm: 'sm', md: 'lg' }}
                             size={{ base: 'xs', md: 'md' }}
                             type="number"
-                            inputMode="numeric"
+                            inputMode={displayMode === 'chips' ? 'numeric' : 'decimal'}
+                            step={displayMode === 'chips' ? undefined : 'any'}
                             value={betInput}
                             min={sliderMinValue}
                             max={maxTotalBet}

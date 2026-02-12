@@ -39,6 +39,7 @@ import type { Emote } from '@/app/stores/emotes';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { buildSeatReactionMessage } from '@/app/utils/seatReaction';
 import EmotePicker from './NavBar/Chat/EmotePicker';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 const pulseBorderPink = keyframes`
   0% {
@@ -100,10 +101,12 @@ const StackValue = React.memo(function StackValue({
     value,
     color,
     fontSize,
+    formatValue,
 }: {
     value: number;
     color: string;
     fontSize: ResponsiveValue<string>;
+    formatValue?: (n: number) => string;
 }) {
     const prefersReducedMotion = useReducedMotion();
     const animationControls = useAnimationControls();
@@ -150,9 +153,9 @@ const StackValue = React.memo(function StackValue({
     const formattedValue = useMemo(
         () =>
             Number.isFinite(displayValue)
-                ? displayValue.toLocaleString('en-US')
+                ? (formatValue ? formatValue(displayValue) : displayValue.toLocaleString('en-US'))
                 : '0',
-        [displayValue]
+        [displayValue, formatValue]
     );
 
     return (
@@ -350,6 +353,7 @@ const TakenSeatButton = ({
     const { appState } = useContext(AppContext);
     const socket = useContext(SocketContext);
     const { play } = useSound();
+    const { format } = useFormatAmount();
     const playCardFlip = useCallback(() => play('card_flip'), [play]);
     const address = player?.address;
     const shortEthAddress = address
@@ -745,7 +749,7 @@ const TakenSeatButton = ({
                                 }
                                 noOfLines={1}
                             >
-                                {showBetBubble ? player.bet : 'Check'}
+                                {showBetBubble ? format(player.bet) : 'Check'}
                             </Text>
                         </Flex>
                     </Flex>
@@ -791,7 +795,7 @@ const TakenSeatButton = ({
                         boxShadow="0 2px 8px rgba(253, 197, 29, 0.3)"
                         animation={`${bubbleFadeIn} 0.25s ease-out`}
                     >
-                        {player.bet}
+                        {format(player.bet)}
                     </Text>
                 )}
             </Flex>
@@ -1375,6 +1379,7 @@ const TakenSeatButton = ({
                                             md: 'sm',
                                             lg: 'md',
                                         }}
+                                        formatValue={format}
                                     />
                                 </Flex>
                             </HStack>

@@ -17,7 +17,7 @@ import { useColorMode } from '@chakra-ui/react';
 import React, { useContext, useState } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { CardBack } from '@/app/components/Card';
-import type { CardBackVariant } from '@/app/interfaces';
+import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
 
 const cardBackColors: Record<CardBackVariant, string> = {
     classic: '#0B1430',
@@ -273,6 +273,64 @@ const GameSettings = () => {
                             colorScheme="green"
                         />
                     </HStack>
+                </Flex>
+            </Box>
+            <Box
+                bg="card.white"
+                borderRadius="16px"
+                border="2px solid"
+                borderColor="border.lightGray"
+                p={{ base: 2.5, md: 3 }}
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+            >
+                <Flex
+                    direction="row"
+                    justify={'space-between'}
+                    align="center"
+                    wrap="nowrap"
+                    gap={3}
+                >
+                    <Text
+                        fontSize={{ base: 'sm', md: 'lg' }}
+                        fontWeight="bold"
+                        color="text.secondary"
+                        flex={1}
+                        minWidth={0}
+                        whiteSpace="nowrap"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                    >
+                        Chip Display
+                    </Text>
+                    <Select
+                        value={appState.displayMode}
+                        onChange={(e) =>
+                            dispatch({
+                                type: 'setDisplayMode',
+                                payload: e.target.value as DisplayMode,
+                            })
+                        }
+                        variant="outline"
+                        width={{ base: '52%', sm: '50%' }}
+                        fontWeight="bold"
+                        sx={{
+                            '& > option:checked': {
+                                color: 'text.primary',
+                                fontWeight: 'bold',
+                            },
+                            '& > option': {
+                                bg: 'card.white',
+                                color: 'text.primary',
+                            },
+                        }}
+                        _hover={{ cursor: 'pointer' }}
+                    >
+                        <option value="chips">Chips (1,500)</option>
+                        <option value="bb">Big Blinds (150bb)</option>
+                        {appState.game?.config?.crypto === true && (
+                            <option value="usdc">USDC ($15.00)</option>
+                        )}
+                    </Select>
                 </Flex>
             </Box>
             <Box

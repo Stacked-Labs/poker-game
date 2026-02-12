@@ -4,6 +4,11 @@
 echo "Running pre-commit hook..."
 cd "$(git rev-parse --show-toplevel)" # Navigate to project root
 echo "Current directory: $(pwd)"
-npm run lint
-# Skipping build in CI environment due to network constraints
-# npm run build
+
+# Only run lint in CI/sandboxed environments where network access is restricted
+if [ -n "$CI" ] || [ ! -z "$GITHUB_ACTIONS" ]; then
+    echo "CI environment detected, skipping build step"
+    npm run lint
+else
+    npm run lint && npm run build
+fi

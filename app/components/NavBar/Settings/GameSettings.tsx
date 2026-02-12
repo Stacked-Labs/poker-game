@@ -16,6 +16,19 @@ import { FiEye, FiEyeOff, FiVolume2, FiVolumeX } from 'react-icons/fi';
 import { useColorMode } from '@chakra-ui/react';
 import React, { useContext, useState } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { CardBack } from '@/app/components/Card';
+import type { CardBackVariant } from '@/app/interfaces';
+
+const cardBackColors: Record<CardBackVariant, string> = {
+    classic: '#0B1430',
+    ruby: '#2D0A1B',
+    emerald: '#0A2A1B',
+    midnight: '#12121E',
+    royal: '#1A0A2E',
+    ocean: '#0A1A2E',
+    amber: '#2A1A0A',
+    gold: '#2E2A0A',
+};
 
 const GameSettings = () => {
     const { colorMode, toggleColorMode } = useColorMode();
@@ -52,7 +65,7 @@ const GameSettings = () => {
                 borderRadius="16px"
                 border="2px solid"
                 borderColor="border.lightGray"
-                p={{ base: 5, md: 6 }}
+                p={{ base: 2.5, md: 3 }}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex
@@ -116,7 +129,83 @@ const GameSettings = () => {
                 borderRadius="16px"
                 border="2px solid"
                 borderColor="border.lightGray"
-                p={{ base: 5, md: 6 }}
+                p={{ base: 2.5, md: 3 }}
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+            >
+                <Flex
+                    direction="row"
+                    justify={'space-between'}
+                    align="center"
+                    wrap="nowrap"
+                    gap={3}
+                >
+                    <Text
+                        fontSize={{ base: 'sm', md: 'lg' }}
+                        fontWeight="bold"
+                        color="text.secondary"
+                        flex={1}
+                        minWidth={0}
+                        whiteSpace="nowrap"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                    >
+                        Card Back
+                    </Text>
+                    <HStack spacing={{ base: 2, md: 3 }} flexShrink={0}>
+                        <Box
+                            width={{ base: '46px', md: '53px' }}
+                            height={{ base: '61px', md: '71px' }}
+                            flexShrink={0}
+                        >
+                            <CardBack
+                                variant={appState.cardBackDesign}
+                                idSuffix="-preview"
+                            />
+                        </Box>
+                        <Select
+                            value={appState.cardBackDesign}
+                            onChange={(e) =>
+                                dispatch({
+                                    type: 'setCardBackDesign',
+                                    payload: e.target
+                                        .value as CardBackVariant,
+                                })
+                            }
+                            variant="outline"
+                            width={{ base: '120px', md: '140px' }}
+                            bg={cardBackColors[appState.cardBackDesign]}
+                            color="white"
+                            fontWeight="bold"
+                            sx={{
+                                '& > option:checked': {
+                                    color: 'text.primary',
+                                    fontWeight: 'bold',
+                                },
+                                '& > option': {
+                                    bg: 'card.white',
+                                    color: 'text.primary',
+                                },
+                            }}
+                            _hover={{ cursor: 'pointer' }}
+                        >
+                            <option value="classic">Classic</option>
+                            <option value="ruby">Ruby</option>
+                            <option value="emerald">Emerald</option>
+                            <option value="midnight">Midnight</option>
+                            <option value="royal">Royal</option>
+                            <option value="ocean">Ocean</option>
+                            <option value="amber">Amber</option>
+                            <option value="gold">Gold</option>
+                        </Select>
+                    </HStack>
+                </Flex>
+            </Box>
+            <Box
+                bg="card.white"
+                borderRadius="16px"
+                border="2px solid"
+                borderColor="border.lightGray"
+                p={{ base: 2.5, md: 3 }}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex
@@ -191,7 +280,7 @@ const GameSettings = () => {
                 borderRadius="16px"
                 border="2px solid"
                 borderColor="border.lightGray"
-                p={{ base: 5, md: 6 }}
+                p={{ base: 2.5, md: 3 }}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex
@@ -233,7 +322,7 @@ const GameSettings = () => {
                 borderRadius="16px"
                 border="2px solid"
                 borderColor="border.lightGray"
-                p={{ base: 5, md: 6 }}
+                p={{ base: 2.5, md: 3 }}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex
@@ -310,7 +399,7 @@ const GameSettings = () => {
                 borderRadius="16px"
                 border="2px solid"
                 borderColor="border.lightGray"
-                p={{ base: 5, md: 6 }}
+                p={{ base: 2.5, md: 3 }}
                 boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
             >
                 <Flex

@@ -22,16 +22,6 @@
             "name": "Base",
             "image": "/networkLogos/base-logo.png",
             "disabled": true
-        },
-        {
-            "name": "Optimism",
-            "image": "/networkLogos/optimism-logo.png",
-            "disabled": true
-        },
-        {
-            "name": "Arbitrum",
-            "image": "/networkLogos/arbitrum-logo.png",
-            "disabled": true
         }
     ]
 }

@@ -17,7 +17,7 @@ interface WalletButtonProps {
     height?: string;
     className?: string;
     label?: string;
-    variant?: 'default' | 'link';
+    variant?: 'default' | 'link' | 'hero';
 }
 
 const WalletButton: React.FC<WalletButtonProps> = ({
@@ -50,6 +50,20 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             };
         }
 
+        if (variant === 'hero') {
+            return {
+                background: 'transparent',
+                border: `2px solid ${colorMode === 'light' ? 'rgba(51, 68, 121, 0.15)' : 'rgba(255, 255, 255, 0.12)'}`,
+                borderRadius: '16px',
+                padding: '12px 20px',
+                fontSize: '15px',
+                fontWeight: 700,
+                height: '52px',
+                width: '100%',
+                color: colorMode === 'light' ? '#334479' : '#ECEEF5',
+            };
+        }
+
         if (hasExplicitSize) {
             // Used by places like TakeSeatModal/HomeNavBar where the button should follow the local layout.
             return {
@@ -76,7 +90,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             lineHeight: 1,
             width: 'auto',
             minWidth: 'unset',
-            maxWidth: isLargerScreen ? '160px' : '140px',
+            maxWidth: isLargerScreen ? '200px' : '200px',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -90,6 +104,24 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                   ...(height && { height, minHeight: height }),
               }
             : undefined;
+
+    const heroDetailsStyle: React.CSSProperties | null =
+        variant === 'hero'
+            ? {
+                  background:
+                      colorMode === 'light'
+                          ? 'linear-gradient(135deg, rgba(54, 163, 123, 0.04), rgba(54, 163, 123, 0.08))'
+                          : 'linear-gradient(135deg, rgba(54, 163, 123, 0.08), rgba(54, 163, 123, 0.14))',
+                  border: `1.5px solid ${colorMode === 'light' ? 'rgba(54, 163, 123, 0.18)' : 'rgba(54, 163, 123, 0.28)'}`,
+                  borderRadius: '16px',
+                  padding: '12px 20px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  height: 'auto',
+                  minHeight: '52px',
+                  width: '100%',
+              }
+            : null;
 
     const customLightTheme = lightTheme({
         colors: {
@@ -111,7 +143,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             wallets={wallets}
             supportedTokens={supportedTokens}
             detailsButton={{
-                style: {
+                style: heroDetailsStyle ?? {
                     ...defaultButtonStyle,
                     ...sizeOverrideStyle,
                     borderRadius: variant === 'link' ? '0' : theme.radii.md,
@@ -146,7 +178,12 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                 style: {
                     ...defaultButtonStyle,
                     ...sizeOverrideStyle,
-                    borderRadius: variant === 'link' ? '0' : theme.radii.md,
+                    borderRadius:
+                        variant === 'link'
+                            ? '0'
+                            : variant === 'hero'
+                              ? '16px'
+                              : theme.radii.md,
                 },
             }}
             connectModal={{

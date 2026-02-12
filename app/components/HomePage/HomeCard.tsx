@@ -13,6 +13,7 @@ import {
     Heading,
     Text,
     Badge,
+    useMediaQuery,
 } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { FaDiscord } from 'react-icons/fa';
@@ -21,6 +22,7 @@ import WalletButton from '@/app/components/WalletButton';
 import { useRouter } from 'next/navigation';
 import { keyframes } from '@emotion/react';
 import { useReducedMotion } from 'framer-motion';
+import { useActiveAccount } from 'thirdweb/react';
 
 // Animations
 const gradientShift = keyframes`
@@ -69,6 +71,8 @@ const HomeCard = () => {
     const [showPlayOptions, setShowPlayOptions] = useState(false);
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
+    const account = useActiveAccount();
+    const [isPortrait] = useMediaQuery('(orientation: portrait)');
     const allowMotion = !prefersReducedMotion;
     const swapPrimaryMotion = allowMotion
         ? `${swapPrimary} 2.8s ease-in-out infinite`
@@ -180,13 +184,13 @@ const HomeCard = () => {
 
                 {/* Content */}
                 <Stack
-                    gap={{ base: 3, md: 6 }}
+                    gap={{ base: 2, md: 4 }}
                     flex={1}
                     justifyContent="center"
                     width="100%"
                     className="home-card-content"
                     alignItems="center"
-                    py={{ base: 6, md: 10, lg: 12 }}
+                    py={{ base: 5, md: 8, lg: 10 }}
                     px={{ base: 5, sm: 8, md: 10, lg: 12 }}
                     position="relative"
                     zIndex={1}
@@ -439,11 +443,10 @@ const HomeCard = () => {
 
                     {/* Buttons Section */}
                     <Stack
-                        gap={{ base: 4, md: 4 }}
+                        gap={{ base: 3, md: 3 }}
                         width="100%"
                         maxW={{ base: '100%', sm: '320px' }}
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s backwards`}
-                        pt={1}
                     >
                         {!showPlayOptions ? (
                             <Button
@@ -473,12 +476,12 @@ const HomeCard = () => {
                                 [ PLAY NOW ]
                             </Button>
                         ) : (
-                            <Stack spacing={{ base: 3, md: 4 }} width="100%">
+                            <Stack spacing={{ base: 2.5, md: 3 }} width="100%">
                                 <Button
-                                    height={{ base: '64px', md: '64px' }}
+                                    height={{ base: '52px', md: '56px' }}
                                     fontSize={{ base: 'md', md: 'lg' }}
                                     fontWeight="900"
-                                    borderRadius="18px"
+                                    borderRadius="16px"
                                     bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.9))"
                                     color="white"
                                     border="none"
@@ -506,10 +509,10 @@ const HomeCard = () => {
                                     [ CREATE ]
                                 </Button>
                                 <Button
-                                    height={{ base: '64px', md: '64px' }}
+                                    height={{ base: '52px', md: '56px' }}
                                     fontSize={{ base: 'md', md: 'lg' }}
                                     fontWeight="900"
-                                    borderRadius="18px"
+                                    borderRadius="16px"
                                     bg="white"
                                     color="brand.green"
                                     border="2px solid"
@@ -552,19 +555,32 @@ const HomeCard = () => {
                             </Stack>
                         )}
 
-                        <Flex justify="center" pt={1}>
-                            <WalletButton
-                                label="Already have an account? Sign In"
-                                variant="link"
-                            />
-                        </Flex>
+                        {account && isPortrait ? (
+                            <Box
+                                width="100%"
+                                maxW={{
+                                    base: '100%',
+                                    sm: '320px',
+                                }}
+                                mx="auto"
+                            >
+                                <WalletButton variant="hero" />
+                            </Box>
+                        ) : !account ? (
+                            <Flex justify="center" pt={0}>
+                                <WalletButton
+                                    label="Already have an account? Sign In"
+                                    variant="link"
+                                />
+                            </Flex>
+                        ) : null}
                     </Stack>
 
                     {/* Social Links */}
                     <VStack
-                        spacing={2}
+                        spacing={1.5}
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s backwards`}
-                        pt={{ base: 1, md: 2 }}
+                        pt={{ base: 0, md: 1 }}
                     >
                         <Text
                             fontSize="xs"
@@ -590,8 +606,8 @@ const HomeCard = () => {
                                     variant="social"
                                     color="text.primary"
                                     borderRadius="12px"
-                                    w={{ base: '48px', md: '52px' }}
-                                    h={{ base: '48px', md: '52px' }}
+                                    w={{ base: '42px', md: '46px' }}
+                                    h={{ base: '42px', md: '46px' }}
                                     _hover={{
                                         bg: '#000000',
                                         color: 'white',
@@ -613,8 +629,8 @@ const HomeCard = () => {
                                     variant="social"
                                     color="#5865F2"
                                     borderRadius="12px"
-                                    w={{ base: '48px', md: '52px' }}
-                                    h={{ base: '48px', md: '52px' }}
+                                    w={{ base: '42px', md: '46px' }}
+                                    h={{ base: '42px', md: '46px' }}
                                     _hover={{
                                         bg: '#5865F2',
                                         color: 'white',
@@ -636,8 +652,8 @@ const HomeCard = () => {
                                     variant="social"
                                     color="#855DCD"
                                     borderRadius="12px"
-                                    w={{ base: '48px', md: '52px' }}
-                                    h={{ base: '48px', md: '52px' }}
+                                    w={{ base: '42px', md: '46px' }}
+                                    h={{ base: '42px', md: '46px' }}
                                     _hover={{
                                         bg: '#855DCD',
                                         color: 'white',

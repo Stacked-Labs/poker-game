@@ -249,22 +249,6 @@ export function SocketProvider(props: SocketProviderProps) {
             };
 
             _socket.onmessage = (e) => {
-                // Log all incoming WebSocket messages for debugging
-                console.log('🔽 WebSocket Message Received:', {
-                    timestamp: new Date().toISOString(),
-                    rawData: e.data,
-                    parsedData: (() => {
-                        try {
-                            return JSON.parse(e.data);
-                        } catch (error) {
-                            return {
-                                error: 'Failed to parse JSON',
-                                data: e.data,
-                            };
-                        }
-                    })(),
-                });
-
                 let eventData;
                 try {
                     eventData = JSON.parse(e.data);
@@ -276,6 +260,13 @@ export function SocketProvider(props: SocketProviderProps) {
                     console.error('Raw WebSocket data:', e.data);
                     return; // Stop processing if JSON is invalid
                 }
+
+                // Log all incoming WebSocket messages for debugging
+                console.log('🔽 WebSocket Message Received:', {
+                    timestamp: new Date().toISOString(),
+                    rawData: e.data,
+                    parsedData: eventData,
+                });
 
                 // Handle pending_players_update first as it uses event.type
                 if (eventData.type === 'pending_players_update') {
@@ -340,11 +331,12 @@ export function SocketProvider(props: SocketProviderProps) {
                             message: eventData.message,
                             timestamp: eventData.timestamp,
                         };
-                        dispatch({ type: 'addMessage', payload: newMessage });
 
-                        // Only increment unread count if chat isn't open
+                        // Single dispatch: bundle message + unread count when chat is closed
                         if (!appStateRef.current.isChatOpen) {
-                            dispatch({ type: 'incrementUnreadCount' });
+                            dispatch({ type: 'addMessageWithUnread', payload: newMessage });
+                        } else {
+                            dispatch({ type: 'addMessage', payload: newMessage });
                         }
                         return;
                     }
@@ -445,7 +437,13 @@ export function SocketProvider(props: SocketProviderProps) {
                             soundManager.play('win');
                         }
 
-                        dispatch({ type: 'updateGame', payload: newGame });
+                        // Build a single bundled payload to avoid multiple dispatches
+                        const bundlePayload: {
+                            game: Game;
+                            clearSeatRequested?: boolean;
+                            clearSeatAccepted?: boolean;
+                            blindObligation?: import('@/app/interfaces').BlindObligation | null;
+                        } = { game: newGame };
 
                         // If player was just successfully seated, reset the flags
                         const isPlayerSeated = eventData.game.players?.some(
@@ -454,19 +452,11 @@ export function SocketProvider(props: SocketProviderProps) {
                             }
                         );
                         if (isPlayerSeated) {
-                            // Clear pending request state
                             if (appStateRef.current.seatRequested) {
-                                dispatch({
-                                    type: 'setSeatRequested',
-                                    payload: null,
-                                });
+                                bundlePayload.clearSeatRequested = true;
                             }
-                            // Clear accepted state - player is now fully seated
                             if (appStateRef.current.seatAccepted) {
-                                dispatch({
-                                    type: 'setSeatAccepted',
-                                    payload: null,
-                                });
+                                bundlePayload.clearSeatAccepted = true;
                             }
                         }
 
@@ -502,24 +492,23 @@ export function SocketProvider(props: SocketProviderProps) {
                                     'wait_bb',
                                     'sit_out',
                                 ] as BlindObligationOptions[]);
-                            dispatch({
-                                type: 'setBlindObligation',
-                                payload: {
-                                    seatID: localPlayer.seatID,
-                                    owesSB,
-                                    owesBB,
-                                    waitingForBB,
-                                    options: existingOptions,
-                                },
-                            });
+                            bundlePayload.blindObligation = {
+                                seatID: localPlayer.seatID,
+                                owesSB,
+                                owesBB,
+                                waitingForBB,
+                                options: existingOptions,
+                            };
                         } else if (
                             appStateRef.current.blindObligation &&
                             !owesSB &&
                             !owesBB &&
                             !waitingForBB
                         ) {
-                            dispatch({ type: 'clearBlindObligation' });
+                            bundlePayload.blindObligation = null;
                         }
+
+                        dispatch({ type: 'updateGameBundle', payload: bundlePayload });
                         return;
                     }
                     case 'blind-obligation': {
@@ -631,18 +620,18 @@ export function SocketProvider(props: SocketProviderProps) {
                         return;
                     }
                     case 'seat-request-accepted': {
-                        // Player's seat request was accepted by the table owner
+                        // Player's seat request was accepted — single dispatch to set accepted + clear requested
                         dispatch({
-                            type: 'setSeatAccepted',
+                            type: 'seatRequestAcceptedBundle',
                             payload: {
-                                seatId: eventData.seatId,
-                                buyIn: eventData.buyIn,
-                                queued: eventData.queued,
-                                message: eventData.message,
+                                seatAccepted: {
+                                    seatId: eventData.seatId,
+                                    buyIn: eventData.buyIn,
+                                    queued: eventData.queued,
+                                    message: eventData.message,
+                                },
                             },
                         });
-                        // Clear the pending state since we're now accepted
-                        dispatch({ type: 'setSeatRequested', payload: null });
                         // Show success toast
                         toastSuccessRef.current(
                             'Seat Accepted',

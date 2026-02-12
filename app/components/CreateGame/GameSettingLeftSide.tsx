@@ -380,7 +380,7 @@ const GameSettingLeftSide: React.FC = () => {
             <Flex
                 width="100%"
                 justifyContent="space-between"
-                alignItems="flex-end"
+                alignItems="center"
                 mb={2}
             >
                 <Box>
@@ -397,26 +397,23 @@ const GameSettingLeftSide: React.FC = () => {
                     </Text>
                 </Box>
                 <Button
-                    variant="outline"
-                    size="md"
-                    bg="card.white"
-                    color="text.primary"
-                    borderColor="border.lightGray"
-                    borderWidth="2px"
+                    size="sm"
+                    bg="brand.green"
+                    color="white"
                     borderRadius="full"
-                    px={4}
-                    py={2}
+                    px={{ base: 3, md: 4 }}
                     fontWeight="semibold"
-                    fontSize="sm"
+                    fontSize="xs"
                     onClick={handleJoinPublicGame}
                     _hover={{
-                        borderColor: 'brand.pink',
-                        bg: 'card.white',
+                        bg: '#2e8d6a',
                     }}
-                    leftIcon={<Icon as={FaUsers} color="brand.pink" />}
-                    rightIcon={<Icon as={FaArrowRight} boxSize={3} />}
+                    transition="all 0.2s"
+                    leftIcon={<Icon as={FaUsers} boxSize={3} />}
+                    rightIcon={<Icon as={FaArrowRight} boxSize={2.5} />}
+                    flexShrink={0}
                 >
-                    Join Public Game
+                    Join Game
                 </Button>
             </Flex>
 
@@ -461,9 +458,7 @@ const GameSettingLeftSide: React.FC = () => {
                     px={{ base: 5, md: 8 }}
                     py={3}
                     justifyContent="space-between"
-                    alignItems={{ base: 'flex-start', sm: 'center' }}
-                    flexDirection={{ base: 'column', sm: 'row' }}
-                    gap={4}
+                    alignItems="center"
                 >
                     <Box>
                         <Text
@@ -482,7 +477,7 @@ const GameSettingLeftSide: React.FC = () => {
                         onChange={(e) => setIsPublicGame(e.target.checked)}
                         colorScheme="green"
                         size="lg"
-                        alignSelf={{ base: 'flex-end', sm: 'center' }}
+                        flexShrink={0}
                     />
                 </Flex>
 
@@ -911,52 +906,21 @@ const GameSettingLeftSide: React.FC = () => {
             </Box>
 
             {/* Cloudflare Verification */}
-            <Flex alignItems="center" justifyContent="center" py={0}>
-                {isCloudflareVerifying ? (
-                    <VStack spacing={1} alignItems="center">
-                        <Box
-                            role="status"
-                            aria-live="polite"
-                            bg="card.white"
-                            borderRadius="full"
-                            px={4}
-                            py={2}
-                            borderWidth="1px"
-                            borderColor="border.lightGray"
-                            boxShadow="sm"
-                            display="flex"
-                            alignItems="center"
-                            gap={2}
-                        >
-                            <Spinner size="sm" color="brand.green" />
-                            <Text fontSize="sm" color="gray.600">
-                                Verifying with Cloudflare…
-                            </Text>
-                            <Tooltip
-                                label="We run a quick bot check in the background. The Create Game button unlocks automatically when it finishes."
-                                hasArrow
-                                placement="top"
-                            >
-                                <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    color="gray.500"
-                                >
-                                    <FaInfoCircle size={14} />
-                                </Box>
-                            </Tooltip>
-                        </Box>
-
-                        <Text
-                            fontSize="xs"
-                            color="gray.500"
-                            textAlign="center"
-                            maxW="420px"
-                        >
-                            This usually takes a few seconds. If you’re blocked
-                            by an ad/tracker blocker, verification may not load.
-                        </Text>
-
+            <Flex
+                alignItems="center"
+                justifyContent="center"
+                py={2}
+                position="relative"
+            >
+                {/* Turnstile widget — always mounted, off-layout to prevent shift */}
+                {isTurnstileConfigured && (
+                    <Box
+                        position="absolute"
+                        opacity={0}
+                        h={0}
+                        overflow="hidden"
+                        aria-hidden="true"
+                    >
                         <Turnstile
                             sitekey={turnstileSiteKey}
                             onSuccess={(token: string) => {
@@ -976,39 +940,71 @@ const GameSettingLeftSide: React.FC = () => {
                             refreshExpired="auto"
                             retryInterval={3000}
                         />
-                    </VStack>
-                ) : (
+                    </Box>
+                )}
+
+                {/* Status pill — consistent height in both states */}
+                <Tooltip
+                    label="We run a quick bot check. The button unlocks automatically when it finishes."
+                    isDisabled={!isCloudflareVerifying}
+                    hasArrow
+                    placement="top"
+                >
                     <Box
+                        role="status"
+                        aria-live="polite"
                         bg="card.white"
                         borderRadius="full"
-                        px={3}
+                        px={isCloudflareVerifying ? 4 : 3}
                         py={2}
                         borderWidth="1px"
-                        borderColor="rgba(0, 0, 0, 0.06)"
-                        boxShadow="none"
+                        borderColor={
+                            isCloudflareVerifying
+                                ? 'border.lightGray'
+                                : 'rgba(0, 0, 0, 0.06)'
+                        }
+                        boxShadow={isCloudflareVerifying ? 'sm' : 'none'}
                         display="flex"
                         alignItems="center"
                         gap={2}
+                        transition="all 0.3s ease"
                     >
-                        <Icon
-                            as={FaCheckCircle}
-                            color={
-                                turnstileError ? 'brand.yellow' : 'brand.green'
-                            }
-                            boxSize={4}
-                        />
-                        <Text
-                            fontSize="sm"
-                            color={turnstileError ? 'brand.yellow' : 'gray.500'}
-                        >
-                            {turnstileError
-                                ? 'Verification unavailable — you can still create'
-                                : isTurnstileConfigured
-                                  ? 'Verified by Cloudflare'
-                                  : 'Verified locally'}
-                        </Text>
+                        {isCloudflareVerifying ? (
+                            <>
+                                <Spinner size="sm" color="brand.green" />
+                                <Text fontSize="sm" color="gray.600">
+                                    Verifying with Cloudflare…
+                                </Text>
+                            </>
+                        ) : (
+                            <>
+                                <Icon
+                                    as={FaCheckCircle}
+                                    color={
+                                        turnstileError
+                                            ? 'brand.yellow'
+                                            : 'brand.green'
+                                    }
+                                    boxSize={4}
+                                />
+                                <Text
+                                    fontSize="sm"
+                                    color={
+                                        turnstileError
+                                            ? 'brand.yellow'
+                                            : 'gray.500'
+                                    }
+                                >
+                                    {turnstileError
+                                        ? 'Verification unavailable — you can still create'
+                                        : isTurnstileConfigured
+                                          ? 'Verified by Cloudflare'
+                                          : 'Verified locally'}
+                                </Text>
+                            </>
+                        )}
                     </Box>
-                )}
+                </Tooltip>
             </Flex>
 
             {/* Create Game CTA */}

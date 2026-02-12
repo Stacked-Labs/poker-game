@@ -24,7 +24,7 @@ type SoundProviderProps = {
 export function SoundProvider({ children }: SoundProviderProps) {
     const { appState } = useContext(AppContext);
     const isInitializedRef = useRef(false);
-    const prevMessagesLengthRef = useRef(0);
+    const lastSeenMsgKeyRef = useRef<string | null>(null);
 
     // Initialize the sound manager on mount
     useEffect(() => {
@@ -69,21 +69,23 @@ export function SoundProvider({ children }: SoundProviderProps) {
     useEffect(() => {
         const messages = appState.messages;
 
-        // Skip if no messages or on initial load
+        // Skip if no messages
         if (messages.length === 0) {
-            prevMessagesLengthRef.current = 0;
+            lastSeenMsgKeyRef.current = null;
             return;
         }
-
-        // Only play sound for NEW messages (not on initial load)
-        if (messages.length <= prevMessagesLengthRef.current) {
-            prevMessagesLengthRef.current = messages.length;
-            return;
-        }
-
-        prevMessagesLengthRef.current = messages.length;
 
         const latest = messages[messages.length - 1];
+        const latestKey = `${latest.timestamp}-${latest.name}`;
+
+        // Only play sound for NEW messages (not on initial load or same message)
+        if (latestKey === lastSeenMsgKeyRef.current) return;
+
+        const isInitialLoad = lastSeenMsgKeyRef.current === null;
+        lastSeenMsgKeyRef.current = latestKey;
+
+        // Don't play sound on initial load
+        if (isInitialLoad) return;
 
         // Don't play sound for own messages
         if (latest.name === appState.username) return;

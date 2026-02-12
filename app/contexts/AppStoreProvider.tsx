@@ -1,6 +1,8 @@
-import React, { createContext, useReducer, ReactChild, useEffect } from 'react';
+import React, { createContext, useReducer, ReactChild, useEffect, useMemo } from 'react';
 import {
     AppState,
+    BlindObligation,
+    CardBackVariant,
     Message,
     Game,
     Log,
@@ -23,6 +25,7 @@ const initialState: AppState = {
     chatSoundEnabled: true,
     chatOverlayEnabled: true,
     fourColorDeckEnabled: false,
+    cardBackDesign: 'classic',
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,
@@ -47,6 +50,7 @@ export type ACTIONTYPE =
     | { type: 'setChatSoundEnabled'; payload: boolean }
     | { type: 'setChatOverlayEnabled'; payload: boolean }
     | { type: 'setFourColorDeckEnabled'; payload: boolean }
+    | { type: 'setCardBackDesign'; payload: CardBackVariant }
     | { type: 'incrementUnreadCount' }
     | { type: 'resetUnreadCount' }
     | { type: 'setChatOpen'; payload: boolean }
@@ -58,14 +62,29 @@ export type ACTIONTYPE =
     | { type: 'setBlindObligation'; payload: AppState['blindObligation'] }
     | { type: 'clearBlindObligation' }
     | { type: 'setIsTableOwner'; payload: boolean | null }
-    | { type: 'setSettlementStatus'; payload: SettlementStatus };
+    | { type: 'setSettlementStatus'; payload: SettlementStatus }
+    | { type: 'updateGameBundle'; payload: {
+        game: Game;
+        clearSeatRequested?: boolean;
+        clearSeatAccepted?: boolean;
+        blindObligation?: BlindObligation | null;
+      }}
+    | { type: 'seatRequestAcceptedBundle'; payload: { seatAccepted: SeatAccepted } }
+    | { type: 'addMessageWithUnread'; payload: Message };
+
+const MAX_MESSAGES = 500;
+const MAX_LOGS = 1000;
 
 function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
-        case 'addMessage':
-            return { ...state, messages: [...state.messages, action.payload] };
-        case 'addLog':
-            return { ...state, logs: [...state.logs, action.payload] };
+        case 'addMessage': {
+            const messages = [...state.messages, action.payload];
+            return { ...state, messages: messages.length > MAX_MESSAGES ? messages.slice(-MAX_MESSAGES) : messages };
+        }
+        case 'addLog': {
+            const logs = [...state.logs, action.payload];
+            return { ...state, logs: logs.length > MAX_LOGS ? logs.slice(-MAX_LOGS) : logs };
+        }
         case 'setUsername':
             return { ...state, username: action.payload };
         case 'updateGame':
@@ -123,6 +142,11 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 );
             }
             return { ...state, fourColorDeckEnabled: action.payload };
+        case 'setCardBackDesign':
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('cardBackDesign', action.payload);
+            }
+            return { ...state, cardBackDesign: action.payload };
         case 'incrementUnreadCount':
             return {
                 ...state,
@@ -157,6 +181,24 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, isTableOwner: action.payload };
         case 'setSettlementStatus':
             return { ...state, settlementStatus: action.payload };
+        case 'updateGameBundle': {
+            const { game, clearSeatRequested, clearSeatAccepted, blindObligation } = action.payload;
+            const next: AppState = { ...state, game };
+            if (clearSeatRequested) next.seatRequested = null;
+            if (clearSeatAccepted) next.seatAccepted = null;
+            if (blindObligation !== undefined) next.blindObligation = blindObligation;
+            return next;
+        }
+        case 'seatRequestAcceptedBundle':
+            return { ...state, seatAccepted: action.payload.seatAccepted, seatRequested: null };
+        case 'addMessageWithUnread': {
+            const messages = [...state.messages, action.payload];
+            return {
+                ...state,
+                messages: messages.length > MAX_MESSAGES ? messages.slice(-MAX_MESSAGES) : messages,
+                unreadMessageCount: state.unreadMessageCount + 1,
+            };
+        }
         default: {
             const exhaustiveCheck: never = action;
             throw new Error(`Unhandled action type: ${exhaustiveCheck}`);
@@ -207,6 +249,13 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
                 payload: storedFourColorDeckEnabled === 'true',
             });
         }
+        const storedCardBackDesign = localStorage.getItem('cardBackDesign');
+        if (storedCardBackDesign !== null) {
+            dispatch({
+                type: 'setCardBackDesign',
+                payload: storedCardBackDesign as CardBackVariant,
+            });
+        }
     }, []);
 
     // Re-check ownership when table, clientID, or auth state changes
@@ -244,8 +293,10 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
         };
     }, [appState.table, appState.clientID, isAuthenticated, userAddress]);
 
+    const contextValue = useMemo(() => ({ appState, dispatch }), [appState, dispatch]);
+
     return (
-        <AppContext.Provider value={{ appState, dispatch }}>
+        <AppContext.Provider value={contextValue}>
             {children}
         </AppContext.Provider>
     );

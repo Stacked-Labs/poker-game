@@ -7,6 +7,10 @@ import { approve, allowance, balanceOf } from 'thirdweb/extensions/erc20';
 import { client, baseSepoliaChain } from '../thirdwebclient';
 import { USDC_ADDRESS } from '../contracts/PokerTableABI';
 
+const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+const ALLOWANCE_POLL_INTERVAL_MS = 1500;
+const ALLOWANCE_POLL_MAX_ATTEMPTS = 10;
+
 export type DepositStatus =
     | 'idle'
     | 'checking_allowance'
@@ -117,17 +121,38 @@ export function useDepositAndJoin(contractAddress: string | undefined): UseDepos
                     spender: contractAddress,
                 });
 
-                // Step 3: Approve if needed
+                // Step 3: Approve max if needed (standard DeFi pattern — one-time approval)
                 if (currentAllowance < usdcAmount) {
                     setStatus('approving');
 
                     const approveTx = approve({
                         contract: usdcContract,
                         spender: contractAddress,
-                        amountWei: usdcAmount,
+                        amountWei: MAX_UINT256,
                     });
 
                     await sendAndConfirm(approveTx);
+
+                    // Wait for allowance to propagate — RPC nodes can lag behind
+                    let confirmed = false;
+                    for (let i = 0; i < ALLOWANCE_POLL_MAX_ATTEMPTS; i++) {
+                        const updatedAllowance = await allowance({
+                            contract: usdcContract,
+                            owner: account.address,
+                            spender: contractAddress,
+                        });
+                        if (updatedAllowance >= usdcAmount) {
+                            confirmed = true;
+                            break;
+                        }
+                        await new Promise((r) => setTimeout(r, ALLOWANCE_POLL_INTERVAL_MS));
+                    }
+
+                    if (!confirmed) {
+                        setError('USDC approval confirmed on-chain but not yet visible. Please try again.');
+                        setStatus('error');
+                        return false;
+                    }
                 }
 
                 // Step 4: Deposit and join

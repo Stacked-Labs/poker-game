@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Fragment, useContext, useMemo, useState } from 'react';
+import React, { Fragment, useContext, useMemo } from 'react';
 import { AppContext } from '../../contexts/AppStoreProvider';
 import { Pot as PotType } from '../../interfaces';
 import { Box, Flex, Text, usePrefersReducedMotion } from '@chakra-ui/react';
@@ -33,8 +33,10 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
     const isGameRunning = appState.game?.running;
     const game = appState.game;
     const prefersReducedMotion = usePrefersReducedMotion();
-    const [stage, setStage] = useState(game?.stage);
-    const [pots, setPots] = useState(initialPot);
+    const pots = useMemo(() => {
+        if (!game?.pots || game.stage === 2) return initialPot;
+        return game.pots;
+    }, [game?.pots, game?.stage]);
     const highlightIndex = useMemo(() => {
         if (
             typeof activePotIndex === 'number' &&
@@ -48,16 +50,6 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
 
     if (!game || !game.pots || !isGameRunning) {
         return null;
-    }
-
-    if (game.stage != stage) {
-        setStage(game.stage);
-
-        if (game.stage == 2) {
-            setPots(initialPot);
-        } else {
-            setPots(game.pots);
-        }
     }
 
     if (isGameRunning && pots.length > 0 && pots[0].amount > 0) {

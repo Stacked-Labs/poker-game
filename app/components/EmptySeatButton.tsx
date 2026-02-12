@@ -61,11 +61,11 @@ const EmptySeatButton = ({
                 gap={3}
                 transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
                 _hover={{
-                    bg: 'rgba(54, 163, 123, 0.15)',
-                    borderColor: 'brand.green',
+                    bg: 'rgba(11, 20, 48, 0.55)',
+                    borderColor: 'white',
                     borderStyle: 'solid',
                     transform: 'scale(1.02)',
-                    boxShadow: '0 8px 24px rgba(54, 163, 123, 0.35)',
+                    boxShadow: '0 8px 24px rgba(255, 255, 255, 0.18)',
                 }}
                 _active={{
                     transform: 'scale(0.98)',
@@ -93,7 +93,7 @@ const EmptySeatButton = ({
                 <Icon
                     as={IoPersonAddSharp}
                     boxSize={{ base: '28px', md: '36px' }}
-                    color={isHovered && !disabled ? 'brand.green' : 'white'}
+                    color="white"
                     animation={
                         isHovered && !disabled
                             ? `${fadeIn} 0.3s ease-out`

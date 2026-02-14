@@ -397,20 +397,21 @@ const GameSettingLeftSide: React.FC = () => {
                     </Text>
                 </Box>
                 <Button
-                    size="sm"
+                    size={{ base: 'sm', md: 'md' }}
                     bg="brand.green"
                     color="white"
-                    borderRadius="full"
-                    px={{ base: 3, md: 4 }}
-                    fontWeight="semibold"
-                    fontSize="xs"
+                    borderRadius={{ base: '10px', md: '12px' }}
+                    px={{ base: 4, md: 6 }}
+                    height={{ base: '36px', md: '44px' }}
+                    fontWeight={{ base: 'semibold', md: 'bold' }}
+                    fontSize={{ base: 'xs', md: 'sm' }}
                     onClick={handleJoinPublicGame}
                     _hover={{
                         bg: '#2e8d6a',
                     }}
                     transition="all 0.2s"
-                    leftIcon={<Icon as={FaUsers} boxSize={3} />}
-                    rightIcon={<Icon as={FaArrowRight} boxSize={2.5} />}
+                    leftIcon={<Icon as={FaUsers} boxSize={{ base: 3.5, md: 4 }} />}
+                    rightIcon={<Icon as={FaArrowRight} boxSize={{ base: 2.5, md: 3 }} />}
                     flexShrink={0}
                 >
                     Join Game

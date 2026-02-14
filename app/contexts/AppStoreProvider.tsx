@@ -1,4 +1,10 @@
-import React, { createContext, useReducer, ReactChild, useEffect, useMemo } from 'react';
+import React, {
+    createContext,
+    useReducer,
+    ReactChild,
+    useEffect,
+    useMemo,
+} from 'react';
 import {
     AppState,
     BlindObligation,
@@ -65,13 +71,19 @@ export type ACTIONTYPE =
     | { type: 'clearBlindObligation' }
     | { type: 'setIsTableOwner'; payload: boolean | null }
     | { type: 'setSettlementStatus'; payload: SettlementStatus }
-    | { type: 'updateGameBundle'; payload: {
-        game: Game;
-        clearSeatRequested?: boolean;
-        clearSeatAccepted?: boolean;
-        blindObligation?: BlindObligation | null;
-      }}
-    | { type: 'seatRequestAcceptedBundle'; payload: { seatAccepted: SeatAccepted } }
+    | {
+          type: 'updateGameBundle';
+          payload: {
+              game: Game;
+              clearSeatRequested?: boolean;
+              clearSeatAccepted?: boolean;
+              blindObligation?: BlindObligation | null;
+          };
+      }
+    | {
+          type: 'seatRequestAcceptedBundle';
+          payload: { seatAccepted: SeatAccepted };
+      }
     | { type: 'addMessageWithUnread'; payload: Message }
     | { type: 'setDisplayMode'; payload: DisplayMode };
 
@@ -82,11 +94,20 @@ function reducer(state: AppState, action: ACTIONTYPE) {
     switch (action.type) {
         case 'addMessage': {
             const messages = [...state.messages, action.payload];
-            return { ...state, messages: messages.length > MAX_MESSAGES ? messages.slice(-MAX_MESSAGES) : messages };
+            return {
+                ...state,
+                messages:
+                    messages.length > MAX_MESSAGES
+                        ? messages.slice(-MAX_MESSAGES)
+                        : messages,
+            };
         }
         case 'addLog': {
             const logs = [...state.logs, action.payload];
-            return { ...state, logs: logs.length > MAX_LOGS ? logs.slice(-MAX_LOGS) : logs };
+            return {
+                ...state,
+                logs: logs.length > MAX_LOGS ? logs.slice(-MAX_LOGS) : logs,
+            };
         }
         case 'setUsername':
             return { ...state, username: action.payload };
@@ -185,20 +206,33 @@ function reducer(state: AppState, action: ACTIONTYPE) {
         case 'setSettlementStatus':
             return { ...state, settlementStatus: action.payload };
         case 'updateGameBundle': {
-            const { game, clearSeatRequested, clearSeatAccepted, blindObligation } = action.payload;
+            const {
+                game,
+                clearSeatRequested,
+                clearSeatAccepted,
+                blindObligation,
+            } = action.payload;
             const next: AppState = { ...state, game };
             if (clearSeatRequested) next.seatRequested = null;
             if (clearSeatAccepted) next.seatAccepted = null;
-            if (blindObligation !== undefined) next.blindObligation = blindObligation;
+            if (blindObligation !== undefined)
+                next.blindObligation = blindObligation;
             return next;
         }
         case 'seatRequestAcceptedBundle':
-            return { ...state, seatAccepted: action.payload.seatAccepted, seatRequested: null };
+            return {
+                ...state,
+                seatAccepted: action.payload.seatAccepted,
+                seatRequested: null,
+            };
         case 'addMessageWithUnread': {
             const messages = [...state.messages, action.payload];
             return {
                 ...state,
-                messages: messages.length > MAX_MESSAGES ? messages.slice(-MAX_MESSAGES) : messages,
+                messages:
+                    messages.length > MAX_MESSAGES
+                        ? messages.slice(-MAX_MESSAGES)
+                        : messages,
                 unreadMessageCount: state.unreadMessageCount + 1,
             };
         }
@@ -232,8 +266,7 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
         if (storedVolume) {
             dispatch({ type: 'setVolume', payload: parseFloat(storedVolume) });
         }
-        const storedChatSoundEnabled =
-            localStorage.getItem('chatSoundEnabled');
+        const storedChatSoundEnabled = localStorage.getItem('chatSoundEnabled');
         if (storedChatSoundEnabled !== null) {
             dispatch({
                 type: 'setChatSoundEnabled',
@@ -265,7 +298,11 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
             });
         }
         const storedDisplayMode = localStorage.getItem('displayMode');
-        if (storedDisplayMode === 'chips' || storedDisplayMode === 'bb' || storedDisplayMode === 'usdc') {
+        if (
+            storedDisplayMode === 'chips' ||
+            storedDisplayMode === 'bb' ||
+            storedDisplayMode === 'usdc'
+        ) {
             dispatch({
                 type: 'setDisplayMode',
                 payload: storedDisplayMode,
@@ -308,7 +345,10 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
         };
     }, [appState.table, appState.clientID, isAuthenticated, userAddress]);
 
-    const contextValue = useMemo(() => ({ appState, dispatch }), [appState, dispatch]);
+    const contextValue = useMemo(
+        () => ({ appState, dispatch }),
+        [appState, dispatch]
+    );
 
     return (
         <AppContext.Provider value={contextValue}>

@@ -347,6 +347,18 @@ export function SocketProvider(props: SocketProviderProps) {
                         };
 
                         dispatch({ type: 'addLog', payload: newLog });
+
+                        if (
+                            eventData.message === 'Seat request cancelled successfully.' &&
+                            appStateRef.current.seatRequested !== null
+                        ) {
+                            dispatch({ type: 'setSeatRequested', payload: null });
+                            toastSuccessRef.current(
+                                'Request Cancelled',
+                                'Seat request cancelled successfully.',
+                                5000
+                            );
+                        }
                         return;
                     }
                     case 'game-event': {

@@ -231,7 +231,7 @@ const StepCard = ({
                 top="0"
                 bottom="0"
                 w="3px"
-                bgGradient={`linear(to-b, ${colors.bg}, transparent)`}
+                bg={colors.bg}
                 opacity={0.5}
             />
 

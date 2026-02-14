@@ -42,6 +42,8 @@ const PlayerCard: React.FC = () => {
                 boxShadow="0 14px 32px rgba(12, 21, 49, 0.1)"
                 _dark={{ boxShadow: '0 16px 30px rgba(0, 0, 0, 0.35)' }}
                 style={{ filter: isFullyAuthenticated ? 'none' : 'blur(4px)' }}
+                position="relative"
+                overflow="hidden"
             >
                 <VStack spacing={4} align="stretch">
                     {isFullyAuthenticated && (
@@ -51,10 +53,12 @@ const PlayerCard: React.FC = () => {
                                 <Avatar
                                     size="lg"
                                     border="3px solid"
-                                    borderColor="rgba(12, 21, 49, 0.15)"
+                                    borderColor="brand.green"
+                                    boxShadow="0 0 16px rgba(54, 163, 123, 0.35)"
                                     _dark={{
-                                        borderColor:
-                                            'rgba(255, 255, 255, 0.2)',
+                                        borderColor: 'brand.green',
+                                        boxShadow:
+                                            '0 0 20px rgba(54, 163, 123, 0.45)',
                                     }}
                                 />
                                 <VStack spacing={2}>
@@ -87,16 +91,20 @@ const PlayerCard: React.FC = () => {
                             {/* Rank Badge */}
                             <Flex justify="center">
                                 <Badge
-                                    colorScheme="purple"
-                                    variant="solid"
+                                    bg="brand.navy"
+                                    color="white"
                                     px={4}
                                     py={2}
                                     borderRadius="full"
                                     fontSize="sm"
+                                    fontWeight="bold"
+                                    boxShadow="0 4px 12px rgba(12, 21, 49, 0.25)"
                                 >
                                     <HStack spacing={2}>
-                                        <Icon as={FaTrophy} />
-                                        <Text>Rank #42</Text>
+                                        <Icon as={FaTrophy} color="#FFD700" />
+                                        <Text color="brand.lightGray">
+                                            Rank #42
+                                        </Text>
                                     </HStack>
                                 </Badge>
                             </Flex>

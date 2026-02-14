@@ -39,9 +39,14 @@ const StatsSection = ({ stats = defaultStats }: { stats?: UserStats }) => {
                     bg="card.lightGray"
                     borderRadius="14px"
                     spacing={2}
+                    transition="all 0.2s ease"
+                    _hover={{
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 20px rgba(54, 163, 123, 0.15)',
+                    }}
                 >
                     <HStack spacing={2}>
-                        <Icon as={FaPlus} color="green.400" />
+                        <Icon as={FaPlus} color="brand.green" />
                         <Text
                             fontWeight="bold"
                             color="text.secondary"
@@ -50,7 +55,7 @@ const StatsSection = ({ stats = defaultStats }: { stats?: UserStats }) => {
                             Created
                         </Text>
                     </HStack>
-                    <Text fontSize="xl" fontWeight="bold" color="green.400">
+                    <Text fontSize="xl" fontWeight="bold" color="brand.green">
                         {stats.gamesCreated}
                     </Text>
                 </VStack>
@@ -59,9 +64,14 @@ const StatsSection = ({ stats = defaultStats }: { stats?: UserStats }) => {
                     bg="card.lightGray"
                     borderRadius="14px"
                     spacing={2}
+                    transition="all 0.2s ease"
+                    _hover={{
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 20px rgba(235, 11, 92, 0.15)',
+                    }}
                 >
                     <HStack spacing={2}>
-                        <Icon as={FaGamepad} color="blue.400" />
+                        <Icon as={FaGamepad} color="brand.pink" />
                         <Text
                             fontWeight="bold"
                             color="text.secondary"
@@ -70,7 +80,7 @@ const StatsSection = ({ stats = defaultStats }: { stats?: UserStats }) => {
                             Played
                         </Text>
                     </HStack>
-                    <Text fontSize="xl" fontWeight="bold" color="blue.400">
+                    <Text fontSize="xl" fontWeight="bold" color="brand.pink">
                         {stats.gamesPlayed}
                     </Text>
                 </VStack>

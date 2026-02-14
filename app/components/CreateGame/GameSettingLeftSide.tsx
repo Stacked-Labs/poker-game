@@ -25,7 +25,9 @@ import {
     FaArrowRight,
     FaCheckCircle,
     FaDiscord,
+    FaExternalLinkAlt,
 } from 'react-icons/fa';
+import { FiGift } from 'react-icons/fi';
 import { RiTwitterXLine } from 'react-icons/ri';
 import PlayTypeToggle from './PlayTypeToggle';
 import NetworkCard from './NetworkCard';
@@ -850,33 +852,121 @@ const GameSettingLeftSide: React.FC = () => {
                     <>
                         <Divider borderColor="gray.100" />
                         <Box px={{ base: 5, md: 8 }} py={3}>
-                            <Flex alignItems="center" gap={2} mb={1}>
-                                <Text
-                                    fontWeight="bold"
-                                    fontSize="md"
-                                    color="text.primary"
-                                >
-                                    Network
-                                </Text>
-                                <Tooltip
-                                    label="Select the blockchain network for your crypto game"
-                                    bg="brand.darkNavy"
-                                    color="white"
-                                    borderRadius="8px"
-                                    px={3}
-                                    py={2}
-                                >
-                                    <Box display="flex" alignItems="center">
-                                        <FaInfoCircle
-                                            color="#EB0B5C"
-                                            size={14}
-                                        />
-                                    </Box>
-                                </Tooltip>
+                            <Flex
+                                alignItems="center"
+                                justifyContent="space-between"
+                                mb={4}
+                            >
+                                <Box>
+                                    <Flex alignItems="center" gap={2}>
+                                        <Text
+                                            fontWeight="bold"
+                                            fontSize="md"
+                                            color="text.primary"
+                                        >
+                                            Network
+                                        </Text>
+                                        <Tooltip
+                                            label="Select the blockchain network for your crypto game"
+                                            bg="brand.darkNavy"
+                                            color="white"
+                                            borderRadius="8px"
+                                            px={3}
+                                            py={2}
+                                        >
+                                            <Box
+                                                display="flex"
+                                                alignItems="center"
+                                            >
+                                                <FaInfoCircle
+                                                    color="#EB0B5C"
+                                                    size={14}
+                                                />
+                                            </Box>
+                                        </Tooltip>
+                                    </Flex>
+                                    <Text
+                                        fontSize="sm"
+                                        color="gray.500"
+                                        mt={1}
+                                    >
+                                        Select blockchain to play on
+                                    </Text>
+                                </Box>
+                                {selectedNetwork === 'Base Sepolia' && (
+                                    <Link
+                                        href="/free-tokens"
+                                        isExternal
+                                        _hover={{
+                                            textDecoration: 'none',
+                                        }}
+                                    >
+                                        <Flex
+                                            align="center"
+                                            gap={2}
+                                            bg="rgba(54, 163, 123, 0.08)"
+                                            _dark={{
+                                                bg: 'rgba(54, 163, 123, 0.12)',
+                                                borderColor:
+                                                    'rgba(54, 163, 123, 0.25)',
+                                            }}
+                                            borderRadius="full"
+                                            pl={2}
+                                            pr={3}
+                                            py={1.5}
+                                            borderWidth="1px"
+                                            borderColor="rgba(54, 163, 123, 0.15)"
+                                            cursor="pointer"
+                                            transition="all 0.2s ease"
+                                            _hover={{
+                                                bg: 'rgba(54, 163, 123, 0.14)',
+                                                borderColor:
+                                                    'rgba(54, 163, 123, 0.3)',
+                                                _dark: {
+                                                    bg: 'rgba(54, 163, 123, 0.18)',
+                                                    borderColor:
+                                                        'rgba(54, 163, 123, 0.35)',
+                                                },
+                                            }}
+                                        >
+                                            <Flex
+                                                align="center"
+                                                justify="center"
+                                                bg="brand.green"
+                                                borderRadius="full"
+                                                boxSize="22px"
+                                                flexShrink={0}
+                                            >
+                                                <Icon
+                                                    as={FiGift}
+                                                    color="white"
+                                                    boxSize="12px"
+                                                />
+                                            </Flex>
+                                            <Text
+                                                fontSize="sm"
+                                                fontWeight="semibold"
+                                                color="brand.green"
+                                                _dark={{
+                                                    color: 'green.300',
+                                                }}
+                                                whiteSpace="nowrap"
+                                            >
+                                                Free tokens
+                                            </Text>
+                                            <Icon
+                                                as={FaExternalLinkAlt}
+                                                color="brand.green"
+                                                _dark={{
+                                                    color: 'green.300',
+                                                }}
+                                                boxSize="10px"
+                                                flexShrink={0}
+                                            />
+                                        </Flex>
+                                    </Link>
+                                )}
                             </Flex>
-                            <Text fontSize="sm" color="gray.500" mb={4}>
-                                Select blockchain to play on
-                            </Text>
                             <Flex
                                 gap={3}
                                 flexWrap="wrap"
@@ -901,6 +991,7 @@ const GameSettingLeftSide: React.FC = () => {
                                     />
                                 ))}
                             </Flex>
+
                         </Box>
                     </>
                 )}

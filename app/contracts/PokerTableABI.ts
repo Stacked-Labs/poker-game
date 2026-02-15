@@ -61,6 +61,29 @@ export const POKER_TABLE_ABI = [
         stateMutability: 'nonpayable',
     },
     {
+        type: 'function',
+        name: 'hostWithdrawableBalance',
+        inputs: [{ name: '', type: 'address', internalType: 'address' }],
+        outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+        stateMutability: 'view',
+    },
+    {
+        type: 'function',
+        name: 'withdrawHostRake',
+        inputs: [],
+        outputs: [],
+        stateMutability: 'nonpayable',
+    },
+    {
+        type: 'event',
+        name: 'HostRakeWithdrawn',
+        inputs: [
+            { name: 'host', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'amount', type: 'uint256', indexed: false, internalType: 'uint256' },
+        ],
+        anonymous: false,
+    },
+    {
         type: 'event',
         name: 'PlayerDeposited',
         inputs: [

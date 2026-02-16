@@ -9,6 +9,7 @@ import React, { useContext } from 'react';
 import PendingPlayers from './PendingPlayers';
 import AcceptedPlayers from './AcceptedPlayers';
 import WithdrawBalanceCard from './WithdrawBalanceCard';
+import HostRakeCard from './HostRakeCard';
 import { Checkbox, Flex, VStack, useColorModeValue } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
@@ -93,6 +94,7 @@ const PlayerList = () => {
 
     return (
         <VStack gap={{ base: 4, md: 6 }} align="stretch" w="100%">
+            <HostRakeCard />
             <WithdrawBalanceCard />
             <Flex
                 alignItems="center"

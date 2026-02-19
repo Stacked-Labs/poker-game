@@ -20,7 +20,12 @@ import StatsSection from './StatsSection';
 import ReferralCodeSection from './ReferralCodeSection';
 import { useAuth } from '@/app/contexts/AuthContext';
 
-const PlayerCard: React.FC = () => {
+interface PlayerCardProps {
+    rank?: number;
+    points?: number;
+}
+
+const PlayerCard: React.FC<PlayerCardProps> = ({ rank, points }) => {
     const account = useActiveAccount();
     const { isAuthenticated, isAuthenticating, requestAuthentication } =
         useAuth();
@@ -103,10 +108,21 @@ const PlayerCard: React.FC = () => {
                                     <HStack spacing={2}>
                                         <Icon as={FaTrophy} color="#FFD700" />
                                         <Text color="brand.lightGray">
-                                            Rank #42
+                                            {rank != null ? `Rank #${rank}` : 'Unranked'}
                                         </Text>
                                     </HStack>
                                 </Badge>
+                            </Flex>
+
+                            {/* Points */}
+                            <Flex justify="center">
+                                <Text
+                                    fontSize="2xl"
+                                    fontWeight="extrabold"
+                                    color="brand.green"
+                                >
+                                    {points != null ? points.toLocaleString() : '0'} pts
+                                </Text>
                             </Flex>
                         </>
                     )}

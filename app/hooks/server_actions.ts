@@ -485,6 +485,28 @@ export async function getTables() {
     }
 }
 
+export async function getLeaderboard(address?: string): Promise<{
+    leaderboard: { address: string; points: number; rank: number }[];
+    player: { address: string; points: number; rank: number } | null;
+    total: number;
+    updatedAt: string | null;
+}> {
+    isBackendUrlValid();
+    try {
+        const url = address
+            ? `${backendUrl}/api/leaderboard?address=${encodeURIComponent(address)}`
+            : `${backendUrl}/api/leaderboard`;
+        const response = await fetch(url, { method: 'GET' });
+        if (!response.ok) {
+            throw new Error(`Leaderboard fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch leaderboard.', error);
+        return { leaderboard: [], player: null, total: 0, updatedAt: null };
+    }
+}
+
 export async function getPublicGames() {
     isBackendUrlValid();
 

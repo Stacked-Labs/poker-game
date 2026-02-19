@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Flex, Stack, Box } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import LeaderboardTable from '@/app/components/Leaderboard/LeaderboardTable';
+import LeaderboardTable, { LeaderboardEntry } from '@/app/components/Leaderboard/LeaderboardTable';
 import PlayerCard from '@/app/components/Leaderboard/PlayerCard';
 import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
+import { getLeaderboard } from '@/app/hooks/server_actions';
+import { useActiveAccount } from 'thirdweb/react';
 
 const fadeIn = keyframes`
     from {
@@ -20,6 +22,17 @@ const fadeIn = keyframes`
 `;
 
 const LeaderboardPage: React.FC = () => {
+    const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+    const [playerEntry, setPlayerEntry] = useState<LeaderboardEntry | undefined>(undefined);
+    const account = useActiveAccount();
+
+    useEffect(() => {
+        getLeaderboard(account?.address).then((res) => {
+            setEntries(res.leaderboard);
+            setPlayerEntry(res.player ?? undefined);
+        });
+    }, [account?.address]);
+
     return (
         <Box
             minH="100vh"
@@ -75,10 +88,10 @@ const LeaderboardPage: React.FC = () => {
                     animation={`${fadeIn} 0.5s ease-out`}
                 >
                     <Box w="full" maxW={{ base: '100%', lg: '400px' }}>
-                        <PlayerCard />
+                        <PlayerCard rank={playerEntry?.rank} points={playerEntry?.points} />
                     </Box>
                     <Box flex="1" w="full">
-                        <LeaderboardTable />
+                        <LeaderboardTable data={entries} />
                     </Box>
                 </Stack>
             </Flex>

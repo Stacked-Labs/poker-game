@@ -8,7 +8,10 @@ import { MdPause } from 'react-icons/md';
 const PauseBanner = () => {
     const { appState } = useContext(AppContext);
 
-    if (appState.game?.paused) {
+    const isPaused = appState.game?.paused;
+    const isPendingPause = appState.game?.pendingPause;
+
+    if (isPaused || isPendingPause) {
         return (
             <Box
                 className="pause-banner"
@@ -38,7 +41,7 @@ const PauseBanner = () => {
                         color="whiteAlpha.600"
                         mixBlendMode="multiply"
                     >
-                        Game Paused
+                        {isPaused ? 'Game Paused' : 'Pausing after this hand...'}
                     </Text>
                     <Icon
                         as={MdPause}

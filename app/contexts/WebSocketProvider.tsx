@@ -399,6 +399,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             minRaise: eventData.game.minRaise,
                             readyCount: eventData.game.readyCount,
                             paused: eventData.game.paused,
+                            pendingPause: eventData.game.pendingPause ?? false,
                             owesSB: eventData.game?.owesSB,
                             owesBB: eventData.game?.owesBB,
                             waitingForBB: eventData.game?.waitingForBB,

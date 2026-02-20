@@ -331,12 +331,16 @@ const Navbar = () => {
                                 label={
                                     appState.game?.paused
                                         ? 'Resume Game'
-                                        : 'Pause Game'
+                                        : appState.game?.pendingPause
+                                          ? 'Cancel Pause'
+                                          : 'Pause Game'
                                 }
                                 aria-label={
                                     appState.game?.paused
                                         ? 'Resume game tooltip'
-                                        : 'Pause game tooltip'
+                                        : appState.game?.pendingPause
+                                          ? 'Cancel pause tooltip'
+                                          : 'Pause game tooltip'
                                 }
                             >
                                 <IconButton
@@ -356,7 +360,9 @@ const Navbar = () => {
                                     aria-label={
                                         appState.game?.paused
                                             ? 'Resume Game'
-                                            : 'Pause Game'
+                                            : appState.game?.pendingPause
+                                              ? 'Cancel Pause'
+                                              : 'Pause Game'
                                     }
                                     size={{ base: 'md', md: 'md' }}
                                     px={2}
@@ -374,6 +380,8 @@ const Navbar = () => {
                                     onClick={() => {
                                         if (appState.game?.paused) {
                                             sendResumeGameCommand(socket);
+                                        } else if (appState.game?.pendingPause) {
+                                            sendResumeGameCommand(socket);
                                         } else {
                                             sendPauseGameCommand(socket);
                                         }
@@ -381,7 +389,9 @@ const Navbar = () => {
                                     bg={
                                         appState.game?.paused
                                             ? 'brand.green'
-                                            : 'brand.yellow'
+                                            : appState.game?.pendingPause
+                                              ? 'orange.400'
+                                              : 'brand.yellow'
                                     }
                                     color="white"
                                     border="none"
@@ -390,7 +400,9 @@ const Navbar = () => {
                                         transform: 'translateY(-2px)',
                                         boxShadow: appState.game?.paused
                                             ? '0 4px 12px rgba(54, 163, 123, 0.4)'
-                                            : '0 4px 12px rgba(253, 197, 29, 0.4)',
+                                            : appState.game?.pendingPause
+                                              ? '0 4px 12px rgba(237, 137, 54, 0.4)'
+                                              : '0 4px 12px rgba(253, 197, 29, 0.4)',
                                     }}
                                     transition="all 0.2s ease"
                                 />

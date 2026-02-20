@@ -78,10 +78,10 @@ const WithdrawButton = () => {
 
     // Check withdraw eligibility when modal opens or address changes
     const refreshWithdrawStatus = useCallback(() => {
-        if (address && contractAddress && !isUserSeated) {
+        if (address && contractAddress) {
             checkCanWithdraw();
         }
-    }, [address, contractAddress, isUserSeated, checkCanWithdraw]);
+    }, [address, contractAddress, checkCanWithdraw]);
 
     useEffect(() => {
         if (isOpen) {

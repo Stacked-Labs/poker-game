@@ -221,42 +221,131 @@ const WithdrawBalanceCard = () => {
                 </VStack>
 
                 {/* Withdraw button */}
-                <Button
-                    size={{ base: 'sm', md: 'md' }}
-                    px={{ base: 4, md: 5 }}
-                    h={{ base: '34px', sm: '36px', md: '40px' }}
-                    bg={isButtonDisabled ? 'gray.300' : 'brand.yellow'}
-                    color={isButtonDisabled ? 'gray.500' : 'white'}
-                    border="none"
-                    borderRadius={{ base: '10px', md: '12px' }}
-                    fontWeight="bold"
-                    fontSize={{ base: 'xs', md: 'sm' }}
-                    isDisabled={isButtonDisabled}
-                    isLoading={isLoading && status === 'withdrawing'}
-                    loadingText={getStatusMessage()}
-                    onClick={handleWithdraw}
-                    flexShrink={0}
-                    _disabled={{
-                        bg: 'gray.300',
-                        color: 'gray.500',
-                        cursor: 'not-allowed',
-                        opacity: 0.6,
-                    }}
-                    _hover={
-                        isButtonDisabled
-                            ? {}
-                            : { opacity: 0.85 }
-                    }
-                    _active={
-                        isButtonDisabled
-                            ? {}
-                            : { opacity: 0.7 }
-                    }
-                    transition="opacity 0.15s ease"
+                <Tooltip
+                    label="Leave the table first to withdraw"
+                    isDisabled={!isUserSeated}
+                    placement="top"
+                    hasArrow
+                    fontSize="xs"
+                    bg="gray.800"
+                    color="white"
+                    borderRadius="md"
+                    px={2}
+                    py={1}
                 >
-                    Withdraw
-                </Button>
+                    <Button
+                        size={{ base: 'sm', md: 'md' }}
+                        px={{ base: 4, md: 5 }}
+                        h={{ base: '34px', sm: '36px', md: '40px' }}
+                        bg={isButtonDisabled ? 'gray.300' : 'brand.yellow'}
+                        color={isButtonDisabled ? 'gray.500' : 'white'}
+                        border="none"
+                        borderRadius={{ base: '10px', md: '12px' }}
+                        fontWeight="bold"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        isDisabled={isButtonDisabled}
+                        isLoading={isLoading && status === 'withdrawing'}
+                        loadingText={getStatusMessage()}
+                        onClick={handleWithdraw}
+                        flexShrink={0}
+                        _disabled={{
+                            bg: 'gray.300',
+                            color: 'gray.500',
+                            cursor: 'not-allowed',
+                            opacity: 0.6,
+                        }}
+                        _hover={
+                            isButtonDisabled
+                                ? {}
+                                : { opacity: 0.85 }
+                        }
+                        _active={
+                            isButtonDisabled
+                                ? {}
+                                : { opacity: 0.7 }
+                        }
+                        transition="opacity 0.15s ease"
+                    >
+                        Withdraw
+                    </Button>
+                </Tooltip>
             </Flex>
+
+            {/* Seated warning — scoped to withdrawals */}
+            {isUserSeated && (
+                <HStack
+                    spacing={2}
+                    alignItems="flex-start"
+                    bg="rgba(237, 137, 54, 0.12)"
+                    color="orange.600"
+                    _dark={{
+                        bg: 'rgba(237, 137, 54, 0.15)',
+                        color: 'orange.300',
+                    }}
+                    borderRadius="md"
+                    px={3}
+                    py={2}
+                    fontSize="xs"
+                    fontWeight="medium"
+                    w="fit-content"
+                >
+                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
+                    <Text color="inherit">
+                        Leave the table before withdrawing.
+                    </Text>
+                </HStack>
+            )}
+
+            {!canWithdraw &&
+                !isUserSeated &&
+                chipBalance !== null &&
+                chipBalance > BigInt(0) && (
+                    <HStack
+                        spacing={2}
+                        alignItems="flex-start"
+                        bg="rgba(237, 137, 54, 0.12)"
+                        color="orange.600"
+                        _dark={{
+                            bg: 'rgba(237, 137, 54, 0.15)',
+                            color: 'orange.300',
+                        }}
+                        borderRadius="md"
+                        px={3}
+                        py={2}
+                        fontSize="xs"
+                        fontWeight="medium"
+                        w="fit-content"
+                    >
+                        <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
+                        <Text color="inherit">
+                            Wait for the current hand to settle.
+                        </Text>
+                    </HStack>
+                )}
+
+            {error && (
+                <HStack
+                    spacing={2}
+                    alignItems="flex-start"
+                    bg="rgba(254, 178, 178, 0.12)"
+                    color="red.700"
+                    _dark={{
+                        bg: 'rgba(254, 178, 178, 0.12)',
+                        color: 'red.300',
+                    }}
+                    borderRadius="md"
+                    px={3}
+                    py={2}
+                    fontSize="xs"
+                    fontWeight="medium"
+                    w="fit-content"
+                >
+                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
+                    <Text color="inherit" wordBreak="break-word">
+                        {error}
+                    </Text>
+                </HStack>
+            )}
 
             {/* ── Host Rake Row (owners only) ───────────────────────── */}
             {isOwner && (
@@ -381,79 +470,6 @@ const WithdrawBalanceCard = () => {
                         </Button>
                     </Flex>
                 </>
-            )}
-
-            {/* Info banners */}
-            {isUserSeated && (
-                <HStack
-                    spacing={2}
-                    alignItems="flex-start"
-                    bg="rgba(237, 137, 54, 0.12)"
-                    color="orange.600"
-                    _dark={{
-                        bg: 'rgba(237, 137, 54, 0.15)',
-                        color: 'orange.300',
-                    }}
-                    borderRadius="md"
-                    px={3}
-                    py={2}
-                    fontSize="xs"
-                    fontWeight="medium"
-                >
-                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
-                    <Text color="inherit">
-                        Leave the table before withdrawing.
-                    </Text>
-                </HStack>
-            )}
-
-            {!canWithdraw &&
-                !isUserSeated &&
-                chipBalance !== null &&
-                chipBalance > BigInt(0) && (
-                    <HStack
-                        spacing={2}
-                        alignItems="flex-start"
-                        bg="rgba(237, 137, 54, 0.12)"
-                        color="orange.600"
-                        _dark={{
-                            bg: 'rgba(237, 137, 54, 0.15)',
-                            color: 'orange.300',
-                        }}
-                        borderRadius="md"
-                        px={3}
-                        py={2}
-                        fontSize="xs"
-                        fontWeight="medium"
-                    >
-                        <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
-                        <Text color="inherit">
-                            Wait for the current hand to settle.
-                        </Text>
-                    </HStack>
-                )}
-
-            {error && (
-                <HStack
-                    spacing={2}
-                    alignItems="flex-start"
-                    bg="red.50"
-                    color="red.700"
-                    _dark={{
-                        bg: 'rgba(254, 178, 178, 0.12)',
-                        color: 'red.300',
-                    }}
-                    borderRadius="md"
-                    px={3}
-                    py={2}
-                    fontSize="xs"
-                    fontWeight="medium"
-                >
-                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
-                    <Text color="inherit" wordBreak="break-word">
-                        {error}
-                    </Text>
-                </HStack>
             )}
 
             {/* Disclaimer */}

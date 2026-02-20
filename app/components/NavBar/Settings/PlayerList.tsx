@@ -92,7 +92,7 @@ const PlayerList = () => {
     };
 
     return (
-        <VStack gap={{ base: 4, md: 6 }} align="stretch" w="100%">
+        <VStack gap={{ base: 2, md: 3 }} align="stretch" w="100%">
             <WithdrawBalanceCard />
             <Flex
                 alignItems="center"

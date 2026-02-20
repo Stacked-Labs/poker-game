@@ -19,6 +19,12 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { CardBack } from '@/app/components/Card';
 import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
 
+const chipDisplayColors: Record<string, string> = {
+    chips: '#1A1A2E',
+    bb: '#0A2A1B',
+    usdc: '#2775CA',
+};
+
 const cardBackColors: Record<CardBackVariant, string> = {
     classic: '#0B1430',
     ruby: '#2D0A1B',
@@ -311,7 +317,9 @@ const GameSettings = () => {
                             })
                         }
                         variant="outline"
-                        width={{ base: '52%', sm: '50%' }}
+                        width={{ base: '160px', md: '185px' }}
+                        bg={chipDisplayColors[appState.displayMode]}
+                        color="white"
                         fontWeight="bold"
                         sx={{
                             '& > option:checked': {

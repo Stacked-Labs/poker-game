@@ -7,7 +7,6 @@ import ChatOverlay from '@/app/components/NavBar/Chat/ChatOverlay';
 import GameViewport from '@/app/components/GameViewport';
 import LobbyBanner from '@/app/components/LobbyBanner';
 import SeatRequestPopup from '@/app/components/SeatRequestPopup';
-import HostRakePill from '@/app/components/HostRakePill';
 
 const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
@@ -51,7 +50,6 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                             minHeight={{ base: '50px', md: '70px' }}
                         >
                             <GameConfigWatermark />
-                            <HostRakePill />
                             <ChatOverlay />
                             <Footer />
                         </Box>

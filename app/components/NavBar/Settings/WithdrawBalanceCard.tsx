@@ -11,10 +11,14 @@ import {
     Spinner,
     Image,
     Link,
+    Divider,
+    Tooltip,
 } from '@chakra-ui/react';
-import { FaCoins, FaInfoCircle } from 'react-icons/fa';
+import { FaCoins, FaCrown, FaInfoCircle } from 'react-icons/fa';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useWithdraw } from '@/app/hooks/useWithdraw';
+import { useHostRake } from '@/app/hooks/useHostRake';
+import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { useActiveWallet } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
 
@@ -29,6 +33,8 @@ const WithdrawBalanceCard = () => {
     const isCryptoGame = Boolean(config?.crypto);
     const contractAddress = config?.contractAddress;
     const { success, error: toastError } = useToastHelper();
+    const isOwner = useIsTableOwner();
+    const settlementStatus = appStore.appState.settlementStatus;
 
     const isUserSeated = appStore.appState.game?.players?.some(
         (player) => player.uuid === appStore.appState.clientID
@@ -43,6 +49,27 @@ const WithdrawBalanceCard = () => {
         error,
         isLoading,
     } = useWithdraw(contractAddress);
+
+    // ── Host rake hook (only used when owner) ────────────────────────
+    const {
+        rakeBalance,
+        rakeUsdcFormatted,
+        status: rakeStatus,
+        error: rakeError,
+        isLoading: rakeLoading,
+        withdraw: rakeWithdraw,
+        refresh: rakeRefresh,
+    } = useHostRake(contractAddress);
+
+    const hasRakeBalance = rakeBalance !== null && rakeBalance > BigInt(0);
+
+    // Refresh rake after settlement
+    useEffect(() => {
+        if (settlementStatus === 'success' && isCryptoGame) {
+            const timer = setTimeout(() => rakeRefresh(), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [settlementStatus, isCryptoGame, rakeRefresh]);
 
     const refreshWithdrawStatus = useCallback(() => {
         if (address && contractAddress) {
@@ -81,6 +108,18 @@ const WithdrawBalanceCard = () => {
         }
     };
 
+    const handleCollectRake = async () => {
+        const ok = await rakeWithdraw();
+        if (ok) {
+            success(
+                'Rewards Collected',
+                'Your host rewards have been transferred to your wallet.'
+            );
+        } else if (rakeError) {
+            toastError('Collect Failed', rakeError);
+        }
+    };
+
     const isButtonDisabled =
         isUserSeated ||
         isLoading ||
@@ -95,14 +134,14 @@ const WithdrawBalanceCard = () => {
     return (
         <Flex
             direction="column"
-            gap={{ base: 2.5, md: 3 }}
+            gap={{ base: 2, md: 2.5 }}
             w="100%"
             bg="card.white"
             borderRadius={{ base: '12px', md: '16px' }}
             border="2px solid"
             borderColor="border.lightGray"
-            px={{ base: 3, sm: 4, md: 6 }}
-            py={{ base: 3, sm: 3.5, md: 5 }}
+            px={{ base: 3, sm: 4, md: 5 }}
+            py={{ base: 2.5, sm: 3, md: 4 }}
             boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
         >
             {/* Header + Balance */}
@@ -147,19 +186,12 @@ const WithdrawBalanceCard = () => {
                     ) : (
                         <HStack spacing={2} align="baseline" mt={0.5}>
                             <Text
-                                fontSize={{ base: 'xl', md: '2xl' }}
+                                fontSize={{ base: 'lg', md: 'xl' }}
                                 fontWeight="bold"
                                 color="text.secondary"
-                                lineHeight="short"
+                                lineHeight="1"
                             >
-                                {formattedChipBalance}
-                            </Text>
-                            <Text
-                                fontSize={{ base: 'xs', md: 'sm' }}
-                                color="text.muted"
-                                fontWeight="medium"
-                            >
-                                chips
+                                ${formattedUsdcValue}
                             </Text>
                             <HStack spacing={1} opacity={0.7}>
                                 <Image
@@ -173,9 +205,17 @@ const WithdrawBalanceCard = () => {
                                     color="text.muted"
                                     fontWeight="medium"
                                 >
-                                    {formattedUsdcValue}
+                                    USDC
                                 </Text>
                             </HStack>
+                            <Text
+                                fontSize="xs"
+                                color="text.muted"
+                                fontWeight="medium"
+                                opacity={0.5}
+                            >
+                                {formattedChipBalance} chips
+                            </Text>
                         </HStack>
                     )}
                 </VStack>
@@ -184,7 +224,7 @@ const WithdrawBalanceCard = () => {
                 <Button
                     size={{ base: 'sm', md: 'md' }}
                     px={{ base: 4, md: 5 }}
-                    h={{ base: '36px', sm: '40px', md: '44px' }}
+                    h={{ base: '34px', sm: '36px', md: '40px' }}
                     bg={isButtonDisabled ? 'gray.300' : 'brand.yellow'}
                     color={isButtonDisabled ? 'gray.500' : 'white'}
                     border="none"
@@ -205,20 +245,143 @@ const WithdrawBalanceCard = () => {
                     _hover={
                         isButtonDisabled
                             ? {}
-                            : {
-                                  transform: 'translateY(-2px)',
-                                  boxShadow:
-                                      '0 8px 16px rgba(253, 197, 29, 0.3)',
-                              }
+                            : { opacity: 0.85 }
                     }
-                    _active={{
-                        transform: isButtonDisabled ? 'none' : 'translateY(0)',
-                    }}
-                    transition="all 0.2s ease"
+                    _active={
+                        isButtonDisabled
+                            ? {}
+                            : { opacity: 0.7 }
+                    }
+                    transition="opacity 0.15s ease"
                 >
                     Withdraw
                 </Button>
             </Flex>
+
+            {/* ── Host Rake Row (owners only) ───────────────────────── */}
+            {isOwner && (
+                <>
+                    <Divider borderColor="border.lightGray" />
+                    <Flex
+                        justify="space-between"
+                        align="center"
+                        w="100%"
+                        gap={3}
+                    >
+                        <VStack spacing={0} align="flex-start">
+                            <HStack spacing={1.5}>
+                                <Icon
+                                    as={FaCrown}
+                                    color="brand.yellow"
+                                    boxSize={{ base: 3.5, md: 4 }}
+                                />
+                                <Tooltip
+                                    label="Earned from table fees on each settled hand"
+                                    placement="top"
+                                    hasArrow
+                                    fontSize="xs"
+                                    bg="gray.800"
+                                    color="white"
+                                    borderRadius="md"
+                                    px={3}
+                                    py={1.5}
+                                >
+                                    <Text
+                                        fontSize={{ base: 'xs', md: 'sm' }}
+                                        fontWeight="semibold"
+                                        color="text.muted"
+                                        textTransform="uppercase"
+                                        letterSpacing="0.04em"
+                                        cursor="help"
+                                        borderBottom="1px dashed"
+                                        borderColor="text.muted"
+                                    >
+                                        Host Rewards
+                                    </Text>
+                                </Tooltip>
+                            </HStack>
+                            {rakeLoading && rakeStatus === 'loading' ? (
+                                <HStack spacing={2} mt={1}>
+                                    <Spinner
+                                        size="xs"
+                                        color="brand.yellow"
+                                        thickness="2px"
+                                    />
+                                    <Text
+                                        fontSize="xs"
+                                        color="text.muted"
+                                        fontWeight="medium"
+                                    >
+                                        Checking...
+                                    </Text>
+                                </HStack>
+                            ) : (
+                                <HStack spacing={2} align="baseline" mt={0.5}>
+                                    <Text
+                                        fontSize={{ base: 'lg', md: 'xl' }}
+                                        fontWeight="bold"
+                                        color="text.secondary"
+                                        lineHeight="1"
+                                    >
+                                        ${rakeUsdcFormatted}
+                                    </Text>
+                                    <HStack spacing={1} opacity={0.7}>
+                                        <Image
+                                            src={USDC_LOGO_URL}
+                                            alt="USDC"
+                                            boxSize="12px"
+                                            loading="lazy"
+                                        />
+                                        <Text
+                                            fontSize="xs"
+                                            color="text.muted"
+                                            fontWeight="medium"
+                                        >
+                                            USDC
+                                        </Text>
+                                    </HStack>
+                                </HStack>
+                            )}
+                        </VStack>
+
+                        <Button
+                            size={{ base: 'sm', md: 'md' }}
+                            px={{ base: 4, md: 5 }}
+                            h={{ base: '34px', sm: '36px', md: '40px' }}
+                            bg={!hasRakeBalance || rakeLoading ? 'gray.300' : 'brand.yellow'}
+                            color={!hasRakeBalance || rakeLoading ? 'gray.500' : 'white'}
+                            border="none"
+                            borderRadius={{ base: '10px', md: '12px' }}
+                            fontWeight="bold"
+                            fontSize={{ base: 'xs', md: 'sm' }}
+                            isDisabled={!hasRakeBalance || rakeLoading}
+                            isLoading={rakeStatus === 'withdrawing'}
+                            loadingText="Collecting..."
+                            onClick={handleCollectRake}
+                            flexShrink={0}
+                            _disabled={{
+                                bg: 'gray.300',
+                                color: 'gray.500',
+                                cursor: 'not-allowed',
+                                opacity: 0.6,
+                            }}
+                            _hover={
+                                !hasRakeBalance || rakeLoading
+                                    ? {}
+                                    : { opacity: 0.85 }
+                            }
+                            _active={
+                                !hasRakeBalance || rakeLoading
+                                    ? {}
+                                    : { opacity: 0.7 }
+                            }
+                            transition="opacity 0.15s ease"
+                        >
+                            Collect
+                        </Button>
+                    </Flex>
+                </>
+            )}
 
             {/* Info banners */}
             {isUserSeated && (

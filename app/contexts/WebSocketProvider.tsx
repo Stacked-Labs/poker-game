@@ -47,6 +47,7 @@ type SocketProviderProps = {
 const TOAST_ID_RECONNECTING = 'attemptReconnection';
 const TOAST_ID_RECONNECTED = 'isReconnected';
 const SETTLEMENT_PENDING_SPINNER_DELAY_MS = 3000;
+const SETTLEMENT_SUCCESS_DISPLAY_MS = 2500;
 
 export function SocketProvider(props: SocketProviderProps) {
     const { tableId } = props;
@@ -99,6 +100,7 @@ export function SocketProvider(props: SocketProviderProps) {
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const hasShownInitialErrorRef = useRef(false);
     const settlementPendingTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const settlementSuccessTimerRef = useRef<NodeJS.Timeout | null>(null);
     const [seatRequestConflict, setSeatRequestConflict] = useState<{
         seatId: number | null;
         message?: string;
@@ -611,7 +613,15 @@ export function SocketProvider(props: SocketProviderProps) {
                                 settlementPendingTimerRef.current = null;
                             }, SETTLEMENT_PENDING_SPINNER_DELAY_MS);
                         } else if (status === 'success') {
-                            dispatch({ type: 'setSettlementStatus', payload: null });
+                            // Show the success banner briefly, then clear
+                            if (settlementSuccessTimerRef.current) {
+                                clearTimeout(settlementSuccessTimerRef.current);
+                            }
+                            dispatch({ type: 'setSettlementStatus', payload: 'success' });
+                            settlementSuccessTimerRef.current = setTimeout(() => {
+                                dispatch({ type: 'setSettlementStatus', payload: null });
+                                settlementSuccessTimerRef.current = null;
+                            }, SETTLEMENT_SUCCESS_DISPLAY_MS);
                         } else if (status === 'failed') {
                             // 'failed' — show immediately
                             dispatch({ type: 'setSettlementStatus', payload: 'failed' });

@@ -3,6 +3,7 @@ import React from 'react';
 import Pot from './Pot';
 import CommunityCards from './CommunityCards';
 import PauseBanner from '../PauseBanner';
+import SettlementBanner from '../SettlementBanner';
 
 const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
     return (
@@ -23,6 +24,7 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
             <Pot activePotIndex={activePotIndex} />
             <CommunityCards activePotIndex={activePotIndex} />
             <PauseBanner />
+            <SettlementBanner />
         </Flex>
     );
 };

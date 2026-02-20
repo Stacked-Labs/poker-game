@@ -20,30 +20,18 @@ export default function GlobalError({
             minH="100vh"
             align="center"
             justify="center"
-            bg="brand.darkNavy"
+            bg="bg.default"
             px={4}
         >
             <Box
                 bg="card.white"
-                borderRadius="28px"
+                borderRadius="20px"
                 p={{ base: 6, md: 10 }}
                 maxW="440px"
                 w="100%"
                 textAlign="center"
                 border="1px solid"
                 borderColor="border.lightGray"
-                boxShadow="0 25px 80px rgba(0, 0, 0, 0.25), 0 8px 32px rgba(0, 0, 0, 0.15)"
-                position="relative"
-                overflow="hidden"
-                _before={{
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    bgGradient: 'linear(to-r, brand.pink, brand.yellow)',
-                }}
             >
                 <Flex
                     mx="auto"

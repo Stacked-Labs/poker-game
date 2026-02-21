@@ -20,6 +20,7 @@ export interface LeaderboardEntry {
     rank: number;
     address: string;
     points: number;
+    handsPlayed: number;
 }
 
 const rankStyles: Record<
@@ -167,6 +168,16 @@ const LeaderboardTable = ({
                                 isNumeric
                                 py={{ base: 3, md: 4 }}
                             >
+                                Hands
+                            </Th>
+                            <Th
+                                color="text.secondary"
+                                fontSize={{ base: '2xs', md: 'xs' }}
+                                letterSpacing="0.16em"
+                                textTransform="uppercase"
+                                isNumeric
+                                py={{ base: 3, md: 4 }}
+                            >
                                 Points
                             </Th>
                         </Tr>
@@ -174,7 +185,7 @@ const LeaderboardTable = ({
                     <Tbody>
                         {data.length === 0 && (
                             <Tr>
-                                <Td colSpan={3} textAlign="center" py={10}>
+                                <Td colSpan={4} textAlign="center" py={10}>
                                     <Text color="text.secondary" fontSize="sm">
                                         No points earned yet. Play hands on Base Testnet to appear here.
                                     </Text>
@@ -220,6 +231,15 @@ const LeaderboardTable = ({
                                             {truncateAddress(entry.address)}
                                         </Text>
                                     </HStack>
+                                </Td>
+                                <Td py={{ base: 3, md: 4 }} isNumeric>
+                                    <Text
+                                        color="text.secondary"
+                                        fontWeight="medium"
+                                        fontSize={{ base: 'sm', md: 'md' }}
+                                    >
+                                        {entry.handsPlayed.toLocaleString()}
+                                    </Text>
                                 </Td>
                                 <Td py={{ base: 3, md: 4 }} isNumeric>
                                     <Text

@@ -486,8 +486,8 @@ export async function getTables() {
 }
 
 export async function getLeaderboard(address?: string): Promise<{
-    leaderboard: { address: string; points: number; rank: number }[];
-    player: { address: string; points: number; rank: number } | null;
+    leaderboard: { address: string; points: number; handsPlayed: number; rank: number }[];
+    player: { address: string; points: number; handsPlayed: number; rank: number } | null;
     total: number;
     updatedAt: string | null;
 }> {

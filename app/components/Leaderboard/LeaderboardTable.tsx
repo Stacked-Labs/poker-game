@@ -18,61 +18,10 @@ import {
 
 export interface LeaderboardEntry {
     rank: number;
-    username: string;
     address: string;
     points: number;
+    handsPlayed: number;
 }
-
-const sampleData: LeaderboardEntry[] = [
-    {
-        rank: 1,
-        username: 'CryptoKing',
-        address: '0x1234567890abcdef1234567890abcdef12345678',
-        points: 2500,
-    },
-    {
-        rank: 2,
-        username: 'PokerPro',
-        address: '0xabcdef1234567890abcdef1234567890abcdef12',
-        points: 2000,
-    },
-    {
-        rank: 3,
-        username: 'ChipMaster',
-        address: '0x567890abcdef1234567890abcdef1234567890ab',
-        points: 1500,
-    },
-    {
-        rank: 4,
-        username: 'BluffExpert',
-        address: '0xdef1234567890abcdef1234567890abcdef12345',
-        points: 1200,
-    },
-    {
-        rank: 5,
-        username: 'AllInAce',
-        address: '0x890abcdef1234567890abcdef1234567890abcde',
-        points: 1000,
-    },
-    {
-        rank: 6,
-        username: 'RoyalFlush',
-        address: '0xcdef1234567890abcdef1234567890abcdef1234',
-        points: 850,
-    },
-    {
-        rank: 7,
-        username: 'StackedUp',
-        address: '0x4567890abcdef1234567890abcdef1234567890',
-        points: 700,
-    },
-    {
-        rank: 8,
-        username: 'FoldMaster',
-        address: '0xef1234567890abcdef1234567890abcdef123456',
-        points: 550,
-    },
-];
 
 const rankStyles: Record<
     number,
@@ -96,7 +45,7 @@ const rankStyles: Record<
 };
 
 const LeaderboardTable = ({
-    data = sampleData,
+    data = [],
 }: {
     data?: LeaderboardEntry[];
 }) => {
@@ -167,6 +116,15 @@ const LeaderboardTable = ({
                 </HStack>
             </HStack>
 
+            <Text
+                fontSize="xs"
+                color="text.secondary"
+                fontStyle="italic"
+                mb={{ base: 4, md: 5 }}
+            >
+                Points are awarded only for playing on Base Testnet.
+            </Text>
+
             <Box
                 width="100%"
                 overflowX="auto"
@@ -210,11 +168,30 @@ const LeaderboardTable = ({
                                 isNumeric
                                 py={{ base: 3, md: 4 }}
                             >
+                                Hands
+                            </Th>
+                            <Th
+                                color="text.secondary"
+                                fontSize={{ base: '2xs', md: 'xs' }}
+                                letterSpacing="0.16em"
+                                textTransform="uppercase"
+                                isNumeric
+                                py={{ base: 3, md: 4 }}
+                            >
                                 Points
                             </Th>
                         </Tr>
                     </Thead>
                     <Tbody>
+                        {data.length === 0 && (
+                            <Tr>
+                                <Td colSpan={4} textAlign="center" py={10}>
+                                    <Text color="text.secondary" fontSize="sm">
+                                        No points earned yet. Play hands on Base Testnet to appear here.
+                                    </Text>
+                                </Td>
+                            </Tr>
+                        )}
                         {data.map((entry) => (
                             <Tr
                                 key={entry.rank}
@@ -254,6 +231,15 @@ const LeaderboardTable = ({
                                             {truncateAddress(entry.address)}
                                         </Text>
                                     </HStack>
+                                </Td>
+                                <Td py={{ base: 3, md: 4 }} isNumeric>
+                                    <Text
+                                        color="text.secondary"
+                                        fontWeight="medium"
+                                        fontSize={{ base: 'sm', md: 'md' }}
+                                    >
+                                        {entry.handsPlayed.toLocaleString()}
+                                    </Text>
                                 </Td>
                                 <Td py={{ base: 3, md: 4 }} isNumeric>
                                     <Text

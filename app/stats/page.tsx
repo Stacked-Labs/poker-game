@@ -1,1006 +1,898 @@
+'use client';
+
 import {
     Text,
     Flex,
     Box,
     Tooltip,
     Badge,
-    Accordion,
-    AccordionItem,
-    AccordionButton,
-    AccordionPanel,
-    AccordionIcon,
     HStack,
-    Divider,
     VStack,
     Tabs,
     TabList,
     Tab,
     TabPanels,
     TabPanel,
+    Spinner,
+    Alert,
+    AlertIcon,
+    AlertTitle,
+    AlertDescription,
+    Grid,
+    Divider,
+    Input,
+    IconButton,
+    Table,
+    Thead,
+    Tbody,
+    Tr,
+    Th,
+    Td,
+    TableContainer,
+    Stat,
+    StatLabel,
+    StatNumber,
+    StatHelpText,
 } from '@chakra-ui/react';
 import Link from 'next/link';
+import { useEffect, useState, useCallback, ReactNode } from 'react';
 import {
-    getHealth,
-    getHealthDb,
-    getLiveStats,
-    getMetrics,
-    getStats,
-    getTables,
+    verifyAdmin,
+    getAdminStats,
+    getAdminLiveStats,
+    getAdminTables,
+    getAdminHealth,
+    getAdminSettlementHealth,
+    getIndexerHealth,
 } from '../hooks/server_actions';
-import {
-    Health,
-    HealthDb,
-    Metrics,
-    TablesResponse,
-    StatsResponse,
-    LiveStatsResponse,
-} from '../stats/types';
-import { ReactNode } from 'react';
+import type {
+    AdminStatsResponse,
+    AdminLiveStatsResponse,
+    AdminTablesResponse,
+    AdminHealthResponse,
+    SettlementHealthResponse,
+    IndexerHealthData,
+} from './types';
 
-// Revalidate stats data every 60 seconds
-export const revalidate = 60;
+// ── Icons ──────────────────────────────────────────────────────────────────────
 
-const StatCard = ({
+const RefreshIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </svg>
+);
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+const StatusDot = ({ ok }: { ok: boolean }) => (
+    <Box
+        display="inline-block"
+        w="10px"
+        h="10px"
+        borderRadius="full"
+        flexShrink={0}
+        bg={ok ? 'brand.green' : 'brand.pink'}
+        boxShadow={ok ? '0 0 8px rgba(54,163,123,0.7)' : '0 0 8px rgba(235,11,92,0.7)'}
+    />
+);
+
+const stateColor = (state: string) => {
+    switch (state) {
+        case 'operational': return 'brand.green';
+        case 'degraded':    return 'yellow.400';
+        case 'downtime':    return 'brand.pink';
+        default:            return 'gray.400';
+    }
+};
+
+const stateOk = (state: string) => state === 'operational';
+
+const fmt = (n: number | undefined) => (n === undefined || n === null ? '—' : n.toLocaleString());
+
+// ── Card wrapper ───────────────────────────────────────────────────────────────
+
+const Card = ({
     title,
-    timestamp,
-    flex,
+    subtitle,
     children,
 }: {
     title: string;
-    timestamp: string;
-    flex: number;
-    children?: ReactNode;
+    subtitle?: string;
+    children: ReactNode;
 }) => (
-    <Flex
-        flex={flex}
-        direction={'column'}
-        bg={'card.white'}
-        color={'text.primary'}
-        p={{ base: 4, md: 5 }}
-        borderRadius={'16px'}
-        boxShadow={'0 4px 12px rgba(0, 0, 0, 0.08)'}
-        border={'1px solid'}
-        borderColor={'card.lightGray'}
+    <Box
+        bg="card.white"
+        borderRadius="16px"
+        p={6}
+        border="1px solid"
+        borderColor="card.lightGray"
+        boxShadow="0 2px 12px rgba(0,0,0,0.06)"
     >
-        <Text
-            color={'text.primary'}
-            fontSize={{ base: 'lg', md: 'xl' }}
-            fontWeight={'extrabold'}
-            mb={{ base: 2, md: 3 }}
-        >
-            {title}
-        </Text>
-        <Flex direction={'column'} gap={{ base: 1.5, md: 2 }} height={'full'}>
-            {children}
-            <Box mt={'auto'} alignSelf={'center'} pt={2}>
-                <Timestamp time={timestamp} />
-            </Box>
+        <Flex align="center" justify="space-between" mb={4}>
+            <Text fontSize="md" fontWeight="extrabold" color="text.primary">{title}</Text>
+            {subtitle && <Text fontSize="xs" color="text.secondary">{subtitle}</Text>}
         </Flex>
-    </Flex>
+        {children}
+    </Box>
 );
 
-const Timestamp = ({ time }: { time: string }) => {
-    return (
-        <Text
-            fontSize={'xs'}
-            fontWeight={'medium'}
-            color={'text.secondary'}
-            align={'center'}
-            opacity={0.7}
-            suppressHydrationWarning
-        >
-            As of {new Date(time).toLocaleString()}
-        </Text>
-    );
-};
+// ── Big stat card ──────────────────────────────────────────────────────────────
 
-const StatBody = ({ children }: { children: ReactNode }) => {
-    return (
-        <Flex
-            justify="space-between"
-            align="center"
-            py={{ base: 1.5, md: 2 }}
-            px={{ base: 2.5, md: 3 }}
-            bg={'card.lightGray'}
-            borderRadius={'8px'}
-        >
-            {children}
-        </Flex>
-    );
-};
+const StatCard = ({
+    label,
+    value,
+    helpText,
+    accent,
+}: {
+    label: string;
+    value: number | string | undefined;
+    helpText?: string;
+    accent?: string;
+}) => (
+    <Box
+        bg="card.white"
+        borderRadius="16px"
+        p={5}
+        border="1px solid"
+        borderColor="card.lightGray"
+        boxShadow="0 2px 12px rgba(0,0,0,0.06)"
+    >
+        <Stat>
+            <StatLabel fontSize="sm" color="text.secondary" fontWeight="medium">{label}</StatLabel>
+            <StatNumber
+                fontSize={{ base: '2xl', md: '3xl' }}
+                fontWeight="extrabold"
+                color={accent ?? 'text.primary'}
+                lineHeight={1.1}
+                mt={1}
+            >
+                {value === undefined || value === null ? '—' : typeof value === 'number' ? value.toLocaleString() : value}
+            </StatNumber>
+            {helpText && <StatHelpText fontSize="xs" color="text.secondary" mt={1}>{helpText}</StatHelpText>}
+        </Stat>
+    </Box>
+);
 
+// ── Health service card ────────────────────────────────────────────────────────
 
-const StatText = ({ text, hasTooltip }: { text: string | number, hasTooltip: boolean }) => {
-    return (
-        <Text
-            fontWeight={hasTooltip ? 'normal' : 'semibold'}
-            color={'text.primary'}
-            cursor={hasTooltip ? 'help' : 'default'}
-        >
-            {text}
-        </Text >
-    );
-}
-
-const SubBody = ({ children }: { children: ReactNode }) => {
-    return (
-        <Flex
-            direction={'column'}
-            gap={{ base: 1.5, md: 2 }}
-            p={{ base: 2.5, md: 3 }}
-            bg={'card.lighterGray'}
-            borderRadius={'12px'}
-        >
-            {children}
-        </Flex>
-    );
-};
-
-const page = async () => {
-    const now = new Date().toISOString();
-
-    const withFallback = async <T,>(
-        promise: Promise<T>,
-        fallback: T,
-        label: string
-    ): Promise<T> => {
-        try {
-            return await promise;
-        } catch (error) {
-            console.error(
-                `Failed to load ${label}. Falling back to defaults.`,
-                error
-            );
-            return fallback;
-        }
-    };
-
-    const defaultHealth: Health = {
-        status: 'unavailable',
-        timestamp: now,
-    };
-
-    const defaultHealthDb: HealthDb = {
-        database: 'unavailable',
-        status: 'unavailable',
-        timestamp: now,
-    };
-
-    const defaultMetrics: Metrics = {
-        database: {
-            connections_idle: 0,
-            connections_in_use: 0,
-            last_health_check: now,
-        },
-        tables: {
-            active_count: 0,
-        },
-        timestamp: now,
-    };
-
-    const defaultTables: TablesResponse = {
-        success: false,
-        tables: [],
-        timestamp: now,
-        total_count: 0,
-    };
-
-    const defaultStats: StatsResponse = {
-        data: {
-            active_players_count: 0,
-            active_tables_count: 0,
-            hands_last_24h: 0,
-            tables_last_24h: 0,
-            total_hands_played: 0,
-            total_tables_created: 0,
-            total_unique_players: 0,
-        },
-        success: false,
-        timestamp: now,
-    };
-
-    const defaultLiveStats: LiveStatsResponse = {
-        data: {
-            active_connections: 0,
-            active_tables: 0,
-        },
-        success: false,
-        timestamp: now,
-    };
-
-    const [health, healthDb, metrics, tables, stats, liveStats]: [
-        Health,
-        HealthDb,
-        Metrics,
-        TablesResponse,
-        StatsResponse,
-        LiveStatsResponse,
-    ] = await Promise.all([
-        withFallback(getHealth(), defaultHealth, 'health'),
-        withFallback(getHealthDb(), defaultHealthDb, 'database health'),
-        withFallback(getMetrics(), defaultMetrics, 'metrics'),
-        withFallback(getTables(), defaultTables, 'tables'),
-        withFallback(getStats(), defaultStats, 'stats'),
-        withFallback(getLiveStats(), defaultLiveStats, 'live stats'),
-    ]);
-
-    return (
-        <Flex
-            direction={'column'}
-            bg={'card.lightGray'}
-            pt={{ base: 20, md: 24 }}
-            pb={{ base: 6, md: 8 }}
-            minHeight={'100vh'}
-            alignItems={'center'}
-            w={'100%'}
-            px={{ base: 3, md: 6, lg: 20 }}
-        >
-            {/* Page Title */}
-            <VStack gap={1} mb={{ base: 4, md: 5 }} width="full">
-                <Text
-                    fontSize={{ base: '2xl', md: '3xl', lg: '4xl' }}
-                    fontWeight="extrabold"
-                    color="text.primary"
-                >
-                    System Statistics
-                </Text>
+const ServiceCard = ({
+    name,
+    ok,
+    rows,
+    children,
+}: {
+    name: string;
+    ok: boolean;
+    rows?: { label: string; value: ReactNode; mono?: boolean }[];
+    children?: ReactNode;
+}) => (
+    <Box
+        bg="card.white"
+        borderRadius="16px"
+        p={6}
+        border="1px solid"
+        borderColor={ok ? 'card.lightGray' : 'brand.pink'}
+        boxShadow={ok ? '0 2px 12px rgba(0,0,0,0.06)' : '0 2px 12px rgba(235,11,92,0.12)'}
+        flex={1}
+    >
+        <HStack mb={4} gap={2.5}>
+            <StatusDot ok={ok} />
+            <Text fontSize="md" fontWeight="extrabold" color="text.primary">{name}</Text>
+        </HStack>
+        {rows && (
+            <VStack align="stretch" gap={2}>
+                {rows.map(({ label, value, mono }) => (
+                    <Flex key={label} justify="space-between" align="center" py={2} px={3} bg="card.lightGray" borderRadius="8px">
+                        <Text fontSize="sm" color="text.secondary">{label}</Text>
+                        <Text fontSize="sm" fontWeight="semibold" color="text.primary" fontFamily={mono ? 'monospace' : undefined}>
+                            {value}
+                        </Text>
+                    </Flex>
+                ))}
             </VStack>
+        )}
+        {children}
+    </Box>
+);
+
+// ── Settlement Health ──────────────────────────────────────────────────────────
+
+const SettlementSection = ({ data }: { data: SettlementHealthResponse | null }) => {
+    const ok = !data || data.pending_count === 0;
+    return (
+        <Card title="Settlement Health" subtitle={data?.timestamp ? new Date(data.timestamp).toLocaleString() : undefined}>
+            <Flex align="center" gap={3} mb={4}>
+                <StatusDot ok={ok} />
+                <Text fontSize="2xl" fontWeight="extrabold" color={ok ? 'brand.green' : 'brand.pink'}>
+                    {data?.pending_count ?? 0}
+                </Text>
+                <Text fontSize="sm" color="text.secondary">stuck settlements</Text>
+                {ok && (
+                    <Badge colorScheme="green" fontSize="xs" px={2} py={1} borderRadius="full">All Clear</Badge>
+                )}
+            </Flex>
+
+            {data && data.pending_count > 0 && (
+                <VStack align="stretch" gap={3} mt={2}>
+                    {data.pending_settlements.map((ps, i) => (
+                        <Box
+                            key={i}
+                            bg="card.lightGray"
+                            borderRadius="10px"
+                            p={4}
+                            border="1px solid"
+                            borderColor="brand.pink"
+                        >
+                            <Flex justify="space-between" align="center" mb={2}>
+                                <Text fontSize="sm" fontFamily="monospace" color="text.secondary" noOfLines={1}>
+                                    {ps.table}
+                                </Text>
+                                <Badge
+                                    colorScheme={ps.thirdweb_status === 'mined' ? 'green' : ps.thirdweb_status === 'errored' ? 'red' : 'orange'}
+                                    fontSize="xs"
+                                    px={2}
+                                    py={0.5}
+                                    borderRadius="full"
+                                >
+                                    {ps.thirdweb_status ?? 'unknown'}
+                                </Badge>
+                            </Flex>
+                            <HStack gap={4} fontSize="sm" color="text.secondary">
+                                <Text>Hand #{ps.hand_id}</Text>
+                                <Text>{ps.player_count} players</Text>
+                            </HStack>
+                            {ps.thirdweb_error && (
+                                <Text fontSize="xs" color="brand.pink" mt={2}>{ps.thirdweb_error}</Text>
+                            )}
+                        </Box>
+                    ))}
+                </VStack>
+            )}
+        </Card>
+    );
+};
+
+// ── Main page ──────────────────────────────────────────────────────────────────
+
+export default function AdminStatsPage() {
+    const now = new Date().toISOString();
+    const [authState, setAuthState] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
+    const [stats, setStats]       = useState<AdminStatsResponse | null>(null);
+    const [live, setLive]         = useState<AdminLiveStatsResponse | null>(null);
+    const [tables, setTables]     = useState<AdminTablesResponse | null>(null);
+    const [health, setHealth]     = useState<AdminHealthResponse | null>(null);
+    const [settle, setSettle]     = useState<SettlementHealthResponse | null>(null);
+    const [indexer, setIndexer]   = useState<IndexerHealthData | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
+    const [search, setSearch]         = useState('');
+    const [typeFilter, setTypeFilter] = useState<'all' | 'crypto' | 'free'>('all');
+
+    const loadData = useCallback(async () => {
+        setRefreshing(true);
+        const [s, l, t, h, sh, ix] = await Promise.allSettled([
+            getAdminStats(),
+            getAdminLiveStats(),
+            getAdminTables(),
+            getAdminHealth(),
+            getAdminSettlementHealth(),
+            getIndexerHealth(),
+        ]);
+        if (s.status  === 'fulfilled') setStats(s.value);
+        if (l.status  === 'fulfilled') setLive(l.value);
+        if (t.status  === 'fulfilled') setTables(t.value);
+        if (h.status  === 'fulfilled') setHealth(h.value);
+        if (sh.status === 'fulfilled') setSettle(sh.value);
+        if (ix.status === 'fulfilled') setIndexer(ix.value);
+        setRefreshing(false);
+    }, []);
+
+    useEffect(() => {
+        verifyAdmin().then((r) => {
+            if (r.isAdmin) { setAuthState('authorized'); loadData(); }
+            else setAuthState('unauthorized');
+        });
+    }, [loadData]);
+
+    if (authState === 'loading') {
+        return (
+            <Flex minH="100vh" align="center" justify="center" bg="card.lightGray">
+                <Spinner size="xl" color="brand.green" />
+            </Flex>
+        );
+    }
+
+    if (authState === 'unauthorized') {
+        return (
+            <Flex minH="100vh" align="center" justify="center" bg="card.lightGray" px={4}>
+                <Alert status="error" borderRadius="16px" maxW="420px" flexDir="column" textAlign="center" py={10} gap={4}>
+                    <AlertIcon boxSize="40px" />
+                    <AlertTitle fontSize="lg">Unauthorized</AlertTitle>
+                    <AlertDescription fontSize="sm">
+                        This page is restricted to admin wallets. Connect an authorized wallet and try again.
+                    </AlertDescription>
+                </Alert>
+            </Flex>
+        );
+    }
+
+    const statsTs  = stats?.timestamp  ?? now;
+    const tablesTs = tables?.timestamp ?? now;
+
+    const d   = stats?.data;
+    const lv  = live?.data;
+    const pg  = health?.postgres;
+    const rd  = health?.redis;
+    const tw  = health?.thirdweb;
+    const hub = health?.hub;
+
+    const filteredTables = (tables?.tables ?? []).filter((t) => {
+        if (search) {
+            const q = search.toLowerCase();
+            const nameMatch   = t.name.toLowerCase().includes(q);
+            const walletMatch = t.owner_wallet?.toLowerCase().includes(q);
+            if (!nameMatch && !walletMatch) return false;
+        }
+        if (typeFilter === 'crypto' && !t.is_crypto) return false;
+        if (typeFilter === 'free'   &&  t.is_crypto) return false;
+        return true;
+    });
+
+    return (
+        <Flex
+            direction="column"
+            bg="card.lightGray"
+            pt={{ base: 20, md: 24 }}
+            pb={12}
+            minH="100vh"
+            align="center"
+            w="100%"
+            px={{ base: 4, md: 8, lg: 16 }}
+        >
+            {/* Header */}
+            <Flex width="full" maxW="1200px" align="center" justify="space-between" mb={6}>
+                <VStack align="start" gap={1}>
+                    <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="extrabold" color="text.primary">
+                        Admin Dashboard
+                    </Text>
+                    <Text fontSize="sm" color="text.secondary">
+                        Last updated: {new Date(statsTs).toLocaleString()}
+                    </Text>
+                </VStack>
+                <Tooltip label="Refresh all data" hasArrow>
+                    <IconButton
+                        aria-label="Refresh"
+                        icon={<RefreshIcon />}
+                        size="md"
+                        variant="ghost"
+                        isLoading={refreshing}
+                        onClick={loadData}
+                        color="text.secondary"
+                        borderRadius="10px"
+                    />
+                </Tooltip>
+            </Flex>
 
             <Tabs
                 defaultIndex={0}
-                width={{ base: 'full', lg: '75vw', xl: '70vw' }}
-                size="lg"
+                width="full"
+                maxW="1200px"
+                size="md"
                 variant="unstyled"
             >
                 <TabList
                     bg="card.white"
                     borderRadius="12px"
-                    p={{ base: '6px', md: 1 }}
-                    mb={{ base: 3, md: 4 }}
-                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.08)"
+                    p="6px"
+                    mb={6}
+                    boxShadow="0 2px 8px rgba(0,0,0,0.07)"
+                    display="inline-flex"
+                    gap={1}
                 >
-                    <Tab
-                        fontSize={{ base: 'sm', sm: 'md', md: 'lg', lg: 'xl' }}
-                        py={{ base: 2, sm: 2.5, md: 3 }}
-                        px={{ base: 3, sm: 4, md: 6 }}
-                        fontWeight="bold"
-                        color="text.secondary"
-                        borderRadius="10px"
-                        flex={1}
-                        _selected={{
-                            color: 'white',
-                            bg: 'brand.green',
-                        }}
-                        transition="all 0.2s"
-                    >
-                        General Stats
-                    </Tab>
-                    <Tab
-                        fontSize={{ base: 'sm', sm: 'md', md: 'lg', lg: 'xl' }}
-                        py={{ base: 2, sm: 2.5, md: 3 }}
-                        px={{ base: 3, sm: 4, md: 6 }}
-                        fontWeight="bold"
-                        color="text.secondary"
-                        borderRadius="10px"
-                        flex={1}
-                        _selected={{
-                            color: 'white',
-                            bg: 'brand.pink',
-                        }}
-                        transition="all 0.2s"
-                    >
-                        Tables
-                    </Tab>
+                    {[
+                        { label: 'Stats',  accent: 'brand.green' },
+                        { label: 'Tables', accent: 'brand.pink' },
+                        { label: 'Health', accent: 'yellow.400' },
+                    ].map(({ label, accent }) => (
+                        <Tab
+                            key={label}
+                            fontSize="sm"
+                            py={2}
+                            px={6}
+                            fontWeight="bold"
+                            color="text.secondary"
+                            borderRadius="8px"
+                            _selected={{ color: 'white', bg: accent }}
+                            transition="all 0.15s"
+                        >
+                            {label}
+                        </Tab>
+                    ))}
                 </TabList>
 
                 <TabPanels>
-                    <TabPanel py={{ base: 3, md: 4 }} px={0}>
-                        <Flex
-                            direction={'column'}
-                            gap={{ base: 2, md: 3 }}
-                            width={'full'}
-                            pb={{ base: 2, lg: 0 }}
-                        >
-                            <Flex
-                                width={'full'}
-                                gap={{ base: 2, md: 3 }}
-                                direction={{ base: 'column', lg: 'row' }}
-                            >
-                                <StatCard
-                                    flex={2}
-                                    title={'Stacked'}
-                                    timestamp={health.timestamp}
+
+                    {/* ── Stats tab ── */}
+                    <TabPanel px={0} py={0}>
+                        <VStack align="stretch" gap={6}>
+
+                            {/* Live now */}
+                            <Box>
+                                <Text fontSize="xs" fontWeight="extrabold" color="text.secondary" textTransform="uppercase" letterSpacing="0.08em" mb={3}>
+                                    Live Now
+                                </Text>
+                                <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }} gap={4}>
+                                    <StatCard label="WS Connections"    value={lv?.active_connections}  accent="brand.green" />
+                                    <StatCard label="Tables in Memory"  value={lv?.hub_tables_in_memory} />
+                                    <StatCard label="Tables with Players" value={lv?.tables_with_players} />
+                                    <StatCard label="Active Players"    value={d?.active_players_count} />
+                                </Grid>
+                            </Box>
+
+                            {/* Activity over time */}
+                            <Card title="Activity" subtitle={new Date(statsTs).toLocaleString()}>
+                                <TableContainer>
+                                    <Table variant="simple" size="md">
+                                        <Thead>
+                                            <Tr>
+                                                <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray" pl={0} minW="160px"></Th>
+                                                <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray" isNumeric>24h</Th>
+                                                <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray" isNumeric>7d</Th>
+                                                <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray" isNumeric>30d</Th>
+                                                <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray" isNumeric>All Time</Th>
+                                            </Tr>
+                                        </Thead>
+                                        <Tbody>
+                                            {/* Crypto rows */}
+                                            <Tr bg="rgba(54,163,123,0.04)">
+                                                <Td fontSize="sm" fontWeight="semibold" borderColor="card.lightGray" pl={0}>
+                                                    <HStack gap={1.5}>
+                                                        <Badge bg="brand.green" color="white" fontSize="xs" px={1.5} borderRadius="full">Crypto</Badge>
+                                                        <Text>Tables Created</Text>
+                                                    </HStack>
+                                                </Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_tables_24h)}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_tables_7d)}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_tables_30d)}</Td>
+                                                <Td fontSize="sm" fontWeight="extrabold" color="brand.green" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_tables_total)}</Td>
+                                            </Tr>
+                                            <Tr bg="rgba(54,163,123,0.04)">
+                                                <Td fontSize="sm" fontWeight="semibold" borderColor="card.lightGray" pl={0}>
+                                                    <HStack gap={1.5}>
+                                                        <Badge bg="brand.green" color="white" fontSize="xs" px={1.5} borderRadius="full">Crypto</Badge>
+                                                        <Text>Hands Played</Text>
+                                                    </HStack>
+                                                </Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_hands_24h)}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_hands_7d)}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_hands_30d)}</Td>
+                                                <Td fontSize="sm" fontWeight="extrabold" color="brand.green" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_hands_total)}</Td>
+                                            </Tr>
+                                            {/* Free rows */}
+                                            <Tr>
+                                                <Td fontSize="sm" fontWeight="semibold" borderColor="card.lightGray" pl={0}>
+                                                    <HStack gap={1.5}>
+                                                        <Badge bg="card.lightGray" color="text.secondary" fontSize="xs" px={1.5} borderRadius="full">Free</Badge>
+                                                        <Text>Tables Created</Text>
+                                                    </HStack>
+                                                </Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_tables_24h)}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_tables_7d)}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_tables_30d)}</Td>
+                                                <Td fontSize="sm" fontWeight="extrabold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_tables_total)}</Td>
+                                            </Tr>
+                                            <Tr>
+                                                <Td fontSize="sm" fontWeight="semibold" borderColor="card.lightGray" pl={0}>
+                                                    <HStack gap={1.5}>
+                                                        <Badge bg="card.lightGray" color="text.secondary" fontSize="xs" px={1.5} borderRadius="full">Free</Badge>
+                                                        <Text>Hands Played</Text>
+                                                    </HStack>
+                                                </Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_hands_24h)}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_hands_7d)}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_hands_30d)}</Td>
+                                                <Td fontSize="sm" fontWeight="extrabold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_hands_total)}</Td>
+                                            </Tr>
+                                            {/* Rake row — sourced from indexer GraphQL */}
+                                            <Tr bg="rgba(235,11,92,0.04)">
+                                                <Td fontSize="sm" fontWeight="semibold" border="none" pl={0}>
+                                                    <HStack gap={1.5}>
+                                                        <Badge bg="brand.pink" color="white" fontSize="xs" px={1.5} borderRadius="full">Rake</Badge>
+                                                        <Text>Platform Rake (USDC)</Text>
+                                                    </HStack>
+                                                </Td>
+                                                <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{indexer ? `$${indexer.rake24hUsdc}` : '—'}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{indexer ? `$${indexer.rake7dUsdc}` : '—'}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{indexer ? `$${indexer.rake30dUsdc}` : '—'}</Td>
+                                                <Td fontSize="sm" fontWeight="extrabold" border="none" isNumeric color="brand.pink">{indexer ? `$${indexer.rakeAllTimeUsdc}` : '—'}</Td>
+                                            </Tr>
+                                        </Tbody>
+                                    </Table>
+                                </TableContainer>
+                            </Card>
+
+                            {/* Players */}
+                            <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)' }} gap={4}>
+                                <StatCard label="Unique Players" value={d?.total_unique_players} helpText="All time across all table types" />
+                                <StatCard label="Total Hands Played" value={d?.total_hands_played} helpText="All time" accent="brand.green" />
+                            </Grid>
+
+                            {/* Crypto vs Free split */}
+                            <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={5}>
+                                {/* Crypto */}
+                                <Box
+                                    bg="card.white"
+                                    borderRadius="16px"
+                                    border="2px solid"
+                                    borderColor="brand.green"
+                                    p={6}
+                                    boxShadow="0 4px 20px rgba(54,163,123,0.12)"
                                 >
-                                    <StatBody>
-                                        <Tooltip
-                                            label="Overall system health status from the backend API"
-                                            placement="top"
-                                            hasArrow
-                                        >
-                                            <Text
-                                                textTransform={'capitalize'}
-                                                fontWeight={'bold'}
-                                                color={
-                                                    health.status === 'healthy'
-                                                        ? 'brand.green'
-                                                        : 'brand.pink'
-                                                }
-                                                cursor="help"
-                                            >
-                                                {health.status}
-                                            </Text>
-                                        </Tooltip>
-                                        <Flex
-                                            as="span"
-                                            w="16px"
-                                            h="16px"
-                                            borderRadius="full"
-                                            bg={
-                                                health.status === 'healthy'
-                                                    ? 'brand.green'
-                                                    : 'brand.pink'
-                                            }
-                                            border="2px solid"
-                                            borderColor="white"
-                                            boxShadow={
-                                                health.status === 'healthy'
-                                                    ? '0 0 8px rgba(54, 163, 123, 0.5)'
-                                                    : '0 0 8px rgba(235, 11, 92, 0.5)'
-                                            }
-                                            aria-label={health.status}
-                                        />
-                                    </StatBody>
-                                    <Timestamp time={health.timestamp} />
-                                    <StatBody>
-                                        <Tooltip
-                                            label="Active WebSocket connections from clients (Source: liveStats API)"
-                                            placement="top"
-                                            hasArrow
-                                        >
-                                            <StatText text="WebSocket Connections" hasTooltip={true} />
-                                        </Tooltip>
-                                        <StatText text={liveStats.data.active_connections} hasTooltip={false} />
-                                    </StatBody>
-                                    <StatBody>
-                                        <Tooltip
-                                            label="Number of tables with active games (Source: liveStats API)"
-                                            placement="top"
-                                            hasArrow
-                                        >
-                                            <StatText text="Active Tables" hasTooltip={true} />
-                                        </Tooltip>
-                                        <StatText text={liveStats.data.active_tables} hasTooltip={false} />
-                                    </StatBody>
-                                    <Timestamp time={liveStats.timestamp} />
-                                    <StatBody>
-                                        <Tooltip
-                                            label="Players currently in active games (Source: stats database query)"
-                                            placement="top"
-                                            hasArrow
-                                        >
-                                            <StatText text="Active Players" hasTooltip={true} />
-                                        </Tooltip>
-                                        <StatText text={stats.data.active_players_count} hasTooltip={false} />
-                                    </StatBody>
-                                    <StatBody>
-                                        <Tooltip
-                                            label="Tables with active games in database - may differ from liveStats count above (Source: stats database query)"
-                                            placement="top"
-                                            hasArrow
-                                        >
-                                            <StatText text="Active Tables" hasTooltip={true} />
-                                        </Tooltip>
-                                        <StatText text={stats.data.active_tables_count} hasTooltip={false} />
-                                    </StatBody>
-                                    <SubBody>
-                                        <Text
-                                            fontSize="sm"
-                                            fontWeight="extrabold"
-                                            color="text.primary"
-                                            mb={{ base: 0.5, md: 1 }}
-                                        >
-                                            Last 24 hrs
-                                        </Text>
-                                        <StatBody>
-                                            <Tooltip
-                                                label="Tables created in the last 24 hours (Source: stats database query)"
-                                                placement="top"
-                                                hasArrow
-                                            >
-                                                <StatText text="Tables" hasTooltip={true} />
-                                            </Tooltip>
-                                            <StatText text={stats.data.tables_last_24h} hasTooltip={false} />
-                                        </StatBody>
-                                        <StatBody>
-                                            <Tooltip
-                                                label="Hands played in the last 24 hours (Source: stats database query)"
-                                                placement="top"
-                                                hasArrow
-                                            >
-                                                <StatText text="Hands" hasTooltip={true} />
-                                            </Tooltip>
-                                            <StatText text={stats.data.hands_last_24h} hasTooltip={false} />
-                                        </StatBody>
-                                    </SubBody>
-                                    <SubBody>
-                                        <Text
-                                            fontSize="sm"
-                                            fontWeight="extrabold"
-                                            color="text.primary"
-                                            mb={{ base: 0.5, md: 1 }}
-                                        >
-                                            Total
-                                        </Text>
-                                        <StatBody>
-                                            <Tooltip
-                                                label="Total hands played since launch (Source: stats database query)"
-                                                placement="top"
-                                                hasArrow
-                                            >
-                                                <StatText text="Hands Played" hasTooltip={true} />
-                                            </Tooltip>
-                                            <StatText text={stats.data.total_hands_played} hasTooltip={false} />
-                                        </StatBody>
-                                        <StatBody>
-                                            <Tooltip
-                                                label="Total tables created since launch (Source: stats database query)"
-                                                placement="top"
-                                                hasArrow
-                                            >
-                                                <StatText text="Tables Created" hasTooltip={true} />
-                                            </Tooltip>
-                                            <StatText
-                                                text={stats.data.total_tables_created}
-                                                hasTooltip={false}
-                                            />
-                                        </StatBody>
-                                        <StatBody>
-                                            <Tooltip
-                                                label="Total unique players who have joined since launch (Source: stats database query)"
-                                                placement="top"
-                                                hasArrow
-                                            >
-                                                <StatText text="Unique Players" hasTooltip={true} />
-                                            </Tooltip>
-                                            <StatText
-                                                text={stats.data.total_unique_players}
-                                                hasTooltip={false}
-                                            />
-                                        </StatBody>
-                                    </SubBody>
-                                </StatCard>
-                                <Flex
-                                    flex={1}
-                                    width={'full'}
-                                    direction={'column'}
-                                    gap={{ base: 2, md: 3 }}
+                                    <HStack mb={5} gap={2.5}>
+                                        <Box w="10px" h="10px" borderRadius="full" bg="brand.green" boxShadow="0 0 8px rgba(54,163,123,0.7)" flexShrink={0} />
+                                        <Text fontSize="md" fontWeight="extrabold" color="brand.green">Crypto Tables</Text>
+                                        <Badge bg="brand.green" color="white" fontSize="xs" px={2} borderRadius="full" ml="auto">On-chain</Badge>
+                                    </HStack>
+                                    <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                                        <Box>
+                                            <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1}>{fmt(d?.crypto_tables_total)}</Text>
+                                            <Text fontSize="xs" color="text.secondary" mt={1}>Total Created</Text>
+                                        </Box>
+                                        <Box>
+                                            <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1}>{fmt(d?.unique_wallets)}</Text>
+                                            <Text fontSize="xs" color="text.secondary" mt={1}>Unique Wallets</Text>
+                                        </Box>
+                                    </Grid>
+                                </Box>
+
+                                {/* Free */}
+                                <Box
+                                    bg="card.white"
+                                    borderRadius="16px"
+                                    border="1px solid"
+                                    borderColor="card.lightGray"
+                                    p={6}
+                                    boxShadow="0 2px 12px rgba(0,0,0,0.06)"
                                 >
-                                    <StatCard
-                                        flex={1}
-                                        title={'Database Health'}
-                                        timestamp={healthDb.timestamp}
-                                    >
-                                        <StatBody>
-                                            <Tooltip
-                                                label="Connection status to the PostgreSQL database (Source: healthDb API)"
-                                                placement="top"
-                                                hasArrow
-                                            >
-                                                <Text
-                                                    cursor="help"
-                                                    fontWeight="medium"
-                                                    color={'text.primary'}
-                                                >
-                                                    Database Connection
-                                                </Text>
-                                            </Tooltip>
-                                            <Flex
-                                                as="span"
-                                                w="16px"
-                                                h="16px"
-                                                borderRadius="full"
-                                                bg={
-                                                    healthDb.database ===
-                                                    'connected'
-                                                        ? 'brand.green'
-                                                        : 'brand.pink'
-                                                }
-                                                border="2px solid"
-                                                borderColor="white"
-                                                boxShadow={
-                                                    healthDb.database ===
-                                                    'connected'
-                                                        ? '0 0 8px rgba(54, 163, 123, 0.5)'
-                                                        : '0 0 8px rgba(235, 11, 92, 0.5)'
-                                                }
-                                                aria-label={healthDb.database}
-                                            />
-                                        </StatBody>
-                                        <StatBody>
-                                            <Tooltip
-                                                label="Overall database health and query response status (Source: healthDb API)"
-                                                placement="top"
-                                                hasArrow
-                                            >
-                                                <Text
-                                                    cursor="help"
-                                                    fontWeight="medium"
-                                                    color={'text.primary'}
-                                                >
-                                                    Database Status
-                                                </Text>
-                                            </Tooltip>
-                                            <Flex
-                                                as="span"
-                                                w="16px"
-                                                h="16px"
-                                                borderRadius="full"
-                                                bg={
-                                                    health.status === 'healthy'
-                                                        ? 'brand.green'
-                                                        : 'brand.pink'
-                                                }
-                                                border="2px solid"
-                                                borderColor="white"
-                                                boxShadow={
-                                                    health.status === 'healthy'
-                                                        ? '0 0 8px rgba(54, 163, 123, 0.5)'
-                                                        : '0 0 8px rgba(235, 11, 92, 0.5)'
-                                                }
-                                                aria-label={healthDb.status}
-                                            />
-                                        </StatBody>
-                                    </StatCard>
-                                    <StatCard
-                                        flex={1}
-                                        title={'Metrics'}
-                                        timestamp={metrics.timestamp}
-                                    >
-                                        <Flex
-                                            direction={'column'}
-                                            gap={{ base: 1.5, md: 2 }}
-                                        >
-                                            <Tooltip
-                                                label="Connection pool for database queries - different from WebSocket connections"
-                                                placement="top"
-                                                hasArrow
-                                            >
-                                                <Text
-                                                    fontSize="sm"
-                                                    fontWeight="extrabold"
-                                                    color="text.primary"
-                                                    cursor="help"
-                                                    mb={{ base: 0.5, md: 1 }}
-                                                >
-                                                    Database Pool
-                                                </Text>
-                                            </Tooltip>
-                                            <StatBody>
-                                                <Tooltip
-                                                    label="Idle database connections in the pool (Source: metrics API)"
-                                                    placement="top"
-                                                    hasArrow
-                                                >
-                                                    <StatText text="Idle" hasTooltip={true} />
-                                                </Tooltip>
-                                                <StatText
-                                                    text={metrics.database.connections_idle}
-                                                    hasTooltip={false}
-                                                />
-                                            </StatBody>
-                                            <StatBody>
-                                                <Tooltip
-                                                    label="Database connections currently in use for queries (Source: metrics API)"
-                                                    placement="top"
-                                                    hasArrow
-                                                >
-                                                    <StatText text="Active" hasTooltip={true} />
-                                                </Tooltip>
-                                                <StatText
-                                                    text={metrics.database.connections_in_use}
-                                                    hasTooltip={false}
-                                                />
-                                            </StatBody>
-                                        </Flex>
-                                        <SubBody>
-                                            <Text
-                                                fontSize="sm"
-                                                fontWeight="extrabold"
-                                                color="text.primary"
-                                                mb={{ base: 0.5, md: 1 }}
-                                            >
-                                                Tables
-                                            </Text>
-                                            <StatBody>
-                                                <Tooltip
-                                                    label="Active tables from metrics API (Source: metrics API)"
-                                                    placement="top"
-                                                    hasArrow
-                                                >
-                                                    <StatText text="Active" hasTooltip={true} />
-                                                </Tooltip>
-                                                <StatText text={metrics.tables.active_count} hasTooltip={false} />
-                                            </StatBody>
-                                        </SubBody>
-                                    </StatCard>
-                                </Flex>
-                            </Flex>
-                        </Flex>
+                                    <HStack mb={5} gap={2.5}>
+                                        <Box w="10px" h="10px" borderRadius="full" bg="gray.400" flexShrink={0} />
+                                        <Text fontSize="md" fontWeight="extrabold" color="text.secondary">Free Tables</Text>
+                                        <Badge bg="card.lightGray" color="text.secondary" fontSize="xs" px={2} borderRadius="full" ml="auto">Play Money</Badge>
+                                    </HStack>
+                                    <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                                        <Box>
+                                            <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1}>{fmt(d?.free_tables_total)}</Text>
+                                            <Text fontSize="xs" color="text.secondary" mt={1}>Total Created</Text>
+                                        </Box>
+                                        <Box>
+                                            <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1}>{fmt(d?.total_unique_players)}</Text>
+                                            <Text fontSize="xs" color="text.secondary" mt={1}>Unique Players</Text>
+                                        </Box>
+                                    </Grid>
+                                </Box>
+                            </Grid>
+
+                        </VStack>
                     </TabPanel>
 
-                    <TabPanel py={{ base: 3, md: 4 }} px={0}>
-                        <Flex width={'full'}>
-                            <StatCard
-                                flex={1}
-                                title={'Tables'}
-                                timestamp={tables.timestamp}
-                            >
-                                <StatBody>
-                                    <Tooltip
-                                        label="Total tables in the database (both active and inactive)"
-                                        placement="top"
-                                        hasArrow
-                                    >
-                                        <StatText text="Total Tables" hasTooltip={true} />
-                                    </Tooltip>
-                                    <StatText text={tables.total_count} hasTooltip={false} />
-                                </StatBody>
-                                <StatBody>
-                                    <Tooltip
-                                        label="Tables currently active with players"
-                                        placement="top"
-                                        hasArrow
-                                    >
-                                        <StatText text="Active Tables" hasTooltip={true} />
-                                    </Tooltip>
-                                    <StatText
-                                        text={
-                                            tables.tables.filter(
-                                                (t) => t.is_active
-                                            ).length
-                                        }
-                                        hasTooltip={false}
-                                    />
-                                </StatBody>
-                                <StatBody>
-                                    <Tooltip
-                                        label="Tables loaded in backend memory"
-                                        placement="top"
-                                        hasArrow
-                                    >
-                                        <StatText text="In Memory" hasTooltip={true} />
-                                    </Tooltip>
-                                    <StatText
-                                        text={
-                                            tables.tables.filter(
-                                                (t) => t.in_memory
-                                            ).length
-                                        }
-                                        hasTooltip={false} 
-                                        />
-                                </StatBody>
-                                {tables.tables.length > 0 ? (
-                                    <Box
-                                        maxHeight={'400px'}
-                                        overflowY={'auto'}
-                                        border="1px solid"
-                                        borderColor="card.lightGray"
-                                        borderRadius="12px"
-                                        bg="rgba(236, 238, 245, 0.3)"
-                                    >
-                                        <Accordion allowMultiple>
-                                            {tables.tables.map(
-                                                (table, index) => (
-                                                    <AccordionItem
-                                                        key={index}
-                                                        borderBottom={
-                                                            index <
-                                                            tables.tables
-                                                                .length -
-                                                                1
-                                                                ? '1px solid'
-                                                                : 'none'
-                                                        }
-                                                        borderColor="rgba(12, 21, 49, 0.08)"
-                                                    >
-                                                        <h2>
-                                                            <AccordionButton
-                                                                py={3}
-                                                                px={4}
-                                                                _hover={{
-                                                                    bg: 'card.lightGray',
-                                                                }}
-                                                                _expanded={{
-                                                                    bg: 'white',
-                                                                    borderBottom:
-                                                                        '1px solid',
-                                                                    borderColor:
-                                                                        'card.lightGray',
-                                                                }}
-                                                                transition="all 0.2s"
-                                                            >
-                                                                <Box
-                                                                    flex={1}
-                                                                    display="flex"
-                                                                    alignItems="center"
-                                                                    justifyContent="space-between"
-                                                                    width="100%"
-                                                                >
-                                                                    <HStack
-                                                                        gap={2}
-                                                                        flex={1}
-                                                                        minW={0}
-                                                                    >
-                                                                        <Tooltip
-                                                                            label={
-                                                                                table.is_active
-                                                                                    ? 'Active'
-                                                                                    : 'Inactive'
-                                                                            }
-                                                                            placement="top"
-                                                                            hasArrow
-                                                                        >
-                                                                            <Box
-                                                                                width="8px"
-                                                                                height="8px"
-                                                                                borderRadius="full"
-                                                                                bg={
-                                                                                    table.is_active
-                                                                                        ? 'brand.green'
-                                                                                        : 'gray.400'
-                                                                                }
-                                                                                boxShadow={
-                                                                                    table.is_active
-                                                                                        ? '0 0 8px rgba(54, 163, 123, 0.6)'
-                                                                                        : 'none'
-                                                                                }
-                                                                                flexShrink={
-                                                                                    0
-                                                                                }
-                                                                            />
-                                                                        </Tooltip>
-                                                                        <Tooltip
-                                                                            label={
-                                                                                table.name
-                                                                            }
-                                                                            placement="top"
-                                                                            hasArrow
-                                                                        >
-                                                                            <Link
-                                                                                href={`/table/${table.name}`}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                style={{
-                                                                                    textDecoration:
-                                                                                        'none',
-                                                                                }}
-                                                                            >
-                                                                                <Text
-                                                                                    fontFamily="monospace"
-                                                                                    fontSize="xs"
-                                                                                    color="text.secondary"
-                                                                                    fontWeight="medium"
-                                                                                    noOfLines={
-                                                                                        1
-                                                                                    }
-                                                                                    textAlign="left"
-                                                                                    _hover={{
-                                                                                        color: 'brand.pink',
-                                                                                        fontWeight:
-                                                                                            'bold',
-                                                                                    }}
-                                                                                    cursor="pointer"
-                                                                                    transition="all 0.2s"
-                                                                                >
-                                                                                    {
-                                                                                        table.name
-                                                                                    }
-                                                                                </Text>
-                                                                            </Link>
-                                                                        </Tooltip>
-                                                                        <Text
-                                                                            fontSize="xs"
-                                                                            color="text.secondary"
-                                                                            opacity={
-                                                                                0.6
-                                                                            }
-                                                                            flexShrink={
-                                                                                0
-                                                                            }
-                                                                            ml={
-                                                                                2
-                                                                            }
-                                                                        >
-                                                                            {new Date(
-                                                                                table.created_at
-                                                                            ).toLocaleString(
-                                                                                'en-US',
-                                                                                {
-                                                                                    month: 'short',
-                                                                                    day: 'numeric',
-                                                                                    hour: '2-digit',
-                                                                                    minute: '2-digit',
-                                                                                }
-                                                                            )}
-                                                                        </Text>
-                                                                    </HStack>
-                                                                    <HStack
-                                                                        gap={2}
-                                                                        flexShrink={
-                                                                            0
-                                                                        }
-                                                                    >
-                                                                        <Tooltip
-                                                                            label="Number of players currently in this table"
-                                                                            placement="top"
-                                                                            hasArrow
-                                                                        >
-                                                                            <Badge
-                                                                                bg="brand.green"
-                                                                                color="white"
-                                                                                fontSize="xs"
-                                                                                fontWeight="bold"
-                                                                                px={
-                                                                                    2
-                                                                                }
-                                                                                py={
-                                                                                    1
-                                                                                }
-                                                                                borderRadius="full"
-                                                                                cursor="help"
-                                                                            >
-                                                                                {
-                                                                                    table.player_count
-                                                                                }
-                                                                            </Badge>
-                                                                        </Tooltip>
-                                                                        {table.in_memory && (
-                                                                            <Tooltip
-                                                                                label="Table is currently loaded in backend memory for faster performance"
-                                                                                placement="top"
-                                                                                hasArrow
-                                                                            >
-                                                                                <Badge
-                                                                                    bg="brand.yellow"
-                                                                                    color="text.primary"
-                                                                                    fontSize="xs"
-                                                                                    fontWeight="bold"
-                                                                                    px={
-                                                                                        2
-                                                                                    }
-                                                                                    py={
-                                                                                        1
-                                                                                    }
-                                                                                    borderRadius="full"
-                                                                                    cursor="help"
-                                                                                >
-                                                                                    MEM
-                                                                                </Badge>
-                                                                            </Tooltip>
-                                                                        )}
-                                                                    </HStack>
-                                                                </Box>
-                                                                <AccordionIcon
-                                                                    ml={3}
-                                                                    color="text.secondary"
-                                                                />
-                                                            </AccordionButton>
-                                                        </h2>
-                                                        <AccordionPanel
-                                                            pb={4}
-                                                            pt={3}
-                                                            px={4}
-                                                            bg="rgba(236, 238, 245, 0.5)"
-                                                        >
-                                                            <VStack
-                                                                gap={3}
-                                                                align="stretch"
-                                                                divider={
-                                                                    <Divider
-                                                                        borderColor="rgba(12, 21, 49, 0.1)"
-                                                                        opacity={
-                                                                            1
-                                                                        }
-                                                                    />
-                                                                }
-                                                            >
-                                                                <Flex
-                                                                    justify="space-between"
-                                                                    align="center"
-                                                                >
-                                                                    <Text
-                                                                        fontSize="sm"
-                                                                        color="text.secondary"
-                                                                        fontWeight="medium"
-                                                                        opacity={
-                                                                            0.7
-                                                                        }
-                                                                    >
-                                                                        Owner
-                                                                    </Text>
-                                                                    <Tooltip
-                                                                        label={
-                                                                            table.owner_uuid
-                                                                        }
-                                                                        placement="top"
-                                                                        hasArrow
-                                                                    >
-                                                                        <Text
-                                                                            fontSize="xs"
-                                                                            fontFamily="monospace"
-                                                                            color="text.primary"
-                                                                            fontWeight="medium"
-                                                                            textAlign="right"
-                                                                            cursor="help"
-                                                                        >
-                                                                            {table
-                                                                                .owner_uuid
-                                                                                .length >
-                                                                            20
-                                                                                ? `${table.owner_uuid.slice(0, 8)}...${table.owner_uuid.slice(-6)}`
-                                                                                : table.owner_uuid}
-                                                                        </Text>
-                                                                    </Tooltip>
-                                                                </Flex>
-                                                                <Flex
-                                                                    justify="space-between"
-                                                                    align="center"
-                                                                >
-                                                                    <Text
-                                                                        fontSize="sm"
-                                                                        color="text.secondary"
-                                                                        fontWeight="medium"
-                                                                        opacity={
-                                                                            0.7
-                                                                        }
-                                                                    >
-                                                                        Buy-in
-                                                                        Range
-                                                                    </Text>
-                                                                    <Text
-                                                                        fontSize="sm"
-                                                                        fontWeight="bold"
-                                                                        color="text.primary"
-                                                                        textAlign="right"
-                                                                    >
-                                                                        {
-                                                                            table.min_buy_in
-                                                                        }{' '}
-                                                                        -{' '}
-                                                                        {
-                                                                            table.max_buy_in
-                                                                        }
-                                                                    </Text>
-                                                                </Flex>
-                                                            </VStack>
-                                                        </AccordionPanel>
-                                                    </AccordionItem>
-                                                )
-                                            )}
-                                        </Accordion>
-                                    </Box>
-                                ) : (
-                                    <Flex
-                                        justifyContent={'center'}
-                                        py={8}
-                                        bg="card.lighterGray"
-                                        borderRadius="12px"
-                                    >
-                                        <Text
-                                            color={'text.secondary'}
-                                            fontWeight="medium"
+                    {/* ── Tables tab ── */}
+                    <TabPanel px={0} py={0}>
+                        <Card
+                            title="Tables"
+                            subtitle={new Date(tablesTs).toLocaleString()}
+                        >
+                            {/* Summary */}
+                            <HStack gap={6} mb={5} flexWrap="wrap">
+                                <VStack align="start" gap={0}>
+                                    <Text fontSize="2xl" fontWeight="extrabold" color="text.primary">{tables?.total_count ?? 0}</Text>
+                                    <Text fontSize="xs" color="text.secondary">Total</Text>
+                                </VStack>
+                                <Divider orientation="vertical" h="40px" borderColor="card.lightGray" />
+                                <VStack align="start" gap={0}>
+                                    <Text fontSize="2xl" fontWeight="extrabold" color="brand.green">{tables?.tables.filter((t) => t.is_active).length ?? 0}</Text>
+                                    <Text fontSize="xs" color="text.secondary">Active</Text>
+                                </VStack>
+                                <Divider orientation="vertical" h="40px" borderColor="card.lightGray" />
+                                <VStack align="start" gap={0}>
+                                    <Text fontSize="2xl" fontWeight="extrabold" color="text.primary">{tables?.tables.filter((t) => t.in_memory).length ?? 0}</Text>
+                                    <Text fontSize="xs" color="text.secondary">In Memory</Text>
+                                </VStack>
+                                <Divider orientation="vertical" h="40px" borderColor="card.lightGray" />
+                                <VStack align="start" gap={0}>
+                                    <Text fontSize="2xl" fontWeight="extrabold" color="text.primary">{tables?.tables.filter((t) => t.is_crypto).length ?? 0}</Text>
+                                    <Text fontSize="xs" color="text.secondary">Crypto</Text>
+                                </VStack>
+                            </HStack>
+
+                            {/* Filter + search */}
+                            <Flex justify="space-between" align="center" mb={4} gap={4} flexWrap="wrap">
+                                {/* Type filter buttons */}
+                                <HStack gap={2}>
+                                    {([
+                                        { key: 'all',    label: 'All' },
+                                        { key: 'crypto', label: 'Crypto' },
+                                        { key: 'free',   label: 'Free' },
+                                    ] as const).map(({ key, label }) => (
+                                        <Box
+                                            key={key}
+                                            as="button"
+                                            px={3}
+                                            py={1.5}
+                                            borderRadius="full"
+                                            fontSize="sm"
+                                            fontWeight="bold"
+                                            cursor="pointer"
+                                            transition="all 0.15s"
+                                            bg={typeFilter === key ? 'brand.pink' : 'card.lightGray'}
+                                            color={typeFilter === key ? 'white' : 'text.secondary'}
+                                            onClick={() => setTypeFilter(key)}
+                                            _hover={{ opacity: 0.85 }}
                                         >
-                                            No tables found
-                                        </Text>
-                                    </Flex>
-                                )}
-                            </StatCard>
-                        </Flex>
+                                            {label}
+                                        </Box>
+                                    ))}
+                                </HStack>
+                                <Input
+                                    placeholder="Search by name or wallet address…"
+                                    size="sm"
+                                    maxW="280px"
+                                    borderRadius="8px"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    bg="card.lightGray"
+                                    border="none"
+                                    _focus={{ boxShadow: 'none', bg: 'card.lighterGray' }}
+                                />
+                            </Flex>
+
+                            {/* Table */}
+                            <TableContainer>
+                                <Table variant="simple" size="sm">
+                                    <Thead>
+                                        <Tr>
+                                            <Th color="text.secondary" borderColor="card.lightGray" pl={0}>Status</Th>
+                                            <Th color="text.secondary" borderColor="card.lightGray">Name</Th>
+                                            <Th color="text.secondary" borderColor="card.lightGray">Type</Th>
+                                            <Th color="text.secondary" borderColor="card.lightGray" isNumeric>Blinds</Th>
+                                            <Th color="text.secondary" borderColor="card.lightGray" isNumeric>Players</Th>
+                                            <Th color="text.secondary" borderColor="card.lightGray" isNumeric>WS</Th>
+                                            <Th color="text.secondary" borderColor="card.lightGray">Created</Th>
+                                        </Tr>
+                                    </Thead>
+                                    <Tbody>
+                                        {filteredTables.length > 0 ? (
+                                            filteredTables.map((t) => (
+                                                <Tr key={t.name} _hover={{ bg: 'card.lightGray' }} transition="background 0.15s">
+                                                    <Td borderColor="card.lightGray" pl={0}>
+                                                        <Tooltip label={t.is_active ? 'Active' : 'Inactive'} hasArrow>
+                                                            <Box display="inline-block">
+                                                                <StatusDot ok={t.is_active} />
+                                                            </Box>
+                                                        </Tooltip>
+                                                    </Td>
+                                                    <Td borderColor="card.lightGray" maxW="220px">
+                                                        <Tooltip label={t.name} hasArrow placement="top">
+                                                            <Link href={`/table/${t.name}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                                                                <Text
+                                                                    fontSize="xs"
+                                                                    fontFamily="monospace"
+                                                                    color="text.secondary"
+                                                                    noOfLines={1}
+                                                                    _hover={{ color: 'brand.pink' }}
+                                                                    transition="color 0.15s"
+                                                                >
+                                                                    {t.name.length > 22 ? `${t.name.slice(0, 10)}…${t.name.slice(-8)}` : t.name}
+                                                                </Text>
+                                                            </Link>
+                                                        </Tooltip>
+                                                        {t.is_crypto && t.owner_wallet && (
+                                                            <Tooltip label={t.owner_wallet} hasArrow placement="top">
+                                                                <Text fontSize="2xs" fontFamily="monospace" color="brand.green" opacity={0.7} noOfLines={1} mt={0.5}>
+                                                                    {`${t.owner_wallet.slice(0, 6)}…${t.owner_wallet.slice(-4)}`}
+                                                                </Text>
+                                                            </Tooltip>
+                                                        )}
+                                                    </Td>
+                                                    <Td borderColor="card.lightGray">
+                                                        <HStack gap={1}>
+                                                            {t.is_crypto && (
+                                                                <Badge bg="brand.green" color="white" fontSize="xs" px={2} borderRadius="full">Crypto</Badge>
+                                                            )}
+                                                            {t.in_memory && (
+                                                                <Badge bg="yellow.400" color="gray.800" fontSize="xs" px={2} borderRadius="full">Memory</Badge>
+                                                            )}
+                                                            {!t.is_crypto && (
+                                                                <Badge bg="card.lightGray" color="text.secondary" fontSize="xs" px={2} borderRadius="full">Free</Badge>
+                                                            )}
+                                                        </HStack>
+                                                    </Td>
+                                                    <Td borderColor="card.lightGray" isNumeric>
+                                                        <Text fontSize="xs" fontFamily="monospace" color="text.secondary">
+                                                            {t.blinds.sb ?? '?'}/{t.blinds.bb ?? '?'}
+                                                        </Text>
+                                                    </Td>
+                                                    <Td borderColor="card.lightGray" isNumeric>
+                                                        <Text fontSize="sm" fontWeight="bold" color={t.player_count > 0 ? 'brand.green' : 'text.secondary'}>
+                                                            {t.player_count}
+                                                        </Text>
+                                                    </Td>
+                                                    <Td borderColor="card.lightGray" isNumeric>
+                                                        <Text fontSize="sm" color="text.secondary">{t.ws_connections}</Text>
+                                                    </Td>
+                                                    <Td borderColor="card.lightGray">
+                                                        <Text fontSize="xs" color="text.secondary">
+                                                            {new Date(t.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                                        </Text>
+                                                    </Td>
+                                                </Tr>
+                                            ))
+                                        ) : (
+                                            <Tr>
+                                                <Td colSpan={7} textAlign="center" py={10} borderColor="card.lightGray">
+                                                    <Text color="text.secondary">No tables found</Text>
+                                                </Td>
+                                            </Tr>
+                                        )}
+                                    </Tbody>
+                                </Table>
+                            </TableContainer>
+                        </Card>
                     </TabPanel>
+
+                    {/* ── Health tab ── */}
+                    <TabPanel px={0} py={0}>
+                        <VStack align="stretch" gap={6}>
+
+                            {/* Service overview */}
+                            <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }} gap={4}>
+                                {[
+                                    { name: 'PostgreSQL', ok: pg?.status === 'connected',          detail: pg ? `${pg.latency_ms} ms` : 'No data' },
+                                    { name: 'Redis',      ok: rd?.status === 'connected',          detail: rd ? `${rd.latency_ms} ms · ${rd.memory_used || '?'}` : 'No data' },
+                                    { name: 'Game Hub',   ok: true,                                detail: hub ? `${hub.tables_in_memory} tables · ${hub.ws_connections} WS` : 'No data' },
+                                    { name: 'thirdweb',   ok: stateOk(tw?.aggregate_state ?? 'unknown'), detail: tw?.aggregate_state ?? 'unknown' },
+                                ].map(({ name, ok, detail }) => (
+                                    <Box
+                                        key={name}
+                                        bg="card.white"
+                                        borderRadius="16px"
+                                        p={5}
+                                        border="1px solid"
+                                        borderColor={ok ? 'card.lightGray' : 'brand.pink'}
+                                        boxShadow={ok ? '0 2px 12px rgba(0,0,0,0.06)' : '0 2px 12px rgba(235,11,92,0.12)'}
+                                    >
+                                        <HStack gap={2} mb={2}>
+                                            <StatusDot ok={ok} />
+                                            <Text fontSize="sm" fontWeight="extrabold" color="text.primary">{name}</Text>
+                                        </HStack>
+                                        <Text fontSize="sm" color="text.secondary">{detail}</Text>
+                                    </Box>
+                                ))}
+                            </Grid>
+
+                            {/* Settlement health – second priority after the overview strip */}
+                            <SettlementSection data={settle} />
+
+                            {/* Detail row 1: PG + Redis */}
+                            <Flex gap={5} direction={{ base: 'column', md: 'row' }}>
+                                <ServiceCard
+                                    name="PostgreSQL"
+                                    ok={pg?.status === 'connected'}
+                                    rows={[
+                                        { label: 'Status',      value: <Text fontWeight="bold" color={pg?.status === 'connected' ? 'brand.green' : 'brand.pink'} textTransform="capitalize">{pg?.status ?? '—'}</Text> },
+                                        { label: 'Latency',     value: pg ? `${pg.latency_ms} ms` : '—' },
+                                        { label: 'Pool Idle',   value: pg?.pool_idle   ?? '—' },
+                                        { label: 'Pool Active', value: pg?.pool_active ?? '—' },
+                                    ]}
+                                />
+                                <ServiceCard
+                                    name="Redis"
+                                    ok={rd?.status === 'connected'}
+                                    rows={[
+                                        { label: 'Status',      value: <Text fontWeight="bold" color={rd?.status === 'connected' ? 'brand.green' : 'brand.pink'} textTransform="capitalize">{rd?.status ?? '—'}</Text> },
+                                        { label: 'Latency',     value: rd ? `${rd.latency_ms} ms` : '—' },
+                                        { label: 'Memory Used', value: rd?.memory_used || '—' },
+                                    ]}
+                                >
+                                    {rd?.streams && Object.keys(rd.streams).length > 0 && (
+                                        <Box mt={4}>
+                                            <Text fontSize="xs" fontWeight="extrabold" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" mb={2}>
+                                                Redis Streams
+                                            </Text>
+                                            <VStack align="stretch" gap={2}>
+                                                {Object.entries(rd.streams).map(([stream, count]) => (
+                                                    <Flex key={stream} justify="space-between" align="center" py={2} px={3} bg="card.lightGray" borderRadius="8px">
+                                                        <Tooltip label={stream} hasArrow>
+                                                            <Text fontSize="sm" color="text.secondary" fontFamily="monospace">
+                                                                {stream.replace('poker:', '')}
+                                                            </Text>
+                                                        </Tooltip>
+                                                        <Text fontSize="sm" fontWeight="semibold" color="text.primary" fontFamily="monospace">{count}</Text>
+                                                    </Flex>
+                                                ))}
+                                            </VStack>
+                                        </Box>
+                                    )}
+                                </ServiceCard>
+                            </Flex>
+
+                            {/* Detail row 2: Hub + thirdweb */}
+                            <Flex gap={5} direction={{ base: 'column', md: 'row' }}>
+                                <ServiceCard
+                                    name="Game Hub"
+                                    ok={true}
+                                    rows={[
+                                        { label: 'Tables in Memory', value: hub?.tables_in_memory ?? '—' },
+                                        { label: 'WS Connections',   value: hub?.ws_connections   ?? '—' },
+                                        { label: 'Engine',           value: <Text fontWeight="bold" color={health?.engine.status === 'configured' ? 'brand.green' : 'gray.400'} textTransform="capitalize">{health?.engine.status ?? '—'}</Text> },
+                                    ]}
+                                />
+                                <ServiceCard
+                                    name="thirdweb"
+                                    ok={stateOk(tw?.aggregate_state ?? 'unknown')}
+                                    rows={[
+                                        {
+                                            label: 'Status',
+                                            value: (
+                                                <Text fontWeight="bold" color={stateColor(tw?.aggregate_state ?? 'unknown')} textTransform="capitalize">
+                                                    {tw?.aggregate_state ?? '—'}
+                                                </Text>
+                                            ),
+                                        },
+                                    ]}
+                                >
+                                    {tw?.url && (
+                                        <Box mt={3} px={3} py={2} bg="card.lightGray" borderRadius="8px">
+                                            <Link href={tw.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                                                <Text fontSize="sm" color="brand.green" _hover={{ textDecoration: 'underline' }}>
+                                                    {tw.url.replace('https://', '')}
+                                                </Text>
+                                            </Link>
+                                        </Box>
+                                    )}
+                                    {(tw?.degraded_services ?? []).length > 0 && (
+                                        <Box mt={4}>
+                                            <Text fontSize="xs" fontWeight="extrabold" color="brand.pink" textTransform="uppercase" letterSpacing="0.06em" mb={2}>
+                                                Affected Services
+                                            </Text>
+                                            <VStack align="stretch" gap={2}>
+                                                {(tw?.degraded_services ?? []).map((svc, i) => (
+                                                    <Flex key={i} align="center" gap={2} py={2} px={3} bg="card.lightGray" borderRadius="8px">
+                                                        <StatusDot ok={false} />
+                                                        <Text fontSize="sm" color="text.primary">{svc}</Text>
+                                                    </Flex>
+                                                ))}
+                                            </VStack>
+                                        </Box>
+                                    )}
+                                </ServiceCard>
+                            </Flex>
+
+                            {/* Indexer health */}
+                            <ServiceCard
+                                name="Chain Indexer"
+                                ok={indexer?.healthy ?? false}
+                                rows={[
+                                    {
+                                        label: 'Status',
+                                        value: (
+                                            <Text fontWeight="bold" color={indexer?.healthy ? 'brand.green' : indexer === null ? 'gray.400' : 'brand.pink'}>
+                                                {indexer === null ? '—' : indexer.healthy ? 'In sync' : 'Lagging'}
+                                            </Text>
+                                        ),
+                                    },
+                                    { label: 'Indexed Block', value: indexer?.height?.toLocaleString() ?? '—', mono: true },
+                                    { label: 'Chain Tip',     value: indexer?.chainTip?.toLocaleString() ?? '—', mono: true },
+                                    { label: 'Lag (blocks)',  value: indexer?.lag !== null && indexer?.lag !== undefined ? String(indexer.lag) : '—', mono: true },
+                                    { label: 'Hands Indexed', value: indexer?.totalHands?.toLocaleString() ?? '—' },
+                                    { label: 'Total Rake',    value: indexer ? `$${indexer.rakeAllTimeUsdc} USDC` : '—' },
+                                ]}
+                            />
+
+                        </VStack>
+                    </TabPanel>
+
                 </TabPanels>
             </Tabs>
         </Flex>
     );
-};
-
-export default page;
+}

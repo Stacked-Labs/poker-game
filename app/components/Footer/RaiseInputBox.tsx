@@ -291,7 +291,7 @@ const RaiseInputBox = ({
                     hotkey={HOTKEY_BACK.slice(0, 3)}
                 />
                 <ActionButton
-                    text={'Raise'}
+                    text={maxBet === 0 ? 'Bet' : 'Raise'}
                     color="green"
                     clickHandler={() => {
                         const currentValue = getCurrentBetValue();
@@ -507,7 +507,7 @@ const RaiseInputBox = ({
                     {/* Raise */}
                     <Flex className="raise-portrait-raise-wrapper" flex={1}>
                         <ActionButton
-                            text={'Raise'}
+                            text={maxBet === 0 ? 'Bet' : 'Raise'}
                             color="green"
                             clickHandler={() => {
                                 const currentValue = getCurrentBetValue();

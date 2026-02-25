@@ -255,12 +255,12 @@ const Ledger = () => {
         <Box>
             {/* Summary Stats */}
             <HStack
-                gap={4}
-                mb={6}
+                gap={{ base: 1, md: 4 }}
+                mb={{ base: 3, md: 6 }}
                 flexWrap="wrap"
                 justify="space-around"
                 bg={'card.white'}
-                p={{ base: 4, md: 6 }}
+                p={{ base: 2, md: 6 }}
                 borderRadius="16px"
                 border="2px solid"
                 borderColor="border.lightGray"
@@ -270,18 +270,23 @@ const Ledger = () => {
                     <StatLabel
                         color="text.gray"
                         fontWeight="semibold"
-                        fontSize="sm"
+                        fontSize={{ base: 'xs', md: 'sm' }}
                     >
-                        Total Buy-ins
+                        Buy-ins
                     </StatLabel>
                     <StatNumber
                         color="brand.green"
-                        fontSize={{ base: '2xl', md: '3xl' }}
+                        fontSize={{ base: 'lg', md: '3xl' }}
                         fontWeight="bold"
                     >
                         {formatCurrency(totalBuyIns)}
                     </StatNumber>
-                    <StatHelpText color="gray.500" fontWeight="medium">
+                    <StatHelpText
+                        color="gray.500"
+                        fontWeight="medium"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        mb={0}
+                    >
                         All players
                     </StatHelpText>
                 </Stat>
@@ -289,18 +294,23 @@ const Ledger = () => {
                     <StatLabel
                         color="text.gray"
                         fontWeight="semibold"
-                        fontSize="sm"
+                        fontSize={{ base: 'xs', md: 'sm' }}
                     >
-                        Total Cash-outs
+                        Cash-outs
                     </StatLabel>
                     <StatNumber
                         color="brand.pink"
-                        fontSize={{ base: '2xl', md: '3xl' }}
+                        fontSize={{ base: 'lg', md: '3xl' }}
                         fontWeight="bold"
                     >
                         {formatCurrency(totalCashOuts)}
                     </StatNumber>
-                    <StatHelpText color="gray.500" fontWeight="medium">
+                    <StatHelpText
+                        color="gray.500"
+                        fontWeight="medium"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        mb={0}
+                    >
                         Exits & Kicks
                     </StatHelpText>
                 </Stat>
@@ -308,18 +318,23 @@ const Ledger = () => {
                     <StatLabel
                         color="text.gray"
                         fontWeight="semibold"
-                        fontSize="sm"
+                        fontSize={{ base: 'xs', md: 'sm' }}
                     >
                         Chips in Play
                     </StatLabel>
                     <StatNumber
                         color="brand.navy"
-                        fontSize={{ base: '2xl', md: '3xl' }}
+                        fontSize={{ base: 'lg', md: '3xl' }}
                         fontWeight="bold"
                     >
                         {formatCurrency(totalChipsInPlay)}
                     </StatNumber>
-                    <StatHelpText color="gray.500" fontWeight="medium">
+                    <StatHelpText
+                        color="gray.500"
+                        fontWeight="medium"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        mb={0}
+                    >
                         Current Stacks
                     </StatHelpText>
                 </Stat>
@@ -337,6 +352,7 @@ const Ledger = () => {
                 sx={{
                     '&::-webkit-scrollbar': {
                         width: '8px',
+                        height: '4px',
                     },
                     '&::-webkit-scrollbar-track': {
                         bg: 'input.lightGray',

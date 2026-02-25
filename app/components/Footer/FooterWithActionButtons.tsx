@@ -79,6 +79,7 @@ const FooterWithActionButtons = ({
         }));
     }, []);
     const autoActionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const queuedCallMaxBetRef = useRef<number | null>(null);
     const clearAutoActionTimeout = useCallback(() => {
         if (autoActionTimeoutRef.current) {
             clearTimeout(autoActionTimeoutRef.current);
@@ -253,17 +254,29 @@ const FooterWithActionButtons = ({
         resetQueuedActions();
     }, [appState.game?.stage, resetQueuedActions]);
 
+    // Invalidate queued call when the bet size changes (someone raised)
+    useEffect(() => {
+        if (queuedActions.call) {
+            if (queuedCallMaxBetRef.current === null) {
+                // Just queued — snapshot the current maxBet
+                queuedCallMaxBetRef.current = maxBet;
+            } else if (maxBet !== queuedCallMaxBetRef.current) {
+                // maxBet changed since we queued — someone raised, invalidate
+                setQueuedActions((prev) => ({ ...prev, call: false }));
+                queuedCallMaxBetRef.current = null;
+            }
+        } else {
+            queuedCallMaxBetRef.current = null;
+        }
+    }, [queuedActions.call, maxBet]);
+
     // Reset invalid queued actions when betting situation changes within same betting round
     useEffect(() => {
         // If player had check queued but can no longer check (someone bet), reset it
-        if (queuedActions.check && !canCheck && !needsToCall) {
+        if (queuedActions.check && !canCheck && needsToCall) {
             setQueuedActions((prev) => ({ ...prev, check: false }));
         }
-        // If player had call queued but can now check instead, reset it (they should re-queue)
-        if (queuedActions.call && canCheck && !needsToCall) {
-            setQueuedActions((prev) => ({ ...prev, call: false }));
-        }
-    }, [canCheck, needsToCall, queuedActions.check, queuedActions.call]);
+    }, [canCheck, needsToCall, queuedActions.check]);
 
     if (!socket || !appState || !appState.game || !localPlayer) {
         return null;

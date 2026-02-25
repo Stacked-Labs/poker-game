@@ -571,6 +571,173 @@ export async function fetchTableEvents(
     }
 }
 
+// ============================================================
+// Admin API — requires ADMIN_WALLETS auth cookie
+// ============================================================
+
+export async function verifyAdmin(): Promise<{ isAdmin: boolean; address?: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/admin/verify`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        if (!response.ok) return { isAdmin: false };
+        return await response.json();
+    } catch {
+        return { isAdmin: false };
+    }
+}
+
+export async function getAdminStats() {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/stats`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Admin stats fetch failed: ${response.statusText}`);
+    return await response.json();
+}
+
+export async function getAdminLiveStats() {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/stats/live`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Admin live stats fetch failed: ${response.statusText}`);
+    return await response.json();
+}
+
+export async function getAdminTables(params?: {
+    type?: 'crypto' | 'free' | 'all';
+    active?: boolean;
+    search?: string;
+}) {
+    isBackendUrlValid();
+    const qs = new URLSearchParams();
+    if (params?.type) qs.set('type', params.type);
+    if (params?.active !== undefined) qs.set('active', String(params.active));
+    if (params?.search) qs.set('search', params.search);
+    const query = qs.toString() ? `?${qs.toString()}` : '';
+    const response = await fetch(`${backendUrl}/api/admin/tables${query}`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Admin tables fetch failed: ${response.statusText}`);
+    return await response.json();
+}
+
+export async function getAdminTableDetail(name: string) {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/tables/${encodeURIComponent(name)}`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Admin table detail fetch failed: ${response.statusText}`);
+    return await response.json();
+}
+
+export async function getAdminHealth() {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/health`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Admin health fetch failed: ${response.statusText}`);
+    return await response.json();
+}
+
+export async function getAdminSettlementHealth() {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/settlement-health`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Settlement health fetch failed: ${response.statusText}`);
+    return await response.json();
+}
+
+// Chips → USDC display string (1 chip = 0.01 USDC; USDC_PER_CHIP = 10000, decimals = 6)
+function chipsToUsdc(chips: string | null | undefined): string {
+    if (!chips || chips === '0' || chips === 'null') return '0.00';
+    const n = parseFloat(chips);
+    if (isNaN(n)) return '0.00';
+    return (n / 100).toFixed(2);
+}
+
+export async function getIndexerHealth(): Promise<{
+    height: number | null;
+    chainTip: number | null;
+    lag: number | null;
+    healthy: boolean;
+    rakeAllTimeUsdc: string;
+    rake24hUsdc: string;
+    rake7dUsdc: string;
+    rake30dUsdc: string;
+    totalHands: number;
+}> {
+    const defaultResult = { height: null, chainTip: null, lag: null, healthy: false, rakeAllTimeUsdc: '0.00', rake24hUsdc: '0.00', rake7dUsdc: '0.00', rake30dUsdc: '0.00', totalHands: 0 };
+    if (!backendUrl) return defaultResult;
+
+    // Indexer block height is proxied through poker-server (GET /api/indexer/status)
+    // so the indexer port never needs to be publicly exposed.
+    // Rake aggregates come from poker-server's /api/stats.
+
+    try {
+        type IndexerResp = { height?: number | null; error?: string };
+        type RpcResp = { result?: string };
+        type StatsResp = {
+            success?: boolean;
+            data?: {
+                rake_all_time_chips?: number;
+                rake_24h_chips?: number;
+                rake_7d_chips?: number;
+                rake_30d_chips?: number;
+                total_settled_hands?: number;
+            };
+        };
+
+        const [indexerResult, rpcResult, statsResult] = await Promise.allSettled([
+            fetch(`${backendUrl}/api/indexer/status`).then(r => r.json() as Promise<IndexerResp>),
+            fetch('https://sepolia.base.org', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] }),
+            }).then(r => r.json() as Promise<RpcResp>),
+            fetch(`${backendUrl}/api/stats`).then(r => r.json() as Promise<StatsResp>),
+        ]);
+
+        const indexerHeight = indexerResult.status === 'fulfilled'
+            ? (indexerResult.value?.height ?? null)
+            : null;
+
+        const chainTip = rpcResult.status === 'fulfilled' && rpcResult.value?.result
+            ? parseInt(rpcResult.value.result, 16)
+            : null;
+
+        const lag = indexerHeight !== null && chainTip !== null ? chainTip - indexerHeight : null;
+        // Healthy = lag ≤ 50 blocks (FINALITY_CONFIRMATION=10, so ~40 real lag)
+        const healthy = indexerHeight !== null && lag !== null && lag <= 50;
+
+        const sd = statsResult.status === 'fulfilled' ? statsResult.value?.data : undefined;
+
+        return {
+            height: indexerHeight,
+            chainTip,
+            lag,
+            healthy,
+            rakeAllTimeUsdc: chipsToUsdc(String(sd?.rake_all_time_chips ?? 0)),
+            rake24hUsdc:     chipsToUsdc(String(sd?.rake_24h_chips ?? 0)),
+            rake7dUsdc:      chipsToUsdc(String(sd?.rake_7d_chips ?? 0)),
+            rake30dUsdc:     chipsToUsdc(String(sd?.rake_30d_chips ?? 0)),
+            totalHands:      sd?.total_settled_hands ?? 0,
+        };
+    } catch {
+        return defaultResult;
+    }
+}
+
 export async function fetchTableLedger(tableName: string) {
     isBackendUrlValid();
 

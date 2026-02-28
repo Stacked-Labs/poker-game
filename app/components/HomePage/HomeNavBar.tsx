@@ -106,6 +106,16 @@ const HomeNavBar: React.FC = () => {
             >
                 Support
             </Button>
+            <Button
+                as="a"
+                href="https://discord.gg/347RBVcvpn"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="navLink"
+                leftIcon={<FaDiscord />}
+            >
+                Discord
+            </Button>
             <WalletButton width="160px" height="52px" label="Sign In" />
         </>
     ));
@@ -531,6 +541,53 @@ const HomeNavBar: React.FC = () => {
                                     }}
                                 >
                                     Support
+                                </Button>
+                                <Button
+                                    as="a"
+                                    href="https://discord.gg/347RBVcvpn"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={onClose}
+                                    leftIcon={
+                                        <Icon
+                                            as={FaDiscord}
+                                            boxSize={5}
+                                        />
+                                    }
+                                    rightIcon={
+                                        <Icon
+                                            as={RiExternalLinkLine}
+                                            boxSize={3.5}
+                                            color="text.muted"
+                                        />
+                                    }
+                                    variant="ghost"
+                                    justifyContent="flex-start"
+                                    height="44px"
+                                    px={3}
+                                    borderRadius="12px"
+                                    fontWeight="semibold"
+                                    fontSize="sm"
+                                    color="text.primary"
+                                    bg="transparent"
+                                    border="none"
+                                    _hover={{
+                                        bg: 'rgba(12, 21, 49, 0.05)',
+                                        transform: 'translateX(2px)',
+                                    }}
+                                    _dark={{
+                                        _hover: {
+                                            bg: 'rgba(255, 255, 255, 0.06)',
+                                        },
+                                    }}
+                                    transition="all 0.2s ease"
+                                    sx={{
+                                        '& > span:last-of-type': {
+                                            ml: 'auto',
+                                        },
+                                    }}
+                                >
+                                    Discord
                                 </Button>
                             </VStack>
                         </Box>

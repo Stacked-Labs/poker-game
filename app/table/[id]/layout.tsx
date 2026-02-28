@@ -7,6 +7,7 @@ import ChatOverlay from '@/app/components/NavBar/Chat/ChatOverlay';
 import GameViewport from '@/app/components/GameViewport';
 import LobbyBanner from '@/app/components/LobbyBanner';
 import SeatRequestPopup from '@/app/components/SeatRequestPopup';
+import TableClosedModal from '@/app/components/TableClosedModal';
 
 const TableLayout: React.FC<{ params: { id: string } }> = ({
     children,
@@ -57,6 +58,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
 
                     <LobbyBanner />
                     <SeatRequestPopup />
+                    <TableClosedModal />
                 </SocketProvider>
             </Flex>
         </GameViewport>

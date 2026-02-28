@@ -44,6 +44,7 @@ const initialState: AppState = {
     isTableOwner: null,
     settlementStatus: null,
     displayMode: 'chips',
+    tableClosed: null,
 };
 
 export type ACTIONTYPE =
@@ -85,7 +86,8 @@ export type ACTIONTYPE =
           payload: { seatAccepted: SeatAccepted };
       }
     | { type: 'addMessageWithUnread'; payload: Message }
-    | { type: 'setDisplayMode'; payload: DisplayMode };
+    | { type: 'setDisplayMode'; payload: DisplayMode }
+    | { type: 'setTableClosed'; payload: { reason: string; message: string } };
 
 const MAX_MESSAGES = 500;
 const MAX_LOGS = 1000;
@@ -126,6 +128,7 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 isSettingsOpen: false,
                 isTableOwner: null,
                 settlementStatus: null,
+                tableClosed: null,
             };
         case 'updatePlayerID':
             return { ...state, clientID: action.payload };
@@ -241,6 +244,8 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 localStorage.setItem('displayMode', action.payload);
             }
             return { ...state, displayMode: action.payload };
+        case 'setTableClosed':
+            return { ...state, tableClosed: action.payload };
         default: {
             const exhaustiveCheck: never = action;
             throw new Error(`Unhandled action type: ${exhaustiveCheck}`);

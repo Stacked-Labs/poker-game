@@ -629,6 +629,16 @@ export function SocketProvider(props: SocketProviderProps) {
                         }
                         return;
                     }
+                    case 'table-closed': {
+                        dispatch({
+                            type: 'setTableClosed',
+                            payload: {
+                                reason: eventData.reason ?? 'TableClosed',
+                                message: eventData.message ?? 'This table has been closed on-chain.',
+                            },
+                        });
+                        return;
+                    }
                     case 'update-player-uuid': {
                         // Update ref immediately so subsequent messages (like update-game)
                         // can use the clientID right away, before the async state update propagates

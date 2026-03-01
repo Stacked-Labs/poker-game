@@ -35,6 +35,7 @@ import {
     StatHelpText,
 } from '@chakra-ui/react';
 import Link from 'next/link';
+import EmergencyWithdrawAllButton from '../components/EmergencyWithdrawAllButton';
 import { useEffect, useState, useCallback, ReactNode } from 'react';
 import {
     verifyAdmin,
@@ -657,6 +658,7 @@ export default function AdminStatsPage() {
                                             <Th color="text.secondary" borderColor="card.lightGray" isNumeric>Players</Th>
                                             <Th color="text.secondary" borderColor="card.lightGray" isNumeric>WS</Th>
                                             <Th color="text.secondary" borderColor="card.lightGray">Created</Th>
+                                            <Th color="text.secondary" borderColor="card.lightGray">Actions</Th>
                                         </Tr>
                                     </Thead>
                                     <Tbody>
@@ -724,11 +726,16 @@ export default function AdminStatsPage() {
                                                             {new Date(t.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                         </Text>
                                                     </Td>
+                                                    <Td borderColor="card.lightGray">
+                                                        {t.is_crypto && t.is_active && (
+                                                            <EmergencyWithdrawAllButton contractAddress={t.name} />
+                                                        )}
+                                                    </Td>
                                                 </Tr>
                                             ))
                                         ) : (
                                             <Tr>
-                                                <Td colSpan={7} textAlign="center" py={10} borderColor="card.lightGray">
+                                                <Td colSpan={8} textAlign="center" py={10} borderColor="card.lightGray">
                                                     <Text color="text.secondary">No tables found</Text>
                                                 </Td>
                                             </Tr>

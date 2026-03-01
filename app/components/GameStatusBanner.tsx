@@ -48,7 +48,6 @@ const GameStatusBanner = () => {
     const isPendingPause = appState.game?.pendingPause;
     const settlementStatus = appState.settlementStatus;
 
-    // Settlement always takes priority over pause
     let mode: BannerMode = null;
     if (settlementStatus === 'pending') mode = 'settling';
     else if (settlementStatus === 'success') mode = 'settled';

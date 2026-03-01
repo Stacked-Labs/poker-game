@@ -48,6 +48,7 @@ export type AppState = {
     isTableOwner: boolean | null;
     settlementStatus: SettlementStatus;
     displayMode: DisplayMode;
+    tableClosed: { reason: string; message: string } | null;
 };
 
 export type Player = {

@@ -2,6 +2,7 @@
 
 import React, { useContext, useEffect, useCallback } from 'react';
 import {
+    Box,
     Button,
     Flex,
     Text,
@@ -18,6 +19,7 @@ import { FaCoins, FaCrown, FaInfoCircle } from 'react-icons/fa';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useWithdraw } from '@/app/hooks/useWithdraw';
 import { useHostRake } from '@/app/hooks/useHostRake';
+import { useEmergencyWithdraw } from '@/app/hooks/useEmergencyWithdraw';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { useActiveWallet } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -60,6 +62,13 @@ const WithdrawBalanceCard = () => {
         withdraw: rakeWithdraw,
         refresh: rakeRefresh,
     } = useHostRake(contractAddress);
+
+    const {
+        trigger: emergencyWithdraw,
+        status: emergencyStatus,
+        error: emergencyError,
+        reset: emergencyReset,
+    } = useEmergencyWithdraw(contractAddress);
 
     const hasRakeBalance = rakeBalance !== null && rakeBalance > BigInt(0);
 
@@ -470,6 +479,64 @@ const WithdrawBalanceCard = () => {
                         </Button>
                     </Flex>
                 </>
+            )}
+
+            {/* Emergency Withdraw (testing) */}
+            <Divider borderColor="border.lightGray" />
+            <Flex justify="space-between" align="center" w="100%" gap={3}>
+                <Text fontSize="xs" color="text.muted" fontWeight="medium">
+                    Emergency Withdraw
+                </Text>
+                <Box
+                    as="button"
+                    px={2.5}
+                    py={1}
+                    borderRadius="full"
+                    fontSize="xs"
+                    fontWeight="bold"
+                    cursor={emergencyStatus === 'pending' ? 'not-allowed' : 'pointer'}
+                    bg={emergencyStatus === 'success' ? 'brand.green' : 'brand.pink'}
+                    color="white"
+                    opacity={emergencyStatus === 'pending' ? 0.6 : 1}
+                    transition="opacity 0.15s"
+                    _hover={{ opacity: emergencyStatus === 'pending' ? 0.6 : 0.85 }}
+                    onClick={() => {
+                        if (emergencyStatus === 'pending') return;
+                        if (emergencyStatus === 'error') emergencyReset();
+                        emergencyWithdraw();
+                    }}
+                    display="inline-flex"
+                    alignItems="center"
+                    gap={1.5}
+                >
+                    {emergencyStatus === 'pending' && <Spinner size="xs" />}
+                    {emergencyStatus === 'success'
+                        ? 'Done'
+                        : emergencyStatus === 'error'
+                        ? 'Retry'
+                        : 'Emergency Withdraw'}
+                </Box>
+            </Flex>
+
+            {emergencyError && (
+                <HStack
+                    spacing={2}
+                    alignItems="flex-start"
+                    bg="rgba(254, 178, 178, 0.12)"
+                    color="red.700"
+                    _dark={{ bg: 'rgba(254, 178, 178, 0.12)', color: 'red.300' }}
+                    borderRadius="md"
+                    px={3}
+                    py={2}
+                    fontSize="xs"
+                    fontWeight="medium"
+                    w="fit-content"
+                >
+                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
+                    <Text color="inherit" wordBreak="break-word">
+                        {emergencyError}
+                    </Text>
+                </HStack>
             )}
 
             {/* Disclaimer */}

@@ -13,9 +13,12 @@ import {
     Heading,
     Text,
     Badge,
+    Input,
+    Icon,
     useMediaQuery,
 } from '@chakra-ui/react';
 import { RiTwitterXLine } from 'react-icons/ri';
+import { MdArrowForward, MdCheck } from 'react-icons/md';
 import { FaDiscord } from 'react-icons/fa';
 import { SiFarcaster } from 'react-icons/si';
 import WalletButton from '@/app/components/WalletButton';
@@ -69,17 +72,14 @@ const HomeCard = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
     const [showPlayOptions, setShowPlayOptions] = useState(false);
+    const [email, setEmail] = useState('');
+    const [isSubscribing, setIsSubscribing] = useState(false);
+    const [isSubscribed, setIsSubscribed] = useState(false);
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
     const account = useActiveAccount();
     const [isPortrait] = useMediaQuery('(orientation: portrait)');
     const allowMotion = !prefersReducedMotion;
-    const swapPrimaryMotion = allowMotion
-        ? `${swapPrimary} 2.8s ease-in-out infinite`
-        : 'none';
-    const swapSecondaryMotion = allowMotion
-        ? `${swapSecondary} 2.8s ease-in-out infinite`
-        : 'none';
     const swapHeadingPrimaryMotion = allowMotion
         ? `${swapPrimary} 4.8s ease-in-out infinite`
         : 'none';
@@ -99,6 +99,30 @@ const HomeCard = () => {
     const handleJoinGame = () => {
         setIsJoining(true);
         router.push('/public-games');
+    };
+
+    const handleEmailSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email || isSubscribing) return;
+
+        setIsSubscribing(true);
+        try {
+            const response = await fetch('/api/newsletter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+
+            if (response.ok) {
+                setIsSubscribed(true);
+                setEmail('');
+                setTimeout(() => setIsSubscribed(false), 5000);
+            }
+        } catch {
+            // Silently fail - non-critical action
+        } finally {
+            setIsSubscribing(false);
+        }
     };
 
     return (
@@ -190,109 +214,11 @@ const HomeCard = () => {
                     width="100%"
                     className="home-card-content"
                     alignItems="center"
-                    py={{ base: 5, md: 8, lg: 10 }}
+                    py={{ base: 4, md: 6, lg: 7 }}
                     px={{ base: 5, sm: 8, md: 10, lg: 12 }}
                     position="relative"
                     zIndex={1}
                 >
-                    {/* Decorative corner stickers — 25% smaller on mobile to avoid overlap */}
-                    <Box
-                        position="absolute"
-                        top={{ base: 5, md: 6 }}
-                        right={{ base: 5, md: 6 }}
-                        bg="brand.yellow"
-                        color="brand.darkNavy"
-                        px={{ base: 2, md: 3 }}
-                        py={{ base: 1, md: 1 }}
-                        borderRadius="full"
-                        fontSize={{ base: 'xs', md: 'xs' }}
-                        fontWeight="bold"
-                        letterSpacing="0.12em"
-                        textTransform="uppercase"
-                        boxShadow="0 8px 18px rgba(253, 197, 29, 0.35)"
-                        border="1px solid rgba(255, 255, 255, 0.35)"
-                        transform="rotate(6deg)"
-                        pointerEvents="none"
-                    >
-                        <Box
-                            position="relative"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            minW={{ base: '52px', md: '70px' }}
-                            height={{ base: '12px', md: '16px' }}
-                        >
-                            <Text
-                                position="absolute"
-                                inset={0}
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                textAlign="center"
-                                opacity={1}
-                                animation={swapPrimaryMotion}
-                            >
-                                FLUSH!
-                            </Text>
-                            <Text
-                                position="absolute"
-                                inset={0}
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                textAlign="center"
-                                opacity={allowMotion ? undefined : 0}
-                                animation={swapSecondaryMotion}
-                            >
-                                ♣♣♣
-                            </Text>
-                        </Box>
-                    </Box>
-                    <Box
-                        position="absolute"
-                        top={{ base: 5, md: 7 }}
-                        left={{ base: 5, md: 6 }}
-                        bg="brand.pink"
-                        color="white"
-                        px={{ base: 1.875, sm: 2.5 }}
-                        py={{ base: 0.75, sm: 1 }}
-                        borderRadius="full"
-                        fontSize={{ base: '2xs', md: 'xs' }}
-                        fontWeight="bold"
-                        letterSpacing="0.1em"
-                        textTransform="uppercase"
-                        boxShadow="0 8px 18px rgba(235, 11, 92, 0.35)"
-                        border="1px solid rgba(255, 255, 255, 0.4)"
-                        transform="rotate(-6deg)"
-                        pointerEvents="none"
-                    >
-                        🔥 HOT!
-                    </Box>
-                    <Box
-                        position="absolute"
-                        bottom={{ base: 4, md: 4 }}
-                        right={{ base: 6, md: 6 }}
-                        bg="brand.green"
-                        color="white"
-                        px={{ base: 2, md: 3 }}
-                        py={{ base: 1 }}
-                        borderRadius="full"
-                        fontSize={{ base: 'xs', sm: 'xs' }}
-                        fontWeight="bold"
-                        letterSpacing="0.12em"
-                        textTransform="uppercase"
-                        boxShadow="0 8px 18px rgba(54, 163, 123, 0.35)"
-                        border="1px solid rgba(255, 255, 255, 0.35)"
-                        transform={{
-                            base: 'scale(0.75) rotate(4deg)',
-                            sm: 'scale(1) rotate(4deg)',
-                        }}
-                        transformOrigin="bottom right"
-                        pointerEvents="none"
-                    >
-                        Ooffff 😬
-                    </Box>
-
                     {/* Pill Badge */}
                     <Box
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s backwards`}
@@ -575,6 +501,98 @@ const HomeCard = () => {
                             </Flex>
                         ) : null}
                     </Stack>
+
+                    {/* Newsletter Inline */}
+                    <VStack
+                        spacing={2}
+                        width="100%"
+                        maxW={{ base: '100%', sm: '320px' }}
+                        animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards`}
+                    >
+                        <HStack
+                            width="100%"
+                            spacing={2}
+                            align="center"
+                        >
+                            <Box
+                                flex={1}
+                                h="1px"
+                                bg="border.lightGray"
+                            />
+                            <Text
+                                fontSize="2xs"
+                                color="text.muted"
+                                fontWeight="bold"
+                                letterSpacing="0.15em"
+                                textTransform="uppercase"
+                                whiteSpace="nowrap"
+                            >
+                                or get dealt in
+                            </Text>
+                            <Box
+                                flex={1}
+                                h="1px"
+                                bg="border.lightGray"
+                            />
+                        </HStack>
+                        <HStack
+                            as="form"
+                            onSubmit={handleEmailSubmit}
+                            width="100%"
+                            spacing={0}
+                            bg="input.white"
+                            borderRadius="full"
+                            border="1px solid"
+                            borderColor={isSubscribed ? 'brand.green' : 'border.lightGray'}
+                            transition="border-color 0.2s ease"
+                            pl={4}
+                            pr="5px"
+                            height="42px"
+                            align="center"
+                            _focusWithin={{
+                                borderColor: 'brand.green',
+                            }}
+                        >
+                            <Input
+                                type="email"
+                                placeholder="your@email.com"
+                                variant="unstyled"
+                                color="text.primary"
+                                height="100%"
+                                fontSize="sm"
+                                fontWeight="medium"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={isSubscribing || isSubscribed}
+                                _placeholder={{
+                                    color: 'text.muted',
+                                }}
+                                required
+                            />
+                            <IconButton
+                                type="submit"
+                                aria-label={isSubscribed ? 'Subscribed' : 'Subscribe'}
+                                icon={
+                                    <Icon
+                                        as={isSubscribed ? MdCheck : MdArrowForward}
+                                        boxSize={4}
+                                    />
+                                }
+                                bg="brand.green"
+                                color="white"
+                                size="sm"
+                                borderRadius="full"
+                                minW="32px"
+                                h="32px"
+                                flexShrink={0}
+                                isLoading={isSubscribing}
+                                disabled={isSubscribing || isSubscribed}
+                                _hover={{
+                                    bg: 'rgba(54, 163, 123, 0.85)',
+                                }}
+                            />
+                        </HStack>
+                    </VStack>
 
                     {/* Social Links */}
                     <VStack

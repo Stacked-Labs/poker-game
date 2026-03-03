@@ -370,6 +370,10 @@ export default function AdminStatsPage() {
                         onClick={loadData}
                         color="text.secondary"
                         borderRadius="10px"
+                        bg="card.white"
+                        boxShadow="0 1px 4px rgba(0,0,0,0.08)"
+                        _hover={{ bg: 'btn.lightGray', color: 'text.primary' }}
+                        _active={{ bg: 'btn.lightGray', transform: 'scale(0.95)' }}
                     />
                 </Tooltip>
             </Flex>

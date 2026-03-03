@@ -102,7 +102,7 @@ const GameSettingLeftSide: React.FC = () => {
         return mode?.description || '';
     }, [selectedGameMode, gameModes]);
 
-    const usdcLogoUrl = 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png';
+    const usdcLogoUrl = '/usdc-logo.png';
     const blindInputWidth = { base: '140px', md: '160px' };
     const chipsPerUsdc = 100;
     const usdcPerChip = 1 / chipsPerUsdc;

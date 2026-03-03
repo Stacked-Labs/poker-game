@@ -73,7 +73,7 @@ const formatUsdc = (value: number) => {
     }).format(safeValue);
 };
 
-const usdcLogoUrl = 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png';
+const usdcLogoUrl = '/usdc-logo.png';
 
 const SectionHeader = ({
     title,

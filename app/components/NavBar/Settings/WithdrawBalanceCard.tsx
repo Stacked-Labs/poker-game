@@ -25,7 +25,7 @@ import { useActiveWallet } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
 
 const CHIPS_PER_USDC = 100;
-const USDC_LOGO_URL = 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png';
+const USDC_LOGO_URL = '/usdc-logo.png';
 
 const WithdrawBalanceCard = () => {
     const wallet = useActiveWallet();

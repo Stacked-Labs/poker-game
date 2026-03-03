@@ -248,7 +248,7 @@ const CustomChipValueSection = () => {
                                                 flexShrink={0}
                                             >
                                                 <Image
-                                                    src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+                                                    src="/usdc-logo.png"
                                                     alt="USDC"
                                                     fill
                                                     sizes="(max-width: 48em) 32px, 40px"

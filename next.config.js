@@ -87,11 +87,6 @@ const nextConfig = {
                 hostname: 'media.tenor.com',
                 pathname: '/**',
             },
-            {
-                protocol: 'https',
-                hostname: 'cryptologos.cc',
-                pathname: '/**',
-            },
         ],
     },
 };

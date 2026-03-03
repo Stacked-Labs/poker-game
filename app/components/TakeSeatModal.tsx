@@ -80,7 +80,7 @@ const variants = {
 
 const USERNAME_MAX_LENGTH = 9;
 const CHIPS_PER_USDC = 100;
-const USDC_LOGO_URL = 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png';
+const USDC_LOGO_URL = '/usdc-logo.png';
 
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const wallet = useActiveWallet();

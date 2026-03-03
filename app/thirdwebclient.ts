@@ -23,7 +23,7 @@ export const supportedTokens = {
     //         address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
     //         name: 'USD Coin',
     //         symbol: 'USDC',
-    //         icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+    //         icon: '/usdc-logo.png',
     //     },
     // ],
         [baseSepolia.id]: [
@@ -31,7 +31,7 @@ export const supportedTokens = {
             address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
             name: 'USD Coin',
             symbol: 'USDC',
-            icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+            icon: '/usdc-logo.png',
         },
     ],
 };

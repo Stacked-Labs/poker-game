@@ -55,7 +55,16 @@ const SeatRequestStatusBadge = () => {
     }
 
     // Pending state - show cancel button
-    if (!socket || !appState.clientID || appState.seatRequested === null) {
+    if (
+        !socket ||
+        !appState.clientID ||
+        typeof appState.seatRequested !== 'number'
+    ) {
+        return null;
+    }
+
+    // Owners should never see "cancel seat request" (they are not requesting a seat)
+    if (appState.isTableOwner) {
         return null;
     }
 

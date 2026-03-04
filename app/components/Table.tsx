@@ -442,7 +442,10 @@ const Table = ({ tableId }: { tableId: string }) => {
                                                 (player) =>
                                                     player.uuid ===
                                                     appState.clientID
-                                            ) || appState.seatRequested != null;
+                                            ) ||
+                                            typeof appState.seatRequested ===
+                                                'number' ||
+                                            appState.seatAccepted != null;
 
                                         return isDisabled ? null : (
                                             <EmptySeatButton

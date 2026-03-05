@@ -14,6 +14,7 @@ import { soundManager } from '../utils/SoundManager';
 // Context type - exposes the play function for direct sound triggering
 export const SoundContext = createContext<{
     play: (soundType: string) => void;
+    stop: (soundType: string) => void;
     isReady: () => boolean;
 } | null>(null);
 
@@ -101,12 +102,16 @@ export function SoundProvider({ children }: SoundProviderProps) {
         soundManager.play(soundType);
     }, []);
 
+    const stop = useCallback((soundType: string) => {
+        soundManager.stop(soundType);
+    }, []);
+
     const isReady = useCallback(() => {
         return soundManager.isReady();
     }, []);
 
     return (
-        <SoundContext.Provider value={{ play, isReady }}>
+        <SoundContext.Provider value={{ play, stop, isReady }}>
             {children}
         </SoundContext.Provider>
     );

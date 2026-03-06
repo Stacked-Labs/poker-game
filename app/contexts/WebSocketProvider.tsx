@@ -289,20 +289,18 @@ export function SocketProvider(props: SocketProviderProps) {
 
                 if (eventData.type === 'is_pending_player') {
                     // Handle is_pending_player message
-                    if (eventData.payload !== undefined) {
-                        dispatch({
-                            type: 'setSeatRequested',
-                            payload: eventData.payload, // true if the player is pending, false otherwise
-                        });
+                    const payload = eventData.payload;
+                    // Normalize payload into `number | null` (some servers send boolean)
+                    if (typeof payload === 'number') {
+                        dispatch({ type: 'setSeatRequested', payload });
+                    } else if (payload === true) {
+                        // Pending, but seat id not provided; keep existing numeric seatRequested if any.
+                        if (typeof appStateRef.current.seatRequested !== 'number') {
+                            dispatch({ type: 'setSeatRequested', payload: null });
+                        }
                     } else {
-                        console.error(
-                            'is_pending_player is undefined',
-                            eventData.payload
-                        );
-                        dispatch({
-                            type: 'setSeatRequested',
-                            payload: null,
-                        });
+                        // false / null / undefined / anything else => not pending
+                        dispatch({ type: 'setSeatRequested', payload: null });
                     }
                     return; // Message handled
                 }
@@ -467,7 +465,10 @@ export function SocketProvider(props: SocketProviderProps) {
                             }
                         );
                         if (isPlayerSeated) {
-                            if (appStateRef.current.seatRequested) {
+                            if (
+                                typeof appStateRef.current.seatRequested ===
+                                'number'
+                            ) {
                                 bundlePayload.clearSeatRequested = true;
                             }
                             if (appStateRef.current.seatAccepted) {
@@ -673,7 +674,7 @@ export function SocketProvider(props: SocketProviderProps) {
                         );
                         return;
                     }
-                    case 'error':
+                    case 'error': {
                         // Special-case: the user tried to request a seat that is already being requested.
                         // Use a modal instead of a long toast (better UX on small screens).
                         if (
@@ -694,7 +695,10 @@ export function SocketProvider(props: SocketProviderProps) {
                                 message: eventData.message,
                             });
 
-                            if (appStateRef.current.seatRequested) {
+                            if (
+                                typeof appStateRef.current.seatRequested ===
+                                'number'
+                            ) {
                                 dispatch({
                                     type: 'setSeatRequested',
                                     payload: null,
@@ -708,9 +712,16 @@ export function SocketProvider(props: SocketProviderProps) {
                             `Error ${eventData.code}: ${eventData.message}`
                         );
                         // If seat request was denied (message check), reset the flag
+                        const errorMsg =
+                            typeof eventData.message === 'string'
+                                ? eventData.message
+                                : '';
                         if (
-                            eventData.message === 'Seat request denied.' &&
-                            appStateRef.current.seatRequested
+                            (errorMsg === 'Seat request denied.' ||
+                                errorMsg
+                                    .toLowerCase()
+                                    .includes('seat request denied')) &&
+                            typeof appStateRef.current.seatRequested === 'number'
                         ) {
                             dispatch({
                                 type: 'setSeatRequested',
@@ -718,6 +729,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             });
                         }
                         return;
+                    }
                     default: {
                         console.warn(
                             `Unhandled action type: ${eventData.action}`

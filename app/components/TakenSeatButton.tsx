@@ -352,7 +352,7 @@ const TakenSeatButton = ({
 }) => {
     const { appState } = useContext(AppContext);
     const socket = useContext(SocketContext);
-    const { play } = useSound();
+    const { play, stop } = useSound();
     const { format } = useFormatAmount();
     const playCardFlip = useCallback(() => play('card_flip'), [play]);
     const address = player?.address;
@@ -460,8 +460,9 @@ const TakenSeatButton = ({
                 clearTimeout(tickTockTimeoutRef.current);
                 tickTockTimeoutRef.current = null;
             }
+            stop('tick_tock');
         };
-    }, [deadline, isCurrentTurn, isSelf, play]);
+    }, [deadline, isCurrentTurn, isSelf, play, stop]);
 
     const total = initialDuration || 1; // avoid divide by zero
     const progress = Math.min((remaining / total) * 100, 100);

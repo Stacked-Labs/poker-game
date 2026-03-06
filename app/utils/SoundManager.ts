@@ -30,6 +30,7 @@ class SoundManager {
     private audioContext: AudioContext | null = null;
     private gainNode: GainNode | null = null;
     private buffers: Map<string, AudioBuffer> = new Map();
+    private activeSources: Map<string, AudioBufferSourceNode[]> = new Map();
     private isInitialized: boolean = false;
     private isUnlocked: boolean = false;
     private pendingUnlock: Promise<void> | null = null;
@@ -168,10 +169,42 @@ class SoundManager {
             const source = this.audioContext.createBufferSource();
             source.buffer = buffer;
             source.connect(this.gainNode);
+
+            // Track active source so it can be stopped later
+            const sources = this.activeSources.get(soundType) ?? [];
+            sources.push(source);
+            this.activeSources.set(soundType, sources);
+
+            source.onended = () => {
+                const list = this.activeSources.get(soundType);
+                if (list) {
+                    const idx = list.indexOf(source);
+                    if (idx !== -1) list.splice(idx, 1);
+                }
+            };
+
             source.start(0);
         } catch (error) {
             console.error(`Failed to play sound ${soundType}:`, error);
         }
+    }
+
+    /**
+     * Stop all currently playing instances of a sound type
+     * @param soundType - The event type to stop
+     */
+    stop(soundType: string): void {
+        const sources = this.activeSources.get(soundType);
+        if (!sources || sources.length === 0) return;
+
+        for (const source of sources) {
+            try {
+                source.stop();
+            } catch {
+                // Already stopped — ignore
+            }
+        }
+        this.activeSources.set(soundType, []);
     }
 
     /**

@@ -213,6 +213,104 @@ a {
     --lf-r2: -3deg;
 }
 
+/* ===== Premium UI Utilities ===== */
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Premium focus ring for accessibility */
+*:focus-visible {
+    outline: 2px solid rgba(54, 163, 123, 0.6);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Glassmorphism utility */
+.glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Premium button press animation */
+@keyframes button-press {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.96);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Smooth entrance for page transitions */
+@keyframes page-enter {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Subtle shine sweep for cards */
+@keyframes shine-sweep {
+    0% {
+        transform: translateX(-100%) rotate(25deg);
+    }
+    100% {
+        transform: translateX(200%) rotate(25deg);
+    }
+}
+
+/* Selection color */
+::selection {
+    background: rgba(54, 163, 123, 0.2);
+    color: inherit;
+}
+
+::-moz-selection {
+    background: rgba(54, 163, 123, 0.2);
+    color: inherit;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(51, 68, 121, 0.2);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(51, 68, 121, 0.35);
+}
+
+/* Reduced motion: disable custom animations */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 /* Giphy Search */
 .giphy-search-bar {
     background: #c7c9cf !important;

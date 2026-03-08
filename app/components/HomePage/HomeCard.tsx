@@ -68,10 +68,9 @@ const shineSweep = keyframes`
     100% { transform: translateX(200%) rotate(25deg); }
 `;
 
-// Floating badge animation
-const floatBadge = keyframes`
-    0%, 100% { transform: rotate(-6deg) translateY(0); }
-    50% { transform: rotate(-4deg) translateY(-3px); }
+const slideUp = keyframes`
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 `;
 
 const HomeCard = () => {
@@ -285,107 +284,6 @@ const HomeCard = () => {
                     position="relative"
                     zIndex={1}
                 >
-                    {/* Decorative corner stickers with float animation */}
-                    <Box
-                        position="absolute"
-                        top={{ base: 5, md: 6 }}
-                        right={{ base: 5, md: 6 }}
-                        bg="brand.yellow"
-                        color="brand.darkNavy"
-                        px={{ base: 2, md: 3 }}
-                        py={{ base: 1, md: 1 }}
-                        borderRadius="full"
-                        fontSize={{ base: 'xs', md: 'xs' }}
-                        fontWeight="bold"
-                        letterSpacing="0.12em"
-                        textTransform="uppercase"
-                        boxShadow="0 8px 18px rgba(253, 197, 29, 0.35)"
-                        border="1px solid rgba(255, 255, 255, 0.35)"
-                        transform="rotate(6deg)"
-                        pointerEvents="none"
-                    >
-                        <Box
-                            position="relative"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            minW={{ base: '52px', md: '70px' }}
-                            height={{ base: '12px', md: '16px' }}
-                        >
-                            <Text
-                                position="absolute"
-                                inset={0}
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                textAlign="center"
-                                opacity={1}
-                                animation={swapHeadingPrimaryMotion}
-                            >
-                                FLUSH!
-                            </Text>
-                            <Text
-                                position="absolute"
-                                inset={0}
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                textAlign="center"
-                                opacity={allowMotion ? undefined : 0}
-                                animation={swapHeadingSecondaryMotion}
-                            >
-                                ♣♣♣
-                            </Text>
-                        </Box>
-                    </Box>
-                    <Box
-                        position="absolute"
-                        top={{ base: 5, md: 7 }}
-                        left={{ base: 5, md: 6 }}
-                        bg="brand.pink"
-                        color="white"
-                        px={{ base: 1.875, sm: 2.5 }}
-                        py={{ base: 0.75, sm: 1 }}
-                        borderRadius="full"
-                        fontSize={{ base: '2xs', md: 'xs' }}
-                        fontWeight="bold"
-                        letterSpacing="0.1em"
-                        textTransform="uppercase"
-                        boxShadow="0 8px 18px rgba(235, 11, 92, 0.35)"
-                        border="1px solid rgba(255, 255, 255, 0.4)"
-                        pointerEvents="none"
-                        animation={
-                            allowMotion
-                                ? `${floatBadge} 3s ease-in-out infinite`
-                                : undefined
-                        }
-                    >
-                        HOT!
-                    </Box>
-                    <Box
-                        position="absolute"
-                        bottom={{ base: 4, md: 4 }}
-                        right={{ base: 6, md: 6 }}
-                        bg="brand.green"
-                        color="white"
-                        px={{ base: 2, md: 3 }}
-                        py={{ base: 1 }}
-                        borderRadius="full"
-                        fontSize={{ base: 'xs', sm: 'xs' }}
-                        fontWeight="bold"
-                        letterSpacing="0.12em"
-                        textTransform="uppercase"
-                        boxShadow="0 8px 18px rgba(54, 163, 123, 0.35)"
-                        border="1px solid rgba(255, 255, 255, 0.35)"
-                        transform={{
-                            base: 'scale(0.75) rotate(4deg)',
-                            sm: 'scale(1) rotate(4deg)',
-                        }}
-                        transformOrigin="bottom right"
-                        pointerEvents="none"
-                    >
-                        Ooffff
-                    </Box>
                     {/* Pill Badge */}
                     <MotionBox
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
@@ -409,7 +307,7 @@ const HomeCard = () => {
                             borderColor="rgba(54, 163, 123, 0.2)"
                             backdropFilter="blur(8px)"
                         >
-                            INSTANT GUEST PLAY
+                            ⚡ INSTANT GUEST PLAY
                         </Badge>
                     </MotionBox>
 
@@ -627,7 +525,7 @@ const HomeCard = () => {
                                             },
                                         }}
                                     >
-                                        PLAY NOW
+                                        [ PLAY NOW ]
                                     </MotionButton>
                                 </MotionBox>
                             ) : (

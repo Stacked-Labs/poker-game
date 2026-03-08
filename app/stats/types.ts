@@ -132,6 +132,7 @@ export interface AdminStatsData {
     free_hands_24h: number;
     free_hands_7d: number;
     free_hands_30d: number;
+    waitlist_count: number;
 }
 
 export interface AdminStatsResponse {

@@ -20,12 +20,22 @@ import StatsSection from './StatsSection';
 import ReferralCodeSection from './ReferralCodeSection';
 import { useAuth } from '@/app/contexts/AuthContext';
 
+import type { UserStats } from './StatsSection';
+
+interface ReferralInfo {
+    count: number;
+    multiplier: number;
+    nextTier: { required: number; multiplier: number } | null;
+}
+
 interface PlayerCardProps {
     rank?: number;
     points?: number;
+    stats?: UserStats;
+    referralInfo?: ReferralInfo;
 }
 
-const PlayerCard: React.FC<PlayerCardProps> = ({ rank, points }) => {
+const PlayerCard: React.FC<PlayerCardProps> = ({ rank, points, stats, referralInfo }) => {
     const account = useActiveAccount();
     const { isAuthenticated, isAuthenticating, requestAuthentication } =
         useAuth();
@@ -127,8 +137,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ rank, points }) => {
                         </>
                     )}
 
-                    <StatsSection />
-                    <ReferralCodeSection />
+                    <StatsSection stats={stats} />
+                    <ReferralCodeSection referralInfo={referralInfo} />
                 </VStack>
             </Box>
 

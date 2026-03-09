@@ -738,6 +738,70 @@ export async function getIndexerHealth(): Promise<{
     }
 }
 
+// ============================================================
+// Player Stats & Referral API
+// ============================================================
+
+export async function getPlayerStats(address: string): Promise<{
+    tablesCreated: number;
+    tablesPlayed: number;
+}> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/player/stats?address=${encodeURIComponent(address)}`,
+            { method: 'GET' }
+        );
+        if (!response.ok) {
+            throw new Error(`Player stats fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch player stats.', error);
+        return { tablesCreated: 0, tablesPlayed: 0 };
+    }
+}
+
+export async function getReferralInfo(address: string): Promise<{
+    count: number;
+    multiplier: number;
+    nextTier: { required: number; multiplier: number } | null;
+    hasReferrer: boolean;
+}> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/referral?address=${encodeURIComponent(address)}`,
+            { method: 'GET' }
+        );
+        if (!response.ok) {
+            throw new Error(`Referral info fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch referral info.', error);
+        return { count: 0, multiplier: 1.0, nextTier: { required: 5, multiplier: 1.1 }, hasReferrer: false };
+    }
+}
+
+export async function registerReferral(
+    refereeAddress: string,
+    referrerAddress: string
+): Promise<{ success: boolean; message: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/referral`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refereeAddress, referrerAddress }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to register referral.', error);
+        return { success: false, message: 'Network error' };
+    }
+}
+
 export async function fetchTableLedger(tableName: string) {
     isBackendUrlValid();
 

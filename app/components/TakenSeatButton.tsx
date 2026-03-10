@@ -13,7 +13,6 @@ import {
     ResponsiveValue,
     HStack,
     Progress,
-    Tooltip,
     Tag,
     Icon,
     IconButton,
@@ -1268,14 +1267,7 @@ const TakenSeatButton = ({
                                     gap={{ base: 1 }}
                                     minWidth={0}
                                 >
-                                    <Tooltip
-                                        label={shortEthAddress}
-                                        hasArrow
-                                        bg="brand.navy"
-                                        color="white"
-                                        borderRadius="md"
-                                    >
-                                        <Text
+                                    <Text
                                             className="player-username"
                                             variant={'seatText'}
                                             fontSize={{
@@ -1295,7 +1287,6 @@ const TakenSeatButton = ({
                                         >
                                             {player.username}
                                         </Text>
-                                    </Tooltip>
                                     {canSendSeatReaction && isSelf ? (
                                         <EmotePicker
                                             onSelectEmote={

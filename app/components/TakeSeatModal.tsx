@@ -92,7 +92,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const initialBuyIn = config?.maxBuyIn ?? null;
     const currentUser = useCurrentUser();
     const socket = useContext(SocketContext);
-    const { isAuthenticated, isAuthenticating } = useAuth();
+    const { isAuthenticated, isAuthenticating, lastAuthenticatedAddress } = useAuth();
     const [name, setName] = useState('');
     const [buyIn, setBuyIn] = useState<number | null>(initialBuyIn);
     const [buyInInput, setBuyInInput] = useState(() => {
@@ -234,6 +234,18 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         if (isCryptoGame) {
             if (!contractAddress) {
                 error('Contract Error', 'Game contract address not available.');
+                return;
+            }
+
+            // Guard: active wallet must match the authenticated JWT wallet.
+            // If they differ, the on-chain tx would come from a different address
+            // than the one the backend has on record, causing the deposit to be
+            // treated as a stranger's seat request instead of the owner's.
+            if (address?.toLowerCase() !== lastAuthenticatedAddress?.toLowerCase()) {
+                error(
+                    'Wallet Mismatch',
+                    `Your active wallet doesn't match your authenticated session. Switch back to ${lastAuthenticatedAddress ? lastAuthenticatedAddress.slice(0, 6) + '...' + lastAuthenticatedAddress.slice(-4) : 'your original wallet'} or re-authenticate.`
+                );
                 return;
             }
 

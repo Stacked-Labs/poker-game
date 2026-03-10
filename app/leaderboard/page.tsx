@@ -7,8 +7,9 @@ import LeaderboardTable, { LeaderboardEntry } from '@/app/components/Leaderboard
 import PlayerCard from '@/app/components/Leaderboard/PlayerCard';
 import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
-import { getLeaderboard } from '@/app/hooks/server_actions';
+import { getLeaderboard, getPlayerStats, getReferralInfo } from '@/app/hooks/server_actions';
 import { useActiveAccount } from 'thirdweb/react';
+import type { UserStats } from '@/app/components/Leaderboard/StatsSection';
 
 const fadeIn = keyframes`
     from {
@@ -24,6 +25,13 @@ const fadeIn = keyframes`
 const LeaderboardPage: React.FC = () => {
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [playerEntry, setPlayerEntry] = useState<LeaderboardEntry | undefined>(undefined);
+    const [stats, setStats] = useState<UserStats>({ gamesCreated: 0, gamesPlayed: 0 });
+    const [referralInfo, setReferralInfo] = useState<{
+        count: number;
+        multiplier: number;
+        nextTier: { required: number; multiplier: number } | null;
+        hasReferrer: boolean;
+    } | undefined>(undefined);
     const account = useActiveAccount();
 
     useEffect(() => {
@@ -31,6 +39,12 @@ const LeaderboardPage: React.FC = () => {
             setEntries(res.leaderboard);
             setPlayerEntry(res.player ?? undefined);
         });
+        if (account?.address) {
+            getPlayerStats(account.address).then((res) => {
+                setStats({ gamesCreated: res.tablesCreated, gamesPlayed: res.tablesPlayed });
+            });
+            getReferralInfo(account.address).then(setReferralInfo);
+        }
     }, [account?.address]);
 
     return (
@@ -88,7 +102,7 @@ const LeaderboardPage: React.FC = () => {
                     animation={`${fadeIn} 0.5s ease-out`}
                 >
                     <Box w="full" maxW={{ base: '100%', lg: '400px' }}>
-                        <PlayerCard rank={playerEntry?.rank} points={playerEntry?.points} />
+                        <PlayerCard rank={playerEntry?.rank} points={playerEntry?.points} stats={stats} referralInfo={referralInfo} />
                     </Box>
                     <Box flex="1" w="full">
                         <LeaderboardTable data={entries} />

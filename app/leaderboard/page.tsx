@@ -35,16 +35,26 @@ const LeaderboardPage: React.FC = () => {
     const account = useActiveAccount();
 
     useEffect(() => {
+        let cancelled = false;
+
         getLeaderboard(account?.address).then((res) => {
-            setEntries(res.leaderboard);
-            setPlayerEntry(res.player ?? undefined);
+            if (!cancelled) {
+                setEntries(res.leaderboard);
+                setPlayerEntry(res.player ?? undefined);
+            }
         });
         if (account?.address) {
             getPlayerStats(account.address).then((res) => {
-                setStats({ gamesCreated: res.tablesCreated, gamesPlayed: res.tablesPlayed });
+                if (!cancelled) {
+                    setStats({ gamesCreated: res.tablesCreated, gamesPlayed: res.tablesPlayed });
+                }
             });
-            getReferralInfo(account.address).then(setReferralInfo);
+            getReferralInfo(account.address).then((res) => {
+                if (!cancelled) setReferralInfo(res);
+            });
         }
+
+        return () => { cancelled = true; };
     }, [account?.address]);
 
     return (

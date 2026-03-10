@@ -300,6 +300,12 @@ const Table = ({ tableId }: { tableId: string }) => {
 
     useEffect(() => {
         const verifyAndJoinTable = async () => {
+            // Dev-only: skip backend check for the UI test harness
+            if (tableId === 'ui-test' && process.env.NODE_ENV !== 'production') {
+                dispatch({ type: 'setTablename', payload: tableId });
+                setTableStatus('success');
+                return;
+            }
             if (tableId) {
                 try {
                     const result = await isTableExisting(tableId);

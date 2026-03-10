@@ -651,6 +651,7 @@ const TakenSeatButton = ({
                 key="betbox"
                 width={'100%'}
                 gap={2}
+                alignItems="center"
                 sx={chipPositionSx}
                 zIndex={5}
             >
@@ -717,13 +718,13 @@ const TakenSeatButton = ({
                                 bg={
                                     showBetBubble
                                         ? 'brand.yellow'
-                                        : 'brand.lightGray'
+                                        : 'rgba(255,255,255,0.2)'
                                 }
                                 fontWeight="bold"
                                 color={
                                     showBetBubble
                                         ? 'brand.navy'
-                                        : 'brand.darkNavy'
+                                        : 'white'
                                 }
                                 display="inline-flex"
                                 alignItems="center"
@@ -735,11 +736,21 @@ const TakenSeatButton = ({
                                     md: '14px',
                                 }}
                                 zIndex={3}
+                                border={
+                                    showBetBubble
+                                        ? 'none'
+                                        : '1px solid rgba(255,255,255,0.3)'
+                                }
                                 boxShadow={
                                     showBetBubble
-                                        ? '0 2px 8px rgba(253, 197, 29, 0.3)'
-                                        : '0 2px 8px rgba(54, 163, 123, 0.3)'
+                                        ? '0 3px 0 #c99500, 0 5px 14px rgba(253,197,29,0.4)'
+                                        : 'none'
                                 }
+                                sx={{
+                                    backdropFilter: showBetBubble
+                                        ? undefined
+                                        : 'blur(4px)',
+                                }}
                                 animation={
                                     showActionBubble
                                         ? `${bubbleFadeIn} 0.25s ease-out`
@@ -762,16 +773,17 @@ const TakenSeatButton = ({
                         px={{ base: 2, md: 3 }}
                         py={0}
                         w={'fit-content'}
-                        bg="brand.lightGray"
+                        bg="rgba(255,255,255,0.2)"
                         fontWeight="bold"
-                        color="brand.darkNavy"
+                        color="white"
                         display="flex"
                         alignItems="center"
                         justifyContent="center"
                         variant={'seatText'}
                         fontSize={{ base: '10px', sm: '10px', md: '14px' }}
                         zIndex={3}
-                        boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
+                        border="1px solid rgba(255,255,255,0.3)"
+                        sx={{ backdropFilter: 'blur(4px)' }}
                         animation={`${bubbleFadeIn} 0.25s ease-out`}
                     >
                         Check
@@ -787,13 +799,13 @@ const TakenSeatButton = ({
                         bg="brand.yellow"
                         fontWeight="bold"
                         color="brand.navy"
-                        display="flex"
+                        display="inline-flex"
                         alignItems="center"
                         justifyContent="center"
                         variant={'seatText'}
                         fontSize={{ base: '10px', sm: '10px', md: '14px' }}
                         zIndex={3}
-                        boxShadow="0 2px 8px rgba(253, 197, 29, 0.3)"
+                        boxShadow="0 3px 0 #c99500, 0 5px 14px rgba(253,197,29,0.4)"
                         animation={`${bubbleFadeIn} 0.25s ease-out`}
                     >
                         {format(player.bet)}

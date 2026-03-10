@@ -41,7 +41,12 @@ const CommunitySection = () => {
                   initial: { opacity: 0, y: 22 },
                   whileInView: { opacity: 1, y: 0 },
                   viewport: { once: true, amount: 0.35 },
-                  transition: { duration: 0.6, ease: 'easeOut', delay },
+                  transition: {
+                      type: 'spring',
+                      stiffness: 200,
+                      damping: 20,
+                      delay,
+                  },
               }
             : {};
 
@@ -441,12 +446,14 @@ const CommunitySection = () => {
                                         borderRadius="xl"
                                         border="1px solid"
                                         borderColor="border.lightGray"
-                                        boxShadow="sm"
+                                        boxShadow="0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
                                         spacing={3}
-                                        transition="all 0.2s"
+                                        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                                         _hover={{
-                                            transform: 'translateY(-2px)',
-                                            boxShadow: 'md',
+                                            transform: 'translateY(-3px) scale(1.02)',
+                                            boxShadow:
+                                                '0 8px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+                                            borderColor: 'brand.green',
                                         }}
                                     >
                                         <Flex

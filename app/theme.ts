@@ -389,11 +389,16 @@ const components = {
         baseStyle: {
             bg: 'bg.charcoal',
             color: 'white',
-            borderRadius: '10px',
+            borderRadius: '12px',
             border: '2px solid',
             borderColor: 'btn.border',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
             _hover: {
                 bg: '#2e2e2e',
+            },
+            _active: {
+                transform: 'scale(0.97)',
+                transition: 'transform 0.1s ease',
             },
         },
         variants: {
@@ -404,9 +409,19 @@ const components = {
                 color: 'white',
                 fontWeight: 'bold',
                 border: 'none',
+                boxShadow:
+                    '0 4px 14px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
                 _hover: {
                     bgGradient:
                         'linear(to-r, rgba(54, 163, 123, 0.98), rgba(54, 163, 123, 0.82))',
+                    boxShadow:
+                        '0 8px 24px rgba(54, 163, 123, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+                    transform: 'translateY(-1px)',
+                },
+                _active: {
+                    transform: 'translateY(0) scale(0.98)',
+                    boxShadow:
+                        '0 2px 8px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
                 },
             },
             outlineSuccess: {
@@ -434,11 +449,18 @@ const components = {
             },
             social: {
                 bg: 'btn.lightGray',
-                border: 'none',
-                borderRadius: { base: '10px', md: '12px' },
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                border: '1px solid',
+                borderColor: 'transparent',
+                borderRadius: { base: '12px', md: '14px' },
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                backdropFilter: 'blur(8px)',
                 _hover: {
                     color: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'translateY(-3px) scale(1.05)',
+                },
+                _active: {
+                    transform: 'translateY(-1px) scale(0.98)',
                 },
             },
             underlined: {
@@ -463,25 +485,30 @@ const components = {
                 minH: { base: '28px', sm: '28px', md: '34px', lg: '36px' },
                 maxH: { base: '34px', sm: '36px', md: '38px', lg: '40px' },
                 padding: { base: 1 },
-                bg: 'brand.navy',
+                bg: 'rgba(51, 68, 121, 0.8)',
                 color: 'white',
-                border: 'none',
-                borderRadius: '8px',
+                border: '1px solid',
+                borderColor: 'rgba(255, 255, 255, 0.08)',
+                borderRadius: '10px',
                 fontWeight: 'bold',
                 textTransform: 'uppercase',
+                backdropFilter: 'blur(8px)',
+                letterSpacing: '0.03em',
                 _hover: {
                     bg: 'brand.green',
-                    transform: 'translateY(-1px)',
-                    boxShadow: 'lg',
+                    transform: 'translateY(-2px)',
+                    boxShadow:
+                        '0 6px 16px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+                    borderColor: 'rgba(255, 255, 255, 0.12)',
                 },
                 _active: {
-                    transform: 'translateY(0px)',
+                    transform: 'translateY(0) scale(0.96)',
                 },
                 _disabled: {
-                    opacity: 0.4,
+                    opacity: 0.35,
                     cursor: 'not-allowed',
                 },
-                transition: 'all 0.2s',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
             },
             navLink: {
                 bg: 'none',
@@ -556,14 +583,21 @@ const components = {
             gameSettingsButton: {
                 bg: 'btn.lightGray',
                 color: 'text.secondary',
-                border: 'none',
-                borderRadius: '12px',
-                transition: 'all 0.2s ease',
+                border: '1px solid',
+                borderColor: 'transparent',
+                borderRadius: '14px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                backdropFilter: 'blur(8px)',
                 _hover: {
                     bg: 'brand.navy',
                     color: 'white',
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(51, 68, 121, 0.3)',
+                    boxShadow:
+                        '0 8px 24px rgba(51, 68, 121, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                    borderColor: 'rgba(255, 255, 255, 0.06)',
+                },
+                _active: {
+                    transform: 'translateY(0) scale(0.97)',
                 },
             },
             homeNav: {
@@ -741,6 +775,22 @@ const radii = {
 
 const shadows = {
     default: '0px 0px 8px 0px rgba(0, 0, 0, 0.15)',
+    // Premium layered shadows
+    glass: '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+    'glass-hover':
+        '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+    'glass-active':
+        '0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06)',
+    'glow-green':
+        '0 0 20px rgba(54, 163, 123, 0.4), 0 0 60px rgba(54, 163, 123, 0.15)',
+    'glow-pink':
+        '0 0 20px rgba(235, 11, 92, 0.4), 0 0 60px rgba(235, 11, 92, 0.15)',
+    'glow-yellow':
+        '0 0 20px rgba(253, 197, 29, 0.4), 0 0 60px rgba(253, 197, 29, 0.15)',
+    'btn-premium':
+        '0 4px 14px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    'btn-premium-hover':
+        '0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
 };
 
 // ============================================

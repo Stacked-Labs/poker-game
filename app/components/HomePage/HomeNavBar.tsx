@@ -35,23 +35,13 @@ import { FaDiscord } from 'react-icons/fa';
 import { SiFarcaster } from 'react-icons/si';
 import WalletButton from '../WalletButton';
 import { usePathname } from 'next/navigation';
-import { keyframes } from '@emotion/react';
+import { motion } from 'framer-motion';
 import { ColorModeButton } from '../ColorModeButton';
+
+const MotionFlex = motion(Flex);
 
 const logoImage = '/IconLogo.png';
 const logoSizes = '(max-width: 48em) 56px, (max-width: 62em) 64px, 72px';
-
-// Animations
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
 
 const HomeNavBar: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -122,7 +112,7 @@ const HomeNavBar: React.FC = () => {
     NavButtons.displayName = 'NavButtons';
 
     return (
-        <Flex
+        <MotionFlex
             width="100%"
             paddingX={{ base: 2, md: 3, lg: 4 }}
             paddingY={2}
@@ -134,11 +124,18 @@ const HomeNavBar: React.FC = () => {
             as="nav"
             bg="bg.navbar"
             color="text.navbar"
-            backdropFilter="blur(12px)"
+            backdropFilter="blur(16px)"
             borderBottom="1px solid"
-            borderColor="rgba(12, 21, 49, 0.08)"
-            boxShadow="0 2px 12px rgba(0, 0, 0, 0.04)"
-            animation={`${fadeIn} 0.6s ease-out`}
+            borderColor="rgba(12, 21, 49, 0.06)"
+            boxShadow="0 4px 20px rgba(0, 0, 0, 0.03), inset 0 -1px 0 rgba(255, 255, 255, 0.1)"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+                type: 'spring',
+                stiffness: 200,
+                damping: 20,
+                delay: 0.1,
+            }}
         >
             {/* Logo Section */}
             <Flex alignItems={'center'}>
@@ -211,13 +208,14 @@ const HomeNavBar: React.FC = () => {
                 <DrawerOverlay backdropFilter="blur(4px)" />
                 <DrawerContent
                     bg="bg.navbar"
-                    backdropFilter="blur(16px)"
+                    backdropFilter="blur(24px)"
                     borderLeft="1px solid"
-                    borderColor="rgba(12, 21, 49, 0.08)"
-                    boxShadow="-8px 0 32px rgba(0, 0, 0, 0.12)"
+                    borderColor="rgba(12, 21, 49, 0.06)"
+                    boxShadow="-12px 0 48px rgba(0, 0, 0, 0.15), inset 1px 0 0 rgba(255, 255, 255, 0.08)"
                     _dark={{
                         borderColor: 'rgba(255, 255, 255, 0.06)',
-                        boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4)',
+                        boxShadow:
+                            '-12px 0 48px rgba(0, 0, 0, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.04)',
                     }}
                 >
                     {/* Header — Logo + Close */}
@@ -708,7 +706,7 @@ const HomeNavBar: React.FC = () => {
                     </DrawerBody>
                 </DrawerContent>
             </Drawer>
-        </Flex>
+        </MotionFlex>
     );
 };
 

@@ -18,19 +18,9 @@ import { motion, useReducedMotion } from 'framer-motion';
 import FloatingDecor from './FloatingDecor';
 
 const MotionBox = motion(Box);
-const MotionVStack = motion(VStack);
 
 const FAQSection = () => {
     const prefersReducedMotion = useReducedMotion();
-    const fadeUp = (delay = 0) =>
-        prefersReducedMotion
-            ? {}
-            : {
-                  initial: { opacity: 0, y: 20 },
-                  whileInView: { opacity: 1, y: 0 },
-                  viewport: { once: true, amount: 0.35 },
-                  transition: { duration: 0.5, ease: 'easeOut', delay },
-              };
 
     return (
         <Box
@@ -42,11 +32,12 @@ const FAQSection = () => {
             position="relative"
             overflow="hidden"
         >
+            {/* Background decorations */}
             <Box
                 aria-hidden="true"
                 position="absolute"
                 inset={0}
-                bgGradient="radial(circle at 35% 15%, rgba(54, 163, 123, 0.12) 0%, transparent 55%), radial(circle at 70% 0%, rgba(235, 11, 92, 0.12) 0%, transparent 50%), radial(circle at 40% 100%, rgba(253, 197, 29, 0.14) 0%, transparent 50%)"
+                bgGradient="radial(circle at 35% 15%, rgba(54, 163, 123, 0.1) 0%, transparent 55%), radial(circle at 70% 0%, rgba(235, 11, 92, 0.1) 0%, transparent 50%), radial(circle at 40% 100%, rgba(253, 197, 29, 0.1) 0%, transparent 50%)"
                 opacity={0.7}
                 pointerEvents="none"
                 zIndex={0}
@@ -55,13 +46,15 @@ const FAQSection = () => {
                 aria-hidden="true"
                 position="absolute"
                 inset={0}
-                backgroundImage="radial-gradient(circle, rgba(51, 68, 121, 0.2) 1px, transparent 1px)"
+                backgroundImage="radial-gradient(circle, rgba(51, 68, 121, 0.15) 1px, transparent 1px)"
                 backgroundSize="22px 22px"
-                opacity={0.25}
+                opacity={0.2}
                 pointerEvents="none"
                 zIndex={0}
             />
             <FloatingDecor density="light" />
+
+            {/* Floating badge */}
             <MotionBox
                 aria-hidden="true"
                 position="absolute"
@@ -80,59 +73,118 @@ const FAQSection = () => {
                 transform="rotate(-8deg)"
                 pointerEvents="none"
                 zIndex={0}
+                border="1px solid rgba(255, 255, 255, 0.3)"
                 animate={
                     prefersReducedMotion
                         ? undefined
-                        : { rotate: [-8, 2, -8] }
+                        : {
+                              rotate: [-8, 2, -8],
+                              y: [0, -4, 0],
+                          }
                 }
                 transition={
                     prefersReducedMotion
                         ? undefined
-                        : { duration: 4.6, repeat: Infinity, ease: 'easeInOut' }
+                        : {
+                              duration: 4.6,
+                              repeat: Infinity,
+                              ease: 'easeInOut',
+                          }
                 }
             >
                 FAQ DEAL
             </MotionBox>
+
             <Container maxW="container.lg">
-                <MotionVStack spacing={12} align="stretch" {...fadeUp(0)} position="relative" zIndex={1}>
-                    <Heading
-                        as="h2"
-                        size="2xl"
-                        textAlign="left"
-                        color="text.primary"
-                        fontWeight="extrabold"
+                <VStack
+                    spacing={12}
+                    align="stretch"
+                    position="relative"
+                    zIndex={1}
+                >
+                    <MotionBox
+                        initial={
+                            prefersReducedMotion
+                                ? undefined
+                                : { opacity: 0, y: 20 }
+                        }
+                        whileInView={
+                            prefersReducedMotion
+                                ? undefined
+                                : { opacity: 1, y: 0 }
+                        }
+                        viewport={{ once: true, amount: 0.3 }}
+                        transition={{
+                            type: 'spring',
+                            stiffness: 200,
+                            damping: 20,
+                        }}
                     >
-                        Frequently Asked Questions
-                        <Box
-                            as="span"
-                            ml={3}
-                            display="inline-flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            w={{ base: '34px', md: '40px' }}
-                            h={{ base: '34px', md: '40px' }}
-                            borderRadius="full"
-                            bg="brand.pink"
-                            color="white"
-                            fontSize={{ base: '18px', md: '20px' }}
-                            transform="rotate(6deg)"
-                            boxShadow="0 10px 20px rgba(235, 11, 92, 0.35)"
+                        <Heading
+                            as="h2"
+                            size="2xl"
+                            textAlign="left"
+                            color="text.primary"
+                            fontWeight="extrabold"
                         >
-                            ?
-                        </Box>
-                    </Heading>
+                            Frequently Asked Questions
+                            <Box
+                                as="span"
+                                ml={3}
+                                display="inline-flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                w={{ base: '34px', md: '40px' }}
+                                h={{ base: '34px', md: '40px' }}
+                                borderRadius="full"
+                                bg="brand.pink"
+                                color="white"
+                                fontSize={{ base: '18px', md: '20px' }}
+                                transform="rotate(6deg)"
+                                boxShadow="0 10px 20px rgba(235, 11, 92, 0.35)"
+                            >
+                                ?
+                            </Box>
+                        </Heading>
+                    </MotionBox>
 
                     <Accordion allowMultiple>
                         {FAQs.map((faq, index) => (
-                            <MotionBox key={index} {...fadeUp(0.05 * index)}>
+                            <MotionBox
+                                key={index}
+                                initial={
+                                    prefersReducedMotion
+                                        ? undefined
+                                        : { opacity: 0, y: 20 }
+                                }
+                                whileInView={
+                                    prefersReducedMotion
+                                        ? undefined
+                                        : { opacity: 1, y: 0 }
+                                }
+                                viewport={{ once: true, amount: 0.2 }}
+                                transition={{
+                                    type: 'spring',
+                                    stiffness: 200,
+                                    damping: 20,
+                                    delay: index * 0.08,
+                                }}
+                            >
                                 <AccordionItem
                                     mb={4}
                                     bg="card.white"
                                     borderRadius="xl"
                                     border="1px solid"
                                     borderColor="border.lightGray"
-                                    boxShadow="sm"
+                                    boxShadow="0 2px 12px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
                                     overflow="hidden"
+                                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                                    _hover={{
+                                        boxShadow:
+                                            '0 8px 24px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+                                        borderColor: 'brand.green',
+                                        transform: 'translateY(-2px)',
+                                    }}
                                 >
                                     <h2>
                                         <AccordionButton
@@ -141,6 +193,8 @@ const FAQSection = () => {
                                             _hover={{ bg: 'card.lightGray' }}
                                             display="flex"
                                             justifyContent="space-between"
+                                            transition="all 0.2s ease"
+                                            borderRadius="xl"
                                         >
                                             <Box
                                                 flex="1"
@@ -154,6 +208,7 @@ const FAQSection = () => {
                                             <AccordionIcon
                                                 color="text.secondary"
                                                 fontSize="24px"
+                                                transition="transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                                             />
                                         </AccordionButton>
                                     </h2>
@@ -174,6 +229,10 @@ const FAQSection = () => {
                                                     textDecoration="underline"
                                                     fontWeight="bold"
                                                     color="text.primary"
+                                                    transition="color 0.2s ease"
+                                                    _hover={{
+                                                        color: 'brand.green',
+                                                    }}
                                                 >
                                                     here
                                                 </Link>
@@ -182,13 +241,19 @@ const FAQSection = () => {
                                         ) : faq.question ===
                                           'Where can I learn more?' ? (
                                             <>
-                                                You can find our roadmap, game rules, and technical architecture in the docs{' '}
+                                                You can find our roadmap, game
+                                                rules, and technical
+                                                architecture in the docs{' '}
                                                 <Link
                                                     href="https://docs.stackedpoker.io"
                                                     isExternal
                                                     textDecoration="underline"
                                                     fontWeight="bold"
                                                     color="text.primary"
+                                                    transition="color 0.2s ease"
+                                                    _hover={{
+                                                        color: 'brand.green',
+                                                    }}
                                                 >
                                                     here
                                                 </Link>
@@ -202,7 +267,7 @@ const FAQSection = () => {
                             </MotionBox>
                         ))}
                     </Accordion>
-                </MotionVStack>
+                </VStack>
             </Container>
         </Box>
     );

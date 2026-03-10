@@ -355,7 +355,7 @@ const RaiseInputBox = ({
             >
                 <Box
                     className="raise-portrait-amount-box"
-                    bg={'brand.darkNavy'}
+                    bg={'rgba(11, 20, 48, 0.9)'}
                     rounded={'lg'}
                     flex={1}
                     position="absolute"
@@ -366,8 +366,10 @@ const RaiseInputBox = ({
                     display="flex"
                     alignItems="center"
                     minH="5cqh"
-                    border="2px solid"
-                    borderColor="brand.navy"
+                    border="1.5px solid"
+                    borderColor="rgba(54, 163, 123, 0.3)"
+                    backdropFilter="blur(12px)"
+                    boxShadow="0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                 >
                     <Input
                         className="raise-portrait-bet-input"
@@ -533,17 +535,19 @@ const RaiseInputBox = ({
                     height={{ base: '400px', sm: '350px' }}
                     width={{ base: '60px', sm: '60px' }}
                     flexDirection="column"
-                    bg="rgba(51, 68, 121, 0.6)"
-                    rounded={'lg'}
+                    bg="rgba(51, 68, 121, 0.7)"
+                    rounded={'xl'}
                     overflow={'hidden'}
                     zIndex={10000}
-                    border="2px solid"
-                    borderColor="rgba(51, 68, 121, 0.8)"
+                    border="1.5px solid"
+                    borderColor="rgba(255, 255, 255, 0.08)"
                     className="raise-portrait-vertical-slider"
-                    transition="all 0.2s ease-in-out"
+                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                    backdropFilter="blur(16px)"
+                    boxShadow="0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                     _hover={{
-                        bg: 'rgba(51, 68, 121, 0.9)',
-                        borderColor: 'brand.darkNavy',
+                        bg: 'rgba(51, 68, 121, 0.85)',
+                        borderColor: 'rgba(255, 255, 255, 0.12)',
                     }}
                     sx={{
                         '@media (orientation: portrait)': {
@@ -641,7 +645,7 @@ const RaiseInputBox = ({
                     justifyContent="flex-end"
                 >
                     <Box
-                        bg={'brand.darkNavy'}
+                        bg={'rgba(11, 20, 48, 0.9)'}
                         width={'fit-content'}
                         textAlign={'center'}
                         rounded={'lg'}
@@ -653,9 +657,11 @@ const RaiseInputBox = ({
                         flexDirection="column"
                         justifyContent="space-between"
                         alignItems="center"
-                        border="2px solid"
-                        borderColor="brand.navy"
+                        border="1.5px solid"
+                        borderColor="rgba(54, 163, 123, 0.25)"
                         className="raise-landscape-bet-container"
+                        backdropFilter="blur(12px)"
+                        boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                     >
                         <Text
                             whiteSpace={'nowrap'}
@@ -696,15 +702,17 @@ const RaiseInputBox = ({
                 </Flex>
                 <Flex
                     flexDirection={'column'}
-                    bg={'brand.darkNavy'}
+                    bg={'rgba(11, 20, 48, 0.9)'}
                     rounded={'lg'}
                     flex={1}
                     justifyContent={'center'}
                     overflow={'hidden'}
                     maxW={'60cqw'}
-                    border="2px solid"
-                    borderColor="brand.navy"
+                    border="1.5px solid"
+                    borderColor="rgba(255, 255, 255, 0.06)"
                     className="raise-landscape-slider-container"
+                    backdropFilter="blur(12px)"
+                    boxShadow="0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04)"
                 >
                     <Flex
                         className="raise-landscape-pot-buttons"

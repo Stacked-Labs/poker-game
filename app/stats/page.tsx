@@ -434,6 +434,16 @@ export default function AdminStatsPage() {
                                 </Grid>
                             </Box>
 
+                            {/* Waitlist */}
+                            <Box>
+                                <Text fontSize="xs" fontWeight="extrabold" color="text.secondary" textTransform="uppercase" letterSpacing="0.08em" mb={3}>
+                                    Waitlist
+                                </Text>
+                                <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }} gap={4}>
+                                    <StatCard label="Email Subscribers" value={d?.waitlist_count} accent="brand.green" />
+                                </Grid>
+                            </Box>
+
                             {/* Activity over time */}
                             <Card title="Activity" subtitle={new Date(statsTs).toLocaleString()}>
                                 <TableContainer>

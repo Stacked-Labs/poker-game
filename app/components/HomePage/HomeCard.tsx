@@ -116,7 +116,6 @@ const HomeCard = () => {
             if (response.ok) {
                 setIsSubscribed(true);
                 setEmail('');
-                setTimeout(() => setIsSubscribed(false), 5000);
             }
         } catch {
             // Silently fail - non-critical action
@@ -509,89 +508,93 @@ const HomeCard = () => {
                         maxW={{ base: '100%', sm: '320px' }}
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards`}
                     >
-                        <HStack
-                            width="100%"
-                            spacing={2}
-                            align="center"
-                        >
-                            <Box
-                                flex={1}
-                                h="1px"
-                                bg="border.lightGray"
-                            />
-                            <Text
-                                fontSize="2xs"
-                                color="text.muted"
-                                fontWeight="bold"
-                                letterSpacing="0.15em"
-                                textTransform="uppercase"
-                                whiteSpace="nowrap"
-                            >
-                                or get dealt in
-                            </Text>
-                            <Box
-                                flex={1}
-                                h="1px"
-                                bg="border.lightGray"
-                            />
-                        </HStack>
-                        <HStack
-                            as="form"
-                            onSubmit={handleEmailSubmit}
-                            width="100%"
-                            spacing={0}
-                            bg="input.white"
-                            borderRadius="full"
-                            border="1px solid"
-                            borderColor={isSubscribed ? 'brand.green' : 'border.lightGray'}
-                            transition="border-color 0.2s ease"
-                            pl={4}
-                            pr="5px"
-                            height="42px"
-                            align="center"
-                            _focusWithin={{
-                                borderColor: 'brand.green',
-                            }}
-                        >
-                            <Input
-                                type="email"
-                                placeholder="your@email.com"
-                                variant="unstyled"
-                                color="text.primary"
-                                height="100%"
-                                fontSize="sm"
-                                fontWeight="medium"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                disabled={isSubscribing || isSubscribed}
-                                _placeholder={{
-                                    color: 'text.muted',
-                                }}
-                                required
-                            />
-                            <IconButton
-                                type="submit"
-                                aria-label={isSubscribed ? 'Subscribed' : 'Subscribe'}
-                                icon={
-                                    <Icon
-                                        as={isSubscribed ? MdCheck : MdArrowForward}
-                                        boxSize={4}
-                                    />
-                                }
-                                bg="brand.green"
-                                color="white"
-                                size="sm"
+                        {isSubscribed ? (
+                            <HStack
+                                width="100%"
+                                spacing={2}
+                                justify="center"
+                                bg="rgba(54, 163, 123, 0.1)"
+                                border="1px solid"
+                                borderColor="brand.green"
                                 borderRadius="full"
-                                minW="32px"
-                                h="32px"
-                                flexShrink={0}
-                                isLoading={isSubscribing}
-                                disabled={isSubscribing || isSubscribed}
-                                _hover={{
-                                    bg: 'rgba(54, 163, 123, 0.85)',
-                                }}
-                            />
-                        </HStack>
+                                height="42px"
+                                px={4}
+                            >
+                                <Icon as={MdCheck} color="brand.green" boxSize={4} />
+                                <Text fontSize="sm" color="brand.green" fontWeight="bold">
+                                    You&apos;re on the list!
+                                </Text>
+                            </HStack>
+                        ) : (
+                            <>
+                                <HStack
+                                    width="100%"
+                                    spacing={2}
+                                    align="center"
+                                >
+                                    <Box flex={1} h="1px" bg="border.lightGray" />
+                                    <Text
+                                        fontSize="2xs"
+                                        color="text.muted"
+                                        fontWeight="bold"
+                                        letterSpacing="0.15em"
+                                        textTransform="uppercase"
+                                        whiteSpace="nowrap"
+                                    >
+                                        or get dealt in
+                                    </Text>
+                                    <Box flex={1} h="1px" bg="border.lightGray" />
+                                </HStack>
+                                <HStack
+                                    as="form"
+                                    onSubmit={handleEmailSubmit}
+                                    width="100%"
+                                    spacing={0}
+                                    bg="input.white"
+                                    borderRadius="full"
+                                    border="1px solid"
+                                    borderColor="border.lightGray"
+                                    transition="border-color 0.2s ease"
+                                    pl={4}
+                                    pr="5px"
+                                    height="42px"
+                                    align="center"
+                                    _focusWithin={{
+                                        borderColor: 'brand.green',
+                                    }}
+                                >
+                                    <Input
+                                        type="email"
+                                        placeholder="your@email.com"
+                                        variant="unstyled"
+                                        color="text.primary"
+                                        height="100%"
+                                        fontSize="sm"
+                                        fontWeight="medium"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        disabled={isSubscribing}
+                                        _placeholder={{ color: 'text.muted' }}
+                                        required
+                                    />
+                                    <IconButton
+                                        type="submit"
+                                        aria-label="Subscribe"
+                                        icon={<Icon as={MdArrowForward} boxSize={4} />}
+                                        bg="brand.green"
+                                        color="white"
+                                        size="sm"
+                                        borderRadius="full"
+                                        minW="32px"
+                                        h="32px"
+                                        flexShrink={0}
+                                        isLoading={isSubscribing}
+                                        disabled={isSubscribing}
+                                        _hover={{ bg: 'rgba(54, 163, 123, 0.85)' }}
+                                    />
+                                </HStack>
+                            </>
+                        )}
                     </VStack>
 
                     {/* Social Links */}

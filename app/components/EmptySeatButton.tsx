@@ -3,8 +3,6 @@ import {
     Button,
     Spinner,
     useDisclosure,
-    Text,
-    Box,
     Icon,
 } from '@chakra-ui/react';
 import TakeSeatModal from './TakeSeatModal';

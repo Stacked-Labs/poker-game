@@ -27,9 +27,11 @@
         "@react-three/drei": "^9.112.0",
         "@react-three/fiber": "^8.17.7",
         "@types/node": "^16",
+        "canvas-confetti": "^1.9.4",
         "dotenv": "^16.3.1",
         "ethers": "^6.9.1",
         "framer-motion": "^10.16.4",
+        "html-to-image": "^1.11.13",
         "next": "14.2.3",
         "react": "^18",
         "react-dom": "^18",
@@ -42,6 +44,7 @@
         "zustand": "^4.5.2"
     },
     "devDependencies": {
+        "@types/canvas-confetti": "^1.9.0",
         "@types/react": "^18",
         "@types/react-dom": "^18",
         "@types/three": "^0.168.0",

@@ -105,9 +105,7 @@ const Table = ({ tableId }: { tableId: string }) => {
     const router = useRouter();
     const toast = useToastHelper();
     const equityMap = useEquity();
-    const [tableStatus, setTableStatus] = useState<'checking' | 'success'>(
-        'checking'
-    );
+    const [, setTableStatus] = useState<'checking' | 'success'>('checking');
 
     const clearPotHighlightTimers = () => {
         potHighlightTimeouts.current.forEach((timeout) => {
@@ -248,6 +246,7 @@ const Table = ({ tableId }: { tableId: string }) => {
         appState.game?.betting,
         appState.game?.pots,
         appState.game?.running,
+        appState.game,
     ]);
 
     const isPlayerTurn = (player: Player): boolean => {

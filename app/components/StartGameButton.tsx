@@ -1,6 +1,6 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { SocketContext } from '../contexts/WebSocketProvider';
-import { isTableOwner, startGame } from '../hooks/server_actions';
+import { startGame } from '../hooks/server_actions';
 import { AppContext } from '../contexts/AppStoreProvider';
 import { Button, Tooltip, IconButton, Icon } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';

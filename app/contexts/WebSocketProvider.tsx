@@ -749,6 +749,7 @@ export function SocketProvider(props: SocketProviderProps) {
             setIsReconnecting(false);
             attemptReconnection(); // Safe to call here
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         WS_BASE_URL,
         tableId,
@@ -820,7 +821,6 @@ export function SocketProvider(props: SocketProviderProps) {
         maxReconnectionAttempts,
         getReconnectDelay,
         connectWebSocket,
-        isReconnecting,
     ]);
 
     useEffect(() => {
@@ -861,7 +861,7 @@ export function SocketProvider(props: SocketProviderProps) {
         if (socketRef.current !== socket) {
             setSocket(socketRef.current);
         }
-    }, [socket, socketRef.current]); // Watch socketRef.current as well
+    }, [socket]); // socketRef.current is intentionally excluded — mutable refs don't trigger re-renders
 
     // Handle visibility change (tab focus) and online/offline events
     // When user returns to the tab or network comes back, attempt reconnection

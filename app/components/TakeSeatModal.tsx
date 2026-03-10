@@ -20,7 +20,6 @@ import {
     HStack,
     Text,
     Heading,
-    Spinner,
     Image,
     Flex,
     Icon,

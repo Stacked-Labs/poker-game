@@ -109,7 +109,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const [inputUnit, setInputUnit] = useState<'chips' | 'usdc'>(
         isCryptoGame ? 'usdc' : 'chips'
     );
-    const { error, success } = useToastHelper();
+    const { error, deposit } = useToastHelper();
     const needsWalletSignIn = isCryptoGame && (!address || !isAuthenticated);
     const cryptoJoinHint = !address
         ? 'Sign in with your wallet to join this crypto game.'
@@ -241,10 +241,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
             if (depositSuccess) {
                 appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
-                success(
-                    'Deposit Successful',
-                    'Your deposit is being processed. You will be seated once approved.'
-                );
+                deposit(buyInValue);
                 onClose();
             } else {
                 // Error is already set in the hook, just show it

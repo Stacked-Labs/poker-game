@@ -13,6 +13,7 @@ import { isTableExisting } from '../hooks/server_actions';
 import useToastHelper from '../hooks/useToastHelper';
 import { useRouter } from 'next/navigation';
 import { useEquity } from '../hooks/useEquity';
+import SessionPointsBadge from './NavBar/SessionPointsBadge';
 
 const initialPlayers: (Player | null)[] = [
     null,
@@ -476,6 +477,23 @@ const Table = ({ tableId }: { tableId: string }) => {
                     <Felt activePotIndex={activePotIndex} />
                 </GridItem>
             </Grid>
+
+            {/* Session points HUD — top-right corner, crypto games only */}
+            {appState.game?.config?.crypto && (
+                <Box
+                    position="absolute"
+                    top={{ base: '52px', md: '60px' }}
+                    right={{ base: '8px', md: '12px' }}
+                    zIndex={10}
+                    pointerEvents="auto"
+                    sx={{
+                        '@media (orientation: portrait)': { display: 'none' },
+                        '@media (orientation: landscape)': { display: 'block' },
+                    }}
+                >
+                    <SessionPointsBadge />
+                </Box>
+            )}
         </Flex>
     );
 };

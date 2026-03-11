@@ -1,4 +1,4 @@
-// hooks/useToastHelper.ts
+// hooks/useToastHelper.tsx
 import { useToast } from '@chakra-ui/react';
 import {
     showSuccessToast,
@@ -8,10 +8,13 @@ import {
     showCustomToast,
 } from '../utils/toastConfig';
 import ConnectionLostToast from '../components/Toasts/ConnectionLostToast';
+import DepositSuccessToast from '../components/Toasts/DepositSuccessToast';
 import {
     CONNECTION_LOST_CONTAINER_STYLE,
     CONNECTION_LOST_TOAST_POSITION,
+    TOAST_BANNER_CONTAINER_STYLE,
     TOAST_BANNER_ID,
+    TOAST_BANNER_POSITION,
 } from '../utils/toastDefaults';
 
 const useToastHelper = () => {
@@ -80,7 +83,7 @@ const useToastHelper = () => {
             duration: duration ?? null, // null = persist until closed
             position: CONNECTION_LOST_TOAST_POSITION,
             containerStyle: CONNECTION_LOST_CONTAINER_STYLE,
-            render: ({ onClose }) => ConnectionLostToast({ onClose }),
+            render: ({ onClose }) => <ConnectionLostToast onClose={onClose} />,
         });
     };
 
@@ -96,7 +99,21 @@ const useToastHelper = () => {
         toast.closeAll();
     };
 
-    return { success, error, warning, info, connectionLost, close, closeAll };
+    const deposit = (amount: number) => {
+        const id = 'deposit-success';
+        if (toast.isActive(id)) toast.close(id);
+        showCustomToast(toast, {
+            id,
+            duration: null,
+            position: TOAST_BANNER_POSITION,
+            containerStyle: TOAST_BANNER_CONTAINER_STYLE,
+            render: ({ onClose }) => (
+                <DepositSuccessToast amount={amount} onClose={onClose} />
+            ),
+        });
+    };
+
+    return { success, error, warning, info, connectionLost, close, closeAll, deposit };
 };
 
 export default useToastHelper;

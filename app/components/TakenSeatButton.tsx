@@ -40,6 +40,8 @@ import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { buildSeatReactionMessage } from '@/app/utils/seatReaction';
 import EmotePicker from './NavBar/Chat/EmotePicker';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
+import FloatingPointsText from './Animations/FloatingPointsText';
+import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
 
 const pulseBorderPink = keyframes`
   0% {
@@ -385,6 +387,9 @@ const TakenSeatButton = ({
 
     const actionIndex = appState.game?.action;
 
+    // Floating points: read from store (only relevant for isSelf)
+    const showPointsAnimation = usePointsAnimationStore((s) => s.showAnimation);
+
     useEffect(() => {
         // Stop any timer if this seat is not the current turn
         if (!isCurrentTurn) {
@@ -644,6 +649,9 @@ const TakenSeatButton = ({
             alignItems={'center'}
             justifyContent={'center'}
         >
+            {/* Floating points text for self (crypto games) */}
+            {isSelf && showPointsAnimation && <FloatingPointsText />}
+
             {/* Away badge moved into player info container below */}
             <Flex
                 className="chip-position-container"

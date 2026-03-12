@@ -24,6 +24,7 @@ import { soundManager } from '../utils/SoundManager';
 import { formatGameEvent } from '../utils/formatGameEvent';
 import SeatRequestConflictModal from '../components/SeatRequestConflictModal';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
+import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
 import {
     getSeatReactionEmoteUrl,
     parseSeatReactionMessage,
@@ -101,6 +102,9 @@ export function SocketProvider(props: SocketProviderProps) {
     const hasShownInitialErrorRef = useRef(false);
     const settlementPendingTimerRef = useRef<NodeJS.Timeout | null>(null);
     const settlementSuccessTimerRef = useRef<NodeJS.Timeout | null>(null);
+    // Set to true while the local player has player.in === true during a running hand.
+    // Consumed at settlement-status: success so points only animate for actual participants.
+    const userWasInHandRef = useRef(false);
     const [seatRequestConflict, setSeatRequestConflict] = useState<{
         seatId: number | null;
         message?: string;
@@ -482,6 +486,11 @@ export function SocketProvider(props: SocketProviderProps) {
                                 p.uuid === appStateRef.current.clientID
                         );
 
+                        // Track whether the local player was dealt into this hand
+                        if (newGame.running && localPlayer?.in) {
+                            userWasInHandRef.current = true;
+                        }
+
                         const seatIndex = localPlayer
                             ? localPlayer.seatID - 1
                             : -1;
@@ -620,6 +629,15 @@ export function SocketProvider(props: SocketProviderProps) {
                                 clearTimeout(settlementSuccessTimerRef.current);
                             }
                             dispatch({ type: 'setSettlementStatus', payload: 'success' });
+                            // Trigger floating points animation only for crypto games
+                            // where the local player was actually dealt into the hand
+                            if (appStateRef.current.game?.config?.crypto && userWasInHandRef.current) {
+                                const bb = appStateRef.current.game?.config?.bb ?? 0;
+                                if (bb > 0) {
+                                    usePointsAnimationStore.getState().triggerPoints(bb);
+                                }
+                            }
+                            userWasInHandRef.current = false;
                             settlementSuccessTimerRef.current = setTimeout(() => {
                                 dispatch({ type: 'setSettlementStatus', payload: null });
                                 settlementSuccessTimerRef.current = null;

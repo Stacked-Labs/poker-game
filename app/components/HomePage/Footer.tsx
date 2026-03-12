@@ -17,7 +17,6 @@ import {
 import { Image } from '@chakra-ui/next-js';
 import { FaDiscord } from 'react-icons/fa';
 import { RiTwitterXLine } from 'react-icons/ri';
-import { HiLightningBolt } from 'react-icons/hi';
 import FloatingDecor from './FloatingDecor';
 
 const Footer = () => {

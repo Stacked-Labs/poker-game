@@ -14,7 +14,9 @@ import {
     Text,
     Badge,
     Heading,
+    Tooltip,
 } from '@chakra-ui/react';
+import { getTier, TIER_EMOJI } from './tierUtils';
 
 export interface LeaderboardEntry {
     rank: number;
@@ -46,11 +48,22 @@ const rankStyles: Record<
 
 const LeaderboardTable = ({
     data = [],
+    currentAddress,
+    total,
 }: {
     data?: LeaderboardEntry[];
+    currentAddress?: string;
+    total?: number;
 }) => {
     const truncateAddress = (addr: string) =>
         `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+
+    const normalizedCurrent = currentAddress?.toLowerCase();
+    const currentEntry = data.find(
+        (e) => e.address.toLowerCase() === normalizedCurrent
+    );
+    const currentRank = currentEntry?.rank;
+    const totalPlayers = total ?? data.length;
 
     const getRankBadge = (rank: number) => {
         const style = rankStyles[rank];
@@ -192,66 +205,164 @@ const LeaderboardTable = ({
                                 </Td>
                             </Tr>
                         )}
-                        {data.map((entry) => (
-                            <Tr
-                                key={entry.rank}
-                                _hover={{
-                                    transform: 'translateY(-1px)',
-                                    bg: 'card.white',
-                                    boxShadow:
-                                        '0 10px 20px rgba(12, 21, 49, 0.1)',
-                                    _dark: {
-                                        bg: 'legacy.grayLight',
-                                        boxShadow:
-                                            '0 12px 22px rgba(0, 0, 0, 0.45)',
-                                    },
-                                }}
-                                transition="all 0.2s ease"
-                            >
-                                <Td py={{ base: 3, md: 4 }}>
-                                    {getRankBadge(entry.rank)}
-                                </Td>
-                                <Td py={{ base: 3, md: 4 }}>
-                                    <HStack spacing={{ base: 2, md: 3 }}>
-                                        <Avatar
-                                            size={{ base: 'xs', md: 'sm' }}
-                                            border="2px solid"
-                                            borderColor="rgba(12, 21, 49, 0.15)"
-                                            _dark={{
-                                                borderColor:
-                                                    'rgba(255, 255, 255, 0.2)',
-                                            }}
-                                        />
+                        {data.map((entry) => {
+                            const isCurrentPlayer =
+                                normalizedCurrent &&
+                                entry.address.toLowerCase() === normalizedCurrent;
+
+                            const isRivalAbove =
+                                currentRank != null &&
+                                entry.rank === currentRank - 1 &&
+                                !isCurrentPlayer;
+
+                            const isRivalBelow =
+                                currentRank != null &&
+                                entry.rank === currentRank + 1 &&
+                                !isCurrentPlayer;
+
+                            const isRival = isRivalAbove || isRivalBelow;
+
+                            const tier = getTier(entry.rank, totalPlayers);
+                            const rivalGap = isRivalAbove
+                                ? entry.points - (currentEntry?.points ?? 0)
+                                : isRivalBelow
+                                    ? (currentEntry?.points ?? 0) - entry.points
+                                    : 0;
+
+                            return (
+                                <Tr
+                                    key={entry.rank}
+                                    position="relative"
+                                    borderLeft={isCurrentPlayer ? '3px solid' : isRival ? '2px dashed' : undefined}
+                                    borderLeftColor={
+                                        isCurrentPlayer
+                                            ? 'brand.green'
+                                            : isRival
+                                                ? 'brand.yellow'
+                                                : undefined
+                                    }
+                                    bg={
+                                        isCurrentPlayer
+                                            ? 'rgba(54, 163, 123, 0.06)'
+                                            : isRival
+                                                ? 'rgba(253, 197, 29, 0.04)'
+                                                : undefined
+                                    }
+                                    _hover={{
+                                        transform: 'translateY(-1px)',
+                                        bg: isCurrentPlayer
+                                            ? 'rgba(54, 163, 123, 0.1)'
+                                            : 'card.white',
+                                        boxShadow: '0 10px 20px rgba(12, 21, 49, 0.1)',
+                                        _dark: {
+                                            bg: 'legacy.grayLight',
+                                            boxShadow: '0 12px 22px rgba(0, 0, 0, 0.45)',
+                                        },
+                                    }}
+                                    transition="all 0.2s ease"
+                                >
+                                    {/* Rank */}
+                                    <Td py={{ base: 3, md: 4 }}>
+                                        <HStack spacing={2}>
+                                            {getRankBadge(entry.rank)}
+                                            {isCurrentPlayer && (
+                                                <Badge
+                                                    bg="brand.green"
+                                                    color="white"
+                                                    fontSize="2xs"
+                                                    px={2}
+                                                    py={0.5}
+                                                    borderRadius="full"
+                                                    fontWeight="bold"
+                                                >
+                                                    YOU
+                                                </Badge>
+                                            )}
+                                        </HStack>
+                                    </Td>
+
+                                    {/* Player */}
+                                    <Td py={{ base: 3, md: 4 }}>
+                                        <HStack spacing={{ base: 2, md: 3 }}>
+                                            <Avatar
+                                                size={{ base: 'xs', md: 'sm' }}
+                                                border="2px solid"
+                                                borderColor={
+                                                    isCurrentPlayer
+                                                        ? 'brand.green'
+                                                        : 'rgba(12, 21, 49, 0.15)'
+                                                }
+                                                _dark={{
+                                                    borderColor: isCurrentPlayer
+                                                        ? 'brand.green'
+                                                        : 'rgba(255, 255, 255, 0.2)',
+                                                }}
+                                            />
+                                            <Text
+                                                color={isCurrentPlayer ? 'brand.green' : 'text.primary'}
+                                                fontWeight={isCurrentPlayer ? 'bold' : 'medium'}
+                                                fontFamily="mono"
+                                                fontSize={{ base: 'xs', md: 'sm' }}
+                                            >
+                                                {truncateAddress(entry.address)}
+                                            </Text>
+                                            {/* Tier badge */}
+                                            <Tooltip
+                                                label={`${tier.label} tier`}
+                                                hasArrow
+                                                placement="top"
+                                                fontSize="xs"
+                                            >
+                                                <Text
+                                                    fontSize="md"
+                                                    lineHeight="1"
+                                                    cursor="default"
+                                                >
+                                                    {TIER_EMOJI[tier.name]}
+                                                </Text>
+                                            </Tooltip>
+                                            {/* Rival icon */}
+                                            {isRival && (
+                                                <Tooltip
+                                                    label={
+                                                        isRivalAbove
+                                                            ? `Your rival — ${rivalGap.toLocaleString()} pts ahead`
+                                                            : `Your rival — ${Math.abs(rivalGap).toLocaleString()} pts behind`
+                                                    }
+                                                    hasArrow
+                                                    placement="top"
+                                                    fontSize="xs"
+                                                >
+                                                    <Text fontSize="sm" cursor="default">⚔️</Text>
+                                                </Tooltip>
+                                            )}
+                                        </HStack>
+                                    </Td>
+
+                                    {/* Hands */}
+                                    <Td py={{ base: 3, md: 4 }} isNumeric>
                                         <Text
-                                            color="text.primary"
+                                            color="text.secondary"
                                             fontWeight="medium"
-                                            fontFamily="mono"
-                                            fontSize={{ base: 'xs', md: 'sm' }}
+                                            fontSize={{ base: 'sm', md: 'md' }}
                                         >
-                                            {truncateAddress(entry.address)}
+                                            {entry.handsPlayed.toLocaleString()}
                                         </Text>
-                                    </HStack>
-                                </Td>
-                                <Td py={{ base: 3, md: 4 }} isNumeric>
-                                    <Text
-                                        color="text.secondary"
-                                        fontWeight="medium"
-                                        fontSize={{ base: 'sm', md: 'md' }}
-                                    >
-                                        {entry.handsPlayed.toLocaleString()}
-                                    </Text>
-                                </Td>
-                                <Td py={{ base: 3, md: 4 }} isNumeric>
-                                    <Text
-                                        color="text.primary"
-                                        fontWeight="bold"
-                                        fontSize={{ base: 'md', md: 'lg' }}
-                                    >
-                                        {entry.points.toLocaleString()}
-                                    </Text>
-                                </Td>
-                            </Tr>
-                        ))}
+                                    </Td>
+
+                                    {/* Points */}
+                                    <Td py={{ base: 3, md: 4 }} isNumeric>
+                                        <Text
+                                            color={isCurrentPlayer ? 'brand.green' : 'text.primary'}
+                                            fontWeight="bold"
+                                            fontSize={{ base: 'md', md: 'lg' }}
+                                        >
+                                            {entry.points.toLocaleString()}
+                                        </Text>
+                                    </Td>
+                                </Tr>
+                            );
+                        })}
                     </Tbody>
                 </Table>
             </Box>

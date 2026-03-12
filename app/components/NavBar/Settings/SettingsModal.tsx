@@ -38,7 +38,6 @@ import HowTo from './HowTo';
 import Support from './Support';
 import { GameEventsProvider } from '@/app/contexts/GameEventsProvider';
 import { IconType } from 'react-icons/lib/iconBase';
-import { ColorModeButton } from '../../ColorModeButton';
 
 // Animations
 const fadeIn = keyframes`

@@ -10,7 +10,6 @@ import {
     ModalHeader,
     ModalOverlay,
     Text,
-    VStack,
 } from '@chakra-ui/react';
 
 type Props = {

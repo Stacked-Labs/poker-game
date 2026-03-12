@@ -25,6 +25,7 @@ const fadeIn = keyframes`
 const LeaderboardPage: React.FC = () => {
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [playerEntry, setPlayerEntry] = useState<LeaderboardEntry | undefined>(undefined);
+    const [total, setTotal] = useState(0);
     const [stats, setStats] = useState<UserStats>({ gamesCreated: 0, gamesPlayed: 0 });
     const [referralInfo, setReferralInfo] = useState<{
         count: number;
@@ -41,6 +42,7 @@ const LeaderboardPage: React.FC = () => {
             if (!cancelled) {
                 setEntries(res.leaderboard);
                 setPlayerEntry(res.player ?? undefined);
+                setTotal(res.total);
             }
         });
         if (account?.address) {
@@ -56,6 +58,18 @@ const LeaderboardPage: React.FC = () => {
 
         return () => { cancelled = true; };
     }, [account?.address]);
+
+    // Compute progress-to-next-rank props
+    const playerRank = playerEntry?.rank;
+    const playerPoints = playerEntry?.points ?? 0;
+    const playerAbove = playerRank != null
+        ? entries.find((e) => e.rank === playerRank - 1)
+        : undefined;
+    const pointsToNext = playerAbove != null
+        ? Math.max(0, playerAbove.points - playerPoints)
+        : undefined;
+    const nextRank = playerAbove?.rank;
+    const nextPoints = playerAbove?.points;
 
     return (
         <Box
@@ -112,10 +126,23 @@ const LeaderboardPage: React.FC = () => {
                     animation={`${fadeIn} 0.5s ease-out`}
                 >
                     <Box w="full" maxW={{ base: '100%', lg: '400px' }}>
-                        <PlayerCard rank={playerEntry?.rank} points={playerEntry?.points} stats={stats} referralInfo={referralInfo} />
+                        <PlayerCard
+                            rank={playerEntry?.rank}
+                            points={playerEntry?.points}
+                            stats={stats}
+                            referralInfo={referralInfo}
+                            pointsToNext={pointsToNext}
+                            nextRank={nextRank}
+                            nextPoints={nextPoints}
+                            total={total}
+                        />
                     </Box>
                     <Box flex="1" w="full">
-                        <LeaderboardTable data={entries} />
+                        <LeaderboardTable
+                            data={entries}
+                            currentAddress={account?.address}
+                            total={total}
+                        />
                     </Box>
                 </Stack>
             </Flex>

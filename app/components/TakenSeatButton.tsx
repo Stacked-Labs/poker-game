@@ -336,7 +336,7 @@ const TakenSeatButton = ({
     visualSeatId,
     isCurrentTurn,
     isWinner,
-    isRevealed,
+    isRevealed: _isRevealed,
     winnings,
     activePotIndex,
     equity,

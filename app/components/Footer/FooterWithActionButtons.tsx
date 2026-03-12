@@ -54,8 +54,6 @@ const FooterWithActionButtons = ({
     const { isOpen, onOpen, onClose } = useDisclosure();
     const game = appState.game;
     const players = game?.players ?? [];
-    const actingPlayer =
-        game && typeof game.action === 'number' ? players[game.action] : null;
     const localPlayer =
         players.find((player) => player.uuid === appState.clientID) ?? null;
     const playerBets = players.map((player) => player.bet);
@@ -159,6 +157,7 @@ const FooterWithActionButtons = ({
         };
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         gameIsPaused,
         queueMode,
@@ -238,6 +237,7 @@ const FooterWithActionButtons = ({
         }, AUTO_ACTION_DELAY_MS);
 
         return clearAutoActionTimeout;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         isCurrentTurn,
         localPlayer,

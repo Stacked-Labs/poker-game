@@ -2,6 +2,7 @@ import './globals.css';
 import { Providers } from './providers';
 import { Libre_Barcode_39_Text, Poppins } from 'next/font/google';
 import HomeNavBar from './components/HomePage/HomeNavBar';
+import PointsActivityFeed from './components/PointsActivityFeed';
 import React from 'react';
 import type { Metadata } from 'next';
 
@@ -64,6 +65,7 @@ export default function RootLayout({
                 <Providers>
                     <HomeNavBar />
                     <main>{children}</main>
+                    <PointsActivityFeed />
                 </Providers>
             </body>
         </html>

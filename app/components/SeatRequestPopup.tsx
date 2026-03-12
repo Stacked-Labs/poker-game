@@ -13,7 +13,7 @@ import {
     Text,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
 import { acceptPlayer, denyPlayer } from '@/app/hooks/server_actions';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -38,7 +38,7 @@ const SeatRequestPopup = () => {
     const isOwner = useIsTableOwner();
     const socket = useContext(SocketContext);
     const toast = useToastHelper();
-    const pendingPlayers = appState.pendingPlayers || [];
+    const pendingPlayers = useMemo(() => appState.pendingPlayers || [], [appState.pendingPlayers]);
     const showPopups = appState.showSeatRequestPopups;
     const isSettingsOpen = appState.isSettingsOpen;
     const [queue, setQueue] = useState<PendingPlayer[]>([]);

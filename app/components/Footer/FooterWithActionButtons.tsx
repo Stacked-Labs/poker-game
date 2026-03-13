@@ -232,7 +232,7 @@ const FooterWithActionButtons = ({
             }
 
             if (hasQueuedFold) {
-                handleFold();
+                canCheck ? onOpen() : handleFold();
             }
         }, AUTO_ACTION_DELAY_MS);
 

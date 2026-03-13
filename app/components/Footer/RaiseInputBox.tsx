@@ -88,7 +88,7 @@ const RaiseInputBox = ({
 
     // All hooks must be called before any early returns
     const [betValue, setBetValue] = useState<number>(sliderMinValue);
-    const [betInput, setBetInput] = useState<string>(sliderMinValue.toString());
+    const [betInput, setBetInput] = useState<string>(fromChips(sliderMinValue).toString());
 
     // Update both slider and input from controls (buttons/slider), clamped
     const setBetFromControl = useCallback(
@@ -310,6 +310,9 @@ const RaiseInputBox = ({
         );
     };
 
+    const unitLabel =
+        displayMode === 'bb' ? 'BB' : displayMode === 'usdc' ? 'USDC' : 'Chips';
+
     // Early return after all hooks are declared
     if (!appState.game) {
         return null;
@@ -372,32 +375,49 @@ const RaiseInputBox = ({
                     backdropFilter="blur(12px)"
                     boxShadow="0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                 >
-                    <Input
-                        className="raise-portrait-bet-input"
-                        ref={mobileInputRef}
-                        bg={'brand.navy'}
-                        border={'none'}
-                        fontSize="8cqw"
-                        size={'sm'}
-                        width={'100%'}
-                        height={'100%'}
-                        type="number"
-                        inputMode={displayMode === 'chips' ? 'numeric' : 'decimal'}
-                        step={displayMode === 'chips' ? undefined : 'any'}
-                        value={betInput}
-                        min={sliderMinValue}
-                        max={maxTotalBet}
-                        onChange={handleInputChange}
-                        onFocus={() => {
-                            isTypingRef.current = true;
-                        }}
-                        focusBorderColor={'brand.green'}
-                        textAlign={'center'}
-                        onBlur={handleInputOnBlur}
-                        py="1cqh"
-                        color="white"
-                        fontWeight="bold"
-                    />
+                    <Flex
+                        direction="column"
+                        width="100%"
+                        height="100%"
+                        alignItems="center"
+                        justifyContent="center"
+                        gap={0}
+                    >
+                        <Text
+                            fontSize="2.5cqw"
+                            color="rgba(255,255,255,0.5)"
+                            fontWeight="bold"
+                            lineHeight={1}
+                            mb="0.5cqh"
+                        >
+                            {unitLabel}
+                        </Text>
+                        <Input
+                            className="raise-portrait-bet-input"
+                            ref={mobileInputRef}
+                            bg={'brand.navy'}
+                            border={'none'}
+                            fontSize="8cqw"
+                            size={'sm'}
+                            width={'100%'}
+                            type="number"
+                            inputMode={displayMode === 'chips' ? 'numeric' : 'decimal'}
+                            step={displayMode === 'chips' ? undefined : 'any'}
+                            value={betInput}
+                            min={sliderMinValue}
+                            max={maxTotalBet}
+                            onChange={handleInputChange}
+                            onFocus={() => {
+                                isTypingRef.current = true;
+                            }}
+                            focusBorderColor={'brand.green'}
+                            textAlign={'center'}
+                            onBlur={handleInputOnBlur}
+                            py="1cqh"
+                            color="white"
+                            fontWeight="bold"
+                        />
+                    </Flex>
                 </Box>
                 {/* pot-size quick buttons in two rows, two buttons each, right-aligned in landscape */}
                 <Flex
@@ -670,7 +690,7 @@ const RaiseInputBox = ({
                             color="white"
                             fontWeight="bold"
                         >
-                            Bet
+                            {unitLabel}
                         </Text>
                         <Input
                             bg={'brand.navy'}

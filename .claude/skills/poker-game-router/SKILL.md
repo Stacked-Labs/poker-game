@@ -38,6 +38,14 @@ Use `web3-thirdweb-siwe` when:
 - Debugging auth loops, signature issues, disconnect behavior, or CSP issues
 - Updating `next.config.js` CSP headers related to thirdweb embedded wallet
 
+### Storybook / component visualization
+
+Use `storybook-testing` when:
+- Writing or updating `.stories.tsx` files
+- Doing a visual review pass of new components
+- Needing to see a component in multiple states without a running backend
+- Checking how a component looks in dark vs light mode
+
 ### “Quality bar” / production readiness
 
 Use `frontend-quality-bar` when:

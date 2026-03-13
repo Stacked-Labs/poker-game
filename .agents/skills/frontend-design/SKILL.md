@@ -8,6 +8,26 @@ This skill guides creation of distinctive, production-grade frontend interfaces 
 
 The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
 
+## Stacked Poker: Repo constraints (read first for in-repo work)
+
+When building UI for this repo, the design direction is **already defined** — match the brand, don't invent a new aesthetic:
+
+- **Chakra UI v2** is the component library. Use Chakra props, semantic tokens, and component variants from `app/theme.ts`.
+- **Font**: Poppins (`var(--font-poppins)`) — do not introduce new fonts.
+- **Brand colors** (from `app/theme.ts`):
+  - Navy: `brand.navy` (`#334479`) — primary backgrounds and text
+  - Dark navy: `brand.darkNavy` (`#0B1430`) — deep backgrounds
+  - Pink: `brand.pink` (`#EB0B5C`) — accent, CTAs, focus, hover
+  - Green: `brand.green` (`#36A37B`) — success, positive actions, glow
+  - Yellow: `brand.yellow` (`#FDC51D`) — chips, highlights, warnings
+  - Light gray: `brand.lightGray` (`#ECEEF5`) — light surfaces, borders
+- **Aesthetic direction**: Premium gaming / crypto-native. Dark-mode-first. Clean layout with accent glows (`glow-green`, `glow-pink`, `glow-yellow` shadows). Glassmorphism on surfaces (`glass` shadow). Subtle lift/scale on interactive elements.
+- **No hardcoded hex values** — always use theme tokens or `brand.*` colors.
+- **Never introduce new global fonts, CSS variables, or color palettes** that bypass the theme system.
+- Use `chakra-design-system` skill for token/variant reference, and `react-architecture` skill for component patterns.
+
+The guidelines below apply when building standalone UI (outside this repo), or when introducing new design elements that genuinely have no existing theme precedent.
+
 ## Design Thinking
 
 Before coding, understand the context and commit to a BOLD aesthetic direction:

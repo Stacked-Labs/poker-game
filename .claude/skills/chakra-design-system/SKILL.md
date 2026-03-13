@@ -31,4 +31,5 @@ description: Build and refactor UI in this repo using Chakra UI v2 + Emotion and
 - For tokens, variants, and how to name colors: read `references/theme-and-tokens.md`.
 - For component composition patterns used in this repo: read `references/component-patterns.md`.
 - For starter templates: copy from `assets/`.
+- For React hooks, state, TypeScript, and Next.js patterns: load the `react-architecture` skill.
 

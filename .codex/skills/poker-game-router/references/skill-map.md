@@ -4,7 +4,8 @@
 
 - **“Chakra”, “theme”, “semanticTokens”, “variant”, “toastOptions”, “ColorMode”** → `chakra-design-system`
 - **“thirdweb”, “ConnectButton”, “embedded wallet”, “inAppWallet”, “SIWE”, “sign message”, “USDC”, “Base”** → `web3-thirdweb-siwe`
-- **“perf”, “a11y”, “Lighthouse”, “CLS/LCP”, “cleanup”, “production polish”** → `frontend-quality-bar`
+- **”perf”, “a11y”, “Lighthouse”, “CLS/LCP”, “cleanup”, “production polish”** → `frontend-quality-bar`
+- **”hook”, “state”, “useEffect”, “useCallback”, “Server Component”, “Client Component”, “TypeScript”, “interface”, “form”, “error boundary”, “Zustand selector”** → `react-architecture`
 
 ## Minimal-file-first strategy
 

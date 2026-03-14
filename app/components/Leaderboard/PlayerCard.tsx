@@ -17,14 +17,24 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { useActiveAccount } from 'thirdweb/react';
-import { FaWallet, FaTrophy } from 'react-icons/fa';
+import { FaWallet, FaTrophy, FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
+import { FaMedal } from 'react-icons/fa6';
+import type { IconType } from 'react-icons';
 import WalletButton from '../WalletButton';
 import StatsSection from './StatsSection';
 import ReferralCodeSection from './ReferralCodeSection';
 import ShareRankCard from './ShareRankCard';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useRankHistory } from '@/app/hooks/useRankHistory';
-import { getTier, TIER_EMOJI } from './tierUtils';
+import { getTier } from './tierUtils';
+
+const TIER_ICON: Record<string, IconType> = {
+    diamond: FaGem,
+    gold:    FaCrown,
+    silver:  FaMedal,
+    bronze:  FaAward,
+    iron:    FaBolt,
+};
 
 import type { UserStats } from './StatsSection';
 
@@ -209,7 +219,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                                                     cursor: 'default',
                                                 }}
                                             >
-                                                {TIER_EMOJI[tier.name]} {tier.label}
+                                                <Icon as={TIER_ICON[tier.name]} mr={1} /> {tier.label}
                                             </Badge>
                                         </Tooltip>
                                     )}

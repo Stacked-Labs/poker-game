@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Box, Flex, Text, Tooltip } from '@chakra-ui/react';
+import { Box, Flex, Text, Tooltip, useColorModeValue } from '@chakra-ui/react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { keyframes } from '@emotion/react';
 import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
@@ -19,25 +19,15 @@ const HEAT_ACCENT: Record<HeatLevel, string> = {
     cold:       '#36A37B',
     warm:       '#36A37B',
     hot:        '#FDC51D',
-    overcharge: '#8B5CF6',
+    overcharge: '#EB0B5C',
 };
 
 const HEAT_GLOW: Record<HeatLevel, string> = {
     cold:       '0 0 8px rgba(54,163,123,0.25)',
     warm:       '0 0 14px rgba(54,163,123,0.55)',
     hot:        '0 0 18px rgba(253,197,29,0.55)',
-    overcharge: '0 0 24px rgba(139,92,246,0.75), 0 0 48px rgba(139,92,246,0.3)',
+    overcharge: '0 0 24px rgba(235,11,92,0.75), 0 0 48px rgba(235,11,92,0.3)',
 };
-
-const sparkAnim = keyframes`
-  0%, 85%, 100% { opacity: 1; }
-  93% { opacity: 0.2; box-shadow: 0 0 10px currentColor; }
-`;
-
-const heartbeatAnim = keyframes`
-  0%, 100% { filter: brightness(1) saturate(1); }
-  50%       { filter: brightness(1.5) saturate(1.3); }
-`;
 
 const pylonBar = keyframes`
   0%, 100% { transform: scaleY(0.5); opacity: 0.4; }
@@ -61,6 +51,10 @@ export default function SessionPointsBadge() {
     const accent = HEAT_ACCENT[heat];
     const glow = HEAT_GLOW[heat];
 
+    const badgeBg = useColorModeValue('rgba(236, 238, 245, 0.95)', 'rgba(6, 8, 18, 0.88)');
+const numberColor = useColorModeValue('brand.darkNavy', 'white');
+    const tooltipBg = useColorModeValue('brand.darkNavy', 'gray.700');
+
     useEffect(() => {
         const diff = sessionTotal - prevTotalRef.current;
         if (diff > 0) {
@@ -76,16 +70,13 @@ export default function SessionPointsBadge() {
         prevTotalRef.current = sessionTotal;
     }, [sessionTotal]);
 
-    const isOvercharge = heat === 'overcharge';
-    const isWarm = heat === 'warm';
-
     return (
         <Tooltip
             label="Leaderboard points earned this session. Awarded each hand — equal to the big blind."
             placement="top"
             hasArrow
             fontSize="xs"
-            bg="brand.darkNavy"
+            bg={tooltipBg}
             color="white"
             borderRadius="md"
             px={3}
@@ -98,29 +89,12 @@ export default function SessionPointsBadge() {
                 display="inline-flex"
                 cursor="default"
                 userSelect="none"
-                // Trapezoid: angled top-left corner
-                clipPath="polygon(10% 0%, 100% 0%, 100% 100%, 0% 100%)"
-                bg="rgba(6, 8, 18, 0.88)"
+                bg={badgeBg}
                 sx={{
                     backdropFilter: 'blur(10px)',
-                    // Grid texture overlay
-                    backgroundImage: `
-                        repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(255,255,255,0.02) 8px, rgba(255,255,255,0.02) 9px),
-                        repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(255,255,255,0.02) 8px, rgba(255,255,255,0.02) 9px)
-                    `,
-                    // Right accent border
                     borderRight: `2.5px solid ${accent}`,
                     borderBottom: `1px solid ${accent}44`,
                     boxShadow: `inset -1px 0 0 ${accent}22, ${glow}`,
-                    // Heat-level animations
-                    animation: isOvercharge
-                        ? `${heartbeatAnim} 1.2s ease-in-out infinite`
-                        : isWarm
-                          ? `${sparkAnim} 3s ease-in-out infinite`
-                          : undefined,
-                    // Subtle 3D tilt
-                    transform: 'perspective(300px) rotateX(3deg)',
-                    transformOrigin: 'top center',
                 }}
                 px={3}
                 pt="6px"
@@ -164,10 +138,9 @@ export default function SessionPointsBadge() {
                             fontWeight={700}
                             letterSpacing="0.18em"
                             textTransform="uppercase"
-                            color={`${accent}99`}
+                            color={`${accent}dd`}
                             lineHeight={1}
                             mb="1px"
-                            sx={{ fontFamily: 'monospace' }}
                         >
                             SESSION
                         </Text>
@@ -184,10 +157,10 @@ export default function SessionPointsBadge() {
                                         transition={{ duration: 0.18, ease: 'easeOut' }}
                                         fontSize="13px"
                                         fontWeight={800}
-                                        color="white"
+                                        color={numberColor}
                                         lineHeight={1}
                                         display="block"
-                                        sx={{ fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums' }}
+                                        sx={{ fontVariantNumeric: 'tabular-nums' }}
                                     >
                                         {sessionTotal.toLocaleString('en-US')}
                                     </MotionText>
@@ -196,10 +169,9 @@ export default function SessionPointsBadge() {
                             <Text
                                 fontSize="9px"
                                 fontWeight={700}
-                                color={`${accent}cc`}
+                                color={accent}
                                 lineHeight={1}
                                 letterSpacing="0.1em"
-                                sx={{ fontFamily: 'monospace' }}
                             >
                                 PTS
                             </Text>
@@ -218,7 +190,8 @@ export default function SessionPointsBadge() {
                             transition={{ duration: 0.2 }}
                             position="absolute"
                             top="-18px"
-                            right="6px"
+                            left="50%"
+                            sx={{ transform: 'translateX(-50%)' }}
                             pointerEvents="none"
                         >
                             <Text

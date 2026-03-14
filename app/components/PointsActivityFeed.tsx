@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Box, HStack, Text, Avatar } from '@chakra-ui/react';
+import { Box, HStack, Text, Avatar, useColorModeValue, Icon } from '@chakra-ui/react';
+import { FaBolt } from 'react-icons/fa';
 import { usePathname } from 'next/navigation';
 import { keyframes } from '@emotion/react';
 
@@ -11,13 +12,21 @@ const MIN_GAP_MS = 5_000;
 const MAX_GAP_MS = 12_000;
 
 const slideIn = keyframes`
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  0%   { transform: translateY(20px) scale(0.94); opacity: 0; }
+  60%  { transform: translateY(-4px) scale(1.02); opacity: 1; }
+  100% { transform: translateY(0)    scale(1);    opacity: 1; }
 `;
 
 const slideOut = keyframes`
-  from { transform: translateY(0);    opacity: 1; }
-  to   { transform: translateY(20px); opacity: 0; }
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(20px); opacity: 0; }
+`;
+
+// Pulsing live dot
+const livePing = keyframes`
+  0%   { box-shadow: 0 0 0 0   rgba(54,163,123,0.9); }
+  70%  { box-shadow: 0 0 0 6px rgba(54,163,123,0);   }
+  100% { box-shadow: 0 0 0 0   rgba(54,163,123,0);   }
 `;
 
 interface PointsEvent {
@@ -29,6 +38,21 @@ interface PointsEvent {
 
 function truncate(addr: string) {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
+
+const AVATAR_COLORS = [
+    '#6C63FF', '#E85D75', '#F4A261', '#2A9D8F', '#E76F51',
+    '#457B9D', '#9B5DE5', '#8338EC', '#FB5607', '#3A86FF',
+];
+
+function avatarColor(addr: string): string {
+    let hash = 0;
+    for (let i = 0; i < addr.length; i++) hash = addr.charCodeAt(i) + ((hash << 5) - hash);
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function avatarInitials(addr: string): string {
+    return addr.slice(2, 4).toUpperCase();
 }
 
 function randomGap() {
@@ -45,8 +69,12 @@ export default function PointsActivityFeed() {
     const gapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const backendUrl = process.env.NEXT_PUBLIC_API_URL;
 
-    // Only show on the landing page
     const visible = pathname === '/';
+
+    const pillBg = useColorModeValue('rgba(255,255,255,0.97)', 'rgba(7, 11, 28, 0.97)');
+    const pillBorder = useColorModeValue('rgba(54,163,123,0.35)', 'rgba(54,163,123,0.4)');
+    const labelColor = useColorModeValue('rgba(0,0,0,0.38)', 'rgba(255,255,255,0.38)');
+    const addressColor = useColorModeValue('rgba(0,0,0,0.38)', 'rgba(255,255,255,0.38)');
 
     const fetchLeaderboard = useCallback(async () => {
         if (!backendUrl) return;
@@ -62,7 +90,6 @@ export default function PointsActivityFeed() {
             for (const entry of data.leaderboard) {
                 const prev = prevSnapshot.current.get(entry.address);
                 if (isFirstFetch) {
-                    // Seed with top 5 as "intro" events (no delta)
                     if (events.length < 5) {
                         events.push({
                             id: `${entry.address}-seed-${Date.now()}-${events.length}`,
@@ -89,7 +116,6 @@ export default function PointsActivityFeed() {
         }
     }, [backendUrl]);
 
-    // Poll for updates
     useEffect(() => {
         if (!visible) return;
         fetchLeaderboard();
@@ -97,7 +123,6 @@ export default function PointsActivityFeed() {
         return () => clearInterval(interval);
     }, [visible, fetchLeaderboard]);
 
-    // Display loop: dequeue → show → hide → wait gap → repeat
     const showNext = useCallback(() => {
         setQueue((q) => {
             if (q.length === 0) return q;
@@ -105,21 +130,18 @@ export default function PointsActivityFeed() {
             setCurrent(next);
             setHiding(false);
 
-            // Schedule hide
             displayTimer.current = setTimeout(() => {
                 setHiding(true);
-                // After hide animation (300ms), clear and schedule next
                 setTimeout(() => {
                     setCurrent(null);
                     gapTimer.current = setTimeout(showNext, randomGap());
-                }, 300);
+                }, 350);
             }, DISPLAY_DURATION_MS);
 
             return rest;
         });
     }, []);
 
-    // Kick off the display loop whenever queue gets a first item
     useEffect(() => {
         if (!visible) return;
         if (current === null && queue.length > 0 && !gapTimer.current) {
@@ -127,7 +149,6 @@ export default function PointsActivityFeed() {
         }
     }, [visible, queue, current, showNext]);
 
-    // Cleanup
     useEffect(() => {
         return () => {
             if (displayTimer.current) clearTimeout(displayTimer.current);
@@ -137,60 +158,104 @@ export default function PointsActivityFeed() {
 
     if (!visible || !current) return null;
 
+    const color = avatarColor(current.address);
+
     return (
         <Box
             position="fixed"
             bottom={{ base: 4, md: 6 }}
             left={{ base: 4, md: 6 }}
             zIndex={200}
-            animation={`${hiding ? slideOut : slideIn} 0.3s ease forwards`}
+            animation={`${hiding ? slideOut : slideIn} 0.4s ease forwards`}
             pointerEvents="none"
         >
             <Box
-                bg="rgba(11, 20, 48, 0.92)"
-                backdropFilter="blur(12px)"
-                border="1px solid rgba(54, 163, 123, 0.35)"
-                borderRadius="14px"
+                bg={pillBg}
+                backdropFilter="blur(20px)"
+                border="1px solid"
+                borderColor={pillBorder}
+                borderRadius="18px"
                 px={4}
-                py={3}
-                boxShadow="0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(54,163,123,0.1)"
-                maxW="300px"
+                py="14px"
+                maxW="290px"
+                boxShadow="0 8px 32px rgba(0,0,0,0.2)"
             >
-                <HStack spacing={3} align="center">
+
+                <HStack spacing={3} align="center" position="relative">
+                    {/* Avatar — poker chip style via layered box-shadow */}
                     <Avatar
-                        size="sm"
-                        border="2px solid"
-                        borderColor="brand.green"
+                        size="md"
+                        bg={color}
+                        color="white"
+                        name={avatarInitials(current.address)}
+                        getInitials={() => avatarInitials(current.address)}
                         flexShrink={0}
+                        fontWeight="800"
+                        fontSize="sm"
+                        style={{
+                            boxShadow: `0 0 0 2px rgba(255,255,255,0.14), 0 0 0 4px ${color}55, 0 0 16px ${color}50`,
+                        }}
                     />
-                    <Box>
+
+                    <Box flex={1} minW={0}>
+                        {/* Header row */}
+                        <HStack spacing={1.5} mb="3px" align="center">
+                            <Text
+                                fontSize="11px"
+                                letterSpacing="0.06em"
+                                textTransform="uppercase"
+                                color={labelColor}
+                                fontWeight="700"
+                                lineHeight={1}
+                            >
+                                <Icon as={FaBolt} mr="4px" boxSize="9px" />Just earned
+                            </Text>
+                            {/* Live indicator */}
+                            <Box
+                                w="5px"
+                                h="5px"
+                                borderRadius="full"
+                                bg="brand.green"
+                                flexShrink={0}
+                                animation={`${livePing} 1.6s ease-in-out infinite`}
+                            />
+                        </HStack>
+
+                        {/* Address */}
                         <Text
-                            color="rgba(255,255,255,0.6)"
-                            fontSize="10px"
-                            letterSpacing="0.1em"
-                            textTransform="uppercase"
-                            mb={0.5}
-                        >
-                            🃏 Points earned
-                        </Text>
-                        <Text
-                            color="white"
-                            fontSize="sm"
-                            fontWeight="semibold"
+                            fontSize="11px"
                             fontFamily="mono"
-                            lineHeight="1.3"
+                            color={addressColor}
+                            letterSpacing="0.03em"
+                            lineHeight={1}
+                            mb="3px"
+                            noOfLines={1}
                         >
                             {truncate(current.address)}
                         </Text>
-                        <Text
-                            color="#36A37B"
-                            fontSize="xs"
-                            fontWeight="bold"
+
+                        {/* Points badge */}
+                        <Box
+                            display="inline-flex"
+                            alignItems="center"
+                            px="10px"
+                            py="4px"
+                            bg="linear-gradient(135deg, #36A37B 0%, #1f7a59 100%)"
+                            borderRadius="full"
+                            boxShadow="0 2px 8px rgba(54,163,123,0.4)"
                         >
-                            {current.delta != null
-                                ? `+${current.delta.toLocaleString()} pts`
-                                : `${current.points.toLocaleString()} pts total`}
-                        </Text>
+                            <Text
+                                fontSize="12px"
+                                fontWeight="700"
+                                color="white"
+                                letterSpacing="0.02em"
+                                lineHeight={1}
+                            >
+                                {current.delta != null
+                                    ? `+${current.delta.toLocaleString()} pts`
+                                    : `${current.points.toLocaleString()} pts`}
+                            </Text>
+                        </Box>
                     </Box>
                 </HStack>
             </Box>

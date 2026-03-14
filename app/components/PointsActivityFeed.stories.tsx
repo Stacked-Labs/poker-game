@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, HStack, Text, Avatar } from '@chakra-ui/react';
+import { Box, HStack, Text, Avatar, useColorModeValue, Icon } from '@chakra-ui/react';
+import { FaBolt } from 'react-icons/fa';
 import { keyframes } from '@emotion/react';
 
 // ─────────────────────────────────────────────────────────
@@ -13,14 +14,37 @@ import { keyframes } from '@emotion/react';
 // ─────────────────────────────────────────────────────────
 
 const slideIn = keyframes`
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  0%   { transform: translateY(20px) scale(0.94); opacity: 0; }
+  60%  { transform: translateY(-4px) scale(1.02); opacity: 1; }
+  100% { transform: translateY(0)    scale(1);    opacity: 1; }
 `;
 
 const slideOut = keyframes`
-  from { transform: translateY(0);    opacity: 1; }
-  to   { transform: translateY(20px); opacity: 0; }
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(20px); opacity: 0; }
 `;
+
+// Pulsing live dot
+const livePing = keyframes`
+  0%   { box-shadow: 0 0 0 0   rgba(54,163,123,0.9); }
+  70%  { box-shadow: 0 0 0 6px rgba(54,163,123,0);   }
+  100% { box-shadow: 0 0 0 0   rgba(54,163,123,0);   }
+`;
+
+const AVATAR_COLORS = [
+    '#6C63FF', '#E85D75', '#F4A261', '#2A9D8F', '#E76F51',
+    '#457B9D', '#9B5DE5', '#8338EC', '#FB5607', '#3A86FF',
+];
+
+function avatarColor(addr: string): string {
+    let hash = 0;
+    for (let i = 0; i < addr.length; i++) hash = addr.charCodeAt(i) + ((hash << 5) - hash);
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function avatarInitials(addr: string): string {
+    return addr.slice(2, 4).toUpperCase();
+}
 
 interface FeedPillProps {
     address: string;
@@ -30,53 +54,103 @@ interface FeedPillProps {
 }
 
 function FeedPill({ address, points, delta, hiding = false }: FeedPillProps) {
+    const color = avatarColor(address);
     const truncated = `${address.slice(0, 6)}...${address.slice(-4)}`;
+    const pillBg = useColorModeValue('rgba(255,255,255,0.97)', 'rgba(7, 11, 28, 0.97)');
+    const pillBorder = useColorModeValue('rgba(54,163,123,0.35)', 'rgba(54,163,123,0.4)');
+    const labelColor = useColorModeValue('rgba(0,0,0,0.38)', 'rgba(255,255,255,0.38)');
+
     return (
         <Box
-            animation={`${hiding ? slideOut : slideIn} 0.3s ease forwards`}
+            animation={`${hiding ? slideOut : slideIn} 0.4s ease forwards`}
             pointerEvents="none"
         >
             <Box
-                bg="rgba(11, 20, 48, 0.92)"
-                backdropFilter="blur(12px)"
-                border="1px solid rgba(54, 163, 123, 0.35)"
-                borderRadius="14px"
+                bg={pillBg}
+                backdropFilter="blur(20px)"
+                border="1px solid"
+                borderColor={pillBorder}
+                borderRadius="18px"
                 px={4}
-                py={3}
-                boxShadow="0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(54,163,123,0.1)"
-                maxW="300px"
+                py="14px"
+                maxW="290px"
+                boxShadow="0 8px 32px rgba(0,0,0,0.2)"
             >
                 <HStack spacing={3} align="center">
+                    {/* Avatar — poker chip style */}
                     <Avatar
-                        size="sm"
-                        border="2px solid"
-                        borderColor="brand.green"
+                        size="md"
+                        bg={color}
+                        color="white"
+                        name={avatarInitials(address)}
+                        getInitials={() => avatarInitials(address)}
                         flexShrink={0}
+                        fontWeight="800"
+                        fontSize="sm"
+                        style={{
+                            boxShadow: `0 0 0 2px rgba(255,255,255,0.14), 0 0 0 4px ${color}55, 0 0 14px ${color}45`,
+                        }}
                     />
-                    <Box>
+
+                    <Box flex={1} minW={0}>
+                        {/* Header row */}
+                        <HStack spacing={1.5} mb="3px" align="center">
+                            <Text
+                                fontSize="11px"
+                                letterSpacing="0.06em"
+                                textTransform="uppercase"
+                                color={labelColor}
+                                fontWeight="700"
+                                lineHeight={1}
+                            >
+                                <Icon as={FaBolt} mr="4px" boxSize="9px" />Just earned
+                            </Text>
+                            {/* Live indicator */}
+                            <Box
+                                w="5px"
+                                h="5px"
+                                borderRadius="full"
+                                bg="brand.green"
+                                flexShrink={0}
+                                animation={`${livePing} 1.6s ease-in-out infinite`}
+                            />
+                        </HStack>
+
+                        {/* Address */}
                         <Text
-                            color="rgba(255,255,255,0.6)"
-                            fontSize="10px"
-                            letterSpacing="0.1em"
-                            textTransform="uppercase"
-                            mb={0.5}
-                        >
-                            🃏 Points earned
-                        </Text>
-                        <Text
-                            color="white"
-                            fontSize="sm"
-                            fontWeight="semibold"
+                            fontSize="11px"
                             fontFamily="mono"
-                            lineHeight="1.3"
+                            color={labelColor}
+                            letterSpacing="0.03em"
+                            lineHeight={1}
+                            mb="3px"
+                            noOfLines={1}
                         >
                             {truncated}
                         </Text>
-                        <Text color="#36A37B" fontSize="xs" fontWeight="bold">
-                            {delta != null
-                                ? `+${delta.toLocaleString()} pts`
-                                : `${points.toLocaleString()} pts total`}
-                        </Text>
+
+                        {/* Points badge */}
+                        <Box
+                            display="inline-flex"
+                            alignItems="center"
+                            px="10px"
+                            py="4px"
+                            bg="linear-gradient(135deg, #36A37B 0%, #1f7a59 100%)"
+                            borderRadius="full"
+                            boxShadow="0 2px 8px rgba(54,163,123,0.4)"
+                        >
+                            <Text
+                                fontSize="12px"
+                                fontWeight="700"
+                                color="white"
+                                letterSpacing="0.02em"
+                                lineHeight={1}
+                            >
+                                {delta != null
+                                    ? `+${delta.toLocaleString()} pts`
+                                    : `${points.toLocaleString()} pts`}
+                            </Text>
+                        </Box>
                     </Box>
                 </HStack>
             </Box>
@@ -95,7 +169,6 @@ const MOCK_EVENTS = [
 
 const meta = {
     title: 'Components/PointsActivityFeed',
-    // Using a wrapper component since the real one is API/pathname-gated
     component: FeedPill,
     tags: ['autodocs'],
     parameters: {
@@ -109,19 +182,24 @@ const meta = {
         nextjs: { navigation: { pathname: '/' } },
     },
     decorators: [
-        (Story: React.FC) => (
-            <div
-                style={{
-                    background: 'linear-gradient(135deg, #f0f4f8 0%, #e8edf2 100%)',
-                    minHeight: '100vh',
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    padding: 24,
-                }}
-            >
-                <Story />
-            </div>
-        ),
+        (Story: React.FC) => {
+            const bg = document.documentElement.classList.contains('chakra-ui-dark')
+                ? 'linear-gradient(135deg, #0d1117 0%, #1a2035 100%)'
+                : 'linear-gradient(135deg, #f0f4f8 0%, #e8edf2 100%)';
+            return (
+                <div
+                    style={{
+                        background: bg,
+                        minHeight: '100vh',
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        padding: 24,
+                    }}
+                >
+                    <Story />
+                </div>
+            );
+        },
     ],
 } satisfies Meta<typeof FeedPill>;
 
@@ -161,10 +239,10 @@ function AutoCycleFeed() {
             timer.current = setTimeout(() => {
                 setIndex((i) => (i + 1) % MOCK_EVENTS.length);
                 setHiding(false);
-                timer.current = setTimeout(cycle, 3000);
-            }, 350);
+                timer.current = setTimeout(cycle, 3500);
+            }, 400);
         };
-        timer.current = setTimeout(cycle, 3000);
+        timer.current = setTimeout(cycle, 3500);
         return () => { if (timer.current) clearTimeout(timer.current); };
     }, []);
 

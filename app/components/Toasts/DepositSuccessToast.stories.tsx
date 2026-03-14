@@ -23,6 +23,10 @@ const meta = {
             control: false,
             description: 'Optional formatter — defaults to toLocaleString',
         },
+        isCrypto: {
+            control: 'boolean',
+            description: 'When true, omits the word "chips" (used for USDC games)',
+        },
     },
     args: {
         amount: 100,
@@ -40,7 +44,7 @@ const meta = {
         docs: {
             description: {
                 component:
-                    'Full-width banner toast shown after a successful deposit. Features a glitch text effect ("Cr3d1ts 1nj3ct3d" → "Credits Injected"), animated counter, scan-line overlay, and auto-closes after the configured duration. Uses `brand.green` background.',
+                    'Full-width banner toast shown after a successful deposit. Features an animated counter, scan-line overlay, and auto-closes after the configured duration. Pass `isCrypto` to omit the word "chips" for USDC games. Uses `brand.green` background.',
             },
         },
         layout: 'fullscreen',
@@ -70,6 +74,7 @@ export const CustomFormat: Story = {
     args: {
         amount: 50,
         formatAmount: (n: number) => `$${n.toFixed(2)} USDC`,
+        isCrypto: true,
     },
 };
 

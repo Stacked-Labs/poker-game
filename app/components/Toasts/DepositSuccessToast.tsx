@@ -1,19 +1,14 @@
 'use client';
 
-import { Box, CloseButton, Flex, Text } from '@chakra-ui/react';
+import { Box, CloseButton, Flex, Icon, Text } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
+import { FaCoins } from 'react-icons/fa';
 import { useEffect, useRef, useState } from 'react';
 import { animate } from 'framer-motion';
 import {
     TOAST_BANNER_ANIMATION_MS,
     TOAST_BANNER_DURATION_MS,
 } from '@/app/utils/toastDefaults';
-
-const GLITCH_STRINGS = [
-    'Cr3d1ts 1nj3ct3d',
-    'Cred!ts Inj#cted',
-    'Credits Injected',
-];
 
 const slideDown = keyframes`
   from { transform: translateY(-100%); opacity: 0; }
@@ -34,11 +29,11 @@ type Props = {
     amount: number;
     onClose: () => void;
     formatAmount?: (n: number) => string;
+    isCrypto?: boolean;
 };
 
-export default function DepositSuccessToast({ amount, onClose, formatAmount }: Props) {
+export default function DepositSuccessToast({ amount, onClose, formatAmount, isCrypto }: Props) {
     const [isClosing, setIsClosing] = useState(false);
-    const [titleText, setTitleText] = useState(GLITCH_STRINGS[0]);
     const [displayAmount, setDisplayAmount] = useState(0);
     const closeTimeoutRef = useRef<number | null>(null);
     const animRef = useRef<ReturnType<typeof animate> | null>(null);
@@ -53,17 +48,6 @@ export default function DepositSuccessToast({ amount, onClose, formatAmount }: P
         setIsClosing(true);
         setTimeout(() => onClose(), animationMs);
     };
-
-    // Glitch title effect
-    useEffect(() => {
-        let i = 0;
-        const interval = setInterval(() => {
-            i++;
-            setTitleText(GLITCH_STRINGS[Math.min(i, GLITCH_STRINGS.length - 1)]);
-            if (i >= GLITCH_STRINGS.length - 1) clearInterval(interval);
-        }, 60);
-        return () => clearInterval(interval);
-    }, []);
 
     // Counter animation
     useEffect(() => {
@@ -129,27 +113,29 @@ export default function DepositSuccessToast({ amount, onClose, formatAmount }: P
                     fontSize="18px"
                     lineHeight={1}
                 >
-                    ⚡
+                    <Icon as={FaCoins} boxSize={5} />
                 </Box>
 
                 <Box minWidth={0} textAlign="center" px="44px">
                     <Text
                         fontWeight="bold"
-                        fontSize={{ base: 'sm', md: 'sm' }}
+                        fontSize={{ base: 'md', md: 'lg' }}
                         lineHeight="short"
                         color="inherit"
-                        letterSpacing="0.03em"
-                    >
-                        {titleText}
-                    </Text>
-                    <Text
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        opacity={0.92}
-                        lineHeight="short"
-                        color="inherit"
+                        letterSpacing="0.04em"
                         sx={{ fontVariantNumeric: 'tabular-nums' }}
                     >
-                        {formatted} chips loaded
+                        {formatted}{isCrypto ? '' : ' chips'} loaded
+                    </Text>
+                    <Text
+                        fontSize="2xs"
+                        opacity={0.6}
+                        lineHeight="short"
+                        color="inherit"
+                        letterSpacing="0.06em"
+                        mt={0}
+                    >
+                        Good Luck &amp; Have Fun
                     </Text>
                 </Box>
 

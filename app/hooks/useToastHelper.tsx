@@ -99,7 +99,7 @@ const useToastHelper = () => {
         toast.closeAll();
     };
 
-    const deposit = (amount: number) => {
+    const deposit = (amount: number, isCrypto?: boolean) => {
         const id = 'deposit-success';
         if (toast.isActive(id)) toast.close(id);
         showCustomToast(toast, {
@@ -108,7 +108,7 @@ const useToastHelper = () => {
             position: TOAST_BANNER_POSITION,
             containerStyle: TOAST_BANNER_CONTAINER_STYLE,
             render: ({ onClose }) => (
-                <DepositSuccessToast amount={amount} onClose={onClose} />
+                <DepositSuccessToast amount={amount} onClose={onClose} isCrypto={isCrypto} />
             ),
         });
     };

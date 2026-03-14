@@ -252,7 +252,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
             if (depositSuccess) {
                 appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
-                deposit(buyInValue);
+                deposit(buyInValue, isCryptoGame);
                 onClose();
             } else {
                 // Error is already set in the hook, just show it

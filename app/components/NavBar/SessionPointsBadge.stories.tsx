@@ -2,10 +2,29 @@
 
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
+import { useColorModeValue } from '@chakra-ui/react';
 import SessionPointsBadge from './SessionPointsBadge';
 import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
 
 const initialState = usePointsAnimationStore.getState();
+
+// Mirrors the real NavBar bg so the badge is previewed in context
+function NavbarDecorator({ children }: { children: React.ReactNode }) {
+    const navbarBg = useColorModeValue('rgba(255, 255, 255, 0.85)', 'rgba(46, 46, 54, 0.95)');
+    return (
+        <div
+            style={{
+                background: navbarBg,
+                padding: '16px 24px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                borderRadius: 8,
+            }}
+        >
+            {children}
+        </div>
+    );
+}
 
 const meta = {
     title: 'NavBar/SessionPointsBadge',
@@ -16,24 +35,16 @@ const meta = {
     },
     decorators: [
         (Story: React.FC) => (
-            <div
-                style={{
-                    background: '#060812',
-                    padding: '32px 48px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    borderRadius: 8,
-                }}
-            >
+            <NavbarDecorator>
                 <Story />
-            </div>
+            </NavbarDecorator>
         ),
     ],
     parameters: {
         docs: {
             description: {
                 component:
-                    'Session points badge shown in the NavBar. Heat level changes color and glow: **cold** (<50 pts, green dim), **warm** (50–199, green glow), **hot** (200–499, yellow), **overcharge** (500+, purple pulse).',
+                    'Session points badge shown in the NavBar. Heat level changes color and glow: **cold** (<50 pts, green dim), **warm** (50–199, green glow), **hot** (200–499, yellow), **overcharge** (500+, pink pulse).',
             },
         },
     },
@@ -73,47 +84,50 @@ export const Overcharge: Story = {
 function InteractiveBadge() {
     const triggerPoints = usePointsAnimationStore((s) => s.triggerPoints);
     const sessionTotal = usePointsAnimationStore((s) => s.sessionTotal);
+    const labelColor = useColorModeValue('#555', '#888');
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'flex-start' }}>
-            <SessionPointsBadge />
-            <div style={{ display: 'flex', gap: 8 }}>
-                {[10, 25, 100, 200].map((pts) => (
+        <NavbarDecorator>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'flex-start' }}>
+                <SessionPointsBadge />
+                <div style={{ display: 'flex', gap: 8 }}>
+                    {[10, 25, 100, 200].map((pts) => (
+                        <button
+                            key={pts}
+                            onClick={() => triggerPoints(pts)}
+                            style={{
+                                padding: '4px 12px',
+                                borderRadius: 6,
+                                background: '#36A37B',
+                                color: 'white',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontWeight: 700,
+                                fontSize: 12,
+                            }}
+                        >
+                            +{pts}
+                        </button>
+                    ))}
                     <button
-                        key={pts}
-                        onClick={() => triggerPoints(pts)}
+                        onClick={() => usePointsAnimationStore.setState(initialState, true)}
                         style={{
                             padding: '4px 12px',
                             borderRadius: 6,
-                            background: '#36A37B',
-                            color: 'white',
-                            border: 'none',
+                            background: 'transparent',
+                            color: labelColor,
+                            border: '1px solid currentColor',
                             cursor: 'pointer',
-                            fontWeight: 700,
                             fontSize: 12,
                         }}
                     >
-                        +{pts}
+                        reset
                     </button>
-                ))}
-                <button
-                    onClick={() => usePointsAnimationStore.setState(initialState, true)}
-                    style={{
-                        padding: '4px 12px',
-                        borderRadius: 6,
-                        background: '#333',
-                        color: '#aaa',
-                        border: '1px solid #555',
-                        cursor: 'pointer',
-                        fontSize: 12,
-                    }}
-                >
-                    reset
-                </button>
+                </div>
+                <div style={{ color: labelColor, fontSize: 11, fontFamily: 'monospace' }}>
+                    sessionTotal: {sessionTotal}
+                </div>
             </div>
-            <div style={{ color: '#666', fontSize: 11, fontFamily: 'monospace' }}>
-                sessionTotal: {sessionTotal}
-            </div>
-        </div>
+        </NavbarDecorator>
     );
 }
 

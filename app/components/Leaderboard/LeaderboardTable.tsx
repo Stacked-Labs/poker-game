@@ -14,9 +14,21 @@ import {
     Text,
     Badge,
     Heading,
+    Icon,
     Tooltip,
 } from '@chakra-ui/react';
-import { getTier, TIER_EMOJI } from './tierUtils';
+import { FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
+import { FaMedal } from 'react-icons/fa6';
+import type { IconType } from 'react-icons';
+import { getTier } from './tierUtils';
+
+const TIER_ICON: Record<string, IconType> = {
+    diamond: FaGem,
+    gold:    FaCrown,
+    silver:  FaMedal,
+    bronze:  FaAward,
+    iron:    FaBolt,
+};
 
 export interface LeaderboardEntry {
     rank: number;
@@ -313,13 +325,11 @@ const LeaderboardTable = ({
                                                 placement="top"
                                                 fontSize="xs"
                                             >
-                                                <Text
-                                                    fontSize="md"
-                                                    lineHeight="1"
-                                                    cursor="default"
-                                                >
-                                                    {TIER_EMOJI[tier.name]}
-                                                </Text>
+                                                <Icon
+                                                    as={TIER_ICON[tier.name]}
+                                                    color={tier.color}
+                                                    boxSize="14px"
+                                                />
                                             </Tooltip>
                                             {/* Rival icon */}
                                             {isRival && (

@@ -693,7 +693,7 @@ const TakenSeatButton = ({
                             height={dealerBadgeBoxSize}
                             variant={'seatText'}
                             zIndex={3}
-                            boxShadow="0 2px 8px rgba(51, 68, 121, 0.3)"
+                            boxShadow="0 3px 0 #9ca3c2, 0 5px 14px rgba(51, 68, 121, 0.35)"
                             flexShrink={0}
                         >
                             D
@@ -970,9 +970,9 @@ const TakenSeatButton = ({
                                       : 'red.500'
                             }
                             color="white"
-                            fontSize={{ base: '9px', md: '11px' }}
-                            px={{ base: '4px', md: '5px' }}
-                            py={{ base: '2px', md: '3px' }}
+                            fontSize={{ base: '9px', md: '13px' }}
+                            px={{ base: '4px', md: '7px' }}
+                            py={{ base: '2px', md: '4px' }}
                             display="flex"
                             alignItems="center"
                             justifyContent="center"
@@ -982,6 +982,7 @@ const TakenSeatButton = ({
                             zIndex={5}
                             fontWeight="bold"
                             borderRadius="full"
+                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px rgba(0,0,0,0.4)"
                             sx={{
                                 '@media (orientation: portrait)': {
                                     fontSize: '12px',

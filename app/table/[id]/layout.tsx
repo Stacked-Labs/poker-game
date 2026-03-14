@@ -9,6 +9,7 @@ import GameViewport from '@/app/components/GameViewport';
 import LobbyBanner from '@/app/components/LobbyBanner';
 import SeatRequestPopup from '@/app/components/SeatRequestPopup';
 import TableClosedModal from '@/app/components/TableClosedModal';
+import WalletChangeReloader from '@/app/components/WalletChangeReloader';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
@@ -48,6 +49,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
             <LobbyBanner />
             <SeatRequestPopup />
             <TableClosedModal />
+            <WalletChangeReloader />
         </>
     );
 

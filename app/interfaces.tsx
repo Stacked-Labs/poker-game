@@ -95,6 +95,7 @@ export type Game = {
      * A value of 0 means no active timer.
      */
     actionDeadline: number;
+    pendingBlinds?: { sb: number; bb: number };
     owesSB?: boolean[];
     owesBB?: boolean[];
     waitingForBB?: boolean[];

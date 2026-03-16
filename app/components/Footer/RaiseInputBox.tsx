@@ -394,6 +394,7 @@ const RaiseInputBox = ({
                         </Text>
                         <Input
                             className="raise-portrait-bet-input"
+                            data-testid="raise-input-mobile"
                             ref={mobileInputRef}
                             bg={'brand.navy'}
                             border={'none'}
@@ -714,6 +715,7 @@ const RaiseInputBox = ({
                             color="white"
                             fontWeight="bold"
                             className="raise-landscape-bet-input"
+                            data-testid="raise-input"
                             ref={desktopInputRef}
                             mt={'auto'}
                             width="100%"

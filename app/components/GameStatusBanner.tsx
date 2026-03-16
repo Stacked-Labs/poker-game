@@ -86,6 +86,7 @@ const GameStatusBanner = () => {
 
     return (
         <Box
+            data-testid="game-status-banner"
             className="game-status-banner"
             position="absolute"
             top={{ base: 'calc(100% + 6px)', md: 'calc(100% + 8px)' }}

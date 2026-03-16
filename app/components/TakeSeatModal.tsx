@@ -616,6 +616,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                     e.target.value
                                                 )
                                             }
+                                            data-testid="buy-in-input"
                                             variant={'takeSeatModal'}
                                             required
                                             isDisabled={isDepositing}
@@ -899,6 +900,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     transition="all 0.2s ease"
                                     onClick={handleJoin}
                                     type="submit"
+                                    data-testid="join-table-btn"
                                 >
                                     {isCryptoGame
                                         ? 'Deposit & Join'

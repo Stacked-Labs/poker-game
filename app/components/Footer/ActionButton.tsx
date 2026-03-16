@@ -86,8 +86,12 @@ const ActionButton = ({
           }
         : {};
 
+    // Derive a testid from the button text: "Call (50)" → "action-call", "Bet" → "action-bet"
+    const actionTestId = `action-${text.split(/[\s(]/)[0].toLowerCase()}`;
+
     return (
         <MotionButton
+            data-testid={actionTestId}
             bg={buttonColors.bg}
             bgGradient={!queueMode ? buttonColors.gradient : undefined}
             color={buttonColors.text}

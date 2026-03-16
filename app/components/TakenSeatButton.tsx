@@ -632,6 +632,7 @@ const TakenSeatButton = ({
 
     return (
         <Flex
+            data-testid={`taken-seat-${player.seatID}`}
             className={`taken-seat-button ${isOffline ? 'offline' : ''}`}
             width={'100%'}
             height={'100%'}
@@ -1375,6 +1376,7 @@ const TakenSeatButton = ({
                                     )}
                                 </Flex>
                                 <Flex
+                                    data-testid={`player-stack-${player.seatID}`}
                                     className="player-stack-container"
                                     alignItems="center"
                                     justifyContent="center"

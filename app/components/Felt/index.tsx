@@ -1,12 +1,23 @@
 import { Flex } from '@chakra-ui/react';
-import React from 'react';
+import React, { useContext } from 'react';
 import Pot from './Pot';
 import CommunityCards from './CommunityCards';
 import GameStatusBanner from '../GameStatusBanner';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
+    const { appState } = useContext(AppContext);
+    const game = appState.game;
+    const stageLabel = game?.running
+        ? game.stage === 2
+            ? 'preflop'
+            : 'postflop'
+        : 'waiting';
+
     return (
         <Flex
+            data-testid="game-stage"
+            data-stage={stageLabel}
             className="felt-container"
             height={'auto'}
             width={'100%'}

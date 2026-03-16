@@ -37,6 +37,15 @@ next-env.d.ts
 .env
 .diff
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# E2E test secrets
+.env.test
+
 # Codex project state (keep skills committed)
 .codex/*
 !.codex/skills/

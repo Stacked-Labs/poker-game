@@ -17,6 +17,7 @@ import {
 } from './utils/toastDefaults';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { useEffect } from 'react';
+import E2EAutoConnect from './components/E2EAutoConnect';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     useEffect(() => {
@@ -38,6 +39,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             >
                 <ThirdwebProvider>
                     <AutoConnect client={client} />
+                    <E2EAutoConnect />
                     <AuthProvider>
                         <AppStoreProvider>
                             <UserProvider>

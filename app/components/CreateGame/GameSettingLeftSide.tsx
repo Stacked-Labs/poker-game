@@ -1224,6 +1224,7 @@ const GameSettingLeftSide: React.FC = () => {
                 >
                     <Box width="100%" maxW="480px">
                         <Button
+                            data-testid="create-game-btn"
                             bg="brand.green"
                             color="white"
                             onClick={handleCreateGame}

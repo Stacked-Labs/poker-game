@@ -37,6 +37,7 @@ const EmptySeatButton = ({
     return (
         <>
             <MotionButton
+                data-testid={`empty-seat-${seatId}`}
                 className="empty-seat-button"
                 width="100%"
                 height="100%"

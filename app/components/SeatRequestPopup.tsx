@@ -254,6 +254,7 @@ const SeatRequestPopup = () => {
                             flexShrink={0}
                         >
                             <Button
+                                data-testid={`accept-player-${currentRequest.uuid}`}
                                 size="sm"
                                 bg="brand.green"
                                 color="white"
@@ -272,6 +273,7 @@ const SeatRequestPopup = () => {
                                 <FaCircleCheck size={18} />
                             </Button>
                             <Button
+                                data-testid={`deny-player-${currentRequest.uuid}`}
                                 size="sm"
                                 bg="brand.pink"
                                 color="white"

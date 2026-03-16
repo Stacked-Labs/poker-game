@@ -16,6 +16,8 @@ const GameConfigWatermark = () => {
     const { appState } = useContext(AppContext);
     const config = appState.game?.config;
 
+    const pendingBlinds = appState.game?.pendingBlinds;
+
     const configText = useMemo(() => {
         if (!config) return null;
 
@@ -51,6 +53,11 @@ const GameConfigWatermark = () => {
         return parts.join(' • ');
     }, [config]);
 
+    const pendingText = useMemo(() => {
+        if (!pendingBlinds) return null;
+        return `NEXT HAND: ${pendingBlinds.sb}/${pendingBlinds.bb}`;
+    }, [pendingBlinds]);
+
     const chainInfo = useMemo(() => {
         const configWithCrypto = config as ConfigWithCrypto;
         if (!config || !configWithCrypto.crypto || !configWithCrypto.chain)
@@ -77,7 +84,7 @@ const GameConfigWatermark = () => {
         };
     }, [config]);
 
-    if (!configText && !chainInfo) return null;
+    if (!configText && !chainInfo && !pendingText) return null;
 
     const uppercaseText = configText ? configText.toUpperCase() : '';
 
@@ -100,6 +107,16 @@ const GameConfigWatermark = () => {
                         fontWeight="medium"
                     >
                         {uppercaseText}
+                    </Text>
+                )}
+                {pendingText && (
+                    <Text
+                        color="orange.300"
+                        fontSize={{ base: '10px', sm: '11px', md: '12px' }}
+                        lineHeight={1.2}
+                        fontWeight="bold"
+                    >
+                        {pendingText}
                     </Text>
                 )}
                 {chainInfo && (

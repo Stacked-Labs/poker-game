@@ -402,6 +402,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             readyCount: eventData.game.readyCount,
                             paused: eventData.game.paused,
                             pendingPause: eventData.game.pendingPause ?? false,
+                            pendingBlinds: eventData.game?.pendingBlinds ?? undefined,
                             owesSB: eventData.game?.owesSB,
                             owesBB: eventData.game?.owesBB,
                             waitingForBB: eventData.game?.waitingForBB,

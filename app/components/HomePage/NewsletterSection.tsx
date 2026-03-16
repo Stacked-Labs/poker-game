@@ -13,13 +13,18 @@ import {
     Icon,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
+import { useDisclosure } from '@chakra-ui/react';
 import { MdArrowForward } from 'react-icons/md';
 import FloatingDecor from './FloatingDecor';
+import NewsletterSuccessModal from './NewsletterSuccessModal';
+import useToastHelper from '@/app/hooks/useToastHelper';
 
 const NewsletterSection = () => {
     const [email, setEmail] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const { isOpen: isSuccessOpen, onOpen: onSuccessOpen, onClose: onSuccessClose } = useDisclosure();
+    const toast = useToastHelper();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,15 +44,16 @@ const NewsletterSection = () => {
             if (response.ok) {
                 setIsSubmitted(true);
                 setEmail('');
+                toast.success('You\'re in!', 'Check your inbox for updates.');
+                onSuccessOpen();
                 // Reset success message after 5 seconds
                 setTimeout(() => setIsSubmitted(false), 5000);
             } else {
-                throw new Error('Failed to subscribe');
+                toast.error('Couldn\'t subscribe', 'Please try again in a moment.');
             }
         } catch (error) {
             console.error('Newsletter subscription error:', error);
-            // You could add toast notification here
-            alert('Failed to subscribe. Please try again.');
+            toast.error('Something went wrong', 'Please check your connection and try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -311,6 +317,8 @@ const NewsletterSection = () => {
                     </Flex>
                 </Box>
             </Container>
+
+            <NewsletterSuccessModal isOpen={isSuccessOpen} onClose={onSuccessClose} />
         </Box>
     );
 };

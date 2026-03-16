@@ -22,10 +22,13 @@ import { MdArrowForward, MdCheck } from 'react-icons/md';
 import { FaDiscord } from 'react-icons/fa';
 import { SiFarcaster } from 'react-icons/si';
 import WalletButton from '@/app/components/WalletButton';
+import NewsletterSuccessModal from './NewsletterSuccessModal';
+import useToastHelper from '@/app/hooks/useToastHelper';
 import { useRouter } from 'next/navigation';
 import { keyframes } from '@emotion/react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { useActiveAccount } from 'thirdweb/react';
+import { useDisclosure } from '@chakra-ui/react';
 
 const MotionButton = motion(Button);
 const MotionBox = motion(Box);
@@ -73,6 +76,9 @@ const slideUp = keyframes`
     to { opacity: 1; transform: translateY(0); }
 `;
 
+// Flip to true to restore the Play Now / Create / Join buttons
+const SHOW_PLAY_BUTTONS = false;
+
 const HomeCard = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
@@ -83,6 +89,8 @@ const HomeCard = () => {
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
     const account = useActiveAccount();
+    const { isOpen: isSuccessOpen, onOpen: onSuccessOpen, onClose: onSuccessClose } = useDisclosure();
+    const toast = useToastHelper();
     const [isPortrait] = useMediaQuery('(orientation: portrait)');
     const allowMotion = !prefersReducedMotion;
     const swapHeadingPrimaryMotion = allowMotion
@@ -121,9 +129,13 @@ const HomeCard = () => {
             if (response.ok) {
                 setIsSubscribed(true);
                 setEmail('');
+                toast.success('You\'re in!', 'Check your inbox for updates.');
+                onSuccessOpen();
+            } else {
+                toast.error('Couldn\'t subscribe', 'Please try again in a moment.');
             }
         } catch {
-            // Silently fail - non-critical action
+            toast.error('Something went wrong', 'Please check your connection and try again.');
         } finally {
             setIsSubscribing(false);
         }
@@ -451,7 +463,7 @@ const HomeCard = () => {
                     </MotionBox>
 
                     {/* Buttons Section */}
-                    <MotionStack
+                    {SHOW_PLAY_BUTTONS && <MotionStack
                         gap={{ base: 3, md: 3 }}
                         width="100%"
                         maxW={{ base: '100%', sm: '320px' }}
@@ -696,7 +708,7 @@ const HomeCard = () => {
                                 />
                             </Flex>
                         ) : null}
-                    </MotionStack>
+                    </MotionStack>}
 
                     {/* Newsletter Inline */}
                     <VStack
@@ -888,6 +900,8 @@ const HomeCard = () => {
                     </MotionBox>
                 </Stack>
             </MotionFlex>
+
+            <NewsletterSuccessModal isOpen={isSuccessOpen} onClose={onSuccessClose} />
         </Flex>
     );
 };

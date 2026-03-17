@@ -31,28 +31,38 @@ const variantMap: Record<ToastType, ToastBannerVariant> = {
     info: 'info',
 };
 
+export const buildBannerRender = (
+    { title, description, type = 'info', duration }: Omit<ToastParams, 'id'>
+): UseToastOptions['render'] => {
+    const autoCloseMs =
+        typeof duration === 'number' ? duration : TOAST_BANNER_DURATION_MS;
+
+    const RenderToast = ({ onClose }: { onClose: () => void }) => (
+        <ToastBanner
+            variant={variantMap[type]}
+            title={title}
+            description={description}
+            onClose={onClose}
+            autoCloseMs={autoCloseMs}
+            animationMs={TOAST_BANNER_ANIMATION_MS}
+        />
+    );
+
+    RenderToast.displayName = 'ToastBannerRender';
+
+    return RenderToast;
+};
+
 export const showToast = (
     toast: ToastFunction,
     { title, description, type = 'info', duration, id }: ToastParams
 ) => {
-    const autoCloseMs =
-        typeof duration === 'number' ? duration : TOAST_BANNER_DURATION_MS;
-
     toast({
         id,
         duration: null,
         position: TOAST_BANNER_POSITION,
         containerStyle: TOAST_BANNER_CONTAINER_STYLE,
-        render: ({ onClose }) => (
-            <ToastBanner
-                variant={variantMap[type]}
-                title={title}
-                description={description}
-                onClose={onClose}
-                autoCloseMs={autoCloseMs}
-                animationMs={TOAST_BANNER_ANIMATION_MS}
-            />
-        ),
+        render: buildBannerRender({ title, description, type, duration }),
         // Keep these for callers that might still rely on Chakra semantics.
         title,
         description,

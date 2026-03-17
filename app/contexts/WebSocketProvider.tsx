@@ -727,9 +727,7 @@ export function SocketProvider(props: SocketProviderProps) {
                         }
 
                         // Handle other errors with toast fallback
-                        toastErrorRef.current(
-                            `Error ${eventData.code}: ${eventData.message}`
-                        );
+                        toastErrorRef.current(eventData.message);
                         // If seat request was denied (message check), reset the flag
                         const errorMsg =
                             typeof eventData.message === 'string'

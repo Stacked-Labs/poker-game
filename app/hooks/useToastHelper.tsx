@@ -6,6 +6,7 @@ import {
     showWarningToast,
     showInfoToast,
     showCustomToast,
+    buildBannerRender,
 } from '../utils/toastConfig';
 import ConnectionLostToast from '../components/Toasts/ConnectionLostToast';
 import DepositSuccessToast from '../components/Toasts/DepositSuccessToast';
@@ -20,61 +21,41 @@ import {
 const useToastHelper = () => {
     const toast = useToast();
 
-    const success = (
+    const showBanner = (
+        type: 'success' | 'error' | 'warning' | 'info',
         title: string,
         description?: string,
         duration?: number,
         id?: string
     ) => {
         const effectiveId = id ?? TOAST_BANNER_ID;
-        if (!id && toast.isActive(effectiveId)) {
-            toast.close(effectiveId);
+        if (toast.isActive(effectiveId)) {
+            if (id) return; // deduplicate explicit IDs
+            // Update in-place — avoids duplicate AnimatePresence keys
+            toast.update(effectiveId, {
+                render: buildBannerRender({ title, description, type, duration }),
+            });
+            return;
         }
-        if (id && toast.isActive(effectiveId)) return;
-        showSuccessToast(toast, title, description, duration, effectiveId);
+        switch (type) {
+            case 'success': return showSuccessToast(toast, title, description, duration, effectiveId);
+            case 'error':   return showErrorToast(toast, title, description, duration, effectiveId);
+            case 'warning': return showWarningToast(toast, title, description, duration, effectiveId);
+            case 'info':    return showInfoToast(toast, title, description, duration, effectiveId);
+        }
     };
 
-    const error = (
-        title: string,
-        description?: string,
-        duration?: number,
-        id?: string
-    ) => {
-        const effectiveId = id ?? TOAST_BANNER_ID;
-        if (!id && toast.isActive(effectiveId)) {
-            toast.close(effectiveId);
-        }
-        if (id && toast.isActive(effectiveId)) return;
-        showErrorToast(toast, title, description, duration, effectiveId);
-    };
+    const success = (title: string, description?: string, duration?: number, id?: string) =>
+        showBanner('success', title, description, duration, id);
 
-    const warning = (
-        title: string,
-        description?: string,
-        duration?: number,
-        id?: string
-    ) => {
-        const effectiveId = id ?? TOAST_BANNER_ID;
-        if (!id && toast.isActive(effectiveId)) {
-            toast.close(effectiveId);
-        }
-        if (id && toast.isActive(effectiveId)) return;
-        showWarningToast(toast, title, description, duration, effectiveId);
-    };
+    const error = (title: string, description?: string, duration?: number, id?: string) =>
+        showBanner('error', title, description, duration, id);
 
-    const info = (
-        title: string,
-        description?: string,
-        duration?: number,
-        id?: string
-    ) => {
-        const effectiveId = id ?? TOAST_BANNER_ID;
-        if (!id && toast.isActive(effectiveId)) {
-            toast.close(effectiveId);
-        }
-        if (id && toast.isActive(effectiveId)) return;
-        showInfoToast(toast, title, description, duration, effectiveId);
-    };
+    const warning = (title: string, description?: string, duration?: number, id?: string) =>
+        showBanner('warning', title, description, duration, id);
+
+    const info = (title: string, description?: string, duration?: number, id?: string) =>
+        showBanner('info', title, description, duration, id);
 
     const connectionLost = (duration?: number | null, id?: string) => {
         if (id && toast.isActive(id)) return;

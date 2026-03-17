@@ -356,10 +356,6 @@ const TakenSeatButton = ({
     const { play, stop } = useSound();
     const { format } = useFormatAmount();
     const playCardFlip = useCallback(() => play('card_flip'), [play]);
-    const address = player?.address;
-    const shortEthAddress = address
-        ? `${address.slice(0, 2)}...${address.slice(-2)}`
-        : '0x00...00';
     const isSelf = appState.clientID
         ? player.uuid === appState.clientID
         : false;

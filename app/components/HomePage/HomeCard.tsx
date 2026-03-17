@@ -77,7 +77,7 @@ const slideUp = keyframes`
 `;
 
 // Flip to true to restore the Play Now / Create / Join buttons
-const SHOW_PLAY_BUTTONS = false;
+const SHOW_PLAY_BUTTONS = true;
 
 const HomeCard = () => {
     const [isCreating, setIsCreating] = useState(false);
@@ -89,7 +89,11 @@ const HomeCard = () => {
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
     const account = useActiveAccount();
-    const { isOpen: isSuccessOpen, onOpen: onSuccessOpen, onClose: onSuccessClose } = useDisclosure();
+    const {
+        isOpen: isSuccessOpen,
+        onOpen: onSuccessOpen,
+        onClose: onSuccessClose,
+    } = useDisclosure();
     const toast = useToastHelper();
     const [isPortrait] = useMediaQuery('(orientation: portrait)');
     const allowMotion = !prefersReducedMotion;
@@ -129,13 +133,19 @@ const HomeCard = () => {
             if (response.ok) {
                 setIsSubscribed(true);
                 setEmail('');
-                toast.success('You\'re in!', 'Check your inbox for updates.');
+                toast.success("You're in!", 'Check your inbox for updates.');
                 onSuccessOpen();
             } else {
-                toast.error('Couldn\'t subscribe', 'Please try again in a moment.');
+                toast.error(
+                    "Couldn't subscribe",
+                    'Please try again in a moment.'
+                );
             }
         } catch {
-            toast.error('Something went wrong', 'Please check your connection and try again.');
+            toast.error(
+                'Something went wrong',
+                'Please check your connection and try again.'
+            );
         } finally {
             setIsSubscribing(false);
         }
@@ -463,130 +473,51 @@ const HomeCard = () => {
                     </MotionBox>
 
                     {/* Buttons Section */}
-                    {SHOW_PLAY_BUTTONS && <MotionStack
-                        gap={{ base: 3, md: 3 }}
-                        width="100%"
-                        maxW={{ base: '100%', sm: '320px' }}
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            ...springTransition,
-                            delay: 0.5,
-                        }}
-                    >
-                        <AnimatePresence mode="wait">
-                            {!showPlayOptions ? (
-                                <MotionBox
-                                    key="play-now"
-                                    initial={{ opacity: 1 }}
-                                    exit={{
-                                        opacity: 0,
-                                        scale: 0.95,
-                                        transition: { duration: 0.2 },
-                                    }}
-                                >
-                                    <MotionButton
-                                        height={{ base: '64px', md: '64px' }}
-                                        fontSize={{
-                                            base: 'lg',
-                                            md: 'xl',
+                    {SHOW_PLAY_BUTTONS && (
+                        <MotionStack
+                            gap={{ base: 3, md: 3 }}
+                            width="100%"
+                            maxW={{ base: '100%', sm: '320px' }}
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                                ...springTransition,
+                                delay: 0.5,
+                            }}
+                        >
+                            <AnimatePresence mode="wait">
+                                {!showPlayOptions ? (
+                                    <MotionBox
+                                        key="play-now"
+                                        initial={{ opacity: 1 }}
+                                        exit={{
+                                            opacity: 0,
+                                            scale: 0.95,
+                                            transition: { duration: 0.2 },
                                         }}
-                                        fontWeight="900"
-                                        borderRadius="18px"
-                                        bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.85))"
-                                        color="white"
-                                        border="none"
-                                        onClick={handlePlayNow}
-                                        width="100%"
-                                        position="relative"
-                                        overflow="hidden"
-                                        letterSpacing="0.05em"
-                                        boxShadow="0 12px 26px rgba(54, 163, 123, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.25)"
-                                        whileHover={{
-                                            y: -3,
-                                            scale: 1.02,
-                                            transition: {
-                                                type: 'spring',
-                                                stiffness: 400,
-                                                damping: 17,
-                                            },
-                                        }}
-                                        whileTap={{
-                                            scale: 0.97,
-                                            y: 0,
-                                        }}
-                                        _hover={{
-                                            bgGradient:
-                                                'linear(to-r, rgba(54, 163, 123, 0.95), rgba(54, 163, 123, 0.8))',
-                                            boxShadow:
-                                                '0 16px 36px rgba(54, 163, 123, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
-                                        }}
-                                        sx={{
-                                            '&::before': {
-                                                content: '""',
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                right: 0,
-                                                height: '50%',
-                                                background:
-                                                    'linear-gradient(to bottom, rgba(255, 255, 255, 0.15), transparent)',
-                                                borderRadius: 'inherit',
-                                                pointerEvents: 'none',
-                                            },
-                                        }}
-                                    >
-                                        [ PLAY NOW ]
-                                    </MotionButton>
-                                </MotionBox>
-                            ) : (
-                                <MotionBox
-                                    key="play-options"
-                                    initial={{
-                                        opacity: 0,
-                                        y: 10,
-                                        scale: 0.97,
-                                    }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    transition={{
-                                        type: 'spring',
-                                        stiffness: 400,
-                                        damping: 22,
-                                    }}
-                                >
-                                    <Stack
-                                        spacing={{ base: 2.5, md: 3 }}
-                                        width="100%"
                                     >
                                         <MotionButton
                                             height={{
-                                                base: '52px',
-                                                md: '56px',
+                                                base: '64px',
+                                                md: '64px',
                                             }}
                                             fontSize={{
-                                                base: 'md',
-                                                md: 'lg',
+                                                base: 'lg',
+                                                md: 'xl',
                                             }}
                                             fontWeight="900"
-                                            borderRadius="16px"
-                                            bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.9))"
+                                            borderRadius="18px"
+                                            bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.85))"
                                             color="white"
                                             border="none"
-                                            onClick={handleCreateGame}
-                                            isLoading={isCreating}
-                                            loadingText="Creating"
-                                            letterSpacing="0.04em"
-                                            spinner={
-                                                <Spinner
-                                                    size="sm"
-                                                    color="white"
-                                                />
-                                            }
+                                            onClick={handlePlayNow}
+                                            width="100%"
                                             position="relative"
                                             overflow="hidden"
-                                            boxShadow="0 10px 22px rgba(54, 163, 123, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.2)"
+                                            letterSpacing="0.05em"
+                                            boxShadow="0 12px 26px rgba(54, 163, 123, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.25)"
                                             whileHover={{
-                                                y: -2,
+                                                y: -3,
                                                 scale: 1.02,
                                                 transition: {
                                                     type: 'spring',
@@ -600,9 +531,9 @@ const HomeCard = () => {
                                             }}
                                             _hover={{
                                                 bgGradient:
-                                                    'linear(to-r, rgba(54, 163, 123, 0.98), rgba(54, 163, 123, 0.85))',
+                                                    'linear(to-r, rgba(54, 163, 123, 0.95), rgba(54, 163, 123, 0.8))',
                                                 boxShadow:
-                                                    '0 14px 30px rgba(54, 163, 123, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.25)',
+                                                    '0 16px 36px rgba(54, 163, 123, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
                                             }}
                                             sx={{
                                                 '&::before': {
@@ -613,102 +544,186 @@ const HomeCard = () => {
                                                     right: 0,
                                                     height: '50%',
                                                     background:
-                                                        'linear-gradient(to bottom, rgba(255, 255, 255, 0.12), transparent)',
+                                                        'linear-gradient(to bottom, rgba(255, 255, 255, 0.15), transparent)',
                                                     borderRadius: 'inherit',
                                                     pointerEvents: 'none',
                                                 },
                                             }}
                                         >
-                                            CREATE
+                                            [ PLAY NOW ]
                                         </MotionButton>
-                                        <MotionButton
-                                            height={{
-                                                base: '52px',
-                                                md: '56px',
-                                            }}
-                                            fontSize={{
-                                                base: 'md',
-                                                md: 'lg',
-                                            }}
-                                            fontWeight="900"
-                                            borderRadius="16px"
-                                            bg="white"
-                                            color="brand.green"
-                                            border="1.5px solid"
-                                            borderColor="rgba(54, 163, 123, 0.25)"
-                                            onClick={handleJoinGame}
-                                            isLoading={isJoining}
-                                            loadingText="Joining"
-                                            letterSpacing="0.04em"
-                                            spinner={
-                                                <Spinner
-                                                    size="sm"
-                                                    color="brand.green"
-                                                />
-                                            }
-                                            boxShadow="0 10px 22px rgba(17, 24, 39, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
-                                            whileHover={{
-                                                y: -2,
-                                                scale: 1.02,
-                                                transition: {
-                                                    type: 'spring',
-                                                    stiffness: 400,
-                                                    damping: 17,
-                                                },
-                                            }}
-                                            whileTap={{
-                                                scale: 0.97,
-                                                y: 0,
-                                            }}
-                                            _hover={{
-                                                bg: 'rgba(54, 163, 123, 0.06)',
-                                                borderColor:
-                                                    'rgba(54, 163, 123, 0.4)',
-                                                boxShadow:
-                                                    '0 14px 30px rgba(17, 24, 39, 0.1)',
-                                            }}
-                                            _dark={{
-                                                bg: 'rgba(255, 255, 255, 0.06)',
-                                                color: 'brand.green',
-                                                borderColor:
-                                                    'rgba(255, 255, 255, 0.1)',
-                                                boxShadow: 'none',
-                                                _hover: {
-                                                    bg: 'rgba(255, 255, 255, 0.12)',
-                                                    borderColor:
-                                                        'rgba(255, 255, 255, 0.2)',
-                                                    boxShadow:
-                                                        '0 14px 26px rgba(0, 0, 0, 0.2)',
-                                                },
-                                            }}
+                                    </MotionBox>
+                                ) : (
+                                    <MotionBox
+                                        key="play-options"
+                                        initial={{
+                                            opacity: 0,
+                                            y: 10,
+                                            scale: 0.97,
+                                        }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        transition={{
+                                            type: 'spring',
+                                            stiffness: 400,
+                                            damping: 22,
+                                        }}
+                                    >
+                                        <Stack
+                                            spacing={{ base: 2.5, md: 3 }}
+                                            width="100%"
                                         >
-                                            JOIN
-                                        </MotionButton>
-                                    </Stack>
-                                </MotionBox>
-                            )}
-                        </AnimatePresence>
+                                            <MotionButton
+                                                height={{
+                                                    base: '52px',
+                                                    md: '56px',
+                                                }}
+                                                fontSize={{
+                                                    base: 'md',
+                                                    md: 'lg',
+                                                }}
+                                                fontWeight="900"
+                                                borderRadius="16px"
+                                                bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.9))"
+                                                color="white"
+                                                border="none"
+                                                onClick={handleCreateGame}
+                                                isLoading={isCreating}
+                                                loadingText="Creating"
+                                                letterSpacing="0.04em"
+                                                spinner={
+                                                    <Spinner
+                                                        size="sm"
+                                                        color="white"
+                                                    />
+                                                }
+                                                position="relative"
+                                                overflow="hidden"
+                                                boxShadow="0 10px 22px rgba(54, 163, 123, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.2)"
+                                                whileHover={{
+                                                    y: -2,
+                                                    scale: 1.02,
+                                                    transition: {
+                                                        type: 'spring',
+                                                        stiffness: 400,
+                                                        damping: 17,
+                                                    },
+                                                }}
+                                                whileTap={{
+                                                    scale: 0.97,
+                                                    y: 0,
+                                                }}
+                                                _hover={{
+                                                    bgGradient:
+                                                        'linear(to-r, rgba(54, 163, 123, 0.98), rgba(54, 163, 123, 0.85))',
+                                                    boxShadow:
+                                                        '0 14px 30px rgba(54, 163, 123, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.25)',
+                                                }}
+                                                sx={{
+                                                    '&::before': {
+                                                        content: '""',
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        height: '50%',
+                                                        background:
+                                                            'linear-gradient(to bottom, rgba(255, 255, 255, 0.12), transparent)',
+                                                        borderRadius: 'inherit',
+                                                        pointerEvents: 'none',
+                                                    },
+                                                }}
+                                            >
+                                                CREATE
+                                            </MotionButton>
+                                            <MotionButton
+                                                height={{
+                                                    base: '52px',
+                                                    md: '56px',
+                                                }}
+                                                fontSize={{
+                                                    base: 'md',
+                                                    md: 'lg',
+                                                }}
+                                                fontWeight="900"
+                                                borderRadius="16px"
+                                                bg="white"
+                                                color="brand.green"
+                                                border="1.5px solid"
+                                                borderColor="rgba(54, 163, 123, 0.25)"
+                                                onClick={handleJoinGame}
+                                                isLoading={isJoining}
+                                                loadingText="Joining"
+                                                letterSpacing="0.04em"
+                                                spinner={
+                                                    <Spinner
+                                                        size="sm"
+                                                        color="brand.green"
+                                                    />
+                                                }
+                                                boxShadow="0 10px 22px rgba(17, 24, 39, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+                                                whileHover={{
+                                                    y: -2,
+                                                    scale: 1.02,
+                                                    transition: {
+                                                        type: 'spring',
+                                                        stiffness: 400,
+                                                        damping: 17,
+                                                    },
+                                                }}
+                                                whileTap={{
+                                                    scale: 0.97,
+                                                    y: 0,
+                                                }}
+                                                _hover={{
+                                                    bg: 'rgba(54, 163, 123, 0.06)',
+                                                    borderColor:
+                                                        'rgba(54, 163, 123, 0.4)',
+                                                    boxShadow:
+                                                        '0 14px 30px rgba(17, 24, 39, 0.1)',
+                                                }}
+                                                _dark={{
+                                                    bg: 'rgba(255, 255, 255, 0.06)',
+                                                    color: 'brand.green',
+                                                    borderColor:
+                                                        'rgba(255, 255, 255, 0.1)',
+                                                    boxShadow: 'none',
+                                                    _hover: {
+                                                        bg: 'rgba(255, 255, 255, 0.12)',
+                                                        borderColor:
+                                                            'rgba(255, 255, 255, 0.2)',
+                                                        boxShadow:
+                                                            '0 14px 26px rgba(0, 0, 0, 0.2)',
+                                                    },
+                                                }}
+                                            >
+                                                JOIN
+                                            </MotionButton>
+                                        </Stack>
+                                    </MotionBox>
+                                )}
+                            </AnimatePresence>
 
-                        {account && isPortrait ? (
-                            <Box
-                                width="100%"
-                                maxW={{
-                                    base: '100%',
-                                    sm: '320px',
-                                }}
-                                mx="auto"
-                            >
-                                <WalletButton variant="hero" />
-                            </Box>
-                        ) : !account ? (
-                            <Flex justify="center" pt={0}>
-                                <WalletButton
-                                    label="Already have an account? Sign In"
-                                    variant="link"
-                                />
-                            </Flex>
-                        ) : null}
-                    </MotionStack>}
+                            {account && isPortrait ? (
+                                <Box
+                                    width="100%"
+                                    maxW={{
+                                        base: '100%',
+                                        sm: '320px',
+                                    }}
+                                    mx="auto"
+                                >
+                                    <WalletButton variant="hero" />
+                                </Box>
+                            ) : !account ? (
+                                <Flex justify="center" pt={0}>
+                                    <WalletButton
+                                        label="Already have an account? Sign In"
+                                        variant="link"
+                                    />
+                                </Flex>
+                            ) : null}
+                        </MotionStack>
+                    )}
 
                     {/* Newsletter Inline */}
                     <VStack
@@ -729,19 +744,27 @@ const HomeCard = () => {
                                 height="42px"
                                 px={4}
                             >
-                                <Icon as={MdCheck} color="brand.green" boxSize={4} />
-                                <Text fontSize="sm" color="brand.green" fontWeight="bold">
+                                <Icon
+                                    as={MdCheck}
+                                    color="brand.green"
+                                    boxSize={4}
+                                />
+                                <Text
+                                    fontSize="sm"
+                                    color="brand.green"
+                                    fontWeight="bold"
+                                >
                                     You&apos;re on the list!
                                 </Text>
                             </HStack>
                         ) : (
                             <>
-                                <HStack
-                                    width="100%"
-                                    spacing={2}
-                                    align="center"
-                                >
-                                    <Box flex={1} h="1px" bg="border.lightGray" />
+                                <HStack width="100%" spacing={2} align="center">
+                                    <Box
+                                        flex={1}
+                                        h="1px"
+                                        bg="border.lightGray"
+                                    />
                                     <Text
                                         fontSize="2xs"
                                         color="text.muted"
@@ -752,7 +775,11 @@ const HomeCard = () => {
                                     >
                                         or get dealt in
                                     </Text>
-                                    <Box flex={1} h="1px" bg="border.lightGray" />
+                                    <Box
+                                        flex={1}
+                                        h="1px"
+                                        bg="border.lightGray"
+                                    />
                                 </HStack>
                                 <HStack
                                     as="form"
@@ -781,7 +808,9 @@ const HomeCard = () => {
                                         fontSize="sm"
                                         fontWeight="medium"
                                         value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        onChange={(e) =>
+                                            setEmail(e.target.value)
+                                        }
                                         disabled={isSubscribing}
                                         _placeholder={{ color: 'text.muted' }}
                                         required
@@ -789,7 +818,12 @@ const HomeCard = () => {
                                     <IconButton
                                         type="submit"
                                         aria-label="Subscribe"
-                                        icon={<Icon as={MdArrowForward} boxSize={4} />}
+                                        icon={
+                                            <Icon
+                                                as={MdArrowForward}
+                                                boxSize={4}
+                                            />
+                                        }
                                         bg="brand.green"
                                         color="white"
                                         size="sm"
@@ -799,7 +833,9 @@ const HomeCard = () => {
                                         flexShrink={0}
                                         isLoading={isSubscribing}
                                         disabled={isSubscribing}
-                                        _hover={{ bg: 'rgba(54, 163, 123, 0.85)' }}
+                                        _hover={{
+                                            bg: 'rgba(54, 163, 123, 0.85)',
+                                        }}
                                     />
                                 </HStack>
                             </>
@@ -901,7 +937,10 @@ const HomeCard = () => {
                 </Stack>
             </MotionFlex>
 
-            <NewsletterSuccessModal isOpen={isSuccessOpen} onClose={onSuccessClose} />
+            <NewsletterSuccessModal
+                isOpen={isSuccessOpen}
+                onClose={onSuccessClose}
+            />
         </Flex>
     );
 };

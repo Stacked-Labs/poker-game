@@ -13,11 +13,13 @@ import { Checkbox, Flex, VStack, useColorModeValue } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 
 const PlayerList = () => {
     const { appState, dispatch } = useContext(AppContext);
     const pendingPlayers = appState.pendingPlayers || [];
     const socket = useContext(SocketContext);
+    const isOwner = useIsTableOwner();
     const toast = useToastHelper();
     const popupSettingBg = useColorModeValue(
         'card.lightGray',
@@ -94,7 +96,7 @@ const PlayerList = () => {
     return (
         <VStack gap={{ base: 2, md: 3 }} align="stretch" w="100%">
             <WithdrawBalanceCard />
-            <Flex
+            {isOwner && <Flex
                 alignItems="center"
                 bg={popupSettingBg}
                 borderRadius={{ base: '10px', md: '12px' }}
@@ -152,10 +154,11 @@ const PlayerList = () => {
                 >
                     Disable seat request popups
                 </Checkbox>
-            </Flex>
+            </Flex>}
             <AcceptedPlayers
                 acceptedPlayers={appState.game?.players}
                 handleKickPlayer={handleKickPlayer}
+                currentUserUuid={appState.clientID}
             />
             <PendingPlayers
                 pendingPlayers={pendingPlayers}

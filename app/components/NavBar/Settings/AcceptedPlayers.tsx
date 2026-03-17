@@ -21,9 +21,10 @@ import PlayerCard from './PlayerCard';
 interface Props {
     acceptedPlayers: Player[] | undefined;
     handleKickPlayer: (uuid: string) => void;
+    currentUserUuid: string | null;
 }
 
-const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
+const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid }: Props) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedPlayer, setSelectedPlayer] = useState<{
         uuid: string;
@@ -77,6 +78,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer }: Props) => {
                                     index={index}
                                     player={formattedPlayer}
                                     isOwner={isOwner}
+                                    isCurrentUser={player.uuid === currentUserUuid}
                                     type={'accepted'}
                                     isKicking={isKicking}
                                     handleAcceptPlayer={null}

@@ -28,6 +28,7 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useWithdraw } from '@/app/hooks/useWithdraw';
 import { useActiveWallet } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 const CHIPS_PER_USDC = 100;
 const USDC_LOGO_URL = '/usdc-logo.png';
@@ -53,6 +54,7 @@ const slideUp = keyframes`
 const WithdrawButton = () => {
     const wallet = useActiveWallet();
     const address = wallet?.getAccount()?.address;
+    const { isAuthenticated, isAuthenticating } = useAuth();
     const appStore = useContext(AppContext);
     const config = appStore.appState.game?.config;
     const isCryptoGame = Boolean(config?.crypto);
@@ -326,6 +328,34 @@ const WithdrawButton = () => {
                                             </VStack>
                                         </HStack>
 
+                                        {!isAuthenticated && (
+                                            <HStack
+                                                spacing={2}
+                                                alignItems="flex-start"
+                                                bg="rgba(54, 163, 123, 0.12)"
+                                                color="green.700"
+                                                borderRadius="md"
+                                                px={3}
+                                                py={2}
+                                                fontSize="xs"
+                                                fontWeight="medium"
+                                                width="100%"
+                                            >
+                                                <Icon
+                                                    as={FaInfoCircle}
+                                                    boxSize={3.5}
+                                                    mt={0.5}
+                                                />
+                                                <Text
+                                                    color="inherit"
+                                                    textAlign="left"
+                                                >
+                                                    {isAuthenticating
+                                                        ? 'Check your wallet to sign the message…'
+                                                        : 'Sign the message in your wallet to continue.'}
+                                                </Text>
+                                            </HStack>
+                                        )}
                                         {isUserSeated && (
                                             <HStack
                                                 spacing={2}

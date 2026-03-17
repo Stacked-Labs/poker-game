@@ -7,6 +7,7 @@ const PlayerCard = ({
     index,
     player,
     isOwner,
+    isCurrentUser = false,
     type,
     isKicking,
     handleAcceptPlayer,
@@ -16,6 +17,7 @@ const PlayerCard = ({
     index: number;
     player: PendingPlayer;
     isOwner: boolean;
+    isCurrentUser?: boolean;
     type: 'accepted' | 'pending';
     isKicking: boolean | null;
     handleAcceptPlayer?: ((uuid: string) => void) | null;
@@ -208,6 +210,7 @@ const PlayerCard = ({
                 )}
 
             {isOwner &&
+                !isCurrentUser &&
                 type == 'accepted' &&
                 isKicking !== null &&
                 confirmKick && (

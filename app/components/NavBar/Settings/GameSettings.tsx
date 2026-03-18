@@ -35,13 +35,10 @@ const chipDisplayColors: Record<string, string> = {
 
 const cardBackColors: Record<CardBackVariant, string> = {
     classic: '#0B1430',
-    ruby: '#2D0A1B',
-    emerald: '#0A2A1B',
-    midnight: '#12121E',
-    royal: '#1A0A2E',
-    ocean: '#0A1A2E',
-    amber: '#2A1A0A',
-    gold: '#2E2A0A',
+    bitcoin: '#F7931A',
+    ethereum: '#627EEA',
+    base: '#1A6BFF',
+    usdc: '#2775CA',
 };
 
 const GameSettings = () => {
@@ -378,13 +375,10 @@ const GameSettings = () => {
                             _hover={{ cursor: 'pointer' }}
                         >
                             <option value="classic">Classic</option>
-                            <option value="ruby">Ruby</option>
-                            <option value="emerald">Emerald</option>
-                            <option value="midnight">Midnight</option>
-                            <option value="royal">Royal</option>
-                            <option value="ocean">Ocean</option>
-                            <option value="amber">Amber</option>
-                            <option value="gold">Gold</option>
+<option value="bitcoin">Bitcoin</option>
+                            <option value="ethereum">Ethereum</option>
+                            <option value="base">Base</option>
+                            <option value="usdc">USDC</option>
                         </Select>
                     </HStack>
                 </Flex>

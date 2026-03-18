@@ -432,6 +432,7 @@ const components = {
                 _hover: { bg: 'rgba(54, 163, 123, 0.08)' },
             },
             outlineMuted: {
+                bg: 'card.white',
                 border: '1px solid',
                 borderColor: 'rgba(12, 21, 49, 0.2)',
                 color: 'text.primary',

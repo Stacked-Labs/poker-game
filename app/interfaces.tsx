@@ -1,6 +1,6 @@
 export type DisplayMode = 'chips' | 'bb' | 'usdc';
 
-export type CardBackVariant = 'classic' | 'ruby' | 'emerald' | 'midnight' | 'royal' | 'ocean' | 'amber' | 'gold';
+export type CardBackVariant = 'classic' | 'bitcoin' | 'ethereum' | 'base' | 'usdc';
 
 export type Card = string | number;
 

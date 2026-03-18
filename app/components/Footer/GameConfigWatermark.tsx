@@ -66,6 +66,23 @@ const GameConfigWatermark = () => {
         };
     }, [config]);
 
+    const hostLabel = useMemo(() => {
+        if (!config) return null;
+        if (config.ownerAddress) {
+            const addr = config.ownerAddress;
+            return `${addr.slice(0, 6)}...${addr.slice(-4)}`.toUpperCase();
+        }
+        if (config.ownerSessionUUID) {
+            const ownerPlayer = appState.game?.players.find(
+                (p) => p.uuid === config.ownerSessionUUID
+            );
+            if (ownerPlayer?.username) return ownerPlayer.username;
+            const uid = config.ownerSessionUUID;
+            return `${uid.slice(0, 4)}...${uid.slice(-4)}`;
+        }
+        return null;
+    }, [config, appState.game?.players]);
+
     if (!configText && !chainInfo) return null;
 
     const uppercaseText = configText ? configText.toUpperCase() : '';
@@ -111,6 +128,16 @@ const GameConfigWatermark = () => {
                             {chainInfo.name.toUpperCase()}
                         </Text>
                     </Flex>
+                )}
+                {hostLabel && (
+                    <Text
+                        color="text.secondary"
+                        fontSize={{ base: '10px', sm: '11px', md: '12px' }}
+                        lineHeight={1.2}
+                        fontWeight="medium"
+                    >
+                        {`HOST: ${hostLabel}`}
+                    </Text>
                 )}
             </Flex>
         </Box>

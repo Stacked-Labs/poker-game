@@ -118,6 +118,8 @@ export type Config = {
     crypto?: boolean;
     chain?: string;
     contractAddress?: string;
+    ownerAddress?: string;
+    ownerSessionUUID?: string;
 };
 
 export type Pot = {

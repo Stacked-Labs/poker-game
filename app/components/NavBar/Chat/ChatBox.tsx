@@ -29,7 +29,6 @@ import { tokenizeMessage } from '@/app/utils/chatTokenizer';
 import MessageRenderer from './MessageRenderer';
 import EmotePicker from './EmotePicker';
 import { FiEye, FiEyeOff, FiVolume2, FiVolumeX } from 'react-icons/fi';
-import { MdEventSeat } from 'react-icons/md';
 import { getColorForUsername } from '@/app/utils/chatColors';
 
 const ChatScroller = forwardRef<
@@ -411,15 +410,6 @@ const Chatbox = ({
                                         fontWeight="bold"
                                         mr={{ base: 2, md: 3 }}
                                     >
-                                        {msg.isSeated && (
-                                            <Icon
-                                                as={MdEventSeat}
-                                                boxSize={4}
-                                                mr={1}
-                                                verticalAlign="middle"
-                                                display="inline"
-                                            />
-                                        )}
                                         {msg.name}:
                                     </Text>
                                     <MessageRenderer tokens={tokens} />

@@ -735,7 +735,7 @@ export function SocketProvider(props: SocketProviderProps) {
                                 ? eventData.message
                                 : '';
                         if (
-                            (errorMsg === 'Your seat request was denied by the host.' ||
+                            (errorMsg === 'Seat request denied.' ||
                                 errorMsg
                                     .toLowerCase()
                                     .includes('seat request denied')) &&

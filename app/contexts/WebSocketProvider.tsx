@@ -334,6 +334,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             name: eventData.username,
                             message: eventData.message,
                             timestamp: eventData.timestamp,
+                            isSeated: eventData.is_seated ?? false,
                         };
 
                         // Single dispatch: bundle message + unread count when chat is closed
@@ -871,6 +872,20 @@ export function SocketProvider(props: SocketProviderProps) {
             forceReconnect('Auth state updated');
         }
     }, [forceReconnect, isAuthenticated, userAddress]);
+
+    // Detect isAuthenticated transitioning from true → false (wallet disconnect / logout).
+    // The effect above early-returns when !isAuthenticated, so without this separate effect
+    // the WebSocket would stay open with the old JWT cookie even after logoutUser() clears it.
+    const prevIsAuthenticatedRef = useRef(isAuthenticated);
+    useEffect(() => {
+        const wasAuthenticated = prevIsAuthenticatedRef.current;
+        prevIsAuthenticatedRef.current = isAuthenticated;
+
+        if (wasAuthenticated && !isAuthenticated && socketRef.current) {
+            console.log('[WebSocketProvider] Auth lost - forcing reconnect as unauthenticated');
+            forceReconnect('Wallet disconnected');
+        }
+    }, [forceReconnect, isAuthenticated]);
 
     // This useEffect is to ensure the socket state (used by context consumers) is updated
     // when socketRef.current changes. setSocket is batched by React.

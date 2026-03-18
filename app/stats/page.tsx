@@ -768,7 +768,7 @@ export default function AdminStatsPage() {
                             <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }} gap={4}>
                                 {[
                                     { name: 'PostgreSQL', ok: pg?.status === 'connected',          detail: pg ? `${pg.latency_ms} ms` : 'No data' },
-                                    { name: 'Redis',      ok: rd?.status === 'connected',          detail: rd ? `${rd.latency_ms} ms · ${rd.memory_used || '?'}` : 'No data' },
+                                    { name: 'Redis',      ok: rd?.status === 'connected',          detail: rd ? `${rd.latency_ms} ms · ${rd.memory_used || '?'} · ${rd.connected_clients ?? '?'}/${rd.max_clients ?? '?'} conns` : 'No data' },
                                     { name: 'Game Hub',   ok: true,                                detail: hub ? `${hub.tables_in_memory} tables · ${hub.ws_connections} WS` : 'No data' },
                                     { name: 'thirdweb',   ok: stateOk(tw?.aggregate_state ?? 'unknown'), detail: tw?.aggregate_state ?? 'unknown' },
                                 ].map(({ name, ok, detail }) => (
@@ -812,6 +812,9 @@ export default function AdminStatsPage() {
                                         { label: 'Status',      value: <Text fontWeight="bold" color={rd?.status === 'connected' ? 'brand.green' : 'brand.pink'} textTransform="capitalize">{rd?.status ?? '—'}</Text> },
                                         { label: 'Latency',     value: rd ? `${rd.latency_ms} ms` : '—' },
                                         { label: 'Memory Used', value: rd?.memory_used || '—' },
+                                        { label: 'Connections', value: rd?.connected_clients != null && rd?.max_clients
+                                            ? <Text fontWeight="bold" color={rd.connected_clients / rd.max_clients >= 0.8 ? 'brand.pink' : 'text.primary'}>{rd.connected_clients} / {rd.max_clients} ({Math.round(rd.connected_clients / rd.max_clients * 100)}%)</Text>
+                                            : '—' },
                                     ]}
                                 >
                                     {rd?.streams && Object.keys(rd.streams).length > 0 && (

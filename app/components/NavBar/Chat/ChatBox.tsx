@@ -455,7 +455,7 @@ const Chatbox = ({
                                 target.selectionStart
                             );
                         }}
-                        disabled={!username && !clientID}
+                        disabled={!clientID}
                         flex={1}
                         height="48px"
                         bg="input.lightGray"
@@ -482,13 +482,13 @@ const Chatbox = ({
                         onSelectEmote={(emote) =>
                             handleInsertEmote(emote.name)
                         }
-                        isDisabled={!username && !clientID}
+                        isDisabled={!clientID}
                     />
                     <IconButton
                         icon={<IoIosSend size={28} />}
                         onClick={handleSendMessage}
                         aria-label="Send Message"
-                        disabled={!username && !clientID}
+                        disabled={!clientID}
                         size="lg"
                         height="48px"
                         width="48px"

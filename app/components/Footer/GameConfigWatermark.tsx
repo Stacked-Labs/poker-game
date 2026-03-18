@@ -17,9 +17,12 @@ const GameConfigWatermark = () => {
     const { appState } = useContext(AppContext);
     const config = appState.game?.config;
     const { format, mode: displayMode } = useFormatAmount();
-    const formatBlinds = displayMode === 'bb'
-        ? (v: number) => v.toLocaleString('en-US')
-        : format;
+    const formatBlinds = useMemo(
+        () => displayMode === 'bb'
+            ? (v: number) => v.toLocaleString('en-US')
+            : format,
+        [displayMode, format]
+    );
 
     const configText = useMemo(() => {
         if (!config) return null;

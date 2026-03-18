@@ -334,6 +334,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             name: eventData.username,
                             message: eventData.message,
                             timestamp: eventData.timestamp,
+                            isSeated: eventData.is_seated ?? false,
                         };
 
                         // Single dispatch: bundle message + unread count when chat is closed

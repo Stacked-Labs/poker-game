@@ -229,17 +229,19 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                     display={{ base: 'block', md: 'none' }}
                     flexShrink={0}
                 />
-                <VStack align="start" spacing={0} minW={0}>
-                    <HStack spacing={1.5} flexWrap="wrap" align="center">
-                        <Text
-                            fontSize={{ base: 'sm', md: 'lg' }}
-                            fontWeight="bold"
-                            color="text.primary"
-                            fontFamily="monospace"
-                            noOfLines={1}
-                        >
-                            {game.name}
-                        </Text>
+                <VStack align="start" spacing={0.5} minW={0}>
+                    <Text
+                        fontSize={{ base: 'sm', md: 'lg' }}
+                        fontWeight="bold"
+                        color="text.primary"
+                        fontFamily="monospace"
+                        noOfLines={1}
+                        w="full"
+                        isTruncated
+                    >
+                        {game.name}
+                    </Text>
+                    <HStack spacing={1.5} align="center">
                         <Badge
                             bg={statusStyle.badgeBg}
                             color={statusStyle.badgeColor}

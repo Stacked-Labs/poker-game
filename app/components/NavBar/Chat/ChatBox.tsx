@@ -21,7 +21,7 @@ import {
 } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
-import { sendMessage } from '@/app/hooks/server_actions';
+import { sendMessage, getTableSpectatorCount } from '@/app/hooks/server_actions';
 import { IoClose } from 'react-icons/io5';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { useEmotesData } from '@/app/hooks/useEmotesData';
@@ -60,6 +60,7 @@ const Chatbox = ({
     const [message, setMessage] = useState<string>('');
     const { appState, dispatch } = useContext(AppContext);
     const { username, clientID } = appState;
+    const [spectatorCount, setSpectatorCount] = useState<number>(0);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const virtuosoRef = useRef<VirtuosoHandle | null>(null);
     const {
@@ -103,6 +104,21 @@ const Chatbox = ({
     useEffect(() => {
         ensureLoaded();
     }, [ensureLoaded]);
+
+    useEffect(() => {
+        const tableName = appState.table;
+        if (!tableName) return;
+
+        const fetch = () => {
+            getTableSpectatorCount(tableName)
+                .then(setSpectatorCount)
+                .catch(() => {});
+        };
+
+        fetch();
+        const interval = setInterval(fetch, 60_000);
+        return () => clearInterval(interval);
+    }, [appState.table]);
 
     // Auto-scroll to bottom when chat opens
     useEffect(() => {
@@ -246,14 +262,24 @@ const Chatbox = ({
                 top={0}
                 zIndex={10}
             >
-                <Text
-                    fontSize="xl"
-                    fontWeight="bold"
-                    color="text.secondary"
-                    fontFamily="heading"
-                >
-                    Chat
-                </Text>
+                <Flex align="center" gap={2}>
+                    <Text
+                        fontSize="xl"
+                        fontWeight="bold"
+                        color="text.secondary"
+                        fontFamily="heading"
+                    >
+                        Chat
+                    </Text>
+                    {spectatorCount > 0 && (
+                        <Flex align="center" gap={1}>
+                            <Icon as={FiEye} boxSize={3.5} color="text.secondary" opacity={0.7} />
+                            <Text fontSize="sm" color="text.secondary" opacity={0.7}>
+                                {spectatorCount}
+                            </Text>
+                        </Flex>
+                    )}
+                </Flex>
                 <Flex align="center" gap={2}>
                     <Tooltip
                         label={

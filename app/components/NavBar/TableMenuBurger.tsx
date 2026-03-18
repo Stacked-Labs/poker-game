@@ -32,7 +32,7 @@ import {
     sendPauseGameCommand,
 } from '@/app/hooks/server_actions';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
-import EditBlindsButton from './EditBlindsButton';
+
 
 const Item = ({ button }: { button: ReactElement }) => {
     return (
@@ -156,9 +156,6 @@ const TableMenuBurger = ({
                         />
                     )}
                     <Item button={<VolumeButton />} />
-                    {isOwner && socket && (
-                        <Item button={<EditBlindsButton />} />
-                    )}
                     {isOwner &&
                         appState.game?.running &&
                         !appState.game?.paused &&

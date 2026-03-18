@@ -3,6 +3,7 @@
 import { useContext, useMemo } from 'react';
 import { Box, Text, Image, Flex } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 interface ConfigWithCrypto {
     maxBuyIn: number;
@@ -15,48 +16,26 @@ interface ConfigWithCrypto {
 const GameConfigWatermark = () => {
     const { appState } = useContext(AppContext);
     const config = appState.game?.config;
-
-    const pendingBlinds = appState.game?.pendingBlinds;
+    const { format, mode: displayMode } = useFormatAmount();
+    const formatBlinds = displayMode === 'bb'
+        ? (v: number) => v.toLocaleString('en-US')
+        : format;
 
     const configText = useMemo(() => {
         if (!config) return null;
 
-        const formatter = new Intl.NumberFormat(undefined, {
-            maximumFractionDigits: 2,
-        });
-        const formatValue = (value: number | string | null | undefined) => {
-            if (value === null || value === undefined) {
-                return null;
-            }
-            const numeric =
-                typeof value === 'number' ? value : Number.parseFloat(value);
-            if (Number.isNaN(numeric)) {
-                return null;
-            }
-            return formatter.format(numeric);
-        };
-
         const parts: string[] = [];
-        const sb = formatValue(config.sb);
-        const bb = formatValue(config.bb);
-        const maxBuyIn = formatValue(config.maxBuyIn);
 
-        const blindValues = [sb, bb].filter(Boolean).join('/');
-        if (blindValues.length) {
-            parts.push(`NLH - ${blindValues}`);
+        if (config.sb != null && config.bb != null) {
+            parts.push(`NLH - ${formatBlinds(config.sb)}/${formatBlinds(config.bb)}`);
         }
 
-        if (maxBuyIn) {
-            parts.push(`Max Buy-In ${maxBuyIn}`);
+        if (config.maxBuyIn != null) {
+            parts.push(`Max Buy-In ${format(config.maxBuyIn)}`);
         }
 
         return parts.join(' • ');
-    }, [config]);
-
-    const pendingText = useMemo(() => {
-        if (!pendingBlinds) return null;
-        return `NEXT HAND: ${pendingBlinds.sb}/${pendingBlinds.bb}`;
-    }, [pendingBlinds]);
+    }, [config, format, formatBlinds]);
 
     const chainInfo = useMemo(() => {
         const configWithCrypto = config as ConfigWithCrypto;
@@ -84,7 +63,7 @@ const GameConfigWatermark = () => {
         };
     }, [config]);
 
-    if (!configText && !chainInfo && !pendingText) return null;
+    if (!configText && !chainInfo) return null;
 
     const uppercaseText = configText ? configText.toUpperCase() : '';
 
@@ -107,16 +86,6 @@ const GameConfigWatermark = () => {
                         fontWeight="medium"
                     >
                         {uppercaseText}
-                    </Text>
-                )}
-                {pendingText && (
-                    <Text
-                        color="orange.300"
-                        fontSize={{ base: '10px', sm: '11px', md: '12px' }}
-                        lineHeight={1.2}
-                        fontWeight="bold"
-                    >
-                        {pendingText}
                     </Text>
                 )}
                 {chainInfo && (

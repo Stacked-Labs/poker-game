@@ -7,17 +7,25 @@ import {
     Switch,
     HStack,
     Icon,
+    IconButton,
+    Tooltip,
     useMediaQuery,
     VStack,
+    NumberInput,
+    NumberInputField,
 } from '@chakra-ui/react';
 import { FaMoon } from 'react-icons/fa';
 import { IoMdSunny } from 'react-icons/io';
-import { FiEye, FiEyeOff, FiVolume2, FiVolumeX } from 'react-icons/fi';
+import { FiCheck, FiEye, FiEyeOff, FiVolume2, FiVolumeX, FiX } from 'react-icons/fi';
 import { useColorMode } from '@chakra-ui/react';
 import React, { useContext, useState } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { CardBack } from '@/app/components/Card';
 import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
+import useIsTableOwner from '@/app/hooks/useIsTableOwner';
+import { sendUpdateBlinds } from '@/app/hooks/server_actions';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 const chipDisplayColors: Record<string, string> = {
     chips: '#1A1A2E',
@@ -39,8 +47,40 @@ const cardBackColors: Record<CardBackVariant, string> = {
 const GameSettings = () => {
     const { colorMode, toggleColorMode } = useColorMode();
     const { appState, dispatch } = useContext(AppContext);
+    const socket = useContext(SocketContext);
+    const isOwner = useIsTableOwner();
     const [isPortrait] = useMediaQuery('(orientation: portrait)');
     const tableColorKey = localStorage.getItem('tableColorKey') ?? 'green';
+    const config = appState.game?.config;
+    const pendingBlinds = appState.game?.pendingBlinds;
+    const hasPending = !!pendingBlinds;
+    const { format, fromChips, toChips, mode: displayMode } = useFormatAmount();
+
+    // Blinds in BB mode is circular — fall back to chips (or USDC for crypto)
+    const blindsMode = displayMode === 'bb' ? 'chips' : displayMode;
+    const formatBlinds = blindsMode === 'usdc' ? format : (v: number) => v.toLocaleString('en-US');
+    const blindsFromChips = blindsMode === 'usdc' ? fromChips : (v: number) => v;
+    const blindsToChips = blindsMode === 'usdc' ? toChips : (v: number) => v;
+
+    // Inputs work in display units (USDC dollars or raw chips)
+    const [sbDisplay, setSbDisplay] = useState<number>(blindsFromChips(config?.sb ?? 5));
+    const [bbDisplay, setBbDisplay] = useState<number>(blindsFromChips(config?.bb ?? 10));
+
+    // Convert display values back to raw chips for server
+    const sbChips = blindsToChips(sbDisplay);
+    const bbChips = blindsToChips(bbDisplay);
+    const isValidBlinds = sbChips > 0 && bbChips >= sbChips * 2;
+    const isBlindsChanged = config && (sbChips !== config.sb || bbChips !== config.bb);
+
+    const handleBlindsSubmit = () => {
+        if (!socket || !isValidBlinds) return;
+        sendUpdateBlinds(socket, sbChips, bbChips);
+    };
+
+    const handleBlindsCancel = () => {
+        if (!socket || !config) return;
+        sendUpdateBlinds(socket, config.sb, config.bb);
+    };
     const [selectedColor, onColorChange] = useState<string>(tableColorKey);
     const suitPalette = appState.fourColorDeckEnabled
         ? {
@@ -66,6 +106,149 @@ const GameSettings = () => {
 
     return (
         <VStack spacing={{ base: 2, md: 4 }} align="stretch">
+            <Tooltip
+                label={!isOwner ? 'Only the table owner can change blinds' : undefined}
+                isDisabled={isOwner}
+                hasArrow
+                placement="top"
+            >
+                <Box
+                    bg="card.white"
+                    borderRadius="16px"
+                    border="2px solid"
+                    borderColor="border.lightGray"
+                    p={{ base: 2.5, md: 3 }}
+                    boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                >
+                    <Flex
+                        direction="row"
+                        justify="space-between"
+                        align="center"
+                        wrap="nowrap"
+                        gap={{ base: 1.5, md: 3 }}
+                    >
+                        <HStack spacing={1.5} flex={1} minWidth={0} align="baseline">
+                            <Text
+                                fontSize={{ base: 'sm', md: 'lg' }}
+                                fontWeight="bold"
+                                color="text.secondary"
+                                whiteSpace="nowrap"
+                                lineHeight="1"
+                            >
+                                Blinds
+                            </Text>
+                            {hasPending && (
+                                <Text
+                                    fontSize={{ base: '2xs', md: 'xs' }}
+                                    fontWeight="bold"
+                                    color="orange.400"
+                                    whiteSpace="nowrap"
+                                    lineHeight="1"
+                                >
+                                    NEXT: {formatBlinds(pendingBlinds.sb)}/{formatBlinds(pendingBlinds.bb)}
+                                </Text>
+                            )}
+                        </HStack>
+                        <HStack spacing={{ base: 1, md: 1.5 }} flexShrink={0}>
+                            <VStack spacing={0}>
+                                <Text color="text.secondary" fontSize="2xs" fontWeight="semibold" lineHeight={1}>
+                                    SB
+                                </Text>
+                                <NumberInput
+                                    value={sbDisplay}
+                                    onChange={(_, val) => setSbDisplay(val || 0)}
+                                    min={blindsMode === 'usdc' ? 0.01 : 1}
+                                    step={blindsMode === 'usdc' ? 0.01 : 1}
+                                    precision={blindsMode === 'usdc' ? 2 : 0}
+                                    size="sm"
+                                    w={{ base: '52px', md: '68px' }}
+                                    isDisabled={!isOwner}
+                                >
+                                    <NumberInputField
+                                        bg="card.lightGray"
+                                        color="text.primary"
+                                        border="none"
+                                        borderRadius="8px"
+                                        textAlign="center"
+                                        fontWeight="bold"
+                                        px={1}
+                                        h={{ base: '32px', md: '36px' }}
+                                        fontSize={{ base: 'sm', md: 'md' }}
+                                    />
+                                </NumberInput>
+                            </VStack>
+                            <Text color="text.secondary" pt={2.5} fontWeight="bold" fontSize="sm">/</Text>
+                            <VStack spacing={0}>
+                                <Text color="text.secondary" fontSize="2xs" fontWeight="semibold" lineHeight={1}>
+                                    BB
+                                </Text>
+                                <NumberInput
+                                    value={bbDisplay}
+                                    onChange={(_, val) => setBbDisplay(val || 0)}
+                                    min={displayMode === 'usdc' ? 0.02 : 2}
+                                    step={displayMode === 'usdc' ? 0.01 : 1}
+                                    precision={displayMode === 'usdc' ? 2 : 0}
+                                    size="sm"
+                                    w={{ base: '52px', md: '68px' }}
+                                    isDisabled={!isOwner}
+                                >
+                                    <NumberInputField
+                                        bg="card.lightGray"
+                                        color="text.primary"
+                                        border="none"
+                                        borderRadius="8px"
+                                        textAlign="center"
+                                        fontWeight="bold"
+                                        px={1}
+                                        h={{ base: '32px', md: '36px' }}
+                                        fontSize={{ base: 'sm', md: 'md' }}
+                                    />
+                                </NumberInput>
+                            </VStack>
+                            {isOwner && (
+                                <>
+                                    <IconButton
+                                        icon={<Icon as={FiCheck} boxSize={{ base: 3.5, md: 4 }} />}
+                                        aria-label="Queue blind change"
+                                        size="sm"
+                                        h={{ base: '30px', md: '34px' }}
+                                        w={{ base: '30px', md: '34px' }}
+                                        minW="unset"
+                                        bg="brand.green"
+                                        color="white"
+                                        borderRadius="8px"
+                                        _hover={{ opacity: 0.85 }}
+                                        onClick={handleBlindsSubmit}
+                                        isDisabled={!isValidBlinds || !isBlindsChanged}
+                                        mt={2}
+                                    />
+                                    {hasPending && (
+                                        <IconButton
+                                            icon={<Icon as={FiX} boxSize={{ base: 3.5, md: 4 }} />}
+                                            aria-label="Cancel pending blind change"
+                                            size="sm"
+                                            h={{ base: '30px', md: '34px' }}
+                                            w={{ base: '30px', md: '34px' }}
+                                            minW="unset"
+                                            bg="red.500"
+                                            color="white"
+                                            borderRadius="8px"
+                                            _hover={{ opacity: 0.85 }}
+                                            onClick={handleBlindsCancel}
+                                            mt={2}
+                                        />
+                                    )}
+                                </>
+                            )}
+                        </HStack>
+                    </Flex>
+                    {isOwner && !isValidBlinds && (
+                        <Text color="red.400" fontSize="xs" mt={1.5} textAlign="right">
+                            BB must be at least 2x SB
+                        </Text>
+                    )}
+                </Box>
+            </Tooltip>
             <Box
                 bg="card.white"
                 borderRadius="16px"

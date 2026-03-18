@@ -36,7 +36,7 @@ import TableMenuBurger from './TableMenuBurger';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
 import WithdrawButton from './WithdrawButton';
-import EditBlindsButton from './EditBlindsButton';
+
 
 // Keyframes for the pulse animation
 const pulseAnimation = keyframes`
@@ -316,21 +316,6 @@ const Navbar = () => {
                                 </Tooltip>
                             </Box>
                         )}
-                    {isOwner && socket && (
-                        <Box
-                            className="navbar-edit-blinds-wrapper"
-                            sx={{
-                                '@media (orientation: portrait)': {
-                                    display: 'none',
-                                },
-                                '@media (orientation: landscape)': {
-                                    display: 'block',
-                                },
-                            }}
-                        >
-                            <EditBlindsButton />
-                        </Box>
-                    )}
                     {isOwner && appState.game?.running && socket && (
                         <Box
                             className="navbar-pause-wrapper"

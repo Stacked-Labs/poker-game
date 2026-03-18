@@ -2,6 +2,7 @@
 
 import { useContext, useEffect, useRef, useState } from 'react';
 import { AppContext } from '../contexts/AppStoreProvider';
+import { useFormatAmount } from '../hooks/useFormatAmount';
 import { Box, Flex, Icon, Text, Spinner } from '@chakra-ui/react';
 import { MdPause, MdWarning, MdCheckCircle } from 'react-icons/md';
 import { keyframes } from '@emotion/react';
@@ -17,8 +18,8 @@ const MESSAGE_INTERVAL_MS = 3000;
 
 // ── Keyframes ────────────────────────────────────────────────────────
 const fadeIn = keyframes`
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { transform: translateY(4px); }
+    to   { transform: translateY(0); }
 `;
 
 const textSwap = keyframes`
@@ -39,14 +40,20 @@ type BannerMode =
     | 'settlement-failed'
     | 'paused'
     | 'pausing'
+    | 'pending-blinds'
     | null;
 
 const GameStatusBanner = () => {
     const { appState } = useContext(AppContext);
+    const { format, mode: displayMode } = useFormatAmount();
+    const formatBlinds = displayMode === 'bb'
+        ? (v: number) => v.toLocaleString('en-US')
+        : format;
 
     const isPaused = appState.game?.paused;
     const isPendingPause = appState.game?.pendingPause;
     const settlementStatus = appState.settlementStatus;
+    const pendingBlinds = appState.game?.pendingBlinds;
 
     let mode: BannerMode = null;
     if (settlementStatus === 'pending') mode = 'settling';
@@ -54,6 +61,7 @@ const GameStatusBanner = () => {
     else if (settlementStatus === 'failed') mode = 'settlement-failed';
     else if (isPaused) mode = 'paused';
     else if (isPendingPause) mode = 'pausing';
+    else if (pendingBlinds) mode = 'pending-blinds';
 
     // ── Cycling message index for pending settlement ──
     const [msgIndex, setMsgIndex] = useState(0);
@@ -96,8 +104,12 @@ const GameStatusBanner = () => {
                     justifyContent="center"
                     gap={1.5}
                     whiteSpace="nowrap"
-                    opacity={0.8}
-                    mixBlendMode="multiply"
+                    bg="blackAlpha.200"
+                    backdropFilter="blur(8px)"
+                    borderRadius="full"
+                    px={{ base: 2.5, md: 3 }}
+                    py={{ base: 1, md: 1.5 }}
+                    opacity={0.7}
                     animation={`${fadeIn} 300ms ease-out`}
                     role="status"
                 >
@@ -110,8 +122,8 @@ const GameStatusBanner = () => {
                     <Text
                         key={msgIndex}
                         fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="800"
-                        letterSpacing="0.02em"
+                        fontWeight="700"
+                        letterSpacing="0.04em"
                         lineHeight="1"
                         color="whiteAlpha.700"
                         animation={`${textSwap} ${MESSAGE_INTERVAL_MS}ms ease-in-out`}
@@ -129,21 +141,25 @@ const GameStatusBanner = () => {
                     justifyContent="center"
                     gap={1}
                     whiteSpace="nowrap"
-                    opacity={0.8}
-                    mixBlendMode="multiply"
+                    bg="blackAlpha.200"
+                    backdropFilter="blur(8px)"
+                    borderRadius="full"
+                    px={{ base: 2.5, md: 3 }}
+                    py={{ base: 1, md: 1.5 }}
+                    opacity={0.7}
                     animation={`${fadeIn} 300ms ease-out`}
                     role="status"
                 >
                     <Icon
                         as={MdCheckCircle}
-                        boxSize={{ base: 3.5, md: 4.5 }}
+                        boxSize={{ base: 3.5, md: 4 }}
                         color="whiteAlpha.700"
                         aria-hidden
                     />
                     <Text
                         fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="800"
-                        letterSpacing="0.02em"
+                        fontWeight="700"
+                        letterSpacing="0.04em"
                         lineHeight="1"
                         color="whiteAlpha.700"
                     >
@@ -160,11 +176,11 @@ const GameStatusBanner = () => {
                     justifyContent="center"
                     gap={1.5}
                     whiteSpace="nowrap"
-                    bg="blackAlpha.600"
-                    backdropFilter="blur(10px)"
+                    bg="blackAlpha.200"
+                    backdropFilter="blur(8px)"
                     borderRadius="full"
-                    px={{ base: 3, md: 4 }}
-                    py={{ base: 1.5, md: 2 }}
+                    px={{ base: 2.5, md: 3 }}
+                    py={{ base: 1, md: 1.5 }}
                     border="1px solid"
                     borderColor="red.500"
                     boxShadow="0 0 12px rgba(229, 62, 62, 0.25)"
@@ -179,9 +195,10 @@ const GameStatusBanner = () => {
                     />
                     <Text
                         fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="bold"
+                        fontWeight="700"
+                        letterSpacing="0.04em"
+                        lineHeight="1"
                         color="red.300"
-                        letterSpacing="0.02em"
                     >
                         Settlement Failed
                     </Text>
@@ -194,28 +211,61 @@ const GameStatusBanner = () => {
                     key="pause"
                     align="center"
                     justifyContent="center"
-                    gap={0.5}
+                    gap={1}
                     whiteSpace="nowrap"
-                    opacity={0.8}
-                    mixBlendMode="multiply"
+                    bg="blackAlpha.200"
+                    backdropFilter="blur(8px)"
+                    borderRadius="full"
+                    px={{ base: 2.5, md: 3 }}
+                    py={{ base: 1, md: 1.5 }}
+                    opacity={0.7}
                     animation={`${fadeIn} 300ms ease-out`}
                 >
                     <Icon
                         as={MdPause}
                         boxSize={{ base: 4, md: 5 }}
-                        color="whiteAlpha.600"
+                        color="whiteAlpha.700"
                         aria-hidden
                     />
                     <Text
                         fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="800"
-                        letterSpacing="0.02em"
+                        fontWeight="700"
+                        letterSpacing="0.04em"
                         lineHeight="1"
-                        color="whiteAlpha.600"
+                        color="whiteAlpha.700"
                     >
                         {mode === 'paused'
                             ? 'Game Paused'
                             : 'Pausing after this hand…'}
+                    </Text>
+                </Flex>
+            )}
+
+            {/* ── Pending blinds (lowest priority) ────────── */}
+            {mode === 'pending-blinds' && pendingBlinds && (
+                <Flex
+                    key="pending-blinds"
+                    align="center"
+                    justifyContent="center"
+                    gap={1}
+                    whiteSpace="nowrap"
+                    bg="blackAlpha.200"
+                    backdropFilter="blur(8px)"
+                    borderRadius="full"
+                    px={{ base: 2.5, md: 3 }}
+                    py={{ base: 1, md: 1.5 }}
+                    opacity={0.7}
+                    animation={`${fadeIn} 300ms ease-out`}
+                    role="status"
+                >
+                    <Text
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="700"
+                        letterSpacing="0.04em"
+                        lineHeight="1"
+                        color="whiteAlpha.700"
+                    >
+                        NEXT HAND: {formatBlinds(pendingBlinds.sb)}/{formatBlinds(pendingBlinds.bb)}
                     </Text>
                 </Flex>
             )}

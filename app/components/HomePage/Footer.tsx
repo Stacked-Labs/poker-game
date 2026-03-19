@@ -16,6 +16,7 @@ import {
 } from '@chakra-ui/react';
 import { Image } from '@chakra-ui/next-js';
 import { FaDiscord } from 'react-icons/fa';
+import { FaTelegram } from 'react-icons/fa6';
 import { RiTwitterXLine } from 'react-icons/ri';
 import FloatingDecor from './FloatingDecor';
 
@@ -70,7 +71,7 @@ const Footer = () => {
                             The easiest way to play poker with friends, onchain.
                             No downloads, no hassle—just pure poker action.
                         </Text>
-                        <HStack spacing={4}>
+                        <HStack spacing={3}>
                             <Link
                                 href="https://x.com/stacked_poker"
                                 isExternal
@@ -79,10 +80,13 @@ const Footer = () => {
                                 alignItems="center"
                                 justifyContent="center"
                                 bg="card.lightGray"
+                                color="text.primary"
                                 borderRadius="full"
                                 _hover={{
-                                    bg: 'brand.pink',
+                                    bg: '#000000',
                                     color: 'white',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
                                 }}
                                 transition="all 0.2s"
                             >
@@ -96,14 +100,37 @@ const Footer = () => {
                                 alignItems="center"
                                 justifyContent="center"
                                 bg="card.lightGray"
+                                color="#5865F2"
                                 borderRadius="full"
                                 _hover={{
-                                    bg: 'brand.pink',
+                                    bg: '#5865F2',
                                     color: 'white',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 4px 12px rgba(88, 101, 242, 0.35)',
                                 }}
                                 transition="all 0.2s"
                             >
                                 <Icon as={FaDiscord} boxSize={5} />
+                            </Link>
+                            <Link
+                                href="https://t.me/stackedpoker"
+                                isExternal
+                                boxSize="40px"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                bg="card.lightGray"
+                                color="#0088cc"
+                                borderRadius="full"
+                                _hover={{
+                                    bg: '#0088cc',
+                                    color: 'white',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 4px 12px rgba(0, 136, 204, 0.35)',
+                                }}
+                                transition="all 0.2s"
+                            >
+                                <Icon as={FaTelegram} boxSize={5} />
                             </Link>
                         </HStack>
                     </Stack>

@@ -20,7 +20,7 @@ import {
 import { RiTwitterXLine } from 'react-icons/ri';
 import { MdArrowForward, MdCheck } from 'react-icons/md';
 import { FaDiscord } from 'react-icons/fa';
-import { SiFarcaster } from 'react-icons/si';
+import { FaTelegram } from 'react-icons/fa6';
 import WalletButton from '@/app/components/WalletButton';
 import NewsletterSuccessModal from './NewsletterSuccessModal';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -911,23 +911,23 @@ const HomeCard = () => {
                                     />
                                 </Link>
                                 <Link
-                                    href="https://warpcast.com/stackedpoker"
+                                    href="https://t.me/stackedpoker"
                                     isExternal
                                 >
                                     <IconButton
-                                        aria-label="Warpcast"
-                                        icon={<SiFarcaster size={20} />}
+                                        aria-label="Telegram"
+                                        icon={<FaTelegram size={20} />}
                                         size="lg"
                                         variant="social"
-                                        color="#855DCD"
+                                        color="#0088cc"
                                         borderRadius="14px"
                                         w={{ base: '42px', md: '46px' }}
                                         h={{ base: '42px', md: '46px' }}
                                         _hover={{
-                                            bg: '#855DCD',
+                                            bg: '#0088cc',
                                             color: 'white',
                                             boxShadow:
-                                                '0 8px 24px rgba(133, 93, 205, 0.35)',
+                                                '0 8px 24px rgba(0, 136, 204, 0.35)',
                                         }}
                                     />
                                 </Link>

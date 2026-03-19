@@ -20,7 +20,7 @@ import { keyframes } from '@emotion/react';
 import { ReactElement, useContext, useEffect } from 'react';
 import { FaDiscord, FaCopy, FaCheck } from 'react-icons/fa';
 import { RiTwitterXLine } from 'react-icons/ri';
-import { SiFarcaster } from 'react-icons/si';
+import { FaTelegram } from 'react-icons/fa6';
 import { AppContext } from '../contexts/AppStoreProvider';
 
 const pulse = keyframes`
@@ -265,13 +265,13 @@ const LobbyBanner = () => {
                             />
                         </Link>
                         <Link
-                            href="https://warpcast.com/stackedpoker"
+                            href="https://t.me/stackedpoker"
                             isExternal
                         >
                             <SocialButton
-                                icon={<SiFarcaster size={20} />}
-                                label="Farcaster"
-                                color="#855DCD"
+                                icon={<FaTelegram size={20} />}
+                                label="Telegram"
+                                color="#0088cc"
                                 rotation="5deg"
                             />
                         </Link>

@@ -32,7 +32,7 @@ import {
     RiChat3Line,
 } from 'react-icons/ri';
 import { FaDiscord } from 'react-icons/fa';
-import { SiFarcaster } from 'react-icons/si';
+import { FaTelegram } from 'react-icons/fa6';
 import WalletButton from '../WalletButton';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -668,22 +668,22 @@ const HomeNavBar: React.FC = () => {
                                     />
                                 </Link>
                                 <Link
-                                    href="https://warpcast.com/stackedpoker"
+                                    href="https://t.me/stackedpoker"
                                     isExternal
                                 >
                                     <IconButton
-                                        aria-label="Warpcast"
-                                        icon={<SiFarcaster size={20} />}
+                                        aria-label="Telegram"
+                                        icon={<FaTelegram size={20} />}
                                         size="md"
                                         variant="ghost"
-                                        color="#855DCD"
+                                        color="#0088cc"
                                         bg="transparent"
                                         border="none"
                                         borderRadius="12px"
                                         w="44px"
                                         h="44px"
                                         _hover={{
-                                            bg: '#855DCD',
+                                            bg: '#0088cc',
                                             color: 'white',
                                             transform: 'translateY(-2px)',
                                         }}

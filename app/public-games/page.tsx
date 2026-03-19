@@ -11,14 +11,13 @@ import {
     Heading,
     Button,
     Badge,
-    Input,
     Icon,
     Grid,
     Tooltip,
     Image,
 } from '@chakra-ui/react';
 import {
-    FiSearch,
+
     FiArrowUpRight,
     FiPlus,
     FiUsers,
@@ -27,7 +26,7 @@ import {
     FiEye,
 } from 'react-icons/fi';
 import Footer from '../components/HomePage/Footer';
-import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Spinner } from '@chakra-ui/react';
 import { getPublicGames } from '../hooks/server_actions';
 
@@ -116,48 +115,6 @@ const SectionHeader = ({
     );
 };
 
-const SearchBar = () => {
-    return (
-        <Flex
-            w="full"
-            direction={{ base: 'column', lg: 'row' }}
-            gap={{ base: 4, lg: 6 }}
-            bg="card.white"
-            borderRadius="24px"
-            p={{ base: 5, md: 6 }}
-            border="1px solid"
-            borderColor="card.lightGray"
-            boxShadow="0 10px 24px rgba(12, 21, 49, 0.06)"
-        >
-            <Box position="relative" flex={1}>
-                <Icon
-                    as={FiSearch}
-                    position="absolute"
-                    left={4}
-                    top="50%"
-                    transform="translateY(-50%)"
-                    color="text.secondary"
-                />
-                <Input
-                    type="search"
-                    placeholder="Search tables, hosts, or game modes"
-                    aria-label="Search public tables"
-                    height={{ base: '48px', md: '56px' }}
-                    pl={12}
-                    bg="card.lightGray"
-                    borderRadius="16px"
-                    border="1px solid"
-                    borderColor="rgba(12, 21, 49, 0.08)"
-                    _focus={{
-                        borderColor: 'brand.green',
-                        boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.2)',
-                        bg: 'white',
-                    }}
-                />
-            </Box>
-        </Flex>
-    );
-};
 
 const PublicGameRow = ({ game }: { game: PublicGame }) => {
     const statusStyle = getStatusStyle(game.is_active);
@@ -387,76 +344,49 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
     );
 };
 
-const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
-    const [filter, setFilter] = useState<'all' | 'crypto' | 'free'>('all');
-    const [sortConfig, setSortConfig] = useState<{
-        key: 'table' | 'blinds' | 'seats' | null;
-        direction: 'asc' | 'desc';
-    }>({ key: null, direction: 'asc' });
-    const filteredGames = useMemo(() => {
-        if (filter === 'crypto') {
-            return games.filter((game) => game.is_crypto);
-        }
-        if (filter === 'free') {
-            return games.filter((game) => !game.is_crypto);
-        }
-        return games;
-    }, [filter, games]);
-    const sortedGames = useMemo(() => {
-        const items = [...filteredGames];
-        if (!sortConfig.key) {
-            return items;
-        }
-        const directionMultiplier = sortConfig.direction === 'asc' ? 1 : -1;
-        items.sort((a, b) => {
-            switch (sortConfig.key) {
-                case 'table':
-                    return (
-                        a.name.localeCompare(b.name) * directionMultiplier
-                    );
-                case 'blinds':
-                    return (
-                        (a.big_blind - b.big_blind) * directionMultiplier
-                    );
-                case 'seats':
-                    return (
-                        (a.player_count - b.player_count) * directionMultiplier
-                    );
-                default:
-                    return 0;
-            }
-        });
-        return items;
-    }, [filteredGames, sortConfig]);
+const PAGE_SIZE = 20;
 
+const sortKeyToParam = (key: 'table' | 'blinds' | 'seats' | null) => {
+    if (key === 'table') return 'name';
+    if (key === 'blinds') return 'big_blind';
+    if (key === 'seats') return 'players';
+    return undefined;
+};
+
+const PublicGamesSection = ({
+    games,
+    totalCount,
+    filter,
+    onFilterChange,
+    sortConfig,
+    onSortChange,
+    hasMore,
+    isLoadingMore,
+    onLoadMore,
+}: {
+    games: PublicGame[];
+    totalCount: number;
+    filter: 'all' | 'crypto' | 'free';
+    onFilterChange: (f: 'all' | 'crypto' | 'free') => void;
+    sortConfig: { key: 'table' | 'blinds' | 'seats' | null; direction: 'asc' | 'desc' };
+    onSortChange: (key: 'table' | 'blinds' | 'seats') => void;
+    hasMore: boolean;
+    isLoadingMore: boolean;
+    onLoadMore: () => void;
+}) => {
     const SortHeaderButton = ({
         label,
         sortKey,
-        display,
     }: {
         label: string;
         sortKey: 'table' | 'blinds' | 'seats';
-        display?: { base?: string; md?: string };
     }) => {
         const isActive = sortConfig.key === sortKey;
-        const icon = isActive
-            ? sortConfig.direction === 'asc'
-                ? FiChevronUp
-                : FiChevronDown
-            : FiChevronUp;
+        const icon = isActive && sortConfig.direction === 'desc' ? FiChevronDown : FiChevronUp;
         return (
             <Button
                 variant="unstyled"
-                onClick={() =>
-                    setSortConfig((prev) => ({
-                        key: sortKey,
-                        direction:
-                            prev.key === sortKey && prev.direction === 'asc'
-                                ? 'desc'
-                                : 'asc',
-                    }))
-                }
-                display={display}
+                onClick={() => onSortChange(sortKey)}
                 h="20px"
                 px={0}
                 border="none"
@@ -484,7 +414,7 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
                         as={icon}
                         boxSize="12px"
                         color="text.primary"
-                        opacity={isActive ? 0.9 : 0.25}
+                        opacity={isActive ? 0.9 : 0.35}
                     />
                 </HStack>
             </Button>
@@ -495,7 +425,7 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
         <VStack w="full" spacing={{ base: 4, md: 5 }}>
             <SectionHeader
                 title="All Public Games"
-                count={filteredGames.length}
+                count={totalCount}
                 action={
                     <HStack
                         spacing={1}
@@ -576,7 +506,7 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
                                         },
                                     }}
                                     onClick={() =>
-                                        setFilter(
+                                        onFilterChange(
                                             option.value as
                                                 | 'all'
                                                 | 'crypto'
@@ -601,31 +531,36 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
                 boxShadow="0 14px 28px rgba(12, 21, 49, 0.08)"
                 overflow="hidden"
             >
-                <Grid
-                    templateColumns={{
-                        base: '1fr',
-                        md: '24px 2.2fr 1fr 0.8fr auto',
-                    }}
-                    gap={4}
-                    alignItems="center"
-                    px={{ base: 4, md: 6 }}
-                    py={{ base: 2, md: 3 }}
+                {/* Mobile sort buttons row */}
+                <HStack
+                    display={{ base: 'flex', md: 'none' }}
+                    spacing={4}
+                    px={3}
+                    py={2}
                     bg="rgba(12, 21, 49, 0.03)"
                     borderBottom="1px solid"
                     borderColor="rgba(12, 21, 49, 0.08)"
                 >
-                    <Box display={{ base: 'none', md: 'block' }} />
                     <SortHeaderButton label="Table" sortKey="table" />
-                    <SortHeaderButton
-                        label="Blinds"
-                        sortKey="blinds"
-                        display={{ base: 'none', md: 'inline-flex' }}
-                    />
-                    <SortHeaderButton
-                        label="Seats"
-                        sortKey="seats"
-                        display={{ base: 'none', md: 'inline-flex' }}
-                    />
+                    <SortHeaderButton label="Blinds" sortKey="blinds" />
+                    <SortHeaderButton label="Seats" sortKey="seats" />
+                </HStack>
+                {/* Desktop sort header aligned to columns */}
+                <Grid
+                    display={{ base: 'none', md: 'grid' }}
+                    templateColumns="24px 2.2fr 1fr 0.8fr auto"
+                    gap={4}
+                    alignItems="center"
+                    px={6}
+                    py={3}
+                    bg="rgba(12, 21, 49, 0.03)"
+                    borderBottom="1px solid"
+                    borderColor="rgba(12, 21, 49, 0.08)"
+                >
+                    <Box />
+                    <SortHeaderButton label="Table" sortKey="table" />
+                    <SortHeaderButton label="Blinds" sortKey="blinds" />
+                    <SortHeaderButton label="Seats" sortKey="seats" />
                     <Box />
                 </Grid>
 
@@ -658,41 +593,46 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
                             },
                         }}
                     >
-                        {sortedGames.map((game) => (
+                        {games.map((game) => (
                             <PublicGameRow key={game.name} game={game} />
                         ))}
                     </VStack>
                 </Box>
 
-                <Flex
-                    align="center"
-                    justify="center"
-                    px={{ base: 4, md: 6 }}
-                    py={{ base: 3, md: 4 }}
-                    bg="rgba(12, 21, 49, 0.02)"
-                    borderTop="1px solid"
-                    borderColor="rgba(12, 21, 49, 0.08)"
-                >
-                    <Button
-                        size="md"
-                        borderRadius="12px"
-                        bg="card.lightGray"
-                        color="text.primary"
-                        border="1px solid"
-                        borderColor="rgba(12, 21, 49, 0.15)"
-                        fontWeight="semibold"
-                        textTransform="none"
-                        _hover={{ bg: 'rgba(12, 21, 49, 0.06)' }}
-                        _dark={{
-                            bg: 'legacy.grayDark',
-                            color: 'text.white',
-                            borderColor: 'rgba(255, 255, 255, 0.12)',
-                            _hover: { bg: 'rgba(255, 255, 255, 0.08)' },
-                        }}
+                {hasMore && (
+                    <Flex
+                        align="center"
+                        justify="center"
+                        px={{ base: 4, md: 6 }}
+                        py={{ base: 3, md: 4 }}
+                        bg="rgba(12, 21, 49, 0.02)"
+                        borderTop="1px solid"
+                        borderColor="rgba(12, 21, 49, 0.08)"
                     >
-                        Load more tables
-                    </Button>
-                </Flex>
+                        <Button
+                            size="md"
+                            borderRadius="12px"
+                            bg="card.lightGray"
+                            color="text.primary"
+                            border="1px solid"
+                            borderColor="rgba(12, 21, 49, 0.15)"
+                            fontWeight="semibold"
+                            textTransform="none"
+                            isLoading={isLoadingMore}
+                            loadingText="Loading..."
+                            onClick={onLoadMore}
+                            _hover={{ bg: 'rgba(12, 21, 49, 0.06)' }}
+                            _dark={{
+                                bg: 'legacy.grayDark',
+                                color: 'text.white',
+                                borderColor: 'rgba(255, 255, 255, 0.12)',
+                                _hover: { bg: 'rgba(255, 255, 255, 0.08)' },
+                            }}
+                        >
+                            Load more tables
+                        </Button>
+                    </Flex>
+                )}
             </Box>
         </VStack>
     );
@@ -700,30 +640,82 @@ const PublicGamesSection = ({ games }: { games: PublicGame[] }) => {
 
 const PublicPage = () => {
     const [games, setGames] = useState<PublicGame[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [filter, setFilter] = useState<'all' | 'crypto' | 'free'>('all');
+    const [sortConfig, setSortConfig] = useState<{
+        key: 'table' | 'blinds' | 'seats' | null;
+        direction: 'asc' | 'desc';
+    }>({ key: null, direction: 'asc' });
 
-    const fetchGames = useCallback(async () => {
-        try {
-            setIsLoading(true);
-            setError(null);
-            const data = await getPublicGames();
-            if (data?.success && Array.isArray(data.games)) {
-                setGames(data.games);
-            } else {
-                setError('Unable to load games. Please try again.');
-            }
-        } catch (err) {
-            console.error('Failed to load public games:', err);
-            setError('Unable to load games. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+    const sortByParam = sortKeyToParam(sortConfig.key);
 
     useEffect(() => {
-        fetchGames();
-    }, [fetchGames]);
+        let cancelled = false;
+        setIsLoading(true);
+        setError(null);
+        getPublicGames({
+            sortBy: sortByParam,
+            order: sortConfig.direction,
+            filter,
+            limit: PAGE_SIZE,
+            offset: 0,
+        })
+            .then((data) => {
+                if (cancelled) return;
+                if (data?.success && Array.isArray(data.games)) {
+                    setGames(data.games);
+                    setTotalCount(data.total_count ?? data.games.length);
+                } else {
+                    setError('Unable to load games. Please try again.');
+                }
+            })
+            .catch(() => {
+                if (!cancelled)
+                    setError('Unable to load games. Please try again.');
+            })
+            .finally(() => {
+                if (!cancelled) setIsLoading(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [filter, sortByParam, sortConfig.direction]);
+
+    const handleSortChange = (key: 'table' | 'blinds' | 'seats') => {
+        setSortConfig((prev) => ({
+            key,
+            direction:
+                prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+        }));
+    };
+
+    const handleLoadMore = async () => {
+        setIsLoadingMore(true);
+        try {
+            const data = await getPublicGames({
+                sortBy: sortByParam,
+                order: sortConfig.direction,
+                filter,
+                limit: PAGE_SIZE,
+                offset: games.length,
+            });
+            if (data?.success && Array.isArray(data.games)) {
+                setGames((prev) => [...prev, ...data.games]);
+            }
+        } catch {
+            // silent fail — existing rows remain visible
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
+
+    const fetchGames = () => {
+        setSortConfig({ key: null, direction: 'asc' });
+        setFilter('all');
+    };
 
     return (
         <Flex
@@ -845,7 +837,6 @@ const PublicPage = () => {
                             </HStack>
                         </Flex>
 
-                        <SearchBar />
 
                         {isLoading ? (
                             <Flex
@@ -918,7 +909,17 @@ const PublicPage = () => {
                                 </Button>
                             </Flex>
                         ) : (
-                            <PublicGamesSection games={games} />
+                            <PublicGamesSection
+                                games={games}
+                                totalCount={totalCount}
+                                filter={filter}
+                                onFilterChange={setFilter}
+                                sortConfig={sortConfig}
+                                onSortChange={handleSortChange}
+                                hasMore={games.length < totalCount}
+                                isLoadingMore={isLoadingMore}
+                                onLoadMore={handleLoadMore}
+                            />
                         )}
                     </VStack>
                 </Container>

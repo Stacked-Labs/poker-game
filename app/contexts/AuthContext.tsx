@@ -91,6 +91,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const currentAddress = account?.address || null;
         const prevAddress = previousAddressRef.current;
 
+        // Wallet disconnected (had an address, now has none)
+        if (prevAddress && !currentAddress && lastAuthenticatedAddress) {
+            console.log('[AuthContext] Wallet disconnected - logging out session for', lastAuthenticatedAddress);
+            logoutUser().then(() => {
+                setIsAuthenticated(false);
+                setLastAuthenticatedAddress(null);
+            }).catch((err) => {
+                console.error('[AuthContext] Error logging out after wallet disconnect:', err);
+                setIsAuthenticated(false);
+                setLastAuthenticatedAddress(null);
+            });
+        }
+
         // Wallet changed
         if (prevAddress && currentAddress && prevAddress !== currentAddress) {
             console.log('[AuthContext] Wallet changed from', prevAddress, 'to', currentAddress);

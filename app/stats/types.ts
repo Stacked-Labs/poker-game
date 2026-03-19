@@ -185,6 +185,8 @@ export interface AdminHealthRedis {
     status: string;
     latency_ms: number;
     memory_used: string;
+    connected_clients: number;
+    max_clients: number;
     streams: Record<string, number>;
 }
 

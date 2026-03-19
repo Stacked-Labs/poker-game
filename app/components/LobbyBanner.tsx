@@ -220,6 +220,7 @@ const LobbyBanner = () => {
                         </Flex>
                     </Stack>
                     <CloseButton
+                        data-testid="lobby-banner-close"
                         onClick={onClose}
                         color="text.secondary"
                         borderRadius="8px"

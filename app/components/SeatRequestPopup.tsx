@@ -137,6 +137,7 @@ const SeatRequestPopup = () => {
         >
             <ModalOverlay bg="blackAlpha.300" />
             <ModalContent
+                data-testid="seat-request-popup"
                 bg="card.white"
                 borderRadius="18px"
                 overflow="hidden"

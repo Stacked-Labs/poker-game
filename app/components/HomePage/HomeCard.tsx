@@ -77,7 +77,7 @@ const slideUp = keyframes`
 `;
 
 // Flip to true to restore the Play Now / Create / Join buttons
-const SHOW_PLAY_BUTTONS = false;
+const SHOW_PLAY_BUTTONS = true;
 
 const HomeCard = () => {
     const [isCreating, setIsCreating] = useState(false);

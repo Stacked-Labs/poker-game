@@ -24,6 +24,7 @@ import {
     FiUsers,
     FiChevronUp,
     FiChevronDown,
+    FiEye,
 } from 'react-icons/fi';
 import Footer from '../components/HomePage/Footer';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
@@ -36,6 +37,7 @@ interface PublicGame {
     big_blind: number;
     is_crypto: boolean;
     player_count: number;
+    spectator_count: number;
     max_players: number;
     is_active: boolean;
     created_at: string;
@@ -274,7 +276,7 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                         color="text.secondary"
                         display={{ base: 'block', md: 'none' }}
                     >
-                        {blindsLabel} blinds • {seatsLabel} seats
+                        {blindsLabel} blinds • {seatsLabel} seats{game.spectator_count > 0 ? ` · ${game.spectator_count} watching` : ''}
                     </Text>
                 </VStack>
             </HStack>
@@ -339,6 +341,12 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                         {seatsLabel}
                     </Text>
                 </HStack>
+                {game.spectator_count > 0 && (
+                    <HStack spacing={1} color="text.secondary" fontSize="xs">
+                        <Icon as={FiEye} />
+                        <Text>{game.spectator_count} watching</Text>
+                    </HStack>
+                )}
             </VStack>
 
             <Button

@@ -121,9 +121,8 @@ export default function ToastBanner({
                 <Box minWidth={0} textAlign="center" px="44px">
                     <Text
                         fontWeight="bold"
-                        fontSize={{ base: 'sm', md: 'sm' }}
+                        fontSize="sm"
                         lineHeight="short"
-                        noOfLines={1}
                         color="inherit"
                     >
                         {title}
@@ -133,7 +132,6 @@ export default function ToastBanner({
                             fontSize={{ base: 'xs', md: 'sm' }}
                             opacity={0.92}
                             lineHeight="short"
-                            noOfLines={1}
                             color="inherit"
                         >
                             {description}

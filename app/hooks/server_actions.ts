@@ -538,6 +538,20 @@ export async function getPublicGames() {
     }
 }
 
+export async function getTableSpectatorCount(tableName: string): Promise<number> {
+    isBackendUrlValid();
+
+    const response = await fetch(
+        `${backendUrl}/api/tables/${encodeURIComponent(tableName)}/spectators`,
+        { method: 'GET' }
+    );
+    if (!response.ok) {
+        throw new Error(`Spectator count fetch failed: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data.spectator_count ?? 0;
+}
+
 export async function fetchTableEvents(
     tableName: string,
     limit: number = 50,

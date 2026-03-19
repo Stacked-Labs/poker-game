@@ -24,6 +24,7 @@ import {
     FiUsers,
     FiChevronUp,
     FiChevronDown,
+    FiEye,
 } from 'react-icons/fi';
 import Footer from '../components/HomePage/Footer';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
@@ -36,6 +37,7 @@ interface PublicGame {
     big_blind: number;
     is_crypto: boolean;
     player_count: number;
+    spectator_count: number;
     max_players: number;
     is_active: boolean;
     created_at: string;
@@ -227,17 +229,19 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                     display={{ base: 'block', md: 'none' }}
                     flexShrink={0}
                 />
-                <VStack align="start" spacing={0} minW={0}>
-                    <HStack spacing={1.5} flexWrap="wrap" align="center">
-                        <Text
-                            fontSize={{ base: 'sm', md: 'lg' }}
-                            fontWeight="bold"
-                            color="text.primary"
-                            fontFamily="monospace"
-                            noOfLines={1}
-                        >
-                            {game.name}
-                        </Text>
+                <VStack align="start" spacing={0.5} minW={0}>
+                    <Text
+                        fontSize={{ base: 'sm', md: 'lg' }}
+                        fontWeight="bold"
+                        color="text.primary"
+                        fontFamily="monospace"
+                        noOfLines={1}
+                        w="full"
+                        isTruncated
+                    >
+                        {game.name}
+                    </Text>
+                    <HStack spacing={1.5} align="center">
                         <Badge
                             bg={statusStyle.badgeBg}
                             color={statusStyle.badgeColor}
@@ -272,7 +276,7 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                         color="text.secondary"
                         display={{ base: 'block', md: 'none' }}
                     >
-                        {blindsLabel} blinds • {seatsLabel} seats
+                        {blindsLabel} blinds • {seatsLabel} seats{game.spectator_count > 0 ? ` · ${game.spectator_count} watching` : ''}
                     </Text>
                 </VStack>
             </HStack>
@@ -337,6 +341,12 @@ const PublicGameRow = ({ game }: { game: PublicGame }) => {
                         {seatsLabel}
                     </Text>
                 </HStack>
+                {game.spectator_count > 0 && (
+                    <HStack spacing={1} color="text.secondary" fontSize="xs">
+                        <Icon as={FiEye} />
+                        <Text>{game.spectator_count} watching</Text>
+                    </HStack>
+                )}
             </VStack>
 
             <Button

@@ -3,6 +3,7 @@ import { Providers } from './providers';
 import { Libre_Barcode_39_Text, Poppins } from 'next/font/google';
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import PointsActivityFeed from './components/PointsActivityFeed';
+import ServiceStatusBanner from './components/ServiceStatusBanner';
 import React from 'react';
 import type { Metadata } from 'next';
 
@@ -63,6 +64,7 @@ export default function RootLayout({
                 className={`${poppins.className} ${poppins.variable} ${libreBarcode.variable}`}
             >
                 <Providers>
+                    <ServiceStatusBanner />
                     <HomeNavBar />
                     <main>{children}</main>
                     <PointsActivityFeed />

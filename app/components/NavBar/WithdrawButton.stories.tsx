@@ -1,40 +1,38 @@
 'use client';
 
-import React, { useContext, useEffect, useCallback, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
 import {
+    Box,
     Button,
-    Tooltip,
-    useDisclosure,
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    ModalCloseButton,
-    VStack,
-    Text,
+    DarkMode,
+    Heading,
     HStack,
     Icon,
-    Spinner,
-    Box,
-    Heading,
     Image,
     Link,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    Spinner,
+    Text,
+    Tooltip,
+    useDisclosure,
+    VStack,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { FaCoins, FaInfoCircle } from 'react-icons/fa';
-import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { useWithdraw } from '@/app/hooks/useWithdraw';
-import { useActiveWallet } from 'thirdweb/react';
-import useToastHelper from '@/app/hooks/useToastHelper';
-import { useAuth } from '@/app/contexts/AuthContext';
 
+// ─── Constants & animations (mirrored from WithdrawButton) ───────────────────
+const POLL_INTERVAL = 5;
 const CHIPS_PER_USDC = 100;
 const USDC_LOGO_URL = '/usdc-logo.png';
-const POLL_INTERVAL = 5; // seconds between checks
+const CONTRACT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
 
-// Animations (matching TakeSeatModal)
 const gradientShift = keyframes`
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -42,73 +40,66 @@ const gradientShift = keyframes`
 `;
 
 const slideUp = keyframes`
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 `;
 
-const WithdrawButton = () => {
-    const wallet = useActiveWallet();
-    const address = wallet?.getAccount()?.address;
-    const { isAuthenticated, isAuthenticating } = useAuth();
-    const appStore = useContext(AppContext);
-    const config = appStore.appState.game?.config;
-    const isCryptoGame = Boolean(config?.crypto);
-    const contractAddress = config?.contractAddress;
-    const { isOpen, onOpen, onClose } = useDisclosure();
-    const { success, error: toastError } = useToastHelper();
+// ─── Props for the story-only wrapper ────────────────────────────────────────
+interface WithdrawStoryProps {
+    chipBalance: number;
+    canWithdraw: boolean;
+    isUserSeated: boolean;
+    isLoading: boolean;
+    status: 'idle' | 'checking' | 'withdrawing';
+    error: string | null;
+    isAuthenticated: boolean;
+    isAuthenticating: boolean;
+    /** When true, the modal opens automatically on mount. */
+    autoOpenModal: boolean;
+}
 
-    // Check if user is seated at the table
-    const isUserSeated = appStore.appState.game?.players?.some(
-        (player) => player.uuid === appStore.appState.clientID
+/**
+ * Presentational replica of WithdrawButton + modal.
+ * All state is controlled via props — no wallet, contract, or auth hooks needed.
+ */
+const WithdrawButtonStory = ({
+    chipBalance,
+    canWithdraw,
+    isUserSeated,
+    isLoading,
+    status,
+    error,
+    isAuthenticated,
+    isAuthenticating,
+    autoOpenModal,
+}: WithdrawStoryProps) => {
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
+    useEffect(() => {
+        if (autoOpenModal) onOpen();
+    }, [autoOpenModal, onOpen]);
+
+    const formattedChipBalance = chipBalance.toLocaleString('en-US');
+    const formattedUsdcValue = (chipBalance / CHIPS_PER_USDC).toLocaleString(
+        'en-US',
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
     );
 
-    const {
-        withdraw,
-        checkCanWithdraw,
-        canWithdraw,
-        chipBalance,
-        status,
-        error,
-        isLoading,
-        reset,
-    } = useWithdraw(contractAddress);
+    const isButtonDisabled =
+        isUserSeated || isLoading || !canWithdraw || chipBalance === 0;
 
-    // Check withdraw eligibility when modal opens or address changes
-    const refreshWithdrawStatus = useCallback(() => {
-        if (address && contractAddress) {
-            checkCanWithdraw();
-        }
-    }, [address, contractAddress, checkCanWithdraw]);
+    const isPendingWithdraw =
+        !canWithdraw && !isUserSeated && !isLoading && chipBalance > 0;
 
-    useEffect(() => {
-        if (isOpen) {
-            refreshWithdrawStatus();
-        }
-    }, [isOpen, refreshWithdrawStatus]);
-
-    // Auto-poll with countdown when withdrawal isn't available yet
+    // Live countdown for the pending-withdraw state
     const [countdown, setCountdown] = useState(POLL_INTERVAL);
     const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const isPendingWithdraw = isOpen && canWithdraw === false && !isLoading
-        && chipBalance !== null && chipBalance > BigInt(0) && !isUserSeated;
 
     useEffect(() => {
-        if (isPendingWithdraw) {
+        if (isPendingWithdraw && isOpen) {
             setCountdown(POLL_INTERVAL);
             countdownRef.current = setInterval(() => {
-                setCountdown((prev) => {
-                    if (prev <= 1) {
-                        refreshWithdrawStatus();
-                        return POLL_INTERVAL;
-                    }
-                    return prev - 1;
-                });
+                setCountdown((prev) => (prev <= 1 ? POLL_INTERVAL : prev - 1));
             }, 1000);
         }
         return () => {
@@ -117,54 +108,12 @@ const WithdrawButton = () => {
                 countdownRef.current = null;
             }
         };
-    }, [isPendingWithdraw, refreshWithdrawStatus]);
-
-    // Don't render if not a crypto game or no wallet
-    if (!isCryptoGame || !address) {
-        return null;
-    }
-
-    const formattedChipBalance =
-        chipBalance !== null
-            ? Number(chipBalance).toLocaleString('en-US')
-            : '0';
-
-    const formattedUsdcValue =
-        chipBalance !== null
-            ? (Number(chipBalance) / CHIPS_PER_USDC).toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-              })
-            : '0.00';
-
-    const handleWithdraw = async () => {
-        const withdrawSuccess = await withdraw();
-        if (withdrawSuccess) {
-            success(
-                'Withdrawal Successful',
-                'Your chips have been converted back to USDC.'
-            );
-            onClose();
-        } else if (error) {
-            toastError('Withdrawal Failed', error);
-        }
-    };
-
-    const handleClose = () => {
-        reset();
-        onClose();
-    };
+    }, [isPendingWithdraw, isOpen]);
 
     const getStatusMessage = () => {
         if (status === 'withdrawing') return 'Converting chips to USDC...';
         return 'Processing...';
     };
-
-    const isButtonDisabled =
-        isUserSeated ||
-        isLoading ||
-        !canWithdraw ||
-        chipBalance === BigInt(0);
 
     return (
         <>
@@ -202,9 +151,7 @@ const WithdrawButton = () => {
                     filter={isUserSeated ? 'blur(1px)' : 'none'}
                     opacity={isUserSeated ? 0.6 : 1}
                     _hover={{
-                        transform: isUserSeated
-                            ? 'none'
-                            : 'translateY(-2px)',
+                        transform: isUserSeated ? 'none' : 'translateY(-2px)',
                         boxShadow: isUserSeated
                             ? 'none'
                             : '0 4px 12px rgba(253, 197, 29, 0.4)',
@@ -216,7 +163,7 @@ const WithdrawButton = () => {
                 </Button>
             </Tooltip>
 
-            <Modal isOpen={isOpen} onClose={handleClose} isCentered>
+            <Modal isOpen={isOpen} onClose={onClose} isCentered>
                 <ModalOverlay
                     bg="rgba(0, 0, 0, 0.7)"
                     backdropFilter="blur(8px)"
@@ -343,14 +290,14 @@ const WithdrawButton = () => {
                                                         src={USDC_LOGO_URL}
                                                         alt="USDC"
                                                         boxSize="12px"
-                                                        loading="lazy"
                                                     />
                                                     <Text
                                                         fontSize="xs"
                                                         color="text.muted"
                                                         fontWeight="medium"
                                                     >
-                                                        {formattedUsdcValue} USDC
+                                                        {formattedUsdcValue}{' '}
+                                                        USDC
                                                     </Text>
                                                 </HStack>
                                             </VStack>
@@ -379,11 +326,12 @@ const WithdrawButton = () => {
                                                     textAlign="left"
                                                 >
                                                     {isAuthenticating
-                                                        ? 'Check your wallet to sign the message…'
+                                                        ? 'Check your wallet to sign the message\u2026'
                                                         : 'Sign the message in your wallet to continue.'}
                                                 </Text>
                                             </HStack>
                                         )}
+
                                         {isUserSeated && (
                                             <HStack
                                                 spacing={2}
@@ -416,10 +364,7 @@ const WithdrawButton = () => {
                                             </HStack>
                                         )}
 
-                                        {!canWithdraw &&
-                                            !isUserSeated &&
-                                            chipBalance !== null &&
-                                            chipBalance > BigInt(0) && (
+                                        {isPendingWithdraw && (
                                                 <HStack
                                                     spacing={2}
                                                     alignItems="flex-start"
@@ -516,7 +461,6 @@ const WithdrawButton = () => {
                                         isLoading && status === 'withdrawing'
                                     }
                                     loadingText={getStatusMessage()}
-                                    onClick={isPendingWithdraw ? refreshWithdrawStatus : handleWithdraw}
                                     cursor={isPendingWithdraw ? 'default' : undefined}
                                     _disabled={{
                                         bg: 'gray.300',
@@ -579,7 +523,6 @@ const WithdrawButton = () => {
                                     ) : (
                                         'Withdraw'
                                     )}
-                                    {/* Countdown progress bar — inside button for border-radius clipping */}
                                     {isPendingWithdraw && (
                                         <Box
                                             position="absolute"
@@ -593,35 +536,33 @@ const WithdrawButton = () => {
                                     )}
                                 </Button>
                             </Box>
-                            <Text
-                                fontSize="2xs"
-                                color="text.muted"
-                                textAlign="center"
-                                lineHeight="short"
-                                px={2}
-                                opacity={0.7}
-                            >
-                                {isUserSeated
-                                    ? 'Leave the table before withdrawing. Your on-chain chip balance reflects the last settled hand.'
-                                    : 'Your on-chain chip balance reflects the last settled hand. Chips are held by the table contract and returned as USDC upon withdrawal.'}
-                                {' '}{CHIPS_PER_USDC} chips&nbsp;=&nbsp;1&nbsp;USDC.
-                                {contractAddress && (
-                                    <>
-                                        {' '}
-                                        <Link
-                                            href={`https://sepolia.basescan.org/address/${contractAddress}`}
-                                            isExternal
-                                            color="brand.navy"
-                                            _dark={{ color: 'brand.lightGray' }}
-                                            fontWeight="semibold"
-                                            textDecoration="underline"
-                                            textUnderlineOffset="2px"
-                                        >
-                                            View contract
-                                        </Link>
-                                    </>
-                                )}
-                            </Text>
+                                <Text
+                                    fontSize="2xs"
+                                    color="text.muted"
+                                    textAlign="center"
+                                    lineHeight="short"
+                                    px={2}
+                                    opacity={0.7}
+                                >
+                                    {isUserSeated
+                                        ? 'Leave the table before withdrawing. Your on-chain chip balance reflects the last settled hand.'
+                                        : 'Your on-chain chip balance reflects the last settled hand. Chips are held by the table contract and returned as USDC upon withdrawal.'}
+                                    {' '}
+                                    {CHIPS_PER_USDC}{' '}
+                                    chips&nbsp;=&nbsp;1&nbsp;USDC.
+                                    {' '}
+                                    <Link
+                                        href={`https://sepolia.basescan.org/address/${CONTRACT_ADDRESS}`}
+                                        isExternal
+                                        color="brand.navy"
+                                        _dark={{ color: 'brand.lightGray' }}
+                                        fontWeight="semibold"
+                                        textDecoration="underline"
+                                        textUnderlineOffset="2px"
+                                    >
+                                        View contract
+                                    </Link>
+                                </Text>
                             </VStack>
                         </ModalFooter>
                     </Box>
@@ -657,4 +598,170 @@ const WithdrawButton = () => {
     );
 };
 
-export default WithdrawButton;
+// ─── Meta ────────────────────────────────────────────────────────────────────
+const meta = {
+    title: 'Components/WithdrawButton',
+    component: WithdrawButtonStory,
+    tags: ['autodocs'],
+    parameters: {
+        layout: 'centered',
+    },
+    decorators: [
+        (Story) => (
+            <Box
+                p={6}
+                bg="brand.darkNavy"
+                minH="80px"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+            >
+                <Story />
+            </Box>
+        ),
+    ],
+    argTypes: {
+        chipBalance: {
+            control: { type: 'number', min: 0, step: 100 },
+            description: 'Chip balance held in the contract',
+        },
+        canWithdraw: {
+            control: 'boolean',
+            description: 'Whether the contract allows withdrawal right now',
+        },
+        isUserSeated: {
+            control: 'boolean',
+            description: 'Whether the user is currently seated at the table',
+        },
+        isLoading: {
+            control: 'boolean',
+            description: 'Whether a withdraw/check operation is in progress',
+        },
+        status: {
+            control: { type: 'select' },
+            options: ['idle', 'checking', 'withdrawing'],
+            description: 'Current operation status',
+        },
+        error: {
+            control: 'text',
+            description: 'Error message to display (null = no error)',
+        },
+        isAuthenticated: {
+            control: 'boolean',
+            description: 'Whether the user has signed the auth message',
+        },
+        isAuthenticating: {
+            control: 'boolean',
+            description: 'Whether auth signature is pending in wallet',
+        },
+        autoOpenModal: {
+            control: 'boolean',
+            description: 'Automatically open the modal on render',
+        },
+    },
+    args: {
+        chipBalance: 5000,
+        canWithdraw: true,
+        isUserSeated: false,
+        isLoading: false,
+        status: 'idle',
+        error: null,
+        isAuthenticated: true,
+        isAuthenticating: false,
+        autoOpenModal: false,
+    },
+} satisfies Meta<typeof WithdrawButtonStory>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+// ─── Stories ─────────────────────────────────────────────────────────────────
+
+/** Default state — button only. Click to open the withdraw modal. */
+export const Default: Story = {};
+
+/** Modal open with a standard 5,000 chip balance (50.00 USDC). */
+export const ModalOpen: Story = {
+    args: { autoOpenModal: true },
+};
+
+/** Large balance — 250,000 chips (2,500.00 USDC). */
+export const LargeBalance: Story = {
+    args: { chipBalance: 250000, autoOpenModal: true },
+};
+
+/** Zero balance — withdraw button disabled. */
+export const ZeroBalance: Story = {
+    args: { chipBalance: 0, canWithdraw: false, autoOpenModal: true },
+};
+
+/** User is seated — button blurred, orange warning in modal. */
+export const UserSeated: Story = {
+    args: { isUserSeated: true, autoOpenModal: true },
+};
+
+/** Checking balance — spinner shown in modal body. */
+export const CheckingBalance: Story = {
+    args: { isLoading: true, status: 'checking', autoOpenModal: true },
+};
+
+/** Withdrawal in progress — button shows loading spinner. */
+export const Withdrawing: Story = {
+    args: { isLoading: true, status: 'withdrawing', autoOpenModal: true },
+};
+
+/** Cannot withdraw — waiting for hand to settle. */
+export const CannotWithdraw: Story = {
+    args: {
+        canWithdraw: false,
+        chipBalance: 3000,
+        autoOpenModal: true,
+    },
+};
+
+/** Error state — transaction reverted message. */
+export const WithError: Story = {
+    args: {
+        error: 'Transaction reverted: insufficient contract balance.',
+        autoOpenModal: true,
+    },
+};
+
+/** Needs authentication — sign message prompt. */
+export const NeedsAuth: Story = {
+    args: {
+        isAuthenticated: false,
+        isAuthenticating: false,
+        autoOpenModal: true,
+    },
+};
+
+/** Authenticating — waiting for wallet signature. */
+export const Authenticating: Story = {
+    args: {
+        isAuthenticated: false,
+        isAuthenticating: true,
+        autoOpenModal: true,
+    },
+};
+
+/** Dark mode variant with modal open. */
+export const Dark: Story = {
+    args: { autoOpenModal: true },
+    decorators: [
+        (Story) => (
+            <DarkMode>
+                <Story />
+            </DarkMode>
+        ),
+    ],
+};
+
+/**
+ * Playground — all controls active. Use the Controls panel to toggle
+ * every prop and see how the component responds.
+ */
+export const Playground: Story = {
+    name: 'Playground — all controls',
+    args: { autoOpenModal: true },
+};

@@ -12,7 +12,8 @@ import {
     ModalHeader,
     ModalOverlay,
     Text,
-    VStack,
+    HStack,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { MdWarning } from 'react-icons/md';
@@ -23,6 +24,12 @@ const POLL_INTERVAL_MS = 60_000;
 export default function ServiceStatusBanner() {
     const [isDegraded, setIsDegraded] = useState(false);
     const [dismissed, setDismissed] = useState(false);
+
+    const overlayBg = useColorModeValue('blackAlpha.400', 'blackAlpha.700');
+    const iconColor = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    const headerColor = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    const linkColor = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    const closeBtnHoverBg = useColorModeValue('brand.lightGray', 'charcoal.400');
 
     useEffect(() => {
         const check = async () => {
@@ -53,67 +60,89 @@ export default function ServiceStatusBanner() {
             isCentered
             size="sm"
         >
-            <ModalOverlay backdropFilter="blur(6px)" bg="blackAlpha.700" />
+            <ModalOverlay bg={overlayBg} backdropFilter="blur(4px)" />
             <ModalContent
-                bg="gray.900"
-                border="1px solid"
-                borderColor="orange.500"
-                boxShadow="0 0 32px rgba(255, 140, 0, 0.3)"
-                borderRadius="xl"
+                bg="card.white"
+                border="2px solid"
+                borderColor="border.lightGray"
+                boxShadow="0 16px 40px rgba(0, 0, 0, 0.18)"
+                borderRadius="20px"
                 mx={4}
+                maxW="360px"
             >
-                <ModalCloseButton color="whiteAlpha.600" />
-                <ModalHeader>
-                    <VStack spacing={2} pt={2}>
+                <ModalCloseButton
+                    color="text.secondary"
+                    size="md"
+                    top="14px"
+                    right="14px"
+                    borderRadius="full"
+                    _hover={{ bg: closeBtnHoverBg }}
+                />
+                <ModalHeader pb={0} px={6}>
+                    <HStack spacing={3} pt={2}>
                         <Icon
                             as={MdWarning}
-                            boxSize={10}
-                            color="orange.400"
+                            boxSize={6}
+                            color={iconColor}
                         />
                         <Text
                             fontSize="lg"
                             fontWeight="bold"
-                            color="orange.300"
-                            textAlign="center"
+                            color={headerColor}
+                            letterSpacing="-0.02em"
                         >
                             Service Disruption
                         </Text>
-                    </VStack>
+                    </HStack>
                 </ModalHeader>
-                <ModalBody pb={2}>
+                <ModalBody py={2}>
                     <Text
                         fontSize="sm"
-                        color="whiteAlpha.800"
-                        textAlign="center"
+                        color="text.primary"
                         lineHeight={1.6}
                     >
-                        Our wallet provider is experiencing issues. Wallet
-                        connections and crypto transactions may be temporarily
-                        affected.
+                        <Text as="span" color="#A855F6" fontWeight="semibold">
+                            Thirdweb
+                        </Text>{' '}
+                        is experiencing issues. Wallet connections and
+                        transactions may be temporarily affected.
                     </Text>
                     <Text
                         fontSize="xs"
-                        color="whiteAlpha.500"
-                        textAlign="center"
+                        color="text.muted"
                         mt={3}
                     >
+                        Follow updates on the{' '}
                         <Link
                             href="https://status.thirdweb.com"
                             isExternal
-                            color="orange.300"
+                            color="#A855F6"
                             textDecoration="underline"
+                            _hover={{ opacity: 0.8 }}
                         >
-                            Check status
+                            thirdweb status page
                         </Link>
+                        .
                     </Text>
                 </ModalBody>
-                <ModalFooter justifyContent="center" pb={5}>
+                <ModalFooter pt={3} pb={5} justifyContent="center">
                     <Button
-                        colorScheme="orange"
-                        variant="outline"
-                        size="sm"
                         onClick={() => setDismissed(true)}
-                        borderRadius="full"
+                        size="md"
+                        height="44px"
+                        width="100%"
+                        bg="brand.green"
+                        color="white"
+                        border="none"
+                        borderRadius="12px"
+                        fontWeight="bold"
+                        _hover={{
+                            transform: 'translateY(-1px)',
+                            boxShadow:
+                                '0 10px 18px rgba(54, 163, 123, 0.22)',
+                        }}
+                        _active={{ transform: 'translateY(0)' }}
+                        transition="all 0.2s ease"
                     >
                         Got it
                     </Button>

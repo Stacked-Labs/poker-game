@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, Flex, Text, useMediaQuery } from '@chakra-ui/react';
+import { Box, Flex, Icon, Text, useMediaQuery } from '@chakra-ui/react';
+import { MdEventSeat } from 'react-icons/md';
 import { keyframes } from '@emotion/react';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -13,6 +14,7 @@ type OverlayMessage = {
     id: number;
     name: string;
     message: string;
+    isSeated: boolean;
 };
 
 const FADE_DURATION_MS = 10000;
@@ -64,6 +66,7 @@ const ChatOverlay = () => {
                 id: startIndex + idx,
                 name: message.name,
                 message: message.message,
+                isSeated: message.isSeated,
             })),
         ]);
 
@@ -145,6 +148,15 @@ const ChatOverlay = () => {
                                     mr={2}
                                     color={userColor}
                                 >
+                                    {item.isSeated && (
+                                        <Icon
+                                            as={MdEventSeat}
+                                            boxSize={3}
+                                            mr={1}
+                                            verticalAlign="middle"
+                                            display="inline"
+                                        />
+                                    )}
                                     {item.name}:
                                 </Text>
                                 <MessageRenderer

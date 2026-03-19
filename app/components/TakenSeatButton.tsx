@@ -834,6 +834,7 @@ const TakenSeatButton = ({
                 }}
             >
                 <Flex
+                    data-testid={`player-hole-cards-${player.seatID}`}
                     className="player-cards-container"
                     position={'absolute'}
                     justifyContent={'center'}
@@ -917,6 +918,8 @@ const TakenSeatButton = ({
                                     return (
                                         <motion.div
                                             key={`${player.seatID}-card-${index}`}
+                                            data-testid={`card-${player.seatID}-${index}`}
+                                            data-face={isSelfPlayer ? 'up' : 'down'}
                                             className={`player-card seat-${player.seatID}-card-${index}`}
                                             initial={{ opacity: 1, scale: 1 }}
                                             animate={{ opacity: 1, scale: 1 }}

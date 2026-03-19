@@ -551,6 +551,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             🕵️
                                         </FormLabel>
                                         <Input
+                                            data-testid="username-input"
                                             placeholder="Enter your name"
                                             onChange={(e) =>
                                                 setName(e.target.value)

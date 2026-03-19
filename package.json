@@ -10,6 +10,7 @@
         "test": "",
         "test:e2e": "playwright test",
         "test:e2e:ui": "playwright test --ui",
+        "test:e2e:free": "playwright test e2e/free/ --workers=4 --fully-parallel",
         "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
         "format": "prettier --write '*/**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
         "lighthouse:desktop": "npx lighthouse http://localhost:3000 --view --preset=desktop",

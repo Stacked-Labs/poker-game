@@ -363,6 +363,8 @@ export function SocketProvider(props: SocketProviderProps) {
                                 eventData.message,
                                 5000
                             );
+                        } else if (eventData.message?.startsWith('You have been kicked from the table.')) {
+                            toastErrorRef.current('Kicked', eventData.message, 8000);
                         }
                         return;
                     }

@@ -28,7 +28,6 @@ export default function ServiceStatusBanner() {
     const overlayBg = useColorModeValue('blackAlpha.400', 'blackAlpha.700');
     const iconColor = useColorModeValue('brand.yellowDark', 'brand.yellow');
     const headerColor = useColorModeValue('brand.yellowDark', 'brand.yellow');
-    const linkColor = useColorModeValue('brand.yellowDark', 'brand.yellow');
     const closeBtnHoverBg = useColorModeValue('brand.lightGray', 'charcoal.400');
 
     useEffect(() => {

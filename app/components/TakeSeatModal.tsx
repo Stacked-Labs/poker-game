@@ -35,6 +35,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useDepositAndJoin } from '../hooks/useDepositAndJoin';
+import { useWithdraw } from '../hooks/useWithdraw';
 import { useActiveWallet } from 'thirdweb/react';
 import { FaInfoCircle } from 'react-icons/fa';
 
@@ -126,6 +127,29 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         usdcBalance,
         refreshBalance,
     } = useDepositAndJoin(contractAddress);
+
+    // Withdraw hook — used to detect and clear existing chip balance before re-depositing
+    const {
+        withdraw,
+        checkCanWithdraw,
+        chipBalance: existingChipBalance,
+        status: withdrawStatus,
+        error: withdrawError,
+        isLoading: isWithdrawing,
+        reset: resetWithdraw,
+    } = useWithdraw(contractAddress);
+
+    const seatRequested = appStore.appState.seatRequested;
+    const hasExistingChips =
+        existingChipBalance !== null && existingChipBalance > BigInt(0);
+    // Show withdraw-first flow when user has chips in the contract but no active seat request
+    const showWithdrawFirst =
+        isCryptoGame && hasExistingChips && seatRequested === null;
+
+    const formattedExistingChips = useMemo(() => {
+        if (existingChipBalance === null) return null;
+        return Number(existingChipBalance).toLocaleString('en-US');
+    }, [existingChipBalance]);
 
     const isNameInvalid =
         !isCryptoGame &&
@@ -312,9 +336,24 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         refreshBalance();
     }, [isOpen, isCryptoGame, refreshBalance]);
 
+    // Check for existing chip balance on modal open
+    useEffect(() => {
+        if (!isOpen || !isCryptoGame || !address) return;
+        checkCanWithdraw();
+    }, [isOpen, isCryptoGame, address, checkCanWithdraw]);
+
+    const handleWithdraw = async () => {
+        const success = await withdraw();
+        if (success) {
+            // Chip balance is now 0 — refresh USDC balance since user got USDC back
+            refreshBalance();
+        }
+    };
+
     // Reset deposit state when modal closes
     const handleClose = () => {
         resetDeposit();
+        resetWithdraw();
         onClose();
     };
 
@@ -442,8 +481,61 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     <ModalBody px={8} pb={4} pt={2}>
                         <Center>
                             <VStack w="100%" spacing={4}>
-                                {/* Name Input - only for non-crypto games */}
-                                {!isCryptoGame && (
+                                {/* Withdraw-first state: user has chips in the contract but no active seat request */}
+                                {showWithdrawFirst && (
+                                    <VStack
+                                        w="100%"
+                                        spacing={3}
+                                        bg="orange.50"
+                                        borderRadius="xl"
+                                        px={4}
+                                        py={4}
+                                        border="1px solid"
+                                        borderColor="orange.200"
+                                    >
+                                        <HStack
+                                            spacing={2}
+                                            alignItems="flex-start"
+                                            w="100%"
+                                        >
+                                            <Icon
+                                                as={FaInfoCircle}
+                                                boxSize={4}
+                                                color="orange.500"
+                                                mt={0.5}
+                                                flexShrink={0}
+                                            />
+                                            <VStack
+                                                spacing={1}
+                                                alignItems="flex-start"
+                                            >
+                                                <Text
+                                                    fontSize="sm"
+                                                    fontWeight="semibold"
+                                                    color="orange.700"
+                                                >
+                                                    Chips already in contract
+                                                </Text>
+                                                <Text
+                                                    fontSize="xs"
+                                                    color="orange.600"
+                                                    lineHeight="short"
+                                                >
+                                                    You have{' '}
+                                                    {formattedExistingChips}{' '}
+                                                    chips sitting in this
+                                                    contract from a previous
+                                                    deposit. Withdraw them first,
+                                                    then deposit a new amount to
+                                                    join.
+                                                </Text>
+                                            </VStack>
+                                        </HStack>
+                                    </VStack>
+                                )}
+
+                                {/* Normal buy-in inputs — hidden while withdraw-first flow is active */}
+                                {!showWithdrawFirst && !isCryptoGame && (
                                     <FormControl
                                         isInvalid={
                                             name.length > 0 &&
@@ -474,8 +566,8 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     </FormControl>
                                 )}
 
-                                {/* Buy-in Input */}
-                                <FormControl>
+                                {/* Buy-in Input — hidden while withdraw-first flow is active */}
+                                {!showWithdrawFirst && <FormControl>
                                     <Flex
                                         alignItems="center"
                                         justifyContent="space-between"
@@ -722,7 +814,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                 )}
                                         </Flex>
                                     )}
-                                </FormControl>
+                                </FormControl>}
 
                             </VStack>
                         </Center>
@@ -732,7 +824,64 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                         <VStack w="100%" spacing={4}>
                             {/* Wallet Button */}
                             <WalletButton width="100%" height="56px" />
-                            {needsWalletSignIn && (
+
+                            {/* Withdraw-first footer: show instead of normal join flow */}
+                            {showWithdrawFirst && (
+                                <>
+                                    {withdrawStatus === 'error' && withdrawError && (
+                                        <HStack
+                                            spacing={2}
+                                            alignItems="flex-start"
+                                            bg="red.50"
+                                            color="red.700"
+                                            borderRadius="md"
+                                            px={3}
+                                            py={2}
+                                            fontSize="xs"
+                                            fontWeight="medium"
+                                            width="100%"
+                                            alignSelf="stretch"
+                                        >
+                                            <Icon
+                                                as={FaInfoCircle}
+                                                boxSize={3.5}
+                                                mt={0.5}
+                                            />
+                                            <Text
+                                                color="inherit"
+                                                textAlign="left"
+                                                wordBreak="break-word"
+                                            >
+                                                {withdrawError}
+                                            </Text>
+                                        </HStack>
+                                    )}
+                                    <Button
+                                        w="100%"
+                                        h="56px"
+                                        fontSize="md"
+                                        fontWeight="bold"
+                                        borderRadius={'bigButton'}
+                                        bg="brand.pink"
+                                        color="white"
+                                        border="none"
+                                        isLoading={isWithdrawing}
+                                        loadingText="Withdrawing chips..."
+                                        _hover={{
+                                            bg: 'brand.pink',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow:
+                                                '0 12px 24px rgba(255, 105, 135, 0.35)',
+                                        }}
+                                        transition="all 0.2s ease"
+                                        onClick={handleWithdraw}
+                                    >
+                                        Withdraw chips &amp; start fresh
+                                    </Button>
+                                </>
+                            )}
+
+                            {!showWithdrawFirst && needsWalletSignIn && (
                                 <HStack
                                     spacing={2}
                                     alignItems="flex-start"
@@ -756,7 +905,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     </Text>
                                 </HStack>
                             )}
-                            {isBalanceInsufficient && (
+                            {!showWithdrawFirst && isBalanceInsufficient && (
                                 <HStack
                                     spacing={2}
                                     alignItems="flex-start"
@@ -785,7 +934,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 </HStack>
                             )}
                             {/* Deposit Error Message */}
-                            {depositStatus === 'error' && depositError && (
+                            {!showWithdrawFirst && depositStatus === 'error' && depositError && (
                                 <HStack
                                     spacing={2}
                                     alignItems="flex-start"
@@ -815,7 +964,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                             )}
 
                             {/* Join Button */}
-                            <Tooltip
+                            {!showWithdrawFirst && <Tooltip
                                 label={cryptoJoinHint}
                                 isDisabled={!needsWalletSignIn}
                                 placement="top"
@@ -904,8 +1053,8 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         ? 'Deposit & Join'
                                         : 'Join Game'}
                                 </Button>
-                            </Tooltip>
-                            {isCryptoGame && (
+                            </Tooltip>}
+                            {!showWithdrawFirst && isCryptoGame && (
                                 <Text
                                     fontSize="2xs"
                                     color="text.muted"

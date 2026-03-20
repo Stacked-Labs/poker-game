@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config } from 'dotenv';
+
+// Load funded wallet keys for crypto tests (ignored by git)
+config({ path: '.env.test', override: false });
 
 export default defineConfig({
     testDir: './e2e',
@@ -21,7 +25,19 @@ export default defineConfig({
     },
     projects: [
         {
-            name: 'chromium',
+            name: 'free',
+            testDir: './e2e/free',
+            use: { ...devices['Desktop Chrome'] },
+        },
+        {
+            name: 'crypto',
+            testDir: './e2e/crypto',
+            timeout: 600_000, // 10 min — blockchain ops are slow
+            use: { ...devices['Desktop Chrome'] },
+        },
+        {
+            name: 'wallet',
+            testMatch: /wallet-connect\.spec\.ts/,
             use: { ...devices['Desktop Chrome'] },
         },
     ],

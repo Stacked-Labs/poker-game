@@ -70,10 +70,13 @@ test('Seat request shows on both screens, owner accepts, game starts, each playe
     await owner.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'hidden', timeout: 10_000 });
 
     // ── Owner starts the game ──
-    // force: true — the Start button has an infinite CSS pulse animation which
-    // prevents Playwright's stability check from ever passing.
-    const startBtn = owner.getByRole('button', { name: /start/i });
-    await startBtn.click({ force: true });
+    // Use evaluate() to click directly — force:true via Playwright's CDP dispatch
+    // does not reliably trigger React's synthetic onClick on animated buttons.
+    const startBtn = owner.getByTestId('start-game-btn-desktop');
+    await startBtn.waitFor({ state: 'visible', timeout: 10_000 });
+    await owner.evaluate(() => {
+        (document.querySelector('[data-testid="start-game-btn-desktop"]') as HTMLElement)?.click();
+    });
 
     // Verify the game actually started (Start button disappears when game.running = true)
     await startBtn.waitFor({ state: 'hidden', timeout: 15_000 });

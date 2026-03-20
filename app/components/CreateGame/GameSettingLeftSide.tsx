@@ -81,8 +81,9 @@ const GameSettingLeftSide: React.FC = () => {
     const [turnstileError, setTurnstileError] = useState(false);
     const isCreatingRef = useRef(false);
     const [isPublicGame, setIsPublicGame] = useState(true);
+    const isE2E = process.env.NEXT_PUBLIC_E2E === 'true';
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
-    const isTurnstileConfigured = Boolean(turnstileSiteKey);
+    const isTurnstileConfigured = !isE2E && Boolean(turnstileSiteKey);
 
     const isCloudflareVerifying =
         isTurnstileConfigured && !turnstileToken && !turnstileError;
@@ -223,6 +224,7 @@ const GameSettingLeftSide: React.FC = () => {
         }
 
         if (
+            !isE2E &&
             !turnstileToken &&
             !turnstileError &&
             process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
@@ -314,7 +316,9 @@ const GameSettingLeftSide: React.FC = () => {
                         isCrypto: playType === 'Crypto',
                         chain: playType === 'Crypto' ? selectedNetwork : '',
                         isPublic: isPublicGame,
-                        cfTurnstileToken: turnstileToken || '',
+                        cfTurnstileToken:
+                            turnstileToken ||
+                            (isE2E ? 'E2E_DUMMY_TOKEN' : ''),
                     }),
                 }
             );

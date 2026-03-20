@@ -2,6 +2,7 @@ import { PendingPlayer } from '@/app/interfaces';
 import { Flex, Button, Text, Tooltip, VStack, Badge } from '@chakra-ui/react';
 import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
 import { GiBootKick } from 'react-icons/gi';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 const PlayerCard = ({
     index,
@@ -24,6 +25,11 @@ const PlayerCard = ({
     handleDenyPlayer?: ((uuid: string) => void) | null;
     confirmKick?: ((player: PendingPlayer) => void) | null;
 }) => {
+    const { format, mode } = useFormatAmount();
+    const formattedBuyIn = mode === 'chips'
+        ? `${format(player.buyIn)} chips`
+        : format(player.buyIn);
+
     return (
         <Flex
             key={index}
@@ -120,7 +126,7 @@ const PlayerCard = ({
                             fontWeight={'bold'}
                             color="brand.green"
                         >
-                            ${player.buyIn}
+                            {formattedBuyIn}
                         </Text>
                     </Text>
                     <Text

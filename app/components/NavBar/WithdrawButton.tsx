@@ -155,6 +155,7 @@ const WithdrawButton = () => {
                 py={1}
             >
                 <Button
+                    data-testid="withdraw-btn"
                     onClick={onOpen}
                     size={{ base: 'md', md: 'md' }}
                     px={2}
@@ -358,6 +359,7 @@ const WithdrawButton = () => {
                                         )}
                                         {isUserSeated && (
                                             <HStack
+                                                data-testid="withdraw-seated-warning"
                                                 spacing={2}
                                                 alignItems="flex-start"
                                                 bg="rgba(237, 137, 54, 0.12)"
@@ -464,6 +466,7 @@ const WithdrawButton = () => {
                         <ModalFooter px={8} pb={6} pt={1}>
                             <VStack w="100%" spacing={3}>
                             <Button
+                                data-testid="withdraw-confirm-btn"
                                 w="100%"
                                 h="56px"
                                 fontSize="md"

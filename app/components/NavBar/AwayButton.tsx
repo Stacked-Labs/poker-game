@@ -28,6 +28,7 @@ const AwayButton = ({
                 aria-label="Cancel rejoin"
             >
                 <IconButton
+                    data-testid="away-btn"
                     icon={<Icon as={FaCoffee} boxSize={{ base: 4, md: 5 }} />}
                     aria-label="Cancel rejoin"
                     size={{ base: 'md', md: 'md' }}
@@ -57,6 +58,7 @@ const AwayButton = ({
         return (
             <Tooltip label="I'm back" aria-label="I'm back">
                 <IconButton
+                    data-testid="away-btn"
                     icon={
                         <Icon as={FaUserCheck} boxSize={{ base: 4, md: 5 }} />
                     }
@@ -95,6 +97,7 @@ const AwayButton = ({
             aria-label="Away toggle"
         >
             <IconButton
+                data-testid="away-btn"
                 icon={<Icon as={FaCoffee} boxSize={{ base: 4, md: 5 }} />}
                 aria-label={
                     isSitOutNext ? 'Cancel sit out' : 'Sit out next hand'

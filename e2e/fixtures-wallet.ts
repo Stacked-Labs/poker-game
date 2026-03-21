@@ -13,12 +13,14 @@ const ANVIL_PK_B =
 // Funded keys for crypto tests — set in .env.test (loaded by playwright.config.ts)
 const CRYPTO_PK_A = process.env.TEST_CRYPTO_PK_A as `0x${string}` | undefined;
 const CRYPTO_PK_B = process.env.TEST_CRYPTO_PK_B as `0x${string}` | undefined;
+const CRYPTO_PK_C = process.env.TEST_CRYPTO_PK_C as `0x${string}` | undefined;
 
 export type WalletFixtures = {
     playerA: Page;
     playerB: Page;
     cryptoPlayerA: Page;
     cryptoPlayerB: Page;
+    cryptoPlayerC: Page;
 };
 
 async function setupCryptoPage(
@@ -92,6 +94,14 @@ export const test = base.extend<WalletFixtures>({
         if (!CRYPTO_PK_B || CRYPTO_PK_B === '0x')
             throw new Error('TEST_CRYPTO_PK_B must be set in .env.test');
         const page = await setupCryptoPage(browser, CRYPTO_PK_B);
+        await use(page);
+        await page.context().close();
+    },
+
+    cryptoPlayerC: async ({ browser }, use) => {
+        if (!CRYPTO_PK_C || CRYPTO_PK_C === '0x')
+            throw new Error('TEST_CRYPTO_PK_C must be set in .env.test');
+        const page = await setupCryptoPage(browser, CRYPTO_PK_C);
         await use(page);
         await page.context().close();
     },

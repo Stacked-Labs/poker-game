@@ -159,6 +159,7 @@ const Navbar = () => {
                         position="relative"
                     >
                         <IconButton
+                            data-testid="settings-btn"
                             icon={
                                 <Icon
                                     as={FiSettings}
@@ -406,6 +407,7 @@ const Navbar = () => {
                                               : '0 4px 12px rgba(253, 197, 29, 0.4)',
                                     }}
                                     transition="all 0.2s ease"
+                                    data-testid="pause-btn"
                                 />
                             </Tooltip>
                         </Box>
@@ -458,6 +460,7 @@ const Navbar = () => {
                     )}
                     <Box className="navbar-chat-wrapper" position="relative">
                         <IconButton
+                            data-testid="chat-toggle-btn"
                             icon={
                                 <Icon
                                     as={FiMessageSquare}

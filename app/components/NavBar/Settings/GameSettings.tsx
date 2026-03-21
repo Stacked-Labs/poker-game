@@ -171,6 +171,7 @@ const GameSettings = () => {
                                         px={1}
                                         h={{ base: '32px', md: '36px' }}
                                         fontSize={{ base: 'sm', md: 'md' }}
+                                        data-testid="sb-input"
                                     />
                                 </NumberInput>
                             </VStack>
@@ -199,6 +200,7 @@ const GameSettings = () => {
                                         px={1}
                                         h={{ base: '32px', md: '36px' }}
                                         fontSize={{ base: 'sm', md: 'md' }}
+                                        data-testid="bb-input"
                                     />
                                 </NumberInput>
                             </VStack>
@@ -218,6 +220,7 @@ const GameSettings = () => {
                                         onClick={handleBlindsSubmit}
                                         isDisabled={!isValidBlinds || !isBlindsChanged}
                                         mt={2}
+                                        data-testid="blinds-confirm-btn"
                                     />
                                     {hasPending && (
                                         <IconButton

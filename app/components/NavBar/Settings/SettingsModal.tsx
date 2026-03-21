@@ -356,6 +356,7 @@ const SettingsModal = ({
                                 )}
                             </Box>
                             <IconButton
+                                data-testid="settings-close-btn"
                                 aria-label="Close"
                                 icon={<FiX size={20} />}
                                 onClick={onClose}

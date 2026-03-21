@@ -228,6 +228,7 @@ const PlayerCard = ({
                         borderRadius="md"
                     >
                         <Button
+                            data-testid={`kick-player-${player.uuid}`}
                             size={{ base: 'sm', md: 'md' }}
                             bg={'brand.pink'}
                             color="white"

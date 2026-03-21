@@ -31,6 +31,7 @@ const LeaveButton = ({
     return (
         <Tooltip label={tooltipLabel}>
             <IconButton
+                data-testid="leave-table-btn"
                 icon={<Icon as={FiLogOut} boxSize={{ base: 4, md: 5 }} />}
                 aria-label={buttonLabel}
                 aria-pressed={isLeaveRequested}

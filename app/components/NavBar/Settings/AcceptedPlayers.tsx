@@ -175,6 +175,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid }:
                                 Cancel
                             </Button>
                             <Button
+                                data-testid="confirm-kick-btn"
                                 bg="brand.pink"
                                 color="white"
                                 onClick={handleConfirmKick}

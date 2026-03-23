@@ -519,13 +519,27 @@ export async function getLeaderboard(address?: string): Promise<{
     }
 }
 
-export async function getPublicGames() {
+export async function getPublicGames(params?: {
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+    filter?: 'all' | 'crypto' | 'free';
+    limit?: number;
+    offset?: number;
+}) {
     isBackendUrlValid();
 
+    const url = new URL(`${backendUrl}/api/public-games`);
+    if (params?.sortBy) url.searchParams.set('sort_by', params.sortBy);
+    if (params?.order) url.searchParams.set('order', params.order);
+    if (params?.filter && params.filter !== 'all')
+        url.searchParams.set('filter', params.filter);
+    if (params?.limit !== undefined)
+        url.searchParams.set('limit', String(params.limit));
+    if (params?.offset !== undefined)
+        url.searchParams.set('offset', String(params.offset));
+
     try {
-        const response = await fetch(`${backendUrl}/api/public-games`, {
-            method: 'GET',
-        });
+        const response = await fetch(url.toString(), { method: 'GET' });
         if (!response.ok) {
             throw new Error(
                 `Public games fetch failed: ${response.statusText}`

@@ -68,6 +68,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                 : 'none';
         return (
             <Flex
+                data-testid="pot-amount"
                 className="felt-pot"
                 padding={2}
                 sx={{

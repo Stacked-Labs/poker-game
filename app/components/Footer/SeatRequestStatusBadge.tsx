@@ -93,6 +93,7 @@ const SeatRequestStatusBadge = () => {
                 transform: 'translateY(0px)',
             }}
             transition="all 0.2s"
+            data-testid="cancel-seat-request"
             onClick={() => {
                 cancelSeatRequest(socket);
             }}

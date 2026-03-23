@@ -58,6 +58,7 @@ export default function PlayTypeToggle({
                     background="transparent"
                 >
                     <Text
+                        data-testid="play-type-free"
                         fontSize="sm"
                         fontWeight="semibold"
                         color={
@@ -89,6 +90,7 @@ export default function PlayTypeToggle({
                         background="transparent"
                     >
                         <Text
+                            data-testid="play-type-crypto"
                             fontSize="sm"
                             fontWeight="semibold"
                             color={

@@ -137,6 +137,7 @@ const SeatRequestPopup = () => {
         >
             <ModalOverlay bg="blackAlpha.300" />
             <ModalContent
+                data-testid="seat-request-popup"
                 bg="card.white"
                 borderRadius="18px"
                 overflow="hidden"
@@ -254,6 +255,7 @@ const SeatRequestPopup = () => {
                             flexShrink={0}
                         >
                             <Button
+                                data-testid={`accept-player-${currentRequest.uuid}`}
                                 size="sm"
                                 bg="brand.green"
                                 color="white"
@@ -272,6 +274,7 @@ const SeatRequestPopup = () => {
                                 <FaCircleCheck size={18} />
                             </Button>
                             <Button
+                                data-testid={`deny-player-${currentRequest.uuid}`}
                                 size="sm"
                                 bg="brand.pink"
                                 color="white"

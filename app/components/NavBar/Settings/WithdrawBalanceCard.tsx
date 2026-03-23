@@ -466,6 +466,7 @@ const WithdrawBalanceCard = () => {
                         </VStack>
 
                         <Button
+                            data-testid="host-rake-collect-btn"
                             size={{ base: 'sm', md: 'md' }}
                             px={{ base: 4, md: 5 }}
                             h={{ base: '34px', sm: '36px', md: '40px' }}
@@ -511,6 +512,7 @@ const WithdrawBalanceCard = () => {
                     Emergency Withdraw
                 </Text>
                 <Box
+                    data-testid="emergency-withdraw-btn"
                     as="button"
                     px={2.5}
                     py={1}

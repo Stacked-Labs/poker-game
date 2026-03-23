@@ -292,6 +292,7 @@ const RaiseInputBox = ({
                     hotkey={HOTKEY_BACK.slice(0, 3)}
                 />
                 <ActionButton
+                    data-testid="raise-action-button-mobile"
                     text={maxBet === 0 ? 'Bet' : 'Raise'}
                     color="green"
                     clickHandler={() => {
@@ -394,6 +395,7 @@ const RaiseInputBox = ({
                         </Text>
                         <Input
                             className="raise-portrait-bet-input"
+                            data-testid="raise-input-mobile"
                             ref={mobileInputRef}
                             bg={'brand.navy'}
                             border={'none'}
@@ -530,6 +532,7 @@ const RaiseInputBox = ({
                     {/* Raise */}
                     <Flex className="raise-portrait-raise-wrapper" flex={1}>
                         <ActionButton
+                            data-testid="raise-action-button-mobile"
                             text={maxBet === 0 ? 'Bet' : 'Raise'}
                             color="green"
                             clickHandler={() => {
@@ -714,6 +717,7 @@ const RaiseInputBox = ({
                             color="white"
                             fontWeight="bold"
                             className="raise-landscape-bet-input"
+                            data-testid="raise-input"
                             ref={desktopInputRef}
                             mt={'auto'}
                             width="100%"

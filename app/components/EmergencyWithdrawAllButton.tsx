@@ -61,6 +61,7 @@ const EmergencyWithdrawAllButton = ({ contractAddress }: Props) => {
                 placement="left"
             >
                 <Box
+                    data-testid="emergency-withdraw-all-btn"
                     as="button"
                     px={2.5}
                     py={1}
@@ -191,6 +192,7 @@ const EmergencyWithdrawAllButton = ({ contractAddress }: Props) => {
                             Cancel
                         </Button>
                         <Button
+                            data-testid="emergency-withdraw-all-confirm"
                             onClick={handleConfirm}
                             flex={1}
                             h="44px"

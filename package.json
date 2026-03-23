@@ -8,6 +8,9 @@
         "start": "next start",
         "lint": "next lint --fix",
         "test": "",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui",
+        "test:e2e:free": "playwright test e2e/free/ --workers=4 --fully-parallel",
         "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
         "format": "prettier --write '*/**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
         "lighthouse:desktop": "npx lighthouse http://localhost:3000 --view --preset=desktop",
@@ -43,10 +46,11 @@
         "react-virtuoso": "^4.7.2",
         "thirdweb": "^5.73.0",
         "three": "^0.168.0",
-        "viem": "^1.21.3",
         "zustand": "^4.5.2"
     },
     "devDependencies": {
+        "@johanneskares/wallet-mock": "^1.4.1",
+        "@playwright/test": "^1.58.2",
         "@storybook/addon-docs": "^9.1.20",
         "@storybook/addon-themes": "^9.1.20",
         "@storybook/nextjs-vite": "^9.1.20",
@@ -66,6 +70,7 @@
         "prettier": "^3.0.3",
         "storybook": "^9.1.20",
         "typescript": "^5",
+        "viem": "^2.47.5",
         "vite": "^7.0.0"
     },
     "husky": {

@@ -47,6 +47,7 @@ const StartGameButton = () => {
             >
                 {/* Icon button for mobile */}
                 <IconButton
+                    data-testid="start-game-btn"
                     aria-label="Start Game"
                     icon={<Icon as={FaPlay} boxSize={{ base: 4, md: 5 }} />}
                     px={2}
@@ -79,6 +80,7 @@ const StartGameButton = () => {
 
                 {/* Full button for tablet/desktop */}
                 <Button
+                    data-testid="start-game-btn-desktop"
                     size="md"
                     paddingX={{ md: 12 }}
                     onClick={() => onClickStartGame(socket)}

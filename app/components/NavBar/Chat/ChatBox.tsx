@@ -405,6 +405,7 @@ const Chatbox = ({
                         );
                         return (
                             <Box
+                                data-testid="chat-message"
                                 key={`${msg.timestamp}-${index}`}
                                 mb={0}
                                 width="100%"
@@ -466,6 +467,7 @@ const Chatbox = ({
             >
                 <Flex gap={2} alignItems="center">
                     <Input
+                        data-testid="chat-input"
                         ref={inputRef}
                         value={message}
                         onChange={(e) => {
@@ -521,6 +523,7 @@ const Chatbox = ({
                         isDisabled={!username && !clientID}
                     />
                     <IconButton
+                        data-testid="chat-send-btn"
                         icon={<IoIosSend size={28} />}
                         onClick={handleSendMessage}
                         aria-label="Send Message"

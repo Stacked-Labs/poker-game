@@ -88,6 +88,17 @@ export default function ToastBanner({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoCloseMs]);
 
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                handleClose();
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <Box
             width="100%"

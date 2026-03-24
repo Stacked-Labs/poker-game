@@ -241,6 +241,7 @@ const BlindObligationControls = () => {
     return (
         <Flex
             className="blind-obligation-controls"
+            data-testid="blind-obligation-controls"
             justifyContent={{ base: 'space-between', md: 'center' }}
             gap={{ base: 1, md: 2 }}
             p={2}
@@ -265,6 +266,7 @@ const BlindObligationControls = () => {
                     borderRadius={{ base: '8px', md: '10px' }}
                     padding={{ base: 4, sm: 5, md: 4, lg: 5 }}
                     textTransform={'uppercase'}
+                    data-testid="blind-obligation-wait-bb"
                     onClick={() => handleChoice('wait_bb')}
                     isDisabled={submitting !== null || waitingForBB}
                     isLoading={submitting === 'wait_bb'}
@@ -326,6 +328,7 @@ const BlindObligationControls = () => {
                     borderRadius={{ base: '8px', md: '10px' }}
                     padding={{ base: 4, sm: 5, md: 4, lg: 5 }}
                     textTransform={'uppercase'}
+                    data-testid="blind-obligation-post-now"
                     onClick={() => handleChoice('post_now')}
                     isDisabled={submitting !== null}
                     isLoading={submitting === 'post_now'}
@@ -374,6 +377,7 @@ const BlindObligationControls = () => {
                     borderRadius={{ base: '8px', md: '10px' }}
                     padding={{ base: 4, sm: 5, md: 4, lg: 5 }}
                     textTransform={'uppercase'}
+                    data-testid="blind-obligation-sit-out"
                     onClick={() => handleChoice('sit_out')}
                     isDisabled={submitting !== null}
                     isLoading={submitting === 'sit_out'}

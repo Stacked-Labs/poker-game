@@ -345,6 +345,83 @@ export async function openSettingsTab(page: Page, tabName: string) {
     await page.getByRole('tab', { name: tabName }).click();
 }
 
+/**
+ * End the current hand immediately by folding `foldCount` players in sequence.
+ * Polls all pages in order and folds whoever has the active (non-queued) turn.
+ * With 3 players and foldCount=2 this ends the hand preflop in two actions.
+ */
+export async function endHandByFolding(pages: Page[], foldCount = 2) {
+    let folds = 0;
+    const deadline = Date.now() + 30_000;
+    while (folds < foldCount && Date.now() < deadline) {
+        for (const page of pages) {
+            const fold = page.locator('[data-testid="action-fold"]').first();
+            const visible = await fold
+                .isVisible({ timeout: 300 })
+                .catch(() => false);
+            if (!visible) continue;
+            const queueMode = await fold
+                .getAttribute('data-queue-mode')
+                .catch(() => 'missing');
+            if (queueMode !== null) continue;
+            await fold.click();
+            folds++;
+            break;
+        }
+        if (folds < foldCount) await pages[0].waitForTimeout(300);
+    }
+}
+
+/**
+ * Play through one complete hand with 3 players (check/call every street).
+ * Polls all three pages and clicks for whichever player has the active turn.
+ */
+export async function playHandToCompletion3Players(
+    pageA: Page,
+    pageB: Page,
+    pageC: Page
+) {
+    const pages = [pageA, pageB, pageC];
+
+    async function actNext(streetTimeout = 12_000): Promise<boolean> {
+        const deadline = Date.now() + streetTimeout;
+        await new Promise((r) => setTimeout(r, 500));
+        while (Date.now() < deadline) {
+            for (const page of pages) {
+                const fold = page.locator('[data-testid="action-fold"]').first();
+                try {
+                    if (!(await fold.isVisible({ timeout: 200 }))) continue;
+                    const queueMode = await fold.getAttribute('data-queue-mode', {
+                        timeout: 200,
+                    });
+                    if (queueMode !== null) continue; // queue mode = not this player's turn
+                    await clickCheckOrCall(page);
+                    return true;
+                } catch {
+                    continue;
+                }
+            }
+            await pageA.waitForTimeout(200);
+        }
+        return false;
+    }
+
+    // Preflop: up to 3 acts (UTG → SB → BB check)
+    for (let i = 0; i < 3; i++) await actNext();
+
+    await pageA
+        .locator('[data-testid="game-stage"][data-stage="postflop"]')
+        .waitFor({ timeout: 15_000 });
+
+    // Flop, turn, river: up to 3 acts each street
+    for (let street = 0; street < 3; street++) {
+        for (let i = 0; i < 3; i++) {
+            const acted = await actNext(8_000);
+            if (!acted) break;
+        }
+    }
+}
+
 /** Play through one complete hand (check/call every street). */
 export async function playHandToCompletion(pageA: Page, pageB: Page) {
     // Preflop: two actions (SB calls, BB checks)

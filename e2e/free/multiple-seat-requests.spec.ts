@@ -6,10 +6,8 @@ test('Owner accepts multiple seat requests — all players seated', async ({
 }) => {
     const ctxOwner = await browser.newContext();
     const ctxPlayer2 = await browser.newContext();
-    const ctxPlayer3 = await browser.newContext();
     const owner = await ctxOwner.newPage();
     const player2 = await ctxPlayer2.newPage();
-    const player3 = await ctxPlayer3.newPage();
 
     // Owner creates game and sits seat 1
     await owner.goto('/create-game');
@@ -43,6 +41,10 @@ test('Owner accepts multiple seat requests — all players seated', async ({
     await owner.locator('[data-testid^="accept-player-"]').first().click();
     await owner.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
     await owner.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'hidden', timeout: 10_000 });
+
+    // Player3 context created here (deferred) to avoid idle-page closure during player1/player2 setup
+    const ctxPlayer3 = await browser.newContext();
+    const player3 = await ctxPlayer3.newPage();
 
     // Player3 requests seat 3
     await player3.goto(tablePath);

@@ -326,8 +326,70 @@ export const scenarioStates: Game = {
     actionDeadline: Date.now() + 20000,
 };
 
+// ─── Scenario 6 — Blind Obligation (owes SB) ──────────────────────────────
+// Player 1 (self) sat out while holding the SB position last hand.
+// They are now back at the table between hands and owe a small blind.
+// Shows: BlindObligationControls with all three options (Wait BB / Post now / Sit out).
+export const scenarioBlindObligation: Game = {
+    running: false,
+    dealer: 0,
+    action: 0,
+    utg: 0,
+    sb: 0,
+    bb: 0,
+    communityCards: [],
+    stage: 0,
+    betting: false,
+    config: cfg,
+    players: [
+        // Seat 1 = self — missed SB, sitting out (not ready), owes SB
+        mkPlayer(1, 0, { ready: false, stack: 990 }),
+        // Seat 2 — ready, will be SB next hand
+        mkPlayer(2, 1, { ready: true, stack: 1000 }),
+        // Seat 3 — ready, will be BB next hand
+        mkPlayer(3, 2, { ready: true, stack: 1000 }),
+    ],
+    pots: [EMPTY_POT],
+    minRaise: 20,
+    readyCount: 2,
+    paused: false,
+    actionDeadline: 0,
+    owesSB: [true, false, false],
+    owesBB: [false, false, false],
+    waitingForBB: [false, false, false],
+};
+
+// ─── Scenario 7 — Blind Obligation (waiting for BB) ───────────────────────
+// Player 1 (self) owes SB and has already chosen "Wait for BB".
+// Shows: BlindObligationControls in the "waiting" state (Wait for BB button disabled/active).
+export const scenarioWaitingForBB: Game = {
+    running: false,
+    dealer: 0,
+    action: 0,
+    utg: 0,
+    sb: 0,
+    bb: 0,
+    communityCards: [],
+    stage: 0,
+    betting: false,
+    config: cfg,
+    players: [
+        mkPlayer(1, 0, { ready: false, stack: 990 }),
+        mkPlayer(2, 1, { ready: true, stack: 1000 }),
+        mkPlayer(3, 2, { ready: true, stack: 1000 }),
+    ],
+    pots: [EMPTY_POT],
+    minRaise: 20,
+    readyCount: 2,
+    paused: false,
+    actionDeadline: 0,
+    owesSB: [true, false, false],
+    owesBB: [false, false, false],
+    waitingForBB: [true, false, false],
+};
+
 // ─── Scenario registry ─────────────────────────────────────────────────────
-export type ScenarioKey = 'idle' | 'preflop' | 'postflop' | 'showdown' | 'states';
+export type ScenarioKey = 'idle' | 'preflop' | 'postflop' | 'showdown' | 'states' | 'blind_obligation' | 'waiting_for_bb';
 
 export const SCENARIOS: Record<ScenarioKey, { label: string; description: string; game: Game }> = {
     idle: {
@@ -354,6 +416,16 @@ export const SCENARIOS: Record<ScenarioKey, { label: string; description: string
         label: 'All States',
         description: 'Every seat badge / state visible at once for quick comparison',
         game: scenarioStates,
+    },
+    blind_obligation: {
+        label: 'Owes SB',
+        description: 'Player 1 (self) missed the SB and must decide: post now, wait for BB, or sit out',
+        game: scenarioBlindObligation,
+    },
+    waiting_for_bb: {
+        label: 'Waiting BB',
+        description: 'Player 1 (self) owes SB and has chosen to wait for their BB seat',
+        game: scenarioWaitingForBB,
     },
 };
 

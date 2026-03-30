@@ -111,6 +111,12 @@ const mockSound = {
     isReady: () => false,
 };
 
+/** Minimal mock WebSocket so canSendSeatReaction evaluates to true */
+const mockSocket = {
+    readyState: WebSocket.OPEN,
+    send: () => {},
+} as unknown as WebSocket;
+
 // ─── Zustand store baselines (reset in beforeEach) ─────────────────────────────
 const initialSeatReactions = useSeatReactionsStore.getState();
 const initialPointsAnimation = usePointsAnimationStore.getState();
@@ -122,15 +128,17 @@ const initialPointsAnimation = usePointsAnimationStore.getState();
 type DecoratorConfig = {
     appStateOverride?: Partial<AppState>;
     gameOverride?: Partial<Game>;
+    /** Inject a mock WebSocket so emote picker / seat reactions are enabled */
+    withSocket?: boolean;
 };
 
-const makeDecorator = ({ appStateOverride, gameOverride }: DecoratorConfig = {}) => {
+const makeDecorator = ({ appStateOverride, gameOverride, withSocket }: DecoratorConfig = {}) => {
     const game: Game = { ...baseGame, ...gameOverride };
     const appState: AppState = { ...baseAppState, ...appStateOverride, game };
     const Wrapper = (Story: React.FC) => (
         <AppContext.Provider value={{ appState, dispatch: () => null }}>
             <SoundContext.Provider value={mockSound}>
-                <SocketContext.Provider value={null}>
+                <SocketContext.Provider value={withSocket ? mockSocket : null}>
                     {/* Seat slot — mirrors the approximate on-table size */}
                     <div
                         style={{
@@ -215,7 +223,8 @@ type Story = StoryObj<typeof meta>;
 
 // ─── Stories ───────────────────────────────────────────────────────────────────
 
-/** Idle opponent: in hand, no active turn, waiting. Cards: A♠ K♣ face-up. */
+/** Idle opponent: in hand, no active turn, waiting. Cards: A♠ K♣ face-up.
+ *  Shows gradient background and blockie avatar badge. */
 export const Default: Story = {
     args: {
         isRevealed: true,
@@ -223,25 +232,47 @@ export const Default: Story = {
     },
 };
 
-// ── Active turn / timer bar ────────────────────────────────────────────────────
+// ── Blockie avatar + vertical layout ──────────────────────────────────────────
 
-/** Active actor with plenty of time left — timer bar renders green. */
+/** Different addresses produce distinct square blockie avatars. */
+export const BlockieAvatarVariants: Story = {
+    name: 'Blockie Avatar — different address',
+    args: {
+        player: {
+            ...basePlayer,
+            address: '0x1111111111111111111111111111111111111111',
+            username: 'vitalik.eth',
+        },
+    },
+};
+
+/** No address — initials avatar with chat-color background. */
+export const NoAddress: Story = {
+    name: 'No Address — initials fallback',
+    args: {
+        player: { ...basePlayer, address: '', username: 'Big Tony' },
+    },
+};
+
+// ── Active turn / fuse timer border ───────────────────────────────────────────
+
+/** Active actor with plenty of time — thick fuse border sweeps clockwise, green. */
 export const ActiveTurnGreen: Story = {
-    name: 'Active Turn — green (>10 s)',
+    name: 'Active Turn — green fuse (>10 s)',
     decorators: [makeDecorator({ gameOverride: { actionDeadline: Date.now() + 30_000 } })],
     args: { isCurrentTurn: true },
 };
 
-/** Active actor with ~7 seconds left — timer bar renders yellow. */
+/** Active actor with ~7 seconds left — fuse border turns yellow. */
 export const ActiveTurnYellow: Story = {
-    name: 'Active Turn — yellow (5–10 s)',
+    name: 'Active Turn — yellow fuse (5–10 s)',
     decorators: [makeDecorator({ gameOverride: { actionDeadline: Date.now() + 7_000 } })],
     args: { isCurrentTurn: true },
 };
 
-/** Active actor with under 5 seconds left — timer bar goes red with pink border pulse. */
+/** Active actor with under 5 seconds — fuse border turns red/pink with pulse. */
 export const ActiveTurnRed: Story = {
-    name: 'Active Turn — red (<5 s)',
+    name: 'Active Turn — red fuse (<5 s)',
     decorators: [makeDecorator({ gameOverride: { actionDeadline: Date.now() + 3_500 } })],
     args: { isCurrentTurn: true },
 };
@@ -419,12 +450,11 @@ export const LeavingAfterHand: Story = {
 // ── Self (emote UI) ────────────────────────────────────────────────────────────
 
 /**
- * Seat belongs to the current user — the emote-picker icon would appear next
- * to the username when a live socket is present. In Storybook the socket is
- * null so only the placeholder icon renders; this story confirms isSelf detection.
+ * Seat belongs to the current user — emote-picker smiley icon is visible
+ * next to the username (mock socket enables it).
  */
 export const IsSelf: Story = {
-    decorators: [makeDecorator({ appStateOverride: { clientID: PLAYER_UUID } })],
+    decorators: [makeDecorator({ appStateOverride: { clientID: PLAYER_UUID }, withSocket: true })],
     args: {
         player: { ...basePlayer, uuid: PLAYER_UUID },
     },
@@ -453,15 +483,19 @@ export const WithSeatReaction: Story = {
 // ── Playground ─────────────────────────────────────────────────────────────────
 
 /**
- * Kitchen-sink story with all controls active — use the Controls panel to
- * toggle every prop and see how the component responds.
+ * Kitchen-sink story — blockie avatar, gradient bg, fuse timer border,
+ * and all controls active. Use the Controls panel to toggle props.
  */
 export const Playground: Story = {
     name: 'Playground — all controls',
-    decorators: [makeDecorator({ gameOverride: { actionDeadline: Date.now() + 20_000 } })],
+    decorators: [makeDecorator({
+        appStateOverride: { clientID: PLAYER_UUID },
+        gameOverride: { actionDeadline: Date.now() + 20_000 },
+        withSocket: true,
+    })],
     args: {
         isCurrentTurn: true,
         equity: 55,
-        player: { ...basePlayer, bet: 80, totalBet: 80 },
+        player: { ...basePlayer, uuid: PLAYER_UUID, bet: 80, totalBet: 80 },
     },
 };

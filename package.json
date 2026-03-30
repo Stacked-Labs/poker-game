@@ -33,6 +33,7 @@
         "@react-three/fiber": "^8.17.7",
         "@types/canvas-confetti": "^1.9.0",
         "@types/node": "^20",
+        "blo": "^2.0.0",
         "canvas-confetti": "^1.9.4",
         "dotenv": "^16.3.1",
         "ethers": "^6.9.1",

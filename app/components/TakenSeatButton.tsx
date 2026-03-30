@@ -12,7 +12,6 @@ import {
     Text,
     ResponsiveValue,
     HStack,
-    Progress,
     Tag,
     Icon,
     IconButton,
@@ -27,6 +26,8 @@ import {
     useReducedMotion,
     AnimatePresence,
 } from 'framer-motion';
+import { blo } from 'blo';
+import { getColorForUsername } from '../utils/chatColors';
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import { SocketContext } from '../contexts/WebSocketProvider';
@@ -332,6 +333,14 @@ const timerColorMap: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
     gray: 'gray.400',
 };
 
+/** Raw hex values for use in CSS functions (conic-gradient) that can't resolve Chakra tokens */
+const timerColorHexMap: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
+    red: '#FF2D6F',
+    yellow: '#FDC51D',
+    green: '#3FBD8A',
+    gray: '#A0AEC0',
+};
+
 const TakenSeatButton = ({
     player,
     visualSeatId,
@@ -475,6 +484,8 @@ const TakenSeatButton = ({
         : 'gray';
 
     const timerColor = timerColorMap[barScheme] || 'brand.navy';
+    const timerColorHex = timerColorHexMap[barScheme] || '#0B1430';
+    const timerAngle = progress * 3.6; // 0-100% → 0-360deg
 
     const pots = appState.game?.pots ?? [];
     const resolvedPot =
@@ -1003,20 +1014,65 @@ const TakenSeatButton = ({
                     width={'110%'}
                     zIndex={1}
                     alignSelf={'flex-end'}
+                    overflow="visible"
                 >
+                    {/* Clockwise fuse timer — thick border that depletes clockwise from top-center */}
+                    {isCurrentTurn && deadline > 0 && remaining > 0 && (
+                        <>
+                            {/* Track (dim background ring, always visible during turn) */}
+                            <Box
+                                className="player-timer-track"
+                                position="absolute"
+                                top="-4px"
+                                left="-4px"
+                                right="-4px"
+                                bottom="-4px"
+                                borderRadius="8px"
+                                border="4px solid"
+                                borderColor="whiteAlpha.200"
+                                pointerEvents="none"
+                                zIndex={2}
+                            />
+                            {/* Fill (colored border, masked by conic-gradient to reveal remaining time) */}
+                            <Box
+                                className="player-timer-fill"
+                                position="absolute"
+                                top="-4px"
+                                left="-4px"
+                                right="-4px"
+                                bottom="-4px"
+                                borderRadius="8px"
+                                border="4px solid"
+                                borderColor={timerColor}
+                                pointerEvents="none"
+                                zIndex={2}
+                                sx={{
+                                    maskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg)`,
+                                    WebkitMaskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg)`,
+                                }}
+                                transition="border-color 0.5s ease-in-out"
+                                boxShadow={`0 0 12px ${timerColorHex}60, 0 0 6px ${timerColorHex}40`}
+                            />
+                        </>
+                    )}
                     <Flex
                         className="player-info-container"
                         direction={'column'}
                         bg={
                             isCurrentTurn || showWinnerHighlight
                                 ? 'white'
-                                : 'brand.darkNavy'
+                                : undefined
+                        }
+                        bgGradient={
+                            isCurrentTurn || showWinnerHighlight
+                                ? undefined
+                                : 'linear(to-r, #0B1430, rgba(51, 68, 121, 0.7))'
                         }
                         borderRadius={4}
                         width={'100%'}
                         paddingX={0}
-                        paddingTop={{ base: 1, sm: 1, md: 2 }}
-                        paddingBottom={{ base: 2, sm: 2, md: '8%' }}
+                        paddingTop={{ base: 0.5, sm: 0.5, md: 1 }}
+                        paddingBottom={{ base: 1, sm: 1, md: 1.5 }}
                         justifySelf={'flex-end'}
                         justifyContent={'center'}
                         alignItems={'flex-start'}
@@ -1024,11 +1080,13 @@ const TakenSeatButton = ({
                         position={'relative'}
                         border="2px solid"
                         borderColor={
-                            highlightVariant
-                                ? highlightBorderColor
-                                : showWinnerHighlight
-                                  ? 'brand.yellow'
-                                  : 'brand.darkNavy'
+                            highlightVariant === 'active'
+                                ? 'transparent'
+                                : highlightVariant
+                                  ? highlightBorderColor
+                                  : showWinnerHighlight
+                                    ? 'brand.yellow'
+                                    : 'brand.darkNavy'
                         }
                         boxShadow={highlightShadow}
                         animation={highlightPulse}
@@ -1262,14 +1320,56 @@ const TakenSeatButton = ({
                                 </motion.div>
                             )}
                         </AnimatePresence>
-                        <Box width="100%" px={{ base: 1, md: 1 }}>
-                            <HStack
-                                spacing={2}
-                                className="player-info-header"
-                                width="100%"
-                                justifyContent="space-between"
-                                alignItems="center"
-                                pb={{ base: 1 }}
+                        <HStack
+                            className="player-info-header"
+                            spacing={{ base: 1, md: 1.5 }}
+                            width="100%"
+                            alignItems="center"
+                            px={{ base: 0.5, md: 1 }}
+                        >
+                            {/* Square avatar — blockie from address, or initials fallback */}
+                            {player.address ? (
+                                <Box
+                                    as="img"
+                                    src={blo(player.address as `0x${string}`)}
+                                    alt=""
+                                    width={{ base: '30px', md: '38px' }}
+                                    height={{ base: '30px', md: '38px' }}
+                                    borderRadius="4px"
+                                    flexShrink={0}
+                                />
+                            ) : (
+                                <Flex
+                                    width={{ base: '30px', md: '38px' }}
+                                    height={{ base: '30px', md: '38px' }}
+                                    borderRadius="4px"
+                                    bg={`${getColorForUsername(player.username)}40`}
+                                    flexShrink={0}
+                                    alignItems="center"
+                                    justifyContent="center"
+                                >
+                                    <Text
+                                        fontSize={{ base: '11px', md: '14px' }}
+                                        fontWeight="bold"
+                                        color={getColorForUsername(player.username)}
+                                        lineHeight="1"
+                                        userSelect="none"
+                                    >
+                                        {player.username
+                                            .split(/[\s._-]+/)
+                                            .slice(0, 2)
+                                            .map((w) => w[0]?.toUpperCase() ?? '')
+                                            .join('')
+                                            || player.username.slice(0, 2).toUpperCase()}
+                                    </Text>
+                                </Flex>
+                            )}
+                            {/* Username + stack stacked vertically */}
+                            <Flex
+                                direction="column"
+                                minWidth={0}
+                                flex={1}
+                                gap={0}
                             >
                                 <Flex
                                     alignItems="center"
@@ -1277,25 +1377,26 @@ const TakenSeatButton = ({
                                     minWidth={0}
                                 >
                                     <Text
-                                            className="player-username"
-                                            variant={'seatText'}
-                                            fontSize={{
-                                                base: '10px',
-                                                md: 'xs',
-                                                lg: 'sm',
-                                            }}
-                                            fontWeight={'bold'}
-                                            color={
-                                                isCurrentTurn ||
-                                                showWinnerHighlight
-                                                    ? 'brand.darkNavy'
-                                                    : 'white'
-                                            }
-                                            cursor="pointer"
-                                            isTruncated
-                                        >
-                                            {player.username}
-                                        </Text>
+                                        className="player-username"
+                                        variant="seatText"
+                                        fontSize={{
+                                            base: 'xs',
+                                            md: 'sm',
+                                            lg: 'md',
+                                        }}
+                                        fontWeight="bold"
+                                        color={
+                                            isCurrentTurn ||
+                                            showWinnerHighlight
+                                                ? 'gray.500'
+                                                : 'gray.400'
+                                        }
+                                        cursor="pointer"
+                                        isTruncated
+                                        lineHeight="1.2"
+                                    >
+                                        {player.username}
+                                    </Text>
                                     {canSendSeatReaction && isSelf ? (
                                         <EmotePicker
                                             onSelectEmote={
@@ -1382,7 +1483,6 @@ const TakenSeatButton = ({
                                     data-testid={`player-stack-${player.seatID}`}
                                     className="player-stack-container"
                                     alignItems="center"
-                                    justifyContent="center"
                                     gap={{ base: 1, md: 2 }}
                                 >
                                     <StackValue
@@ -1396,47 +1496,9 @@ const TakenSeatButton = ({
                                         formatValue={format}
                                     />
                                 </Flex>
-                            </HStack>
-                        </Box>
+                            </Flex>
+                        </HStack>
 
-                        {/* Countdown timer – progress only, stretches edge to edge */}
-                        {(() => {
-                            const timerVisible =
-                                isCurrentTurn && deadline > 0 && remaining > 0;
-
-                            return (
-                                <Box
-                                    className="player-timer-container"
-                                    width="100%"
-                                    display="flex"
-                                    flexDirection="row"
-                                    alignItems="center"
-                                    position="absolute"
-                                    left={0}
-                                    right={0}
-                                    bottom={0}
-                                    visibility={
-                                        timerVisible ? 'visible' : 'hidden'
-                                    }
-                                    overflow="hidden"
-                                    pointerEvents="none"
-                                >
-                                    <Progress
-                                        className="player-timer-bar"
-                                        value={progress}
-                                        height={{ base: 1.5, sm: 1.5, md: 2 }}
-                                        width="100%"
-                                        colorScheme={barScheme}
-                                        borderRadius={0}
-                                        sx={{
-                                            '& > div': {
-                                                bg: timerColor,
-                                            },
-                                        }}
-                                    />
-                                </Box>
-                            );
-                        })()}
                     </Flex>
                 </Box>
             </Flex>

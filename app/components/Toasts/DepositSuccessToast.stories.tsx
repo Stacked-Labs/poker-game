@@ -25,7 +25,7 @@ const meta = {
         },
         isCrypto: {
             control: 'boolean',
-            description: 'When true, omits the word "chips" (used for USDC games)',
+            description: 'When true, displays as "$X USDC" instead of "X chips" (used for USDC games)',
         },
     },
     args: {
@@ -44,7 +44,7 @@ const meta = {
         docs: {
             description: {
                 component:
-                    'Full-width banner toast shown after a successful deposit. Features an animated counter, scan-line overlay, and auto-closes after the configured duration. Pass `isCrypto` to omit the word "chips" for USDC games. Uses `brand.green` background.',
+                    'Full-width banner toast shown after a successful deposit. Features an animated counter, scan-line overlay, and auto-closes after the configured duration. Pass `isCrypto` to display as "$X USDC" for crypto games. Uses `brand.green` background.',
             },
         },
         layout: 'fullscreen',
@@ -69,11 +69,18 @@ export const LargeDeposit: Story = {
     args: { amount: 10000 },
 };
 
-export const CustomFormat: Story = {
-    name: 'Custom formatter — USDC',
+export const CryptoDeposit: Story = {
+    name: 'Crypto — $50 USDC',
     args: {
         amount: 50,
-        formatAmount: (n: number) => `$${n.toFixed(2)} USDC`,
+        isCrypto: true,
+    },
+};
+
+export const CryptoLarge: Story = {
+    name: 'Crypto — $10,000 USDC',
+    args: {
+        amount: 10000,
         isCrypto: true,
     },
 };

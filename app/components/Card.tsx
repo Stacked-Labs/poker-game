@@ -148,8 +148,8 @@ const SVGCardFace = ({
             {/* Top left rank */}
             <text
                 x="2"
-                y="10"
-                fontSize="10"
+                y="8"
+                fontSize="8.5"
                 fontWeight="700"
                 fill={rankColor}
                 fontFamily="var(--font-poppins), sans-serif"
@@ -157,11 +157,23 @@ const SVGCardFace = ({
                 {rank}
             </text>
 
-            {/* Large centered suit - positioned right under the rank */}
+            {/* Suit under rank — centered in left column */}
             <text
-                x="12"
-                y="18"
-                fontSize="18"
+                x="5.5"
+                y="14"
+                fontSize="8.5"
+                fill={suitInfo.color}
+                fontFamily="serif"
+                textAnchor="middle"
+            >
+                {suitInfo.symbol}
+            </text>
+
+            {/* Large suit — right-of-center */}
+            <text
+                x="16"
+                y="20"
+                fontSize="22"
                 fill={suitInfo.color}
                 fontFamily="serif"
                 textAnchor="middle"
@@ -193,8 +205,24 @@ const cardBackDesigns: Record<CardBackVariant, CardBackDesignConfig> = {
                 width="4"
                 height="4"
             >
-                <line x1="0" y1="0" x2="4" y2="4" stroke="#36A37B" strokeWidth="0.5" opacity="0.15" />
-                <line x1="4" y1="0" x2="0" y2="4" stroke="#EB0B5C" strokeWidth="0.5" opacity="0.15" />
+                <line
+                    x1="0"
+                    y1="0"
+                    x2="4"
+                    y2="4"
+                    stroke="#36A37B"
+                    strokeWidth="0.5"
+                    opacity="0.15"
+                />
+                <line
+                    x1="4"
+                    y1="0"
+                    x2="0"
+                    y2="4"
+                    stroke="#EB0B5C"
+                    strokeWidth="0.5"
+                    opacity="0.15"
+                />
             </pattern>
         ),
     },
@@ -209,8 +237,24 @@ const cardBackDesigns: Record<CardBackVariant, CardBackDesignConfig> = {
                 width="6"
                 height="6"
             >
-                <line x1="0" y1="0" x2="6" y2="6" stroke="#F7931A" strokeWidth="0.4" opacity="0.15" />
-                <line x1="6" y1="0" x2="0" y2="6" stroke="#F7931A" strokeWidth="0.4" opacity="0.15" />
+                <line
+                    x1="0"
+                    y1="0"
+                    x2="6"
+                    y2="6"
+                    stroke="#F7931A"
+                    strokeWidth="0.4"
+                    opacity="0.15"
+                />
+                <line
+                    x1="6"
+                    y1="0"
+                    x2="0"
+                    y2="6"
+                    stroke="#F7931A"
+                    strokeWidth="0.4"
+                    opacity="0.15"
+                />
                 <circle cx="3" cy="3" r="0.4" fill="#F7931A" opacity="0.18" />
                 <circle cx="0" cy="0" r="0.3" fill="#F7931A" opacity="0.1" />
                 <circle cx="6" cy="6" r="0.3" fill="#F7931A" opacity="0.1" />
@@ -219,7 +263,11 @@ const cardBackDesigns: Record<CardBackVariant, CardBackDesignConfig> = {
         logo: (
             <g transform="translate(6.5, 10.5) scale(0.34)" opacity="0.4">
                 {/* Official Bitcoin ₿ logo — 32×32 origin */}
-                <path fill="#FFF" fillRule="nonzero" d="M23.189 14.02c.314-2.096-1.283-3.223-3.465-3.975l.708-2.84-1.728-.43-.69 2.765c-.454-.114-.92-.22-1.385-.326l.695-2.783L15.596 6l-.708 2.839c-.376-.086-.746-.17-1.104-.26l.002-.009-2.384-.595-.46 1.846s1.283.294 1.256.312c.7.175.826.638.805 1.006l-.806 3.235c.048.012.11.03.18.057l-.183-.045-1.13 4.532c-.086.212-.303.531-.793.41.018.025-1.256-.313-1.256-.313l-.858 1.978 2.25.561c.418.105.828.215 1.231.318l-.715 2.872 1.727.43.708-2.84c.472.127.93.245 1.378.357l-.706 2.828 1.728.43.715-2.866c2.948.558 5.164.333 6.097-2.333.752-2.146-.037-3.385-1.588-4.192 1.13-.26 1.98-1.003 2.207-2.538zm-3.95 5.538c-.533 2.147-4.148.986-5.32.695l.95-3.805c1.172.293 4.929.872 4.37 3.11zm.535-5.569c-.487 1.953-3.495.96-4.47.717l.86-3.45c.975.243 4.118.696 3.61 2.733z" />
+                <path
+                    fill="#FFF"
+                    fillRule="nonzero"
+                    d="M23.189 14.02c.314-2.096-1.283-3.223-3.465-3.975l.708-2.84-1.728-.43-.69 2.765c-.454-.114-.92-.22-1.385-.326l.695-2.783L15.596 6l-.708 2.839c-.376-.086-.746-.17-1.104-.26l.002-.009-2.384-.595-.46 1.846s1.283.294 1.256.312c.7.175.826.638.805 1.006l-.806 3.235c.048.012.11.03.18.057l-.183-.045-1.13 4.532c-.086.212-.303.531-.793.41.018.025-1.256-.313-1.256-.313l-.858 1.978 2.25.561c.418.105.828.215 1.231.318l-.715 2.872 1.727.43.708-2.84c.472.127.93.245 1.378.357l-.706 2.828 1.728.43.715-2.866c2.948.558 5.164.333 6.097-2.333.752-2.146-.037-3.385-1.588-4.192 1.13-.26 1.98-1.003 2.207-2.538zm-3.95 5.538c-.533 2.147-4.148.986-5.32.695l.95-3.805c1.172.293 4.929.872 4.37 3.11zm.535-5.569c-.487 1.953-3.495.96-4.47.717l.86-3.45c.975.243 4.118.696 3.61 2.733z"
+                />
             </g>
         ),
     },
@@ -234,8 +282,20 @@ const cardBackDesigns: Record<CardBackVariant, CardBackDesignConfig> = {
                 width="6"
                 height="6"
             >
-                <path d="M3 0 L6 3 L3 6 L0 3Z" fill="none" stroke="#627EEA" strokeWidth="0.35" opacity="0.15" />
-                <path d="M3 1.5 L4.5 3 L3 4.5 L1.5 3Z" fill="none" stroke="#8CA0EF" strokeWidth="0.25" opacity="0.1" />
+                <path
+                    d="M3 0 L6 3 L3 6 L0 3Z"
+                    fill="none"
+                    stroke="#627EEA"
+                    strokeWidth="0.35"
+                    opacity="0.15"
+                />
+                <path
+                    d="M3 1.5 L4.5 3 L3 4.5 L1.5 3Z"
+                    fill="none"
+                    stroke="#8CA0EF"
+                    strokeWidth="0.25"
+                    opacity="0.1"
+                />
             </pattern>
         ),
         logo: (
@@ -244,9 +304,15 @@ const cardBackDesigns: Record<CardBackVariant, CardBackDesignConfig> = {
                 <g fill="#FFF" fillRule="nonzero">
                     <path fillOpacity=".602" d="M16.498 4v8.87l7.497 3.35z" />
                     <path d="M16.498 4L9 16.22l7.498-3.35z" />
-                    <path fillOpacity=".602" d="M16.498 21.968v6.027L24 17.616z" />
+                    <path
+                        fillOpacity=".602"
+                        d="M16.498 21.968v6.027L24 17.616z"
+                    />
                     <path d="M16.498 27.995v-6.028L9 17.616z" />
-                    <path fillOpacity=".2" d="M16.498 20.573l7.497-4.353-7.497-3.348z" />
+                    <path
+                        fillOpacity=".2"
+                        d="M16.498 20.573l7.497-4.353-7.497-3.348z"
+                    />
                     <path fillOpacity=".602" d="M9 16.22l7.498 4.353v-7.701z" />
                 </g>
             </g>
@@ -263,11 +329,51 @@ const cardBackDesigns: Record<CardBackVariant, CardBackDesignConfig> = {
                 width="8"
                 height="8"
             >
-                <circle cx="4" cy="4" r="2.5" fill="none" stroke="#3B82F6" strokeWidth="0.35" opacity="0.14" />
-                <circle cx="0" cy="0" r="1.5" fill="none" stroke="#3B82F6" strokeWidth="0.25" opacity="0.1" />
-                <circle cx="8" cy="0" r="1.5" fill="none" stroke="#3B82F6" strokeWidth="0.25" opacity="0.1" />
-                <circle cx="0" cy="8" r="1.5" fill="none" stroke="#3B82F6" strokeWidth="0.25" opacity="0.1" />
-                <circle cx="8" cy="8" r="1.5" fill="none" stroke="#3B82F6" strokeWidth="0.25" opacity="0.1" />
+                <circle
+                    cx="4"
+                    cy="4"
+                    r="2.5"
+                    fill="none"
+                    stroke="#3B82F6"
+                    strokeWidth="0.35"
+                    opacity="0.14"
+                />
+                <circle
+                    cx="0"
+                    cy="0"
+                    r="1.5"
+                    fill="none"
+                    stroke="#3B82F6"
+                    strokeWidth="0.25"
+                    opacity="0.1"
+                />
+                <circle
+                    cx="8"
+                    cy="0"
+                    r="1.5"
+                    fill="none"
+                    stroke="#3B82F6"
+                    strokeWidth="0.25"
+                    opacity="0.1"
+                />
+                <circle
+                    cx="0"
+                    cy="8"
+                    r="1.5"
+                    fill="none"
+                    stroke="#3B82F6"
+                    strokeWidth="0.25"
+                    opacity="0.1"
+                />
+                <circle
+                    cx="8"
+                    cy="8"
+                    r="1.5"
+                    fill="none"
+                    stroke="#3B82F6"
+                    strokeWidth="0.25"
+                    opacity="0.1"
+                />
             </pattern>
         ),
         logo: (
@@ -292,19 +398,73 @@ const cardBackDesigns: Record<CardBackVariant, CardBackDesignConfig> = {
                 width="5"
                 height="5"
             >
-                <circle cx="2.5" cy="2.5" r="1.5" fill="none" stroke="#2775CA" strokeWidth="0.3" opacity="0.12" />
-                <circle cx="0" cy="0" r="0.8" fill="none" stroke="#2775CA" strokeWidth="0.25" opacity="0.08" />
-                <circle cx="5" cy="0" r="0.8" fill="none" stroke="#2775CA" strokeWidth="0.25" opacity="0.08" />
-                <circle cx="0" cy="5" r="0.8" fill="none" stroke="#2775CA" strokeWidth="0.25" opacity="0.08" />
-                <circle cx="5" cy="5" r="0.8" fill="none" stroke="#2775CA" strokeWidth="0.25" opacity="0.08" />
+                <circle
+                    cx="2.5"
+                    cy="2.5"
+                    r="1.5"
+                    fill="none"
+                    stroke="#2775CA"
+                    strokeWidth="0.3"
+                    opacity="0.12"
+                />
+                <circle
+                    cx="0"
+                    cy="0"
+                    r="0.8"
+                    fill="none"
+                    stroke="#2775CA"
+                    strokeWidth="0.25"
+                    opacity="0.08"
+                />
+                <circle
+                    cx="5"
+                    cy="0"
+                    r="0.8"
+                    fill="none"
+                    stroke="#2775CA"
+                    strokeWidth="0.25"
+                    opacity="0.08"
+                />
+                <circle
+                    cx="0"
+                    cy="5"
+                    r="0.8"
+                    fill="none"
+                    stroke="#2775CA"
+                    strokeWidth="0.25"
+                    opacity="0.08"
+                />
+                <circle
+                    cx="5"
+                    cy="5"
+                    r="0.8"
+                    fill="none"
+                    stroke="#2775CA"
+                    strokeWidth="0.25"
+                    opacity="0.08"
+                />
             </pattern>
         ),
         logo: (
             <g transform="translate(7, 11) scale(0.005)" opacity="0.4">
                 {/* Official USDC logo — 2000×2000 origin, scaled to ~10×10 in card viewBox */}
-                <path d="M1275 1158.33c0-145.83-87.5-195.83-262.5-216.66-125-16.67-150-50-150-108.34s41.67-95.83 125-95.83c75 0 116.67 25 137.5 87.5 4.17 12.5 16.67 20.83 29.17 20.83h66.66c16.67 0 29.17-12.5 29.17-29.16v-4.17c-16.67-91.67-91.67-162.5-187.5-170.83v-100c0-16.67-12.5-29.17-33.33-33.34h-62.5c-16.67 0-29.17 12.5-33.34 33.34v95.83c-125 16.67-204.16 100-204.16 204.17 0 137.5 83.33 191.66 258.33 212.5 116.67 20.83 154.17 45.83 154.17 112.5s-58.34 112.5-137.5 112.5c-108.34 0-145.84-45.84-158.34-108.34-4.16-16.66-16.66-25-29.16-25h-70.84c-16.66 0-29.16 12.5-29.16 29.17v4.17c16.66 104.16 83.33 179.16 220.83 200v100c0 16.66 12.5 29.16 33.33 33.33h62.5c16.67 0 29.17-12.5 33.34-33.33v-100c125-20.84 208.33-108.34 208.33-220.84z" fill="#fff" />
-                <path d="M787.5 1595.83c-325-116.66-491.67-479.16-370.83-800 62.5-175 200-308.33 370.83-370.83 16.67-8.33 25-20.83 25-41.67V325c0-16.67-8.33-29.17-25-33.33-4.17 0-12.5 0-16.67 4.16-395.83 125-612.5 545.84-487.5 941.67 75 233.33 254.17 412.5 487.5 487.5 16.67 8.33 33.34 0 37.5-16.67 4.17-4.16 4.17-8.33 4.17-16.66v-58.34c0-12.5-12.5-29.16-25-37.5zM1229.17 295.83c-16.67-8.33-33.34 0-37.5 16.67-4.17 4.17-4.17 8.33-4.17 16.67v58.33c0 16.67 12.5 33.33 25 41.67 325 116.66 491.67 479.16 370.83 800-62.5 175-200 308.33-370.83 370.83-16.67 8.33-25 20.83-25 41.67V1700c0 16.67 8.33 29.17 25 33.33 4.17 0 12.5 0 16.67-4.16 395.83-125 612.5-545.84 487.5-941.67-75-237.5-258.34-416.67-487.5-491.67z" fill="#fff" />
-                <circle cx="1000" cy="1000" r="950" fill="none" stroke="#fff" strokeWidth="60" opacity="0.3" />
+                <path
+                    d="M1275 1158.33c0-145.83-87.5-195.83-262.5-216.66-125-16.67-150-50-150-108.34s41.67-95.83 125-95.83c75 0 116.67 25 137.5 87.5 4.17 12.5 16.67 20.83 29.17 20.83h66.66c16.67 0 29.17-12.5 29.17-29.16v-4.17c-16.67-91.67-91.67-162.5-187.5-170.83v-100c0-16.67-12.5-29.17-33.33-33.34h-62.5c-16.67 0-29.17 12.5-33.34 33.34v95.83c-125 16.67-204.16 100-204.16 204.17 0 137.5 83.33 191.66 258.33 212.5 116.67 20.83 154.17 45.83 154.17 112.5s-58.34 112.5-137.5 112.5c-108.34 0-145.84-45.84-158.34-108.34-4.16-16.66-16.66-25-29.16-25h-70.84c-16.66 0-29.16 12.5-29.16 29.17v4.17c16.66 104.16 83.33 179.16 220.83 200v100c0 16.66 12.5 29.16 33.33 33.33h62.5c16.67 0 29.17-12.5 33.34-33.33v-100c125-20.84 208.33-108.34 208.33-220.84z"
+                    fill="#fff"
+                />
+                <path
+                    d="M787.5 1595.83c-325-116.66-491.67-479.16-370.83-800 62.5-175 200-308.33 370.83-370.83 16.67-8.33 25-20.83 25-41.67V325c0-16.67-8.33-29.17-25-33.33-4.17 0-12.5 0-16.67 4.16-395.83 125-612.5 545.84-487.5 941.67 75 233.33 254.17 412.5 487.5 487.5 16.67 8.33 33.34 0 37.5-16.67 4.17-4.16 4.17-8.33 4.17-16.66v-58.34c0-12.5-12.5-29.16-25-37.5zM1229.17 295.83c-16.67-8.33-33.34 0-37.5 16.67-4.17 4.17-4.17 8.33-4.17 16.67v58.33c0 16.67 12.5 33.33 25 41.67 325 116.66 491.67 479.16 370.83 800-62.5 175-200 308.33-370.83 370.83-16.67 8.33-25 20.83-25 41.67V1700c0 16.67 8.33 29.17 25 33.33 4.17 0 12.5 0 16.67-4.16 395.83-125 612.5-545.84 487.5-941.67-75-237.5-258.34-416.67-487.5-491.67z"
+                    fill="#fff"
+                />
+                <circle
+                    cx="1000"
+                    cy="1000"
+                    r="950"
+                    fill="none"
+                    stroke="#fff"
+                    strokeWidth="60"
+                    opacity="0.3"
+                />
             </g>
         ),
     },

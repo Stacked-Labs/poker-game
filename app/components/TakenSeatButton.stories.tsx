@@ -215,8 +215,13 @@ type Story = StoryObj<typeof meta>;
 
 // ─── Stories ───────────────────────────────────────────────────────────────────
 
-/** Idle opponent: in hand, no active turn, waiting. */
-export const Default: Story = {};
+/** Idle opponent: in hand, no active turn, waiting. Cards: A♠ K♣ face-up. */
+export const Default: Story = {
+    args: {
+        isRevealed: true,
+        player: { ...basePlayer, cards: [CARD.aceSpades, CARD.kingClubs] },
+    },
+};
 
 // ── Active turn / timer bar ────────────────────────────────────────────────────
 
@@ -285,6 +290,31 @@ export const WithHandStrength: Story = {
     },
 };
 
+/**
+ * Showdown reveal — opponent's hole cards are face-up so the rank + small suit
+ * below the rank are visible. Useful for visual-testing card face layout.
+ * Hole: K♣ Q♦
+ */
+export const ShowdownReveal: Story = {
+    decorators: [
+        makeDecorator({
+            gameOverride: {
+                communityCards: [
+                    CARD.aceClubs,
+                    CARD.aceHearts,
+                    CARD.tenSpades,
+                    CARD.threeClubs,
+                    CARD.twoClubs,
+                ],
+            },
+        }),
+    ],
+    args: {
+        isRevealed: true,
+        player: { ...basePlayer, cards: [CARD.kingClubs, CARD.queenDiamonds] },
+    },
+};
+
 /** Player folded — cards still visible for self but dimmed. */
 export const Folded: Story = {
     decorators: [makeDecorator({ appStateOverride: { clientID: PLAYER_UUID } })],
@@ -300,10 +330,11 @@ export const Folded: Story = {
 
 // ── Action bubbles ─────────────────────────────────────────────────────────────
 
-/** Player bet — yellow bet-amount chip bubble above the seat. */
+/** Player bet — yellow bet-amount chip bubble above the seat. Cards: Q♦ 10♠ face-up. */
 export const WithBet: Story = {
     args: {
-        player: { ...basePlayer, bet: 120, totalBet: 120 },
+        isRevealed: true,
+        player: { ...basePlayer, bet: 120, totalBet: 120, cards: [CARD.queenDiamonds, CARD.tenSpades] },
     },
 };
 

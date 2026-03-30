@@ -125,7 +125,7 @@ export default function DepositSuccessToast({ amount, onClose, formatAmount, isC
                         letterSpacing="0.04em"
                         sx={{ fontVariantNumeric: 'tabular-nums' }}
                     >
-                        {formatted}{isCrypto ? '' : ' chips'} loaded
+                        {isCrypto ? `$${formatted} USDC` : `${formatted} chips`} loaded
                     </Text>
                     <Text
                         fontSize="2xs"

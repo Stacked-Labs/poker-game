@@ -313,7 +313,7 @@ const FooterWithActionButtons = ({
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} isCentered size={'xs'}>
-                <GuardModal handleFold={handleFold} onClose={onClose} />
+                <GuardModal handleFold={handleFold} handleCheck={handleCheck} onClose={onClose} />
             </Modal>
             <Flex
                 className="footer-action-buttons"

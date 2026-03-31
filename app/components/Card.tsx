@@ -149,19 +149,19 @@ const SVGCardFace = ({
             <text
                 x="2"
                 y="8"
-                fontSize="8.5"
+                fontSize="9"
                 fontWeight="700"
                 fill={rankColor}
-                fontFamily="var(--font-poppins), sans-serif"
+                fontFamily="var(--font-teko), 'Teko', sans-serif"
             >
                 {rank}
             </text>
 
             {/* Suit under rank — centered in left column */}
             <text
-                x="5.5"
+                x="4.2"
                 y="14"
-                fontSize="8.5"
+                fontSize="7"
                 fill={suitInfo.color}
                 fontFamily="serif"
                 textAnchor="middle"
@@ -169,11 +169,11 @@ const SVGCardFace = ({
                 {suitInfo.symbol}
             </text>
 
-            {/* Large suit — right-of-center */}
+            {/* Large suit — centered */}
             <text
-                x="16"
+                x="13.5"
                 y="20"
-                fontSize="22"
+                fontSize="18"
                 fill={suitInfo.color}
                 fontFamily="serif"
                 textAnchor="middle"

@@ -1,6 +1,6 @@
 import './globals.css';
 import { Providers } from './providers';
-import { Libre_Barcode_39_Text, Poppins } from 'next/font/google';
+import { Libre_Barcode_39_Text, Poppins, Teko } from 'next/font/google';
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import PointsActivityFeed from './components/PointsActivityFeed';
 import ServiceStatusBanner from './components/ServiceStatusBanner';
@@ -12,6 +12,13 @@ const poppins = Poppins({
     weight: ['500', '600', '700'],
     display: 'swap',
     variable: '--font-poppins',
+});
+
+const teko = Teko({
+    subsets: ['latin'],
+    weight: ['700'],
+    display: 'swap',
+    variable: '--font-teko',
 });
 
 const libreBarcode = Libre_Barcode_39_Text({
@@ -61,7 +68,7 @@ export default function RootLayout({
                 />
             </head>
             <body
-                className={`${poppins.className} ${poppins.variable} ${libreBarcode.variable}`}
+                className={`${poppins.className} ${poppins.variable} ${libreBarcode.variable} ${teko.variable}`}
             >
                 <Providers>
                     <ServiceStatusBanner />

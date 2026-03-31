@@ -1100,8 +1100,8 @@ const TakenSeatButton = ({
                         borderRadius={4}
                         width={'100%'}
                         paddingX={0}
-                        paddingTop={{ base: 1.5, sm: 1.5, md: 2.5 }}
-                        paddingBottom={{ base: 2, sm: 2, md: 3 }}
+                        paddingTop={{ base: 0.5, md: 1 }}
+                        paddingBottom={{ base: 0.5, md: 1 }}
                         justifySelf={'flex-end'}
                         justifyContent={'center'}
                         alignItems={'flex-start'}
@@ -1109,8 +1109,8 @@ const TakenSeatButton = ({
                         position={'relative'}
                         sx={{
                             '@media (orientation: portrait)': {
-                                paddingTop: 1,
-                                paddingBottom: 1.5,
+                                paddingTop: 0.5,
+                                paddingBottom: 0.5,
                             },
                         }}
                         border="2px solid"

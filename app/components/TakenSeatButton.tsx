@@ -1071,8 +1071,8 @@ const TakenSeatButton = ({
                         borderRadius={4}
                         width={'100%'}
                         paddingX={0}
-                        paddingTop={{ base: 0.5, sm: 0.5, md: 1 }}
-                        paddingBottom={{ base: 1, sm: 1, md: 1.5 }}
+                        paddingTop={{ base: 1.5, sm: 1.5, md: 2.5 }}
+                        paddingBottom={{ base: 2, sm: 2, md: 3 }}
                         justifySelf={'flex-end'}
                         justifyContent={'center'}
                         alignItems={'flex-start'}
@@ -1333,15 +1333,15 @@ const TakenSeatButton = ({
                                     as="img"
                                     src={blo(player.address as `0x${string}`)}
                                     alt=""
-                                    width={{ base: '30px', md: '38px' }}
-                                    height={{ base: '30px', md: '38px' }}
+                                    width={{ base: '36px', md: '46px' }}
+                                    height={{ base: '36px', md: '46px' }}
                                     borderRadius="4px"
                                     flexShrink={0}
                                 />
                             ) : (
                                 <Flex
-                                    width={{ base: '30px', md: '38px' }}
-                                    height={{ base: '30px', md: '38px' }}
+                                    width={{ base: '36px', md: '46px' }}
+                                    height={{ base: '36px', md: '46px' }}
                                     borderRadius="4px"
                                     bg={`${getColorForUsername(player.username)}40`}
                                     flexShrink={0}
@@ -1349,7 +1349,7 @@ const TakenSeatButton = ({
                                     justifyContent="center"
                                 >
                                     <Text
-                                        fontSize={{ base: '11px', md: '14px' }}
+                                        fontSize={{ base: '13px', md: '16px' }}
                                         fontWeight="bold"
                                         color={getColorForUsername(player.username)}
                                         lineHeight="1"
@@ -1489,9 +1489,9 @@ const TakenSeatButton = ({
                                         value={player.stack}
                                         color={stackColor}
                                         fontSize={{
-                                            base: 'xs',
-                                            md: 'sm',
-                                            lg: 'md',
+                                            base: 'sm',
+                                            md: 'md',
+                                            lg: 'lg',
                                         }}
                                         formatValue={format}
                                     />

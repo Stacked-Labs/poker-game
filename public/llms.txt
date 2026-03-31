@@ -1,0 +1,53 @@
+# Stacked Poker
+
+> The easiest way to play poker for free or with crypto. No download, no sign up needed.
+
+Stacked Poker (stackedpoker.io) is a browser-based multiplayer Texas Hold'em platform. Players can start a game instantly without creating an account — just open the site and play. For real-money games, connect a crypto wallet and use USDC on the Base blockchain.
+
+## What it is
+
+- Instant browser poker: no download, no account required
+- Free play with unlimited chips for casual games and learning
+- Real-money USDC tables on Base (currently testnet, mainnet coming soon)
+- Full Texas Hold'em rules: 2–10 players, pre-flop through river, side pots, all-in, showdown
+- Real-time multiplayer via WebSocket
+- Spectator mode — watch games without playing
+
+## Key Features
+
+- In-game chat with custom emotes (7TV integration)
+- Global leaderboard and points system
+- Referral system with tier progression
+- Visual customization: table colors (blue, green, red, white), card back designs (classic, Bitcoin, Ethereum, Base, USDC), 4-color deck option
+- Dark/light mode, responsive design (mobile, tablet, desktop)
+- Shareable rank cards for social sharing
+
+## Who it's for
+
+- Crypto-native users who want to play poker with USDC without KYC or account creation
+- Casual players who want a quick free browser game with friends
+- Competitive players drawn to leaderboards and tier progression
+- Crypto communities running private tournaments
+
+## Current status
+
+The platform is in pre-launch / testnet phase. Free games are available now. We are organizing community tournaments with prize pools for crypto communities. Join the Discord to be among the first players in early tourneys.
+
+## Tech
+
+Frontend: Next.js 14, React, Chakra UI, Thirdweb SDK, Three.js
+Backend: Go, PostgreSQL, Redis
+Blockchain: Subsquid indexer on Base Sepolia; USDC on Base
+
+## Pages
+
+- / — Landing page with feature overview and FAQ
+- /free-tokens — Get testnet USDC to play crypto tables
+- /leaderboard — Global points rankings
+- /public-games — Browse and join open tables
+- /create-game — Create a custom poker table
+- /table/[id] — Live game interface
+
+## Contact / Community
+
+Website: https://stackedpoker.io

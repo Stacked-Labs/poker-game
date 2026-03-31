@@ -52,6 +52,9 @@ export async function generateMetadata(
             'crypto poker',
             'card game',
         ],
+        alternates: {
+            canonical: url,
+        },
     };
 }
 

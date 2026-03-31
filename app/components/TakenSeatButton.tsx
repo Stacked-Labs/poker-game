@@ -344,9 +344,9 @@ const timerColorHexMap: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
 };
 
 // ── Card V-shape layout tuning ──
-const CARD_FAN_ANGLE = 8; // degrees each card rotates outward (try 5–15)
-const CARD_FAN_SPREAD = -2; // px horizontal offset from center (try 0–8)
-const CARD_FAN_OVERLAP = -30; // % negative margin to overlap cards (try -15 to 0)
+const CARD_FAN_ANGLE = 4; // degrees each card rotates outward (try 5–15)
+const CARD_FAN_SPREAD = 0; // px horizontal offset from center (try 0–8)
+const CARD_FAN_OVERLAP = -20; // % negative margin to overlap cards (try -15 to 0)
 
 const TakenSeatButton = ({
     player,
@@ -1362,66 +1362,110 @@ const TakenSeatButton = ({
                             alignItems="center"
                             px={{ base: 0.5, md: 1 }}
                         >
-                            {/* Square avatar — blockie from address, or initials fallback */}
-                            {player.address ? (
-                                <Box
-                                    as="img"
-                                    src={blo(player.address as `0x${string}`)}
-                                    alt=""
-                                    width={{ base: '36px', md: '46px' }}
-                                    height={{ base: '36px', md: '46px' }}
-                                    borderRadius="4px"
-                                    flexShrink={0}
-                                    sx={{
-                                        '@media (orientation: portrait)': {
-                                            width: '28px',
-                                            height: '28px',
-                                        },
-                                    }}
-                                />
-                            ) : (
-                                <Flex
-                                    width={{ base: '36px', md: '46px' }}
-                                    height={{ base: '36px', md: '46px' }}
-                                    borderRadius="4px"
-                                    bg={`${getColorForUsername(player.username)}40`}
-                                    flexShrink={0}
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    sx={{
-                                        '@media (orientation: portrait)': {
-                                            width: '28px',
-                                            height: '28px',
-                                        },
-                                    }}
-                                >
-                                    <Text
-                                        fontSize={{ base: '13px', md: '16px' }}
-                                        sx={{
-                                            '@media (orientation: portrait)': {
-                                                fontSize: '10px',
-                                            },
-                                        }}
-                                        fontWeight="bold"
-                                        color={getColorForUsername(
-                                            player.username
+                            {/* Square avatar — blockie from address, or initials fallback, with timer overlay */}
+                            <Box
+                                position="relative"
+                                flexShrink={0}
+                                width={{ base: '36px', md: '46px' }}
+                                height={{ base: '36px', md: '46px' }}
+                                sx={{
+                                    '@media (orientation: portrait)': {
+                                        width: '28px',
+                                        height: '28px',
+                                    },
+                                }}
+                            >
+                                {player.address ? (
+                                    <Box
+                                        as="img"
+                                        src={blo(
+                                            player.address as `0x${string}`
                                         )}
-                                        lineHeight="1"
-                                        userSelect="none"
+                                        alt=""
+                                        width="100%"
+                                        height="100%"
+                                        borderRadius="4px"
+                                    />
+                                ) : (
+                                    <Flex
+                                        width="100%"
+                                        height="100%"
+                                        borderRadius="4px"
+                                        bg={`${getColorForUsername(player.username)}40`}
+                                        alignItems="center"
+                                        justifyContent="center"
                                     >
-                                        {player.username
-                                            .split(/[\s._-]+/)
-                                            .slice(0, 2)
-                                            .map(
-                                                (w) => w[0]?.toUpperCase() ?? ''
-                                            )
-                                            .join('') ||
-                                            player.username
+                                        <Text
+                                            fontSize={{
+                                                base: '13px',
+                                                md: '16px',
+                                            }}
+                                            sx={{
+                                                '@media (orientation: portrait)':
+                                                    {
+                                                        fontSize: '10px',
+                                                    },
+                                            }}
+                                            fontWeight="bold"
+                                            color={getColorForUsername(
+                                                player.username
+                                            )}
+                                            lineHeight="1"
+                                            userSelect="none"
+                                        >
+                                            {player.username
+                                                .split(/[\s._-]+/)
                                                 .slice(0, 2)
-                                                .toUpperCase()}
-                                    </Text>
-                                </Flex>
-                            )}
+                                                .map(
+                                                    (w) =>
+                                                        w[0]?.toUpperCase() ??
+                                                        ''
+                                                )
+                                                .join('') ||
+                                                player.username
+                                                    .slice(0, 2)
+                                                    .toUpperCase()}
+                                        </Text>
+                                    </Flex>
+                                )}
+                                {/* Timer seconds overlay on avatar */}
+                                {isCurrentTurn &&
+                                    deadline > 0 &&
+                                    remaining > 0 && (
+                                        <Flex
+                                            position="absolute"
+                                            top={0}
+                                            left={0}
+                                            right={0}
+                                            bottom={0}
+                                            borderRadius="4px"
+                                            bg="blackAlpha.600"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            pointerEvents="none"
+                                        >
+                                            <Text
+                                                fontSize={{
+                                                    base: '22px',
+                                                    md: '28px',
+                                                }}
+                                                sx={{
+                                                    '@media (orientation: portrait)':
+                                                        {
+                                                            fontSize: '17px',
+                                                        },
+                                                }}
+                                                fontWeight="900"
+                                                color="whiteAlpha.900"
+                                                lineHeight="1"
+                                                userSelect="none"
+                                                textShadow="0 1px 4px rgba(0,0,0,0.6)"
+                                            >
+                                                {Math.ceil(remaining / 1000)}
+                                            </Text>
+                                        </Flex>
+                                    )}
+                            </Box>
                             {/* Username + stack stacked vertically */}
                             <Flex
                                 direction="column"

@@ -1078,6 +1078,12 @@ const TakenSeatButton = ({
                         alignItems={'flex-start'}
                         transition={'all 0.5s ease-in-out'}
                         position={'relative'}
+                        sx={{
+                            '@media (orientation: portrait)': {
+                                paddingTop: 1,
+                                paddingBottom: 1.5,
+                            },
+                        }}
                         border="2px solid"
                         borderColor={
                             highlightVariant === 'active'
@@ -1337,6 +1343,12 @@ const TakenSeatButton = ({
                                     height={{ base: '36px', md: '46px' }}
                                     borderRadius="4px"
                                     flexShrink={0}
+                                    sx={{
+                                        '@media (orientation: portrait)': {
+                                            width: '28px',
+                                            height: '28px',
+                                        },
+                                    }}
                                 />
                             ) : (
                                 <Flex
@@ -1347,9 +1359,20 @@ const TakenSeatButton = ({
                                     flexShrink={0}
                                     alignItems="center"
                                     justifyContent="center"
+                                    sx={{
+                                        '@media (orientation: portrait)': {
+                                            width: '28px',
+                                            height: '28px',
+                                        },
+                                    }}
                                 >
                                     <Text
                                         fontSize={{ base: '13px', md: '16px' }}
+                                        sx={{
+                                            '@media (orientation: portrait)': {
+                                                fontSize: '10px',
+                                            },
+                                        }}
                                         fontWeight="bold"
                                         color={getColorForUsername(player.username)}
                                         lineHeight="1"
@@ -1394,6 +1417,11 @@ const TakenSeatButton = ({
                                         cursor="pointer"
                                         isTruncated
                                         lineHeight="1.2"
+                                        sx={{
+                                            '@media (orientation: portrait)': {
+                                                fontSize: '10px',
+                                            },
+                                        }}
                                     >
                                         {player.username}
                                     </Text>
@@ -1484,6 +1512,11 @@ const TakenSeatButton = ({
                                     className="player-stack-container"
                                     alignItems="center"
                                     gap={{ base: 1, md: 2 }}
+                                    sx={{
+                                        '@media (orientation: portrait)': {
+                                            fontSize: 'xs',
+                                        },
+                                    }}
                                 >
                                     <StackValue
                                         value={player.stack}

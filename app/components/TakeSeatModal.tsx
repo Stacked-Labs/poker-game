@@ -1053,7 +1053,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     data-testid="join-table-btn"
                                 >
                                     {isCryptoGame
-                                        ? 'Deposit & Join'
+                                        ? `Buy In${formattedUsdcEstimate ? ` ${formattedUsdcEstimate} USDC` : ''}`
                                         : 'Join Game'}
                                 </Button>
                             </Tooltip>}

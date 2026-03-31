@@ -155,7 +155,9 @@ const StackValue = React.memo(function StackValue({
     const formattedValue = useMemo(
         () =>
             Number.isFinite(displayValue)
-                ? (formatValue ? formatValue(displayValue) : displayValue.toLocaleString('en-US'))
+                ? formatValue
+                    ? formatValue(displayValue)
+                    : displayValue.toLocaleString('en-US')
                 : '0',
         [displayValue, formatValue]
     );
@@ -340,6 +342,11 @@ const timerColorHexMap: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
     green: '#3FBD8A',
     gray: '#A0AEC0',
 };
+
+// ── Card V-shape layout tuning ──
+const CARD_FAN_ANGLE = 8; // degrees each card rotates outward (try 5–15)
+const CARD_FAN_SPREAD = -2; // px horizontal offset from center (try 0–8)
+const CARD_FAN_OVERLAP = -30; // % negative margin to overlap cards (try -15 to 0)
 
 const TakenSeatButton = ({
     player,
@@ -736,11 +743,7 @@ const TakenSeatButton = ({
                                         : 'rgba(255,255,255,0.2)'
                                 }
                                 fontWeight="bold"
-                                color={
-                                    showBetBubble
-                                        ? 'brand.navy'
-                                        : 'white'
-                                }
+                                color={showBetBubble ? 'brand.navy' : 'white'}
                                 display="inline-flex"
                                 alignItems="center"
                                 justifyContent="center"
@@ -926,14 +929,34 @@ const TakenSeatButton = ({
                                     const skipAnimation =
                                         !isSelfPlayer && !isShowdown;
 
+                                    const isLeft = index === 0;
+                                    const rotation = isLeft
+                                        ? -CARD_FAN_ANGLE
+                                        : CARD_FAN_ANGLE;
+                                    const fanX = isLeft
+                                        ? -CARD_FAN_SPREAD
+                                        : CARD_FAN_SPREAD;
+
                                     return (
                                         <motion.div
                                             key={`${player.seatID}-card-${index}`}
                                             data-testid={`card-${player.seatID}-${index}`}
-                                            data-face={isSelfPlayer ? 'up' : 'down'}
+                                            data-face={
+                                                isSelfPlayer ? 'up' : 'down'
+                                            }
                                             className={`player-card seat-${player.seatID}-card-${index}`}
-                                            initial={{ opacity: 1, scale: 1 }}
-                                            animate={{ opacity: 1, scale: 1 }}
+                                            initial={{
+                                                opacity: 1,
+                                                scale: 1,
+                                                rotate: rotation,
+                                                x: fanX,
+                                            }}
+                                            animate={{
+                                                opacity: 1,
+                                                scale: 1,
+                                                rotate: rotation,
+                                                x: fanX,
+                                            }}
                                             exit={{
                                                 opacity: 0,
                                                 scale: 0.9,
@@ -950,6 +973,12 @@ const TakenSeatButton = ({
                                                 justifyContent: 'flex-start',
                                                 padding: 0,
                                                 margin: 0,
+                                                marginLeft:
+                                                    index === 0
+                                                        ? 0
+                                                        : `${CARD_FAN_OVERLAP}%`,
+                                                transformOrigin:
+                                                    'bottom center',
                                             }}
                                         >
                                             <CardComponent
@@ -1374,16 +1403,22 @@ const TakenSeatButton = ({
                                             },
                                         }}
                                         fontWeight="bold"
-                                        color={getColorForUsername(player.username)}
+                                        color={getColorForUsername(
+                                            player.username
+                                        )}
                                         lineHeight="1"
                                         userSelect="none"
                                     >
                                         {player.username
                                             .split(/[\s._-]+/)
                                             .slice(0, 2)
-                                            .map((w) => w[0]?.toUpperCase() ?? '')
-                                            .join('')
-                                            || player.username.slice(0, 2).toUpperCase()}
+                                            .map(
+                                                (w) => w[0]?.toUpperCase() ?? ''
+                                            )
+                                            .join('') ||
+                                            player.username
+                                                .slice(0, 2)
+                                                .toUpperCase()}
                                     </Text>
                                 </Flex>
                             )}
@@ -1409,8 +1444,7 @@ const TakenSeatButton = ({
                                         }}
                                         fontWeight="bold"
                                         color={
-                                            isCurrentTurn ||
-                                            showWinnerHighlight
+                                            isCurrentTurn || showWinnerHighlight
                                                 ? 'gray.500'
                                                 : 'gray.400'
                                         }
@@ -1531,7 +1565,6 @@ const TakenSeatButton = ({
                                 </Flex>
                             </Flex>
                         </HStack>
-
                     </Flex>
                 </Box>
             </Flex>

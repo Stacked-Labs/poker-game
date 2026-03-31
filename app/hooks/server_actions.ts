@@ -20,6 +20,15 @@ function sendWebSocketMessage(socket: WebSocket, message: object) {
     socket.send(stringifiedMessage);
 }
 
+// Guard wrapper: only sends when the socket is open, logs an error otherwise.
+function sendIfOpen(socket: WebSocket, message: object) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        sendWebSocketMessage(socket, message);
+    } else {
+        console.error(`Cannot send ${(message as { action?: string }).action}: WebSocket is not open.`);
+    }
+}
+
 // joinTable helper is obsolete in per-table socket model; handshake happens on socket open
 
 export function sendMessage(socket: WebSocket, message: string) {
@@ -162,37 +171,23 @@ export function waitForBB(socket: WebSocket) {
 }
 
 export function sendPauseGameCommand(socket: WebSocket) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        sendWebSocketMessage(socket, {
-            action: 'pause-game',
-        });
-    } else {
-        console.error('Cannot send pause-game: WebSocket is not open.');
-        // Optionally, notify the user or attempt to handle the error
-    }
+    sendIfOpen(socket, { action: 'pause-game' });
 }
 
 export function sendResumeGameCommand(socket: WebSocket) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        sendWebSocketMessage(socket, {
-            action: 'resume-game',
-        });
-    } else {
-        console.error('Cannot send resume-game: WebSocket is not open.');
-        // Optionally, notify the user or attempt to handle the error
-    }
+    sendIfOpen(socket, { action: 'resume-game' });
 }
 
 export function sendUpdateBlinds(socket: WebSocket, sb: number, bb: number) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        sendWebSocketMessage(socket, {
-            action: 'update-blinds',
-            sb,
-            bb,
-        });
-    } else {
-        console.error('Cannot send update-blinds: WebSocket is not open.');
-    }
+    sendIfOpen(socket, { action: 'update-blinds', sb, bb });
+}
+
+export function sendRITConsent(socket: WebSocket, accept: boolean) {
+    sendIfOpen(socket, { action: 'rit-consent', accept });
+}
+
+export function sendUpdateRIT(socket: WebSocket, enabled: boolean) {
+    sendIfOpen(socket, { action: 'update-rit', enabled });
 }
 
 // Initialize/confirm an HTTP session so cookies are set before subsequent requests

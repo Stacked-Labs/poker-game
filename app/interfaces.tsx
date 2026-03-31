@@ -100,6 +100,14 @@ export type Game = {
     owesSB?: boolean[];
     owesBB?: boolean[];
     waitingForBB?: boolean[];
+    // Run It Twice
+    ritPhase?: number; // 0=None, 1=AwaitingConsent, 2=Board1, 3=Board2, 4=Concluded
+    ritConsent?: Record<number, boolean>;
+    ritSecondBoard?: Card[];
+    ritFirstPots?: Pot[];
+    ritSecondPots?: Pot[];
+    ritConsentDeadline?: number; // unix ms
+    ritStageAtStart?: number; // GameStage when RIT triggered (2=PreFlop, 3=Flop, 4=Turn)
 };
 
 export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';
@@ -117,6 +125,7 @@ export type Config = {
     bb: number;
     sb: number;
     crypto?: boolean;
+    runItTwice?: boolean;
     chain?: string;
     contractAddress?: string;
     ownerAddress?: string;

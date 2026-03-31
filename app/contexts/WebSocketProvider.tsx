@@ -411,6 +411,14 @@ export function SocketProvider(props: SocketProviderProps) {
                                 eventData.game?.actionDeadline ??
                                 eventData.actionDeadline ??
                                 0,
+                            // Run It Twice
+                            ritPhase: eventData.game?.ritPhase,
+                            ritConsent: eventData.game?.ritConsent,
+                            ritSecondBoard: eventData.game?.ritSecondBoard,
+                            ritFirstPots: eventData.game?.ritFirstPots,
+                            ritSecondPots: eventData.game?.ritSecondPots,
+                            ritConsentDeadline: eventData.game?.ritConsentDeadline,
+                            ritStageAtStart: eventData.game?.ritStageAtStart,
                         };
 
                         const hasAnyCommunityCard = (

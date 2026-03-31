@@ -24,7 +24,7 @@ import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { CardBack } from '@/app/components/Card';
 import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
-import { sendUpdateBlinds } from '@/app/hooks/server_actions';
+import { sendUpdateBlinds, sendUpdateRIT } from '@/app/hooks/server_actions';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 const chipDisplayColors: Record<string, string> = {
@@ -247,6 +247,43 @@ const GameSettings = () => {
                             BB must be at least 2x SB
                         </Text>
                     )}
+                </Box>
+            </Tooltip>
+            {/* Run It Twice toggle (owner only) */}
+            <Tooltip
+                label={isOwner ? 'When enabled, all-in players can agree to run two boards and split the pot' : 'Only the table owner can change this setting'}
+                hasArrow
+                placement="top"
+            >
+                <Box
+                    bg="card.white"
+                    borderRadius="16px"
+                    border="2px solid"
+                    borderColor="border.lightGray"
+                    p={{ base: 2.5, md: 3 }}
+                    boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                >
+                    <Flex direction="row" justify="space-between" align="center" gap={3}>
+                        <Text
+                            fontSize={{ base: 'sm', md: 'lg' }}
+                            fontWeight="bold"
+                            color="text.secondary"
+                        >
+                            Run It Twice
+                        </Text>
+                        <Switch
+                            data-testid="rit-toggle"
+                            isChecked={config?.runItTwice ?? false}
+                            isDisabled={!isOwner}
+                            onChange={(e) => {
+                                if (socket) {
+                                    sendUpdateRIT(socket, e.target.checked);
+                                }
+                            }}
+                            colorScheme="green"
+                            size={isPortrait ? 'sm' : 'md'}
+                        />
+                    </Flex>
                 </Box>
             </Tooltip>
             <Box

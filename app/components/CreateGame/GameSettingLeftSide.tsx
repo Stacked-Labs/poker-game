@@ -81,6 +81,7 @@ const GameSettingLeftSide: React.FC = () => {
     const [turnstileError, setTurnstileError] = useState(false);
     const isCreatingRef = useRef(false);
     const [isPublicGame, setIsPublicGame] = useState(true);
+    const [runItTwice, setRunItTwice] = useState(false);
     const isE2E = process.env.NEXT_PUBLIC_E2E === 'true';
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
     const isTurnstileConfigured = !isE2E && Boolean(turnstileSiteKey);
@@ -316,6 +317,7 @@ const GameSettingLeftSide: React.FC = () => {
                         isCrypto: playType === 'Crypto',
                         chain: playType === 'Crypto' ? selectedNetwork : '',
                         isPublic: isPublicGame,
+                        runItTwice,
                         cfTurnstileToken:
                             turnstileToken ||
                             (isE2E ? 'E2E_DUMMY_TOKEN' : ''),
@@ -482,6 +484,37 @@ const GameSettingLeftSide: React.FC = () => {
                     <Switch
                         isChecked={isPublicGame}
                         onChange={(e) => setIsPublicGame(e.target.checked)}
+                        colorScheme="green"
+                        size="lg"
+                        flexShrink={0}
+                    />
+                </Flex>
+
+                <Divider borderColor="gray.100" />
+
+                {/* Run It Twice Section */}
+                <Flex
+                    px={{ base: 5, md: 8 }}
+                    py={3}
+                    justifyContent="space-between"
+                    alignItems="center"
+                >
+                    <Box>
+                        <Text
+                            fontWeight="bold"
+                            fontSize="md"
+                            color="text.primary"
+                        >
+                            Run It Twice
+                        </Text>
+                        <Text fontSize="sm" color="gray.500">
+                            All-in players can deal two boards
+                        </Text>
+                    </Box>
+                    <Switch
+                        data-testid="rit-toggle"
+                        isChecked={runItTwice}
+                        onChange={(e) => setRunItTwice(e.target.checked)}
                         colorScheme="green"
                         size="lg"
                         flexShrink={0}

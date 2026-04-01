@@ -2,12 +2,15 @@
 
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import FooterWithActionButtons from './FooterWithActionButtons';
 import EmptyFooter from './EmptyFooter';
 import BlindObligationControls from './BlindObligationControls';
 import ShowCardsFooter from './ShowCardsFooter';
+import RITConsentModal from '../Felt/RITConsentModal';
 import { revealCards } from '@/app/hooks/server_actions';
+
+const RIT_AWAITING_CONSENT = 1;
 
 const Footer = () => {
     const { appState } = useContext(AppContext);
@@ -47,6 +50,23 @@ const Footer = () => {
     const isInHand = Boolean(localPlayer?.in);
 
     const game = appState.game;
+
+    const myPlayerIndex = useMemo(() => {
+        if (!game?.players || !appState.clientID) return -1;
+        return game.players.findIndex((p) => p.uuid === appState.clientID);
+    }, [game?.players, appState.clientID]);
+
+    const isRITConsentPhase = game?.ritPhase === RIT_AWAITING_CONSENT;
+    const isMyRITConsent =
+        isRITConsentPhase &&
+        myPlayerIndex >= 0 &&
+        game?.ritConsent != null &&
+        myPlayerIndex in game.ritConsent;
+    const hasRITResponded =
+        isMyRITConsent && game?.ritConsent?.[myPlayerIndex] === true;
+    const shouldShowRITConsent =
+        isRITConsentPhase && isMyRITConsent && !hasRITResponded;
+
     const inRevealWindow = Boolean(
         game &&
             game.running &&
@@ -93,7 +113,9 @@ const Footer = () => {
         !hasBlindObligation &&
         isInHand;
 
-    const content = showActionButtons ? (
+    const content = shouldShowRITConsent ? (
+        <RITConsentModal />
+    ) : showActionButtons ? (
         <FooterWithActionButtons
             isCurrentTurn={
                 appState.clientID ===

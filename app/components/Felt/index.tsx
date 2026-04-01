@@ -1,14 +1,15 @@
-import { Flex, Text } from '@chakra-ui/react';
+import { Badge, Flex, Text } from '@chakra-ui/react';
 import React, { useContext } from 'react';
 import Pot from './Pot';
 import CommunityCards from './CommunityCards';
 import RITSecondBoard from './RITSecondBoard';
-import RITConsentModal from './RITConsentModal';
 import GameStatusBanner from '../GameStatusBanner';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 // ritPhase values: 0=None, 1=AwaitingConsent, 2=Board1, 3=Board2, 4=Concluded
-const RIT_PHASE_BOARD2 = 3;
+const RIT_PHASE_BOARD1    = 2;
+const RIT_PHASE_BOARD2    = 3;
+const RIT_PHASE_CONCLUDED = 4;
 
 const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
     const { appState } = useContext(AppContext);
@@ -19,11 +20,20 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
             : 'postflop'
         : 'waiting';
 
-    const showSecondBoard =
+    // Board-1 label + badge appear while board 1 is running (phase 2+).
+    const showBoardLabels =
         game?.ritPhase !== undefined &&
-        game.ritPhase >= RIT_PHASE_BOARD2 &&
-        game.ritSecondBoard &&
-        game.ritSecondBoard.length > 0;
+        game.ritPhase >= RIT_PHASE_BOARD1 &&
+        game.ritPhase <= RIT_PHASE_CONCLUDED;
+
+    // const showSecondBoard =
+    //     game?.ritPhase !== undefined &&
+    //     game.ritPhase >= RIT_PHASE_BOARD2 &&
+    //     game.ritPhase <= RIT_PHASE_CONCLUDED;
+
+    const showRITBadge =
+        game?.running &&
+        showBoardLabels;
 
     return (
         <Flex
@@ -43,6 +53,25 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
             gap={{ base: 1, md: 2, lg: 3 }}
             direction="column"
         >
+            {showRITBadge && (
+                <Badge
+                    data-testid="rit-active-badge"
+                    position="absolute"
+                    top={{ base: '-6', md: '-8' }}
+                    right="0"
+                    colorScheme="green"
+                    variant="subtle"
+                    fontSize="2xs"
+                    borderRadius="full"
+                    px={2}
+                    py={0.5}
+                    letterSpacing="wider"
+                    textTransform="uppercase"
+                >
+                    Run It Twice
+                </Badge>
+            )}
+
             <Flex
                 data-testid="rit-board-1"
                 width="100%"
@@ -51,7 +80,7 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
                 gap={{ base: 1, md: 2, lg: 3 }}
             >
                 <Pot activePotIndex={activePotIndex} />
-                {showSecondBoard && (
+                {showBoardLabels && (
                     <Text
                         data-testid="rit-board-1-label"
                         fontSize="2xs"
@@ -64,7 +93,7 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
                 )}
                 <CommunityCards activePotIndex={activePotIndex} />
             </Flex>
-            {showSecondBoard && (
+            {showRITBadge && (
                 <Flex
                     width="100%"
                     alignItems="center"
@@ -81,10 +110,14 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
                     >
                         2
                     </Text>
-                    <RITSecondBoard />
+                    <div
+                        data-testid="rit-second-board-cards"
+                        style={{ display: 'contents' }}
+                    >
+                        <RITSecondBoard />
+                    </div>
                 </Flex>
             )}
-            <RITConsentModal />
             <GameStatusBanner />
         </Flex>
     );

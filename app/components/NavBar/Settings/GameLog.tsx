@@ -192,11 +192,17 @@ const GameLog = () => {
     };
 
     const formatTime = (timestamp: string) => {
-        return new Date(timestamp).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-        });
+        return new Date(timestamp)
+            .toLocaleString(undefined, {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+            })
+            .replace(',', '');
     };
 
     const convertCardsToEmojis = (cards: string[]): string => {
@@ -1167,7 +1173,7 @@ const GameLog = () => {
                                         <Text
                                             color="gray.500"
                                             fontWeight="bold"
-                                            minW={{ base: '78px', md: '92px' }}
+                                            minW={{ base: '144px', md: '168px' }}
                                             whiteSpace="nowrap"
                                             fontSize={{
                                                 base: '10px',

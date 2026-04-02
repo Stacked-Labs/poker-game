@@ -1,21 +1,17 @@
 'use client';
 
-import React, { useContext } from 'react';
+import React from 'react';
 import {
     Box,
-    Heading,
-    SimpleGrid,
-    Text,
-    VStack,
     HStack,
-    Icon,
+    VStack,
+    Text,
 } from '@chakra-ui/react';
-import { FaGamepad, FaPlus } from 'react-icons/fa';
-import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 export interface UserStats {
     gamesCreated: number;
     gamesPlayed: number;
+    handsPlayed?: number;
 }
 
 const defaultStats: UserStats = {
@@ -23,69 +19,77 @@ const defaultStats: UserStats = {
     gamesPlayed: 0,
 };
 
-const StatsSection = ({ stats = defaultStats }: { stats?: UserStats }) => {
-    const { appState } = useContext(AppContext);
+interface StatItemProps {
+    value: number | string;
+    label: string;
+    color: string;
+}
 
+const StatItem: React.FC<StatItemProps> = ({ value, label, color }) => (
+    <VStack spacing={0} flex={1} align="center">
+        <Text
+            fontSize="xl"
+            fontWeight={800}
+            color={color}
+            lineHeight={1.2}
+        >
+            {typeof value === 'number' ? value.toLocaleString() : value}
+        </Text>
+        <Text
+            fontSize="2xs"
+            fontWeight="semibold"
+            color="text.secondary"
+            letterSpacing="0.08em"
+            textTransform="uppercase"
+            mt={0.5}
+        >
+            {label}
+        </Text>
+    </VStack>
+);
+
+const StatsSection = ({ stats = defaultStats }: { stats?: UserStats }) => {
     return (
-        <Box width="100%">
-            <Heading size="sm" mb={3} color="text.primary" textAlign="center">
-                {appState.username
-                    ? `${appState.username}'s Stats`
-                    : 'Game Statistics'}
-            </Heading>
-            <SimpleGrid columns={2} spacing={3}>
-                <VStack
-                    p={3}
-                    bg="card.lightGray"
-                    borderRadius="14px"
-                    spacing={2}
-                    transition="all 0.2s ease"
-                    _hover={{
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 8px 20px rgba(54, 163, 123, 0.15)',
-                    }}
-                >
-                    <HStack spacing={2}>
-                        <Icon as={FaPlus} color="brand.green" />
-                        <Text
-                            fontWeight="bold"
-                            color="text.secondary"
-                            fontSize="xs"
-                        >
-                            Created
-                        </Text>
-                    </HStack>
-                    <Text fontSize="xl" fontWeight="bold" color="brand.green">
-                        {stats.gamesCreated}
-                    </Text>
-                </VStack>
-                <VStack
-                    p={3}
-                    bg="card.lightGray"
-                    borderRadius="14px"
-                    spacing={2}
-                    transition="all 0.2s ease"
-                    _hover={{
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 8px 20px rgba(235, 11, 92, 0.15)',
-                    }}
-                >
-                    <HStack spacing={2}>
-                        <Icon as={FaGamepad} color="brand.pink" />
-                        <Text
-                            fontWeight="bold"
-                            color="text.secondary"
-                            fontSize="xs"
-                        >
-                            Played
-                        </Text>
-                    </HStack>
-                    <Text fontSize="xl" fontWeight="bold" color="brand.pink">
-                        {stats.gamesPlayed}
-                    </Text>
-                </VStack>
-            </SimpleGrid>
-        </Box>
+        <HStack
+            spacing={0}
+            justify="center"
+            width="100%"
+            py={1}
+        >
+            <StatItem
+                value={stats.gamesCreated}
+                label="Tables"
+                color="brand.green"
+            />
+            <Box
+                w="1px"
+                h="28px"
+                bg="border.lightGray"
+                opacity={0.6}
+                _dark={{ opacity: 0.3 }}
+            />
+            <StatItem
+                value={stats.gamesPlayed}
+                label="Games"
+                color="brand.pink"
+            />
+            {stats.handsPlayed != null && (
+                <>
+                    <Box
+                        w="1px"
+                        h="28px"
+                        bg="border.lightGray"
+                        opacity={0.6}
+                        _dark={{ opacity: 0.3 }}
+                    />
+                    <StatItem
+                        value={stats.handsPlayed}
+                        label="Hands"
+                        color="brand.yellow"
+                    />
+                </>
+            )}
+        </HStack>
     );
 };
 

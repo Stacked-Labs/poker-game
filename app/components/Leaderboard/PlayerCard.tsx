@@ -6,9 +6,6 @@ import {
     VStack,
     Flex,
     Text,
-    Heading,
-    Avatar,
-    Badge,
     HStack,
     Icon,
     Button,
@@ -20,6 +17,7 @@ import { useActiveAccount } from 'thirdweb/react';
 import { FaWallet, FaTrophy, FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
 import { FaMedal } from 'react-icons/fa6';
 import type { IconType } from 'react-icons';
+import { blo } from 'blo';
 import WalletButton from '../WalletButton';
 import StatsSection from './StatsSection';
 import ReferralCodeSection from './ReferralCodeSection';
@@ -127,155 +125,180 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             <Box
                 bg="card.white"
                 borderRadius="24px"
-                p={{ base: 4, md: 5 }}
-                border="1px solid"
-                borderColor="border.lightGray"
+                p={{ base: 5, md: 6 }}
                 boxShadow="0 14px 32px rgba(12, 21, 49, 0.1)"
                 _dark={{ boxShadow: '0 16px 30px rgba(0, 0, 0, 0.35)' }}
                 style={{ filter: isFullyAuthenticated ? 'none' : 'blur(4px)' }}
                 position="relative"
                 overflow="hidden"
             >
+                {/* Card suit watermark */}
+                <Text
+                    position="absolute"
+                    bottom="10px"
+                    right="14px"
+                    fontSize="6xl"
+                    opacity={0.03}
+                    color="text.primary"
+                    transform="rotate(-12deg)"
+                    lineHeight={1}
+                    userSelect="none"
+                    pointerEvents="none"
+                >
+                    ♠
+                </Text>
+
+                {/* Share icon — top-right */}
+                {isFullyAuthenticated && rank != null && account && (
+                    <Box position="absolute" top={3} right={3} zIndex={1}>
+                        <ShareRankCard
+                            rank={rank}
+                            points={playerPoints}
+                            address={account.address}
+                            total={total}
+                        />
+                    </Box>
+                )}
+
                 <VStack spacing={4} align="stretch">
                     {isFullyAuthenticated && (
                         <>
-                            {/* Profile Header */}
-                            <VStack spacing={3}>
-                                <Avatar
-                                    size="lg"
-                                    border="3px solid"
-                                    borderColor="brand.green"
-                                    boxShadow="0 0 16px rgba(54, 163, 123, 0.35)"
-                                    _dark={{
-                                        borderColor: 'brand.green',
-                                        boxShadow: '0 0 20px rgba(54, 163, 123, 0.45)',
-                                    }}
-                                />
-                                <VStack spacing={2}>
-                                    <Heading
-                                        size="sm"
-                                        color="text.primary"
-                                        textAlign="center"
-                                    >
-                                        Player #
-                                        {account!.address.slice(-4).toUpperCase()}
-                                    </Heading>
-                                    <HStack spacing={2}>
-                                        <Icon as={FaWallet} color="text.gray600" />
-                                        <Text
-                                            color="text.gray600"
-                                            fontSize="sm"
-                                            fontFamily="mono"
-                                        >
-                                            {truncateAddress(account!.address)}
-                                        </Text>
-                                    </HStack>
-                                </VStack>
-                            </VStack>
-
-                            {/* Rank Badge + Tier */}
-                            <Flex justify="center">
-                                <HStack spacing={3}>
-                                    <Badge
-                                        bg="brand.navy"
-                                        color="white"
-                                        px={4}
-                                        py={2}
-                                        borderRadius="full"
-                                        fontSize="sm"
-                                        fontWeight="bold"
-                                        boxShadow="0 4px 12px rgba(12, 21, 49, 0.25)"
-                                        animation={
-                                            improved
-                                                ? `${rankBounce} 0.7s ease-out`
-                                                : undefined
-                                        }
-                                    >
-                                        <HStack spacing={2}>
-                                            <Icon as={FaTrophy} color="#FFD700" />
-                                            <Text color="brand.lightGray">
-                                                {rank != null ? `Rank #${rank}` : 'Unranked'}
-                                            </Text>
-                                        </HStack>
-                                    </Badge>
-
-                                    {/* Tier chip */}
+                            {/* A. Profile + Rank hero (horizontal) */}
+                            <Flex align="center" gap={{ base: 4, md: 5 }}>
+                                {/* Blockie avatar with tier ring */}
+                                <Box position="relative" flexShrink={0}>
                                     {tier && (
-                                        <Tooltip
-                                            label={`${tier.label} tier`}
-                                            hasArrow
-                                            fontSize="xs"
-                                        >
-                                            <Badge
-                                                px={3}
-                                                py={1.5}
-                                                borderRadius="full"
-                                                fontWeight="bold"
-                                                fontSize="xs"
-                                                style={{
-                                                    background: `${tier.color}22`,
-                                                    color: tier.color,
-                                                    border: `1px solid ${tier.color}55`,
-                                                    cursor: 'default',
-                                                }}
-                                            >
-                                                <Icon as={TIER_ICON[tier.name]} mr={1} /> {tier.label}
-                                            </Badge>
-                                        </Tooltip>
+                                        <Box
+                                            position="absolute"
+                                            inset="-3px"
+                                            borderRadius="7px"
+                                            border="2px solid"
+                                            borderColor={tier.color}
+                                            opacity={0.5}
+                                            _dark={{ opacity: 0.35 }}
+                                        />
                                     )}
-                                </HStack>
+                                    <Box
+                                        as="img"
+                                        src={blo(account!.address as `0x${string}`)}
+                                        alt=""
+                                        w="56px"
+                                        h="56px"
+                                        borderRadius="4px"
+                                        boxShadow={
+                                            tier
+                                                ? `0 4px 16px rgba(0,0,0,0.15), 0 0 12px ${tier.color}22`
+                                                : '0 4px 16px rgba(0,0,0,0.15)'
+                                        }
+                                    />
+                                </Box>
+
+                                <VStack spacing={0} align="flex-start" flex={1} minW={0}>
+                                    {/* Rank + tier */}
+                                    <HStack spacing={1.5} align="baseline">
+                                        <Text
+                                            fontSize={{ base: '4xl', md: '5xl' }}
+                                            fontWeight={900}
+                                            lineHeight={1}
+                                            color={tier?.color ?? 'text.primary'}
+                                            textShadow={tier ? `0 2px 12px ${tier.color}33` : 'none'}
+                                            animation={
+                                                improved
+                                                    ? `${rankBounce} 0.7s ease-out`
+                                                    : undefined
+                                            }
+                                        >
+                                            {rank != null ? `#${rank}` : '—'}
+                                        </Text>
+                                        {tier && (
+                                            <Tooltip
+                                                label={`${tier.label} tier`}
+                                                hasArrow
+                                                fontSize="xs"
+                                            >
+                                                <span>
+                                                    <Icon
+                                                        as={TIER_ICON[tier.name]}
+                                                        color={tier.color}
+                                                        boxSize="18px"
+                                                    />
+                                                </span>
+                                            </Tooltip>
+                                        )}
+                                    </HStack>
+
+                                    {/* Address — links to BaseScan */}
+                                    <Text
+                                        as="a"
+                                        href={`https://sepolia.basescan.org/address/${account!.address}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        color="text.secondary"
+                                        fontSize="xs"
+                                        fontFamily="mono"
+                                        mt={1}
+                                        _hover={{ color: 'brand.green' }}
+                                        transition="color 0.2s ease"
+                                    >
+                                        {truncateAddress(account!.address)}
+                                    </Text>
+                                </VStack>
                             </Flex>
 
                             {/* Rank-up message */}
                             {improved && previousRank != null && (
-                                <Flex justify="center">
-                                    <Text
-                                        fontSize="xs"
-                                        color="brand.green"
-                                        fontWeight="semibold"
-                                        textAlign="center"
-                                    >
-                                        🎉 Climbed from #{previousRank} → #{rank}!
-                                    </Text>
-                                </Flex>
+                                <Text
+                                    fontSize="xs"
+                                    color="brand.green"
+                                    fontWeight="semibold"
+                                    textAlign="center"
+                                >
+                                    🎉 Climbed from #{previousRank} → #{rank}!
+                                </Text>
                             )}
 
-                            {/* Points */}
-                            <Flex justify="center">
-                                <Text
-                                    fontSize="2xl"
-                                    fontWeight="extrabold"
-                                    color="brand.green"
-                                >
-                                    {playerPoints.toLocaleString()} pts
-                                </Text>
-                            </Flex>
+                            {/* B. Points (single line, accent pill) */}
+                            <Box
+                                bg="rgba(54, 163, 123, 0.06)"
+                                _dark={{ bg: 'rgba(54, 163, 123, 0.1)' }}
+                                borderRadius="14px"
+                                py={2}
+                                px={4}
+                                mx="auto"
+                                w="fit-content"
+                            >
+                                <HStack spacing={2} align="baseline" justify="center">
+                                    <Text
+                                        fontSize="3xl"
+                                        fontWeight={900}
+                                        color="brand.green"
+                                    >
+                                        {playerPoints.toLocaleString()}
+                                    </Text>
+                                    <Text
+                                        fontSize="xs"
+                                        fontWeight="bold"
+                                        color="text.secondary"
+                                        letterSpacing="0.12em"
+                                        textTransform="uppercase"
+                                    >
+                                        points
+                                    </Text>
+                                </HStack>
+                            </Box>
 
-                            {/* Progress to next rank */}
+                            {/* C. Progress to next rank */}
                             {rank != null && rank > 1 && gap > 0 && nextRank != null && (
                                 <Box>
-                                    <HStack justify="space-between" mb={1.5}>
-                                        <Text fontSize="xs" color="text.secondary">
-                                            Progress to #{nextRank}
-                                        </Text>
-                                        <Text
-                                            fontSize="xs"
-                                            fontWeight="semibold"
-                                            color={isNearMiss ? 'brand.yellow' : 'text.secondary'}
-                                            animation={
-                                                isNearMiss
-                                                    ? `${pulseAmber} 1.4s ease-in-out infinite`
-                                                    : undefined
-                                            }
-                                        >
-                                            {isNearMiss
-                                                ? `Almost there! ${gap.toLocaleString()} pts`
-                                                : `${gap.toLocaleString()} pts to go`}
-                                        </Text>
-                                    </HStack>
+                                    <Box
+                                        h="1px"
+                                        bg="border.lightGray"
+                                        opacity={0.5}
+                                        mb={3}
+                                    />
                                     <Progress
                                         value={progressPct}
-                                        size="sm"
+                                        size="xs"
                                         borderRadius="full"
                                         bg="card.lightGray"
                                         sx={{
@@ -285,37 +308,67 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                                                     : 'linear-gradient(90deg, #36A37B, #4ade80)',
                                                 borderRadius: 'full',
                                                 transition: 'width 0.6s ease',
+                                                position: 'relative',
+                                                _after: {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    right: '-3px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    w: '8px',
+                                                    h: '8px',
+                                                    borderRadius: 'full',
+                                                    bg: isNearMiss ? '#FDC51D' : '#36A37B',
+                                                    boxShadow: isNearMiss
+                                                        ? '0 0 6px rgba(253, 197, 29, 0.5)'
+                                                        : '0 0 6px rgba(54, 163, 123, 0.5)',
+                                                },
                                             },
                                         }}
                                     />
+                                    <Text
+                                        fontSize="2xs"
+                                        color={isNearMiss ? 'brand.yellow' : 'text.secondary'}
+                                        textAlign="right"
+                                        mt={1}
+                                        animation={
+                                            isNearMiss
+                                                ? `${pulseAmber} 1.4s ease-in-out infinite`
+                                                : undefined
+                                        }
+                                    >
+                                        {isNearMiss
+                                            ? `Almost there! ${gap.toLocaleString()} pts`
+                                            : `${gap.toLocaleString()} pts to #${nextRank}`}
+                                    </Text>
                                 </Box>
                             )}
 
                             {rank === 1 && (
-                                <Flex justify="center">
-                                    <Text fontSize="xs" color="brand.green" fontWeight="semibold">
-                                        👑 You&apos;re on top!
-                                    </Text>
-                                </Flex>
+                                <Text
+                                    fontSize="xs"
+                                    color="brand.green"
+                                    fontWeight="semibold"
+                                    textAlign="center"
+                                >
+                                    👑 You&apos;re on top!
+                                </Text>
                             )}
                         </>
                     )}
 
+                    {/* D. Stats inline */}
                     <StatsSection stats={stats} />
-                    <ReferralCodeSection referralInfo={referralInfo} />
 
-                    {/* Share button */}
-                    {isFullyAuthenticated && rank != null && account && (
-                        <ShareRankCard
-                            rank={rank}
-                            points={playerPoints}
-                            address={account.address}
-                            total={total}
-                        />
-                    )}
+                    {/* Thin separator */}
+                    <Box h="1px" bg="border.lightGray" opacity={0.5} />
+
+                    {/* E. Referral section */}
+                    <ReferralCodeSection referralInfo={referralInfo} />
                 </VStack>
             </Box>
 
+            {/* Auth overlay */}
             {!isFullyAuthenticated && (
                 <Flex
                     position="absolute"

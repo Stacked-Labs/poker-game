@@ -129,7 +129,7 @@ const LeaderboardPage: React.FC = () => {
                         <PlayerCard
                             rank={playerEntry?.rank}
                             points={playerEntry?.points}
-                            stats={stats}
+                            stats={{ ...stats, handsPlayed: playerEntry?.handsPlayed }}
                             referralInfo={referralInfo}
                             pointsToNext={pointsToNext}
                             nextRank={nextRank}

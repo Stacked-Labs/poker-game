@@ -8,6 +8,7 @@ import {
     Text,
     VStack,
     Icon,
+    IconButton,
     useDisclosure,
     Modal,
     ModalOverlay,
@@ -131,23 +132,24 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
 
     return (
         <>
-            <Button
-                size="sm"
-                leftIcon={<Icon as={FaShare} />}
-                borderRadius="10px"
+            <IconButton
+                aria-label="Share rank"
+                icon={<Icon as={FaShare} boxSize="13px" />}
+                size="xs"
+                variant="unstyled"
                 onClick={onOpen}
-                bg="card.lightGray"
-                color="text.primary"
-                border="1px solid"
-                borderColor="rgba(12, 21, 49, 0.15)"
-                fontWeight="bold"
-                _hover={{ bg: 'card.lightGray', borderColor: 'brand.green', color: 'brand.green' }}
-                _dark={{ bg: 'whiteAlpha.100', color: 'white', borderColor: 'whiteAlpha.200', _hover: { bg: 'whiteAlpha.200', borderColor: 'brand.green', color: 'brand.green' } }}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                color="text.secondary"
+                opacity={0.5}
+                _hover={{ opacity: 1, color: 'brand.green' }}
+                _dark={{ color: 'whiteAlpha.500', _hover: { opacity: 1, color: 'brand.green' } }}
                 transition="all 0.2s ease"
-                w="full"
-            >
-                Share Rank
-            </Button>
+                minW="auto"
+                h="auto"
+                p={1}
+            />
 
             <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
                 <ModalOverlay backdropFilter="blur(8px)" bg="rgba(11, 20, 48, 0.65)" />

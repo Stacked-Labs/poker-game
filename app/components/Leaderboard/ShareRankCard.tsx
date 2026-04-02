@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Box,
-    Button,
     HStack,
     Text,
     VStack,
@@ -155,27 +154,27 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                 <ModalOverlay backdropFilter="blur(8px)" bg="rgba(11, 20, 48, 0.65)" />
                 <ModalContent
                     bg="card.white"
-                    borderRadius="16px"
-                    border="1px solid"
-                    borderColor="border.lightGray"
-                    boxShadow="card.hero"
-                    p={1}
+                    borderRadius="20px"
+                    boxShadow="0 24px 48px rgba(0,0,0,0.25)"
+                    _dark={{ boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
+                    p={0}
                     mx={4}
+                    overflow="hidden"
                 >
-                    <ModalBody pt={1} pb={1} px={1}>
-                        <VStack spacing={1} align="center">
+                    <ModalBody p={2}>
+                        <VStack spacing={0} align="center">
 
                             {/* ── Shareable card ─────────────────────────────── */}
                             <Box
                                 ref={cardRef}
                                 w="100%"
                                 h="210px"
-                                borderRadius="8px"
+                                borderRadius="14px"
                                 position="relative"
                                 overflow="hidden"
                                 style={{ fontFamily: 'Poppins, sans-serif' }}
                             >
-                                {/* Full-bleed background — no gradient overlay */}
+                                {/* Full-bleed background */}
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src={bgSrc}
@@ -190,56 +189,71 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                     }}
                                 />
 
-                                {/* ── Stats pill — top-left ── */}
+                                {/* Bottom gradient for rank readability */}
                                 <div style={{
                                     position: 'absolute',
-                                    top: 10, left: 14,
-                                    background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(240,244,248,0.92) 100%)',
-                                    borderRadius: 12,
-                                    padding: '10px 14px 9px',
-                                    border: '1px solid rgba(54,163,123,0.35)',
-                                    boxShadow: '0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.9), 0 0 24px rgba(54,163,123,0.08)',
-                                    minWidth: 118,
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: '50%',
+                                    background: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)',
+                                    pointerEvents: 'none',
+                                }} />
+
+                                {/* ── Points + address — top-left, frosted pill ── */}
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 12, left: 12,
+                                    background: 'rgba(0, 0, 0, 0.55)',
+                                    backdropFilter: 'blur(12px)',
+                                    WebkitBackdropFilter: 'blur(12px)',
+                                    borderRadius: 14,
+                                    padding: '10px 16px',
                                 }}>
-                                    {/* Points */}
-                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 7 }}>
-                                        <span style={{ color: '#36A37B', fontSize: 32, fontWeight: 900, lineHeight: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 3 }}>
+                                        <span style={{
+                                            color: '#fff',
+                                            fontSize: 34,
+                                            fontWeight: 900,
+                                            lineHeight: 1,
+                                            textShadow: '0 1px 8px rgba(0,0,0,0.3)',
+                                        }}>
                                             {points.toLocaleString()}
                                         </span>
-                                        <span style={{ color: '#36A37B', fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', opacity: 0.75 }}>
+                                        <span style={{
+                                            color: 'rgba(255,255,255,0.7)',
+                                            fontSize: 10,
+                                            fontWeight: 800,
+                                            letterSpacing: '0.12em',
+                                        }}>
                                             PTS
                                         </span>
                                     </div>
-                                    {/* Spade divider */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 7 }}>
-                                        <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(54,163,123,0.4), transparent)' }} />
-                                        <span style={{ fontSize: 9, color: 'rgba(54,163,123,0.6)', lineHeight: 1 }}>♠</span>
-                                        <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(54,163,123,0.4))' }} />
-                                    </div>
-                                    {/* Address + domain */}
-                                    <div style={{ color: 'rgba(0,0,0,0.55)', fontSize: 10, fontFamily: 'monospace', letterSpacing: '0.04em', marginBottom: 2 }}>
-                                        {truncated}
-                                    </div>
-                                    <div style={{ color: 'rgba(0,0,0,0.35)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                                        stackedpoker.io
+                                    <div style={{
+                                        color: 'rgba(255,255,255,0.6)',
+                                        fontSize: 10,
+                                        fontFamily: 'monospace',
+                                        letterSpacing: '0.04em',
+                                    }}>
+                                        ♠ {truncated}
                                     </div>
                                 </div>
 
-                                {/* ── Tier chip top-right ── */}
+                                {/* ── Tier chip — top-right ── */}
                                 <div style={{
                                     position: 'absolute',
-                                    top: 10, right: 14,
+                                    top: 14, right: 14,
                                     display: 'flex', alignItems: 'center', gap: 5,
-                                    padding: '4px 11px', borderRadius: 20,
+                                    padding: '5px 13px', borderRadius: 20,
                                     background: 'rgba(0,0,0,0.62)',
                                     border: `1.5px solid ${tier.color}`,
                                     boxShadow: `0 0 10px ${tier.color}55`,
                                 }}>
-                                    <Icon as={TIER_ICON[tier.name]} color={tier.color} boxSize="11px" style={{ filter: `drop-shadow(0 0 4px ${tier.color})` }} />
-                                    <span style={{ color: '#ffffff', fontSize: 12, fontWeight: 800, letterSpacing: '0.04em', textShadow: `0 0 8px ${tier.color}` }}>{tier.label}</span>
+                                    <Icon as={TIER_ICON[tier.name]} color={tier.color} boxSize="12px" style={{ filter: `drop-shadow(0 0 4px ${tier.color})` }} />
+                                    <span style={{ color: '#ffffff', fontSize: 13, fontWeight: 800, letterSpacing: '0.04em', textShadow: `0 0 8px ${tier.color}` }}>{tier.label}</span>
                                 </div>
 
-                                {/* ── Rank — bottom-left, floating on image ── */}
+                                {/* ── Rank — bottom-left ── */}
                                 <div style={{
                                     position: 'absolute',
                                     bottom: 14, left: 16,
@@ -256,8 +270,8 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                         {rank}
                                     </span>
                                     <span style={{
-                                        color: '#000000', fontSize: 13, fontWeight: 600, paddingBottom: 5,
-                                        textShadow: '0 1px 3px rgba(255,255,255,0.3)',
+                                        color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 600, paddingBottom: 5,
+                                        textShadow: '0 2px 8px rgba(0,0,0,0.7)',
                                     }}>
                                         {suffix} place
                                     </span>
@@ -280,63 +294,66 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                 </div>
                             </Box>
 
-                            {/* ── Action buttons ─────────────────────────────── */}
-                            <HStack spacing={1} w="full" px={0}>
-                                <Button
-                                    leftIcon={<Icon as={FaXTwitter} />}
-                                    bg="#000000"
-                                    color="white"
-                                    border="none"
-                                    borderRadius="6px"
-                                    size="sm"
+                            {/* ── Actions — icon row ─────────────────────────── */}
+                            <HStack spacing={0} w="full" pt={3} pb={1} justify="center">
+                                <VStack
+                                    as="button"
+                                    spacing={1}
                                     flex={1}
-                                    fontWeight="bold"
-                                    isLoading={sharing}
-                                    loadingText="Sharing…"
+                                    py={2}
+                                    cursor="pointer"
+                                    opacity={0.7}
+                                    _hover={{ opacity: 1 }}
+                                    transition="opacity 0.15s ease"
                                     onClick={handleShareX}
-                                    _dark={{ bg: '#000000', border: 'none' }}
-                                    _hover={{ opacity: 0.85 }}
-                                    transition="opacity 0.15s ease"
                                 >
-                                    Share on X
-                                </Button>
+                                    <Icon as={FaXTwitter} boxSize="20px" color="text.primary" />
+                                    <Text fontSize="2xs" color="text.secondary" fontWeight="medium">
+                                        {sharing ? 'Sharing…' : 'Post'}
+                                    </Text>
+                                </VStack>
 
-                                <Button
-                                    leftIcon={<Icon as={FaTelegram} />}
-                                    bg="#229ED9"
-                                    color="white"
-                                    border="none"
-                                    borderRadius="6px"
-                                    size="sm"
+                                <Box w="1px" h="28px" bg="border.lightGray" opacity={0.5} _dark={{ opacity: 0.2 }} />
+
+                                <VStack
+                                    as="button"
+                                    spacing={1}
                                     flex={1}
-                                    fontWeight="bold"
+                                    py={2}
+                                    cursor="pointer"
+                                    opacity={0.7}
+                                    _hover={{ opacity: 1 }}
+                                    transition="opacity 0.15s ease"
                                     onClick={() => window.open(telegramUrl, '_blank', 'noopener,noreferrer')}
-                                    _dark={{ bg: '#229ED9', border: 'none' }}
-                                    _hover={{ opacity: 0.85 }}
-                                    transition="opacity 0.15s ease"
                                 >
-                                    Telegram
-                                </Button>
+                                    <Icon as={FaTelegram} boxSize="20px" color="#229ED9" />
+                                    <Text fontSize="2xs" color="text.secondary" fontWeight="medium">
+                                        Send
+                                    </Text>
+                                </VStack>
 
-                                <Button
-                                    leftIcon={<Icon as={FaDownload} />}
-                                    bg="card.lightGray"
-                                    color="text.primary"
-                                    border="none"
-                                    borderRadius="6px"
-                                    size="sm"
+                                <Box w="1px" h="28px" bg="border.lightGray" opacity={0.5} _dark={{ opacity: 0.2 }} />
+
+                                <VStack
+                                    as="button"
+                                    spacing={1}
                                     flex={1}
-                                    onClick={handleDownload}
-                                    _dark={{ bg: 'charcoal.600', color: 'white', border: 'none' }}
-                                    _hover={{ opacity: 0.75 }}
+                                    py={2}
+                                    cursor="pointer"
+                                    opacity={0.7}
+                                    _hover={{ opacity: 1 }}
                                     transition="opacity 0.15s ease"
+                                    onClick={handleDownload}
                                 >
-                                    Download
-                                </Button>
+                                    <Icon as={FaDownload} boxSize="18px" color="text.secondary" />
+                                    <Text fontSize="2xs" color="text.secondary" fontWeight="medium">
+                                        Save
+                                    </Text>
+                                </VStack>
                             </HStack>
 
                             {desktopHint && (
-                                <Text fontSize="xs" color="text.muted" textAlign="center">
+                                <Text fontSize="xs" color="text.secondary" textAlign="center" pt={1}>
                                     Image downloaded — attach it to your tweet! 🃏
                                 </Text>
                             )}

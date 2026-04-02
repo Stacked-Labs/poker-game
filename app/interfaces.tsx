@@ -100,6 +100,14 @@ export type Game = {
     owesSB?: boolean[];
     owesBB?: boolean[];
     waitingForBB?: boolean[];
+    ritPhase?: number; // 0=none, 1=voting, 2=board1, 3=board2, 4=concluded
+    ritVotes?: Record<number, boolean | null>;
+    ritEligiblePlayers?: number[];
+    ritBoard1Cards?: Card[];
+    ritBoard2Cards?: Card[];
+    ritBoard1Pots?: Pot[];
+    ritBoard2Pots?: Pot[];
+    ritVoteDeadline?: number; // unix millis
 };
 
 export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';
@@ -121,6 +129,7 @@ export type Config = {
     contractAddress?: string;
     ownerAddress?: string;
     ownerSessionUUID?: string;
+    runItTwice?: boolean;
 };
 
 export type Pot = {

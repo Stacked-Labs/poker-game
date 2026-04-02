@@ -197,7 +197,9 @@ const chipPositionStyles: { [key: number]: object } = {
         '@media (orientation: portrait)': {
             top: '15%',
             right: '-110%',
-            flexDirection: 'column',
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
         },
         '@media (orientation: landscape)': {
             top: '-25%',
@@ -209,7 +211,9 @@ const chipPositionStyles: { [key: number]: object } = {
         '@media (orientation: portrait)': {
             top: '15%',
             right: '-110%',
-            flexDirection: 'column',
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
         },
         '@media (orientation: landscape)': {
             bottom: '23%',
@@ -221,7 +225,9 @@ const chipPositionStyles: { [key: number]: object } = {
         '@media (orientation: portrait)': {
             bottom: '20%',
             right: '-110%',
-            flexDirection: 'column',
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
         },
         '@media (orientation: landscape)': {
             top: '30%',
@@ -235,7 +241,9 @@ const chipPositionStyles: { [key: number]: object } = {
         '@media (orientation: portrait)': {
             bottom: '20%',
             right: '-110%',
-            flexDirection: 'column',
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
         },
         '@media (orientation: landscape)': {
             bottom: '-30%',

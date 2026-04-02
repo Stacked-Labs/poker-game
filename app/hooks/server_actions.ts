@@ -229,6 +229,17 @@ export function sendToggleAutoAccept(socket: WebSocket, enabled: boolean) {
     }
 }
 
+export function sendRITVote(socket: WebSocket, vote: boolean) {
+    sendWebSocketMessage(socket, { action: 'rit-vote', vote });
+}
+
+export function sendUpdateRunItTwice(socket: WebSocket, enabled: boolean) {
+    sendWebSocketMessage(socket, {
+        action: 'update-run-it-twice',
+        enabled,
+    });
+}
+
 // Initialize/confirm an HTTP session so cookies are set before subsequent requests
 export async function initSession() {
     isBackendUrlValid();

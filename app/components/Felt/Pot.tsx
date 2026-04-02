@@ -34,6 +34,16 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
     const { format } = useFormatAmount();
     const isGameRunning = appState.game?.running;
     const game = appState.game;
+    const ritPhase = game?.ritPhase ?? 0;
+    const ritActive = ritPhase >= 2;
+    const boardEvalLabel =
+        ritPhase === 2
+            ? 'Board 1'
+            : ritPhase === 3
+              ? 'Board 2'
+              : ritPhase === 4
+                ? 'Final'
+                : null;
     const prefersReducedMotion = usePrefersReducedMotion();
     const pots = useMemo(() => {
         if (!game?.pots || game.stage === 2) return initialPot;
@@ -106,6 +116,8 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
             >
                 {pots.map((pot, index) => {
                     if (pot.amount !== 0) {
+                        const halfAmount = Math.floor(pot.amount / 2);
+                        const remainder = pot.amount - halfAmount;
                         return (
                             <Fragment key={`main-pot-${index}`}>
                                 <Flex
@@ -160,19 +172,42 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                     )}
                                 </Flex>
                                 {index === 0 && (
-                                    <Text
-                                        fontSize={{
-                                            xl: '22px',
-                                            lg: '20px',
-                                            md: '16px',
-                                            base: '12px',
-                                        }}
-                                        fontWeight="extrabold"
-                                        color="white"
-                                        textAlign="center"
+                                    <Flex
+                                        direction="column"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        lineHeight={1}
                                     >
-                                        {format(pot.amount)}
-                                    </Text>
+                                        <Text
+                                            fontSize={{
+                                                xl: '22px',
+                                                lg: '20px',
+                                                md: '16px',
+                                                base: '12px',
+                                            }}
+                                            fontWeight="extrabold"
+                                            color="white"
+                                            textAlign="center"
+                                        >
+                                            {format(pot.amount)}
+                                        </Text>
+                                        {ritActive && (
+                                            <Text
+                                                fontSize={{
+                                                    xl: '10px',
+                                                    lg: '9px',
+                                                    md: '8px',
+                                                    base: '7px',
+                                                }}
+                                                fontWeight="bold"
+                                                color="whiteAlpha.900"
+                                                textAlign="center"
+                                                whiteSpace="nowrap"
+                                            >
+                                                1/2: {format(remainder)} | 2/2: {format(halfAmount)}
+                                            </Text>
+                                        )}
+                                    </Flex>
                                 )}
                             </Fragment>
                         );
@@ -230,11 +265,28 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                         whiteSpace="nowrap"
                                     >
                                         SP{index}: {format(pot.amount)}
+                                        {ritActive
+                                            ? ` (${format(Math.floor(pot.amount / 2))}/${format(pot.amount - Math.floor(pot.amount / 2))})`
+                                            : ''}
                                     </Text>
                                 </Flex>
                             )
                     )}
                 </Flex>
+                {ritActive && boardEvalLabel && (
+                    <Text
+                        position="absolute"
+                        top={{ base: '-18px', md: '-20px' }}
+                        left="50%"
+                        transform="translateX(-50%)"
+                        fontSize={{ base: '8px', md: '10px' }}
+                        fontWeight="bold"
+                        color={ritPhase === 2 ? 'green.200' : ritPhase === 3 ? 'blue.200' : 'yellow.200'}
+                        whiteSpace="nowrap"
+                    >
+                        {boardEvalLabel}
+                    </Text>
+                )}
             </Flex>
         );
     }

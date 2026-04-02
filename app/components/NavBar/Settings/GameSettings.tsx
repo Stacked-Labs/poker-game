@@ -27,7 +27,12 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { CardBack } from '@/app/components/Card';
 import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
-import { sendUpdateBlinds, sendToggleRabbitHunt, sendToggleAutoAccept } from '@/app/hooks/server_actions';
+import {
+    sendUpdateBlinds,
+    sendToggleRabbitHunt,
+    sendToggleAutoAccept,
+    sendUpdateRunItTwice,
+} from '@/app/hooks/server_actions';
 import { useConnectX } from '@/app/hooks/useConnectX';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -622,6 +627,49 @@ const GameSettings = () => {
                             }}
                             colorScheme="green"
                             data-testid="auto-accept-toggle"
+                        />
+                    </Flex>
+                </Box>
+                {/* Run It Twice — owner-only, cash games */}
+                <Box
+                    bg="card.white"
+                    borderRadius="14px"
+                    border="1px solid"
+                    borderColor="border.lightGray"
+                    p={{ base: 2.5, md: 3 }}
+                    boxShadow="card.lift"
+                    opacity={isOwner ? 1 : 0.6}
+                >
+                    <Flex justify="space-between" align="center" gap={3}>
+                        <VStack align="flex-start" spacing={0.5}>
+                            <Text
+                                fontSize={{ base: 'sm', md: 'md' }}
+                                fontWeight={700}
+                                color="text.secondary"
+                                whiteSpace="nowrap"
+                                overflow="hidden"
+                                textOverflow="ellipsis"
+                            >
+                                Run It Twice
+                            </Text>
+                            <Text
+                                fontSize="2xs"
+                                color="text.muted"
+                                lineHeight="1.3"
+                            >
+                                Deal two boards on all-in to reduce variance
+                            </Text>
+                        </VStack>
+                        <Switch
+                            size={{ base: 'md', md: 'lg' }}
+                            isChecked={config?.runItTwice ?? false}
+                            isDisabled={!isOwner}
+                            onChange={(e) => {
+                                if (!socket) return;
+                                sendUpdateRunItTwice(socket, e.target.checked);
+                            }}
+                            colorScheme="green"
+                            data-testid="run-it-twice-toggle"
                         />
                     </Flex>
                 </Box>

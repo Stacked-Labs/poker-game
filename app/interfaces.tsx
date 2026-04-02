@@ -216,6 +216,15 @@ export type Game = {
     settlementStuck?: boolean;
     /** True whenever any settlement is blocking — either actively in-flight or stuck pending recovery. Frontend should disable the leave button when true. */
     settlementInProgress?: boolean;
+    // --- Run It Twice ---
+    ritPhase?: number; // 0=none, 1=voting, 2=board1, 3=board2, 4=concluded
+    ritVotes?: Record<number, boolean | null>;
+    ritEligiblePlayers?: number[];
+    ritBoard1Cards?: Card[];
+    ritBoard2Cards?: Card[];
+    ritBoard1Pots?: Pot[];
+    ritBoard2Pots?: Pot[];
+    ritVoteDeadline?: number; // unix millis
 };
 
 export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';
@@ -244,6 +253,7 @@ export type Config = {
      * `baseActionMs + timeBankMs`; `actionDeadline` already encodes this sum.
      */
     baseActionMs?: number;
+    runItTwice?: boolean;
 };
 
 export type Pot = {

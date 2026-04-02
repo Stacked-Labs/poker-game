@@ -994,6 +994,7 @@ const TakenSeatButton = ({
                             const shouldRenderCards =
                                 appState.game.running &&
                                 Number(player.cards[0]) !== -1 &&
+                                !(game?.ritPhase === 1 && !isSelfPlayer) &&
                                 (player.in ||
                                     (isSelfPlayer && hasRevealedCards) ||
                                     (isShowdown && hasRevealedCards) ||

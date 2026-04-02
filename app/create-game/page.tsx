@@ -36,6 +36,9 @@ export const metadata: Metadata = {
     keywords: [
         "poker, online poker, Texas Hold'em, card game, multiplayer, create game",
     ],
+    alternates: {
+        canonical: 'https://stackedpoker.io/create-game',
+    },
 };
 
 const CreateGamePage: React.FC = () => {

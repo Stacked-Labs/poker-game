@@ -49,6 +49,31 @@ export const metadata: Metadata = {
     },
 };
 
+const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Stacked Poker',
+    url: 'https://stackedpoker.io',
+    description:
+        'The easiest way to play poker for free or with crypto. No download, no sign up needed.',
+    applicationCategory: 'GameApplication',
+    operatingSystem: 'Web',
+    offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+    },
+    publisher: {
+        '@type': 'Organization',
+        name: 'Stacked Poker',
+        url: 'https://stackedpoker.io',
+        logo: {
+            '@type': 'ImageObject',
+            url: 'https://stackedpoker.io/IconMain.png',
+        },
+    },
+};
+
 export default function RootLayout({
     children,
 }: {
@@ -65,6 +90,10 @@ export default function RootLayout({
                 <link
                     rel="dns-prefetch"
                     href="https://challenges.cloudflare.com"
+                />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />
             </head>
             <body

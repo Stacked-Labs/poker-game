@@ -41,19 +41,22 @@ const BlindObligationControls = () => {
     const localPlayer = game?.players?.find(
         (p) => p.uuid === appState.clientID
     );
-    const seatIndex = localPlayer ? localPlayer.seatID - 1 : -1;
+    const playerIndex =
+        localPlayer && typeof localPlayer.position === 'number'
+            ? localPlayer.position
+            : -1;
 
     const owesSB =
-        seatIndex >= 0
-            ? Boolean(game?.owesSB?.[seatIndex])
+        playerIndex >= 0
+            ? Boolean(game?.owesSB?.[playerIndex])
             : Boolean(obligation?.owesSB);
     const owesBB =
-        seatIndex >= 0
-            ? Boolean(game?.owesBB?.[seatIndex])
+        playerIndex >= 0
+            ? Boolean(game?.owesBB?.[playerIndex])
             : Boolean(obligation?.owesBB);
     const waitingForBB =
-        seatIndex >= 0
-            ? Boolean(game?.waitingForBB?.[seatIndex])
+        playerIndex >= 0
+            ? Boolean(game?.waitingForBB?.[playerIndex])
             : Boolean(obligation?.waitingForBB);
 
     const options: BlindObligationOptions[] = useMemo(

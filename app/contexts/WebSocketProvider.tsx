@@ -493,21 +493,27 @@ export function SocketProvider(props: SocketProviderProps) {
                             userWasInHandRef.current = true;
                         }
 
-                        const seatIndex = localPlayer
-                            ? localPlayer.seatID - 1
+                        const playerIndex = localPlayer
+                            ? localPlayer.position
                             : -1;
                         const owesSB =
-                            seatIndex >= 0
-                                ? Boolean(eventData.game?.owesSB?.[seatIndex])
+                            playerIndex >= 0
+                                ? Boolean(
+                                      eventData.game?.owesSB?.[playerIndex]
+                                  )
                                 : false;
                         const owesBB =
-                            seatIndex >= 0
-                                ? Boolean(eventData.game?.owesBB?.[seatIndex])
+                            playerIndex >= 0
+                                ? Boolean(
+                                      eventData.game?.owesBB?.[playerIndex]
+                                  )
                                 : false;
                         const waitingForBB =
-                            seatIndex >= 0
+                            playerIndex >= 0
                                 ? Boolean(
-                                      eventData.game?.waitingForBB?.[seatIndex]
+                                      eventData.game?.waitingForBB?.[
+                                          playerIndex
+                                      ]
                                   )
                                 : false;
 

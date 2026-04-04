@@ -70,15 +70,15 @@ function highlightGo(code: string): React.ReactNode {
 
             const [token, str, kw, prim, builtin, num] = match;
             const color = str
-                ? '#C3E88D'
+                ? '#36A37B'
                 : kw
-                  ? '#C792EA'
+                  ? '#EB0B5C'
                   : prim
                     ? '#89DDFF'
                     : builtin
-                      ? '#FFCB6B'
+                      ? '#FDC51D'
                       : num
-                        ? '#F78C6C'
+                        ? '#FDC51D'
                         : undefined;
 
             nodes.push(
@@ -125,37 +125,53 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
 
     return (
         <Box
-            bg="#0B1220"
+            bg="brand.darkNavy"
             color="white"
             borderRadius="24px"
             border="1px solid"
-            borderColor="rgba(255,255,255,0.12)"
+            borderColor="rgba(51, 68, 121, 0.3)"
             overflow="hidden"
-            boxShadow="0 18px 55px rgba(11, 18, 32, 0.35)"
+            boxShadow="0 20px 60px rgba(11, 20, 48, 0.4), inset 0 1px 0 rgba(255,255,255,0.05)"
         >
             <Flex
                 justify="space-between"
                 align="center"
                 px={{ base: 5, md: 6 }}
-                py={4}
+                py={3.5}
                 borderBottom="1px solid"
-                borderBottomColor="rgba(255,255,255,0.10)"
-                bg="linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)"
+                borderBottomColor="rgba(51, 68, 121, 0.3)"
+                bg="rgba(51, 68, 121, 0.15)"
             >
                 <HStack spacing={3} minW={0}>
-                    <Box
-                        w="10px"
-                        h="10px"
-                        borderRadius="full"
-                        bg="brand.pink"
-                        boxShadow="0 0 0 4px rgba(235, 11, 92, 0.18)"
-                    />
+                    <HStack spacing={1.5}>
+                        <Box
+                            w="10px"
+                            h="10px"
+                            borderRadius="full"
+                            bg="brand.pink"
+                            boxShadow="0 0 6px rgba(235, 11, 92, 0.4)"
+                        />
+                        <Box
+                            w="10px"
+                            h="10px"
+                            borderRadius="full"
+                            bg="brand.yellow"
+                            opacity={0.7}
+                        />
+                        <Box
+                            w="10px"
+                            h="10px"
+                            borderRadius="full"
+                            bg="brand.green"
+                            opacity={0.7}
+                        />
+                    </HStack>
                     <Text
                         fontSize="sm"
                         fontWeight="bold"
                         letterSpacing="0.06em"
                         textTransform="uppercase"
-                        color="rgba(255,255,255,0.85)"
+                        color="rgba(255,255,255,0.7)"
                         isTruncated
                     >
                         {label}
@@ -165,12 +181,18 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
                     onClick={onCopy}
                     size="sm"
                     leftIcon={<MdContentCopy />}
-                    bg="rgba(255,255,255,0.08)"
-                    color="rgba(255,255,255,0.92)"
-                    _hover={{ bg: 'rgba(255,255,255,0.12)' }}
-                    _active={{ bg: 'rgba(255,255,255,0.16)' }}
-                    borderRadius="12px"
+                    bg="rgba(51, 68, 121, 0.3)"
+                    color="rgba(255,255,255,0.85)"
+                    border="1px solid"
+                    borderColor="rgba(51, 68, 121, 0.4)"
+                    _hover={{
+                        bg: 'rgba(51, 68, 121, 0.5)',
+                        borderColor: 'rgba(51, 68, 121, 0.6)',
+                    }}
+                    _active={{ bg: 'rgba(51, 68, 121, 0.6)' }}
+                    borderRadius="10px"
                     fontWeight="bold"
+                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                 >
                     {hasCopied ? 'Copied' : 'Copy'}
                 </Button>
@@ -183,7 +205,7 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
                     p={0}
                     whiteSpace="pre"
                     overflowX="auto"
-                    fontSize={{ base: 'sm', md: 'sm' }}
+                    fontSize={{ base: 'xs', md: 'sm' }}
                     lineHeight="tall"
                     fontFamily='ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
                 >
@@ -192,13 +214,13 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
                     </Box>
                 </Box>
                 <Text
-                    mt={4}
+                    mt={5}
                     fontSize="sm"
-                    color="rgba(255,255,255,0.7)"
+                    color="rgba(255,255,255,0.55)"
                     lineHeight="tall"
                 >
-                    Fisher–Yates shuffle powered by OS entropy via Go&apos;s{' '}
-                    <Box as="span" fontWeight="bold" color="white">
+                    Fisher-Yates shuffle powered by OS entropy via Go&apos;s{' '}
+                    <Box as="span" fontWeight="bold" color="rgba(255,255,255,0.85)">
                         crypto/rand
                     </Box>
                     .{' '}
@@ -207,7 +229,7 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
                         isExternal
                         color="brand.yellow"
                         fontWeight="bold"
-                        _hover={{ textDecoration: 'underline' }}
+                        _hover={{ textDecoration: 'underline', color: 'brand.yellow' }}
                     >
                         Read the docs
                     </Link>
@@ -265,50 +287,50 @@ const OddsAndRandomnessSection = () => {
                         />
                         <MotionBox
                             position="absolute"
-                            top={{ base: '12px', md: '18px' }}
-                            right={{ base: '16px', md: '22px' }}
-                            fontSize={{ base: '22px', md: '28px' }}
+                            top={{ base: '14px', md: '20px' }}
+                            right={{ base: '18px', md: '24px' }}
+                            fontSize={{ base: '18px', md: '22px' }}
                             color="brand.pink"
-                            opacity={0.35}
+                            opacity={0.18}
                             pointerEvents="none"
                             animate={
                                 prefersReducedMotion
                                     ? undefined
-                                    : { y: [0, -6, 0], rotate: [8, -4, 8] }
+                                    : { y: [0, -4, 0] }
                             }
                             transition={
                                 prefersReducedMotion
                                     ? undefined
-                                    : { duration: 4.2, repeat: Infinity, ease: 'easeInOut' }
+                                    : { duration: 5, repeat: Infinity, ease: 'easeInOut' }
                             }
                         >
                             ♥
                         </MotionBox>
                         <MotionBox
                             position="absolute"
-                            bottom={{ base: '14px', md: '22px' }}
-                            left={{ base: '18px', md: '26px' }}
-                            fontSize={{ base: '22px', md: '28px' }}
+                            bottom={{ base: '16px', md: '24px' }}
+                            left={{ base: '20px', md: '28px' }}
+                            fontSize={{ base: '18px', md: '22px' }}
                             color="brand.green"
-                            opacity={0.35}
+                            opacity={0.18}
                             pointerEvents="none"
                             animate={
                                 prefersReducedMotion
                                     ? undefined
-                                    : { y: [0, 6, 0], rotate: [-8, 4, -8] }
+                                    : { y: [0, 4, 0] }
                             }
                             transition={
                                 prefersReducedMotion
                                     ? undefined
-                                    : { duration: 4.6, repeat: Infinity, ease: 'easeInOut' }
+                                    : { duration: 5.5, repeat: Infinity, ease: 'easeInOut' }
                             }
                         >
                             ♣
                         </MotionBox>
-                        <MotionBox
+                        <Box
                             position="absolute"
                             top={{ base: '40%', md: '46%' }}
-                            left={{ base: '-6px', md: '10px' }}
+                            left={{ base: '-4px', md: '12px' }}
                             bg="brand.yellow"
                             color="brand.darkNavy"
                             px={3}
@@ -318,22 +340,12 @@ const OddsAndRandomnessSection = () => {
                             fontWeight="bold"
                             letterSpacing="0.12em"
                             textTransform="uppercase"
-                            boxShadow="0 8px 18px rgba(253, 197, 29, 0.28)"
-                            transform="rotate(-6deg)"
+                            boxShadow="0 4px 12px rgba(253, 197, 29, 0.25)"
+                            transform="rotate(-4deg)"
                             pointerEvents="none"
-                            animate={
-                                prefersReducedMotion
-                                    ? undefined
-                                    : { rotate: [-6, 2, -6] }
-                            }
-                            transition={
-                                prefersReducedMotion
-                                    ? undefined
-                                    : { duration: 5, repeat: Infinity, ease: 'easeInOut' }
-                            }
                         >
                             Fair Play
-                        </MotionBox>
+                        </Box>
 
                         <SimpleGrid
                             columns={{ base: 1, lg: 2 }}
@@ -400,44 +412,49 @@ const OddsAndRandomnessSection = () => {
                                 >
                                     <Box
                                         p={6}
-                                        borderRadius="24px"
+                                        borderRadius="20px"
                                         bg="bg.default"
                                         border="1px solid"
                                         borderColor="border.lightGray"
-                                        boxShadow="0 10px 30px rgba(0,0,0,0.03)"
+                                        boxShadow="glass"
                                         position="relative"
                                         overflow="hidden"
+                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                                        _hover={{
+                                            boxShadow: 'glass-hover',
+                                            transform: 'translateY(-2px)',
+                                        }}
                                     >
                                         <Box
                                             position="absolute"
                                             inset={0}
-                                            bgGradient="radial(circle at 0% 0%, rgba(66, 153, 225, 0.12) 0%, transparent 55%)"
+                                            bgGradient="radial(circle at 0% 0%, rgba(51, 68, 121, 0.08) 0%, transparent 55%)"
                                             pointerEvents="none"
                                         />
                                         <Box
                                             position="absolute"
                                             top="12px"
                                             right="12px"
-                                            fontSize="20px"
-                                            color="blue.400"
-                                            opacity={0.6}
+                                            fontSize="16px"
+                                            color="brand.navy"
+                                            opacity={0.2}
                                             pointerEvents="none"
                                         >
                                             ♠
                                         </Box>
                                         <HStack spacing={3} mb={3}>
                                             <Flex
-                                                w="44px"
-                                                h="44px"
-                                                borderRadius="16px"
+                                                w="42px"
+                                                h="42px"
+                                                borderRadius="14px"
                                                 align="center"
                                                 justify="center"
-                                                bg="rgba(66, 153, 225, 0.10)"
-                                                color="blue.500"
+                                                bg="rgba(51, 68, 121, 0.08)"
+                                                color="brand.navy"
                                             >
                                                 <Icon
                                                     as={MdAutoGraph}
-                                                    fontSize="24px"
+                                                    fontSize="22px"
                                                 />
                                             </Flex>
                                             <Heading
@@ -463,44 +480,49 @@ const OddsAndRandomnessSection = () => {
 
                                     <Box
                                         p={6}
-                                        borderRadius="24px"
+                                        borderRadius="20px"
                                         bg="bg.default"
                                         border="1px solid"
                                         borderColor="border.lightGray"
-                                        boxShadow="0 10px 30px rgba(0,0,0,0.03)"
+                                        boxShadow="glass"
                                         position="relative"
                                         overflow="hidden"
+                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                                        _hover={{
+                                            boxShadow: 'glass-hover',
+                                            transform: 'translateY(-2px)',
+                                        }}
                                     >
                                         <Box
                                             position="absolute"
                                             inset={0}
-                                            bgGradient="radial(circle at 100% 0%, rgba(235, 11, 92, 0.12) 0%, transparent 55%)"
+                                            bgGradient="radial(circle at 100% 0%, rgba(235, 11, 92, 0.08) 0%, transparent 55%)"
                                             pointerEvents="none"
                                         />
                                         <Box
                                             position="absolute"
                                             top="12px"
                                             right="12px"
-                                            fontSize="20px"
+                                            fontSize="16px"
                                             color="brand.pink"
-                                            opacity={0.6}
+                                            opacity={0.2}
                                             pointerEvents="none"
                                         >
                                             ♦
                                         </Box>
                                         <HStack spacing={3} mb={3}>
                                             <Flex
-                                                w="44px"
-                                                h="44px"
-                                                borderRadius="16px"
+                                                w="42px"
+                                                h="42px"
+                                                borderRadius="14px"
                                                 align="center"
                                                 justify="center"
-                                                bg="rgba(235, 11, 92, 0.10)"
+                                                bg="rgba(235, 11, 92, 0.08)"
                                                 color="brand.pink"
                                             >
                                                 <Icon
                                                     as={MdShuffle}
-                                                    fontSize="24px"
+                                                    fontSize="22px"
                                                 />
                                             </Flex>
                                             <Heading
@@ -526,7 +548,7 @@ const OddsAndRandomnessSection = () => {
                                             >
                                                 crypto/rand
                                             </Box>{' '}
-                                            with Fisher–Yates so each of the{' '}
+                                            with Fisher-Yates so each of the{' '}
                                             <Box
                                                 as="span"
                                                 fontWeight="bold"
@@ -549,24 +571,27 @@ const OddsAndRandomnessSection = () => {
                                 <Box position="relative">
                                     <Box
                                         position="absolute"
-                                        top="-10px"
-                                        right="12px"
+                                        top="-12px"
+                                        right="14px"
                                         bg="brand.green"
                                         color="white"
-                                        px={3}
+                                        px={3.5}
                                         py={1}
                                         borderRadius="full"
                                         fontSize="xs"
                                         fontWeight="bold"
-                                        letterSpacing="0.12em"
+                                        letterSpacing="0.1em"
                                         textTransform="uppercase"
-                                        boxShadow="0 6px 16px rgba(54, 163, 123, 0.35)"
+                                        boxShadow="0 4px 14px rgba(54, 163, 123, 0.35)"
+                                        zIndex={2}
+                                        border="2px solid"
+                                        borderColor="rgba(255, 255, 255, 0.2)"
                                     >
                                         Shuffle Seal
                                     </Box>
                                     <Box
                                         position="absolute"
-                                        bottom="-18px"
+                                        bottom="-14px"
                                         left="16px"
                                         bg="brand.pink"
                                         color="white"
@@ -577,8 +602,11 @@ const OddsAndRandomnessSection = () => {
                                         fontWeight="bold"
                                         letterSpacing="0.1em"
                                         textTransform="uppercase"
-                                        boxShadow="0 6px 16px rgba(235, 11, 92, 0.35)"
-                                        transform="rotate(-4deg)"
+                                        boxShadow="0 4px 14px rgba(235, 11, 92, 0.3)"
+                                        transform="rotate(-3deg)"
+                                        zIndex={2}
+                                        border="2px solid"
+                                        borderColor="rgba(255, 255, 255, 0.2)"
                                     >
                                         52! Decks
                                     </Box>
@@ -588,25 +616,28 @@ const OddsAndRandomnessSection = () => {
                                     />
                                 </Box>
                                 <HStack
-                                    spacing={3}
+                                    spacing={2.5}
                                     flexWrap="wrap"
-                                    color="text.secondary"
+                                    pt={2}
                                 >
                                     {[
-                                        'OS CSPRNG (crypto/rand)',
-                                        'Fisher–Yates / Knuth',
+                                        'OS CSPRNG',
+                                        'Fisher-Yates',
                                         'Independent shuffles',
                                         'Auditable logic',
                                     ].map((label) => (
                                         <Badge
                                             key={label}
-                                            bg="rgba(12, 21, 49, 0.06)"
-                                            color="text.gray600"
+                                            bg="rgba(51, 68, 121, 0.06)"
+                                            color="brand.navy"
                                             px={3}
                                             py={1}
                                             borderRadius="full"
                                             fontSize="xs"
                                             fontWeight="bold"
+                                            letterSpacing="0.02em"
+                                            border="1px solid"
+                                            borderColor="rgba(51, 68, 121, 0.1)"
                                         >
                                             {label}
                                         </Badge>

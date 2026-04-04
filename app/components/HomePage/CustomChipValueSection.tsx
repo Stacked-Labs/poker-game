@@ -62,11 +62,11 @@ const CustomChipValueSection = () => {
                 <Box
                     position="relative"
                     borderRadius="32px"
-                    bg="#073d2a" // Deep Forest Green Felt
+                    bg="#073d2a"
                     p={{ base: 8, md: 16 }}
                     overflow="hidden"
                     boxShadow="0 20px 80px rgba(0, 0, 0, 0.8), inset 0 0 100px rgba(0, 0, 0, 0.5)"
-                    transition="all 0.5s ease"
+                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                     animation={highlightPulse}
                     _hover={{
                         transform: 'translateY(-2px)',
@@ -139,7 +139,7 @@ const CustomChipValueSection = () => {
                     >
                         <MotionVStack align="start" spacing={8} {...fadeUp(0)}>
                             <Badge
-                                bg="rgba(255, 255, 255, 0.1)"
+                                bg="rgba(255, 255, 255, 0.08)"
                                 color="white"
                                 px={4}
                                 py={1.5}
@@ -147,6 +147,10 @@ const CustomChipValueSection = () => {
                                 fontSize="xs"
                                 fontWeight="bold"
                                 letterSpacing="wider"
+                                border="1px solid"
+                                borderColor="rgba(255, 255, 255, 0.15)"
+                                backdropFilter="blur(8px)"
+                                textTransform="uppercase"
                             >
                                 CHIP VALUE SYSTEM
                             </Badge>
@@ -155,8 +159,29 @@ const CustomChipValueSection = () => {
                                 fontSize={{ base: '3xl', md: '4xl' }}
                                 fontWeight="extrabold"
                                 color="white"
+                                lineHeight="shorter"
                             >
-                                1 Chip = 0.01 USDC. Always.
+                                1 Chip ={' '}
+                                <Box
+                                    as="span"
+                                    color="brand.green"
+                                    position="relative"
+                                >
+                                    0.01 USDC
+                                    <Box
+                                        as="span"
+                                        position="absolute"
+                                        bottom="2px"
+                                        left="-2px"
+                                        right="-2px"
+                                        height="30%"
+                                        bg="brand.green"
+                                        opacity={0.15}
+                                        zIndex={-1}
+                                        borderRadius="sm"
+                                    />
+                                </Box>
+                                . Always.
                             </Heading>
 
                             <VStack align="start" spacing={5}>
@@ -213,23 +238,31 @@ const CustomChipValueSection = () => {
                         {/* Conversion Graphic */}
                         <MotionBox {...fadeUp(0.15)}>
                             <Box
-                            bg="rgba(0, 0, 0, 0.3)"
+                            bg="rgba(0, 0, 0, 0.35)"
                             p={{ base: 6, sm: 8, md: 12 }}
                             borderRadius="30px"
                             border="1px solid"
-                            borderColor="rgba(255, 255, 255, 0.15)"
+                            borderColor="rgba(255, 255, 255, 0.12)"
                             backdropFilter="blur(20px)"
                             maxW={{ base: '380px', lg: 'none' }}
                             mx={{ base: 'auto', lg: 0 }}
+                            boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.3)"
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                            _hover={{
+                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 40px rgba(0, 0, 0, 0.35)',
+                            }}
                         >
                             <VStack spacing={8} align="stretch">
                                 {/* Fixed Rate Display */}
                                 <VStack spacing={4}>
                                     <Text
                                         color="gray.300"
-                                        fontSize="sm"
-                                        fontWeight="medium"
+                                        fontSize="xs"
+                                        fontWeight="bold"
                                         textAlign="center"
+                                        letterSpacing="wider"
+                                        textTransform="uppercase"
                                     >
                                         FIXED EXCHANGE RATE
                                     </Text>
@@ -271,14 +304,25 @@ const CustomChipValueSection = () => {
                                             </Text>
                                         </HStack>
 
-                                        <Icon
-                                            as={MdArrowForward}
-                                            color="brand.green"
-                                            fontSize={{
-                                                base: '20px',
-                                                md: '24px',
-                                            }}
-                                        />
+                                        <Box
+                                            w={{ base: '28px', md: '32px' }}
+                                            h={{ base: '28px', md: '32px' }}
+                                            borderRadius="full"
+                                            bg="rgba(54, 163, 123, 0.15)"
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            flexShrink={0}
+                                        >
+                                            <Icon
+                                                as={MdArrowForward}
+                                                color="brand.green"
+                                                fontSize={{
+                                                    base: '16px',
+                                                    md: '18px',
+                                                }}
+                                            />
+                                        </Box>
 
                                         <HStack spacing={3}>
                                             <Box
@@ -296,7 +340,7 @@ const CustomChipValueSection = () => {
                                                 alignItems="center"
                                                 justifyContent="center"
                                                 border="2px solid rgba(255,255,255,0.3)"
-                                                boxShadow="0 4px 12px rgba(0,0,0,0.3)"
+                                                boxShadow="glow-green"
                                             >
                                                 <Text
                                                     color="white"
@@ -323,20 +367,37 @@ const CustomChipValueSection = () => {
                                     </HStack>
                                 </VStack>
 
-                                <Box h="1px" bg="rgba(255, 255, 255, 0.1)" />
+                                <Box
+                                    h="1px"
+                                    bgGradient="linear(to-r, transparent, rgba(255, 255, 255, 0.15), transparent)"
+                                />
 
                                 {/* Example Blinds */}
-                                <VStack spacing={3}>
+                                <VStack spacing={4}>
                                     <Text
                                         color="gray.300"
-                                        fontSize="sm"
-                                        fontWeight="medium"
+                                        fontSize="xs"
+                                        fontWeight="bold"
                                         textAlign="center"
+                                        letterSpacing="wider"
+                                        textTransform="uppercase"
                                     >
                                         EXAMPLE GAMES
                                     </Text>
                                     <SimpleGrid columns={2} spacing={4} w="full">
-                                        <VStack spacing={1}>
+                                        <VStack
+                                            spacing={2}
+                                            bg="rgba(255, 255, 255, 0.05)"
+                                            borderRadius="16px"
+                                            border="1px solid"
+                                            borderColor="rgba(255, 255, 255, 0.08)"
+                                            p={4}
+                                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                                            _hover={{
+                                                bg: 'rgba(255, 255, 255, 0.08)',
+                                                borderColor: 'rgba(253, 197, 29, 0.2)',
+                                            }}
+                                        >
                                             <Text
                                                 color="brand.yellow"
                                                 fontSize="sm"
@@ -348,13 +409,26 @@ const CustomChipValueSection = () => {
                                                 color="gray.400"
                                                 fontSize="xs"
                                                 textAlign="center"
+                                                lineHeight="tall"
                                             >
                                                 5/10 chips
                                                 <br />
                                                 0.05/0.10 USDC
                                             </Text>
                                         </VStack>
-                                        <VStack spacing={1}>
+                                        <VStack
+                                            spacing={2}
+                                            bg="rgba(255, 255, 255, 0.05)"
+                                            borderRadius="16px"
+                                            border="1px solid"
+                                            borderColor="rgba(255, 255, 255, 0.08)"
+                                            p={4}
+                                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                                            _hover={{
+                                                bg: 'rgba(255, 255, 255, 0.08)',
+                                                borderColor: 'rgba(253, 197, 29, 0.2)',
+                                            }}
+                                        >
                                             <Text
                                                 color="brand.yellow"
                                                 fontSize="sm"
@@ -366,6 +440,7 @@ const CustomChipValueSection = () => {
                                                 color="gray.400"
                                                 fontSize="xs"
                                                 textAlign="center"
+                                                lineHeight="tall"
                                             >
                                                 25/50 chips
                                                 <br />

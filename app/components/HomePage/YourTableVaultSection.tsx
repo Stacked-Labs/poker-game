@@ -140,7 +140,7 @@ const YourTableVaultSection = () => {
                     />
                     <MotionVStack
                         align="start"
-                        spacing={8}
+                        spacing={10}
                         position="relative"
                         zIndex={1}
                         {...fadeUp(0)}
@@ -149,28 +149,30 @@ const YourTableVaultSection = () => {
                             <Badge
                                 bg="brand.yellow"
                                 color="brand.darkNavy"
-                                px={3}
-                                py={1}
+                                px={4}
+                                py={1.5}
                                 borderRadius="full"
                                 fontSize="xs"
                                 fontWeight="bold"
                                 letterSpacing="0.12em"
                                 textTransform="uppercase"
+                                boxShadow="0 2px 8px rgba(253, 197, 29, 0.3)"
                             >
                                 Why Onchain?
                             </Badge>
                             <Badge
                                 bg="brand.green"
                                 color="white"
-                                px={3}
-                                py={1}
+                                px={4}
+                                py={1.5}
                                 borderRadius="full"
                                 fontSize="xs"
                                 fontWeight="bold"
                                 letterSpacing="0.12em"
                                 textTransform="uppercase"
+                                boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
                             >
-                                Vault Mode 🔐
+                                Vault Mode
                             </Badge>
                         </HStack>
 
@@ -219,53 +221,36 @@ const YourTableVaultSection = () => {
                         </VStack>
 
                         {/* Split Diagram: Game Engine + The Banker */}
-                        <Box width="100%" pt={{ base: 6, md: 8 }} pb={4}>
+                        <Box width="100%" pt={{ base: 8, md: 12 }} pb={4}>
                             <Box
-                                bg="linear-gradient(135deg, rgba(66, 153, 225, 0.05) 0%, rgba(54, 163, 123, 0.05) 100%)"
+                                bg="linear-gradient(135deg, rgba(51, 68, 121, 0.04) 0%, rgba(54, 163, 123, 0.04) 100%)"
                                 borderRadius="24px"
-                                p={{ base: 4, md: 10 }}
+                                p={{ base: 6, md: 12 }}
                                 border="1px solid"
-                                borderColor="rgba(51, 68, 121, 0.2)"
-                                borderStyle="dashed"
-                                boxShadow="inset 0 0 0 1px rgba(54, 163, 123, 0.18), 0 12px 24px rgba(12, 21, 49, 0.04)"
+                                borderColor="rgba(51, 68, 121, 0.15)"
+                                boxShadow="glass"
                                 position="relative"
                                 overflow="hidden"
+                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             >
-                                <MotionBox
+                                <Box
                                     position="absolute"
                                     top={{ base: '12px', md: '16px' }}
                                     left={{ base: '12px', md: '16px' }}
                                     zIndex={2}
                                     bg="brand.navy"
                                     color="white"
-                                    px={{ base: 2, md: 3 }}
+                                    px={{ base: 2.5, md: 3.5 }}
                                     py={{ base: 0.5, md: 1 }}
                                     borderRadius="full"
                                     fontSize={{ base: '2xs', md: 'xs' }}
                                     fontWeight="bold"
                                     letterSpacing="0.08em"
                                     textTransform="uppercase"
-                                    boxShadow="0 6px 16px rgba(51, 68, 121, 0.25)"
-                                    animate={
-                                        prefersReducedMotion
-                                            ? undefined
-                                            : {
-                                                  y: [0, -4, 0],
-                                                  rotate: [-2, 2, -2],
-                                              }
-                                    }
-                                    transition={
-                                        prefersReducedMotion
-                                            ? undefined
-                                            : {
-                                                  duration: 4,
-                                                  repeat: Infinity,
-                                                  ease: 'easeInOut',
-                                              }
-                                    }
+                                    boxShadow="0 4px 12px rgba(51, 68, 121, 0.3)"
                                 >
                                     Engine ↔ Banker
-                                </MotionBox>
+                                </Box>
                                 <SimpleGrid
                                     columns={{ base: 1, lg: 2 }}
                                     spacing={{ base: 8, lg: 12 }}
@@ -285,32 +270,32 @@ const YourTableVaultSection = () => {
                                                 base: '20px',
                                                 md: '24px',
                                             }}
-                                            bgGradient="linear(135deg, blue.400, blue.600)"
+                                            bgGradient="linear(135deg, brand.navy, brand.darkNavy)"
                                             display="flex"
                                             alignItems="center"
                                             justifyContent="center"
-                                            boxShadow="0 8px 24px rgba(66, 153, 225, 0.3)"
+                                            boxShadow="0 12px 32px rgba(51, 68, 121, 0.35)"
                                             _before={{
                                                 content: '""',
                                                 position: 'absolute',
-                                                inset: '-2px',
-                                                borderRadius: '24px',
+                                                inset: '-3px',
+                                                borderRadius: '26px',
                                                 bgGradient:
-                                                    'linear(135deg, blue.400, blue.600)',
-                                                opacity: 0.3,
-                                                filter: 'blur(8px)',
+                                                    'linear(135deg, brand.navy, brand.darkNavy)',
+                                                opacity: 0.25,
+                                                filter: 'blur(10px)',
                                                 zIndex: -1,
                                             }}
                                             animate={
                                                 prefersReducedMotion
                                                     ? undefined
-                                                    : { y: [0, -6, 0] }
+                                                    : { y: [0, -5, 0] }
                                             }
                                             transition={
                                                 prefersReducedMotion
                                                     ? undefined
                                                     : {
-                                                          duration: 3.2,
+                                                          duration: 3.6,
                                                           repeat: Infinity,
                                                           ease: 'easeInOut',
                                                       }
@@ -341,66 +326,28 @@ const YourTableVaultSection = () => {
                                                 spacing={{ base: 2, md: 3 }}
                                                 mt={{ base: 1, md: 2 }}
                                             >
-                                                <WrapItem>
-                                                    <Badge
-                                                        bg="blue.50"
-                                                        color="blue.600"
-                                                        px={{ base: 2, md: 3 }}
-                                                        py={{
-                                                            base: 0.5,
-                                                            md: 1,
-                                                        }}
-                                                        borderRadius="full"
-                                                        fontSize={{
-                                                            base: '10px',
-                                                            md: 'xs',
-                                                        }}
-                                                        fontWeight="semibold"
-                                                        textAlign="center"
-                                                    >
-                                                        Whitelist Handling
-                                                    </Badge>
-                                                </WrapItem>
-                                                <WrapItem>
-                                                    <Badge
-                                                        bg="blue.50"
-                                                        color="blue.600"
-                                                        px={{ base: 2, md: 3 }}
-                                                        py={{
-                                                            base: 0.5,
-                                                            md: 1,
-                                                        }}
-                                                        borderRadius="full"
-                                                        fontSize={{
-                                                            base: '10px',
-                                                            md: 'xs',
-                                                        }}
-                                                        fontWeight="semibold"
-                                                        textAlign="center"
-                                                    >
-                                                        Shuffling
-                                                    </Badge>
-                                                </WrapItem>
-                                                <WrapItem>
-                                                    <Badge
-                                                        bg="blue.50"
-                                                        color="blue.600"
-                                                        px={{ base: 2, md: 3 }}
-                                                        py={{
-                                                            base: 0.5,
-                                                            md: 1,
-                                                        }}
-                                                        borderRadius="full"
-                                                        fontSize={{
-                                                            base: '10px',
-                                                            md: 'xs',
-                                                        }}
-                                                        fontWeight="semibold"
-                                                        textAlign="center"
-                                                    >
-                                                        Pot Calculation
-                                                    </Badge>
-                                                </WrapItem>
+                                                {['Whitelist Handling', 'Shuffling', 'Pot Calculation'].map((label) => (
+                                                    <WrapItem key={label}>
+                                                        <Badge
+                                                            bg="rgba(51, 68, 121, 0.08)"
+                                                            color="brand.navy"
+                                                            px={{ base: 2.5, md: 3 }}
+                                                            py={{
+                                                                base: 0.5,
+                                                                md: 1,
+                                                            }}
+                                                            borderRadius="full"
+                                                            fontSize={{
+                                                                base: '10px',
+                                                                md: 'xs',
+                                                            }}
+                                                            fontWeight="semibold"
+                                                            textAlign="center"
+                                                        >
+                                                            {label}
+                                                        </Badge>
+                                                    </WrapItem>
+                                                ))}
                                             </Wrap>
                                         </VStack>
                                     </VStack>
@@ -417,36 +364,39 @@ const YourTableVaultSection = () => {
                                         transform="translate(-50%, -50%)"
                                         alignItems="center"
                                         zIndex={1}
-                                        width="calc(100% - 240px)"
+                                        width="calc(100% - 280px)"
                                         justifyContent="center"
                                     >
                                         <Box
                                             flex="1"
-                                            maxW="200px"
+                                            maxW="220px"
                                             h="2px"
-                                            bgGradient="linear(to-r, blue.400, brand.green)"
+                                            bgGradient="linear(to-r, brand.navy, brand.green)"
                                             position="relative"
+                                            opacity={0.7}
                                         >
                                             <MotionBox
                                                 position="absolute"
                                                 top="50%"
                                                 left="0"
-                                                w="10px"
-                                                h="10px"
+                                                w="8px"
+                                                h="8px"
                                                 bg="brand.yellow"
                                                 borderRadius="full"
                                                 transform="translate(-50%, -50%)"
-                                                boxShadow="0 0 12px rgba(253, 197, 29, 0.7)"
+                                                boxShadow="0 0 10px rgba(253, 197, 29, 0.6), 0 0 20px rgba(253, 197, 29, 0.3)"
                                                 animate={
                                                     prefersReducedMotion
                                                         ? undefined
-                                                        : { x: ['0%', '100%'] }
+                                                        : {
+                                                              left: ['0%', '100%', '0%'],
+                                                          }
                                                 }
                                                 transition={
                                                     prefersReducedMotion
                                                         ? undefined
                                                         : {
-                                                              duration: 2.6,
+                                                              duration: 3.5,
                                                               repeat: Infinity,
                                                               ease: 'easeInOut',
                                                           }
@@ -454,33 +404,33 @@ const YourTableVaultSection = () => {
                                             />
                                             <Box
                                                 position="absolute"
-                                                right="-8px"
+                                                right="-7px"
                                                 top="50%"
                                                 transform="translateY(-50%)"
                                                 w="0"
                                                 h="0"
-                                                borderTop="6px solid transparent"
-                                                borderBottom="6px solid transparent"
-                                                borderLeft="8px solid"
+                                                borderTop="5px solid transparent"
+                                                borderBottom="5px solid transparent"
+                                                borderLeft="7px solid"
                                                 borderLeftColor="brand.green"
+                                                opacity={0.8}
                                             />
                                         </Box>
                                         <Box
                                             position="absolute"
                                             left="50%"
-                                            top="-20px"
+                                            top="-24px"
                                             transform="translateX(-50%)"
-                                            bg="card.white"
-                                            px={3}
+                                            bg="brand.darkNavy"
+                                            px={3.5}
                                             py={1}
                                             borderRadius="full"
-                                            border="1px solid"
-                                            borderColor="border.lightGray"
                                             fontSize="xs"
-                                            fontWeight="semibold"
-                                            color="text.secondary"
+                                            fontWeight="bold"
+                                            color="white"
                                             whiteSpace="nowrap"
-                                            boxShadow="0 2px 8px rgba(0,0,0,0.05)"
+                                            boxShadow="0 4px 12px rgba(11, 20, 48, 0.3)"
+                                            letterSpacing="0.04em"
                                         >
                                             State Updates
                                         </Box>
@@ -500,32 +450,32 @@ const YourTableVaultSection = () => {
                                                 base: '20px',
                                                 md: '24px',
                                             }}
-                                            bgGradient="linear(135deg, brand.green, green.600)"
+                                            bgGradient="linear(135deg, brand.green, rgba(54, 163, 123, 0.8))"
                                             display="flex"
                                             alignItems="center"
                                             justifyContent="center"
-                                            boxShadow="0 8px 24px rgba(54, 163, 123, 0.3)"
+                                            boxShadow="0 12px 32px rgba(54, 163, 123, 0.35)"
                                             _before={{
                                                 content: '""',
                                                 position: 'absolute',
-                                                inset: '-2px',
-                                                borderRadius: '24px',
+                                                inset: '-3px',
+                                                borderRadius: '26px',
                                                 bgGradient:
-                                                    'linear(135deg, brand.green, green.600)',
-                                                opacity: 0.3,
-                                                filter: 'blur(8px)',
+                                                    'linear(135deg, brand.green, rgba(54, 163, 123, 0.7))',
+                                                opacity: 0.25,
+                                                filter: 'blur(10px)',
                                                 zIndex: -1,
                                             }}
                                             animate={
                                                 prefersReducedMotion
                                                     ? undefined
-                                                    : { y: [0, 6, 0] }
+                                                    : { y: [0, 5, 0] }
                                             }
                                             transition={
                                                 prefersReducedMotion
                                                     ? undefined
                                                     : {
-                                                          duration: 3.4,
+                                                          duration: 3.8,
                                                           repeat: Infinity,
                                                           ease: 'easeInOut',
                                                       }
@@ -556,66 +506,28 @@ const YourTableVaultSection = () => {
                                                 spacing={{ base: 2, md: 3 }}
                                                 mt={{ base: 1, md: 2 }}
                                             >
-                                                <WrapItem>
-                                                    <Badge
-                                                        bg="green.50"
-                                                        color="brand.lightGray"
-                                                        px={{ base: 2, md: 3 }}
-                                                        py={{
-                                                            base: 0.5,
-                                                            md: 1,
-                                                        }}
-                                                        borderRadius="full"
-                                                        fontSize={{
-                                                            base: '10px',
-                                                            md: 'xs',
-                                                        }}
-                                                        fontWeight="semibold"
-                                                        textAlign="center"
-                                                    >
-                                                        Custody
-                                                    </Badge>
-                                                </WrapItem>
-                                                <WrapItem>
-                                                    <Badge
-                                                        bg="green.50"
-                                                        color="brand.lightGray"
-                                                        px={{ base: 2, md: 3 }}
-                                                        py={{
-                                                            base: 0.5,
-                                                            md: 1,
-                                                        }}
-                                                        borderRadius="full"
-                                                        fontSize={{
-                                                            base: '10px',
-                                                            md: 'xs',
-                                                        }}
-                                                        fontWeight="semibold"
-                                                        textAlign="center"
-                                                    >
-                                                        Payouts
-                                                    </Badge>
-                                                </WrapItem>
-                                                <WrapItem>
-                                                    <Badge
-                                                        bg="green.50"
-                                                        color="brand.lightGray"
-                                                        px={{ base: 2, md: 3 }}
-                                                        py={{
-                                                            base: 0.5,
-                                                            md: 1,
-                                                        }}
-                                                        borderRadius="full"
-                                                        fontSize={{
-                                                            base: '10px',
-                                                            md: 'xs',
-                                                        }}
-                                                        fontWeight="semibold"
-                                                        textAlign="center"
-                                                    >
-                                                        Settlement
-                                                    </Badge>
-                                                </WrapItem>
+                                                {['Custody', 'Payouts', 'Settlement'].map((label) => (
+                                                    <WrapItem key={label}>
+                                                        <Badge
+                                                            bg="rgba(54, 163, 123, 0.08)"
+                                                            color="brand.green"
+                                                            px={{ base: 2.5, md: 3 }}
+                                                            py={{
+                                                                base: 0.5,
+                                                                md: 1,
+                                                            }}
+                                                            borderRadius="full"
+                                                            fontSize={{
+                                                                base: '10px',
+                                                                md: 'xs',
+                                                            }}
+                                                            fontWeight="semibold"
+                                                            textAlign="center"
+                                                        >
+                                                            {label}
+                                                        </Badge>
+                                                    </WrapItem>
+                                                ))}
                                             </Wrap>
                                         </VStack>
                                     </VStack>
@@ -647,54 +559,55 @@ const YourTableVaultSection = () => {
                             columns={{ base: 1, md: 2 }}
                             spacing={8}
                             width="100%"
-                            pt={4}
+                            pt={6}
                         >
                             <MotionBox {...fadeUp(0.1)}>
                                 <Box
                                     position="relative"
                                     p="2px"
-                                    borderRadius="30px"
-                                    bgGradient="linear(to-r, blue.400, brand.navy, brand.yellow, blue.400)"
+                                    borderRadius="28px"
+                                    bgGradient="linear(to-r, brand.navy, brand.yellow, brand.navy)"
                                     backgroundSize="300% 300%"
-                                    animation={`${gradientMove} 6s linear infinite`}
-                                    transition="all 0.3s"
+                                    animation={`${gradientMove} 8s linear infinite`}
+                                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                     _hover={{
-                                        transform: 'translateY(-4px)',
+                                        transform: 'translateY(-3px)',
                                         boxShadow:
-                                            '0 12px 30px rgba(66, 153, 225, 0.2)',
+                                            '0 16px 40px rgba(51, 68, 121, 0.18)',
                                     }}
                                 >
                                     <Box
                                         position="absolute"
-                                        top="12px"
-                                        left="14px"
-                                        fontSize="18px"
-                                        color="blue.400"
-                                        opacity={0.7}
+                                        top="14px"
+                                        left="16px"
+                                        fontSize="16px"
+                                        color="brand.navy"
+                                        opacity={0.25}
+                                        zIndex={1}
                                     >
                                         ♠
                                     </Box>
                                     <Box
                                         position="absolute"
-                                        top="10px"
-                                        right="12px"
-                                        bg="card.white"
-                                        border="1px solid"
-                                        borderColor="border.lightGray"
-                                        px={2}
+                                        top="12px"
+                                        right="14px"
+                                        bg="brand.navy"
+                                        px={2.5}
                                         py={0.5}
                                         borderRadius="full"
                                         fontSize="xs"
                                         fontWeight="bold"
-                                        color="blue.500"
+                                        color="white"
                                         letterSpacing="0.08em"
+                                        zIndex={1}
+                                        boxShadow="0 2px 8px rgba(51, 68, 121, 0.3)"
                                     >
                                         Proof 01
                                     </Box>
                                     <Box
                                         bg="card.white"
                                         p={{ base: 6, md: 10 }}
-                                        borderRadius="28px"
+                                        borderRadius="26px"
                                         height="100%"
                                     >
                                         <HStack
@@ -703,7 +616,7 @@ const YourTableVaultSection = () => {
                                         >
                                             <Icon
                                                 as={MdStorage}
-                                                color="blue.400"
+                                                color="brand.navy"
                                                 fontSize={{
                                                     base: '22px',
                                                     md: '28px',
@@ -744,48 +657,49 @@ const YourTableVaultSection = () => {
                                 <Box
                                     position="relative"
                                     p="2px"
-                                    borderRadius="30px"
-                                    bgGradient="linear(to-r, brand.green, brand.navy, brand.pink, brand.green)"
+                                    borderRadius="28px"
+                                    bgGradient="linear(to-r, brand.green, brand.pink, brand.green)"
                                     backgroundSize="300% 300%"
-                                    animation={`${gradientMove} 6s linear infinite`}
-                                    transition="all 0.3s"
+                                    animation={`${gradientMove} 8s linear infinite`}
+                                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                     _hover={{
-                                        transform: 'translateY(-4px)',
+                                        transform: 'translateY(-3px)',
                                         boxShadow:
-                                            '0 12px 30px rgba(54, 163, 123, 0.2)',
+                                            '0 16px 40px rgba(54, 163, 123, 0.18)',
                                     }}
                                 >
                                     <Box
                                         position="absolute"
-                                        top="12px"
-                                        left="14px"
-                                        fontSize="18px"
+                                        top="14px"
+                                        left="16px"
+                                        fontSize="16px"
                                         color="brand.pink"
-                                        opacity={0.7}
+                                        opacity={0.25}
+                                        zIndex={1}
                                     >
                                         ♥
                                     </Box>
                                     <Box
                                         position="absolute"
-                                        top="10px"
-                                        right="12px"
-                                        bg="card.white"
-                                        border="1px solid"
-                                        borderColor="border.lightGray"
-                                        px={2}
+                                        top="12px"
+                                        right="14px"
+                                        bg="brand.green"
+                                        px={2.5}
                                         py={0.5}
                                         borderRadius="full"
                                         fontSize="xs"
                                         fontWeight="bold"
-                                        color="brand.green"
+                                        color="white"
                                         letterSpacing="0.08em"
+                                        zIndex={1}
+                                        boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
                                     >
                                         Proof 02
                                     </Box>
                                     <Box
                                         bg="card.white"
                                         p={{ base: 6, md: 10 }}
-                                        borderRadius="28px"
+                                        borderRadius="26px"
                                         height="100%"
                                     >
                                         <HStack

@@ -55,6 +55,17 @@ Use `react-architecture` when:
 - Form handling patterns, error boundaries, data fetching strategy
 - File/folder organization, component composition patterns
 
+### Frontend design / visual identity
+
+Use `frontend-design` when:
+- Building a new page, modal, or standalone UI piece from scratch
+- The user asks for UI that should feel “premium”, “polished”, or “distinctive”
+- Creating prototypes, landing pages, or standalone artifacts (inside or outside the repo)
+- Adding motion/animation to components (see `references/motion-patterns.md`)
+- When the task is about the overall visual direction, not just wiring up Chakra tokens
+
+Note: for in-repo work, `frontend-design` defers to the brand identity system and works alongside `chakra-design-system`. For standalone/external work, it operates with full creative freedom.
+
 ### “Quality bar” / production readiness
 
 Use `frontend-quality-bar` when:

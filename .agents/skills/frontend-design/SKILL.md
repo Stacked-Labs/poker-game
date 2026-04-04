@@ -8,35 +8,65 @@ This skill guides creation of distinctive, production-grade frontend interfaces 
 
 The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
 
-## Stacked Poker: Repo constraints (read first for in-repo work)
+---
 
-When building UI for this repo, the design direction is **already defined** — match the brand, don't invent a new aesthetic:
+## Stacked Poker: Brand-locked design (read first for in-repo work)
 
-- **Chakra UI v2** is the component library. Use Chakra props, semantic tokens, and component variants from `app/theme.ts`.
-- **Font**: Poppins (`var(--font-poppins)`) — do not introduce new fonts.
-- **Brand colors** (from `app/theme.ts`):
-  - Navy: `brand.navy` (`#334479`) — primary backgrounds and text
-  - Dark navy: `brand.darkNavy` (`#0B1430`) — deep backgrounds
-  - Pink: `brand.pink` (`#EB0B5C`) — accent, CTAs, focus, hover
-  - Green: `brand.green` (`#36A37B`) — success, positive actions, glow
-  - Yellow: `brand.yellow` (`#FDC51D`) — chips, highlights, warnings
-  - Light gray: `brand.lightGray` (`#ECEEF5`) — light surfaces, borders
-- **Aesthetic direction**: Premium gaming / crypto-native. Dark-mode-first. Clean layout with accent glows (`glow-green`, `glow-pink`, `glow-yellow` shadows). Glassmorphism on surfaces (`glass` shadow). Subtle lift/scale on interactive elements.
-- **No hardcoded hex values** — always use theme tokens or `brand.*` colors.
-- **Never introduce new global fonts, CSS variables, or color palettes** that bypass the theme system.
-- Use `chakra-design-system` skill for token/variant reference, and `react-architecture` skill for component patterns.
+When building UI **inside this repo**, the visual identity is already defined. Your job is to execute within the brand — not invent a new aesthetic. Load `references/brand-identity.md` for the full brand system.
 
-The guidelines below apply when building standalone UI (outside this repo), or when introducing new design elements that genuinely have no existing theme precedent.
+### Hard rules
 
-## Design Thinking
+- **Chakra UI v2** — use Chakra props, semantic tokens, and component variants from `app/theme.ts`.
+- **Font**: Poppins (`var(--font-poppins)`) — never introduce new typefaces.
+- **No hardcoded hex values** — always use semantic tokens or `brand.*` colors.
+- **Never add global fonts, CSS variables, or color palettes** bypassing the theme system.
+- **Dark-mode-first** — test in dark mode first, then verify light mode.
 
-Before coding, understand the context and commit to a BOLD aesthetic direction:
+### Brand aesthetic
+
+**Premium gaming / crypto-native.** Think high-end poker lounge meets web3 dashboard.
+
+| Layer | Pattern | Tokens |
+|-------|---------|--------|
+| Backgrounds | Deep navy fields, charcoal surfaces, subtle gradients | `bg.charcoal`, `bg.default`, `brand.darkNavy` |
+| Accents | Hot pink CTAs, green success, yellow chip highlights | `brand.pink`, `brand.green`, `brand.yellow` |
+| Surfaces | Glassmorphism cards with frosted backdrop | `glass`, `glass-hover`, `glass-active` shadows |
+| Emphasis | Colored glow halos on featured elements | `glow-green`, `glow-pink`, `glow-yellow` shadows |
+| Interactive | Subtle scale (1.02-1.05) + shadow lift on hover | `btn-premium`, `btn-premium-hover` shadows |
+| Typography | Poppins throughout, bold headings, light body | Heading/Text variants from theme |
+
+### Motion vocabulary (in-repo)
+
+Load `references/motion-patterns.md` for the complete animation vocabulary. Key principles:
+
+- **Restrained by default** — poker is a game of composure. Use motion to punctuate, not decorate.
+- **Physics-based easing** — spring curves (`0.34, 1.56, 0.64, 1`) for playful elements, ease-out for reveals.
+- **Staggered entry** — delay children by 40-60ms for list/card reveals.
+- **Respect `prefers-reduced-motion`** — always use `useReducedMotion()` and provide a static fallback.
+
+### When to use other skills
+
+- Token/variant reference: `chakra-design-system`
+- Component architecture: `react-architecture`
+- Quality/a11y/perf: `frontend-quality-bar`
+- Storybook visualization: `storybook-testing`
+
+---
+
+## Standalone design (outside this repo)
+
+The guidelines below apply when building UI that is NOT part of the Stacked Poker codebase — standalone pages, prototypes, external projects, or when a genuinely new design element has no theme precedent.
+
+### Design thinking
+
+Before coding, understand the context and commit to a **BOLD** aesthetic direction:
+
 - **Purpose**: What problem does this interface solve? Who uses it?
-- **Tone**: Pick an extreme: brutally minimal, maximalist chaos, retro-futuristic, organic/natural, luxury/refined, playful/toy-like, editorial/magazine, brutalist/raw, art deco/geometric, soft/pastel, industrial/utilitarian, etc. There are so many flavors to choose from. Use these for inspiration but design one that is true to the aesthetic direction.
+- **Tone**: Pick a strong direction — brutally minimal, maximalist chaos, retro-futuristic, organic/natural, luxury/refined, playful/toy-like, editorial/magazine, brutalist/raw, art deco/geometric, soft/pastel, industrial/utilitarian. Use these for inspiration but design one that is true to the context.
 - **Constraints**: Technical requirements (framework, performance, accessibility).
-- **Differentiation**: What makes this UNFORGETTABLE? What's the one thing someone will remember?
+- **Differentiation**: What makes this **UNFORGETTABLE**? What's the one thing someone will remember?
 
-**CRITICAL**: Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work - the key is intentionality, not intensity.
+**CRITICAL**: Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work — the key is intentionality, not intensity.
 
 Then implement working code (HTML/CSS/JS, React, Vue, etc.) that is:
 - Production-grade and functional
@@ -44,19 +74,31 @@ Then implement working code (HTML/CSS/JS, React, Vue, etc.) that is:
 - Cohesive with a clear aesthetic point-of-view
 - Meticulously refined in every detail
 
-## Frontend Aesthetics Guidelines
+### Frontend aesthetics guidelines
 
-Focus on:
-- **Typography**: Choose fonts that are beautiful, unique, and interesting. Avoid generic fonts like Arial and Inter; opt instead for distinctive choices that elevate the frontend's aesthetics; unexpected, characterful font choices. Pair a distinctive display font with a refined body font.
-- **Color & Theme**: Commit to a cohesive aesthetic. Use CSS variables for consistency. Dominant colors with sharp accents outperform timid, evenly-distributed palettes.
-- **Motion**: Use animations for effects and micro-interactions. Prioritize CSS-only solutions for HTML. Use Motion library for React when available. Focus on high-impact moments: one well-orchestrated page load with staggered reveals (animation-delay) creates more delight than scattered micro-interactions. Use scroll-triggering and hover states that surprise.
-- **Spatial Composition**: Unexpected layouts. Asymmetry. Overlap. Diagonal flow. Grid-breaking elements. Generous negative space OR controlled density.
-- **Backgrounds & Visual Details**: Create atmosphere and depth rather than defaulting to solid colors. Add contextual effects and textures that match the overall aesthetic. Apply creative forms like gradient meshes, noise textures, geometric patterns, layered transparencies, dramatic shadows, decorative borders, custom cursors, and grain overlays.
+**Typography**: Choose fonts that are beautiful, unique, and interesting. Avoid generic fonts like Arial, Inter, Roboto, system fonts. Pair a distinctive display font with a refined body font. Never converge on the same font (e.g., Space Grotesk) across different projects.
 
-NEVER use generic AI-generated aesthetics like overused font families (Inter, Roboto, Arial, system fonts), cliched color schemes (particularly purple gradients on white backgrounds), predictable layouts and component patterns, and cookie-cutter design that lacks context-specific character.
+**Color & Theme**: Commit to a cohesive aesthetic. Use CSS variables for consistency. Dominant colors with sharp accents outperform timid, evenly-distributed palettes.
 
-Interpret creatively and make unexpected choices that feel genuinely designed for the context. No design should be the same. Vary between light and dark themes, different fonts, different aesthetics. NEVER converge on common choices (Space Grotesk, for example) across generations.
+**Motion**: Use animations for effects and micro-interactions. Prioritize CSS-only solutions for HTML. Use Motion library for React when available. Focus on high-impact moments: one well-orchestrated page load with staggered reveals creates more delight than scattered micro-interactions. Use scroll-triggering and hover states that surprise.
 
-**IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
+**Spatial Composition**: Unexpected layouts. Asymmetry. Overlap. Diagonal flow. Grid-breaking elements. Generous negative space OR controlled density.
 
-Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+**Backgrounds & Visual Details**: Create atmosphere and depth rather than defaulting to solid colors. Gradient meshes, noise textures, geometric patterns, layered transparencies, dramatic shadows, decorative borders, custom cursors, grain overlays.
+
+### Anti-patterns (never do these)
+
+- Overused font families (Inter, Roboto, Arial, system fonts)
+- Cliched color schemes (purple gradients on white, teal-and-coral)
+- Predictable card grids with rounded corners and drop shadows
+- Cookie-cutter layouts that lack context-specific character
+- Uniform spacing and symmetry everywhere (real design has rhythm)
+
+### Complexity matching
+
+Match implementation complexity to the aesthetic vision:
+- **Maximalist** designs need elaborate code with extensive animations, layered textures, and rich interactions.
+- **Minimalist** designs need restraint, precision, and careful attention to spacing, typography, and subtle details.
+- Elegance comes from executing the vision well, not from adding more.
+
+Remember: Claude is capable of extraordinary creative work. Don't hold back — show what can truly be created when thinking outside the box and committing fully to a distinctive vision.

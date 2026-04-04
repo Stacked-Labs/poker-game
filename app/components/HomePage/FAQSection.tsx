@@ -26,7 +26,7 @@ const FAQSection = () => {
         <Box
             as="section"
             id="faq"
-            py={{ base: 10, md: 14 }}
+            py={{ base: 16, md: 20 }}
             bg="bg.default"
             w="100%"
             position="relative"
@@ -37,8 +37,8 @@ const FAQSection = () => {
                 aria-hidden="true"
                 position="absolute"
                 inset={0}
-                bgGradient="radial(circle at 35% 15%, rgba(54, 163, 123, 0.1) 0%, transparent 55%), radial(circle at 70% 0%, rgba(235, 11, 92, 0.1) 0%, transparent 50%), radial(circle at 40% 100%, rgba(253, 197, 29, 0.1) 0%, transparent 50%)"
-                opacity={0.7}
+                bgGradient="radial(circle at 35% 15%, rgba(54, 163, 123, 0.08) 0%, transparent 55%), radial(circle at 70% 0%, rgba(235, 11, 92, 0.06) 0%, transparent 50%), radial(circle at 40% 100%, rgba(253, 197, 29, 0.06) 0%, transparent 50%)"
+                opacity={0.6}
                 pointerEvents="none"
                 zIndex={0}
             />
@@ -46,9 +46,9 @@ const FAQSection = () => {
                 aria-hidden="true"
                 position="absolute"
                 inset={0}
-                backgroundImage="radial-gradient(circle, rgba(51, 68, 121, 0.15) 1px, transparent 1px)"
-                backgroundSize="22px 22px"
-                opacity={0.2}
+                backgroundImage="radial-gradient(circle, rgba(51, 68, 121, 0.12) 1px, transparent 1px)"
+                backgroundSize="24px 24px"
+                opacity={0.15}
                 pointerEvents="none"
                 zIndex={0}
             />
@@ -65,15 +65,17 @@ const FAQSection = () => {
                 px={3}
                 py={1}
                 borderRadius="full"
-                fontSize="xs"
+                fontSize="2xs"
                 fontWeight="bold"
-                letterSpacing="0.12em"
+                letterSpacing="0.14em"
                 textTransform="uppercase"
-                boxShadow="0 8px 18px rgba(253, 197, 29, 0.28)"
+                boxShadow="glow-yellow"
                 transform="rotate(-8deg)"
                 pointerEvents="none"
                 zIndex={0}
-                border="1px solid rgba(255, 255, 255, 0.3)"
+                border="1px solid rgba(255, 255, 255, 0.4)"
+                backdropFilter="blur(4px)"
+                opacity={0.85}
                 animate={
                     prefersReducedMotion
                         ? undefined
@@ -134,14 +136,16 @@ const FAQSection = () => {
                                 display="inline-flex"
                                 alignItems="center"
                                 justifyContent="center"
-                                w={{ base: '34px', md: '40px' }}
-                                h={{ base: '34px', md: '40px' }}
+                                w={{ base: '36px', md: '42px' }}
+                                h={{ base: '36px', md: '42px' }}
                                 borderRadius="full"
                                 bg="brand.pink"
                                 color="white"
-                                fontSize={{ base: '18px', md: '20px' }}
+                                fontSize={{ base: '18px', md: '21px' }}
+                                fontWeight="extrabold"
                                 transform="rotate(6deg)"
-                                boxShadow="0 10px 20px rgba(235, 11, 92, 0.35)"
+                                boxShadow="glow-pink"
+                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             >
                                 ?
                             </Box>
@@ -171,53 +175,69 @@ const FAQSection = () => {
                                 }}
                             >
                                 <AccordionItem
-                                    mb={4}
+                                    mb={3}
                                     bg="card.white"
                                     borderRadius="xl"
                                     border="1px solid"
                                     borderColor="border.lightGray"
-                                    boxShadow="0 2px 12px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+                                    boxShadow="glass"
                                     overflow="hidden"
-                                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                     _hover={{
-                                        boxShadow:
-                                            '0 8px 24px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+                                        boxShadow: 'glass-hover',
                                         borderColor: 'brand.green',
-                                        transform: 'translateY(-2px)',
+                                        transform: 'translateY(-1px)',
+                                    }}
+                                    sx={{
+                                        '&[data-expanded]': {
+                                            borderColor: 'brand.green',
+                                            boxShadow:
+                                                '0 8px 24px rgba(54, 163, 123, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04)',
+                                        },
                                     }}
                                 >
                                     <h2>
                                         <AccordionButton
-                                            py={6}
-                                            px={8}
-                                            _hover={{ bg: 'card.lightGray' }}
+                                            py={5}
+                                            px={{ base: 5, md: 7 }}
+                                            _hover={{
+                                                bg: 'rgba(236, 238, 245, 0.5)',
+                                            }}
+                                            _expanded={{
+                                                bg: 'rgba(236, 238, 245, 0.3)',
+                                            }}
                                             display="flex"
                                             justifyContent="space-between"
-                                            transition="all 0.2s ease"
+                                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                             borderRadius="xl"
                                         >
                                             <Box
                                                 flex="1"
                                                 textAlign="left"
                                                 fontWeight="bold"
-                                                fontSize="xl"
+                                                fontSize={{
+                                                    base: 'md',
+                                                    md: 'lg',
+                                                }}
                                                 color="text.primary"
+                                                pr={4}
                                             >
                                                 {faq.question}
                                             </Box>
                                             <AccordionIcon
-                                                color="text.secondary"
-                                                fontSize="24px"
-                                                transition="transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                                                color="text.muted"
+                                                fontSize="22px"
+                                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                             />
                                         </AccordionButton>
                                     </h2>
                                     <AccordionPanel
-                                        pb={8}
-                                        px={8}
+                                        pb={6}
+                                        pt={0}
+                                        px={{ base: 5, md: 7 }}
                                         color="text.secondary"
-                                        fontSize="lg"
-                                        lineHeight="tall"
+                                        fontSize="md"
+                                        lineHeight="1.75"
                                     >
                                         {faq.question ===
                                         'How can I get in touch with you?' ? (
@@ -226,12 +246,16 @@ const FAQSection = () => {
                                                 <Link
                                                     href="https://discord.gg/347RBVcvpn"
                                                     isExternal
-                                                    textDecoration="underline"
-                                                    fontWeight="bold"
-                                                    color="text.primary"
-                                                    transition="color 0.2s ease"
+                                                    textDecoration="none"
+                                                    fontWeight="semibold"
+                                                    color="brand.green"
+                                                    borderBottom="1px solid"
+                                                    borderColor="brand.green"
+                                                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                                     _hover={{
-                                                        color: 'brand.green',
+                                                        color: 'brand.pink',
+                                                        borderColor:
+                                                            'brand.pink',
                                                     }}
                                                 >
                                                     here
@@ -247,12 +271,16 @@ const FAQSection = () => {
                                                 <Link
                                                     href="https://docs.stackedpoker.io"
                                                     isExternal
-                                                    textDecoration="underline"
-                                                    fontWeight="bold"
-                                                    color="text.primary"
-                                                    transition="color 0.2s ease"
+                                                    textDecoration="none"
+                                                    fontWeight="semibold"
+                                                    color="brand.green"
+                                                    borderBottom="1px solid"
+                                                    borderColor="brand.green"
+                                                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                                     _hover={{
-                                                        color: 'brand.green',
+                                                        color: 'brand.pink',
+                                                        borderColor:
+                                                            'brand.pink',
                                                     }}
                                                 >
                                                     here

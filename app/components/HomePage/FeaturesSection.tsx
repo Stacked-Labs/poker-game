@@ -76,12 +76,11 @@ const FeatureCard = ({
                 borderRadius="28px"
                 border="1px solid"
                 borderColor="border.lightGray"
-                boxShadow="0 4px 18px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
-                transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                boxShadow="glass"
+                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                 _hover={{
                     transform: 'translateY(-6px)',
-                    boxShadow:
-                        '0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+                    boxShadow: 'glass-hover',
                     borderColor: iconBg,
                 }}
                 position="relative"
@@ -97,17 +96,17 @@ const FeatureCard = ({
                     w="3px"
                     bgGradient={`linear(to-b, ${iconBg}, transparent)`}
                     opacity={0.5}
-                    transition="opacity 0.3s ease"
-                    _groupHover={{ opacity: 0.9 }}
+                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                    _groupHover={{ opacity: 0.9, w: '4px' }}
                 />
 
                 {/* Background gradient on hover */}
                 <Box
                     position="absolute"
                     inset={0}
-                    bgGradient={`radial(circle at 0% 50%, ${resolvedIconBg}08, transparent 60%)`}
+                    bgGradient={`radial(circle at 0% 50%, ${resolvedIconBg}12, transparent 60%)`}
                     opacity={0}
-                    transition="opacity 0.4s ease"
+                    transition="opacity 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                     _groupHover={{ opacity: 1 }}
                     pointerEvents="none"
                 />
@@ -131,23 +130,23 @@ const FeatureCard = ({
 
                 <HStack spacing={4} mb={3} align="center">
                     <Flex
-                        w="44px"
-                        h="44px"
+                        w="48px"
+                        h="48px"
                         bg={iconBg}
                         color={iconColor}
-                        borderRadius="14px"
+                        borderRadius="16px"
                         align="center"
                         justify="center"
                         fontSize="22px"
-                        boxShadow={`0 6px 12px -4px ${shadowColor}`}
-                        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                        boxShadow={`0 6px 16px -2px ${shadowColor}, 0 0 24px -4px ${shadowColor}`}
+                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                         style={
                             {
                                 '--glow-color': shadowColor,
                             } as React.CSSProperties
                         }
                         _groupHover={{
-                            transform: 'scale(1.08) rotate(-3deg)',
+                            transform: 'scale(1.1) rotate(-3deg)',
                             animation: `${iconGlow} 2s ease-in-out infinite`,
                         }}
                         position="relative"
@@ -158,7 +157,7 @@ const FeatureCard = ({
                                 inset: 0,
                                 borderRadius: 'inherit',
                                 background:
-                                    'linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent)',
+                                    'linear-gradient(to bottom, rgba(255, 255, 255, 0.25), transparent)',
                                 pointerEvents: 'none',
                             },
                         }}
@@ -503,9 +502,11 @@ const FeaturesSection = () => {
                             mr={{ base: 'auto', lg: 0 }}
                             position="relative"
                             aspectRatio={751 / 1510}
-                            transition="transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                            filter="drop-shadow(0 20px 40px rgba(0, 0, 0, 0.15)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.1))"
                             _hover={{
                                 transform: 'scale(1.02) rotate(1deg)',
+                                filter: 'drop-shadow(0 30px 60px rgba(0, 0, 0, 0.2)) drop-shadow(0 12px 24px rgba(0, 0, 0, 0.12))',
                             }}
                         >
                             <Box

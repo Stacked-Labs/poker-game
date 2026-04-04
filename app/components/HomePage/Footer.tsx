@@ -25,17 +25,19 @@ const Footer = () => {
         <Box
             bg="bg.default"
             color="text.primary"
-            pt={10}
-            pb={6}
+            pt={16}
+            pb={8}
             position="relative"
             overflow="hidden"
+            borderTop="1px solid"
+            borderColor="border.lightGray"
         >
             <FloatingDecor density="minimal" />
             <Container maxW="container.xl" position="relative" zIndex={1}>
                 <SimpleGrid
                     columns={{ base: 1, md: 2, lg: 4 }}
-                    spacing={12}
-                    mb={8}
+                    spacing={{ base: 10, md: 12, lg: 16 }}
+                    mb={12}
                 >
                     {/* Brand Section */}
                     <Stack spacing={6}>
@@ -57,116 +59,134 @@ const Footer = () => {
                             <Text
                                 fontSize={{ base: 'xl', md: '2xl' }}
                                 fontWeight="extrabold"
-                                letterSpacing="tight"
+                                letterSpacing="0.04em"
                                 color="text.primary"
                             >
                                 STACKED
                             </Text>
                         </HStack>
                         <Text
-                            color="text.secondary"
-                            fontSize="md"
-                            lineHeight="tall"
+                            color="text.muted"
+                            fontSize="sm"
+                            lineHeight="1.7"
+                            maxW="280px"
                         >
                             The easiest way to play poker with friends, onchain.
-                            No downloads, no hassle—just pure poker action.
+                            No downloads, no hassle — just pure poker action.
                         </Text>
-                        <HStack spacing={3}>
+                        <HStack spacing={3} pt={1}>
                             <Link
                                 href="https://x.com/stacked_poker"
                                 isExternal
-                                boxSize="40px"
+                                boxSize="38px"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
                                 bg="card.lightGray"
-                                color="text.primary"
-                                borderRadius="full"
+                                color="text.secondary"
+                                borderRadius="lg"
                                 _hover={{
-                                    bg: '#000000',
+                                    bg: 'brand.pink',
                                     color: 'white',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+                                    transform:
+                                        'translateY(-2px) scale(1.05)',
+                                    boxShadow: 'glow-pink',
                                 }}
-                                transition="all 0.2s"
+                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             >
-                                <Icon as={RiTwitterXLine} boxSize={5} />
+                                <Icon as={RiTwitterXLine} boxSize={4} />
                             </Link>
                             <Link
                                 href="https://discord.gg/347RBVcvpn"
                                 isExternal
-                                boxSize="40px"
+                                boxSize="38px"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
                                 bg="card.lightGray"
-                                color="#5865F2"
-                                borderRadius="full"
+                                color="text.secondary"
+                                borderRadius="lg"
                                 _hover={{
-                                    bg: '#5865F2',
+                                    bg: 'brand.pink',
                                     color: 'white',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: '0 4px 12px rgba(88, 101, 242, 0.35)',
+                                    transform:
+                                        'translateY(-2px) scale(1.05)',
+                                    boxShadow: 'glow-pink',
                                 }}
-                                transition="all 0.2s"
+                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             >
-                                <Icon as={FaDiscord} boxSize={5} />
+                                <Icon as={FaDiscord} boxSize={4} />
                             </Link>
                             <Link
                                 href="https://t.me/stackedpoker"
                                 isExternal
-                                boxSize="40px"
+                                boxSize="38px"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
                                 bg="card.lightGray"
-                                color="#0088cc"
-                                borderRadius="full"
+                                color="text.secondary"
+                                borderRadius="lg"
                                 _hover={{
-                                    bg: '#0088cc',
+                                    bg: 'brand.pink',
                                     color: 'white',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: '0 4px 12px rgba(0, 136, 204, 0.35)',
+                                    transform:
+                                        'translateY(-2px) scale(1.05)',
+                                    boxShadow: 'glow-pink',
                                 }}
-                                transition="all 0.2s"
+                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             >
-                                <Icon as={FaTelegram} boxSize={5} />
+                                <Icon as={FaTelegram} boxSize={4} />
                             </Link>
                         </HStack>
                     </Stack>
 
-                    <VStack align="flex-start" spacing={4}>
+                    <VStack align="flex-start" spacing={3}>
                         <Text
                             fontWeight="bold"
-                            fontSize="lg"
-                            color="text.primary"
+                            fontSize="xs"
+                            color="text.muted"
+                            textTransform="uppercase"
+                            letterSpacing="0.1em"
+                            mb={1}
                         >
                             Product
                         </Text>
                         <Link
                             href="/"
                             color="text.secondary"
-                            _hover={{ color: 'brand.pink' }}
-                            transition="0.2s"
+                            fontSize="sm"
+                            _hover={{
+                                color: 'brand.pink',
+                                transform: 'translateX(2px)',
+                            }}
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                         >
                             Play Now
                         </Link>
                         <Link
                             href="/create-game"
                             color="text.secondary"
-                            _hover={{ color: 'brand.pink' }}
-                            transition="0.2s"
+                            fontSize="sm"
+                            _hover={{
+                                color: 'brand.pink',
+                                transform: 'translateX(2px)',
+                            }}
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                         >
                             Create Table
                         </Link>
                     </VStack>
 
                     {/* Resources Links */}
-                    <VStack align="flex-start" spacing={4}>
+                    <VStack align="flex-start" spacing={3}>
                         <Text
                             fontWeight="bold"
-                            fontSize="lg"
-                            color="text.primary"
+                            fontSize="xs"
+                            color="text.muted"
+                            textTransform="uppercase"
+                            letterSpacing="0.1em"
+                            mb={1}
                         >
                             Resources
                         </Text>
@@ -174,35 +194,50 @@ const Footer = () => {
                             href="https://docs.stackedpoker.io/docs/introduction"
                             isExternal
                             color="text.secondary"
-                            _hover={{ color: 'brand.pink' }}
-                            transition="0.2s"
+                            fontSize="sm"
+                            _hover={{
+                                color: 'brand.pink',
+                                transform: 'translateX(2px)',
+                            }}
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                         >
                             Documentation
                         </Link>
                         <Link
                             href="#faq"
                             color="text.secondary"
-                            _hover={{ color: 'brand.pink' }}
-                            transition="0.2s"
+                            fontSize="sm"
+                            _hover={{
+                                color: 'brand.pink',
+                                transform: 'translateX(2px)',
+                            }}
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                         >
                             FAQs
                         </Link>
                         <Link
                             href="#how-to-play"
                             color="text.secondary"
-                            _hover={{ color: 'brand.pink' }}
-                            transition="0.2s"
+                            fontSize="sm"
+                            _hover={{
+                                color: 'brand.pink',
+                                transform: 'translateX(2px)',
+                            }}
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                         >
                             How to Play
                         </Link>
                     </VStack>
 
                     {/* Support Section */}
-                    <VStack align="flex-start" spacing={4}>
+                    <VStack align="flex-start" spacing={3}>
                         <Text
                             fontWeight="bold"
-                            fontSize="lg"
-                            color="text.primary"
+                            fontSize="xs"
+                            color="text.muted"
+                            textTransform="uppercase"
+                            letterSpacing="0.1em"
+                            mb={1}
                         >
                             Support
                         </Text>
@@ -210,8 +245,12 @@ const Footer = () => {
                             href="https://discord.gg/347RBVcvpn"
                             isExternal
                             color="text.secondary"
-                            _hover={{ color: 'brand.pink' }}
-                            transition="0.2s"
+                            fontSize="sm"
+                            _hover={{
+                                color: 'brand.pink',
+                                transform: 'translateX(2px)',
+                            }}
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                         >
                             Get Support
                         </Link>
@@ -219,31 +258,58 @@ const Footer = () => {
                             href="https://x.com/stacked_poker"
                             isExternal
                             color="text.secondary"
-                            _hover={{ color: 'brand.pink' }}
-                            transition="0.2s"
+                            fontSize="sm"
+                            _hover={{
+                                color: 'brand.pink',
+                                transform: 'translateX(2px)',
+                            }}
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                         >
                             Contact Us
                         </Link>
                     </VStack>
                 </SimpleGrid>
 
-                <Divider borderColor="border.lightGray" mb={6} />
+                <Divider
+                    borderColor="border.lightGray"
+                    opacity={0.6}
+                    mb={8}
+                />
 
                 <Flex
                     direction={{ base: 'column', md: 'row' }}
                     justify="space-between"
                     align="center"
-                    gap={4}
+                    gap={3}
                 >
-                    <Text color="text.gray600" fontSize="sm">
-                        © {new Date().getFullYear()} Stacked Poker. All rights
-                        reserved.
+                    <Text color="text.muted" fontSize="xs">
+                        &copy; {new Date().getFullYear()} Stacked Poker. All
+                        rights reserved.
                     </Text>
-                    <HStack spacing={6}>
-                        <Text color="text.gray600" fontSize="xs">
+                    <HStack
+                        spacing={4}
+                        divider={
+                            <Box
+                                w="3px"
+                                h="3px"
+                                borderRadius="full"
+                                bg="text.muted"
+                                opacity={0.4}
+                            />
+                        }
+                    >
+                        <Text
+                            color="text.muted"
+                            fontSize="xs"
+                            letterSpacing="0.02em"
+                        >
                             Built with Thirdweb
                         </Text>
-                        <Text color="text.gray600" fontSize="xs">
+                        <Text
+                            color="text.muted"
+                            fontSize="xs"
+                            letterSpacing="0.02em"
+                        >
                             Made for Onchain Friends
                         </Text>
                     </HStack>

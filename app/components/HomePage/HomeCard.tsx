@@ -232,7 +232,7 @@ const HomeCard = () => {
                 bg="card.heroBg"
                 boxShadow="card.hero"
                 overflow="hidden"
-                backdropFilter="blur(24px)"
+                backdropFilter="blur(32px) saturate(1.2)"
                 initial={{ opacity: 0, y: 30, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{
@@ -250,17 +250,18 @@ const HomeCard = () => {
                     right={0}
                     bottom={0}
                     borderRadius={{ base: '24px', md: '28px', lg: '32px' }}
-                    padding={{ base: '2px', md: '3px' }}
+                    padding="1.5px"
                     bgGradient="linear(to-r, brand.pink, brand.green, brand.yellow, brand.pink)"
                     backgroundSize="300% 300%"
                     animation={`${gradientShift} 8s ease infinite`}
+                    opacity={0.6}
                     pointerEvents="none"
                 >
                     <Box
                         width="100%"
                         height="100%"
                         bg="card.heroInnerBg"
-                        borderRadius={{ base: '22px', md: '25px', lg: '29px' }}
+                        borderRadius={{ base: '22.5px', md: '26.5px', lg: '30.5px' }}
                     />
                 </Box>
 
@@ -294,13 +295,13 @@ const HomeCard = () => {
 
                 {/* Content */}
                 <Stack
-                    gap={{ base: 2, md: 4 }}
+                    gap={{ base: 3, md: 5 }}
                     flex={1}
                     justifyContent="center"
                     width="100%"
                     className="home-card-content"
                     alignItems="center"
-                    py={{ base: 4, md: 6, lg: 7 }}
+                    py={{ base: 6, md: 8, lg: 10 }}
                     px={{ base: 5, sm: 8, md: 10, lg: 12 }}
                     position="relative"
                     zIndex={1}
@@ -315,18 +316,23 @@ const HomeCard = () => {
                         }}
                     >
                         <Badge
-                            bg="rgba(54, 163, 123, 0.12)"
+                            bg="rgba(54, 163, 123, 0.08)"
                             color="brand.green"
                             px={4}
                             py={1.5}
                             borderRadius="full"
-                            fontSize="xs"
-                            fontWeight="extrabold"
-                            letterSpacing="0.05em"
+                            fontSize="2xs"
+                            fontWeight="bold"
+                            letterSpacing="0.1em"
                             textTransform="uppercase"
                             border="1px solid"
-                            borderColor="rgba(54, 163, 123, 0.2)"
-                            backdropFilter="blur(8px)"
+                            borderColor="rgba(54, 163, 123, 0.15)"
+                            backdropFilter="blur(12px)"
+                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                            _hover={{
+                                bg: 'rgba(54, 163, 123, 0.14)',
+                                borderColor: 'rgba(54, 163, 123, 0.3)',
+                            }}
                         >
                             ⚡ INSTANT GUEST PLAY
                         </Badge>
@@ -345,13 +351,13 @@ const HomeCard = () => {
                     >
                         <Heading
                             fontSize={{
-                                base: '2.25rem',
-                                sm: '2.75rem',
-                                md: '3rem',
-                                lg: '3.25rem',
+                                base: '2.5rem',
+                                sm: '3rem',
+                                md: '3.25rem',
+                                lg: '3.5rem',
                             }}
                             fontWeight="900"
-                            lineHeight={1.1}
+                            lineHeight={1.05}
                             letterSpacing="-0.04em"
                             color="text.primary"
                             whiteSpace="nowrap"
@@ -389,12 +395,12 @@ const HomeCard = () => {
                                             <Box
                                                 as="span"
                                                 position="absolute"
-                                                left="-4px"
-                                                right="-4px"
-                                                bottom="4px"
-                                                height="10px"
+                                                left="-3px"
+                                                right="-3px"
+                                                bottom="6px"
+                                                height="8px"
                                                 bg="brand.green"
-                                                opacity={0.15}
+                                                opacity={0.12}
                                                 borderRadius="full"
                                                 zIndex={-1}
                                             />
@@ -439,35 +445,69 @@ const HomeCard = () => {
                             delay: 0.4,
                         }}
                     >
-                        <VStack>
+                        <VStack spacing={3}>
                             <Text
                                 fontSize={{ base: 'md', md: 'lg' }}
                                 color="text.gray600"
-                                lineHeight={1.5}
-                                fontWeight="normal"
+                                lineHeight={1.6}
+                                fontWeight="medium"
                             >
                                 Host a game and invite the crew.
                             </Text>
 
-                            {/* Trust Indicators */}
-                            <HStack
-                                spacing={2}
-                                fontSize={{ base: 'sm', md: 'md' }}
-                                color="text.muted"
-                                lineHeight={1.4}
-                                fontWeight="semibold"
-                                textTransform="uppercase"
-                                letterSpacing="0.08em"
-                            >
-                                <Text color="text.muted">NO DOWNLOAD</Text>
-                                <Box
-                                    w="6px"
-                                    h="6px"
-                                    bg="brand.green"
+                            <HStack spacing={3}>
+                                <HStack
+                                    spacing={1.5}
+                                    bg="rgba(54, 163, 123, 0.06)"
+                                    border="1px solid"
+                                    borderColor="rgba(54, 163, 123, 0.12)"
                                     borderRadius="full"
-                                    boxShadow="0 0 8px rgba(54, 163, 123, 0.6)"
-                                />
-                                <Text color="text.muted">NO SIGN-UP</Text>
+                                    px={3}
+                                    py={1}
+                                >
+                                    <Box
+                                        w="5px"
+                                        h="5px"
+                                        bg="brand.green"
+                                        borderRadius="full"
+                                        boxShadow="0 0 6px rgba(54, 163, 123, 0.5)"
+                                    />
+                                    <Text
+                                        fontSize="2xs"
+                                        color="text.muted"
+                                        fontWeight="bold"
+                                        letterSpacing="0.08em"
+                                        textTransform="uppercase"
+                                    >
+                                        No Download
+                                    </Text>
+                                </HStack>
+                                <HStack
+                                    spacing={1.5}
+                                    bg="rgba(54, 163, 123, 0.06)"
+                                    border="1px solid"
+                                    borderColor="rgba(54, 163, 123, 0.12)"
+                                    borderRadius="full"
+                                    px={3}
+                                    py={1}
+                                >
+                                    <Box
+                                        w="5px"
+                                        h="5px"
+                                        bg="brand.green"
+                                        borderRadius="full"
+                                        boxShadow="0 0 6px rgba(54, 163, 123, 0.5)"
+                                    />
+                                    <Text
+                                        fontSize="2xs"
+                                        color="text.muted"
+                                        fontWeight="bold"
+                                        letterSpacing="0.08em"
+                                        textTransform="uppercase"
+                                    >
+                                        No Sign-Up
+                                    </Text>
+                                </HStack>
                             </HStack>
                         </VStack>
                     </MotionBox>
@@ -727,7 +767,7 @@ const HomeCard = () => {
 
                     {/* Newsletter Inline */}
                     <VStack
-                        spacing={2}
+                        spacing={3}
                         width="100%"
                         maxW={{ base: '100%', sm: '320px' }}
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards`}
@@ -737,11 +777,11 @@ const HomeCard = () => {
                                 width="100%"
                                 spacing={2}
                                 justify="center"
-                                bg="rgba(54, 163, 123, 0.1)"
+                                bg="rgba(54, 163, 123, 0.08)"
                                 border="1px solid"
-                                borderColor="brand.green"
+                                borderColor="rgba(54, 163, 123, 0.25)"
                                 borderRadius="full"
-                                height="42px"
+                                height="46px"
                                 px={4}
                             >
                                 <Icon
@@ -759,11 +799,11 @@ const HomeCard = () => {
                             </HStack>
                         ) : (
                             <>
-                                <HStack width="100%" spacing={2} align="center">
+                                <HStack width="100%" spacing={3} align="center">
                                     <Box
                                         flex={1}
                                         h="1px"
-                                        bg="border.lightGray"
+                                        bgGradient="linear(to-r, transparent, border.lightGray)"
                                     />
                                     <Text
                                         fontSize="2xs"
@@ -778,7 +818,7 @@ const HomeCard = () => {
                                     <Box
                                         flex={1}
                                         h="1px"
-                                        bg="border.lightGray"
+                                        bgGradient="linear(to-l, transparent, border.lightGray)"
                                     />
                                 </HStack>
                                 <HStack
@@ -790,13 +830,16 @@ const HomeCard = () => {
                                     borderRadius="full"
                                     border="1px solid"
                                     borderColor="border.lightGray"
-                                    transition="border-color 0.2s ease"
+                                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                     pl={4}
                                     pr="5px"
-                                    height="42px"
+                                    height="46px"
                                     align="center"
+                                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.04)"
                                     _focusWithin={{
                                         borderColor: 'brand.green',
+                                        boxShadow:
+                                            '0 2px 12px rgba(54, 163, 123, 0.12)',
                                     }}
                                 >
                                     <Input
@@ -812,7 +855,10 @@ const HomeCard = () => {
                                             setEmail(e.target.value)
                                         }
                                         disabled={isSubscribing}
-                                        _placeholder={{ color: 'text.muted' }}
+                                        _placeholder={{
+                                            color: 'text.muted',
+                                            opacity: 0.7,
+                                        }}
                                         required
                                     />
                                     <IconButton
@@ -828,13 +874,20 @@ const HomeCard = () => {
                                         color="white"
                                         size="sm"
                                         borderRadius="full"
-                                        minW="32px"
-                                        h="32px"
+                                        minW="34px"
+                                        h="34px"
                                         flexShrink={0}
                                         isLoading={isSubscribing}
                                         disabled={isSubscribing}
+                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                         _hover={{
                                             bg: 'rgba(54, 163, 123, 0.85)',
+                                            transform: 'scale(1.05)',
+                                            boxShadow:
+                                                '0 4px 12px rgba(54, 163, 123, 0.3)',
+                                        }}
+                                        _active={{
+                                            transform: 'scale(0.95)',
                                         }}
                                     />
                                 </HStack>
@@ -851,10 +904,10 @@ const HomeCard = () => {
                             delay: 0.65,
                         }}
                     >
-                        <VStack spacing={1.5} pt={{ base: 0, md: 1 }}>
+                        <VStack spacing={2} pt={{ base: 1, md: 2 }}>
                             <Text
-                                fontSize="xs"
-                                color="text.gray600"
+                                fontSize="2xs"
+                                color="text.muted"
                                 letterSpacing="0.2em"
                                 textTransform="uppercase"
                                 fontWeight="bold"
@@ -865,7 +918,7 @@ const HomeCard = () => {
                                 direction="row"
                                 justify="center"
                                 align="center"
-                                gap={{ base: 6, md: 6 }}
+                                gap={{ base: 4, md: 5 }}
                                 width="100%"
                             >
                                 <Link
@@ -874,18 +927,24 @@ const HomeCard = () => {
                                 >
                                     <IconButton
                                         aria-label="X"
-                                        icon={<RiTwitterXLine size={20} />}
+                                        icon={<RiTwitterXLine size={18} />}
                                         size="lg"
                                         variant="social"
                                         color="text.primary"
-                                        borderRadius="14px"
-                                        w={{ base: '42px', md: '46px' }}
-                                        h={{ base: '42px', md: '46px' }}
+                                        borderRadius="12px"
+                                        w={{ base: '40px', md: '44px' }}
+                                        h={{ base: '40px', md: '44px' }}
+                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                         _hover={{
                                             bg: '#000000',
                                             color: 'white',
+                                            transform:
+                                                'translateY(-2px) scale(1.05)',
                                             boxShadow:
-                                                '0 8px 24px rgba(0, 0, 0, 0.25)',
+                                                '0 8px 20px rgba(0, 0, 0, 0.3)',
+                                        }}
+                                        _active={{
+                                            transform: 'scale(0.95)',
                                         }}
                                     />
                                 </Link>
@@ -895,18 +954,24 @@ const HomeCard = () => {
                                 >
                                     <IconButton
                                         aria-label="Discord"
-                                        icon={<FaDiscord size={20} />}
+                                        icon={<FaDiscord size={18} />}
                                         size="lg"
                                         variant="social"
                                         color="#5865F2"
-                                        borderRadius="14px"
-                                        w={{ base: '42px', md: '46px' }}
-                                        h={{ base: '42px', md: '46px' }}
+                                        borderRadius="12px"
+                                        w={{ base: '40px', md: '44px' }}
+                                        h={{ base: '40px', md: '44px' }}
+                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                         _hover={{
                                             bg: '#5865F2',
                                             color: 'white',
+                                            transform:
+                                                'translateY(-2px) scale(1.05)',
                                             boxShadow:
-                                                '0 8px 24px rgba(88, 101, 242, 0.35)',
+                                                '0 8px 20px rgba(88, 101, 242, 0.4)',
+                                        }}
+                                        _active={{
+                                            transform: 'scale(0.95)',
                                         }}
                                     />
                                 </Link>
@@ -916,18 +981,24 @@ const HomeCard = () => {
                                 >
                                     <IconButton
                                         aria-label="Telegram"
-                                        icon={<FaTelegram size={20} />}
+                                        icon={<FaTelegram size={18} />}
                                         size="lg"
                                         variant="social"
                                         color="#0088cc"
-                                        borderRadius="14px"
-                                        w={{ base: '42px', md: '46px' }}
-                                        h={{ base: '42px', md: '46px' }}
+                                        borderRadius="12px"
+                                        w={{ base: '40px', md: '44px' }}
+                                        h={{ base: '40px', md: '44px' }}
+                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                         _hover={{
                                             bg: '#0088cc',
                                             color: 'white',
+                                            transform:
+                                                'translateY(-2px) scale(1.05)',
                                             boxShadow:
-                                                '0 8px 24px rgba(0, 136, 204, 0.35)',
+                                                '0 8px 20px rgba(0, 136, 204, 0.4)',
+                                        }}
+                                        _active={{
+                                            transform: 'scale(0.95)',
                                         }}
                                     />
                                 </Link>

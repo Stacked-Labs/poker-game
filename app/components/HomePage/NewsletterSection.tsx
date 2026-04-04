@@ -14,10 +14,12 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { useDisclosure } from '@chakra-ui/react';
-import { MdArrowForward } from 'react-icons/md';
+import { MdArrowForward, MdCheck } from 'react-icons/md';
 import FloatingDecor from './FloatingDecor';
 import NewsletterSuccessModal from './NewsletterSuccessModal';
 import useToastHelper from '@/app/hooks/useToastHelper';
+
+const TRANSITION_SMOOTH = 'all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
 
 const NewsletterSection = () => {
     const [email, setEmail] = useState('');
@@ -72,49 +74,65 @@ const NewsletterSection = () => {
                 <Box
                     position="relative"
                     borderRadius={{ base: '24px', md: '40px' }}
-                    bg="#073d2a" // Deep Forest Green Felt
-                    p={{ base: 6, md: 10 }}
+                    bg="#073d2a"
+                    p={{ base: 8, md: 12, lg: 14 }}
                     overflow="hidden"
-                    boxShadow="0 20px 80px rgba(0, 0, 0, 0.8), inset 0 0 100px rgba(0, 0, 0, 0.5)"
+                    boxShadow="0 20px 80px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                     role="group"
-                    border="4px solid"
-                    borderColor="#0a5238"
-                    transition="all 0.5s ease"
+                    border="3px solid"
+                    borderColor="#0d5e3f"
+                    transition={TRANSITION_SMOOTH}
                     _hover={{
                         transform: 'translateY(-2px)',
                         boxShadow:
-                            '0 30px 100px rgba(0, 0, 0, 0.9), inset 0 0 120px rgba(0, 0, 0, 0.6)',
-                    }}
-                    sx={{
-                        WebkitMaskImage: `
-                            radial-gradient(circle at 0px 50%, transparent 12px, black 12.5px),
-                            radial-gradient(circle at 100% 50%, transparent 12px, black 12.5px)
-                        `,
-                        WebkitMaskSize: '100% 48px',
-                        WebkitMaskRepeat: 'repeat-y',
-                        maskImage: `
-                            radial-gradient(circle at 0px 50%, transparent 12px, black 12.5px),
-                            radial-gradient(circle at 100% 50%, transparent 12px, black 12.5px)
-                        `,
-                        maskSize: '100% 48px',
-                        maskRepeat: 'repeat-y',
+                            '0 30px 100px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
                     }}
                 >
-                    {/* Felt Texture Overlay */}
+                    {/* Felt Texture — dense noise pattern */}
                     <Box
                         position="absolute"
                         inset={0}
-                        opacity="0.4"
+                        opacity="0.3"
                         pointerEvents="none"
-                        backgroundImage="radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.12) 0, rgba(255, 255, 255, 0.12) 1px, transparent 1px)"
-                        backgroundSize="6px 6px"
+                        backgroundImage="radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 0.5px, transparent 0.5px)"
+                        backgroundSize="4px 4px"
                     />
 
-                    {/* Spotlight Effect */}
+                    {/* Secondary felt texture layer for depth */}
                     <Box
                         position="absolute"
                         inset={0}
-                        bgGradient="radial(circle at 50% -20%, rgba(255, 255, 255, 0.1) 0%, transparent 70%)"
+                        opacity="0.15"
+                        pointerEvents="none"
+                        backgroundImage="radial-gradient(circle at 2px 2px, rgba(0, 0, 0, 0.2) 0.5px, transparent 0.5px)"
+                        backgroundSize="7px 7px"
+                    />
+
+                    {/* Spotlight — overhead lamp effect */}
+                    <Box
+                        position="absolute"
+                        inset={0}
+                        bgGradient="radial(ellipse at 50% -30%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 70%)"
+                        pointerEvents="none"
+                    />
+
+                    {/* Subtle vignette for depth */}
+                    <Box
+                        position="absolute"
+                        inset={0}
+                        boxShadow="inset 0 0 120px rgba(0, 0, 0, 0.5)"
+                        pointerEvents="none"
+                        borderRadius="inherit"
+                    />
+
+                    {/* Rail highlight — top edge shine */}
+                    <Box
+                        position="absolute"
+                        top={0}
+                        left="10%"
+                        right="10%"
+                        h="1px"
+                        bgGradient="linear(to-r, transparent, rgba(255, 255, 255, 0.12), transparent)"
                         pointerEvents="none"
                     />
 
@@ -127,64 +145,60 @@ const NewsletterSection = () => {
                         zIndex={1}
                     >
                         {/* Text Content */}
-                        <VStack align="start" spacing={5} maxW="2xl">
+                        <VStack align="start" spacing={6} maxW="2xl">
                             <HStack spacing={3}>
                                 <Flex align="center" gap={2}>
                                     <Box
-                                        w="10px"
-                                        h="10px"
+                                        w="8px"
+                                        h="8px"
                                         borderRadius="full"
                                         bg="brand.green"
-                                        boxShadow="0 0 15px #36A37B"
+                                        boxShadow="0 0 10px rgba(54, 163, 123, 0.6), 0 0 30px rgba(54, 163, 123, 0.2)"
+                                        sx={{
+                                            animation: 'pulse-glow 2.5s ease-in-out infinite',
+                                            '@keyframes pulse-glow': {
+                                                '0%, 100%': { opacity: 1 },
+                                                '50%': { opacity: 0.6 },
+                                            },
+                                        }}
                                     />
-                                    <Text
-                                        color="brand.pink"
-                                        fontSize="sm"
-                                        fontWeight="bold"
-                                    >
-                                        ♦️
-                                    </Text>
                                 </Flex>
                                 <Text
                                     color="brand.green"
-                                    fontSize="sm"
-                                    fontWeight="black"
-                                    letterSpacing="0.3em"
+                                    fontSize="xs"
+                                    fontWeight="extrabold"
+                                    letterSpacing="0.25em"
                                     textTransform="uppercase"
                                 >
-                                    MEMBERS ONLY
+                                    Members Only
                                 </Text>
                             </HStack>
 
                             <Heading
                                 color="white"
-                                fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
-                                fontWeight="black"
+                                fontSize={{ base: '3xl', md: '5xl', lg: '6xl' }}
+                                fontWeight="extrabold"
                                 lineHeight={1.05}
-                                letterSpacing="-0.05em"
-                                pb="0.08em"
+                                letterSpacing="-0.04em"
                             >
                                 A Seat is{' '}
                                 <Box
                                     as="span"
-                                    display="inline-block"
-                                    bgGradient="linear(to-r, brand.yellow, brand.pink)"
+                                    bgGradient="linear(135deg, brand.yellow, brand.pink)"
                                     bgClip="text"
-                                    transform="rotate(-1deg)"
-                                    lineHeight="1.05"
-                                    pb="0.08em"
+                                    sx={{ WebkitTextFillColor: 'transparent' }}
                                 >
                                     Waiting
                                 </Box>{' '}
-                                For You 🫵
+                                For You
                             </Heading>
 
                             <Text
-                                color="whiteAlpha.800"
+                                color="whiteAlpha.700"
                                 fontSize={{ base: 'md', md: 'lg' }}
-                                lineHeight="relaxed"
-                                fontWeight="semibold"
-                                maxW="xl"
+                                lineHeight="tall"
+                                fontWeight="medium"
+                                maxW="lg"
                             >
                                 The world&apos;s funnest digital poker party.
                                 Big pots, bigger personalities. Get invites to
@@ -192,65 +206,73 @@ const NewsletterSection = () => {
                             </Text>
                         </VStack>
 
-                        {/* Animated Tear Line */}
+                        {/* Tear Line Separator */}
                         <Box
-                            h={{ base: '2px', lg: '240px' }}
+                            h={{ base: '2px', lg: '220px' }}
                             w={{ base: '100%', lg: '2px' }}
                             position="relative"
                             display="flex"
                             alignItems="center"
                             justifyContent="center"
+                            flexShrink={0}
                         >
                             <Box
                                 h="100%"
                                 w="100%"
-                                bgGradient={{
-                                    base: 'linear(to-r, transparent, rgba(255,255,255,0.2), transparent)',
-                                    lg: 'linear(to-b, transparent, rgba(255,255,255,0.2), transparent)',
-                                }}
                                 borderLeft={{ base: 'none', lg: '2px dashed' }}
                                 borderBottom={{
                                     base: '2px dashed',
                                     lg: 'none',
                                 }}
-                                borderColor="whiteAlpha.400"
-                                opacity={0.6}
+                                borderColor="whiteAlpha.300"
                             />
-                            {/* Decorative Punch Holes */}
+                            {/* Punch Holes */}
                             <Box
                                 position="absolute"
-                                top={{ base: '-12px', lg: '-12px' }}
+                                top={{ base: '-10px', lg: '-10px' }}
                                 left={{ base: '50%', lg: '50%' }}
                                 transform="translateX(-50%)"
-                                w="24px"
-                                h="24px"
+                                w="20px"
+                                h="20px"
                                 bg="#052c1e"
                                 borderRadius="full"
-                                border="2px solid"
-                                borderColor="whiteAlpha.200"
-                                boxShadow="inset 0 2px 4px rgba(0,0,0,0.5)"
+                                border="1.5px solid"
+                                borderColor="whiteAlpha.150"
+                                boxShadow="inset 0 2px 6px rgba(0, 0, 0, 0.6)"
                             />
                             <Box
                                 position="absolute"
-                                bottom={{ base: '-12px', lg: '-12px' }}
+                                bottom={{ base: '-10px', lg: '-10px' }}
                                 left={{ base: '50%', lg: '50%' }}
                                 transform="translateX(-50%)"
-                                w="24px"
-                                h="24px"
+                                w="20px"
+                                h="20px"
                                 bg="#052c1e"
                                 borderRadius="full"
-                                border="2px solid"
-                                borderColor="whiteAlpha.200"
-                                boxShadow="inset 0 2px 4px rgba(0,0,0,0.5)"
+                                border="1.5px solid"
+                                borderColor="whiteAlpha.150"
+                                boxShadow="inset 0 2px 6px rgba(0, 0, 0, 0.6)"
                             />
                         </Box>
 
-                        {/* Form Section (The Ticket Stub) */}
+                        {/* Form Section — Ticket Stub */}
                         <VStack
                             align={{ base: 'stretch', lg: 'flex-end' }}
-                            spacing={6}
-                            w={{ base: '100%', lg: 'md' }}
+                            spacing={5}
+                            w={{ base: '100%', lg: 'sm' }}
                         >
+                            {/* Ticket header */}
+                            <Text
+                                color="whiteAlpha.500"
+                                fontSize="2xs"
+                                fontWeight="bold"
+                                letterSpacing="0.2em"
+                                textTransform="uppercase"
+                                textAlign={{ base: 'left', lg: 'right' }}
+                            >
+                                Admit One
+                            </Text>
+
                             <VStack
                                 as="form"
                                 onSubmit={handleSubmit}
@@ -264,55 +286,89 @@ const NewsletterSection = () => {
                                     variant="unstyled"
                                     color="white"
                                     px={5}
-                                    height="48px"
+                                    height="52px"
                                     fontSize="sm"
                                     fontWeight="medium"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={isSubmitting || isSubmitted}
-                                    bg="rgba(255, 255, 255, 0.12)"
-                                    borderRadius="12px"
-                                    border="1px solid"
-                                    borderColor={isSubmitted ? 'brand.green' : 'whiteAlpha.400'}
+                                    bg="rgba(255, 255, 255, 0.08)"
+                                    borderRadius="14px"
+                                    border="1.5px solid"
+                                    borderColor={isSubmitted ? 'brand.green' : 'whiteAlpha.200'}
+                                    transition={TRANSITION_SMOOTH}
                                     _placeholder={{
-                                        color: 'whiteAlpha.600',
+                                        color: 'whiteAlpha.400',
+                                    }}
+                                    _hover={{
+                                        borderColor: isSubmitted ? 'brand.green' : 'whiteAlpha.400',
+                                        bg: 'rgba(255, 255, 255, 0.10)',
                                     }}
                                     _focus={{
                                         borderColor: 'brand.green',
+                                        bg: 'rgba(255, 255, 255, 0.12)',
+                                        boxShadow: '0 0 0 3px rgba(54, 163, 123, 0.15)',
                                     }}
                                     required
                                 />
                                 <Button
                                     type="submit"
-                                    bg="brand.green"
+                                    variant="unstyled"
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    bgGradient={
+                                        isSubmitted
+                                            ? 'linear(to-r, brand.green, rgba(54, 163, 123, 0.85))'
+                                            : 'linear(to-r, brand.green, rgba(54, 163, 123, 0.85))'
+                                    }
                                     color="white"
                                     px={8}
-                                    height="46px"
+                                    height="52px"
                                     width="100%"
-                                    borderRadius="12px"
+                                    borderRadius="14px"
                                     fontSize="sm"
                                     fontWeight="bold"
                                     textTransform="uppercase"
-                                    letterSpacing="0.06em"
-                                    border="1px solid"
-                                    borderColor="whiteAlpha.500"
-                                    transition="background 0.2s ease"
+                                    letterSpacing="0.08em"
+                                    boxShadow="0 4px 14px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)"
+                                    transition={TRANSITION_SMOOTH}
                                     disabled={isSubmitting || isSubmitted}
                                     _hover={{
-                                        bg: 'rgba(54, 163, 123, 0.9)',
+                                        bgGradient:
+                                            'linear(to-r, rgba(54, 163, 123, 0.95), rgba(54, 163, 123, 0.78))',
+                                        boxShadow:
+                                            '0 8px 24px rgba(54, 163, 123, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                                        transform: 'translateY(-1px)',
                                     }}
                                     _active={{
-                                        bg: 'rgba(54, 163, 123, 0.85)',
+                                        transform: 'translateY(0) scale(0.98)',
+                                        boxShadow:
+                                            '0 2px 8px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
                                     }}
-                                    rightIcon={<Icon as={MdArrowForward} />}
+                                    gap={2}
                                 >
                                     {isSubmitting
                                         ? 'Saving...'
                                         : isSubmitted
-                                        ? 'Saved! 🎉'
+                                        ? 'Saved!'
                                         : 'Save My Seat'}
+                                    <Icon
+                                        as={isSubmitted ? MdCheck : MdArrowForward}
+                                        boxSize={4}
+                                        transition={TRANSITION_SMOOTH}
+                                    />
                                 </Button>
                             </VStack>
+
+                            {/* Privacy note */}
+                            <Text
+                                color="whiteAlpha.300"
+                                fontSize="2xs"
+                                textAlign={{ base: 'left', lg: 'right' }}
+                            >
+                                No spam. Unsubscribe anytime.
+                            </Text>
                         </VStack>
                     </Flex>
                 </Box>

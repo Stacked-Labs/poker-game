@@ -94,7 +94,7 @@ const CommunitySection = () => {
             as="section"
             id="community"
             bg="bg.default"
-            py={{ base: 4, md: 8 }}
+            py={{ base: 12, md: 20 }}
             width="100%"
             position="relative"
             overflow="hidden"
@@ -111,7 +111,8 @@ const CommunitySection = () => {
                     <Heading
                         fontSize={{ base: '3xl', md: '6xl', lg: '7xl' }}
                         fontWeight="extrabold"
-                        lineHeight={1.1}
+                        lineHeight={1.05}
+                        letterSpacing={{ base: '-0.02em', md: '-0.03em' }}
                         color="text.primary"
                     >
                         <Box as="span" display="inline-block" position="relative" px={1}>
@@ -124,7 +125,7 @@ const CommunitySection = () => {
                                 h={{ base: '10px', md: '12px' }}
                                 borderRadius="full"
                                 bg="brand.pink"
-                                boxShadow="0 0 0 6px rgba(235, 11, 92, 0.12)"
+                                boxShadow="0 0 0 5px rgba(235, 11, 92, 0.15)"
                                 animate={
                                     shouldAnimate
                                         ? { y: [0, -6, 0], rotate: [0, 12, 0] }
@@ -145,7 +146,7 @@ const CommunitySection = () => {
                                 h={{ base: '12px', md: '14px' }}
                                 bg="brand.yellow"
                                 borderRadius="4px"
-                                boxShadow="0 0 0 6px rgba(253, 197, 29, 0.18)"
+                                boxShadow="0 0 0 5px rgba(253, 197, 29, 0.15)"
                                 animate={
                                     shouldAnimate
                                         ? { y: [0, 6, 0], rotate: [20, 8, 20] }
@@ -220,11 +221,13 @@ const CommunitySection = () => {
                         </Box>
                     </Heading>
                     <Text
-                        fontSize={{ base: 'lg', md: 'xl' }}
+                        fontSize={{ base: 'md', md: 'lg' }}
                         color="text.secondary"
                         maxW="2xl"
                         mx="auto"
                         fontWeight="medium"
+                        lineHeight="tall"
+                        opacity={0.85}
                     >
                         We brought the Friday night home game to your browser.
                         Talk trash in the chat, throw emojis at your friends,
@@ -233,7 +236,7 @@ const CommunitySection = () => {
                 </MotionVStack>
 
                 {/* Content Rows */}
-                <VStack spacing={{ base: 16, md: 24 }} align="stretch">
+                <VStack spacing={{ base: 20, md: 28 }} align="stretch">
                     {/* Row 1: Image Left, Text Right */}
                     <SimpleGrid
                         columns={{ base: 1, lg: 2 }}
@@ -247,10 +250,11 @@ const CommunitySection = () => {
                                 maxW={{ base: '100%', lg: '560px' }}
                                 mx="auto"
                                 bg="card.lightGray"
-                                borderRadius="3xl"
+                                borderRadius="2xl"
                                 overflow="hidden"
-                                border="1px solid"
-                                borderColor="border.lightGray"
+                                boxShadow="glass"
+                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                                _hover={{ boxShadow: 'glass-hover', transform: 'translateY(-2px)' }}
                             >
                                 <Image
                                     src="/homepage/lobbyPic.png"
@@ -264,19 +268,23 @@ const CommunitySection = () => {
 
                         <MotionVStack align="start" spacing={6} {...getFadeUpMotion(0.2)}>
                             <Badge
-                                bg="rgba(54, 163, 123, 0.1)"
+                                bg="rgba(54, 163, 123, 0.08)"
                                 color="brand.green"
                                 variant="subtle"
                                 px={4}
-                                py={1.5}
+                                py={2}
                                 borderRadius="full"
                                 display="flex"
                                 alignItems="center"
-                                fontSize="xs"
+                                fontSize="2xs"
                                 fontWeight="bold"
-                                letterSpacing="wider"
+                                letterSpacing="widest"
+                                textTransform="uppercase"
+                                border="1px solid"
+                                borderColor="rgba(54, 163, 123, 0.15)"
+                                backdropFilter="blur(8px)"
                             >
-                                <Icon as={MdFlashOn} mr={1} />
+                                <Icon as={MdFlashOn} mr={1.5} fontSize="sm" />
                                 ZERO BRAINPOWER NEEDED
                             </Badge>
                             <Heading
@@ -306,7 +314,7 @@ const CommunitySection = () => {
                                     No strings attached.
                                 </Text>
                             </Text>
-                            <List spacing={4}>
+                            <List spacing={3}>
                                 {[
                                     {
                                         main: '100% Anonymous',
@@ -326,17 +334,24 @@ const CommunitySection = () => {
                                         display="flex"
                                         alignItems="center"
                                         fontSize="md"
-                                        color="text.secondary"
+                                        bg="rgba(54, 163, 123, 0.04)"
+                                        px={4}
+                                        py={2.5}
+                                        borderRadius="xl"
+                                        border="1px solid"
+                                        borderColor="rgba(54, 163, 123, 0.08)"
                                     >
                                         <ListIcon
                                             as={MdCheckCircle}
                                             color="brand.green"
-                                            fontSize="xl"
+                                            fontSize="lg"
+                                            mr={3}
                                         />
                                         <Text
                                             as="span"
                                             fontWeight="bold"
                                             color="text.primary"
+                                            fontSize="sm"
                                         >
                                             {item.main}
                                         </Text>
@@ -344,10 +359,11 @@ const CommunitySection = () => {
                                             as="span"
                                             fontWeight="normal"
                                             color="text.secondary"
-                                            opacity={0.7}
-                                            ml={1}
+                                            opacity={0.6}
+                                            ml={1.5}
+                                            fontSize="sm"
                                         >
-                                            ({item.detail})
+                                            {item.detail}
                                         </Text>
                                     </ListItem>
                                 ))}
@@ -368,20 +384,23 @@ const CommunitySection = () => {
                             {...getFadeUpMotion(0.2)}
                         >
                             <Badge
-                                bg="rgba(133, 93, 205, 0.1)"
+                                bg="rgba(133, 93, 205, 0.08)"
                                 color="purple.600"
                                 variant="subtle"
                                 px={4}
-                                py={1.5}
+                                py={2}
                                 borderRadius="full"
                                 display="flex"
                                 alignItems="center"
                                 textTransform="uppercase"
-                                fontSize="xs"
+                                fontSize="2xs"
                                 fontWeight="bold"
-                                letterSpacing="wider"
+                                letterSpacing="widest"
+                                border="1px solid"
+                                borderColor="rgba(133, 93, 205, 0.15)"
+                                backdropFilter="blur(8px)"
                             >
-                                <Icon as={SiThirdweb} mr={2} />
+                                <Icon as={SiThirdweb} mr={2} fontSize="sm" />
                                 POWERED BY THIRDWEB
                             </Badge>
                             <Heading
@@ -412,12 +431,12 @@ const CommunitySection = () => {
 
                             <Box
                                 bg="purple.600"
-                                p={8}
+                                p={{ base: 6, md: 8 }}
                                 borderRadius="2xl"
                                 width="100%"
                                 border="1px solid"
-                                borderColor="rgba(255, 255, 255, 0.2)"
-                                boxShadow="xl"
+                                borderColor="rgba(255, 255, 255, 0.12)"
+                                boxShadow="0 12px 40px rgba(133, 93, 205, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)"
                             >
                                 <VStack align="start" spacing={4}>
                                     <Text
@@ -436,24 +455,24 @@ const CommunitySection = () => {
                                 </VStack>
                             </Box>
 
-                            <HStack spacing={3} wrap="wrap">
+                            <HStack spacing={2.5} wrap="wrap">
                                 {authOptions.map((option) => (
                                     <HStack
                                         key={option.name}
                                         bg="card.white"
-                                        px={4}
-                                        py={2.5}
-                                        borderRadius="xl"
+                                        px={3.5}
+                                        py={2}
+                                        borderRadius="full"
                                         border="1px solid"
                                         borderColor="border.lightGray"
-                                        boxShadow="0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
-                                        spacing={3}
-                                        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                                        boxShadow="default"
+                                        spacing={2}
+                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                                        cursor="default"
                                         _hover={{
-                                            transform: 'translateY(-3px) scale(1.02)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
-                                            borderColor: 'brand.green',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: 'glass',
+                                            borderColor: 'rgba(133, 93, 205, 0.25)',
                                         }}
                                     >
                                         <Flex
@@ -509,8 +528,8 @@ const CommunitySection = () => {
                                             )}
                                         </Flex>
                                         <Text
-                                            fontSize="sm"
-                                            fontWeight="bold"
+                                            fontSize="xs"
+                                            fontWeight="semibold"
                                             color="text.secondary"
                                         >
                                             {option.name}
@@ -530,8 +549,9 @@ const CommunitySection = () => {
                                 borderRadius="2xl"
                                 overflow="hidden"
                                 order={{ base: 1, lg: 2 }}
-                                transition="transform 0.3s ease"
-                                _hover={{ transform: 'scale(1.02)' }}
+                                boxShadow="glass"
+                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                                _hover={{ boxShadow: 'glass-hover', transform: 'translateY(-2px)' }}
                             >
                                 <Image
                                     src="/homepage/thirdwebLogin.png"

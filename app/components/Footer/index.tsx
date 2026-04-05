@@ -29,14 +29,21 @@ const Footer = () => {
     const localPlayer = appState.game?.players?.find(
         (p) => p.uuid === appState.clientID
     );
-    const seatIndex = localPlayer ? localPlayer.seatID - 1 : -1;
+    const playerIndex =
+        localPlayer && typeof localPlayer.position === 'number'
+            ? localPlayer.position
+            : -1;
     const owesSB =
-        seatIndex >= 0 ? Boolean(appState.game?.owesSB?.[seatIndex]) : false;
+        playerIndex >= 0
+            ? Boolean(appState.game?.owesSB?.[playerIndex])
+            : false;
     const owesBB =
-        seatIndex >= 0 ? Boolean(appState.game?.owesBB?.[seatIndex]) : false;
+        playerIndex >= 0
+            ? Boolean(appState.game?.owesBB?.[playerIndex])
+            : false;
     const waitingForBB =
-        seatIndex >= 0
-            ? Boolean(appState.game?.waitingForBB?.[seatIndex])
+        playerIndex >= 0
+            ? Boolean(appState.game?.waitingForBB?.[playerIndex])
             : false;
     const hasBlindObligation =
         !!localPlayer &&

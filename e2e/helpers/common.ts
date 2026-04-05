@@ -2,11 +2,15 @@ import type { Page } from '@playwright/test';
 
 /** Dismiss the lobby banner if it appears. */
 export async function dismissLobbyBanner(page: Page) {
-    const closeBtn = page.getByTestId('lobby-banner-close');
+    const closeBtn = page.getByTestId('lobby-banner-close').first();
     try {
-        await closeBtn.waitFor({ state: 'visible', timeout: 8_000 });
-        await closeBtn.click();
-        await closeBtn.waitFor({ state: 'hidden', timeout: 5_000 });
+        // Fast-path: if the banner does not appear shortly, continue immediately.
+        const visible = await closeBtn.isVisible({ timeout: 1200 });
+        if (!visible) return;
+
+        await closeBtn.click({ timeout: 2000 });
+        // Best effort: don't fail setup if animation/state is slightly delayed.
+        await closeBtn.waitFor({ state: 'hidden', timeout: 2000 });
     } catch {
         // Banner never appeared — continue
     }
@@ -237,10 +241,8 @@ export async function setupFreeGameThreePlayers(browser: import('@playwright/tes
     await owner.getByTestId('join-table-btn').click();
     await owner.getByTestId('taken-seat-1').waitFor({ timeout: 30_000 });
 
-    const tablePath = new URL(tableUrl).pathname;
-
     // Player2 joins and requests seat 2
-    await player2.goto(tablePath);
+    await player2.goto(tableUrl);
     await dismissLobbyBanner(player2);
     await player2.getByTestId('empty-seat-2').waitFor({ timeout: 10_000 });
     await player2.getByTestId('empty-seat-2').click();
@@ -254,11 +256,15 @@ export async function setupFreeGameThreePlayers(browser: import('@playwright/tes
     await owner.locator('[data-testid^="accept-player-"]').first().click();
     await owner.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
     await owner.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'hidden', timeout: 10_000 });
+    // Ensure player2 also observes seat acceptance before continuing.
+    await player2.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
 
     // Player3 joins and requests seat 3
-    await player3.goto(tablePath);
+    await player3.goto(tableUrl);
     await dismissLobbyBanner(player3);
-    await player3.getByTestId('empty-seat-3').waitFor({ timeout: 10_000 });
+    // Wait for table hydration/socket sync before targeting a specific empty seat.
+    await player3.locator('[data-testid^="empty-seat-"]').first().waitFor({ timeout: 30_000 });
+    await player3.getByTestId('empty-seat-3').waitFor({ timeout: 30_000 });
     await player3.getByTestId('empty-seat-3').click();
     await player3.getByTestId('username-input').fill('Player3');
     await player3.getByTestId('buy-in-input').clear();
@@ -351,24 +357,26 @@ export async function openSettingsTab(page: Page, tabName: string) {
  * With 3 players and foldCount=2 this ends the hand preflop in two actions.
  */
 export async function endHandByFolding(pages: Page[], foldCount = 2) {
-    let folds = 0;
-    const deadline = Date.now() + 30_000;
-    while (folds < foldCount && Date.now() < deadline) {
-        for (const page of pages) {
-            const fold = page.locator('[data-testid="action-fold"]').first();
-            const visible = await fold
-                .isVisible({ timeout: 300 })
-                .catch(() => false);
-            if (!visible) continue;
-            const queueMode = await fold
-                .getAttribute('data-queue-mode')
-                .catch(() => 'missing');
-            if (queueMode !== null) continue;
-            await fold.click();
-            folds++;
-            break;
+    const selector = '[data-testid="action-fold"]:not([data-queue-mode])';
+    for (let i = 0; i < foldCount; i++) {
+        const deadline = Date.now() + 30_000;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            if (Date.now() > deadline)
+                throw new Error('endHandByFolding: no fold button appeared within 30 s');
+            // Check all pages in parallel — isVisible() is instant (no timeout)
+            const visible = await Promise.all(
+                pages.map((p) =>
+                    p.locator(selector).first().isVisible().catch(() => false)
+                )
+            );
+            const idx = visible.findIndex(Boolean);
+            if (idx >= 0) {
+                await pages[idx].locator(selector).first().click({ force: true });
+                break;
+            }
+            await new Promise((r) => setTimeout(r, 100));
         }
-        if (folds < foldCount) await pages[0].waitForTimeout(300);
     }
 }
 

@@ -5,9 +5,9 @@
  * cryptoPlayerC = seat 3.
  *
  * Scenario: owner queues "Sit out next hand" while hand 1 is in progress.
- * After hand 1 ends the server sets their blind obligation (they missed the
- * blind they would have posted in hand 2). Because playerB and playerC are
- * still ready, hand 2 auto-starts between them.
+ * Blind obligation is NOT created at click-time. It is created only when a
+ * subsequent hand starts and a blind position passes through the missing seat.
+ * Because playerB and playerC are still ready, hand 2 auto-starts between them.
  *
  * While hand 2 is ongoing, owner must see BlindObligationControls. playerB
  * and playerC must not.
@@ -59,6 +59,10 @@ test('Crypto: owner queues sit-out mid-hand → sees blind obligation controls d
     await expect(
         cryptoPlayerA.locator('.navbar-away-wrapper [data-testid="away-btn"]')
     ).toHaveAttribute('aria-label', 'Cancel sit out', { timeout: 5_000 });
+    // Obligation should not exist yet while still in hand 1.
+    await expect(
+        cryptoPlayerA.getByTestId('blind-obligation-controls')
+    ).not.toBeVisible();
 
     // ── End hand 1 quickly (fold owner then next player) ──────────────────
     await endHandByFolding([cryptoPlayerA, cryptoPlayerB, cryptoPlayerC]);
@@ -117,6 +121,10 @@ test('Crypto: owner with blind obligation can post now and clear the obligation'
     await cryptoPlayerA
         .locator('.navbar-away-wrapper [data-testid="away-btn"]')
         .click();
+    // No obligation yet; it should appear only after a blind is actually missed.
+    await expect(
+        cryptoPlayerA.getByTestId('blind-obligation-controls')
+    ).not.toBeVisible();
     await endHandByFolding([cryptoPlayerA, cryptoPlayerB, cryptoPlayerC]);
 
     // Wait for owner to be sitting out and hand 2 to start

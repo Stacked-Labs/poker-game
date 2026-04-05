@@ -25,6 +25,7 @@ import {
 } from './constants';
 import GuardModal from '../GuardModal';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
+import RunItTwicePrompt from '../RunItTwicePrompt';
 
 const AUTO_ACTION_DELAY_MS = 750;
 
@@ -67,6 +68,13 @@ const FooterWithActionButtons = ({
     const canCheck = localPlayer ? callDifference === 0 : false;
     const needsToCall = localPlayer ? callDifference > 0 : false;
     const queueMode = !isCurrentTurn && !gameIsPaused && Boolean(localPlayer);
+    const ritPhase = game?.ritPhase ?? 0;
+    const ritEligiblePlayers = game?.ritEligiblePlayers ?? [];
+    const isRITVotingPromptActive = Boolean(
+        localPlayer &&
+            ritPhase === 1 &&
+            ritEligiblePlayers.includes(localPlayer.position)
+    );
     const resetQueuedActions = useCallback(() => {
         setQueuedActions(createInitialQueuedActions());
     }, []);
@@ -95,7 +103,7 @@ const FooterWithActionButtons = ({
                     active.tagName === 'TEXTAREA' ||
                     active.isContentEditable);
 
-            if (isEditableElement || gameIsPaused) {
+            if (isEditableElement || gameIsPaused || isRITVotingPromptActive) {
                 return;
             }
 
@@ -160,6 +168,7 @@ const FooterWithActionButtons = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         gameIsPaused,
+        isRITVotingPromptActive,
         queueMode,
         showRaise,
         needsToCall,
@@ -195,6 +204,7 @@ const FooterWithActionButtons = ({
             !isCurrentTurn ||
             !localPlayer ||
             gameIsPaused ||
+            isRITVotingPromptActive ||
             (!queuedActions.call && !queuedActions.check && !queuedActions.fold)
         ) {
             return;
@@ -242,6 +252,7 @@ const FooterWithActionButtons = ({
         isCurrentTurn,
         localPlayer,
         gameIsPaused,
+        isRITVotingPromptActive,
         needsToCall,
         callAmount,
         canCheck,
@@ -348,6 +359,8 @@ const FooterWithActionButtons = ({
                         setShowRaise={setShowRaise}
                         showRaise={showRaise}
                     />
+                ) : isRITVotingPromptActive ? (
+                    <RunItTwicePrompt />
                 ) : (
                     <>
                         <ActionButton

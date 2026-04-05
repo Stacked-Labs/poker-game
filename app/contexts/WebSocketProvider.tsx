@@ -407,6 +407,16 @@ export function SocketProvider(props: SocketProviderProps) {
                             owesSB: eventData.game?.owesSB,
                             owesBB: eventData.game?.owesBB,
                             waitingForBB: eventData.game?.waitingForBB,
+                            ritPhase: eventData.game?.ritPhase ?? 0,
+                            ritVotes: eventData.game?.ritVotes,
+                            ritEligiblePlayers:
+                                eventData.game?.ritEligiblePlayers,
+                            ritBoard1Cards: eventData.game?.ritBoard1Cards,
+                            ritBoard2Cards: eventData.game?.ritBoard2Cards,
+                            ritBoard1Pots: eventData.game?.ritBoard1Pots,
+                            ritBoard2Pots: eventData.game?.ritBoard2Pots,
+                            ritVoteDeadline:
+                                eventData.game?.ritVoteDeadline ?? 0,
                             actionDeadline:
                                 eventData.game?.actionDeadline ??
                                 eventData.actionDeadline ??

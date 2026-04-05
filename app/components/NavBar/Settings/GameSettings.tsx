@@ -24,7 +24,10 @@ import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { CardBack } from '@/app/components/Card';
 import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
-import { sendUpdateBlinds } from '@/app/hooks/server_actions';
+import {
+    sendUpdateBlinds,
+    sendUpdateRunItTwice,
+} from '@/app/hooks/server_actions';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 const chipDisplayColors: Record<string, string> = {
@@ -247,6 +250,61 @@ const GameSettings = () => {
                             BB must be at least 2x SB
                         </Text>
                     )}
+                </Box>
+            </Tooltip>
+            <Tooltip
+                label={
+                    !isOwner
+                        ? 'Only the table owner can change Run It Twice'
+                        : undefined
+                }
+                isDisabled={isOwner}
+                hasArrow
+                placement="top"
+            >
+                <Box
+                    bg="card.white"
+                    borderRadius="16px"
+                    border="2px solid"
+                    borderColor="border.lightGray"
+                    p={{ base: 2.5, md: 3 }}
+                    boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                >
+                    <Flex
+                        direction="row"
+                        justify="space-between"
+                        align="center"
+                        wrap="nowrap"
+                        gap={3}
+                    >
+                        <Text
+                            fontSize={{ base: 'sm', md: 'lg' }}
+                            fontWeight="bold"
+                            color="text.secondary"
+                            flex={1}
+                            minWidth={0}
+                            whiteSpace="nowrap"
+                            overflow="hidden"
+                            textOverflow="ellipsis"
+                        >
+                            Run It Twice
+                        </Text>
+                        <Switch
+                            size={{ base: 'md', md: 'lg' }}
+                            isChecked={Boolean(
+                                appState.game?.config?.runItTwice
+                            )}
+                            isDisabled={!isOwner || !socket}
+                            onChange={(event) => {
+                                if (!socket) return;
+                                sendUpdateRunItTwice(
+                                    socket,
+                                    event.target.checked
+                                );
+                            }}
+                            colorScheme="green"
+                        />
+                    </Flex>
                 </Box>
             </Tooltip>
             <Box

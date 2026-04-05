@@ -48,6 +48,13 @@ const Footer = () => {
     const hasBlindObligation =
         !!localPlayer &&
         (owesSB || owesBB || waitingForBB || appState.blindObligation);
+    const isRITVotingPromptEligible = Boolean(
+        localPlayer &&
+            (appState.game?.ritPhase ?? 0) === 1 &&
+            (appState.game?.ritEligiblePlayers ?? []).includes(
+                localPlayer.position
+            )
+    );
 
     const socketConnected = Boolean(socket);
 
@@ -95,7 +102,7 @@ const Footer = () => {
         socketConnected &&
         appState.game &&
         appState.game.running &&
-        !appState.game.betting == false &&
+        (appState.game.betting || isRITVotingPromptEligible) &&
         !isSpectator() &&
         !hasBlindObligation &&
         isInHand;

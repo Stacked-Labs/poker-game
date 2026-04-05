@@ -262,6 +262,20 @@ const Table = ({ tableId }: { tableId: string }) => {
     };
 
     const isPlayerWinner = (player: Player): boolean => {
+        // During RIT board reveals, show the current board's winner before chips move.
+        const ritPhase = appState.game?.ritPhase ?? 0;
+        if (ritPhase === 2) {
+            // RITPhaseBoard1: highlight board 1 winners
+            return (appState.game?.ritBoard1Pots ?? []).some((pot) =>
+                pot.winningPlayerNums?.includes(player.position)
+            );
+        }
+        if (ritPhase === 3) {
+            // RITPhaseBoard2: highlight board 2 winners
+            return (appState.game?.ritBoard2Pots ?? []).some((pot) =>
+                pot.winningPlayerNums?.includes(player.position)
+            );
+        }
         return winningPlayers.some((winner) => winner.uuid === player.uuid);
     };
 

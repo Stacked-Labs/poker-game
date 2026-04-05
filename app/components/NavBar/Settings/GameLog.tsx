@@ -99,6 +99,12 @@ interface PlayerRevealedCardsMetadata {
     player_uuid?: string;
 }
 
+interface RunItTwiceBoardMetadata {
+    board_num: number;
+    board_cards: string[];
+    pots: PotResult[];
+}
+
 // Helper function to convert backend card string to EvalCard format
 const convertBackendCardToInt = (cardStr: string): EvalCard | null => {
     if (!cardStr || cardStr.length < 2) return null;
@@ -470,6 +476,149 @@ const GameLog = () => {
                         for {formatAmount(amount)}
                     </>
                 );
+
+            case 'run_it_twice_board': {
+                const meta = metadata as Partial<RunItTwiceBoardMetadata>;
+                const boardNum = meta.board_num ?? '?';
+                return (
+                    <Box>
+                        <Text as="span" fontWeight="bold" color="text.secondary">
+                            Run It Twice —{' '}
+                            <Text as="span" color="purple.600">
+                                Board {boardNum}
+                            </Text>
+                        </Text>
+
+                        {/* Board cards */}
+                        {Array.isArray(meta.board_cards) &&
+                            meta.board_cards.length > 0 && (
+                                <Box mt={1} ml={4}>
+                                    <Text
+                                        fontSize="xs"
+                                        color="purple.600"
+                                        fontWeight="bold"
+                                    >
+                                        Board:{' '}
+                                        {convertCardsToEmojis(meta.board_cards)}
+                                    </Text>
+                                </Box>
+                            )}
+
+                        {/* Pot winners for this board */}
+                        {Array.isArray(meta.pots) &&
+                            meta.pots.length > 0 && (
+                                <Box mt={1} ml={4}>
+                                    {meta.pots.map((pot, potIdx) => {
+                                        const potLabel =
+                                            pot.pot_number === 0
+                                                ? 'Main Pot'
+                                                : `Side Pot ${pot.pot_number}`;
+                                        return (
+                                            <Box key={potIdx} mt={potIdx > 0 ? 1 : 0}>
+                                                <Text
+                                                    fontSize="xs"
+                                                    fontWeight="bold"
+                                                    color="text.secondary"
+                                                >
+                                                    {potLabel}:{' '}
+                                                    {formatAmount(pot.amount)}
+                                                </Text>
+                                                {Array.isArray(pot.winners) &&
+                                                    pot.winners.map(
+                                                        (winner, wi) => (
+                                                            <Box
+                                                                key={wi}
+                                                                ml={4}
+                                                                mt={wi > 0 ? 0.5 : 0}
+                                                            >
+                                                                <Text
+                                                                    fontSize="xs"
+                                                                    color="green.600"
+                                                                    fontWeight="bold"
+                                                                >
+                                                                    {winner.name}{' '}
+                                                                    wins{' '}
+                                                                    {formatAmount(
+                                                                        winner.share
+                                                                    )}
+                                                                    {Array.isArray(
+                                                                        winner.hole_cards
+                                                                    ) &&
+                                                                        winner
+                                                                            .hole_cards
+                                                                            .length >
+                                                                            0 && (
+                                                                            <>
+                                                                                ,
+                                                                                shows{' '}
+                                                                                <Text
+                                                                                    as="span"
+                                                                                    color="gray.700"
+                                                                                    fontWeight="bold"
+                                                                                >
+                                                                                    {convertCardsToEmojis(
+                                                                                        winner.hole_cards
+                                                                                    )}
+                                                                                </Text>
+                                                                            </>
+                                                                        )}
+                                                                </Text>
+                                                                {Array.isArray(
+                                                                    winner.winning_hand
+                                                                ) &&
+                                                                    winner
+                                                                        .winning_hand
+                                                                        .length >
+                                                                        0 && (
+                                                                        <Box
+                                                                            ml={4}
+                                                                            mt={0.5}
+                                                                        >
+                                                                            <Text
+                                                                                fontSize="xs"
+                                                                                color="gray.700"
+                                                                                fontWeight="bold"
+                                                                            >
+                                                                                Combo:{' '}
+                                                                                {convertCardsToEmojis(
+                                                                                    winner.winning_hand
+                                                                                )}
+                                                                                {(() => {
+                                                                                    const handCategory =
+                                                                                        getHandCategoryFromCards(
+                                                                                            winner.winning_hand
+                                                                                        );
+                                                                                    return handCategory ? (
+                                                                                        <>
+                                                                                            {
+                                                                                                ' — '
+                                                                                            }
+                                                                                            <Text
+                                                                                                as="span"
+                                                                                                fontWeight="bold"
+                                                                                                color="purple.600"
+                                                                                            >
+                                                                                                {
+                                                                                                    handCategory
+                                                                                                }
+                                                                                            </Text>
+                                                                                        </>
+                                                                                    ) : null;
+                                                                                })()}
+                                                                            </Text>
+                                                                        </Box>
+                                                                    )}
+                                                            </Box>
+                                                        )
+                                                    )}
+                                            </Box>
+                                        );
+                                    })}
+                                </Box>
+                            )}
+                    </Box>
+                );
+            }
 
             case 'hand_concluded': {
                 const meta = metadata as Partial<HandConcludedMetadata>;

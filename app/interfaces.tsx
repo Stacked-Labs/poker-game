@@ -107,6 +107,7 @@ export type Game = {
     ritBoard2Cards?: Card[];
     ritBoard1Pots?: Pot[];
     ritBoard2Pots?: Pot[];
+    ritPreExistingCards?: Card[];
     ritVoteDeadline?: number; // unix millis
 };
 

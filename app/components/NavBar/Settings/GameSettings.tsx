@@ -18,7 +18,7 @@ import { FaMoon } from 'react-icons/fa';
 import { IoMdSunny } from 'react-icons/io';
 import { FiCheck, FiEye, FiEyeOff, FiVolume2, FiVolumeX, FiX } from 'react-icons/fi';
 import { useColorMode } from '@chakra-ui/react';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { CardBack } from '@/app/components/Card';
@@ -26,6 +26,7 @@ import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { sendUpdateBlinds } from '@/app/hooks/server_actions';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
+import { useToast } from '@chakra-ui/react';
 
 const chipDisplayColors: Record<string, string> = {
     chips: '#1A1A2E',
@@ -46,6 +47,7 @@ const GameSettings = () => {
     const { appState, dispatch } = useContext(AppContext);
     const socket = useContext(SocketContext);
     const isOwner = useIsTableOwner();
+    const toast = useToast();
     const [isPortrait] = useMediaQuery('(orientation: portrait)');
     const tableColorKey = localStorage.getItem('tableColorKey') ?? 'green';
     const config = appState.game?.config;
@@ -53,15 +55,24 @@ const GameSettings = () => {
     const hasPending = !!pendingBlinds;
     const { format, fromChips, toChips, mode: displayMode } = useFormatAmount();
 
-    // Blinds in BB mode is circular — fall back to chips (or USDC for crypto)
-    const blindsMode = displayMode === 'bb' ? 'chips' : displayMode;
+    // Blinds only support chips or USDC — BB is circular (blinds define BB), so treat it as chips
+    const blindsMode: 'chips' | 'usdc' = displayMode === 'usdc' ? 'usdc' : 'chips';
     const formatBlinds = blindsMode === 'usdc' ? format : (v: number) => v.toLocaleString('en-US');
     const blindsFromChips = blindsMode === 'usdc' ? fromChips : (v: number) => v;
-    const blindsToChips = blindsMode === 'usdc' ? toChips : (v: number) => v;
+    // Always round to integer — backend only accepts whole chips
+    const blindsToChips = blindsMode === 'usdc' ? toChips : (v: number) => Math.round(v);
 
     // Inputs work in display units (USDC dollars or raw chips)
     const [sbDisplay, setSbDisplay] = useState<number>(blindsFromChips(config?.sb ?? 5));
     const [bbDisplay, setBbDisplay] = useState<number>(blindsFromChips(config?.bb ?? 10));
+
+    // Re-sync display values when blindsMode changes (e.g. user switches chip display)
+    useEffect(() => {
+        if (!config) return;
+        setSbDisplay(blindsFromChips(config.sb));
+        setBbDisplay(blindsFromChips(config.bb));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [blindsMode]);
 
     // Convert display values back to raw chips for server
     const sbChips = blindsToChips(sbDisplay);
@@ -72,6 +83,14 @@ const GameSettings = () => {
     const handleBlindsSubmit = () => {
         if (!socket || !isValidBlinds) return;
         sendUpdateBlinds(socket, sbChips, bbChips);
+        toast({
+            title: 'Blind change queued',
+            description: `${formatBlinds(sbChips)} / ${formatBlinds(bbChips)} will apply at the start of the next hand.`,
+            status: 'info',
+            duration: 4000,
+            isClosable: true,
+            position: 'top',
+        });
     };
 
     const handleBlindsCancel = () => {
@@ -183,9 +202,9 @@ const GameSettings = () => {
                                 <NumberInput
                                     value={bbDisplay}
                                     onChange={(_, val) => setBbDisplay(val || 0)}
-                                    min={displayMode === 'usdc' ? 0.02 : 2}
-                                    step={displayMode === 'usdc' ? 0.01 : 1}
-                                    precision={displayMode === 'usdc' ? 2 : 0}
+                                    min={blindsMode === 'usdc' ? 0.02 : 2}
+                                    step={blindsMode === 'usdc' ? 0.01 : 1}
+                                    precision={blindsMode === 'usdc' ? 2 : 0}
                                     size="sm"
                                     w={{ base: '52px', md: '68px' }}
                                     isDisabled={!isOwner}

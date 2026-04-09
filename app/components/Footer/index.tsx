@@ -7,6 +7,7 @@ import FooterWithActionButtons from './FooterWithActionButtons';
 import EmptyFooter from './EmptyFooter';
 import BlindObligationControls from './BlindObligationControls';
 import ShowCardsFooter from './ShowCardsFooter';
+import AwayRejoinFooter from './AwayRejoinFooter';
 import { revealCards } from '@/app/hooks/server_actions';
 
 const Footer = () => {
@@ -48,6 +49,12 @@ const Footer = () => {
     const hasBlindObligation =
         !!localPlayer &&
         (owesSB || owesBB || waitingForBB || appState.blindObligation);
+
+    const isActuallyAway = Boolean(
+        localPlayer &&
+        localPlayer.stack > 0 &&
+        !localPlayer.ready
+    );
 
     const socketConnected = Boolean(socket);
 
@@ -117,7 +124,9 @@ const Footer = () => {
             }}
             isDisabled={showCardsDisabled}
         />
-    ) : hasBlindObligation ? null : (
+    ) : hasBlindObligation ? null : isActuallyAway ? (
+        <AwayRejoinFooter />
+    ) : (
         <EmptyFooter />
     );
 

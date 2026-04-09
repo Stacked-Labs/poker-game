@@ -35,6 +35,11 @@ import { useSound } from '../contexts/SoundProvider';
 import CardComponent from './Card';
 import { currentHandLabel } from '@/app/lib/poker/pokerHandEval';
 import { sendMessage } from '@/app/hooks/server_actions';
+import {
+    handleReturnReady,
+    handleCancelRejoin,
+} from '@/app/hooks/useTableOptions';
+import useToastHelper from '@/app/hooks/useToastHelper';
 import type { Emote } from '@/app/stores/emotes';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { buildSeatReactionMessage } from '@/app/utils/seatReaction';
@@ -379,6 +384,7 @@ const TakenSeatButton = ({
     const socket = useContext(SocketContext);
     const { play, stop } = useSound();
     const { format } = useFormatAmount();
+    const { info: toastInfo } = useToastHelper();
     const playCardFlip = useCallback(() => play('card_flip'), [play]);
     const isSelf = appState.clientID
         ? player.uuid === appState.clientID
@@ -526,17 +532,22 @@ const TakenSeatButton = ({
     const hasWinningComboForPlayer = winningSet.size > 0;
     const showWinnerHighlight =
         activePotIndex === null ? isWinner : playerWinsActivePot;
+    const isSelfAway = isSelf && player.stack > 0 && !player.ready;
     const highlightVariant = isCurrentTurn
         ? 'active'
         : showWinnerHighlight
           ? 'winner'
-          : null;
+          : isSelfAway
+            ? 'selfAway'
+            : null;
     const highlightBorderColor =
         highlightVariant === 'active'
             ? timerColor
             : highlightVariant === 'winner'
               ? 'brand.yellow'
-              : 'brand.darkNavy';
+              : highlightVariant === 'selfAway'
+                ? 'brand.green'
+                : 'brand.darkNavy';
     const highlightShadow =
         highlightVariant === 'active'
             ? barScheme === 'green'
@@ -546,7 +557,9 @@ const TakenSeatButton = ({
                   : '0 6px 18px rgba(255, 45, 111, 0.4)'
             : highlightVariant === 'winner'
               ? '0 6px 18px rgba(253, 197, 29, 0.3)'
-              : '0 2px 8px rgba(11, 20, 48, 0.3)';
+              : highlightVariant === 'selfAway'
+                ? '0 6px 18px rgba(63, 189, 138, 0.25)'
+                : '0 2px 8px rgba(11, 20, 48, 0.3)';
     const highlightPulse =
         highlightVariant && !prefersReducedMotion
             ? `${
@@ -556,7 +569,11 @@ const TakenSeatButton = ({
                           : barScheme === 'yellow'
                             ? pulseBorderYellow
                             : pulseBorderPink
-                      : pulseBorderYellow
+                      : highlightVariant === 'selfAway'
+                        ? player.readyNextHand
+                            ? 'none'
+                            : pulseBorderGreen
+                        : pulseBorderYellow
               } 2s ease-out infinite`
             : 'none';
     const emoteIconColor =
@@ -1115,6 +1132,20 @@ const TakenSeatButton = ({
                         alignItems={'flex-start'}
                         transition={'all 0.5s ease-in-out'}
                         position={'relative'}
+                        cursor={isSelfAway ? 'pointer' : undefined}
+                        onClick={
+                            isSelfAway
+                                ? () => {
+                                      if (player.readyNextHand) {
+                                          handleCancelRejoin(socket, toastInfo);
+                                      } else {
+                                          handleReturnReady(socket, toastInfo);
+                                      }
+                                  }
+                                : undefined
+                        }
+                        aria-label={isSelfAway ? (player.readyNextHand ? 'Cancel rejoin' : 'Tap to rejoin') : undefined}
+                        role={isSelfAway ? 'button' : undefined}
                         sx={{
                             '@media (orientation: portrait)': {
                                 paddingTop: 0.5,

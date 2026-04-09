@@ -447,6 +447,46 @@ export const LeavingAfterHand: Story = {
     },
 };
 
+// ── Self Away (green glow / rejoin) ───────────────────────────────────────────
+
+/**
+ * Self-player who stepped away — stack > 0, ready=false.
+ * Seat gets a green pulsing border glow and becomes clickable ("Tap to rejoin").
+ */
+export const SelfAway: Story = {
+    name: 'Self Away — green glow (tap to rejoin)',
+    decorators: [makeDecorator({ appStateOverride: { clientID: PLAYER_UUID }, withSocket: true })],
+    args: {
+        player: {
+            ...basePlayer,
+            uuid: PLAYER_UUID,
+            ready: false,
+            in: false,
+            readyNextHand: false,
+            stack: 3_500,
+        },
+    },
+};
+
+/**
+ * Self-player who already queued to rejoin (readyNextHand=true).
+ * Green border but pulse stops — seat click cancels the rejoin.
+ */
+export const SelfAwayRejoining: Story = {
+    name: 'Self Away — rejoining next hand (cancel on click)',
+    decorators: [makeDecorator({ appStateOverride: { clientID: PLAYER_UUID }, withSocket: true })],
+    args: {
+        player: {
+            ...basePlayer,
+            uuid: PLAYER_UUID,
+            ready: false,
+            in: false,
+            readyNextHand: true,
+            stack: 3_500,
+        },
+    },
+};
+
 // ── Self (emote UI) ────────────────────────────────────────────────────────────
 
 /**

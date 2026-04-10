@@ -17,9 +17,11 @@ import {
     TOAST_BANNER_ID,
     TOAST_BANNER_POSITION,
 } from '../utils/toastDefaults';
+import { useFormatAmount } from './useFormatAmount';
 
 const useToastHelper = () => {
     const toast = useToast();
+    const { format } = useFormatAmount();
 
     const showBanner = (
         type: 'success' | 'error' | 'warning' | 'info',
@@ -89,7 +91,7 @@ const useToastHelper = () => {
             position: TOAST_BANNER_POSITION,
             containerStyle: TOAST_BANNER_CONTAINER_STYLE,
             render: ({ onClose }) => (
-                <DepositSuccessToast amount={amount} onClose={onClose} isCrypto={isCrypto} />
+                <DepositSuccessToast amount={amount} onClose={onClose} formatAmount={format} isCrypto={isCrypto} />
             ),
         });
     };

@@ -1,8 +1,10 @@
 import { PendingPlayer } from '@/app/interfaces';
 import { Flex, Button, Text, Tooltip, VStack, Badge } from '@chakra-ui/react';
-import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
+import { FaCircleCheck, FaCircleXmark, FaXTwitter } from 'react-icons/fa6';
 import { GiBootKick } from 'react-icons/gi';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
+import { useContext } from 'react';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 const PlayerCard = ({
     index,
@@ -25,7 +27,10 @@ const PlayerCard = ({
     handleDenyPlayer?: ((uuid: string) => void) | null;
     confirmKick?: ((player: PendingPlayer) => void) | null;
 }) => {
+    const { appState } = useContext(AppContext);
     const { format, mode } = useFormatAmount();
+    const isCrypto = Boolean(appState.game?.config?.crypto);
+    const isXVerified = player.username?.startsWith('@');
     const formattedBuyIn = mode === 'chips'
         ? `${format(player.buyIn)} chips`
         : format(player.buyIn);
@@ -66,6 +71,19 @@ const PlayerCard = ({
                     gap={2.5}
                     flexWrap="wrap"
                 >
+                    {isXVerified && (
+                        <Flex
+                            alignItems="center"
+                            justifyContent="center"
+                            bg="#000"
+                            borderRadius="full"
+                            w={{ base: '18px', md: '22px' }}
+                            h={{ base: '18px', md: '22px' }}
+                            flexShrink={0}
+                        >
+                            <FaXTwitter color="white" size={10} />
+                        </Flex>
+                    )}
                     <Text
                         color={'text.secondary'}
                         fontWeight={'bold'}
@@ -129,20 +147,22 @@ const PlayerCard = ({
                             {formattedBuyIn}
                         </Text>
                     </Text>
-                    <Text
-                        color={'gray.600'}
-                        fontSize={{ base: '2xs', sm: 'xs', md: 'sm' }}
-                        fontWeight="medium"
-                    >
-                        Seat:{' '}
+                    {!isCrypto && (
                         <Text
-                            as={'span'}
-                            fontWeight={'bold'}
-                            color="brand.green"
+                            color={'gray.600'}
+                            fontSize={{ base: '2xs', sm: 'xs', md: 'sm' }}
+                            fontWeight="medium"
                         >
-                            #{player.seatId}
+                            Seat:{' '}
+                            <Text
+                                as={'span'}
+                                fontWeight={'bold'}
+                                color="brand.green"
+                            >
+                                #{player.seatId}
+                            </Text>
                         </Text>
-                    </Text>
+                    )}
                 </Flex>
             </VStack>
 

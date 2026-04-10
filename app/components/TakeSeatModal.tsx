@@ -92,7 +92,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const initialBuyIn = config?.maxBuyIn ?? null;
     const currentUser = useCurrentUser();
     const socket = useContext(SocketContext);
-    const { isAuthenticated, isAuthenticating, lastAuthenticatedAddress } = useAuth();
+    const { isAuthenticated, isAuthenticating, lastAuthenticatedAddress, xUsername } = useAuth();
     const [name, setName] = useState('');
     const [buyIn, setBuyIn] = useState<number | null>(initialBuyIn);
     const [buyInInput, setBuyInInput] = useState(() => {
@@ -151,8 +151,11 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         return Number(existingChipBalance).toLocaleString('en-US');
     }, [existingChipBalance]);
 
+    // When X is linked, use @xUsername automatically — no manual name needed
+    const effectiveName = !isCryptoGame && xUsername ? `@${xUsername}` : name;
     const isNameInvalid =
         !isCryptoGame &&
+        !xUsername &&
         (name.length === 0 || name.length > USERNAME_MAX_LENGTH);
     const isBuyInInvalid = buyIn === null || isNaN(Number(buyIn)) || buyIn <= 0;
     const isJoinDisabled = isDepositing || isNameInvalid || isBuyInInvalid;
@@ -292,22 +295,29 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             error('Connection Error', 'Unable to connect to the server.');
             return;
         }
-        if (name.length === 0) {
+        if (effectiveName.length === 0) {
             error('Missing Information', 'Please enter a username.');
             return;
         }
-        if (name.length > USERNAME_MAX_LENGTH) {
+        if (!xUsername && effectiveName.length > USERNAME_MAX_LENGTH) {
             error(
                 'Invalid Username',
                 `Username must be fewer than 10 characters.`
             );
             return;
         }
-        newPlayer(socket, name);
-        takeSeat(socket, name, seatId, buyInValue);
-        appStore.dispatch({ type: 'setUsername', payload: name });
+        if (!xUsername && effectiveName.startsWith('@')) {
+            error(
+                'Reserved Username',
+                'The @ prefix is reserved for linked X accounts. Connect your X account in Settings to use your handle.'
+            );
+            return;
+        }
+        newPlayer(socket, effectiveName);
+        takeSeat(socket, effectiveName, seatId, buyInValue);
+        appStore.dispatch({ type: 'setUsername', payload: effectiveName });
         appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
-        currentUser.setCurrentUser({ name, seatId });
+        currentUser.setCurrentUser({ name: effectiveName, seatId });
         onClose();
     };
 
@@ -535,7 +545,32 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 )}
 
                                 {/* Normal buy-in inputs — hidden while withdraw-first flow is active */}
-                                {!showWithdrawFirst && !isCryptoGame && (
+                                {!showWithdrawFirst && !isCryptoGame && xUsername && (
+                                    <HStack
+                                        spacing={2}
+                                        bg="card.lightGray"
+                                        borderRadius="xl"
+                                        px={4}
+                                        py={3}
+                                        w="100%"
+                                        justify="center"
+                                    >
+                                        <Text
+                                            fontSize="sm"
+                                            color="text.secondary"
+                                        >
+                                            Playing as
+                                        </Text>
+                                        <Text
+                                            fontSize="sm"
+                                            fontWeight="bold"
+                                            color="text.primary"
+                                        >
+                                            @{xUsername}
+                                        </Text>
+                                    </HStack>
+                                )}
+                                {!showWithdrawFirst && !isCryptoGame && !xUsername && (
                                     <FormControl
                                         isInvalid={
                                             name.length > 0 &&

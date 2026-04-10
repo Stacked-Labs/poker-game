@@ -175,6 +175,12 @@ export function formatGameEvent(event: GameEventRecord): string | null {
         case 'player_eliminated':
             return `${player_name} has been eliminated`;
 
+        case 'player_identity_updated': {
+            const oldName = metadata.old_name as string;
+            const newName = metadata.new_name as string;
+            return `${oldName} is now ${newName}`;
+        }
+
         case 'pot_awarded':
             // This is typically covered by hand_concluded
             return null;

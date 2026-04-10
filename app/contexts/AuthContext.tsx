@@ -13,13 +13,22 @@ import { useActiveAccount } from 'thirdweb/react';
 import { isAuth } from '../hooks/server_actions';
 import { useWalletAuth } from '../hooks/useWalletAuth';
 
+interface XAccountStatus {
+    linked: boolean;
+    x_username?: string;
+    profile_image_url?: string;
+}
+
 interface AuthContextProps {
     isAuthenticated: boolean;
     isAuthenticating: boolean;
     userAddress: string | null;
     lastAuthenticatedAddress: string | null;
+    xUsername: string | null;
+    xProfileImageUrl: string | null;
     requestAuthentication: () => void;
     refreshAuthStatus: () => Promise<void>;
+    refreshXStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -27,8 +36,11 @@ const AuthContext = createContext<AuthContextProps>({
     isAuthenticating: false,
     userAddress: null,
     lastAuthenticatedAddress: null,
+    xUsername: null,
+    xProfileImageUrl: null,
     requestAuthentication: () => {},
     refreshAuthStatus: async () => {},
+    refreshXStatus: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -43,6 +55,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Track the address that was last successfully authenticated (JWT address)
     const [lastAuthenticatedAddress, setLastAuthenticatedAddress] = useState<string | null>(null);
     const previousAddressRef = useRef<string | null>(null);
+
+    // X account state
+    const [xUsername, setXUsername] = useState<string | null>(null);
+    const [xProfileImageUrl, setXProfileImageUrl] = useState<string | null>(null);
 
     // Define checkAuthentication first (needed by refreshAuthStatus)
     const checkAuthentication = useCallback(async () => {
@@ -65,6 +81,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     }, [account?.address]);
 
+    // Fetch X account link status
+    const refreshXStatus = useCallback(async () => {
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+        try {
+            const response = await fetch(`${backendUrl}/auth/x/status`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                setXUsername(null);
+                setXProfileImageUrl(null);
+                return;
+            }
+            const data: XAccountStatus = await response.json();
+            if (data.linked) {
+                setXUsername(data.x_username || null);
+                setXProfileImageUrl(data.profile_image_url || null);
+            } else {
+                setXUsername(null);
+                setXProfileImageUrl(null);
+            }
+        } catch {
+            setXUsername(null);
+            setXProfileImageUrl(null);
+        }
+    }, []);
+
     // Expose a method to refresh auth status immediately (called after SIWE completes)
     // Case 2: This is called by useWalletAuth after successful SIWE to trigger immediate
     // auth state update, which causes WebSocketProvider to reconnect
@@ -85,6 +128,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         return () => clearInterval(interval);
     }, [checkAuthentication]);
+
+    // Fetch X status when authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            refreshXStatus();
+        } else {
+            setXUsername(null);
+            setXProfileImageUrl(null);
+        }
+    }, [isAuthenticated, refreshXStatus]);
+
+    // Handle X OAuth callback redirect (x_auth=success in URL)
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const params = new URLSearchParams(window.location.search);
+        const xAuth = params.get('x_auth');
+        if (xAuth === 'success') {
+            refreshXStatus();
+            // Clean up URL params
+            const url = new URL(window.location.href);
+            url.searchParams.delete('x_auth');
+            window.history.replaceState({}, '', url.toString());
+        }
+    }, [refreshXStatus]);
 
     // Case 1: Detect wallet swap - if wallet changes after auth, logout old session
     useEffect(() => {
@@ -131,8 +198,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticating,
         userAddress: account?.address || null,
         lastAuthenticatedAddress,
+        xUsername,
+        xProfileImageUrl,
         requestAuthentication,
         refreshAuthStatus,
+        refreshXStatus,
     };
 
     return (

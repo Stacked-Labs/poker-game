@@ -97,6 +97,12 @@ export function newPlayer(socket: WebSocket, username: string) {
     });
 }
 
+export function refreshXIdentity(socket: WebSocket) {
+    sendWebSocketMessage(socket, {
+        action: 'refresh-x-identity',
+    });
+}
+
 export function playerCall(socket: WebSocket) {
     sendWebSocketMessage(socket, {
         action: 'player-call',

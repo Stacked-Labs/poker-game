@@ -15,6 +15,7 @@ import {
     Tag,
     Icon,
     IconButton,
+    Tooltip,
 } from '@chakra-ui/react';
 import { MdWifiOff, MdLocalCafe, MdLogout, MdPerson } from 'react-icons/md';
 import { FiSmile } from 'react-icons/fi';
@@ -47,6 +48,8 @@ import EmotePicker from './NavBar/Chat/EmotePicker';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import FloatingPointsText from './Animations/FloatingPointsText';
 import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { refreshXIdentity } from '@/app/hooks/server_actions';
 
 const pulseBorderPink = keyframes`
   0% {
@@ -384,6 +387,7 @@ const TakenSeatButton = ({
     const socket = useContext(SocketContext);
     const { play, stop } = useSound();
     const { format } = useFormatAmount();
+    const { isAuthenticated, xUsername, refreshXStatus } = useAuth();
     const { info: toastInfo } = useToastHelper();
     const playCardFlip = useCallback(() => play('card_flip'), [play]);
     const isSelf = appState.clientID
@@ -610,6 +614,47 @@ const TakenSeatButton = ({
         },
         [appState.clientID, player.uuid, socket]
     );
+
+    const handleConnectX = useCallback(() => {
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+        let handled = false;
+        const width = 500;
+        const height = 700;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        const popup = window.open(
+            `${backendUrl}/auth/x`,
+            'x_oauth',
+            `width=${width},height=${height},left=${left},top=${top},popup=yes`
+        );
+        const onComplete = () => {
+            if (handled) return;
+            handled = true;
+            refreshXStatus().then(() => {
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    refreshXIdentity(socket);
+                }
+            });
+        };
+        const handler = (event: MessageEvent) => {
+            if (event.data?.type !== 'x_oauth_result') return;
+            window.removeEventListener('message', handler);
+            if (event.data.status === 'success') {
+                onComplete();
+            }
+        };
+        window.addEventListener('message', handler);
+        const pollClosed = setInterval(() => {
+            if (popup && popup.closed) {
+                clearInterval(pollClosed);
+                window.removeEventListener('message', handler);
+                onComplete();
+            }
+        }, 500);
+    }, [refreshXStatus, socket]);
+
+    const showConnectXPrompt = isSelf && isAuthenticated && !xUsername && !player.profileImageUrl;
+
     const stackColor =
         showWinnerHighlight && winnings > 0
             ? 'brand.green'
@@ -1414,7 +1459,22 @@ const TakenSeatButton = ({
                                     },
                                 }}
                             >
-                                {player.address ? (
+                                {player.profileImageUrl ? (
+                                    <Box
+                                        as="img"
+                                        src={player.profileImageUrl}
+                                        alt=""
+                                        width="100%"
+                                        height="100%"
+                                        borderRadius="full"
+                                        objectFit="cover"
+                                        onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                                            // Fallback to blockie or initials if X avatar fails
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            (e.target as HTMLImageElement).nextElementSibling?.removeAttribute('style');
+                                        }}
+                                    />
+                                ) : player.address ? (
                                     <Box
                                         as="img"
                                         src={blo(
@@ -1466,6 +1526,89 @@ const TakenSeatButton = ({
                                                     .toUpperCase()}
                                         </Text>
                                     </Flex>
+                                )}
+                                {/* X verified badge */}
+                                {player.profileImageUrl && (
+                                    <Flex
+                                        position="absolute"
+                                        bottom={0}
+                                        right={0}
+                                        width={{ base: '14px', md: '16px' }}
+                                        height={{ base: '14px', md: '16px' }}
+                                        sx={{
+                                            '@media (orientation: portrait)': {
+                                                width: '12px',
+                                                height: '12px',
+                                            },
+                                        }}
+                                        borderRadius="full"
+                                        bg="#000"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        border="1.5px solid"
+                                        borderColor="card.white"
+                                        pointerEvents="none"
+                                    >
+                                        <Text
+                                            fontSize={{ base: '8px', md: '9px' }}
+                                            sx={{
+                                                '@media (orientation: portrait)': {
+                                                    fontSize: '7px',
+                                                },
+                                            }}
+                                            color="white"
+                                            fontWeight="bold"
+                                            lineHeight="1"
+                                            userSelect="none"
+                                        >
+                                            𝕏
+                                        </Text>
+                                    </Flex>
+                                )}
+                                {/* Connect X prompt for self */}
+                                {showConnectXPrompt && (
+                                    <Tooltip label="Connect X for avatar & username" fontSize="xs" hasArrow placement="top">
+                                        <Flex
+                                            as="button"
+                                            onClick={handleConnectX}
+                                            position="absolute"
+                                            bottom={0}
+                                            right={0}
+                                            width={{ base: '16px', md: '18px' }}
+                                            height={{ base: '16px', md: '18px' }}
+                                            sx={{
+                                                '@media (orientation: portrait)': {
+                                                    width: '14px',
+                                                    height: '14px',
+                                                },
+                                            }}
+                                            borderRadius="full"
+                                            bg="#000"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            border="1.5px solid"
+                                            borderColor="card.white"
+                                            cursor="pointer"
+                                            zIndex={10}
+                                            _hover={{ bg: '#333' }}
+                                            animation={`${pulseBorderPink} 2s ease-out infinite`}
+                                        >
+                                            <Text
+                                                fontSize={{ base: '7px', md: '8px' }}
+                                                sx={{
+                                                    '@media (orientation: portrait)': {
+                                                        fontSize: '6px',
+                                                    },
+                                                }}
+                                                color="white"
+                                                fontWeight="bold"
+                                                lineHeight="1"
+                                                userSelect="none"
+                                            >
+                                                𝕏+
+                                            </Text>
+                                        </Flex>
+                                    </Tooltip>
                                 )}
                                 {/* Timer seconds overlay on avatar */}
                                 {isCurrentTurn &&

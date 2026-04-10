@@ -16,39 +16,95 @@ import {
 const MotionButton = motion(Button);
 
 const pulseGlow = keyframes`
-  0% {
-    box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(54, 163, 123, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(54, 163, 123, 0);
-  }
+  0%   { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(54, 163, 123, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0); }
 `;
 
 const shimmer = keyframes`
-  0% { background-position: -200% center; }
+  0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
 `;
 
-const sharedButtonSx = {
+/* ── shared responsive sizing (matches ActionButton scale) ─────────────── */
+const portraitButton = {
+    borderRadius: '10px',
+    padding: '2%',
+    fontSize: '3cqw',
+    flex: 1,
+    height: 'auto',
+    minHeight: '8cqh',
+    maxHeight: '100%',
+    flexShrink: 1,
+};
+
+const landscapeButton = {
+    borderRadius: '10px',
+    padding: '0.5% 1.5%',
+    fontSize: '1cqw',
+    height: '100%',
+    flexShrink: 0,
+};
+
+/* ── shared glass + shimmer pseudo-elements ────────────────────────────── */
+const glassPseudos = (shimmerRef: typeof shimmer, glassOpacity = 0.06) => ({
+    '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '50%',
+        background: `linear-gradient(to bottom, rgba(255,255,255,${glassOpacity}), transparent)`,
+        borderRadius: 'inherit',
+        pointerEvents: 'none',
+    },
+    '&::after': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background:
+            'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)',
+        backgroundSize: '200% 100%',
+        opacity: 0,
+        transition: 'opacity 0.3s ease',
+        pointerEvents: 'none',
+    },
+    '&:hover::after': {
+        opacity: 1,
+        animation: `${shimmerRef} 1.5s ease-in-out infinite`,
+    },
+});
+
+/* ── shared framer-motion spring presets ───────────────────────────────── */
+const hoverSpring = {
+    y: -2,
+    scale: 1.03,
+    transition: { type: 'spring' as const, stiffness: 400, damping: 17 },
+};
+const tapSpring = {
+    scale: 0.95,
+    y: 0,
+    transition: { type: 'spring' as const, stiffness: 500, damping: 15 },
+};
+
+/* ── wrapper Flex — identical to FooterWithActionButtons layout ────────── */
+const footerFlexSx = {
     '@media (orientation: portrait)': {
-        borderRadius: '10px',
-        padding: '2%',
-        fontSize: '3cqw',
-        flex: 1,
-        height: 'auto',
-        minHeight: '8cqh',
-        maxHeight: '100%',
-        flexShrink: 1,
+        justifyContent: 'space-between',
+        gap: '1%',
+        padding: '1%',
+        height: '100%',
+        maxHeight: '70px',
+        minHeight: '50px',
     },
     '@media (orientation: landscape)': {
-        borderRadius: '10px',
-        padding: '0.5% 1.5%',
-        fontSize: '1cqw',
+        justifyContent: 'flex-end',
+        gap: '0.8%',
         height: '100%',
-        flexShrink: 0,
     },
 };
 
@@ -64,29 +120,18 @@ const AwayRejoinFooter = () => {
     const readyNextHand = localPlayer?.readyNextHand;
 
     if (readyNextHand) {
-        // "Rejoining next hand..." state
         return (
             <Flex
                 className="away-rejoin-footer"
                 alignItems="center"
-                gap="1%"
-                p="1%"
-                height="auto"
-                maxHeight={{ base: '70px', md: '100px' }}
-                minHeight={{ base: '50px', md: '70px' }}
-                overflow="hidden"
-                zIndex={1}
+                overflow="visible"
+                bg="transparent"
                 width="100%"
-                sx={{
-                    '@media (orientation: portrait)': {
-                        justifyContent: 'space-between',
-                    },
-                    '@media (orientation: landscape)': {
-                        justifyContent: 'flex-end',
-                    },
-                }}
+                position="relative"
+                zIndex={1}
+                sx={footerFlexSx}
             >
-                {/* Status indicator — styled like a loading ActionButton */}
+                {/* Status indicator */}
                 <Flex
                     alignItems="center"
                     justifyContent="center"
@@ -101,14 +146,11 @@ const AwayRejoinFooter = () => {
                     position="relative"
                     overflow="hidden"
                     sx={{
-                        ...sharedButtonSx,
-                        '@media (orientation: portrait)': {
-                            ...sharedButtonSx['@media (orientation: portrait)'],
-                        },
+                        '@media (orientation: portrait)': portraitButton,
                         '@media (orientation: landscape)': {
-                            ...sharedButtonSx['@media (orientation: landscape)'],
-                            minWidth: '10cqw',
-                            maxWidth: '18cqw',
+                            ...landscapeButton,
+                            minWidth: '7cqw',
+                            maxWidth: '12cqw',
                         },
                     }}
                 >
@@ -131,7 +173,7 @@ const AwayRejoinFooter = () => {
                     </Text>
                 </Flex>
 
-                {/* Cancel — fold-family colour, ghost treatment */}
+                {/* Cancel — fold-colour ghost */}
                 <MotionButton
                     data-testid="cancel-rejoin-btn"
                     bg="rgba(235, 11, 92, 0.1)"
@@ -145,61 +187,26 @@ const AwayRejoinFooter = () => {
                     overflow="hidden"
                     cursor="pointer"
                     onClick={() => handleCancelRejoin(socket, info)}
-                    whileHover={{
-                        y: -2,
-                        scale: 1.03,
-                        transition: { type: 'spring', stiffness: 400, damping: 17 },
-                    }}
-                    whileTap={{
-                        scale: 0.95,
-                        y: 0,
-                        transition: { type: 'spring', stiffness: 500, damping: 15 },
-                    }}
+                    whileHover={hoverSpring}
+                    whileTap={tapSpring}
                     _hover={{
                         bg: 'rgba(235, 11, 92, 0.18)',
                         borderColor: 'rgba(235, 11, 92, 0.75)',
-                        boxShadow: '0 8px 24px rgba(235, 11, 92, 0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+                        boxShadow:
+                            '0 8px 24px rgba(235, 11, 92, 0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
                     }}
                     transition="box-shadow 0.3s ease, background 0.3s ease"
                     sx={{
-                        ...sharedButtonSx,
                         '@media (orientation: portrait)': {
-                            ...sharedButtonSx['@media (orientation: portrait)'],
+                            ...portraitButton,
                             maxWidth: '30%',
                         },
                         '@media (orientation: landscape)': {
-                            ...sharedButtonSx['@media (orientation: landscape)'],
-                            minWidth: '5cqw',
-                            maxWidth: '10cqw',
+                            ...landscapeButton,
+                            minWidth: '7cqw',
+                            maxWidth: '12cqw',
                         },
-                        '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: '50%',
-                            background: 'linear-gradient(to bottom, rgba(255,255,255,0.06), transparent)',
-                            borderRadius: 'inherit',
-                            pointerEvents: 'none',
-                        },
-                        '&::after': {
-                            content: '""',
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)',
-                            backgroundSize: '200% 100%',
-                            opacity: 0,
-                            transition: 'opacity 0.3s ease',
-                            pointerEvents: 'none',
-                        },
-                        '&:hover::after': {
-                            opacity: 1,
-                            animation: `${shimmer} 1.5s ease-in-out infinite`,
-                        },
+                        ...glassPseudos(shimmer),
                     }}
                 >
                     Cancel
@@ -212,15 +219,13 @@ const AwayRejoinFooter = () => {
     return (
         <Flex
             className="away-rejoin-footer"
-            justifyContent="center"
             alignItems="center"
-            gap={3}
-            p={2}
-            height="auto"
-            maxHeight={{ base: '70px', md: '100px' }}
-            minHeight={{ base: '50px', md: '70px' }}
-            overflow="hidden"
+            overflow="visible"
+            bg="transparent"
+            width="100%"
+            position="relative"
             zIndex={1}
+            sx={footerFlexSx}
         >
             <MotionButton
                 data-testid="rejoin-footer-btn"
@@ -229,14 +234,9 @@ const AwayRejoinFooter = () => {
                 color="white"
                 border="1.5px solid"
                 borderColor="rgba(54, 163, 123, 0.6)"
-                borderRadius="12px"
                 fontWeight="bold"
                 letterSpacing="0.04em"
                 textTransform="uppercase"
-                fontSize={{ base: 'md', md: 'lg' }}
-                px={{ base: 8, md: 12 }}
-                py={{ base: 3, md: 4 }}
-                height="auto"
                 position="relative"
                 overflow="hidden"
                 cursor="pointer"
@@ -246,69 +246,21 @@ const AwayRejoinFooter = () => {
                         ? undefined
                         : `${pulseGlow} 2s ease-out infinite`
                 }
-                whileHover={{
-                    y: -2,
-                    scale: 1.03,
-                    transition: {
-                        type: 'spring',
-                        stiffness: 400,
-                        damping: 17,
-                    },
-                }}
-                whileTap={{
-                    scale: 0.95,
-                    y: 0,
-                    transition: {
-                        type: 'spring',
-                        stiffness: 500,
-                        damping: 15,
-                    },
-                }}
+                whileHover={hoverSpring}
+                whileTap={tapSpring}
                 _hover={{
                     boxShadow:
-                        '0 8px 24px rgba(54, 163, 123, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                        '0 8px 24px rgba(54, 163, 123, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
                 }}
                 transition="box-shadow 0.3s ease, background 0.3s ease"
                 sx={{
-                    '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: '50%',
-                        background:
-                            'linear-gradient(to bottom, rgba(255, 255, 255, 0.15), transparent)',
-                        borderRadius: 'inherit',
-                        pointerEvents: 'none',
-                    },
-                    '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background:
-                            'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent)',
-                        backgroundSize: '200% 100%',
-                        opacity: 0,
-                        transition: 'opacity 0.3s ease',
-                        pointerEvents: 'none',
-                    },
-                    '&:hover::after': {
-                        opacity: 1,
-                        animation: `${shimmer} 1.5s ease-in-out infinite`,
-                    },
-                    '@media (orientation: portrait)': {
-                        width: '100%',
-                        maxWidth: '100%',
-                        flex: 1,
-                    },
+                    '@media (orientation: portrait)': portraitButton,
                     '@media (orientation: landscape)': {
-                        width: 'auto',
-                        minWidth: '200px',
+                        ...landscapeButton,
+                        minWidth: '7cqw',
+                        maxWidth: '12cqw',
                     },
+                    ...glassPseudos(shimmer, 0.15),
                 }}
             >
                 <Icon as={FaUserCheck} boxSize={{ base: 5, md: 6 }} mr={2} />

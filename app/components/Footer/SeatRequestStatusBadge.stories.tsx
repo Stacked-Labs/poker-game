@@ -3,48 +3,30 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Flex } from '@chakra-ui/react';
-import AwayRejoinFooter from './AwayRejoinFooter';
+import SeatRequestStatusBadge from './SeatRequestStatusBadge';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
-import type { AppState, Game, Player } from '@/app/interfaces';
+import type { AppState, Game } from '@/app/interfaces';
 
 // ─── Mock data ─────────────────────────────────────────────────────────────────
 
-const CLIENT_UUID = 'self-uuid-away';
-
-const awayPlayer: Player = {
-    username: 'alice.eth',
-    uuid: CLIENT_UUID,
-    address: '0xABCDEF1234567890ABCDEF1234567890ABCDEF12',
-    position: 1,
-    seatID: 4,
-    ready: false,
-    in: false,
-    called: false,
-    left: false,
-    totalBuyIn: 5_000,
-    stack: 4_200,
-    bet: 0,
-    totalBet: 0,
-    cards: [0, 0],
-    isOnline: true,
-};
+const CLIENT_UUID = 'seat-request-uuid';
 
 const baseGame: Game = {
     running: true,
-    dealer: 2,
-    action: 1,
-    utg: 1,
+    dealer: 0,
+    action: 0,
+    utg: 0,
     sb: 0,
     bb: 1,
     communityCards: [0, 0, 0, 0, 0],
     stage: 0,
     betting: false,
     config: { maxBuyIn: 10_000, bb: 20, sb: 10 },
-    players: [awayPlayer],
+    players: [],
     pots: [],
     minRaise: 40,
-    readyCount: 2,
+    readyCount: 0,
     paused: false,
     actionDeadline: 0,
 };
@@ -52,9 +34,9 @@ const baseGame: Game = {
 const baseAppState: AppState = {
     messages: [],
     logs: [],
-    username: 'alice.eth',
+    username: 'bob.eth',
     clientID: CLIENT_UUID,
-    address: '0xABCDEF1234567890ABCDEF1234567890ABCDEF12',
+    address: '0x1234567890ABCDEF1234567890ABCDEF12345678',
     table: 'storybook-table',
     game: baseGame,
     volume: 0,
@@ -84,21 +66,17 @@ const mockSocket = {
 // ─── Decorator helpers ─────────────────────────────────────────────────────────
 
 type WrapperConfig = {
-    playerOverride?: Partial<Player>;
+    appStateOverride?: Partial<AppState>;
     withSocket?: boolean;
     narrow?: boolean;
 };
 
 const makeDecorator = ({
-    playerOverride,
+    appStateOverride,
     withSocket = true,
     narrow = false,
 }: WrapperConfig = {}) => {
-    const player: Player = { ...awayPlayer, ...playerOverride };
-    const appState: AppState = {
-        ...baseAppState,
-        game: { ...baseGame, players: [player] },
-    };
+    const appState: AppState = { ...baseAppState, ...appStateOverride };
     const Wrapper = (Story: React.FC) => (
         <AppContext.Provider value={{ appState, dispatch: () => null }}>
             <SocketContext.Provider value={withSocket ? mockSocket : null}>
@@ -128,21 +106,21 @@ const makeDecorator = ({
             </SocketContext.Provider>
         </AppContext.Provider>
     );
-    Wrapper.displayName = 'AwayRejoinStoryWrapper';
+    Wrapper.displayName = 'SeatRequestStoryWrapper';
     return Wrapper;
 };
 
 // ─── Meta ──────────────────────────────────────────────────────────────────────
 
 const meta = {
-    title: 'Footer/AwayRejoinFooter',
-    component: AwayRejoinFooter,
+    title: 'Footer/SeatRequestStatusBadge',
+    component: SeatRequestStatusBadge,
     tags: ['autodocs'],
     parameters: {
         layout: 'padded',
     },
     decorators: [makeDecorator()],
-} satisfies Meta<typeof AwayRejoinFooter>;
+} satisfies Meta<typeof SeatRequestStatusBadge>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -150,43 +128,100 @@ type Story = StoryObj<typeof meta>;
 // ─── Stories ───────────────────────────────────────────────────────────────────
 
 /**
- * Default away state — player has chips but is marked not-ready.
- * Button is right-aligned on landscape (flex-end), full-width on portrait.
+ * Seat accepted, waiting to join next hand.
+ * Green dashed pill with check icon, pulse glow, and shimmer on hover.
  */
-export const ImBack: Story = {
-    name: "I'm Back (right-aligned)",
+export const JoiningNextHand: Story = {
+    name: 'Joining Next Hand (accepted)',
+    decorators: [
+        makeDecorator({
+            appStateOverride: {
+                seatAccepted: {
+                    seatId: 3,
+                    buyIn: 5000,
+                    queued: false,
+                    message: 'Seat accepted',
+                },
+            },
+        }),
+    ],
+};
+
+/**
+ * Seat accepted and queued — shows spinner alongside the status text.
+ */
+export const JoiningNextHandQueued: Story = {
+    name: 'Joining Next Hand (queued + spinner)',
+    decorators: [
+        makeDecorator({
+            appStateOverride: {
+                seatAccepted: {
+                    seatId: 5,
+                    buyIn: 8000,
+                    queued: true,
+                    message: 'Queued for next hand',
+                },
+            },
+        }),
+    ],
+};
+
+/**
+ * Seat requested but not yet accepted — cancel button in fold-colour ghost style.
+ */
+export const CancelRequest: Story = {
+    name: 'Cancel Request (pending)',
+    decorators: [
+        makeDecorator({
+            appStateOverride: {
+                seatRequested: 4,
+                isTableOwner: false,
+            },
+        }),
+    ],
+};
+
+/**
+ * Narrow/portrait wrapper for cancel request.
+ */
+export const CancelRequestPortrait: Story = {
+    name: 'Cancel Request — portrait',
+    decorators: [
+        makeDecorator({
+            appStateOverride: {
+                seatRequested: 2,
+                isTableOwner: false,
+            },
+            narrow: true,
+        }),
+    ],
+};
+
+/**
+ * Narrow/portrait wrapper for joining next hand.
+ */
+export const JoiningNextHandPortrait: Story = {
+    name: 'Joining Next Hand — portrait',
+    decorators: [
+        makeDecorator({
+            appStateOverride: {
+                seatAccepted: {
+                    seatId: 1,
+                    buyIn: 3000,
+                    queued: true,
+                    message: 'Queued',
+                },
+            },
+            narrow: true,
+        }),
+    ],
+};
+
+/**
+ * Nothing to show — no seat requested, no seat accepted.
+ * Badge returns null; wrapper renders empty.
+ */
+export const Hidden: Story = {
+    name: 'Hidden (no request/accepted)',
     decorators: [makeDecorator()],
-};
-
-/**
- * Player already queued to rejoin next hand (readyNextHand=true).
- * Status pill + ghost cancel button, both right-aligned on landscape.
- */
-export const RejoiningNextHand: Story = {
-    name: 'Rejoining Next Hand (queued)',
-    decorators: [makeDecorator({ playerOverride: { readyNextHand: true } })],
-};
-
-/**
- * Narrow viewport simulating portrait/mobile — buttons stretch full-width.
- */
-export const PortraitImBack: Story = {
-    name: "I'm Back — portrait (full-width)",
-    decorators: [makeDecorator({ narrow: true })],
-};
-
-/**
- * Narrow viewport with rejoining state.
- */
-export const PortraitRejoining: Story = {
-    name: 'Rejoining — portrait',
-    decorators: [makeDecorator({ playerOverride: { readyNextHand: true }, narrow: true })],
-};
-
-/**
- * No socket connection — verify the UI renders without crashing.
- */
-export const NoSocket: Story = {
-    name: "I'm Back — no socket",
-    decorators: [makeDecorator({ withSocket: false })],
 };

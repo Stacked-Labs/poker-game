@@ -221,13 +221,33 @@ const FeaturesSection = () => {
     const prefersReducedMotion = useReducedMotion();
     const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
     const shouldAnimate = !prefersReducedMotion && !isMobile;
+    const sectionRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const [videoFailed, setVideoFailed] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [shouldLoadDemoVideo, setShouldLoadDemoVideo] = useState(false);
+
+    useEffect(() => {
+        const section = sectionRef.current;
+        if (!section || shouldLoadDemoVideo) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) {
+                    setShouldLoadDemoVideo(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '300px 0px' }
+        );
+
+        observer.observe(section);
+        return () => observer.disconnect();
+    }, [shouldLoadDemoVideo]);
 
     useEffect(() => {
         const video = videoRef.current;
-        if (!video || videoFailed) return;
+        if (!video || videoFailed || !shouldLoadDemoVideo) return;
 
         let playAttempts = 0;
         const maxAttempts = 5;
@@ -296,10 +316,14 @@ const FeaturesSection = () => {
             video.removeEventListener('play', handlePlay);
             video.removeEventListener('pause', handlePause);
         };
-    }, [videoFailed]);
+    }, [videoFailed, shouldLoadDemoVideo]);
 
     const handleVideoClick = () => {
         const video = videoRef.current;
+        if (!shouldLoadDemoVideo) {
+            setShouldLoadDemoVideo(true);
+            return;
+        }
         if (!video || videoFailed) return;
 
         if (video.paused) {
@@ -311,6 +335,7 @@ const FeaturesSection = () => {
         <Box
             as="section"
             id="how-to-play"
+            ref={sectionRef}
             bg="bg.default"
             py={{ base: 8, md: 12 }}
             width="100%"
@@ -565,21 +590,29 @@ const FeaturesSection = () => {
                                         width="100%"
                                         height="100%"
                                         objectFit="cover"
-                                        autoPlay
+                                        autoPlay={shouldLoadDemoVideo}
                                         muted
                                         loop
                                         playsInline
-                                        preload="auto"
+                                        preload={
+                                            shouldLoadDemoVideo
+                                                ? 'metadata'
+                                                : 'none'
+                                        }
                                         poster="/previews/home_preview.png"
                                     >
-                                        <source
-                                            src="/video/demoiphone.mp4"
-                                            type="video/mp4"
-                                        />
-                                        <source
-                                            src="/video/demoiphone.webm"
-                                            type="video/webm"
-                                        />
+                                        {shouldLoadDemoVideo ? (
+                                            <>
+                                                <source
+                                                    src="/video/demoiphone.webm"
+                                                    type="video/webm"
+                                                />
+                                                <source
+                                                    src="/video/demoiphone.mp4"
+                                                    type="video/mp4"
+                                                />
+                                            </>
+                                        ) : null}
                                     </Box>
                                 )}
                             </Box>

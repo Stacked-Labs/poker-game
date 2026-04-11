@@ -135,6 +135,8 @@ const LeaderboardPage: React.FC = () => {
                             nextRank={nextRank}
                             nextPoints={nextPoints}
                             total={total}
+                            xUsername={playerEntry?.xUsername}
+                            xProfileImageUrl={playerEntry?.xProfileImageUrl}
                         />
                     </Box>
                     <Box flex="1" w="full">

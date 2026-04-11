@@ -95,11 +95,9 @@ export function SocketProvider(props: SocketProviderProps) {
         originalClose,
     ]);
 
-    const [isReconnecting, setIsReconnecting] = useState(false);
-    const [reconnectionAttempts, setReconnectionAttempts] = useState(0);
+    const reconnectionAttemptsRef = useRef(0);
     const maxReconnectionAttempts = 5;
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const hasShownInitialErrorRef = useRef(false);
     const settlementPendingTimerRef = useRef<NodeJS.Timeout | null>(null);
     const settlementSuccessTimerRef = useRef<NodeJS.Timeout | null>(null);
     // Set to true while the local player has player.in === true during a running hand.
@@ -126,6 +124,9 @@ export function SocketProvider(props: SocketProviderProps) {
 
     const connectWebSocket = useCallback(async () => {
         const API_URL = process.env.NEXT_PUBLIC_API_URL;
+        console.log(
+            'WebSocket connection attempt start'
+        );
 
         if (!WS_BASE_URL || !API_URL) {
             console.error('WebSocket URL or API URL is not defined.');
@@ -141,7 +142,6 @@ export function SocketProvider(props: SocketProviderProps) {
                 'WebSocket connection attempt skipped: already connected or in progress.'
             );
             isReconnectingRef.current = false;
-            setIsReconnecting(false);
             return;
         }
 
@@ -168,8 +168,7 @@ export function SocketProvider(props: SocketProviderProps) {
                     `Server error: ${sessionInitResponse.statusText}`
                 );
                 isReconnectingRef.current = false;
-                setIsReconnecting(false);
-                attemptReconnection();
+                    attemptReconnection();
                 return;
             }
             const sessionData = await sessionInitResponse.json();
@@ -196,9 +195,7 @@ export function SocketProvider(props: SocketProviderProps) {
                 };
                 const wasReconnecting = isReconnectingRef.current;
                 isReconnectingRef.current = false;
-                setIsReconnecting(false); // Reset reconnection state on successful open
-                setReconnectionAttempts(0); // Reset attempts on successful open
-                hasShownInitialErrorRef.current = false; // Reset error flag on successful connection
+                reconnectionAttemptsRef.current = 0; // Reset attempts on successful open
 
                 // Close any connection lost toasts
                 toastCloseRef.current(TOAST_ID_RECONNECTING);
@@ -232,15 +229,6 @@ export function SocketProvider(props: SocketProviderProps) {
                 if (manualCloseRef.current) {
                     manualCloseRef.current = false;
                     return;
-                }
-
-                // Only show error toast on first disconnect, not during reconnection attempts
-                if (!hasShownInitialErrorRef.current) {
-                    toastConnectionLostRef.current(
-                        null, // persist until closed
-                        TOAST_ID_RECONNECTING
-                    );
-                    hasShownInitialErrorRef.current = true;
                 }
 
                 attemptReconnection(); // Attempt to reconnect even if close was clean
@@ -770,17 +758,18 @@ export function SocketProvider(props: SocketProviderProps) {
             );
             // If the exception occurs during fetch or new WebSocket(), then attempt reconnection.
             isReconnectingRef.current = false;
-            setIsReconnecting(false);
             attemptReconnection(); // Safe to call here
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         WS_BASE_URL,
         tableId,
-        appStateRef, // Added appStateRef to deps as it's used in onopen
+        appStateRef,
         dispatch,
-        isReconnecting, // Added isReconnecting
-        // getReconnectDelay, reconnectionAttempts, maxReconnectionAttempts are for attemptReconnection
+        // isReconnecting intentionally excluded: it is not used inside the function body,
+        // and including it causes the useCallback to be recreated on every reconnection
+        // state change, which triggers the useEffect cleanup and cancels the pending
+        // reconnect timeout before it fires.
     ]);
 
     const forceReconnect = useCallback(
@@ -795,9 +784,7 @@ export function SocketProvider(props: SocketProviderProps) {
             // Avoid reconnection toasts for intentional reconnects.
             manualCloseRef.current = true;
             isReconnectingRef.current = false;
-            setIsReconnecting(false);
-            setReconnectionAttempts(0);
-            hasShownInitialErrorRef.current = false;
+            reconnectionAttemptsRef.current = 0;
 
             try {
                 socketRef.current.close(1000, reason);
@@ -813,11 +800,10 @@ export function SocketProvider(props: SocketProviderProps) {
     );
 
     const attemptReconnection = useCallback(() => {
-        if (!WS_BASE_URL || reconnectionAttempts >= maxReconnectionAttempts) {
-            if (reconnectionAttempts >= maxReconnectionAttempts) {
+        if (!WS_BASE_URL || reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
+            if (reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
                 isReconnectingRef.current = false;
-                setIsReconnecting(false);
-                hasShownInitialErrorRef.current = false; // Reset for next connection attempt
+                toastCloseRef.current(TOAST_ID_RECONNECTING); // dismiss retry toast
                 toastConnectionLostRef.current(
                     null, // persist until closed or user refreshes
                     'connectionFailed'
@@ -828,10 +814,11 @@ export function SocketProvider(props: SocketProviderProps) {
         if (isReconnectingRef.current) return; // Already trying to reconnect
 
         isReconnectingRef.current = true;
-        setIsReconnecting(true);
-        const nextAttempt = reconnectionAttempts + 1;
-        setReconnectionAttempts(nextAttempt);
-        const delay = getReconnectDelay(reconnectionAttempts);
+        console.log("is reconnecting!")
+        const nextAttempt = reconnectionAttemptsRef.current + 1;
+        reconnectionAttemptsRef.current = nextAttempt;
+
+        const delay = getReconnectDelay(nextAttempt - 1);
 
         if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
@@ -841,15 +828,13 @@ export function SocketProvider(props: SocketProviderProps) {
         }, delay);
     }, [
         WS_BASE_URL,
-        reconnectionAttempts,
         maxReconnectionAttempts,
         getReconnectDelay,
         connectWebSocket,
     ]);
 
     useEffect(() => {
-        if (!socketRef.current && !isReconnecting) {
-            // Also check isReconnecting to prevent multiple initial calls
+        if (!socketRef.current && !isReconnectingRef.current) {
             connectWebSocket();
         }
         return () => {
@@ -864,7 +849,10 @@ export function SocketProvider(props: SocketProviderProps) {
                 setSocket(null);
             }
         };
-    }, [connectWebSocket, isReconnecting]); // Added isReconnecting to dependencies
+        // isReconnecting state intentionally excluded: using the ref avoids recreating
+        // this effect (and running its cleanup) on every reconnection state change,
+        // which would cancel the pending reconnect timeout before it fires.
+    }, [connectWebSocket]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (!socketRef.current || !isAuthenticated || !userAddress) return;
@@ -921,8 +909,7 @@ export function SocketProvider(props: SocketProviderProps) {
                         'WebSocket disconnected, resetting attempts and reconnecting...'
                     );
                     // Reset reconnection attempts for a fresh start
-                    setReconnectionAttempts(0);
-                    hasShownInitialErrorRef.current = false;
+                    reconnectionAttemptsRef.current = 0;
 
                     // Clear any pending reconnection timeout
                     if (reconnectTimeoutRef.current) {
@@ -954,8 +941,6 @@ export function SocketProvider(props: SocketProviderProps) {
 
             if (isDisconnected && !isReconnectingRef.current) {
                 console.log('Network online + disconnected, reconnecting...');
-                setReconnectionAttempts(0);
-                hasShownInitialErrorRef.current = false;
 
                 if (reconnectTimeoutRef.current) {
                     clearTimeout(reconnectTimeoutRef.current);

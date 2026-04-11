@@ -31,6 +31,8 @@ export interface LeaderboardEntry {
     address: string;
     points: number;
     handsPlayed: number;
+    xUsername?: string | null;
+    xProfileImageUrl?: string | null;
 }
 
 const PODIUM_COLORS: Record<number, string> = {
@@ -184,12 +186,13 @@ const LeaderboardTable = ({
                                     <HStack spacing={{ base: 2, md: 3 }} flex={1} minW={0}>
                                         <Box
                                             as="img"
-                                            src={blo(entry.address as `0x${string}`)}
+                                            src={entry.xProfileImageUrl ?? blo(entry.address as `0x${string}`)}
                                             alt=""
                                             w={{ base: '28px', md: '32px' }}
                                             h={{ base: '28px', md: '32px' }}
-                                            borderRadius="4px"
+                                            borderRadius={entry.xProfileImageUrl ? 'full' : '4px'}
                                             flexShrink={0}
+                                            objectFit="cover"
                                             boxShadow={
                                                 isCurrentPlayer
                                                     ? '0 0 0 2px #36A37B'
@@ -198,17 +201,21 @@ const LeaderboardTable = ({
                                         />
                                         <Text
                                             as="a"
-                                            href={`https://sepolia.basescan.org/address/${entry.address}`}
+                                            href={
+                                                entry.xUsername
+                                                    ? `https://x.com/${entry.xUsername}`
+                                                    : `https://sepolia.basescan.org/address/${entry.address}`
+                                            }
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             color={isCurrentPlayer ? 'brand.green' : 'text.primary'}
                                             fontWeight={isCurrentPlayer ? 'bold' : 'medium'}
-                                            fontFamily="mono"
+                                            fontFamily={entry.xUsername ? 'body' : 'mono'}
                                             fontSize={{ base: 'xs', md: 'sm' }}
                                             isTruncated
                                             _hover={{ textDecoration: 'underline' }}
                                         >
-                                            {truncateAddress(entry.address)}
+                                            {entry.xUsername ? `@${entry.xUsername}` : truncateAddress(entry.address)}
                                         </Text>
                                         {isCurrentPlayer && (
                                             <Text

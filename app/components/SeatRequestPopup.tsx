@@ -14,13 +14,14 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
+import { FaCircleCheck, FaCircleXmark, FaXTwitter } from 'react-icons/fa6';
 import { acceptPlayer, denyPlayer } from '@/app/hooks/server_actions';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { PendingPlayer } from '@/app/interfaces';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
 const fadeIn = keyframes`
   from { 
@@ -81,7 +82,10 @@ const SeatRequestPopup = () => {
         });
     }, [pendingPlayers, isOwner, showPopups]);
 
+    const { format } = useFormatAmount();
     const currentRequest = queue[0];
+    const isCrypto = Boolean(appState.game?.config?.crypto);
+    const isXVerified = currentRequest?.username?.startsWith('@');
     const isOpen =
         Boolean(currentRequest) && isOwner && showPopups && !isSettingsOpen;
 
@@ -204,6 +208,19 @@ const SeatRequestPopup = () => {
                     >
                         <Stack gap={1} flex={1} minW={0}>
                             <Flex alignItems="center" gap={2} minW={0}>
+                                {isXVerified && (
+                                    <Flex
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        bg="#000"
+                                        borderRadius="full"
+                                        w="16px"
+                                        h="16px"
+                                        flexShrink={0}
+                                    >
+                                        <FaXTwitter color="white" size={9} />
+                                    </Flex>
+                                )}
                                 <Text
                                     fontWeight="bold"
                                     fontSize="sm"
@@ -214,16 +231,18 @@ const SeatRequestPopup = () => {
                                     {currentRequest.username ||
                                         currentRequest.uuid.substring(0, 8)}
                                 </Text>
-                                <Badge
-                                    bg="card.lightGray"
-                                    color="brand.navy"
-                                    fontSize="2xs"
-                                    borderRadius="5px"
-                                    px={1.5}
-                                    py={0.25}
-                                >
-                                    Seat #{currentRequest.seatId}
-                                </Badge>
+                                {!isCrypto && (
+                                    <Badge
+                                        bg="card.lightGray"
+                                        color="brand.navy"
+                                        fontSize="2xs"
+                                        borderRadius="5px"
+                                        px={1.5}
+                                        py={0.25}
+                                    >
+                                        Seat #{currentRequest.seatId}
+                                    </Badge>
+                                )}
                             </Flex>
                             <Flex gap={1} flexWrap="wrap" alignItems="center">
                                 <Badge
@@ -234,7 +253,7 @@ const SeatRequestPopup = () => {
                                     px={1.5}
                                     py={0.25}
                                 >
-                                    Buy-in ${currentRequest.buyIn}
+                                    Buy-in {format(currentRequest.buyIn)}
                                 </Badge>
                                 <Badge
                                     bg="card.lightGray"

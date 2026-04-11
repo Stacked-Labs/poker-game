@@ -97,6 +97,12 @@ export function newPlayer(socket: WebSocket, username: string) {
     });
 }
 
+export function refreshXIdentity(socket: WebSocket) {
+    sendWebSocketMessage(socket, {
+        action: 'refresh-x-identity',
+    });
+}
+
 export function playerCall(socket: WebSocket) {
     sendWebSocketMessage(socket, {
         action: 'player-call',
@@ -497,9 +503,18 @@ export async function getTables() {
     }
 }
 
+type LeaderboardPlayerEntry = {
+    address: string;
+    points: number;
+    handsPlayed: number;
+    rank: number;
+    xUsername?: string | null;
+    xProfileImageUrl?: string | null;
+};
+
 export async function getLeaderboard(address?: string): Promise<{
-    leaderboard: { address: string; points: number; handsPlayed: number; rank: number }[];
-    player: { address: string; points: number; handsPlayed: number; rank: number } | null;
+    leaderboard: LeaderboardPlayerEntry[];
+    player: LeaderboardPlayerEntry | null;
     total: number;
     updatedAt: string | null;
 }> {

@@ -1,7 +1,9 @@
 import { tableColors } from '@/app/utils/tableColors';
 import {
     Box,
+    Button,
     Flex,
+    Image,
     Select,
     Text,
     Switch,
@@ -17,14 +19,16 @@ import {
 import { FaMoon } from 'react-icons/fa';
 import { IoMdSunny } from 'react-icons/io';
 import { FiCheck, FiEye, FiEyeOff, FiVolume2, FiVolumeX, FiX } from 'react-icons/fi';
+import { FaXTwitter } from 'react-icons/fa6';
 import { useColorMode } from '@chakra-ui/react';
 import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { CardBack } from '@/app/components/Card';
 import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
-import { sendUpdateBlinds } from '@/app/hooks/server_actions';
+import { sendUpdateBlinds, refreshXIdentity } from '@/app/hooks/server_actions';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { useToast } from '@chakra-ui/react';
 
@@ -40,6 +44,146 @@ const cardBackColors: Record<CardBackVariant, string> = {
     ethereum: '#627EEA',
     base: '#1A6BFF',
     usdc: '#2775CA',
+};
+
+const ConnectXSection = () => {
+    const { isAuthenticated, xUsername, xProfileImageUrl, refreshXStatus } = useAuth();
+    const socket = useContext(SocketContext);
+    const [isDisconnecting, setIsDisconnecting] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(false);
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    if (!isAuthenticated) return null;
+
+    const handleConnect = () => {
+        setIsConnecting(true);
+        let handled = false;
+        const width = 500;
+        const height = 700;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        const popup = window.open(
+            `${backendUrl}/auth/x`,
+            'x_oauth',
+            `width=${width},height=${height},left=${left},top=${top},popup=yes`
+        );
+
+        const onComplete = () => {
+            if (handled) return;
+            handled = true;
+            refreshXStatus().then(() => {
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    refreshXIdentity(socket);
+                }
+            });
+        };
+
+        // Listen for result from popup via postMessage
+        const handler = (event: MessageEvent) => {
+            if (event.data?.type !== 'x_oauth_result') return;
+            window.removeEventListener('message', handler);
+            setIsConnecting(false);
+            if (event.data.status === 'success') {
+                onComplete();
+            }
+        };
+        window.addEventListener('message', handler);
+
+        // Fallback: if popup is closed without sending a message
+        const pollClosed = setInterval(() => {
+            if (popup && popup.closed) {
+                clearInterval(pollClosed);
+                window.removeEventListener('message', handler);
+                setIsConnecting(false);
+                // Refresh anyway in case it worked but postMessage didn't fire
+                onComplete();
+            }
+        }, 500);
+    };
+
+    const handleDisconnect = async () => {
+        setIsDisconnecting(true);
+        try {
+            await fetch(`${backendUrl}/auth/x`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+            await refreshXStatus();
+        } catch (err) {
+            console.error('Failed to disconnect X account:', err);
+        } finally {
+            setIsDisconnecting(false);
+        }
+    };
+
+    return (
+        <Box
+            bg="card.white"
+            borderRadius="16px"
+            border="2px solid"
+            borderColor="border.lightGray"
+            p={{ base: 2.5, md: 3 }}
+            boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+        >
+            <Flex
+                direction="row"
+                justify="space-between"
+                align="center"
+                wrap="nowrap"
+                gap={3}
+            >
+                <HStack spacing={2} flex={1} minWidth={0}>
+                    <Icon as={FaXTwitter} boxSize={{ base: 4, md: 5 }} color="text.secondary" />
+                    <Text
+                        fontSize={{ base: 'sm', md: 'lg' }}
+                        fontWeight="bold"
+                        color="text.secondary"
+                        whiteSpace="nowrap"
+                    >
+                        {xUsername ? `@${xUsername}` : 'X Account'}
+                    </Text>
+                </HStack>
+                <HStack spacing={2} flexShrink={0}>
+                    {xProfileImageUrl && (
+                        <Image
+                            src={xProfileImageUrl}
+                            alt="X avatar"
+                            boxSize={{ base: '28px', md: '32px' }}
+                            borderRadius="full"
+                            objectFit="cover"
+                        />
+                    )}
+                    {xUsername ? (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            colorScheme="red"
+                            borderRadius="8px"
+                            fontSize={{ base: 'xs', md: 'sm' }}
+                            onClick={handleDisconnect}
+                            isLoading={isDisconnecting}
+                        >
+                            Disconnect
+                        </Button>
+                    ) : (
+                        <Button
+                            size="sm"
+                            bg="#000"
+                            color="white"
+                            borderRadius="8px"
+                            fontSize={{ base: 'xs', md: 'sm' }}
+                            _hover={{ bg: '#333' }}
+                            onClick={handleConnect}
+                            isLoading={isConnecting}
+                            leftIcon={<Icon as={FaXTwitter} boxSize={3.5} />}
+                        >
+                            Connect
+                        </Button>
+                    )}
+                </HStack>
+            </Flex>
+        </Box>
+    );
 };
 
 const GameSettings = () => {
@@ -122,6 +266,7 @@ const GameSettings = () => {
 
     return (
         <VStack spacing={{ base: 2, md: 4 }} align="stretch">
+            <ConnectXSection />
             <Tooltip
                 label={!isOwner ? 'Only the table owner can change blinds' : undefined}
                 isDisabled={isOwner}

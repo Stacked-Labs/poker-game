@@ -1000,6 +1000,19 @@ const GameLog = () => {
                 );
             }
 
+            case 'player_identity_updated': {
+                const oldName = metadata.old_name as string;
+                const newName = metadata.new_name as string;
+                return (
+                    <>
+                        {oldName || 'Player'} is now{' '}
+                        <Text as="span" color="blue.400" fontWeight="bold">
+                            {newName}
+                        </Text>
+                    </>
+                );
+            }
+
             default:
                 console.warn(
                     '[GameLog] Unhandled event_type:',

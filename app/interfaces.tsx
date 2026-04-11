@@ -56,6 +56,7 @@ export type Player = {
     username: string;
     uuid: string;
     address: string; //Ethereum address which acts as uuid
+    profileImageUrl?: string; // X (Twitter) profile image URL
     position: number;
     seatID: number;
     ready: boolean;

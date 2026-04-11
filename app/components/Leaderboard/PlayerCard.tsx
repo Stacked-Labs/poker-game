@@ -64,6 +64,8 @@ interface PlayerCardProps {
     nextRank?: number;
     nextPoints?: number;
     total?: number;
+    xUsername?: string | null;
+    xProfileImageUrl?: string | null;
 }
 
 const PlayerCard: React.FC<PlayerCardProps> = ({
@@ -75,6 +77,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     nextRank,
     nextPoints,
     total = 0,
+    xUsername,
+    xProfileImageUrl,
 }) => {
     const account = useActiveAccount();
     const { isAuthenticated, isAuthenticating, requestAuthentication } =
@@ -165,13 +169,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                         <>
                             {/* A. Profile + Rank hero (horizontal) */}
                             <Flex align="center" gap={{ base: 4, md: 5 }}>
-                                {/* Blockie avatar with tier ring */}
+                                {/* Avatar with tier ring */}
                                 <Box position="relative" flexShrink={0}>
                                     {tier && (
                                         <Box
                                             position="absolute"
                                             inset="-3px"
-                                            borderRadius="7px"
+                                            borderRadius={xProfileImageUrl ? 'full' : '7px'}
                                             border="2px solid"
                                             borderColor={tier.color}
                                             opacity={0.5}
@@ -180,11 +184,12 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                                     )}
                                     <Box
                                         as="img"
-                                        src={blo(account!.address as `0x${string}`)}
+                                        src={xProfileImageUrl ?? blo(account!.address as `0x${string}`)}
                                         alt=""
                                         w="56px"
                                         h="56px"
-                                        borderRadius="4px"
+                                        borderRadius={xProfileImageUrl ? 'full' : '4px'}
+                                        objectFit="cover"
                                         boxShadow={
                                             tier
                                                 ? `0 4px 16px rgba(0,0,0,0.15), 0 0 12px ${tier.color}22`
@@ -227,20 +232,24 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                                         )}
                                     </HStack>
 
-                                    {/* Address — links to BaseScan */}
+                                    {/* Identity — X username or wallet address */}
                                     <Text
                                         as="a"
-                                        href={`https://sepolia.basescan.org/address/${account!.address}`}
+                                        href={
+                                            xUsername
+                                                ? `https://x.com/${xUsername}`
+                                                : `https://sepolia.basescan.org/address/${account!.address}`
+                                        }
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         color="text.secondary"
                                         fontSize="xs"
-                                        fontFamily="mono"
+                                        fontFamily={xUsername ? 'body' : 'mono'}
                                         mt={1}
                                         _hover={{ color: 'brand.green' }}
                                         transition="color 0.2s ease"
                                     >
-                                        {truncateAddress(account!.address)}
+                                        {xUsername ? `@${xUsername}` : truncateAddress(account!.address)}
                                     </Text>
                                 </VStack>
                             </Flex>

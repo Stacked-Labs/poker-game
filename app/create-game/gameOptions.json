@@ -13,15 +13,17 @@
     ],
     "networks": [
         {
+            "id": "base-sepolia",
             "name": "Base Sepolia",
             "image": "/networkLogos/base-logo.png",
             "badge": "Testnet",
             "disabled": false
         },
         {
+            "id": "base",
             "name": "Base",
             "image": "/networkLogos/base-logo.png",
-            "disabled": true
+            "disabled": false
         }
     ]
 }

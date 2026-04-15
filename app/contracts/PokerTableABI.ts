@@ -103,8 +103,26 @@ export const POKER_TABLE_ABI = [
     },
 ] as const;
 
-// USDC on Base testnet
-export const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+// USDC contract addresses per chain.
+// Use getUsdcAddress(chainId) instead of the constants directly when the chain
+// is not known at compile time.
+export const USDC_ADDRESS_SEPOLIA = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+export const USDC_ADDRESS_MAINNET = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+
+/** @deprecated Use getUsdcAddress(chainId) or CHAIN_CONFIG from thirdwebclient */
+export const USDC_ADDRESS = USDC_ADDRESS_SEPOLIA;
+
+const USDC_BY_CHAIN_ID: Record<number, string> = {
+    84532: USDC_ADDRESS_SEPOLIA, // Base Sepolia
+    8453:  USDC_ADDRESS_MAINNET, // Base mainnet
+};
+
+/** Returns the USDC contract address for the given chain ID. */
+export function getUsdcAddress(chainId: number): string {
+    const addr = USDC_BY_CHAIN_ID[chainId];
+    if (!addr) throw new Error(`No USDC address configured for chain ID ${chainId}`);
+    return addr;
+}
 
 export const ERC20_ABI = [
     {

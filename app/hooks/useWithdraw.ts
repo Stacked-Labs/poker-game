@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
 import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
-import { client, baseSepoliaChain } from '../thirdwebclient';
+import { client, CHAIN_CONFIG, defaultChain } from '../thirdwebclient';
 
 export type WithdrawStatus =
     | 'idle'
@@ -23,7 +23,15 @@ interface UseWithdrawResult {
     reset: () => void;
 }
 
-export function useWithdraw(contractAddress: string | undefined): UseWithdrawResult {
+/**
+ * @param contractAddress  The deployed PokerTable contract address.
+ * @param chainId          The chain ID of the table's network.
+ *                         Defaults to the deployment's defaultChain.
+ */
+export function useWithdraw(
+    contractAddress: string | undefined,
+    chainId?: number
+): UseWithdrawResult {
     const account = useActiveAccount();
     const [status, setStatus] = useState<WithdrawStatus>('idle');
     const [error, setError] = useState<string | null>(null);
@@ -32,18 +40,19 @@ export function useWithdraw(contractAddress: string | undefined): UseWithdrawRes
 
     const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
 
+    const chain = (() => {
+        if (!chainId) return defaultChain;
+        const entry = Object.values(CHAIN_CONFIG).find((c) => c.chain.id === chainId);
+        return entry?.chain ?? defaultChain;
+    })();
+
     const reset = useCallback(() => {
         setStatus('idle');
         setError(null);
     }, []);
 
     const checkCanWithdraw = useCallback(async (): Promise<boolean> => {
-        if (!account?.address) {
-            setCanWithdrawState(false);
-            return false;
-        }
-
-        if (!contractAddress) {
+        if (!account?.address || !contractAddress) {
             setCanWithdrawState(false);
             return false;
         }
@@ -51,20 +60,14 @@ export function useWithdraw(contractAddress: string | undefined): UseWithdrawRes
         try {
             setStatus('checking');
 
-            const pokerContract = getContract({
-                client,
-                chain: baseSepoliaChain,
-                address: contractAddress,
-            });
+            const pokerContract = getContract({ client, chain, address: contractAddress });
 
-            // Check if player can withdraw
             const canWithdrawResult = await readContract({
                 contract: pokerContract,
                 method: 'function canWithdraw(address player) view returns (bool)',
                 params: [account.address],
             }) as boolean;
 
-            // Get chip balance
             const balance = await readContract({
                 contract: pokerContract,
                 method: 'function chipBalance(address) view returns (uint256)',
@@ -81,7 +84,7 @@ export function useWithdraw(contractAddress: string | undefined): UseWithdrawRes
             setStatus('idle');
             return false;
         }
-    }, [account?.address, contractAddress]);
+    }, [account?.address, contractAddress, chain]);
 
     const withdraw = useCallback(async (): Promise<boolean> => {
         if (!account?.address) {
@@ -99,11 +102,7 @@ export function useWithdraw(contractAddress: string | undefined): UseWithdrawRes
         try {
             setStatus('withdrawing');
 
-            const pokerContract = getContract({
-                client,
-                chain: baseSepoliaChain,
-                address: contractAddress,
-            });
+            const pokerContract = getContract({ client, chain, address: contractAddress });
 
             const withdrawTx = prepareContractCall({
                 contract: pokerContract,
@@ -123,7 +122,7 @@ export function useWithdraw(contractAddress: string | undefined): UseWithdrawRes
             setStatus('error');
             return false;
         }
-    }, [account?.address, contractAddress, sendAndConfirm]);
+    }, [account?.address, contractAddress, chain, sendAndConfirm]);
 
     return {
         withdraw,

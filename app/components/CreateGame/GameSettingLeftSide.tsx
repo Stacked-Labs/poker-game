@@ -32,6 +32,7 @@ import { RiTwitterXLine } from 'react-icons/ri';
 import PlayTypeToggle from './PlayTypeToggle';
 import NetworkCard from './NetworkCard';
 import gameData from '../../create-game/gameOptions.json';
+import { enabledChains } from '@/app/thirdwebclient';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import WalletButton from '@/app/components/WalletButton';
@@ -63,8 +64,9 @@ const GameSettingLeftSide: React.FC = () => {
     const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
+    // Default to the first enabled chain id (e.g. "base-sepolia").
     const [selectedNetwork, setSelectedNetwork] =
-        useState<string>('Base Sepolia');
+        useState<string>(enabledChains[0] ?? 'base-sepolia');
     const [isLoading, setIsLoading] = useState(false);
     const address = useActiveAccount()?.address;
     const wallet = useActiveWallet();
@@ -95,7 +97,9 @@ const GameSettingLeftSide: React.FC = () => {
         return Boolean(turnstileToken) || turnstileError;
     }, [isTurnstileConfigured, turnstileToken, turnstileError]);
 
-    const { gameModes, networks } = gameData;
+    const { gameModes } = gameData;
+    // Filter networks to those enabled for this deployment, preserving json order.
+    const networks = gameData.networks.filter((n) => enabledChains.includes(n.id as never));
 
     // Get the description for the selected game mode
     const selectedGameModeDescription = useMemo(() => {
@@ -897,7 +901,7 @@ const GameSettingLeftSide: React.FC = () => {
                                         Select blockchain to play on
                                     </Text>
                                 </Box>
-                                {selectedNetwork === 'Base Sepolia' && (
+                                {selectedNetwork === 'base-sepolia' && (
                                     <Link
                                         href="/free-tokens"
                                         isExternal
@@ -981,16 +985,12 @@ const GameSettingLeftSide: React.FC = () => {
                             >
                                 {networks.map((network) => (
                                     <NetworkCard
-                                        key={network.name}
+                                        key={network.id}
                                         name={network.name}
                                         image={network.image}
                                         badge={network.badge}
-                                        isSelected={
-                                            selectedNetwork === network.name
-                                        }
-                                        onClick={() =>
-                                            setSelectedNetwork(network.name)
-                                        }
+                                        isSelected={selectedNetwork === network.id}
+                                        onClick={() => setSelectedNetwork(network.id)}
                                         disabled={network.disabled}
                                     />
                                 ))}

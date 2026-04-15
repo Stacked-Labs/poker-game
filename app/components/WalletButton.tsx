@@ -5,7 +5,9 @@ import { useMediaQuery } from '@chakra-ui/react';
 import { ConnectButton, darkTheme, lightTheme } from 'thirdweb/react';
 import {
     client,
-    baseSepoliaChain,
+    defaultChain,
+    enabledChains,
+    CHAIN_CONFIG,
     supportedTokens,
     wallets,
 } from '@/app/thirdwebclient';
@@ -139,7 +141,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     return (
         <ConnectButton
             client={client}
-            chain={baseSepoliaChain}
+            chain={defaultChain}
             wallets={wallets}
             supportedTokens={supportedTokens}
             detailsButton={{
@@ -148,22 +150,21 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                     ...sizeOverrideStyle,
                     borderRadius: variant === 'link' ? '0' : theme.radii.md,
                 },
+                // Show USDC balance for the default (first enabled) chain
                 displayBalanceToken: {
-                    [baseSepoliaChain.id]:
-                        '0x036CbD53842c5426634e7929541eC2318f3dCF7e', // USDC on Base testnet
+                    [defaultChain.id]: CHAIN_CONFIG[enabledChains[0] ?? 'base-sepolia'].usdc,
                 },
             }}
             detailsModal={{
                 payOptions: {
                     prefillBuy: {
                         token: {
-                            address:
-                                '0x036CbD53842c5426634e7929541eC2318f3dCF7e', // USDC on Base testnet
+                            address: CHAIN_CONFIG[enabledChains[0] ?? 'base-sepolia'].usdc,
                             name: 'USD Coin',
                             symbol: 'USDC',
                             icon: '/usdc-logo.png',
                         },
-                        chain: baseSepoliaChain,
+                        chain: defaultChain,
                         allowEdits: {
                             amount: true,
                             token: false,

@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
 import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
-import { client, baseSepoliaChain } from '../thirdwebclient';
+import { client, CHAIN_CONFIG, defaultChain } from '../thirdwebclient';
 
 /** USDC uses 6 decimals on Base */
 const USDC_DECIMALS = 6;
@@ -27,7 +27,15 @@ export interface UseHostRakeResult {
     withdraw: () => Promise<boolean>;
 }
 
-export function useHostRake(contractAddress: string | undefined): UseHostRakeResult {
+/**
+ * @param contractAddress  The deployed PokerTable contract address.
+ * @param chainId          The chain ID of the table's network.
+ *                         Defaults to the deployment's defaultChain.
+ */
+export function useHostRake(
+    contractAddress: string | undefined,
+    chainId?: number
+): UseHostRakeResult {
     const account = useActiveAccount();
     const [rakeBalance, setRakeBalance] = useState<bigint | null>(null);
     const [status, setStatus] = useState<HostRakeStatus>('idle');
@@ -35,6 +43,12 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
+
+    const chain = (() => {
+        if (!chainId) return defaultChain;
+        const entry = Object.values(CHAIN_CONFIG).find((c) => c.chain.id === chainId);
+        return entry?.chain ?? defaultChain;
+    })();
 
     const refresh = useCallback(async () => {
         if (!account?.address || !contractAddress) {
@@ -44,11 +58,7 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
 
         try {
             setStatus('loading');
-            const pokerContract = getContract({
-                client,
-                chain: baseSepoliaChain,
-                address: contractAddress,
-            });
+            const pokerContract = getContract({ client, chain, address: contractAddress });
 
             const balance = (await readContract({
                 contract: pokerContract,
@@ -64,7 +74,7 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
             setError(err instanceof Error ? err.message : 'Failed to read rake balance');
             setStatus('error');
         }
-    }, [account?.address, contractAddress]);
+    }, [account?.address, contractAddress, chain]);
 
     const withdraw = useCallback(async (): Promise<boolean> => {
         if (!account?.address || !contractAddress) {
@@ -75,11 +85,7 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
 
         try {
             setStatus('withdrawing');
-            const pokerContract = getContract({
-                client,
-                chain: baseSepoliaChain,
-                address: contractAddress,
-            });
+            const pokerContract = getContract({ client, chain, address: contractAddress });
 
             const tx = prepareContractCall({
                 contract: pokerContract,
@@ -98,7 +104,7 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
             setStatus('error');
             return false;
         }
-    }, [account?.address, contractAddress, sendAndConfirm]);
+    }, [account?.address, contractAddress, chain, sendAndConfirm]);
 
     // Poll every 30 seconds to pick up new rake from settlements
     useEffect(() => {
@@ -112,7 +118,6 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
         };
     }, [account?.address, contractAddress, refresh]);
 
-    // Format to USDC display
     const rakeUsdcFormatted =
         rakeBalance !== null
             ? (Number(rakeBalance) / 10 ** USDC_DECIMALS).toLocaleString('en-US', {

@@ -19,12 +19,20 @@ const ADDRESSES = [
 
 const CURRENT_ADDRESS = ADDRESSES[3];
 
-const makeEntries = (count: number): LeaderboardEntry[] =>
+/** Sample X profiles for stories — indices match ADDRESSES array where linked */
+const X_PROFILES: Record<number, { xUsername: string; xProfileImageUrl: string }> = {
+    0: { xUsername: 'pokerShark', xProfileImageUrl: 'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg' },
+    2: { xUsername: 'degenGambler', xProfileImageUrl: 'https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg' },
+    4: { xUsername: 'stackedPoker', xProfileImageUrl: 'https://pbs.twimg.com/profile_images/1780044069781475328/wMo4Bp3R_400x400.jpg' },
+};
+
+const makeEntries = (count: number, opts?: { withX?: boolean }): LeaderboardEntry[] =>
     Array.from({ length: count }, (_, i) => ({
         rank: i + 1,
         address: ADDRESSES[i % ADDRESSES.length],
         points: Math.max(10_000 - i * 800, 10),
         handsPlayed: Math.max(500 - i * 40, 5),
+        ...(opts?.withX && X_PROFILES[i] ? X_PROFILES[i] : {}),
     }));
 
 const meta = {
@@ -44,7 +52,7 @@ const meta = {
         docs: {
             description: {
                 component:
-                    'Borderless row strips with blockie avatars, tier icons, left accent bars for top-3/current/rival, and translateX hover. No table headers.',
+                    'Borderless row strips with blockie (or X profile) avatars, tier icons, left accent bars for top-3/current/rival, and translateX hover. X-linked @username entries show a hover Popover with the wallet address and a "View on BaseScan ↗" link. Clicking @username still opens x.com.',
             },
         },
     },
@@ -90,5 +98,37 @@ export const SinglePlayer: Story = {
         data: [{ rank: 1, address: ADDRESSES[0], points: 500, handsPlayed: 42 }],
         currentAddress: ADDRESSES[0],
         total: 1,
+    },
+};
+
+// ── X (Twitter) integration ──────────────────────────────────────────────────
+
+/** Mix of X-linked players (circular avatar, @username) and wallet-only (blockie, 0x…). */
+export const WithXLinkedPlayers: Story = {
+    name: 'Mixed — X + Wallet Players',
+    args: {
+        data: makeEntries(10, { withX: true }),
+        currentAddress: ADDRESSES[2],
+        total: 200,
+    },
+};
+
+/** Current player has an X account — their row shows @username in green + "YOU" badge. */
+export const CurrentPlayerWithX: Story = {
+    name: 'Current Player — X Linked',
+    args: {
+        data: makeEntries(10, { withX: true }),
+        currentAddress: ADDRESSES[0],
+        total: 200,
+    },
+};
+
+/** Top 3 podium with X-linked winners. */
+export const TopThreeWithX: Story = {
+    name: 'Top 3 Podium — X Linked',
+    args: {
+        data: makeEntries(3, { withX: true }),
+        currentAddress: ADDRESSES[0],
+        total: 200,
     },
 };

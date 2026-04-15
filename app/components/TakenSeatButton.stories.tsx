@@ -6,6 +6,7 @@ import TakenSeatButton from './TakenSeatButton';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { SoundContext } from '@/app/contexts/SoundProvider';
+import { AuthContext } from '@/app/contexts/AuthContext';
 import type { AppState, Game, Player } from '@/app/interfaces';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
@@ -130,31 +131,53 @@ type DecoratorConfig = {
     gameOverride?: Partial<Game>;
     /** Inject a mock WebSocket so emote picker / seat reactions are enabled */
     withSocket?: boolean;
+    /** Inject mock auth state for X integration stories */
+    authOverride?: {
+        isAuthenticated?: boolean;
+        xUsername?: string | null;
+        xProfileImageUrl?: string | null;
+    };
 };
 
-const makeDecorator = ({ appStateOverride, gameOverride, withSocket }: DecoratorConfig = {}) => {
+const defaultAuth = {
+    isAuthenticated: false,
+    isAuthenticating: false,
+    userAddress: null,
+    lastAuthenticatedAddress: null,
+    xUsername: null,
+    xProfileImageUrl: null,
+    requestAuthentication: () => {},
+    refreshAuthStatus: async () => {},
+    refreshXStatus: async () => {},
+};
+
+const makeDecorator = ({ appStateOverride, gameOverride, withSocket, authOverride }: DecoratorConfig = {}) => {
     const game: Game = { ...baseGame, ...gameOverride };
     const appState: AppState = { ...baseAppState, ...appStateOverride, game };
+    const authValue = { ...defaultAuth, ...authOverride };
     const Wrapper = (Story: React.FC) => (
-        <AppContext.Provider value={{ appState, dispatch: () => null }}>
-            <SoundContext.Provider value={mockSound}>
-                <SocketContext.Provider value={withSocket ? mockSocket : null}>
-                    {/* Seat slot — mirrors the approximate on-table size */}
-                    <div
-                        style={{
-                            width: 150,
-                            height: 130,
-                            position: 'relative',
-                            background: '#0B1430',
-                            borderRadius: 8,
-                            overflow: 'visible',
-                        }}
-                    >
-                        <Story />
-                    </div>
-                </SocketContext.Provider>
-            </SoundContext.Provider>
-        </AppContext.Provider>
+        <AuthContext.Provider value={authValue}>
+            <AppContext.Provider value={{ appState, dispatch: () => null }}>
+                <SoundContext.Provider value={mockSound}>
+                    <SocketContext.Provider value={withSocket ? mockSocket : null}>
+                        {/* Seat slot — extra top/horizontal padding so hover cards/tooltips have room */}
+                        <div
+                            style={{
+                                width: 150,
+                                height: 130,
+                                position: 'relative',
+                                background: '#0B1430',
+                                borderRadius: 8,
+                                overflow: 'visible',
+                                margin: '120px 60px 20px',
+                            }}
+                        >
+                            <Story />
+                        </div>
+                    </SocketContext.Provider>
+                </SoundContext.Provider>
+            </AppContext.Provider>
+        </AuthContext.Provider>
     );
     Wrapper.displayName = 'TakenSeatStoryWrapper';
     return Wrapper;
@@ -517,6 +540,110 @@ export const WithSeatReaction: Story = {
     },
     args: {
         player: { ...basePlayer, uuid: PLAYER_UUID },
+    },
+};
+
+// ── X (Twitter) integration ───────────────────────────────────────────────────
+
+/** Player with X profile image — circular avatar with FaXTwitter verified badge at bottom-right. */
+export const XProfileAvatar: Story = {
+    name: 'X Avatar — verified badge (FaXTwitter icon)',
+    args: {
+        player: {
+            ...basePlayer,
+            username: '@pokerShark',
+            profileImageUrl: 'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        },
+    },
+};
+
+/** Self player with X linked — circular avatar + FaXTwitter badge, no connect prompt. */
+export const XProfileSelf: Story = {
+    name: 'X Avatar — self (linked)',
+    decorators: [makeDecorator({
+        appStateOverride: { clientID: PLAYER_UUID },
+        withSocket: true,
+        authOverride: { isAuthenticated: true, xUsername: 'pokerShark' },
+    })],
+    args: {
+        player: {
+            ...basePlayer,
+            uuid: PLAYER_UUID,
+            username: '@pokerShark',
+            profileImageUrl: 'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        },
+    },
+};
+
+/**
+ * Self player without X linked — glassmorphism hover card auto-reveals once per
+ * session (~1.2 s after mount). Hover the avatar to re-trigger the card after it
+ * auto-hides. Dismiss button persists via localStorage up to 3 times.
+ *
+ * Story clears session/local storage on mount so the card appears on every
+ * reload.
+ */
+export const ConnectXPrompt: Story = {
+    name: 'X — connect hover card (auto-reveal)',
+    decorators: [makeDecorator({
+        appStateOverride: { clientID: PLAYER_UUID },
+        withSocket: true,
+        authOverride: { isAuthenticated: true, xUsername: null },
+    })],
+    beforeEach: () => {
+        if (typeof window !== 'undefined') {
+            window.sessionStorage.removeItem('stacked_x_prompt_autoshown');
+            window.localStorage.removeItem('stacked_x_prompt_dismissed');
+        }
+        useSeatReactionsStore.setState(initialSeatReactions, true);
+        usePointsAnimationStore.setState(initialPointsAnimation, true);
+    },
+    parameters: {
+        docs: {
+            description: {
+                story:
+                    'Hover card appears ~1.2s after mount via sessionStorage-gated auto-reveal. Hover the avatar to re-trigger. Click × to dismiss (localStorage tracks dismissal count, hides forever after 3).',
+            },
+        },
+    },
+    args: {
+        player: {
+            ...basePlayer,
+            uuid: PLAYER_UUID,
+            username: 'alice.eth',
+            profileImageUrl: undefined,
+        },
+    },
+};
+
+/** X avatar with active turn fuse border — shows how the circular avatar
+ *  interacts with the timer border animation. */
+export const XAvatarActiveTurn: Story = {
+    name: 'X Avatar — active turn fuse',
+    decorators: [makeDecorator({ gameOverride: { actionDeadline: Date.now() + 15_000 } })],
+    args: {
+        isCurrentTurn: true,
+        player: {
+            ...basePlayer,
+            username: '@highroller',
+            profileImageUrl: 'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        },
+    },
+};
+
+/** X avatar winner — circular avatar with winner glow. */
+export const XAvatarWinner: Story = {
+    name: 'X Avatar — winner highlight',
+    args: {
+        isWinner: true,
+        isRevealed: true,
+        winnings: 1200,
+        player: {
+            ...basePlayer,
+            username: '@champion',
+            profileImageUrl: 'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+            cards: [CARD.aceSpades, CARD.aceHearts],
+        },
     },
 };
 

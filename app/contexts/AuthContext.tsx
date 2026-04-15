@@ -31,7 +31,7 @@ interface AuthContextProps {
     refreshXStatus: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextProps>({
+export const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
     isAuthenticating: false,
     userAddress: null,

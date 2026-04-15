@@ -1,10 +1,11 @@
 import { PendingPlayer } from '@/app/interfaces';
-import { Flex, Button, Text, Tooltip, VStack, Badge } from '@chakra-ui/react';
+import { Box, Flex, Button, Icon, Image, Text, Tooltip, VStack, Badge } from '@chakra-ui/react';
 import { FaCircleCheck, FaCircleXmark, FaXTwitter } from 'react-icons/fa6';
 import { GiBootKick } from 'react-icons/gi';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { useContext } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { getColorForUsername } from '@/app/utils/chatColors';
 
 const PlayerCard = ({
     index,
@@ -35,6 +36,17 @@ const PlayerCard = ({
         ? `${format(player.buyIn)} chips`
         : format(player.buyIn);
 
+    const displayName = player.username || player.uuid.substring(0, 8);
+    const avatarColor = getColorForUsername(displayName);
+    const avatarInitials =
+        displayName
+            .replace(/^@/, '')
+            .split(/[\s._-]+/)
+            .slice(0, 2)
+            .map((w) => w[0]?.toUpperCase() ?? '')
+            .join('') ||
+        displayName.replace(/^@/, '').slice(0, 2).toUpperCase();
+
     return (
         <Flex
             key={index}
@@ -55,8 +67,61 @@ const PlayerCard = ({
             }}
             transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
             flexDirection="row"
-            gap={{ base: 3, sm: 3, md: 0 }}
+            gap={{ base: 3, sm: 3, md: 3 }}
         >
+            <Box
+                position="relative"
+                flexShrink={0}
+                w={{ base: '40px', md: '48px' }}
+                h={{ base: '40px', md: '48px' }}
+            >
+                {player.profileImageUrl ? (
+                    <Image
+                        src={player.profileImageUrl}
+                        alt=""
+                        w="100%"
+                        h="100%"
+                        borderRadius="full"
+                        objectFit="cover"
+                    />
+                ) : (
+                    <Flex
+                        w="100%"
+                        h="100%"
+                        borderRadius="full"
+                        bg={`${avatarColor}20`}
+                        alignItems="center"
+                        justifyContent="center"
+                    >
+                        <Text
+                            fontSize={{ base: 'sm', md: 'md' }}
+                            fontWeight="bold"
+                            color={avatarColor}
+                            lineHeight="1"
+                            userSelect="none"
+                        >
+                            {avatarInitials}
+                        </Text>
+                    </Flex>
+                )}
+                {isXVerified && (
+                    <Flex
+                        position="absolute"
+                        bottom="-2px"
+                        right="-2px"
+                        w={{ base: '16px', md: '18px' }}
+                        h={{ base: '16px', md: '18px' }}
+                        borderRadius="full"
+                        bg="#000"
+                        alignItems="center"
+                        justifyContent="center"
+                        border="2px solid"
+                        borderColor="card.white"
+                    >
+                        <Icon as={FaXTwitter} boxSize="8px" color="white" />
+                    </Flex>
+                )}
+            </Box>
             <VStack
                 flex={1}
                 justifyContent={{ base: 'center', lg: 'space-around' }}
@@ -68,22 +133,9 @@ const PlayerCard = ({
             >
                 <Flex
                     alignItems="center"
-                    gap={2.5}
+                    gap={2}
                     flexWrap="wrap"
                 >
-                    {isXVerified && (
-                        <Flex
-                            alignItems="center"
-                            justifyContent="center"
-                            bg="#000"
-                            borderRadius="full"
-                            w={{ base: '18px', md: '22px' }}
-                            h={{ base: '18px', md: '22px' }}
-                            flexShrink={0}
-                        >
-                            <FaXTwitter color="white" size={10} />
-                        </Flex>
-                    )}
                     <Text
                         color={'text.secondary'}
                         fontWeight={'bold'}
@@ -95,7 +147,7 @@ const PlayerCard = ({
                         }}
                         letterSpacing="-0.02em"
                     >
-                        {player.username || player.uuid.substring(0, 8)}
+                        {displayName}
                     </Text>
                     {type === 'pending' && (
                         <Badge

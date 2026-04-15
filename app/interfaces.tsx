@@ -148,6 +148,7 @@ export type PendingPlayer = {
     username: string;
     seatId: number;
     buyIn: number;
+    profileImageUrl?: string; // X (Twitter) profile image URL
 };
 
 // Event History Types

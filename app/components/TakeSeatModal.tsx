@@ -38,6 +38,8 @@ import { useDepositAndJoin } from '../hooks/useDepositAndJoin';
 import { useWithdraw } from '../hooks/useWithdraw';
 import { useActiveWallet } from 'thirdweb/react';
 import { FaInfoCircle } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
+import { useConnectX } from '@/app/hooks/useConnectX';
 
 interface TakeSeatModalProps {
     isOpen: boolean;
@@ -92,7 +94,14 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const initialBuyIn = config?.maxBuyIn ?? null;
     const currentUser = useCurrentUser();
     const socket = useContext(SocketContext);
-    const { isAuthenticated, isAuthenticating, lastAuthenticatedAddress, xUsername } = useAuth();
+    const {
+        isAuthenticated,
+        isAuthenticating,
+        lastAuthenticatedAddress,
+        xUsername,
+        xProfileImageUrl,
+    } = useAuth();
+    const { connectX, isConnecting: isConnectingX } = useConnectX();
     const [name, setName] = useState('');
     const [buyIn, setBuyIn] = useState<number | null>(initialBuyIn);
     const [buyInInput, setBuyInInput] = useState(() => {
@@ -544,62 +553,160 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     </VStack>
                                 )}
 
-                                {/* Normal buy-in inputs — hidden while withdraw-first flow is active */}
+                                {/* Identity: X-linked banner (free game only — @handle is used as display name) */}
                                 {!showWithdrawFirst && !isCryptoGame && xUsername && (
                                     <HStack
-                                        spacing={2}
-                                        bg="card.lightGray"
-                                        borderRadius="xl"
-                                        px={4}
-                                        py={3}
+                                        spacing={3}
+                                        py={2}
+                                        px={1}
                                         w="100%"
                                         justify="center"
                                     >
-                                        <Text
-                                            fontSize="sm"
-                                            color="text.secondary"
-                                        >
-                                            Playing as
-                                        </Text>
-                                        <Text
-                                            fontSize="sm"
-                                            fontWeight="bold"
-                                            color="text.primary"
-                                        >
-                                            @{xUsername}
-                                        </Text>
+                                        {xProfileImageUrl && (
+                                            <Image
+                                                src={xProfileImageUrl}
+                                                alt="X avatar"
+                                                boxSize="36px"
+                                                borderRadius="full"
+                                                objectFit="cover"
+                                            />
+                                        )}
+                                        <HStack spacing={1.5}>
+                                            <Icon
+                                                as={FaXTwitter}
+                                                boxSize={3.5}
+                                                color="text.primary"
+                                                opacity={0.75}
+                                            />
+                                            <Text
+                                                fontSize="md"
+                                                fontWeight="bold"
+                                                color="text.primary"
+                                            >
+                                                @{xUsername}
+                                            </Text>
+                                        </HStack>
                                     </HStack>
                                 )}
-                                {!showWithdrawFirst && !isCryptoGame && !xUsername && (
-                                    <FormControl
-                                        isInvalid={
-                                            name.length > 0 &&
-                                            name.length > USERNAME_MAX_LENGTH
-                                        }
-                                    >
-                                        <FormLabel
-                                            color="text.secondary"
-                                            fontSize="2xl"
-                                            mb={1}
-                                            textAlign="center"
-                                        >
-                                            🕵️
-                                        </FormLabel>
-                                        <Input
-                                            data-testid="username-input"
-                                            placeholder="Enter your name"
-                                            onChange={(e) =>
-                                                setName(e.target.value)
+
+                                {/* Identity: no X linked — show Connect X option + (free only) name input */}
+                                {!showWithdrawFirst && !xUsername && (
+                                    <VStack spacing={3} w="100%">
+                                        <Button
+                                            onClick={connectX}
+                                            isLoading={isConnectingX}
+                                            w="100%"
+                                            h="44px"
+                                            bg="#000"
+                                            color="white"
+                                            borderRadius="xl"
+                                            fontSize="sm"
+                                            fontWeight="semibold"
+                                            leftIcon={
+                                                <Icon
+                                                    as={FaXTwitter}
+                                                    boxSize={4}
+                                                />
                                             }
-                                            variant={'takeSeatModal'}
-                                            maxLength={USERNAME_MAX_LENGTH}
-                                            required
-                                        />
-                                        <FormErrorMessage fontSize="xs" mt={1}>
-                                            Username must be fewer than 10
-                                            characters.
-                                        </FormErrorMessage>
-                                    </FormControl>
+                                            _hover={{
+                                                bg: '#1a1a1a',
+                                                transform: 'translateY(-1px)',
+                                            }}
+                                            _active={{
+                                                transform: 'translateY(0)',
+                                            }}
+                                            transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+                                        >
+                                            Connect X for avatar &amp; name
+                                        </Button>
+
+                                        {!isCryptoGame && (
+                                            <>
+                                                <HStack
+                                                    w="100%"
+                                                    spacing={3}
+                                                    align="center"
+                                                >
+                                                    <Box
+                                                        flex={1}
+                                                        h="1px"
+                                                        bg="border.lightGray"
+                                                    />
+                                                    <Text
+                                                        fontSize="xs"
+                                                        color="text.secondary"
+                                                        fontWeight="medium"
+                                                        opacity={0.6}
+                                                    >
+                                                        or
+                                                    </Text>
+                                                    <Box
+                                                        flex={1}
+                                                        h="1px"
+                                                        bg="border.lightGray"
+                                                    />
+                                                </HStack>
+
+                                                <FormControl
+                                                    isInvalid={
+                                                        name.length > 0 &&
+                                                        name.length >
+                                                            USERNAME_MAX_LENGTH
+                                                    }
+                                                >
+                                                    <Input
+                                                        data-testid="username-input"
+                                                        placeholder="Pick a username"
+                                                        onChange={(e) =>
+                                                            setName(e.target.value)
+                                                        }
+                                                        variant={'takeSeatModal'}
+                                                        maxLength={USERNAME_MAX_LENGTH}
+                                                        required
+                                                    />
+                                                    <FormErrorMessage fontSize="xs" mt={1}>
+                                                        Username must be fewer than 10
+                                                        characters.
+                                                    </FormErrorMessage>
+                                                </FormControl>
+                                            </>
+                                        )}
+                                    </VStack>
+                                )}
+
+                                {/* Identity: crypto game with X linked — compact badge above buy-in */}
+                                {!showWithdrawFirst && isCryptoGame && xUsername && (
+                                    <HStack
+                                        spacing={2.5}
+                                        py={1}
+                                        w="100%"
+                                        justify="center"
+                                    >
+                                        {xProfileImageUrl && (
+                                            <Image
+                                                src={xProfileImageUrl}
+                                                alt="X avatar"
+                                                boxSize="28px"
+                                                borderRadius="full"
+                                                objectFit="cover"
+                                            />
+                                        )}
+                                        <HStack spacing={1.5}>
+                                            <Icon
+                                                as={FaXTwitter}
+                                                boxSize={3}
+                                                color="text.primary"
+                                                opacity={0.75}
+                                            />
+                                            <Text
+                                                fontSize="sm"
+                                                fontWeight="bold"
+                                                color="text.primary"
+                                            >
+                                                @{xUsername}
+                                            </Text>
+                                        </HStack>
+                                    </HStack>
                                 )}
 
                                 {/* Buy-in Input — hidden while withdraw-first flow is active */}

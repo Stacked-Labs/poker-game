@@ -6,6 +6,7 @@ import {
     Button,
     CloseButton,
     Flex,
+    Icon,
     Modal,
     ModalContent,
     ModalOverlay,
@@ -207,19 +208,15 @@ const SeatRequestPopup = () => {
                         w="100%"
                     >
                         <Stack gap={1} flex={1} minW={0}>
-                            <Flex alignItems="center" gap={2} minW={0}>
+                            <Flex alignItems="center" gap={1.5} minW={0}>
                                 {isXVerified && (
-                                    <Flex
-                                        alignItems="center"
-                                        justifyContent="center"
-                                        bg="#000"
-                                        borderRadius="full"
-                                        w="16px"
-                                        h="16px"
+                                    <Icon
+                                        as={FaXTwitter}
+                                        boxSize="13px"
+                                        color="text.primary"
+                                        opacity={0.75}
                                         flexShrink={0}
-                                    >
-                                        <FaXTwitter color="white" size={9} />
-                                    </Flex>
+                                    />
                                 )}
                                 <Text
                                     fontWeight="bold"

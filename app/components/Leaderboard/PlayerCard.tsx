@@ -15,7 +15,7 @@ import {
 import { keyframes } from '@emotion/react';
 import { useActiveAccount } from 'thirdweb/react';
 import { FaWallet, FaTrophy, FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
-import { FaMedal } from 'react-icons/fa6';
+import { FaMedal, FaXTwitter } from 'react-icons/fa6';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
 import WalletButton from '../WalletButton';
@@ -23,6 +23,7 @@ import StatsSection from './StatsSection';
 import ReferralCodeSection from './ReferralCodeSection';
 import ShareRankCard from './ShareRankCard';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { useConnectX } from '@/app/hooks/useConnectX';
 import { useRankHistory } from '@/app/hooks/useRankHistory';
 import { getTier } from './tierUtils';
 
@@ -83,6 +84,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     const account = useActiveAccount();
     const { isAuthenticated, isAuthenticating, requestAuthentication } =
         useAuth();
+    const { connectX, disconnectX, isConnecting: isConnectingX, isDisconnecting: isDisconnectingX } =
+        useConnectX();
     const isConnected = !!account;
     const isFullyAuthenticated = isConnected && isAuthenticated;
 
@@ -251,6 +254,72 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                                     >
                                         {xUsername ? `@${xUsername}` : truncateAddress(account!.address)}
                                     </Text>
+
+                                    {/* X connect / unlink micro-action — plain text link, no chrome */}
+                                    {xUsername ? (
+                                        <Text
+                                            as="button"
+                                            onClick={disconnectX}
+                                            disabled={isDisconnectingX}
+                                            fontSize="xs"
+                                            fontWeight="medium"
+                                            color="text.secondary"
+                                            opacity={0.6}
+                                            mt={1}
+                                            alignSelf="flex-start"
+                                            cursor="pointer"
+                                            bg="transparent"
+                                            border="none"
+                                            p={0}
+                                            _hover={{
+                                                opacity: 1,
+                                                color: 'brand.pink',
+                                            }}
+                                            _disabled={{
+                                                opacity: 0.3,
+                                                cursor: 'not-allowed',
+                                            }}
+                                            transition="all 0.15s ease"
+                                        >
+                                            {isDisconnectingX ? 'Unlinking…' : 'Unlink'}
+                                        </Text>
+                                    ) : (
+                                        <HStack
+                                            as="button"
+                                            onClick={connectX}
+                                            disabled={isConnectingX}
+                                            spacing={1.5}
+                                            mt={1}
+                                            color="text.secondary"
+                                            opacity={0.65}
+                                            cursor="pointer"
+                                            bg="transparent"
+                                            border="none"
+                                            p={0}
+                                            _hover={{
+                                                opacity: 1,
+                                                color: 'brand.pink',
+                                            }}
+                                            _disabled={{
+                                                opacity: 0.3,
+                                                cursor: 'not-allowed',
+                                            }}
+                                            transition="all 0.15s ease"
+                                        >
+                                            <Icon
+                                                as={FaXTwitter}
+                                                boxSize="11px"
+                                            />
+                                            <Text
+                                                fontSize="xs"
+                                                fontWeight="medium"
+                                            >
+                                                {isConnectingX
+                                                    ? 'Connecting…'
+                                                    : 'Link X account'}
+                                            </Text>
+                                        </HStack>
+                                    )}
                                 </VStack>
                             </Flex>
 

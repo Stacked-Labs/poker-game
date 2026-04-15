@@ -11,9 +11,16 @@ import {
     Tooltip,
     VStack,
     Spacer,
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+    PopoverArrow,
+    PopoverBody,
+    Link,
 } from '@chakra-ui/react';
 import { FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
-import { FaMedal } from 'react-icons/fa6';
+import { FaMedal, FaXTwitter } from 'react-icons/fa6';
+import { FiExternalLink } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
 import { getTier } from './tierUtils';
@@ -199,24 +206,114 @@ const LeaderboardTable = ({
                                                     : undefined
                                             }
                                         />
-                                        <Text
-                                            as="a"
-                                            href={
-                                                entry.xUsername
-                                                    ? `https://x.com/${entry.xUsername}`
-                                                    : `https://sepolia.basescan.org/address/${entry.address}`
-                                            }
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            color={isCurrentPlayer ? 'brand.green' : 'text.primary'}
-                                            fontWeight={isCurrentPlayer ? 'bold' : 'medium'}
-                                            fontFamily={entry.xUsername ? 'body' : 'mono'}
-                                            fontSize={{ base: 'xs', md: 'sm' }}
-                                            isTruncated
-                                            _hover={{ textDecoration: 'underline' }}
-                                        >
-                                            {entry.xUsername ? `@${entry.xUsername}` : truncateAddress(entry.address)}
-                                        </Text>
+                                        {entry.xUsername ? (
+                                            <Popover
+                                                trigger="hover"
+                                                placement="top"
+                                                openDelay={200}
+                                                closeDelay={150}
+                                                gutter={8}
+                                            >
+                                                <PopoverTrigger>
+                                                    <Text
+                                                        as="a"
+                                                        href={`https://x.com/${entry.xUsername}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        color={isCurrentPlayer ? 'brand.green' : 'text.primary'}
+                                                        fontWeight={isCurrentPlayer ? 'bold' : 'medium'}
+                                                        fontSize={{ base: 'xs', md: 'sm' }}
+                                                        isTruncated
+                                                        _hover={{ textDecoration: 'underline' }}
+                                                    >
+                                                        @{entry.xUsername}
+                                                    </Text>
+                                                </PopoverTrigger>
+                                                <PopoverContent
+                                                    bg="brand.darkNavy"
+                                                    border="1px solid"
+                                                    borderColor="whiteAlpha.200"
+                                                    boxShadow="0 10px 30px rgba(0, 0, 0, 0.35)"
+                                                    color="white"
+                                                    width="auto"
+                                                    maxW="260px"
+                                                    _focus={{ outline: 'none', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)' }}
+                                                >
+                                                    <PopoverArrow bg="brand.darkNavy" />
+                                                    <PopoverBody p={3}>
+                                                        <VStack spacing={2} align="stretch">
+                                                            <HStack spacing={2}>
+                                                                <Icon
+                                                                    as={FaXTwitter}
+                                                                    boxSize={3}
+                                                                    color="whiteAlpha.700"
+                                                                />
+                                                                <Text
+                                                                    fontSize="xs"
+                                                                    color="whiteAlpha.800"
+                                                                    fontWeight="semibold"
+                                                                >
+                                                                    @{entry.xUsername}
+                                                                </Text>
+                                                            </HStack>
+                                                            <Box h="1px" bg="whiteAlpha.200" />
+                                                            <VStack spacing={1} align="stretch">
+                                                                <Text
+                                                                    fontSize="2xs"
+                                                                    color="whiteAlpha.600"
+                                                                    textTransform="uppercase"
+                                                                    letterSpacing="0.08em"
+                                                                    fontWeight="semibold"
+                                                                >
+                                                                    Wallet
+                                                                </Text>
+                                                                <Text
+                                                                    fontSize="xs"
+                                                                    fontFamily="mono"
+                                                                    color="whiteAlpha.900"
+                                                                >
+                                                                    {truncateAddress(entry.address)}
+                                                                </Text>
+                                                            </VStack>
+                                                            <Link
+                                                                href={`https://sepolia.basescan.org/address/${entry.address}`}
+                                                                isExternal
+                                                                fontSize="xs"
+                                                                color="brand.green"
+                                                                fontWeight="semibold"
+                                                                _hover={{
+                                                                    color: '#4ade80',
+                                                                    textDecoration: 'none',
+                                                                }}
+                                                            >
+                                                                <HStack spacing={1}>
+                                                                    <Text>View on BaseScan</Text>
+                                                                    <Icon
+                                                                        as={FiExternalLink}
+                                                                        boxSize={3}
+                                                                    />
+                                                                </HStack>
+                                                            </Link>
+                                                        </VStack>
+                                                    </PopoverBody>
+                                                </PopoverContent>
+                                            </Popover>
+                                        ) : (
+                                            <Text
+                                                as="a"
+                                                href={`https://sepolia.basescan.org/address/${entry.address}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                color={isCurrentPlayer ? 'brand.green' : 'text.primary'}
+                                                fontWeight={isCurrentPlayer ? 'bold' : 'medium'}
+                                                fontFamily="mono"
+                                                fontSize={{ base: 'xs', md: 'sm' }}
+                                                isTruncated
+                                                _hover={{ textDecoration: 'underline' }}
+                                            >
+                                                {truncateAddress(entry.address)}
+                                            </Text>
+                                        )}
                                         {isCurrentPlayer && (
                                             <Text
                                                 fontSize="2xs"

@@ -12,10 +12,11 @@ import {
     Progress,
     Tooltip,
     IconButton,
+    Button,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { FaShare, FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
-import { FaMedal } from 'react-icons/fa6';
+import { FaMedal, FaXTwitter } from 'react-icons/fa6';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
 import { ThirdwebProvider } from 'thirdweb/react';
@@ -55,6 +56,8 @@ interface PlayerCardPreviewProps {
         nextTier: { required: number; multiplier: number } | null;
         hasReferrer: boolean;
     };
+    xUsername?: string | null;
+    xProfileImageUrl?: string | null;
 }
 
 /**
@@ -72,6 +75,8 @@ const PlayerCardPreview: React.FC<PlayerCardPreviewProps> = ({
     total,
     stats,
     referralInfo,
+    xUsername,
+    xProfileImageUrl,
 }) => {
     const truncateAddress = (addr: string) =>
         `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -142,7 +147,7 @@ const PlayerCardPreview: React.FC<PlayerCardPreviewProps> = ({
                             <Box
                                 position="absolute"
                                 inset="-3px"
-                                borderRadius="7px"
+                                borderRadius={xProfileImageUrl ? 'full' : '7px'}
                                 border="2px solid"
                                 borderColor={tier.color}
                                 opacity={0.5}
@@ -150,11 +155,12 @@ const PlayerCardPreview: React.FC<PlayerCardPreviewProps> = ({
                             />
                             <Box
                                 as="img"
-                                src={blo(address as `0x${string}`)}
+                                src={xProfileImageUrl ?? blo(address as `0x${string}`)}
                                 alt=""
                                 w="56px"
                                 h="56px"
-                                borderRadius="4px"
+                                borderRadius={xProfileImageUrl ? 'full' : '4px'}
+                                objectFit="cover"
                                 boxShadow={`0 4px 16px rgba(0,0,0,0.15), 0 0 12px ${tier.color}22`}
                             />
                         </Box>
@@ -177,18 +183,68 @@ const PlayerCardPreview: React.FC<PlayerCardPreviewProps> = ({
                             </HStack>
                             <Text
                                 as="a"
-                                href={`https://sepolia.basescan.org/address/${address}`}
+                                href={
+                                    xUsername
+                                        ? `https://x.com/${xUsername}`
+                                        : `https://sepolia.basescan.org/address/${address}`
+                                }
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 color="text.secondary"
                                 fontSize="xs"
-                                fontFamily="mono"
+                                fontFamily={xUsername ? 'body' : 'mono'}
                                 mt={1}
                                 _hover={{ color: 'brand.green' }}
                                 transition="color 0.2s ease"
                             >
-                                {truncateAddress(address)}
+                                {xUsername ? `@${xUsername}` : truncateAddress(address)}
                             </Text>
+
+                            {/* X connect / unlink micro-action — plain text link, no chrome */}
+                            {xUsername ? (
+                                <Text
+                                    as="button"
+                                    fontSize="xs"
+                                    fontWeight="medium"
+                                    color="text.secondary"
+                                    opacity={0.6}
+                                    mt={1}
+                                    alignSelf="flex-start"
+                                    cursor="pointer"
+                                    bg="transparent"
+                                    border="none"
+                                    p={0}
+                                    _hover={{
+                                        opacity: 1,
+                                        color: 'brand.pink',
+                                    }}
+                                    transition="all 0.15s ease"
+                                >
+                                    Unlink
+                                </Text>
+                            ) : (
+                                <HStack
+                                    as="button"
+                                    spacing={1.5}
+                                    mt={1}
+                                    color="text.secondary"
+                                    opacity={0.65}
+                                    cursor="pointer"
+                                    bg="transparent"
+                                    border="none"
+                                    p={0}
+                                    _hover={{
+                                        opacity: 1,
+                                        color: 'brand.pink',
+                                    }}
+                                    transition="all 0.15s ease"
+                                >
+                                    <Icon as={FaXTwitter} boxSize="11px" />
+                                    <Text fontSize="xs" fontWeight="medium">
+                                        Link X account
+                                    </Text>
+                                </HStack>
+                            )}
                         </VStack>
                     </Flex>
 
@@ -348,7 +404,7 @@ const meta = {
         docs: {
             description: {
                 component:
-                    'Full PlayerCard preview (authenticated state). Shows blockie avatar, hero rank number in tier color, points, progress bar, inline stats, and referral section — all without borders. Uses a visual-only wrapper to bypass auth hooks.',
+                    'Full PlayerCard preview (authenticated state). Shows blockie (or X profile) avatar with tier ring, hero rank number in tier color, identity text (0x…abcd or @handle), a subtle Connect X / Unlink X micro-action, points, progress bar, inline stats, and referral section. Uses a visual-only wrapper to bypass auth hooks.',
             },
         },
     },
@@ -447,5 +503,51 @@ export const MaxReferralTier: Story = {
             nextTier: null,
             hasReferrer: true,
         },
+    },
+};
+
+// ── X (Twitter) integration ──────────────────────────────────────────────────
+
+/** X-linked player — circular avatar with tier ring, @username instead of 0x address. */
+export const WithXAccount: Story = {
+    name: 'X Linked — @username',
+    args: {
+        rank: 6,
+        points: 340,
+        pointsToNext: 50,
+        nextRank: 5,
+        nextPoints: 390,
+        total: 200,
+        stats: { gamesCreated: 19, gamesPlayed: 11, handsPlayed: 67 },
+        referralInfo: {
+            count: 3,
+            multiplier: 1.0,
+            nextTier: { required: 5, multiplier: 1.1 },
+            hasReferrer: false,
+        },
+        xUsername: 'pokerShark',
+        xProfileImageUrl: 'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+    },
+};
+
+/** Diamond #1 with X account — top rank hero with circular X avatar. */
+export const DiamondWithX: Story = {
+    name: '#1 Diamond — X Linked',
+    args: {
+        rank: 1,
+        points: 9200,
+        pointsToNext: 0,
+        nextRank: 0,
+        nextPoints: 0,
+        total: 200,
+        stats: { gamesCreated: 42, gamesPlayed: 156, handsPlayed: 1840 },
+        referralInfo: {
+            count: 25,
+            multiplier: 1.2,
+            nextTier: null,
+            hasReferrer: true,
+        },
+        xUsername: 'champion',
+        xProfileImageUrl: 'https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg',
     },
 };

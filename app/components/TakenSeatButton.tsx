@@ -12,13 +12,16 @@ import {
     Text,
     ResponsiveValue,
     HStack,
+    VStack,
     Tag,
     Icon,
     IconButton,
-    Tooltip,
+    Button,
+    CloseButton,
 } from '@chakra-ui/react';
 import { MdWifiOff, MdLocalCafe, MdLogout, MdPerson } from 'react-icons/md';
 import { FiSmile } from 'react-icons/fi';
+import { FaXTwitter } from 'react-icons/fa6';
 import { keyframes } from '@emotion/react';
 import {
     motion,
@@ -653,7 +656,51 @@ const TakenSeatButton = ({
         }, 500);
     }, [refreshXStatus, socket]);
 
-    const showConnectXPrompt = isSelf && isAuthenticated && !xUsername && !player.profileImageUrl;
+    const canShowXPrompt = isSelf && isAuthenticated && !xUsername && !player.profileImageUrl;
+
+    // Hover card: auto-reveal on mount, hover re-triggers, dismissible up to 3x (localStorage).
+    const [isAvatarHovered, setIsAvatarHovered] = useState(false);
+    const [autoRevealActive, setAutoRevealActive] = useState(false);
+    const [xPromptDismissed, setXPromptDismissed] = useState(false);
+
+    // Read dismissal count once on mount. >=3 dismissals → never show again.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const raw = window.localStorage.getItem('stacked_x_prompt_dismissed');
+        const count = raw ? parseInt(raw, 10) : 0;
+        if (Number.isFinite(count) && count >= 3) {
+            setXPromptDismissed(true);
+        }
+    }, []);
+
+    // Flip autoRevealActive false → true after mount so AnimatePresence sees the
+    // child transition from absent → present and plays its enter animation.
+    useEffect(() => {
+        if (!canShowXPrompt || xPromptDismissed) return;
+        const showTimer = setTimeout(() => setAutoRevealActive(true), 350);
+        return () => clearTimeout(showTimer);
+    }, [canShowXPrompt, xPromptDismissed]);
+
+    // Auto-hide after ~8s of visibility.
+    useEffect(() => {
+        if (!autoRevealActive) return;
+        const hideTimer = setTimeout(() => setAutoRevealActive(false), 8000);
+        return () => clearTimeout(hideTimer);
+    }, [autoRevealActive]);
+
+    const handleDismissXPrompt = useCallback(() => {
+        if (typeof window === 'undefined') return;
+        const raw = localStorage.getItem('stacked_x_prompt_dismissed');
+        const count = raw ? parseInt(raw, 10) : 0;
+        const next = (Number.isFinite(count) ? count : 0) + 1;
+        localStorage.setItem('stacked_x_prompt_dismissed', String(next));
+        setAutoRevealActive(false);
+        setIsAvatarHovered(false);
+        if (next >= 3) setXPromptDismissed(true);
+    }, []);
+
+    const showXHoverCard =
+        canShowXPrompt && !xPromptDismissed && (isAvatarHovered || autoRevealActive);
 
     const stackColor =
         showWinnerHighlight && winnings > 0
@@ -1458,6 +1505,12 @@ const TakenSeatButton = ({
                                         height: '31px',
                                     },
                                 }}
+                                onMouseEnter={() =>
+                                    canShowXPrompt &&
+                                    !xPromptDismissed &&
+                                    setIsAvatarHovered(true)
+                                }
+                                onMouseLeave={() => setIsAvatarHovered(false)}
                             >
                                 {player.profileImageUrl ? (
                                     <Box
@@ -1549,67 +1602,141 @@ const TakenSeatButton = ({
                                         borderColor="card.white"
                                         pointerEvents="none"
                                     >
-                                        <Text
-                                            fontSize={{ base: '8px', md: '9px' }}
+                                        <Icon
+                                            as={FaXTwitter}
+                                            color="white"
+                                            boxSize={{ base: '7px', md: '8px' }}
                                             sx={{
                                                 '@media (orientation: portrait)': {
-                                                    fontSize: '7px',
+                                                    width: '6px',
+                                                    height: '6px',
                                                 },
                                             }}
-                                            color="white"
-                                            fontWeight="bold"
-                                            lineHeight="1"
-                                            userSelect="none"
-                                        >
-                                            𝕏
-                                        </Text>
+                                        />
                                     </Flex>
                                 )}
-                                {/* Connect X prompt for self */}
-                                {showConnectXPrompt && (
-                                    <Tooltip label="Connect X for avatar & username" fontSize="xs" hasArrow placement="top">
-                                        <Flex
-                                            as="button"
-                                            onClick={handleConnectX}
-                                            position="absolute"
-                                            bottom={0}
-                                            right={0}
-                                            width={{ base: '16px', md: '18px' }}
-                                            height={{ base: '16px', md: '18px' }}
-                                            sx={{
-                                                '@media (orientation: portrait)': {
-                                                    width: '14px',
-                                                    height: '14px',
-                                                },
+                                {/* Connect X hover card — glassmorphism popup for local user */}
+                                <AnimatePresence>
+                                    {showXHoverCard && (
+                                        <motion.div
+                                            key="x-connect-hover"
+                                            initial={{
+                                                opacity: 0,
+                                                y: 6,
+                                                scale: 0.92,
                                             }}
-                                            borderRadius="full"
-                                            bg="#000"
-                                            alignItems="center"
-                                            justifyContent="center"
-                                            border="1.5px solid"
-                                            borderColor="card.white"
-                                            cursor="pointer"
-                                            zIndex={10}
-                                            _hover={{ bg: '#333' }}
-                                            animation={`${pulseBorderPink} 2s ease-out infinite`}
+                                            animate={{
+                                                opacity: 1,
+                                                y: 0,
+                                                scale: 1,
+                                            }}
+                                            exit={{
+                                                opacity: 0,
+                                                y: 6,
+                                                scale: 0.92,
+                                            }}
+                                            transition={{
+                                                type: 'spring',
+                                                stiffness: 380,
+                                                damping: 24,
+                                            }}
+                                            style={{
+                                                position: 'absolute',
+                                                bottom: 'calc(100% + 10px)',
+                                                left: '50%',
+                                                transform:
+                                                    'translateX(-50%)',
+                                                zIndex: 30,
+                                                pointerEvents: 'auto',
+                                            }}
                                         >
-                                            <Text
-                                                fontSize={{ base: '7px', md: '8px' }}
-                                                sx={{
-                                                    '@media (orientation: portrait)': {
-                                                        fontSize: '6px',
-                                                    },
-                                                }}
-                                                color="white"
-                                                fontWeight="bold"
-                                                lineHeight="1"
-                                                userSelect="none"
+                                            <Box
+                                                bg="rgba(11, 20, 48, 0.94)"
+                                                backdropFilter="blur(16px)"
+                                                borderRadius="12px"
+                                                border="1px solid"
+                                                borderColor="whiteAlpha.200"
+                                                boxShadow="glass-hover"
+                                                px={3}
+                                                py={2.5}
+                                                minW="180px"
+                                                position="relative"
                                             >
-                                                𝕏+
-                                            </Text>
-                                        </Flex>
-                                    </Tooltip>
-                                )}
+                                                <CloseButton
+                                                    size="sm"
+                                                    position="absolute"
+                                                    top={1}
+                                                    right={1}
+                                                    color="whiteAlpha.600"
+                                                    _hover={{
+                                                        color: 'white',
+                                                        bg: 'whiteAlpha.100',
+                                                    }}
+                                                    onClick={
+                                                        handleDismissXPrompt
+                                                    }
+                                                    aria-label="Dismiss X prompt"
+                                                />
+                                                <VStack
+                                                    spacing={2}
+                                                    align="stretch"
+                                                    pr={4}
+                                                >
+                                                    <Text
+                                                        fontSize="11px"
+                                                        color="whiteAlpha.700"
+                                                        fontWeight="medium"
+                                                        lineHeight="1.3"
+                                                    >
+                                                        Personalize your seat
+                                                    </Text>
+                                                    <Button
+                                                        size="xs"
+                                                        bg="black"
+                                                        color="white"
+                                                        borderRadius="8px"
+                                                        fontSize="xs"
+                                                        fontWeight="semibold"
+                                                        _hover={{
+                                                            bg: 'gray.800',
+                                                            transform:
+                                                                'translateY(-1px)',
+                                                        }}
+                                                        _active={{
+                                                            transform:
+                                                                'translateY(0)',
+                                                        }}
+                                                        leftIcon={
+                                                            <Icon
+                                                                as={FaXTwitter}
+                                                                boxSize={3}
+                                                            />
+                                                        }
+                                                        onClick={
+                                                            handleConnectX
+                                                        }
+                                                        h="28px"
+                                                    >
+                                                        Connect X
+                                                    </Button>
+                                                </VStack>
+                                                {/* Arrow pointing down to the avatar */}
+                                                <Box
+                                                    position="absolute"
+                                                    top="100%"
+                                                    left="50%"
+                                                    transform="translateX(-50%)"
+                                                    width={0}
+                                                    height={0}
+                                                    borderLeft="6px solid transparent"
+                                                    borderRight="6px solid transparent"
+                                                    borderTop="6px solid rgba(11, 20, 48, 0.94)"
+                                                    pointerEvents="none"
+                                                />
+                                            </Box>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                                 {/* Timer seconds overlay on avatar */}
                                 {isCurrentTurn &&
                                     deadline > 0 &&

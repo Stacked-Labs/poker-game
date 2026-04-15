@@ -57,7 +57,12 @@ const FooterWithActionButtons = ({
     const localPlayer =
         players.find((player) => player.uuid === appState.clientID) ?? null;
     const playerBets = players.map((player) => player.bet);
-    const maxBet = playerBets.length ? Math.max(...playerBets) : 0;
+    const bigBlind = game?.config.bb || 0;
+    // During preflop (stage 2), the minimum to call is always at least the big blind,
+    // even if the BB player couldn't post the full amount (short all-in).
+    const rawMaxBet = playerBets.length ? Math.max(...playerBets) : 0;
+    const maxBet =
+        game?.stage === 2 ? Math.max(rawMaxBet, bigBlind) : rawMaxBet;
     const callDifference = localPlayer
         ? Math.max(maxBet - localPlayer.bet, 0)
         : 0;

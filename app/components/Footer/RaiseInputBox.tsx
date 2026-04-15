@@ -49,7 +49,13 @@ const RaiseInputBox = ({
     const currentStack =
         appState.game?.players[appState.game?.action || 0]?.stack || 0;
     const playerBets = appState.game?.players.map((player) => player.bet) || [];
-    const maxBet = playerBets.length > 0 ? Math.max(...playerBets) : 0;
+    const rawMaxBet = playerBets.length > 0 ? Math.max(...playerBets) : 0;
+    // During preflop (stage 2), the minimum to call is always at least the big blind,
+    // even if the BB player couldn't post the full amount (short all-in).
+    const maxBet =
+        appState.game?.stage === 2
+            ? Math.max(rawMaxBet, bigBlind)
+            : rawMaxBet;
     const minRaise = maxBet + (appState.game?.minRaise || 0);
     const maxTotalBet = currentStack + currentBet;
     const minAllowedBet = Math.min(minRaise, maxTotalBet);

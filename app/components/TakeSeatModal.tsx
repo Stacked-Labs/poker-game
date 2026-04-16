@@ -37,6 +37,7 @@ import useToastHelper from '@/app/hooks/useToastHelper';
 import { useDepositAndJoin } from '../hooks/useDepositAndJoin';
 import { useWithdraw } from '../hooks/useWithdraw';
 import { useActiveWallet } from 'thirdweb/react';
+import { CHAIN_CONFIG, defaultChain, defaultUsdcAddress } from '../thirdwebclient';
 import { FaInfoCircle, FaChevronDown } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useConnectX } from '@/app/hooks/useConnectX';
@@ -90,6 +91,10 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         contractAddress ??
         (bb > 0 ? `free:${sb}-${bb}-${maxBuyIn}` : null);
 
+    const chainCfg = CHAIN_CONFIG[config?.chain ?? ''] ?? { chain: defaultChain, usdc: defaultUsdcAddress };
+    const tableChain = chainCfg.chain;
+    const tableUsdcAddress = chainCfg.usdc;
+
     const currentUser = useCurrentUser();
     const socket = useContext(SocketContext);
     const {
@@ -138,7 +143,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         reset: resetDeposit,
         usdcBalance,
         refreshBalance,
-    } = useDepositAndJoin(contractAddress);
+    } = useDepositAndJoin(contractAddress, tableChain, tableUsdcAddress);
 
     const {
         withdraw,
@@ -148,7 +153,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         error: withdrawError,
         isLoading: isWithdrawing,
         reset: resetWithdraw,
-    } = useWithdraw(contractAddress);
+    } = useWithdraw(contractAddress, tableChain);
 
     const seatRequested = appStore.appState.seatRequested;
     const hasExistingChips =

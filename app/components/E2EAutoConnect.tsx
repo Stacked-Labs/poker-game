@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useConnect, useActiveAccount } from 'thirdweb/react';
 import { privateKeyToAccount, createWalletAdapter } from 'thirdweb/wallets';
-import { client, baseSepoliaChain } from '@/app/thirdwebclient';
+import { client, defaultChain } from '@/app/thirdwebclient';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 /**
@@ -41,7 +41,7 @@ const E2EAutoConnect = () => {
         const wallet = createWalletAdapter({
             client,
             adaptedAccount: account,
-            chain: baseSepoliaChain,
+            chain: defaultChain,
             onDisconnect: () => {},
             switchChain: () => {},
         });

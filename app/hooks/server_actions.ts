@@ -655,9 +655,10 @@ export async function verifyAdmin(): Promise<{ isAdmin: boolean; address?: strin
     }
 }
 
-export async function getAdminStats() {
+export async function getAdminStats(chain?: 'base-sepolia' | 'base') {
     isBackendUrlValid();
-    const response = await fetch(`${backendUrl}/api/admin/stats`, {
+    const qs = chain ? `?chain=${chain}` : '';
+    const response = await fetch(`${backendUrl}/api/admin/stats${qs}`, {
         method: 'GET',
         credentials: 'include',
     });

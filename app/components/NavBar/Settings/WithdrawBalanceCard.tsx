@@ -19,6 +19,7 @@ import { FaCoins, FaCrown, FaInfoCircle } from 'react-icons/fa';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useWithdraw } from '@/app/hooks/useWithdraw';
 import { useHostRake } from '@/app/hooks/useHostRake';
+import { CHAIN_CONFIG, defaultChain } from '@/app/thirdwebclient';
 import { useEmergencyWithdraw } from '@/app/hooks/useEmergencyWithdraw';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { useActiveWallet } from 'thirdweb/react';
@@ -36,6 +37,7 @@ const WithdrawBalanceCard = () => {
     const config = appStore.appState.game?.config;
     const isCryptoGame = Boolean(config?.crypto);
     const contractAddress = config?.contractAddress;
+    const tableChain = (CHAIN_CONFIG[config?.chain ?? ''] ?? { chain: defaultChain }).chain;
     const { success, error: toastError } = useToastHelper();
     const isOwner = useIsTableOwner();
     const settlementStatus = appStore.appState.settlementStatus;
@@ -52,7 +54,7 @@ const WithdrawBalanceCard = () => {
         status,
         error,
         isLoading,
-    } = useWithdraw(contractAddress);
+    } = useWithdraw(contractAddress, tableChain);
 
     // ── Host rake hook (only used when owner) ────────────────────────
     const {
@@ -63,7 +65,7 @@ const WithdrawBalanceCard = () => {
         isLoading: rakeLoading,
         withdraw: rakeWithdraw,
         refresh: rakeRefresh,
-    } = useHostRake(contractAddress);
+    } = useHostRake(contractAddress, tableChain);
 
     const {
         trigger: emergencyWithdraw,

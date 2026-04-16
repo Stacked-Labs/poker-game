@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall } from 'thirdweb';
 import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
 import { approve, allowance, balanceOf } from 'thirdweb/extensions/erc20';
-import { client, baseSepoliaChain } from '../thirdwebclient';
-import { USDC_ADDRESS } from '../contracts/PokerTableABI';
+import { client } from '../thirdwebclient';
 
 const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 const ALLOWANCE_POLL_INTERVAL_MS = 1500;
@@ -32,7 +32,11 @@ interface UseDepositAndJoinResult {
     refreshBalance: () => Promise<bigint | null>;
 }
 
-export function useDepositAndJoin(contractAddress: string | undefined): UseDepositAndJoinResult {
+export function useDepositAndJoin(
+    contractAddress: string | undefined,
+    chain: Chain,
+    usdcAddress: string,
+): UseDepositAndJoinResult {
     const account = useActiveAccount();
     const [status, setStatus] = useState<DepositStatus>('idle');
     const [error, setError] = useState<string | null>(null);
@@ -50,8 +54,8 @@ export function useDepositAndJoin(contractAddress: string | undefined): UseDepos
 
         const usdcContract = getContract({
             client,
-            chain: baseSepoliaChain,
-            address: USDC_ADDRESS,
+            chain,
+            address: usdcAddress,
         });
 
         const balance = await balanceOf({
@@ -61,7 +65,7 @@ export function useDepositAndJoin(contractAddress: string | undefined): UseDepos
 
         setUsdcBalance(balance);
         return balance;
-    }, [account?.address]);
+    }, [account?.address, chain, usdcAddress]);
 
     const depositAndJoin = useCallback(
         async (chipAmount: number): Promise<boolean> => {
@@ -83,13 +87,13 @@ export function useDepositAndJoin(contractAddress: string | undefined): UseDepos
 
                 const usdcContract = getContract({
                     client,
-                    chain: baseSepoliaChain,
-                    address: USDC_ADDRESS,
+                    chain,
+                    address: usdcAddress,
                 });
 
                 const pokerContract = getContract({
                     client,
-                    chain: baseSepoliaChain,
+                    chain,
                     address: contractAddress,
                 });
 
@@ -175,7 +179,7 @@ export function useDepositAndJoin(contractAddress: string | undefined): UseDepos
                 return false;
             }
         },
-        [account?.address, contractAddress, sendAndConfirm]
+        [account?.address, contractAddress, chain, usdcAddress, sendAndConfirm]
     );
 
     return {

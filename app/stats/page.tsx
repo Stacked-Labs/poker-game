@@ -36,7 +36,7 @@ import {
 } from '@chakra-ui/react';
 import Link from 'next/link';
 import EmergencyWithdrawAllButton from '../components/EmergencyWithdrawAllButton';
-import { useEffect, useState, useCallback, ReactNode } from 'react';
+import { useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import {
     verifyAdmin,
     getAdminStats,
@@ -268,11 +268,16 @@ export default function AdminStatsPage() {
     const [refreshing, setRefreshing] = useState(false);
     const [search, setSearch]         = useState('');
     const [typeFilter, setTypeFilter] = useState<'all' | 'crypto' | 'free'>('all');
+    const [chainFilter, setChainFilter] = useState<'base-sepolia' | 'base'>('base');
+
+    // loadData reads chainFilter via the ref below to avoid stale closures.
+    const chainFilterRef = useRef(chainFilter);
+    useEffect(() => { chainFilterRef.current = chainFilter; }, [chainFilter]);
 
     const loadData = useCallback(async () => {
         setRefreshing(true);
         const [s, l, t, h, sh, ix] = await Promise.allSettled([
-            getAdminStats(),
+            getAdminStats(chainFilterRef.current),
             getAdminLiveStats(),
             getAdminTables(),
             getAdminHealth(),
@@ -288,12 +293,20 @@ export default function AdminStatsPage() {
         setRefreshing(false);
     }, []);
 
+    // Auth check on mount only.
     useEffect(() => {
         verifyAdmin().then((r) => {
             if (r.isAdmin) { setAuthState('authorized'); loadData(); }
             else setAuthState('unauthorized');
         });
     }, [loadData]);
+
+    // Re-fetch stats when chain filter changes (after initial auth).
+    useEffect(() => {
+        if (authState === 'authorized') loadData();
+    // authState excluded: the auth check above handles the initial load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chainFilter, loadData]);
 
     if (authState === 'loading') {
         return (
@@ -376,6 +389,51 @@ export default function AdminStatsPage() {
                         _active={{ bg: 'btn.lightGray', transform: 'scale(0.95)' }}
                     />
                 </Tooltip>
+            </Flex>
+
+            {/* Chain filter — controls which network's stats are shown */}
+            <Flex width="full" maxW="1200px" mb={4} align="center" gap={2}>
+                <Text fontSize="xs" fontWeight="bold" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" flexShrink={0}>
+                    Network
+                </Text>
+                <HStack gap={2}>
+                    {([
+                        { key: 'base' as const,         label: 'Base',         badge: 'Mainnet' },
+                        { key: 'base-sepolia' as const, label: 'Base Sepolia', badge: 'Testnet' },
+                    ] as const).map(({ key, label, badge }) => (
+                        <Box
+                            key={key}
+                            as="button"
+                            px={3}
+                            py={1.5}
+                            borderRadius="full"
+                            fontSize="sm"
+                            fontWeight="bold"
+                            cursor="pointer"
+                            transition="all 0.15s"
+                            bg={chainFilter === key ? 'brand.green' : 'card.white'}
+                            color={chainFilter === key ? 'white' : 'text.secondary'}
+                            boxShadow="0 1px 4px rgba(0,0,0,0.08)"
+                            onClick={() => setChainFilter(key)}
+                            _hover={{ opacity: 0.85 }}
+                            display="flex"
+                            alignItems="center"
+                            gap={1.5}
+                        >
+                            {label}
+                            <Badge
+                                fontSize="2xs"
+                                px={1.5}
+                                py={0.5}
+                                borderRadius="full"
+                                bg={chainFilter === key ? 'whiteAlpha.300' : 'card.lightGray'}
+                                color={chainFilter === key ? 'white' : 'text.secondary'}
+                            >
+                                {badge}
+                            </Badge>
+                        </Box>
+                    ))}
+                </HStack>
             </Flex>
 
             <Tabs

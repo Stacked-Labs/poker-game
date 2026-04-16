@@ -27,6 +27,7 @@ import { FaCoins, FaInfoCircle } from 'react-icons/fa';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useWithdraw } from '@/app/hooks/useWithdraw';
 import { useActiveWallet } from 'thirdweb/react';
+import { CHAIN_CONFIG, defaultChain } from '@/app/thirdwebclient';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -60,6 +61,7 @@ const WithdrawButton = () => {
     const config = appStore.appState.game?.config;
     const isCryptoGame = Boolean(config?.crypto);
     const contractAddress = config?.contractAddress;
+    const tableChain = (CHAIN_CONFIG[config?.chain ?? ''] ?? { chain: defaultChain }).chain;
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { success, error: toastError } = useToastHelper();
 
@@ -77,7 +79,7 @@ const WithdrawButton = () => {
         error,
         isLoading,
         reset,
-    } = useWithdraw(contractAddress);
+    } = useWithdraw(contractAddress, tableChain);
 
     // Check withdraw eligibility when modal opens or address changes
     const refreshWithdrawStatus = useCallback(() => {

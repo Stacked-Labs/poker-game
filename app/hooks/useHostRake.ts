@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
 import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
-import { client, baseSepoliaChain } from '../thirdwebclient';
+import { client } from '../thirdwebclient';
 
 /** USDC uses 6 decimals on Base */
 const USDC_DECIMALS = 6;
@@ -27,7 +28,7 @@ export interface UseHostRakeResult {
     withdraw: () => Promise<boolean>;
 }
 
-export function useHostRake(contractAddress: string | undefined): UseHostRakeResult {
+export function useHostRake(contractAddress: string | undefined, chain: Chain): UseHostRakeResult {
     const account = useActiveAccount();
     const [rakeBalance, setRakeBalance] = useState<bigint | null>(null);
     const [status, setStatus] = useState<HostRakeStatus>('idle');
@@ -46,7 +47,7 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
             setStatus('loading');
             const pokerContract = getContract({
                 client,
-                chain: baseSepoliaChain,
+                chain: chain,
                 address: contractAddress,
             });
 
@@ -64,7 +65,7 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
             setError(err instanceof Error ? err.message : 'Failed to read rake balance');
             setStatus('error');
         }
-    }, [account?.address, contractAddress]);
+    }, [account?.address, contractAddress, chain]);
 
     const withdraw = useCallback(async (): Promise<boolean> => {
         if (!account?.address || !contractAddress) {
@@ -77,7 +78,7 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
             setStatus('withdrawing');
             const pokerContract = getContract({
                 client,
-                chain: baseSepoliaChain,
+                chain: chain,
                 address: contractAddress,
             });
 
@@ -98,7 +99,7 @@ export function useHostRake(contractAddress: string | undefined): UseHostRakeRes
             setStatus('error');
             return false;
         }
-    }, [account?.address, contractAddress, sendAndConfirm]);
+    }, [account?.address, contractAddress, chain, sendAndConfirm]);
 
     // Poll every 30 seconds to pick up new rake from settlements
     useEffect(() => {

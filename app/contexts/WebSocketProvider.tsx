@@ -625,10 +625,12 @@ export function SocketProvider(props: SocketProviderProps) {
                                 clearTimeout(settlementSuccessTimerRef.current);
                             }
                             dispatch({ type: 'setSettlementStatus', payload: 'success' });
-                            // Trigger floating points animation only for crypto games
-                            // where the local player was actually dealt into the hand
-                            if (appStateRef.current.game?.config?.crypto && userWasInHandRef.current) {
-                                const bb = appStateRef.current.game?.config?.bb ?? 0;
+                            // Trigger floating points animation only for mainnet crypto games
+                            // where the local player was actually dealt into the hand.
+                            // Testnet (base-sepolia) games earn zero points.
+                            const cfg = appStateRef.current.game?.config;
+                            if (cfg?.crypto && cfg?.chain === 'base' && userWasInHandRef.current) {
+                                const bb = cfg.bb ?? 0;
                                 if (bb > 0) {
                                     usePointsAnimationStore.getState().triggerPoints(bb);
                                 }

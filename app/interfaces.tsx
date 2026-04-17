@@ -149,6 +149,7 @@ export type PendingPlayer = {
     seatId: number;
     buyIn: number;
     profileImageUrl?: string; // X (Twitter) profile image URL
+    address?: string; // Ethereum address for BaseScan linking
 };
 
 // Event History Types

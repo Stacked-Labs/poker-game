@@ -1580,41 +1580,6 @@ const TakenSeatButton = ({
                                         </Text>
                                     </Flex>
                                 )}
-                                {/* X verified badge */}
-                                {player.profileImageUrl && (
-                                    <Flex
-                                        position="absolute"
-                                        bottom={0}
-                                        right={0}
-                                        width={{ base: '14px', md: '16px' }}
-                                        height={{ base: '14px', md: '16px' }}
-                                        sx={{
-                                            '@media (orientation: portrait)': {
-                                                width: '12px',
-                                                height: '12px',
-                                            },
-                                        }}
-                                        borderRadius="full"
-                                        bg="#000"
-                                        alignItems="center"
-                                        justifyContent="center"
-                                        border="1.5px solid"
-                                        borderColor="card.white"
-                                        pointerEvents="none"
-                                    >
-                                        <Icon
-                                            as={FaXTwitter}
-                                            color="white"
-                                            boxSize={{ base: '7px', md: '8px' }}
-                                            sx={{
-                                                '@media (orientation: portrait)': {
-                                                    width: '6px',
-                                                    height: '6px',
-                                                },
-                                            }}
-                                        />
-                                    </Flex>
-                                )}
                                 {/* Connect X hover card — glassmorphism popup for local user */}
                                 <AnimatePresence>
                                     {showXHoverCard && (

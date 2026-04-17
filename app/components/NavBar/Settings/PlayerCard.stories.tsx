@@ -66,7 +66,7 @@ const makeDecorator = ({ crypto }: DecoratorConfig = {}) => {
     const appState = crypto ? cryptoAppState : baseAppState;
     const Wrapper = (Story: React.FC) => (
         <AppContext.Provider value={{ appState, dispatch: () => null }}>
-            <div style={{ maxWidth: 520, padding: 16 }}>
+            <div style={{ maxWidth: 480, padding: 16 }}>
                 <Story />
             </div>
         </AppContext.Provider>
@@ -109,7 +109,7 @@ const meta = {
         docs: {
             description: {
                 component:
-                    'Player card used in the Settings panel player list. Shows a small avatar (X profile image when linked, initials fallback otherwise), username, buy-in, seat, and action buttons (accept/deny for pending, kick for accepted). X-verified players get a small 𝕏 badge overlaid on the avatar.',
+                    'Player card for the Settings panel player list. Shows avatar (X profile image or initials fallback), username (clickable to X profile when linked), buy-in, address (linked to BaseScan in crypto mode), and action buttons. Current user gets a "You" badge and subtle green tint.',
             },
         },
     },
@@ -125,7 +125,7 @@ export const Pending: Story = {};
 
 /** Pending player without owner privileges — no action buttons. */
 export const PendingNotOwner: Story = {
-    name: 'Pending — Not Owner',
+    name: 'Pending — Not owner',
     args: { isOwner: false },
 };
 
@@ -136,9 +136,9 @@ export const Accepted: Story = {
     args: { type: 'accepted' },
 };
 
-/** Accepted current user — no kick button (can't kick yourself). */
+/** Accepted current user — "You" badge, subtle green bg, no kick button. */
 export const AcceptedSelf: Story = {
-    name: 'Accepted — Self (no kick)',
+    name: 'Accepted — You (current user)',
     args: { type: 'accepted', isCurrentUser: true },
 };
 
@@ -150,9 +150,9 @@ export const Kicking: Story = {
 
 // ── X (Twitter) integration ──────────────────────────────────────────────────
 
-/** X-verified pending player — avatar with 𝕏 badge overlay. */
+/** X-verified pending player — avatar image, @username links to X profile. */
 export const XVerifiedPending: Story = {
-    name: 'X Verified — Pending',
+    name: 'X verified — Pending',
     args: {
         player: {
             uuid: 'abc12345-6789-0000-0000-000000000002',
@@ -165,9 +165,9 @@ export const XVerifiedPending: Story = {
     },
 };
 
-/** X-verified pending player without an avatar image — falls back to initials + 𝕏 badge. */
+/** X-verified pending player without avatar image — initials fallback. */
 export const XVerifiedPendingNoAvatar: Story = {
-    name: 'X Verified — Pending (no avatar)',
+    name: 'X verified — Pending (no avatar)',
     args: {
         player: {
             uuid: 'abc12345-6789-0000-0000-000000000006',
@@ -178,9 +178,9 @@ export const XVerifiedPendingNoAvatar: Story = {
     },
 };
 
-/** X-verified accepted player — avatar + 𝕏 badge + kick button. */
+/** X-verified accepted player — avatar + kick button. */
 export const XVerifiedAccepted: Story = {
-    name: 'X Verified — Accepted',
+    name: 'X verified — Accepted',
     args: {
         type: 'accepted',
         player: {
@@ -196,9 +196,9 @@ export const XVerifiedAccepted: Story = {
 
 // ── Crypto mode ──────────────────────────────────────────────────────────────
 
-/** Crypto game — hides the "Seat #N" label, shows USDC formatted buy-in. */
+/** Crypto game — truncated address links to BaseScan, no seat label. */
 export const CryptoMode: Story = {
-    name: 'Crypto Mode — No Seat',
+    name: 'Crypto — Address linked',
     decorators: [makeDecorator({ crypto: true })],
     args: {
         player: {
@@ -206,13 +206,14 @@ export const CryptoMode: Story = {
             username: 'whale.eth',
             seatId: 2,
             buyIn: 250,
+            address: '0x1234567890abcdef1234567890abcdef12345678',
         },
     },
 };
 
-/** Crypto + X-verified — avatar with 𝕏 badge, no seat number, USDC format. */
+/** Crypto + X-verified — avatar, @username links to X, address links to BaseScan. */
 export const CryptoXVerified: Story = {
-    name: 'Crypto + X Verified',
+    name: 'Crypto + X verified',
     decorators: [makeDecorator({ crypto: true })],
     args: {
         player: {
@@ -222,6 +223,26 @@ export const CryptoXVerified: Story = {
             buyIn: 1000,
             profileImageUrl:
                 'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+            address: '0xDeaDbeefdEAdbeeF00000000000000000000dEAD',
+        },
+    },
+};
+
+/** Crypto current user — green tint + "You" badge + address link. */
+export const CryptoSelf: Story = {
+    name: 'Crypto — You (current user)',
+    decorators: [makeDecorator({ crypto: true })],
+    args: {
+        type: 'accepted',
+        isCurrentUser: true,
+        player: {
+            uuid: 'abc12345-6789-0000-0000-000000000007',
+            username: '@myHandle',
+            seatId: 1,
+            buyIn: 500,
+            profileImageUrl:
+                'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+            address: '0xABCDEF1234567890ABCDEF1234567890ABCDEF12',
         },
     },
 };

@@ -58,10 +58,17 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid }:
     };
 
     if (acceptedPlayers && acceptedPlayers.length > 0) {
+        // Sort so current user is always first
+        const sortedPlayers = [...acceptedPlayers].sort((a, b) => {
+            if (a.uuid === currentUserUuid) return -1;
+            if (b.uuid === currentUserUuid) return 1;
+            return 0;
+        });
+
         return (
             <>
                 <VStack align="stretch" gap={{ base: 2.5, md: 4 }} w="100%">
-                    {acceptedPlayers.map((player: Player, index: number) => {
+                    {sortedPlayers.map((player: Player, index: number) => {
                         if (player) {
                             const isKicking = kickingInProgress === player.uuid;
 
@@ -70,6 +77,8 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid }:
                                 username: player.username,
                                 seatId: player.seatID,
                                 buyIn: player.totalBuyIn,
+                                profileImageUrl: player.profileImageUrl,
+                                address: player.address,
                             };
 
                             return (

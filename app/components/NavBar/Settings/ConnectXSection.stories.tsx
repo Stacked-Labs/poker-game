@@ -15,13 +15,13 @@ import {
 import { FaXTwitter } from 'react-icons/fa6';
 
 /**
- * Visual-only preview of the redesigned ConnectXSection from GameSettings.
+ * Visual-only preview of the ConnectXSection from GameSettings.
  * Bypasses useAuth / useConnectX so it renders in Storybook without providers.
  *
  * Two visual states:
  *  - Disconnected: clean "Link your X" card with a subhead, black Connect button.
- *  - Connected: premium dark gradient card with large avatar + green ring,
- *    "Connected" pill, subtle "Unlink" text link.
+ *  - Connected: compact inline card with avatar, @handle, green "Connected" pill,
+ *    and subtle "Unlink" text link — matches the settings panel style.
  */
 interface ConnectXPreviewProps {
     xUsername: string | null;
@@ -36,120 +36,86 @@ const ConnectXPreview: React.FC<ConnectXPreviewProps> = ({
     isConnecting = false,
     isDisconnecting = false,
 }) => {
-    // Connected state — premium dark gradient card
+    // Connected state — compact inline card
     if (xUsername) {
         return (
             <Box
-                position="relative"
-                borderRadius="18px"
-                overflow="hidden"
-                bgGradient="linear(135deg, #0B1430 0%, #111a3d 45%, #1a1030 100%)"
+                bg="card.white"
+                borderRadius="16px"
                 border="1px solid"
-                borderColor="whiteAlpha.200"
-                boxShadow="0 10px 30px rgba(11, 20, 48, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                p={{ base: 3, md: 4 }}
+                borderColor="border.lightGray"
+                p={{ base: 2.5, md: 3 }}
+                boxShadow="0 2px 8px rgba(0, 0, 0, 0.06)"
             >
-                <Box
-                    position="absolute"
-                    top="-30px"
-                    right="-30px"
-                    w="120px"
-                    h="120px"
-                    bg="radial-gradient(circle, rgba(54, 163, 123, 0.22) 0%, transparent 70%)"
-                    pointerEvents="none"
-                />
-
-                <Flex align="center" gap={{ base: 3, md: 4 }} position="relative">
-                    <Box position="relative" flexShrink={0}>
-                        <Box
-                            position="absolute"
-                            inset="-3px"
-                            borderRadius="full"
-                            border="2px solid"
-                            borderColor="brand.green"
-                            opacity={0.55}
-                        />
+                <Flex align="center" gap={3}>
+                    <Box flexShrink={0}>
                         {xProfileImageUrl ? (
                             <Image
                                 src={xProfileImageUrl}
                                 alt="X avatar"
-                                boxSize={{ base: '48px', md: '56px' }}
+                                boxSize={{ base: '38px', md: '42px' }}
                                 borderRadius="full"
                                 objectFit="cover"
-                                border="2px solid"
-                                borderColor="rgba(11, 20, 48, 0.9)"
                             />
                         ) : (
-                            <Box
-                                boxSize={{ base: '48px', md: '56px' }}
+                            <Flex
+                                boxSize={{ base: '38px', md: '42px' }}
                                 borderRadius="full"
                                 bg="black"
-                                display="flex"
                                 alignItems="center"
                                 justifyContent="center"
-                                border="2px solid"
-                                borderColor="rgba(11, 20, 48, 0.9)"
                             >
-                                <Icon as={FaXTwitter} boxSize={5} color="white" />
-                            </Box>
+                                <Icon as={FaXTwitter} boxSize={4} color="white" />
+                            </Flex>
                         )}
                     </Box>
 
-                    <VStack spacing={1} align="flex-start" flex={1} minWidth={0}>
+                    <VStack spacing={0.5} align="flex-start" flex={1} minWidth={0}>
                         <HStack spacing={1.5}>
-                            <Icon as={FaXTwitter} boxSize={3} color="whiteAlpha.700" />
+                            <Icon as={FaXTwitter} boxSize="11px" color="text.primary" opacity={0.5} />
                             <Text
-                                fontSize={{ base: 'md', md: 'lg' }}
+                                fontSize={{ base: 'sm', md: 'md' }}
                                 fontWeight="bold"
-                                color="white"
+                                color="text.secondary"
                                 whiteSpace="nowrap"
                                 overflow="hidden"
                                 textOverflow="ellipsis"
-                                maxW={{ base: '150px', md: '200px' }}
+                                maxW={{ base: '140px', md: '200px' }}
                             >
                                 @{xUsername}
                             </Text>
-                        </HStack>
-                        <HStack spacing={3}>
-                            <HStack
-                                spacing={1.5}
-                                bg="rgba(54, 163, 123, 0.12)"
-                                borderRadius="full"
-                                px={2}
-                                py={0.5}
-                            >
-                                <Box
-                                    boxSize="6px"
-                                    borderRadius="full"
-                                    bg="brand.green"
-                                    boxShadow="0 0 6px rgba(54, 163, 123, 0.6)"
-                                />
-                                <Text
-                                    fontSize="xs"
-                                    color="brand.green"
-                                    fontWeight="semibold"
-                                >
+                            <HStack spacing={1} px={1.5} py={0.5} bg="rgba(54, 163, 123, 0.08)" borderRadius="full">
+                                <Box boxSize="5px" borderRadius="full" bg="brand.green" />
+                                <Text fontSize="2xs" color="brand.green" fontWeight="semibold">
                                     Connected
                                 </Text>
                             </HStack>
-                            <Text
-                                as="button"
-                                fontSize="xs"
-                                fontWeight="medium"
-                                color="whiteAlpha.500"
-                                cursor="pointer"
-                                bg="transparent"
-                                border="none"
-                                p={0}
-                                _hover={{
-                                    color: 'brand.pink',
-                                }}
-                                transition="color 0.15s ease"
-                            >
-                                {isDisconnecting ? 'Unlinking…' : 'Unlink'}
-                            </Text>
                         </HStack>
+                        <Text
+                            fontSize="2xs"
+                            color="text.secondary"
+                            opacity={0.55}
+                            lineHeight="1.2"
+                        >
+                            Avatar and handle shown at the table
+                        </Text>
                     </VStack>
+
+                    <Text
+                        as="button"
+                        fontSize="xs"
+                        fontWeight="medium"
+                        color="gray.400"
+                        cursor="pointer"
+                        bg="transparent"
+                        border="none"
+                        p={0}
+                        flexShrink={0}
+                        _hover={{ color: 'brand.pink' }}
+                        transition="color 0.15s ease"
+                    >
+                        {isDisconnecting ? 'Unlinking…' : 'Unlink'}
+                    </Text>
                 </Flex>
             </Box>
         );
@@ -160,10 +126,10 @@ const ConnectXPreview: React.FC<ConnectXPreviewProps> = ({
         <Box
             bg="card.white"
             borderRadius="16px"
-            border="2px solid"
+            border="1px solid"
             borderColor="border.lightGray"
             p={{ base: 2.5, md: 3 }}
-            boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+            boxShadow="0 2px 8px rgba(0, 0, 0, 0.06)"
         >
             <Flex
                 direction="row"
@@ -187,7 +153,7 @@ const ConnectXPreview: React.FC<ConnectXPreviewProps> = ({
                         <Text
                             fontSize="2xs"
                             color="text.secondary"
-                            opacity={0.7}
+                            opacity={0.55}
                             whiteSpace="nowrap"
                             lineHeight="1.2"
                         >
@@ -242,7 +208,7 @@ const meta = {
         docs: {
             description: {
                 component:
-                    'X account connection card shown at the top of GameSettings. Redesigned for premium gaming aesthetic: dark gradient card + green ring + "Connected" pill badge when linked, clean light card with subhead when not linked.',
+                    'X account connection card at the top of GameSettings. Connected state is a compact inline card with avatar, @handle, green status pill, and "Unlink" link — matches the settings panel style. Disconnected state shows a clean card with "Link your X" prompt and black Connect button.',
             },
         },
     },
@@ -251,10 +217,10 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** No X account linked — light card with subhead, black "Connect" button with 𝕏 icon. */
+/** No X account linked — light card with subhead, black "Connect" button with X icon. */
 export const Disconnected: Story = {};
 
-/** X account linked — premium dark gradient card with green ring, Connected pill, Unlink link. */
+/** X account linked — compact inline card with avatar, green status pill, Unlink link. */
 export const Connected: Story = {
     args: {
         xUsername: 'pokerShark',
@@ -264,7 +230,7 @@ export const Connected: Story = {
 
 /** Connected but no profile image yet — falls back to black X logo circle. */
 export const ConnectedNoAvatar: Story = {
-    name: 'Connected — No Avatar',
+    name: 'Connected — no avatar',
     args: {
         xUsername: 'stackedPoker',
         xProfileImageUrl: null,
@@ -280,7 +246,7 @@ export const Connecting: Story = {
     },
 };
 
-/** Disconnecting in progress — shows loading spinner on the Unlink link. */
+/** Disconnecting in progress — shows "Unlinking..." on the Unlink link. */
 export const Disconnecting: Story = {
     args: {
         xUsername: 'pokerShark',
@@ -291,7 +257,7 @@ export const Disconnecting: Story = {
 
 /** Connected with a long username — tests truncation behavior. */
 export const LongUsername: Story = {
-    name: 'Connected — Long Username',
+    name: 'Connected — long username',
     args: {
         xUsername: 'this_is_a_very_long_twitter_username',
         xProfileImageUrl: 'https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg',

@@ -12,6 +12,7 @@ import {
     ModalOverlay,
     Stack,
     Text,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -90,6 +91,17 @@ const SeatRequestPopup = () => {
     const isOpen =
         Boolean(currentRequest) && isOwner && showPopups && !isSettingsOpen;
 
+    // Dark-mode-adaptive values
+    const popupBg = useColorModeValue('white', '#212121');
+    const headerBg = useColorModeValue('#ECEEF5', '#191414');
+    const subtleBorder = useColorModeValue('rgba(0, 0, 0, 0.08)', 'rgba(255, 255, 255, 0.1)');
+    const popupShadow = useColorModeValue(
+        '0 16px 40px rgba(0, 0, 0, 0.22)',
+        '0 16px 40px rgba(0, 0, 0, 0.5)'
+    );
+    const badgeBg = useColorModeValue('#ECEEF5', '#191414');
+    const badgeColor = useColorModeValue('#334479', '#ECEEF5');
+
     const handleDismiss = () => {
         if (!currentRequest) return;
         dismissedRef.current.add(currentRequest.uuid);
@@ -146,9 +158,9 @@ const SeatRequestPopup = () => {
                 bg="card.white"
                 borderRadius="18px"
                 overflow="hidden"
-                boxShadow="0 16px 40px rgba(0, 0, 0, 0.22)"
+                boxShadow={popupShadow}
                 border="1px solid"
-                borderColor="rgba(0, 0, 0, 0.08)"
+                borderColor={subtleBorder}
                 maxW="360px"
                 mx={{ base: 3, md: 0 }}
                 animation={`${fadeIn} 0.25s ease-out`}
@@ -160,7 +172,7 @@ const SeatRequestPopup = () => {
                     py={2}
                     bg="card.lightGray"
                     borderBottom="1px solid"
-                    borderColor="rgba(0, 0, 0, 0.08)"
+                    borderColor={subtleBorder}
                 >
                     <Flex alignItems="center" gap={2}>
                         <Box
@@ -230,8 +242,8 @@ const SeatRequestPopup = () => {
                                 </Text>
                                 {!isCrypto && (
                                     <Badge
-                                        bg="card.lightGray"
-                                        color="brand.navy"
+                                        bg={badgeBg}
+                                        color={badgeColor}
                                         fontSize="2xs"
                                         borderRadius="5px"
                                         px={1.5}
@@ -253,8 +265,8 @@ const SeatRequestPopup = () => {
                                     Buy-in {format(currentRequest.buyIn)}
                                 </Badge>
                                 <Badge
-                                    bg="card.lightGray"
-                                    color="text.secondary"
+                                    bg={badgeBg}
+                                    color={badgeColor}
                                     fontSize="2xs"
                                     borderRadius="5px"
                                     px={1.5}

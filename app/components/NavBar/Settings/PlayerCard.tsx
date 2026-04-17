@@ -1,7 +1,8 @@
 import { PendingPlayer } from '@/app/interfaces';
-import { Box, Flex, Button, Icon, Image, Text, Tooltip, VStack, Badge } from '@chakra-ui/react';
-import { FaCircleCheck, FaCircleXmark, FaXTwitter } from 'react-icons/fa6';
+import { Box, Flex, Button, Icon, Image, Link, Text, Tooltip, VStack, Badge, useColorModeValue } from '@chakra-ui/react';
+import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
 import { GiBootKick } from 'react-icons/gi';
+import { FiExternalLink } from 'react-icons/fi';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { useContext } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -47,33 +48,61 @@ const PlayerCard = ({
             .join('') ||
         displayName.replace(/^@/, '').slice(0, 2).toUpperCase();
 
+    const truncatedAddress = player.address
+        ? `${player.address.substring(0, 6)}...${player.address.substring(player.address.length - 4)}`
+        : null;
+    const baseScanUrl = player.address
+        ? `https://sepolia.basescan.org/address/${player.address}`
+        : null;
+    const xProfileUrl = isXVerified
+        ? `https://x.com/${player.username?.replace(/^@/, '')}`
+        : null;
+
+    // Dark-mode-adaptive values
+    const cardBg = useColorModeValue('white', '#212121');
+    const selfBg = useColorModeValue('rgba(54, 163, 123, 0.06)', 'rgba(54, 163, 123, 0.1)');
+    const selfBorder = useColorModeValue('rgba(54, 163, 123, 0.2)', 'rgba(54, 163, 123, 0.3)');
+    const borderColor = useColorModeValue('#ECEEF5', 'rgba(255, 255, 255, 0.1)');
+    const shadowRest = useColorModeValue(
+        '0 1px 4px rgba(0, 0, 0, 0.04)',
+        '0 1px 4px rgba(0, 0, 0, 0.2)'
+    );
+    const shadowHover = useColorModeValue(
+        '0 4px 12px rgba(0, 0, 0, 0.08)',
+        '0 4px 12px rgba(0, 0, 0, 0.35)'
+    );
+    const avatarBgOpacity = useColorModeValue('18', '30');
+    const badgeBg = useColorModeValue('#ECEEF5', '#191414');
+    const badgeColor = useColorModeValue('#334479', '#ECEEF5');
+    const metaColor = useColorModeValue('rgba(11, 20, 48, 0.5)', 'rgba(255, 255, 255, 0.45)');
+
     return (
         <Flex
             key={index}
-            alignItems={'center'}
-            justifyContent={'space-between'}
-            width={'100%'}
-            bg={'card.white'}
+            alignItems="center"
+            justifyContent="space-between"
+            width="100%"
+            bg={isCurrentUser ? selfBg : cardBg}
             borderRadius={{ base: '12px', md: '16px' }}
-            border="2px solid"
-            borderColor="border.lightGray"
-            paddingX={{ base: 3, sm: 4, md: 6 }}
-            paddingY={{ base: 3, sm: 3.5, md: 5 }}
-            boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
+            border="1px solid"
+            borderColor={isCurrentUser ? selfBorder : borderColor}
+            paddingX={{ base: 3, sm: 4, md: 5 }}
+            paddingY={{ base: 2.5, sm: 3, md: 4 }}
+            boxShadow={shadowRest}
             _hover={{
-                borderColor: 'brand.green',
-                boxShadow: '0 8px 20px rgba(54, 163, 123, 0.15)',
-                transform: 'translateY(-2px)',
+                boxShadow: shadowHover,
+                transform: 'translateY(-1px)',
             }}
-            transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+            transition="all 0.2s ease"
             flexDirection="row"
-            gap={{ base: 3, sm: 3, md: 3 }}
+            gap={{ base: 3, md: 3 }}
         >
+            {/* Avatar */}
             <Box
                 position="relative"
                 flexShrink={0}
-                w={{ base: '40px', md: '48px' }}
-                h={{ base: '40px', md: '48px' }}
+                w={{ base: '36px', md: '42px' }}
+                h={{ base: '36px', md: '42px' }}
             >
                 {player.profileImageUrl ? (
                     <Image
@@ -89,12 +118,12 @@ const PlayerCard = ({
                         w="100%"
                         h="100%"
                         borderRadius="full"
-                        bg={`${avatarColor}20`}
+                        bg={`${avatarColor}${avatarBgOpacity}`}
                         alignItems="center"
                         justifyContent="center"
                     >
                         <Text
-                            fontSize={{ base: 'sm', md: 'md' }}
+                            fontSize={{ base: 'xs', md: 'sm' }}
                             fontWeight="bold"
                             color={avatarColor}
                             lineHeight="1"
@@ -104,113 +133,138 @@ const PlayerCard = ({
                         </Text>
                     </Flex>
                 )}
-                {isXVerified && (
-                    <Flex
-                        position="absolute"
-                        bottom="-2px"
-                        right="-2px"
-                        w={{ base: '16px', md: '18px' }}
-                        h={{ base: '16px', md: '18px' }}
-                        borderRadius="full"
-                        bg="#000"
-                        alignItems="center"
-                        justifyContent="center"
-                        border="2px solid"
-                        borderColor="card.white"
-                    >
-                        <Icon as={FaXTwitter} boxSize="8px" color="white" />
-                    </Flex>
-                )}
             </Box>
+
+            {/* Info */}
             <VStack
                 flex={1}
-                justifyContent={{ base: 'center', lg: 'space-around' }}
-                alignItems={'start'}
-                textAlign={'left'}
-                gap={{ base: 1.5, md: 2 }}
+                alignItems="start"
+                gap={{ base: 0.5, md: 1 }}
                 minW={0}
-                w="auto"
             >
-                <Flex
-                    alignItems="center"
-                    gap={2}
-                    flexWrap="wrap"
-                >
-                    <Text
-                        color={'text.secondary'}
-                        fontWeight={'bold'}
-                        fontSize={{
-                            base: 'md',
-                            sm: 'lg',
-                            md: 'xl',
-                            lg: '2xl',
-                        }}
-                        letterSpacing="-0.02em"
-                    >
-                        {displayName}
-                    </Text>
+                {/* Name row */}
+                <Flex alignItems="center" gap={2} flexWrap="wrap">
+                    {isXVerified && xProfileUrl ? (
+                        <Link
+                            href={xProfileUrl}
+                            isExternal
+                            _hover={{ textDecoration: 'none' }}
+                        >
+                            <Text
+                                color="text.secondary"
+                                fontWeight="bold"
+                                fontSize={{ base: 'sm', md: 'md' }}
+                                _hover={{ color: 'brand.green' }}
+                                transition="color 0.15s ease"
+                            >
+                                {displayName}
+                            </Text>
+                        </Link>
+                    ) : (
+                        <Text
+                            color="text.secondary"
+                            fontWeight="bold"
+                            fontSize={{ base: 'sm', md: 'md' }}
+                        >
+                            {displayName}
+                        </Text>
+                    )}
+                    {isCurrentUser && (
+                        <Badge
+                            bg="rgba(54, 163, 123, 0.1)"
+                            color="brand.green"
+                            fontSize="2xs"
+                            fontWeight="semibold"
+                            borderRadius="full"
+                            px={2}
+                            py={0.5}
+                            textTransform="none"
+                        >
+                            You
+                        </Badge>
+                    )}
                     {type === 'pending' && (
                         <Badge
                             color="white"
                             bg="brand.pink"
-                            textTransform="uppercase"
-                            fontWeight="bold"
-                            fontSize={{ base: '2xs', md: 'xs' }}
+                            fontWeight="semibold"
+                            fontSize="2xs"
                             borderRadius="full"
-                            px={3}
+                            px={2}
                             py={0.5}
-                            letterSpacing="0.05em"
-                            boxShadow="0 6px 14px rgba(235, 11, 92, 0.25)"
+                            textTransform="none"
                         >
                             Pending
                         </Badge>
                     )}
                 </Flex>
+
+                {/* Meta row */}
                 <Flex
                     gap={{ base: 1.5, md: 2 }}
-                    flex={2}
-                    direction={'row'}
+                    direction="row"
                     flexWrap="wrap"
-                    w="100%"
                     alignItems="center"
                 >
-                    <Badge
-                        bg="card.lightGray"
-                        color="brand.navy"
-                        paddingY={{ base: 0.5, md: 1 }}
-                        paddingX={{ base: 2, md: 3 }}
-                        borderRadius={{ base: '6px', md: '8px' }}
-                        fontSize={{ base: '2xs', md: 'xs' }}
-                        fontWeight="semibold"
-                    >
-                        ID: {player.uuid.substring(0, 8)}
-                    </Badge>
+                    {/* ID / address */}
+                    {isCrypto && truncatedAddress && baseScanUrl ? (
+                        <Link
+                            href={baseScanUrl}
+                            isExternal
+                            _hover={{ textDecoration: 'none' }}
+                        >
+                            <Badge
+                                bg={badgeBg}
+                                color={badgeColor}
+                                px={2}
+                                py={0.5}
+                                borderRadius="6px"
+                                fontSize="2xs"
+                                fontWeight="medium"
+                                cursor="pointer"
+                                display="flex"
+                                alignItems="center"
+                                gap={1}
+                                _hover={{ color: 'brand.green' }}
+                                transition="color 0.15s ease"
+                            >
+                                {truncatedAddress}
+                                <Icon as={FiExternalLink} boxSize="9px" />
+                            </Badge>
+                        </Link>
+                    ) : (
+                        <Badge
+                            bg={badgeBg}
+                            color={badgeColor}
+                            px={2}
+                            py={0.5}
+                            borderRadius="6px"
+                            fontSize="2xs"
+                            fontWeight="medium"
+                        >
+                            {player.uuid.substring(0, 8)}
+                        </Badge>
+                    )}
+
                     <Text
-                        color={'gray.600'}
-                        fontSize={{ base: '2xs', sm: 'xs', md: 'sm' }}
+                        color={metaColor}
+                        fontSize="2xs"
                         fontWeight="medium"
                     >
-                        Buy-in:{' '}
-                        <Text
-                            as={'span'}
-                            fontWeight={'bold'}
-                            color="brand.green"
-                        >
+                        Buy-in{' '}
+                        <Text as="span" fontWeight="bold" color="brand.green">
                             {formattedBuyIn}
                         </Text>
                     </Text>
+
                     {!isCrypto && (
                         <Text
-                            color={'gray.600'}
-                            fontSize={{ base: '2xs', sm: 'xs', md: 'sm' }}
+                            color={metaColor}
+                            fontSize="2xs"
                             fontWeight="medium"
                         >
-                            Seat:{' '}
-                            <Text
-                                as={'span'}
-                                fontWeight={'bold'}
-                                color="brand.green"
-                            >
+                            Seat{' '}
+                            <Text as="span" fontWeight="bold" color="brand.green">
                                 #{player.seatId}
                             </Text>
                         </Text>
@@ -218,70 +272,66 @@ const PlayerCard = ({
                 </Flex>
             </VStack>
 
+            {/* Action buttons */}
             {isOwner &&
-                type == 'pending' &&
+                type === 'pending' &&
                 handleAcceptPlayer &&
                 handleDenyPlayer && (
-                    <Flex
-                        gap={{ base: 1.5, lg: 2 }}
-                        flexShrink={0}
-                        w="auto"
-                        justifyContent="flex-end"
-                    >
+                    <Flex gap={1.5} flexShrink={0}>
                         <Tooltip
-                            label="Accept Player"
+                            label="Accept"
                             placement="top"
                             bg="brand.navy"
                             color="white"
                             borderRadius="md"
+                            fontSize="xs"
                         >
                             <Button
-                                size={{ base: 'sm', md: 'md' }}
-                                bg={'brand.green'}
+                                size="sm"
+                                bg="brand.green"
                                 color="white"
                                 _hover={{
                                     bg: 'brand.green',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 8px 16px rgba(54, 163, 123, 0.3)',
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: '0 4px 12px rgba(54, 163, 123, 0.3)',
                                 }}
                                 _active={{ transform: 'translateY(0)' }}
                                 onClick={() => handleAcceptPlayer(player.uuid)}
-                                minW={{ base: '36px', sm: '40px', md: '52px' }}
-                                h={{ base: '36px', sm: '40px', md: '52px' }}
-                                borderRadius={{ base: '10px', md: '12px' }}
+                                minW={{ base: '34px', md: '38px' }}
+                                h={{ base: '34px', md: '38px' }}
+                                borderRadius="10px"
                                 border="none"
                                 transition="all 0.2s ease"
                             >
-                                <FaCircleCheck size={18} />
+                                <FaCircleCheck size={15} />
                             </Button>
                         </Tooltip>
                         <Tooltip
-                            label="Deny Player"
+                            label="Deny"
                             placement="top"
                             bg="brand.navy"
                             color="white"
                             borderRadius="md"
+                            fontSize="xs"
                         >
                             <Button
-                                size={{ base: 'sm', md: 'md' }}
-                                bg={'brand.pink'}
+                                size="sm"
+                                bg="brand.pink"
                                 color="white"
                                 _hover={{
                                     bg: 'brand.pink',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 8px 16px rgba(235, 11, 92, 0.3)',
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: '0 4px 12px rgba(235, 11, 92, 0.3)',
                                 }}
                                 _active={{ transform: 'translateY(0)' }}
                                 onClick={() => handleDenyPlayer(player.uuid)}
-                                minW={{ base: '36px', sm: '40px', md: '52px' }}
-                                h={{ base: '36px', sm: '40px', md: '52px' }}
-                                borderRadius={{ base: '10px', md: '12px' }}
+                                minW={{ base: '34px', md: '38px' }}
+                                h={{ base: '34px', md: '38px' }}
+                                borderRadius="10px"
                                 border="none"
                                 transition="all 0.2s ease"
                             >
-                                <FaCircleXmark size={18} />
+                                <FaCircleXmark size={15} />
                             </Button>
                         </Tooltip>
                     </Flex>
@@ -289,37 +339,38 @@ const PlayerCard = ({
 
             {isOwner &&
                 !isCurrentUser &&
-                type == 'accepted' &&
+                type === 'accepted' &&
                 isKicking !== null &&
                 confirmKick && (
                     <Tooltip
-                        label="Kick Player"
+                        label="Kick"
                         placement="top"
                         bg="brand.navy"
                         color="white"
                         borderRadius="md"
+                        fontSize="xs"
                     >
                         <Button
                             data-testid={`kick-player-${player.uuid}`}
-                            size={{ base: 'sm', md: 'md' }}
-                            bg={'brand.pink'}
+                            size="sm"
+                            bg="brand.pink"
                             color="white"
                             _hover={{
                                 bg: 'brand.pink',
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 8px 16px rgba(235, 11, 92, 0.3)',
+                                transform: 'translateY(-1px)',
+                                boxShadow: '0 4px 12px rgba(235, 11, 92, 0.3)',
                             }}
                             _active={{ transform: 'translateY(0)' }}
                             onClick={() => confirmKick(player)}
                             isLoading={isKicking}
                             loadingText="Kicking..."
-                            minW={{ base: '36px', sm: '40px', md: '52px' }}
-                            h={{ base: '36px', sm: '40px', md: '52px' }}
-                            borderRadius={{ base: '10px', md: '12px' }}
+                            minW={{ base: '34px', md: '38px' }}
+                            h={{ base: '34px', md: '38px' }}
+                            borderRadius="10px"
                             border="none"
                             transition="all 0.2s ease"
                         >
-                            <GiBootKick size={18} />
+                            <GiBootKick size={15} />
                         </Button>
                     </Tooltip>
                 )}

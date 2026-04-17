@@ -20,7 +20,7 @@ import { FaMoon } from 'react-icons/fa';
 import { IoMdSunny } from 'react-icons/io';
 import { FiCheck, FiEye, FiEyeOff, FiVolume2, FiVolumeX, FiX } from 'react-icons/fi';
 import { FaXTwitter } from 'react-icons/fa6';
-import { useColorMode } from '@chakra-ui/react';
+import { useColorMode, useColorModeValue } from '@chakra-ui/react';
 import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
@@ -50,132 +50,100 @@ const cardBackColors: Record<CardBackVariant, string> = {
 const ConnectXSection = () => {
     const { isAuthenticated, xUsername, xProfileImageUrl } = useAuth();
     const { connectX, disconnectX, isConnecting, isDisconnecting } = useConnectX();
+    const sectionShadow = useColorModeValue(
+        '0 2px 8px rgba(0, 0, 0, 0.06)',
+        '0 2px 8px rgba(0, 0, 0, 0.25)'
+    );
+    const unlinkColor = useColorModeValue('gray.400', 'gray.500');
 
     if (!isAuthenticated) return null;
 
-    // Connected state — premium dark integration card
+    // Connected state — compact inline card matching settings panel style
     if (xUsername) {
         return (
             <Box
-                position="relative"
-                borderRadius="18px"
-                overflow="hidden"
-                bgGradient="linear(135deg, #0B1430 0%, #111a3d 45%, #1a1030 100%)"
+                bg="card.white"
+                borderRadius="16px"
                 border="1px solid"
-                borderColor="whiteAlpha.200"
-                boxShadow="0 10px 30px rgba(11, 20, 48, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                p={{ base: 3, md: 4 }}
+                borderColor="border.lightGray"
+                p={{ base: 2.5, md: 3 }}
+                boxShadow={sectionShadow}
             >
-                {/* Subtle top-right glow */}
-                <Box
-                    position="absolute"
-                    top="-30px"
-                    right="-30px"
-                    w="120px"
-                    h="120px"
-                    bg="radial-gradient(circle, rgba(54, 163, 123, 0.22) 0%, transparent 70%)"
-                    pointerEvents="none"
-                />
-
-                <Flex align="center" gap={{ base: 3, md: 4 }} position="relative">
-                    {/* Large avatar with green verified ring */}
-                    <Box position="relative" flexShrink={0}>
-                        <Box
-                            position="absolute"
-                            inset="-3px"
-                            borderRadius="full"
-                            border="2px solid"
-                            borderColor="brand.green"
-                            opacity={0.55}
-                        />
+                <Flex align="center" gap={3}>
+                    {/* Avatar */}
+                    <Box flexShrink={0}>
                         {xProfileImageUrl ? (
                             <Image
                                 src={xProfileImageUrl}
                                 alt="X avatar"
-                                boxSize={{ base: '48px', md: '56px' }}
+                                boxSize={{ base: '38px', md: '42px' }}
                                 borderRadius="full"
                                 objectFit="cover"
-                                border="2px solid"
-                                borderColor="rgba(11, 20, 48, 0.9)"
                             />
                         ) : (
-                            <Box
-                                boxSize={{ base: '48px', md: '56px' }}
+                            <Flex
+                                boxSize={{ base: '38px', md: '42px' }}
                                 borderRadius="full"
                                 bg="black"
-                                display="flex"
                                 alignItems="center"
                                 justifyContent="center"
-                                border="2px solid"
-                                borderColor="rgba(11, 20, 48, 0.9)"
                             >
-                                <Icon as={FaXTwitter} boxSize={5} color="white" />
-                            </Box>
+                                <Icon as={FaXTwitter} boxSize={4} color="white" />
+                            </Flex>
                         )}
                     </Box>
 
-                    {/* Handle + connected pill */}
-                    <VStack spacing={1} align="flex-start" flex={1} minWidth={0}>
+                    {/* Handle + status */}
+                    <VStack spacing={0.5} align="flex-start" flex={1} minWidth={0}>
                         <HStack spacing={1.5}>
-                            <Icon as={FaXTwitter} boxSize={3} color="whiteAlpha.700" />
+                            <Icon as={FaXTwitter} boxSize="11px" color="text.primary" opacity={0.5} />
                             <Text
-                                fontSize={{ base: 'md', md: 'lg' }}
+                                fontSize={{ base: 'sm', md: 'md' }}
                                 fontWeight="bold"
-                                color="white"
+                                color="text.secondary"
                                 whiteSpace="nowrap"
                                 overflow="hidden"
                                 textOverflow="ellipsis"
-                                maxW={{ base: '150px', md: '200px' }}
+                                maxW={{ base: '140px', md: '200px' }}
                             >
                                 @{xUsername}
                             </Text>
-                        </HStack>
-                        <HStack spacing={3}>
-                            <HStack
-                                spacing={1.5}
-                                bg="rgba(54, 163, 123, 0.12)"
-                                borderRadius="full"
-                                px={2}
-                                py={0.5}
-                            >
-                                <Box
-                                    boxSize="6px"
-                                    borderRadius="full"
-                                    bg="brand.green"
-                                    boxShadow="0 0 6px rgba(54, 163, 123, 0.6)"
-                                />
-                                <Text
-                                    fontSize="xs"
-                                    color="brand.green"
-                                    fontWeight="semibold"
-                                >
+                            <HStack spacing={1} px={1.5} py={0.5} bg="rgba(54, 163, 123, 0.08)" borderRadius="full">
+                                <Box boxSize="5px" borderRadius="full" bg="brand.green" />
+                                <Text fontSize="2xs" color="brand.green" fontWeight="semibold">
                                     Connected
                                 </Text>
                             </HStack>
-                            <Text
-                                as="button"
-                                onClick={disconnectX}
-                                disabled={isDisconnecting}
-                                fontSize="xs"
-                                fontWeight="medium"
-                                color="whiteAlpha.500"
-                                cursor="pointer"
-                                bg="transparent"
-                                border="none"
-                                p={0}
-                                _hover={{
-                                    color: 'brand.pink',
-                                }}
-                                _disabled={{
-                                    opacity: 0.4,
-                                    cursor: 'not-allowed',
-                                }}
-                                transition="color 0.15s ease"
-                            >
-                                {isDisconnecting ? 'Unlinking…' : 'Unlink'}
-                            </Text>
                         </HStack>
+                        <Text
+                            fontSize="2xs"
+                            color="text.secondary"
+                            opacity={0.55}
+                            lineHeight="1.2"
+                        >
+                            Avatar and handle shown at the table
+                        </Text>
                     </VStack>
+
+                    {/* Unlink */}
+                    <Text
+                        as="button"
+                        onClick={disconnectX}
+                        disabled={isDisconnecting}
+                        fontSize="xs"
+                        fontWeight="medium"
+                        color={unlinkColor}
+                        cursor="pointer"
+                        bg="transparent"
+                        border="none"
+                        p={0}
+                        flexShrink={0}
+                        _hover={{ color: 'brand.pink' }}
+                        _disabled={{ opacity: 0.4, cursor: 'not-allowed' }}
+                        transition="color 0.15s ease"
+                    >
+                        {isDisconnecting ? 'Unlinking…' : 'Unlink'}
+                    </Text>
                 </Flex>
             </Box>
         );
@@ -186,10 +154,10 @@ const ConnectXSection = () => {
         <Box
             bg="card.white"
             borderRadius="16px"
-            border="2px solid"
+            border="1px solid"
             borderColor="border.lightGray"
             p={{ base: 2.5, md: 3 }}
-            boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+            boxShadow={sectionShadow}
         >
             <Flex
                 direction="row"
@@ -213,7 +181,7 @@ const ConnectXSection = () => {
                         <Text
                             fontSize="2xs"
                             color="text.secondary"
-                            opacity={0.7}
+                            opacity={0.55}
                             whiteSpace="nowrap"
                             lineHeight="1.2"
                         >

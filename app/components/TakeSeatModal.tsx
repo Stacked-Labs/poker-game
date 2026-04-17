@@ -13,7 +13,6 @@ import {
     Tooltip,
     Box,
     FormControl,
-    FormLabel,
     FormErrorMessage,
     VStack,
     Center,
@@ -56,7 +55,7 @@ const gradientShift = keyframes`
 
 const float = keyframes`
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-6px); }
 `;
 
 const slideUp = keyframes`
@@ -72,11 +71,10 @@ const slideUp = keyframes`
 
 const motionStyle: MotionStyle = {
     display: 'inline-block',
-    color: '#334479',
 };
 
 const variants = {
-    hover: { scale: 1.15, rotate: 5, transition: { duration: 0.3 } },
+    hover: { scale: 1.12, rotate: 4, transition: { duration: 0.3 } },
     initial: { scale: 1, rotate: 0 },
 };
 
@@ -416,7 +414,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     padding="3px"
                     bgGradient="linear(to-r, brand.pink, brand.green, brand.yellow, brand.pink)"
                     backgroundSize="200% 200%"
-                    animation={`${gradientShift} 4s ease infinite`}
+                    animation={`${gradientShift} 8s ease infinite`}
                     pointerEvents="none"
                     zIndex={0}
                 >
@@ -430,7 +428,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
                 {/* Content Container */}
                 <Box position="relative" zIndex={1} bg={'card.white'}>
-                    {/* Easter Egg Chair - Top Left */}
+                    {/* Easter egg chair */}
                     <Tooltip
                         label='"All you need is a chip and a chair." — Jack Straus'
                         fontSize="xs"
@@ -444,16 +442,17 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                         <Box
                             as={motion.div}
                             position="absolute"
-                            top={4}
+                            top={3}
                             left={4}
                             style={motionStyle}
                             variants={variants}
                             initial="initial"
                             whileHover="hover"
-                            fontSize="2xl"
-                            animation={`${float} 3s ease-in-out infinite`}
+                            fontSize="xl"
+                            animation={`${float} 5s ease-in-out infinite`}
                             cursor="pointer"
                             zIndex={2}
+                            opacity={0.7}
                         >
                             🪑
                         </Box>
@@ -461,34 +460,33 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
                     <ModalCloseButton
                         color="text.secondary"
-                        size="lg"
-                        top={4}
-                        right={4}
+                        size="md"
+                        top={3}
+                        right={3}
                         borderRadius="full"
                         _hover={{
-                            bg: 'brand.lightGray',
+                            bg: 'card.lightGray',
                             transform: 'rotate(90deg)',
                         }}
                         transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                     />
 
-                    <ModalHeader textAlign="center" pt={12} pb={4}>
-                        <VStack spacing={2}>
+                    <ModalHeader textAlign="center" pt={10} pb={2} px={8}>
+                        <VStack spacing={1}>
                             <Heading
                                 as="h2"
-                                fontSize="2xl"
+                                fontSize="xl"
                                 fontWeight="bold"
                                 color="text.secondary"
                                 letterSpacing="-0.02em"
                             >
-                                Take Your Seat
+                                Take your seat
                             </Heading>
                             <Text
-                                fontSize="sm"
-                                color="gray.600"
+                                fontSize="xs"
+                                color="text.muted"
                                 fontWeight="medium"
                                 textAlign="center"
-                                px={4}
                             >
                                 {isCryptoGame
                                     ? 'Deposit USDC to join the table'
@@ -497,7 +495,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                         </VStack>
                     </ModalHeader>
 
-                    <ModalBody px={8} pb={4} pt={2}>
+                    <ModalBody px={7} pb={3} pt={1}>
                         <Center>
                             <VStack w="100%" spacing={4}>
                                 {/* Withdraw-first state: user has chips in the contract but no active seat request */}
@@ -558,30 +556,45 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     <HStack
                                         spacing={3}
                                         py={2}
-                                        px={1}
+                                        px={3}
                                         w="100%"
-                                        justify="center"
+                                        bg="card.lightGray"
+                                        borderRadius="xl"
                                     >
-                                        {xProfileImageUrl && (
+                                        {xProfileImageUrl ? (
                                             <Image
                                                 src={xProfileImageUrl}
                                                 alt="X avatar"
-                                                boxSize="36px"
+                                                boxSize="34px"
                                                 borderRadius="full"
                                                 objectFit="cover"
+                                                flexShrink={0}
                                             />
+                                        ) : (
+                                            <Flex
+                                                boxSize="34px"
+                                                borderRadius="full"
+                                                bg="black"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                flexShrink={0}
+                                            >
+                                                <Icon as={FaXTwitter} boxSize={3.5} color="white" />
+                                            </Flex>
                                         )}
-                                        <HStack spacing={1.5}>
+                                        <HStack spacing={1.5} flex={1} minW={0}>
                                             <Icon
                                                 as={FaXTwitter}
-                                                boxSize={3.5}
+                                                boxSize="11px"
                                                 color="text.primary"
-                                                opacity={0.75}
+                                                opacity={0.5}
+                                                flexShrink={0}
                                             />
                                             <Text
-                                                fontSize="md"
+                                                fontSize="sm"
                                                 fontWeight="bold"
-                                                color="text.primary"
+                                                color="text.secondary"
+                                                noOfLines={1}
                                             >
                                                 @{xUsername}
                                             </Text>
@@ -592,33 +605,27 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                 {/* Identity: no X linked — show Connect X option + (free only) name input */}
                                 {!showWithdrawFirst && !xUsername && (
                                     <VStack spacing={3} w="100%">
-                                        <Button
+                                        <HStack
+                                            as="button"
                                             onClick={connectX}
-                                            isLoading={isConnectingX}
+                                            disabled={isConnectingX}
                                             w="100%"
-                                            h="44px"
-                                            bg="#000"
-                                            color="white"
-                                            borderRadius="xl"
-                                            fontSize="sm"
-                                            fontWeight="semibold"
-                                            leftIcon={
-                                                <Icon
-                                                    as={FaXTwitter}
-                                                    boxSize={4}
-                                                />
-                                            }
-                                            _hover={{
-                                                bg: '#1a1a1a',
-                                                transform: 'translateY(-1px)',
-                                            }}
-                                            _active={{
-                                                transform: 'translateY(0)',
-                                            }}
-                                            transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+                                            py={2.5}
+                                            justify="center"
+                                            spacing={2}
+                                            cursor="pointer"
+                                            bg="transparent"
+                                            border="none"
+                                            opacity={0.55}
+                                            _hover={{ opacity: 1 }}
+                                            _disabled={{ opacity: 0.3, cursor: 'not-allowed' }}
+                                            transition="opacity 0.15s ease"
                                         >
-                                            Connect X for avatar &amp; name
-                                        </Button>
+                                            <Icon as={FaXTwitter} boxSize={3.5} color="text.primary" />
+                                            <Text fontSize="sm" fontWeight="medium" color="text.secondary">
+                                                {isConnectingX ? 'Connecting…' : 'Sign in with X'}
+                                            </Text>
+                                        </HStack>
 
                                         {!isCryptoGame && (
                                             <>
@@ -674,34 +681,50 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     </VStack>
                                 )}
 
-                                {/* Identity: crypto game with X linked — compact badge above buy-in */}
+                                {/* Identity: crypto game with X linked — compact inline card above buy-in */}
                                 {!showWithdrawFirst && isCryptoGame && xUsername && (
                                     <HStack
-                                        spacing={2.5}
-                                        py={1}
+                                        spacing={3}
+                                        py={2}
+                                        px={3}
                                         w="100%"
-                                        justify="center"
+                                        bg="card.lightGray"
+                                        borderRadius="xl"
                                     >
-                                        {xProfileImageUrl && (
+                                        {xProfileImageUrl ? (
                                             <Image
                                                 src={xProfileImageUrl}
                                                 alt="X avatar"
-                                                boxSize="28px"
+                                                boxSize="34px"
                                                 borderRadius="full"
                                                 objectFit="cover"
+                                                flexShrink={0}
                                             />
+                                        ) : (
+                                            <Flex
+                                                boxSize="34px"
+                                                borderRadius="full"
+                                                bg="black"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                flexShrink={0}
+                                            >
+                                                <Icon as={FaXTwitter} boxSize={3.5} color="white" />
+                                            </Flex>
                                         )}
-                                        <HStack spacing={1.5}>
+                                        <HStack spacing={1.5} flex={1} minW={0}>
                                             <Icon
                                                 as={FaXTwitter}
-                                                boxSize={3}
+                                                boxSize="11px"
                                                 color="text.primary"
-                                                opacity={0.75}
+                                                opacity={0.5}
+                                                flexShrink={0}
                                             />
                                             <Text
                                                 fontSize="sm"
                                                 fontWeight="bold"
-                                                color="text.primary"
+                                                color="text.secondary"
+                                                noOfLines={1}
                                             >
                                                 @{xUsername}
                                             </Text>
@@ -714,16 +737,16 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     <Flex
                                         alignItems="center"
                                         justifyContent="space-between"
-                                        mb={1}
+                                        mb={1.5}
                                     >
-                                        <FormLabel
+                                        <Text
+                                            fontSize="xs"
+                                            fontWeight="semibold"
                                             color="text.secondary"
-                                            fontSize="2xl"
-                                            mb={0}
-                                            textAlign="center"
+                                            textTransform="none"
                                         >
-                                            {isCryptoGame ? '💰' : '💵'}
-                                        </FormLabel>
+                                            Buy-in amount
+                                        </Text>
                                         {isCryptoGame && (
                                             <Box
                                                 position="relative"
@@ -746,7 +769,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                     }
                                                     width="calc(50% - 6px)"
                                                     height="22px"
-                                                    bg="white"
+                                                    bg="card.white"
                                                     borderRadius="full"
                                                     boxShadow="sm"
                                                     transition="left 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
@@ -781,8 +804,8 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                             color={
                                                                 inputUnit ===
                                                                 'chips'
-                                                                    ? 'brand.darkNavy'
-                                                                    : 'gray.500'
+                                                                    ? 'text.secondary'
+                                                                    : 'text.muted'
                                                             }
                                                             whiteSpace="nowrap"
                                                         >
@@ -812,8 +835,8 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                             color={
                                                                 inputUnit ===
                                                                 'usdc'
-                                                                    ? 'brand.darkNavy'
-                                                                    : 'gray.500'
+                                                                    ? 'text.secondary'
+                                                                    : 'text.muted'
                                                             }
                                                             whiteSpace="nowrap"
                                                         >
@@ -864,7 +887,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             top="50%"
                                             transform="translateY(-50%)"
                                             fontSize="xs"
-                                            color="gray.400"
+                                            color="text.muted"
                                             fontWeight="semibold"
                                             letterSpacing="0.02em"
                                             pointerEvents="none"
@@ -882,7 +905,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             justifyContent="space-between"
                                             gap={2}
                                             fontSize="xs"
-                                            color="gray.500"
+                                            color="text.secondary"
                                             fontWeight="medium"
                                             lineHeight="short"
                                         >
@@ -895,7 +918,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                     <>
                                                         <Text
                                                             as="span"
-                                                            color="inherit"
+                                                            color="text.secondary"
                                                             isTruncated
                                                         >
                                                             {CHIPS_PER_USDC}{' '}
@@ -903,7 +926,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                         </Text>
                                                         <Text
                                                             as="span"
-                                                            color="inherit"
+                                                            color="text.secondary"
                                                             isTruncated
                                                         >
                                                             USDC
@@ -920,7 +943,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                     <>
                                                         <Text
                                                             as="span"
-                                                            color="inherit"
+                                                            color="text.secondary"
                                                             isTruncated
                                                         >
                                                             1 USDC
@@ -934,7 +957,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                         />
                                                         <Text
                                                             as="span"
-                                                            color="inherit"
+                                                            color="text.secondary"
                                                             isTruncated
                                                         >
                                                             = {CHIPS_PER_USDC}{' '}
@@ -947,7 +970,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                 formattedUsdcEstimate && (
                                                     <Text
                                                         as="span"
-                                                        color="gray.500"
+                                                        color="text.secondary"
                                                         textAlign="right"
                                                         whiteSpace="nowrap"
                                                     >
@@ -964,7 +987,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                         </Center>
                     </ModalBody>
 
-                    <ModalFooter px={8} pb={8} pt={2}>
+                    <ModalFooter px={7} pb={7} pt={2}>
                         <VStack w="100%" spacing={4}>
                             {/* Wallet Button */}
                             <WalletButton width="100%" height="56px" />
@@ -1002,7 +1025,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     )}
                                     <Button
                                         w="100%"
-                                        h="56px"
+                                        h="50px"
                                         fontSize="md"
                                         fontWeight="bold"
                                         borderRadius={'bigButton'}
@@ -1121,7 +1144,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                             >
                                 <Button
                                     w="100%"
-                                    h="56px"
+                                    h="50px"
                                     fontSize="md"
                                     fontWeight="bold"
                                     borderRadius={'bigButton'}

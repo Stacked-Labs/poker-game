@@ -89,19 +89,26 @@ const buildMaxPreset = (
     bb: number,
     isCrypto: boolean
 ): BuyInPreset => {
-    const cap =
-        walletBalanceChips !== null
-            ? Math.min(maxBuyIn, walletBalanceChips)
-            : maxBuyIn;
+    const hasMax = maxBuyIn > 0;
+    let cap: number;
+    if (hasMax && walletBalanceChips !== null) {
+        cap = Math.min(maxBuyIn, walletBalanceChips);
+    } else if (hasMax) {
+        cap = maxBuyIn;
+    } else if (walletBalanceChips !== null) {
+        cap = walletBalanceChips;
+    } else {
+        cap = 0;
+    }
     const chips = Math.max(cap, 0);
 
     const label = 'Max';
     let sublabel = '';
     if (chips > 0) {
-        if (bb > 0) {
-            sublabel = formatBB(chips / bb);
-        } else if (isCrypto) {
+        if (isCrypto) {
             sublabel = formatUsdc(chips / CHIPS_PER_USDC);
+        } else if (bb > 0) {
+            sublabel = formatBB(chips / bb);
         } else {
             sublabel = formatChipsPlain(chips);
         }

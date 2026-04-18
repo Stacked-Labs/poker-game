@@ -309,8 +309,16 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     };
 
     useEffect(() => {
-        if (!isCryptoGame && inputUnit !== 'chips') setInputUnit('chips');
-    }, [inputUnit, isCryptoGame]);
+        const nextUnit = isCryptoGame ? 'usdc' : 'chips';
+        setInputUnit(nextUnit);
+        if (buyIn === null || isNaN(Number(buyIn))) return;
+        if (nextUnit === 'usdc') {
+            setBuyInInput(formatUsdcInput(buyIn / CHIPS_PER_USDC));
+        } else {
+            setBuyInInput(Math.round(buyIn).toString());
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isCryptoGame]);
 
     const handleUnitChange = (unit: 'chips' | 'usdc') => {
         if (unit === inputUnit) return;

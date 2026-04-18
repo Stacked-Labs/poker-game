@@ -15,7 +15,6 @@ import {
     FormControl,
     FormErrorMessage,
     VStack,
-    Center,
     HStack,
     Text,
     Heading,
@@ -23,6 +22,8 @@ import {
     Flex,
     Icon,
     Link,
+    Collapse,
+    useDisclosure,
 } from '@chakra-ui/react';
 import { motion, MotionStyle } from 'framer-motion';
 import { keyframes } from '@emotion/react';
@@ -36,9 +37,12 @@ import useToastHelper from '@/app/hooks/useToastHelper';
 import { useDepositAndJoin } from '../hooks/useDepositAndJoin';
 import { useWithdraw } from '../hooks/useWithdraw';
 import { useActiveWallet } from 'thirdweb/react';
-import { FaInfoCircle } from 'react-icons/fa';
+import { FaInfoCircle, FaChevronDown } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useConnectX } from '@/app/hooks/useConnectX';
+import BuyInPresets from './TakeSeat/BuyInPresets';
+import StakesChip from './TakeSeat/StakesChip';
+import { readLastBuyIn, writeLastBuyIn } from '@/app/lib/takeSeat/lastBuyIn';
 
 interface TakeSeatModalProps {
     isOpen: boolean;
@@ -46,27 +50,14 @@ interface TakeSeatModalProps {
     seatId?: number;
 }
 
-// Animations
-const gradientShift = keyframes`
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-`;
-
 const float = keyframes`
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-6px); }
 `;
 
 const slideUp = keyframes`
-    from { 
-        opacity: 0; 
-        transform: translateY(30px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
 `;
 
 const motionStyle: MotionStyle = {
@@ -80,7 +71,6 @@ const variants = {
 
 const USERNAME_MAX_LENGTH = 9;
 const CHIPS_PER_USDC = 100;
-const USDC_LOGO_URL = '/usdc-logo.png';
 
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const wallet = useActiveWallet();
@@ -89,7 +79,17 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const config = appStore.appState.game?.config;
     const isCryptoGame = Boolean(config?.crypto);
     const contractAddress = config?.contractAddress;
-    const initialBuyIn = config?.maxBuyIn ?? null;
+    const chain = config?.chain;
+    const sb = config?.sb ?? 0;
+    const bb = config?.bb ?? 0;
+    const maxBuyIn = config?.maxBuyIn ?? 0;
+
+    // Table id for localStorage persistence (contract address for crypto;
+    // chain+blinds hash fallback for free games so different tables don't collide).
+    const tableKey =
+        contractAddress ??
+        (bb > 0 ? `free:${sb}-${bb}-${maxBuyIn}` : null);
+
     const currentUser = useCurrentUser();
     const socket = useContext(SocketContext);
     const {
@@ -100,22 +100,28 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         xProfileImageUrl,
     } = useAuth();
     const { connectX, isConnecting: isConnectingX } = useConnectX();
+
+    // Buy-in initial value: last-used for this table → max buy-in
+    const initialBuyIn = useMemo(() => {
+        const remembered = readLastBuyIn(tableKey);
+        if (remembered && remembered > 0) return remembered;
+        return maxBuyIn > 0 ? maxBuyIn : null;
+    }, [tableKey, maxBuyIn]);
+
     const [name, setName] = useState('');
     const [buyIn, setBuyIn] = useState<number | null>(initialBuyIn);
     const [buyInInput, setBuyInInput] = useState(() => {
-        if (initialBuyIn === null || isNaN(Number(initialBuyIn))) {
-            return '';
-        }
+        if (initialBuyIn === null) return '';
         if (isCryptoGame) {
             const usdcValue = initialBuyIn / CHIPS_PER_USDC;
-            const rounded = Math.round(usdcValue * 100) / 100;
-            return rounded.toString();
+            return (Math.round(usdcValue * 100) / 100).toString();
         }
         return initialBuyIn.toString();
     });
     const [inputUnit, setInputUnit] = useState<'chips' | 'usdc'>(
         isCryptoGame ? 'usdc' : 'chips'
     );
+
     const { error, deposit } = useToastHelper();
     const needsWalletSignIn = isCryptoGame && (!address || !isAuthenticated);
     const cryptoJoinHint = !address
@@ -124,7 +130,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
           ? 'Check your wallet to sign the message…'
           : 'Sign the message in your wallet to continue.';
 
-    // Crypto deposit hook
     const {
         depositAndJoin,
         status: depositStatus,
@@ -135,7 +140,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         refreshBalance,
     } = useDepositAndJoin(contractAddress);
 
-    // Withdraw hook — used to detect and clear existing chip balance before re-depositing
     const {
         withdraw,
         checkCanWithdraw,
@@ -149,7 +153,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const seatRequested = appStore.appState.seatRequested;
     const hasExistingChips =
         existingChipBalance !== null && existingChipBalance > BigInt(0);
-    // Show withdraw-first flow when user has chips in the contract but no active seat request
     const showWithdrawFirst =
         isCryptoGame && hasExistingChips && seatRequested === null;
 
@@ -158,7 +161,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         return Number(existingChipBalance).toLocaleString('en-US');
     }, [existingChipBalance]);
 
-    // When X is linked, use @xUsername automatically — no manual name needed
     const effectiveName = !isCryptoGame && xUsername ? `@${xUsername}` : name;
     const isNameInvalid =
         !isCryptoGame &&
@@ -167,6 +169,12 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const isBuyInInvalid = buyIn === null || isNaN(Number(buyIn)) || buyIn <= 0;
     const isJoinDisabled = isDepositing || isNameInvalid || isBuyInInvalid;
     const isJoinVisuallyDisabled = isJoinDisabled || needsWalletSignIn;
+
+    const walletBalanceChips = useMemo(() => {
+        if (!isCryptoGame || usdcBalance === null) return null;
+        const dollars = Number(usdcBalance) / 1_000_000;
+        return Math.floor(dollars * CHIPS_PER_USDC);
+    }, [isCryptoGame, usdcBalance]);
 
     const formattedUsdcBalance = useMemo(() => {
         if (usdcBalance === null) return null;
@@ -178,9 +186,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     }, [usdcBalance]);
 
     const buyInUsdc = useMemo(() => {
-        if (!isCryptoGame || buyIn === null || isNaN(Number(buyIn))) {
-            return null;
-        }
+        if (!isCryptoGame || buyIn === null || isNaN(Number(buyIn))) return null;
         return buyIn / CHIPS_PER_USDC;
     }, [buyIn, isCryptoGame]);
 
@@ -205,8 +211,21 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
     const formatUsdcInput = (value: number) => {
         if (!Number.isFinite(value)) return '';
-        const rounded = Math.round(value * 100) / 100;
-        return rounded.toString();
+        return (Math.round(value * 100) / 100).toString();
+    };
+
+    const applyBuyInChips = (chips: number) => {
+        if (chips <= 0) {
+            setBuyIn(null);
+            setBuyInInput('');
+            return;
+        }
+        setBuyIn(chips);
+        if (isCryptoGame && inputUnit === 'usdc') {
+            setBuyInInput(formatUsdcInput(chips / CHIPS_PER_USDC));
+        } else {
+            setBuyInInput(Math.round(chips).toString());
+        }
     };
 
     const handleBuyInChange = (value: string) => {
@@ -218,110 +237,71 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     setBuyIn(null);
                     return;
                 }
-                const usdcValue = Number(value);
-                setBuyIn(Math.round(usdcValue * CHIPS_PER_USDC));
+                setBuyIn(Math.round(Number(value) * CHIPS_PER_USDC));
                 return;
             }
-
             if (!/^\d*$/.test(value)) return;
             setBuyInInput(value);
-            if (value === '') {
-                setBuyIn(null);
-                return;
-            }
-            const chips = Number(value);
-            setBuyIn(chips);
+            setBuyIn(value === '' ? null : Number(value));
             return;
         }
-
         if (!/^\d*$/.test(value)) return;
         setBuyInInput(value);
-        if (value === '') {
-            setBuyIn(null);
-            return;
-        }
-        setBuyIn(Number(value));
+        setBuyIn(value === '' ? null : Number(value));
     };
 
     const handleJoin = async () => {
-        // Basic validation for seatId, buyIn
-        if (!seatId) {
-            error('Missing Information', 'Seat ID is missing.');
-            return;
-        }
-        if (isBuyInInvalid) {
-            error('Invalid Amount', 'Please enter a valid buy-in amount.');
-            return;
-        }
-        if (buyIn === null) {
-            return;
-        }
-        if (needsWalletSignIn) {
-            error('Authentication Required', cryptoJoinHint);
-            return;
-        }
+        if (!seatId) return error('Missing Information', 'Seat ID is missing.');
+        if (isBuyInInvalid)
+            return error('Invalid Amount', 'Please enter a valid buy-in amount.');
+        if (buyIn === null) return;
+        if (needsWalletSignIn)
+            return error('Authentication Required', cryptoJoinHint);
 
         const buyInValue = buyIn;
 
-        // Crypto game flow: deposit via smart contract
         if (isCryptoGame) {
-            if (!contractAddress) {
-                error('Contract Error', 'Game contract address not available.');
-                return;
-            }
-
-            // Guard: active wallet must match the authenticated JWT wallet.
-            // If they differ, the on-chain tx would come from a different address
-            // than the one the backend has on record, causing the deposit to be
-            // treated as a stranger's seat request instead of the owner's.
-            if (address?.toLowerCase() !== lastAuthenticatedAddress?.toLowerCase()) {
-                error(
+            if (!contractAddress)
+                return error('Contract Error', 'Game contract address not available.');
+            if (
+                address?.toLowerCase() !==
+                lastAuthenticatedAddress?.toLowerCase()
+            ) {
+                return error(
                     'Wallet Mismatch',
                     `Your active wallet doesn't match your authenticated session. Switch back to ${lastAuthenticatedAddress ? lastAuthenticatedAddress.slice(0, 6) + '...' + lastAuthenticatedAddress.slice(-4) : 'your original wallet'} or re-authenticate.`
                 );
-                return;
             }
-
             const depositSuccess = await depositAndJoin(buyInValue);
-
             if (depositSuccess) {
+                writeLastBuyIn(tableKey, buyInValue);
                 appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
                 deposit(buyInValue, isCryptoGame);
                 onClose();
-            } else {
-                // Error is already set in the hook, just show it
-                if (depositError) {
-                    error('Deposit Failed', depositError);
-                }
+            } else if (depositError) {
+                error('Deposit Failed', depositError);
             }
             return;
         }
 
-        // Regular game flow: WebSocket
-        if (!socket) {
-            error('Connection Error', 'Unable to connect to the server.');
-            return;
-        }
-        if (effectiveName.length === 0) {
-            error('Missing Information', 'Please enter a username.');
-            return;
-        }
-        if (!xUsername && effectiveName.length > USERNAME_MAX_LENGTH) {
-            error(
+        if (!socket)
+            return error('Connection Error', 'Unable to connect to the server.');
+        if (effectiveName.length === 0)
+            return error('Missing Information', 'Please enter a username.');
+        if (!xUsername && effectiveName.length > USERNAME_MAX_LENGTH)
+            return error(
                 'Invalid Username',
                 `Username must be fewer than 10 characters.`
             );
-            return;
-        }
-        if (!xUsername && effectiveName.startsWith('@')) {
-            error(
+        if (!xUsername && effectiveName.startsWith('@'))
+            return error(
                 'Reserved Username',
                 'The @ prefix is reserved for linked X accounts. Connect your X account in Settings to use your handle.'
             );
-            return;
-        }
+
         newPlayer(socket, effectiveName);
         takeSeat(socket, effectiveName, seatId, buyInValue);
+        writeLastBuyIn(tableKey, buyInValue);
         appStore.dispatch({ type: 'setUsername', payload: effectiveName });
         appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
         currentUser.setCurrentUser({ name: effectiveName, seatId });
@@ -329,9 +309,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     };
 
     useEffect(() => {
-        if (!isCryptoGame && inputUnit !== 'chips') {
-            setInputUnit('chips');
-        }
+        if (!isCryptoGame && inputUnit !== 'chips') setInputUnit('chips');
     }, [inputUnit, isCryptoGame]);
 
     const handleUnitChange = (unit: 'chips' | 'usdc') => {
@@ -353,7 +331,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         refreshBalance();
     }, [isOpen, isCryptoGame, refreshBalance]);
 
-    // Check for existing chip balance on modal open
     useEffect(() => {
         if (!isOpen || !isCryptoGame || !address) return;
         checkCanWithdraw();
@@ -361,20 +338,15 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
     const handleWithdraw = async () => {
         const success = await withdraw();
-        if (success) {
-            // Chip balance is now 0 — refresh USDC balance since user got USDC back
-            refreshBalance();
-        }
+        if (success) refreshBalance();
     };
 
-    // Reset deposit state when modal closes
     const handleClose = () => {
         resetDeposit();
         resetWithdraw();
         onClose();
     };
 
-    // Get status message for crypto deposit
     const getDepositStatusMessage = () => {
         switch (depositStatus) {
             case 'checking_allowance':
@@ -388,222 +360,265 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         }
     };
 
+    // Fine-print disclosure: default open on first crypto deposit, collapsed after.
+    const finePrintDisclosure = useDisclosure({
+        defaultIsOpen:
+            isCryptoGame && !readLastBuyIn(tableKey),
+    });
+
     return (
         <Modal isOpen={isOpen} onClose={handleClose} isCentered>
             <ModalOverlay bg="rgba(0, 0, 0, 0.7)" backdropFilter="blur(8px)" />
             <ModalContent
-                zIndex={'modal'}
-                borderRadius="32px"
-                maxWidth="420px"
-                minWidth="320px"
+                zIndex="modal"
+                borderRadius={{ base: '24px', sm: '28px' }}
+                maxWidth={{ base: 'calc(100vw - 24px)', sm: '420px' }}
+                mx={{ base: 3, sm: 'auto' }}
                 boxShadow="0 20px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)"
-                animation={`${slideUp} 0.4s ease-out`}
+                animation={`${slideUp} 0.35s cubic-bezier(0.2, 0.9, 0.3, 1)`}
                 overflow="hidden"
                 position="relative"
+                bg="card.white"
                 border="1px solid"
-                borderColor="card.white"
+                borderColor="border.lightGray"
             >
-                {/* Animated Gradient Border */}
-                <Box
-                    position="absolute"
-                    top={0}
-                    left={0}
-                    right={0}
-                    bottom={0}
-                    borderRadius="32px"
-                    padding="3px"
-                    bgGradient="linear(to-r, brand.pink, brand.green, brand.yellow, brand.pink)"
-                    backgroundSize="200% 200%"
-                    animation={`${gradientShift} 8s ease infinite`}
-                    pointerEvents="none"
-                    zIndex={0}
+                {/* Easter egg chair — bottom-right, quiet */}
+                <Tooltip
+                    label='"All you need is a chip and a chair." — Jack Straus'
+                    fontSize="xs"
+                    placement="top"
+                    bg="brand.navy"
+                    color="white"
+                    borderRadius="lg"
+                    px={3}
+                    py={1.5}
                 >
                     <Box
-                        width="100%"
-                        height="100%"
-                        bg="card.white"
-                        borderRadius="29px"
-                    />
-                </Box>
-
-                {/* Content Container */}
-                <Box position="relative" zIndex={1} bg={'card.white'}>
-                    {/* Easter egg chair */}
-                    <Tooltip
-                        label='"All you need is a chip and a chair." — Jack Straus'
-                        fontSize="xs"
-                        placement="bottom"
-                        bg="brand.navy"
-                        color="white"
-                        borderRadius="lg"
-                        px={3}
-                        py={1.5}
-                    >
-                        <Box
-                            as={motion.div}
-                            position="absolute"
-                            top={3}
-                            left={4}
-                            style={motionStyle}
-                            variants={variants}
-                            initial="initial"
-                            whileHover="hover"
-                            fontSize="xl"
-                            animation={`${float} 5s ease-in-out infinite`}
-                            cursor="pointer"
-                            zIndex={2}
-                            opacity={0.7}
-                        >
-                            🪑
-                        </Box>
-                    </Tooltip>
-
-                    <ModalCloseButton
-                        color="text.secondary"
-                        size="md"
-                        top={3}
+                        as={motion.div}
+                        position="absolute"
+                        bottom={3}
                         right={3}
-                        borderRadius="full"
-                        _hover={{
-                            bg: 'card.lightGray',
-                            transform: 'rotate(90deg)',
-                        }}
-                        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                    />
+                        style={motionStyle}
+                        variants={variants}
+                        initial="initial"
+                        whileHover="hover"
+                        fontSize="sm"
+                        animation={`${float} 5s ease-in-out infinite`}
+                        cursor="pointer"
+                        zIndex={2}
+                        opacity={0.35}
+                        _hover={{ opacity: 1 }}
+                        transition="opacity 0.2s ease"
+                    >
+                        🪑
+                    </Box>
+                </Tooltip>
 
-                    <ModalHeader textAlign="center" pt={10} pb={2} px={8}>
-                        <VStack spacing={1}>
-                            <Heading
-                                as="h2"
-                                fontSize="xl"
-                                fontWeight="bold"
-                                color="text.secondary"
-                                letterSpacing="-0.02em"
-                            >
-                                Take your seat
-                            </Heading>
-                            <Text
-                                fontSize="xs"
-                                color="text.muted"
-                                fontWeight="medium"
-                                textAlign="center"
-                            >
-                                {isCryptoGame
-                                    ? 'Deposit USDC to join the table'
-                                    : 'Join the table and start playing'}
-                            </Text>
-                        </VStack>
-                    </ModalHeader>
+                <ModalCloseButton
+                    color="text.secondary"
+                    size="md"
+                    top={3}
+                    right={3}
+                    borderRadius="full"
+                    _hover={{
+                        bg: 'card.lightGray',
+                        transform: 'rotate(90deg)',
+                    }}
+                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                />
 
-                    <ModalBody px={7} pb={3} pt={1}>
-                        <Center>
-                            <VStack w="100%" spacing={4}>
-                                {/* Withdraw-first state: user has chips in the contract but no active seat request */}
-                                {showWithdrawFirst && (
-                                    <VStack
-                                        w="100%"
-                                        spacing={3}
-                                        bg="orange.50"
-                                        borderRadius="xl"
-                                        px={4}
-                                        py={4}
-                                        border="1px solid"
-                                        borderColor="orange.200"
-                                    >
-                                        <HStack
-                                            spacing={2}
-                                            alignItems="flex-start"
-                                            w="100%"
+                {showWithdrawFirst ? (
+                    /* ── Withdraw-first takeover ─────────────────────────── */
+                    <>
+                        <ModalHeader textAlign="center" pt={10} pb={2} px={6}>
+                            <VStack spacing={2}>
+                                <Heading
+                                    as="h2"
+                                    fontSize="xl"
+                                    fontWeight="bold"
+                                    color="text.secondary"
+                                    letterSpacing="-0.02em"
+                                >
+                                    Chips still on this table
+                                </Heading>
+                                <StakesChip
+                                    sb={sb}
+                                    bb={bb}
+                                    seatId={seatId}
+                                    isCrypto={isCryptoGame}
+                                    chain={chain}
+                                />
+                            </VStack>
+                        </ModalHeader>
+                        <ModalBody px={{ base: 5, sm: 7 }} pb={2} pt={2}>
+                            <VStack spacing={4} w="100%">
+                                <Box
+                                    w="100%"
+                                    bg="card.lightGray"
+                                    borderRadius="xl"
+                                    px={5}
+                                    py={5}
+                                    textAlign="center"
+                                >
+                                    <VStack spacing={2}>
+                                        <Text
+                                            fontSize="3xl"
+                                            fontWeight="bold"
+                                            color="text.secondary"
+                                            letterSpacing="-0.02em"
+                                            lineHeight={1}
                                         >
-                                            <Icon
-                                                as={FaInfoCircle}
-                                                boxSize={4}
-                                                color="orange.500"
-                                                mt={0.5}
-                                                flexShrink={0}
-                                            />
-                                            <VStack
-                                                spacing={1}
-                                                alignItems="flex-start"
-                                            >
-                                                <Text
-                                                    fontSize="sm"
-                                                    fontWeight="semibold"
-                                                    color="orange.700"
-                                                >
-                                                    Chips already in contract
-                                                </Text>
-                                                <Text
-                                                    fontSize="xs"
-                                                    color="orange.600"
-                                                    lineHeight="short"
-                                                >
-                                                    You have{' '}
-                                                    {formattedExistingChips}{' '}
-                                                    chips sitting in this
-                                                    contract from a previous
-                                                    deposit. Withdraw them first,
-                                                    then deposit a new amount to
-                                                    join.
-                                                </Text>
-                                            </VStack>
-                                        </HStack>
+                                            {formattedExistingChips ?? '—'}
+                                        </Text>
+                                        <Text
+                                            fontSize="xs"
+                                            color="text.muted"
+                                            fontWeight="medium"
+                                            textTransform="uppercase"
+                                            letterSpacing="0.05em"
+                                        >
+                                            chips in contract
+                                        </Text>
                                     </VStack>
-                                )}
-
-                                {/* Identity: X-linked banner (free game only — @handle is used as display name) */}
-                                {!showWithdrawFirst && !isCryptoGame && xUsername && (
+                                </Box>
+                                <Text
+                                    fontSize="sm"
+                                    color="text.secondary"
+                                    textAlign="center"
+                                    lineHeight="short"
+                                    px={2}
+                                >
+                                    Withdraw these to your wallet first, then you can
+                                    deposit a new amount and take your seat.
+                                </Text>
+                            </VStack>
+                        </ModalBody>
+                        <ModalFooter px={{ base: 5, sm: 7 }} pb={7} pt={4}>
+                            <VStack w="100%" spacing={3}>
+                                <WalletButton width="100%" height="52px" />
+                                {withdrawStatus === 'error' && withdrawError && (
                                     <HStack
-                                        spacing={3}
-                                        py={2}
+                                        spacing={2}
+                                        alignItems="flex-start"
+                                        bg="red.50"
+                                        borderRadius="md"
                                         px={3}
+                                        py={2}
+                                        width="100%"
+                                    >
+                                        <Icon
+                                            as={FaInfoCircle}
+                                            boxSize={3.5}
+                                            mt={0.5}
+                                            color="red.700"
+                                        />
+                                        <Text
+                                            fontSize="xs"
+                                            fontWeight="semibold"
+                                            color="red.700"
+                                            textAlign="left"
+                                            wordBreak="break-word"
+                                        >
+                                            {withdrawError}
+                                        </Text>
+                                    </HStack>
+                                )}
+                                <Button
+                                    w="100%"
+                                    h="52px"
+                                    borderRadius="bigButton"
+                                    bg="brand.pink"
+                                    isLoading={isWithdrawing}
+                                    loadingText="Withdrawing chips..."
+                                    _hover={{
+                                        bg: 'brand.pink',
+                                        transform: 'translateY(-2px)',
+                                        boxShadow:
+                                            '0 12px 24px rgba(235, 11, 92, 0.3)',
+                                    }}
+                                    transition="all 0.2s ease"
+                                    onClick={handleWithdraw}
+                                >
+                                    <Text
+                                        fontSize="md"
+                                        fontWeight="bold"
+                                        color="white"
+                                    >
+                                        Withdraw &amp; start fresh
+                                    </Text>
+                                </Button>
+                            </VStack>
+                        </ModalFooter>
+                    </>
+                ) : (
+                    /* ── Normal join flow ────────────────────────────────── */
+                    <>
+                        <ModalHeader textAlign="center" pt={10} pb={2} px={6}>
+                            <VStack spacing={1.5}>
+                                <Heading
+                                    as="h2"
+                                    fontSize="xl"
+                                    fontWeight="bold"
+                                    color="text.secondary"
+                                    letterSpacing="-0.02em"
+                                >
+                                    Take your seat
+                                </Heading>
+                                <StakesChip
+                                    sb={sb}
+                                    bb={bb}
+                                    seatId={seatId}
+                                    isCrypto={isCryptoGame}
+                                    chain={chain}
+                                />
+                            </VStack>
+                        </ModalHeader>
+
+                        <ModalBody px={{ base: 5, sm: 7 }} pb={2} pt={2}>
+                            <VStack w="100%" spacing={4}>
+                                {/* Identity */}
+                                {xUsername ? (
+                                    <HStack
+                                        spacing={2}
+                                        py={1}
                                         w="100%"
-                                        bg="card.lightGray"
-                                        borderRadius="xl"
+                                        justify="center"
                                     >
                                         {xProfileImageUrl ? (
                                             <Image
                                                 src={xProfileImageUrl}
                                                 alt="X avatar"
-                                                boxSize="34px"
+                                                boxSize="22px"
                                                 borderRadius="full"
                                                 objectFit="cover"
                                                 flexShrink={0}
                                             />
                                         ) : (
                                             <Flex
-                                                boxSize="34px"
+                                                boxSize="22px"
                                                 borderRadius="full"
                                                 bg="black"
                                                 alignItems="center"
                                                 justifyContent="center"
                                                 flexShrink={0}
                                             >
-                                                <Icon as={FaXTwitter} boxSize={3.5} color="white" />
+                                                <Icon
+                                                    as={FaXTwitter}
+                                                    boxSize={2.5}
+                                                    color="white"
+                                                />
                                             </Flex>
                                         )}
-                                        <HStack spacing={1.5} flex={1} minW={0}>
-                                            <Icon
-                                                as={FaXTwitter}
-                                                boxSize="11px"
-                                                color="text.primary"
-                                                opacity={0.5}
-                                                flexShrink={0}
-                                            />
-                                            <Text
-                                                fontSize="sm"
-                                                fontWeight="bold"
-                                                color="text.secondary"
-                                                noOfLines={1}
-                                            >
-                                                @{xUsername}
-                                            </Text>
-                                        </HStack>
+                                        <Text
+                                            fontSize="sm"
+                                            fontWeight="semibold"
+                                            color="text.secondary"
+                                            noOfLines={1}
+                                        >
+                                            @{xUsername}
+                                        </Text>
                                     </HStack>
-                                )}
-
-                                {/* Identity: no X linked — show Connect X option + (free only) name input */}
-                                {!showWithdrawFirst && !xUsername && (
+                                ) : (
                                     <VStack spacing={3} w="100%">
                                         <HStack
                                             as="button"
@@ -616,17 +631,29 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             cursor="pointer"
                                             bg="transparent"
                                             border="none"
-                                            opacity={0.55}
+                                            opacity={0.6}
                                             _hover={{ opacity: 1 }}
-                                            _disabled={{ opacity: 0.3, cursor: 'not-allowed' }}
+                                            _disabled={{
+                                                opacity: 0.3,
+                                                cursor: 'not-allowed',
+                                            }}
                                             transition="opacity 0.15s ease"
                                         >
-                                            <Icon as={FaXTwitter} boxSize={3.5} color="text.primary" />
-                                            <Text fontSize="sm" fontWeight="medium" color="text.secondary">
-                                                {isConnectingX ? 'Connecting…' : 'Sign in with X'}
+                                            <Icon
+                                                as={FaXTwitter}
+                                                boxSize={3.5}
+                                                color="text.primary"
+                                            />
+                                            <Text
+                                                fontSize="sm"
+                                                fontWeight="medium"
+                                                color="text.secondary"
+                                            >
+                                                {isConnectingX
+                                                    ? 'Connecting…'
+                                                    : 'Sign in with X'}
                                             </Text>
                                         </HStack>
-
                                         {!isCryptoGame && (
                                             <>
                                                 <HStack
@@ -653,7 +680,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                         bg="border.lightGray"
                                                     />
                                                 </HStack>
-
                                                 <FormControl
                                                     isInvalid={
                                                         name.length > 0 &&
@@ -667,7 +693,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                         onChange={(e) =>
                                                             setName(e.target.value)
                                                         }
-                                                        variant={'takeSeatModal'}
+                                                        variant="takeSeatModal"
                                                         maxLength={USERNAME_MAX_LENGTH}
                                                         required
                                                     />
@@ -681,77 +707,28 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     </VStack>
                                 )}
 
-                                {/* Identity: crypto game with X linked — compact inline card above buy-in */}
-                                {!showWithdrawFirst && isCryptoGame && xUsername && (
-                                    <HStack
-                                        spacing={3}
-                                        py={2}
-                                        px={3}
-                                        w="100%"
-                                        bg="card.lightGray"
-                                        borderRadius="xl"
-                                    >
-                                        {xProfileImageUrl ? (
-                                            <Image
-                                                src={xProfileImageUrl}
-                                                alt="X avatar"
-                                                boxSize="34px"
-                                                borderRadius="full"
-                                                objectFit="cover"
-                                                flexShrink={0}
-                                            />
-                                        ) : (
-                                            <Flex
-                                                boxSize="34px"
-                                                borderRadius="full"
-                                                bg="black"
-                                                alignItems="center"
-                                                justifyContent="center"
-                                                flexShrink={0}
-                                            >
-                                                <Icon as={FaXTwitter} boxSize={3.5} color="white" />
-                                            </Flex>
-                                        )}
-                                        <HStack spacing={1.5} flex={1} minW={0}>
-                                            <Icon
-                                                as={FaXTwitter}
-                                                boxSize="11px"
-                                                color="text.primary"
-                                                opacity={0.5}
-                                                flexShrink={0}
-                                            />
-                                            <Text
-                                                fontSize="sm"
-                                                fontWeight="bold"
-                                                color="text.secondary"
-                                                noOfLines={1}
-                                            >
-                                                @{xUsername}
-                                            </Text>
-                                        </HStack>
-                                    </HStack>
-                                )}
-
-                                {/* Buy-in Input — hidden while withdraw-first flow is active */}
-                                {!showWithdrawFirst && <FormControl>
+                                {/* Buy-in: hero input */}
+                                <FormControl>
+                                    {/* Header row: label + unit toggle (crypto only) */}
                                     <Flex
                                         alignItems="center"
                                         justifyContent="space-between"
-                                        mb={1.5}
+                                        mb={2}
                                     >
                                         <Text
-                                            fontSize="xs"
-                                            fontWeight="semibold"
-                                            color="text.secondary"
-                                            textTransform="none"
+                                            fontSize="2xs"
+                                            color="text.muted"
+                                            fontWeight="bold"
+                                            textTransform="uppercase"
+                                            letterSpacing="0.06em"
                                         >
-                                            Buy-in amount
+                                            Buy-in
                                         </Text>
                                         {isCryptoGame && (
                                             <Box
                                                 position="relative"
-                                                width="140px"
-                                                height="28px"
+                                                width="120px"
+                                                height="26px"
                                             >
                                                 <Box
                                                     position="absolute"
@@ -765,14 +742,14 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                     left={
                                                         inputUnit === 'chips'
                                                             ? '3px'
-                                                            : 'calc(50% + 3px)'
+                                                            : 'calc(50% + 1px)'
                                                     }
-                                                    width="calc(50% - 6px)"
-                                                    height="22px"
+                                                    width="calc(50% - 4px)"
+                                                    height="20px"
                                                     bg="card.white"
                                                     borderRadius="full"
                                                     boxShadow="sm"
-                                                    transition="left 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+                                                    transition="left 0.22s cubic-bezier(0.4, 0, 0.2, 1)"
                                                 />
                                                 <Flex
                                                     position="relative"
@@ -781,510 +758,406 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                     justifyContent="space-between"
                                                     height="full"
                                                 >
-                                                    <Box
-                                                        as="button"
-                                                        type="button"
-                                                        flex="1"
-                                                        height="full"
-                                                        display="flex"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                        cursor="pointer"
-                                                        onClick={() =>
-                                                            handleUnitChange(
-                                                                'chips'
-                                                            )
-                                                        }
-                                                        background="transparent"
-                                                        disabled={isDepositing}
-                                                    >
-                                                        <Text
-                                                            fontSize="xs"
-                                                            fontWeight="semibold"
-                                                            color={
-                                                                inputUnit ===
-                                                                'chips'
-                                                                    ? 'text.secondary'
-                                                                    : 'text.muted'
-                                                            }
-                                                            whiteSpace="nowrap"
-                                                        >
-                                                            Chips
-                                                        </Text>
-                                                    </Box>
-                                                    <Box
-                                                        as="button"
-                                                        type="button"
-                                                        flex="1"
-                                                        height="full"
-                                                        display="flex"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                        cursor="pointer"
-                                                        onClick={() =>
-                                                            handleUnitChange(
-                                                                'usdc'
-                                                            )
-                                                        }
-                                                        background="transparent"
-                                                        disabled={isDepositing}
-                                                    >
-                                                        <Text
-                                                            fontSize="xs"
-                                                            fontWeight="semibold"
-                                                            color={
-                                                                inputUnit ===
-                                                                'usdc'
-                                                                    ? 'text.secondary'
-                                                                    : 'text.muted'
-                                                            }
-                                                            whiteSpace="nowrap"
-                                                        >
-                                                            USDC
-                                                        </Text>
-                                                    </Box>
+                                                    {(['chips', 'usdc'] as const).map(
+                                                        (unit) => (
+                                                            <Box
+                                                                as="button"
+                                                                type="button"
+                                                                key={unit}
+                                                                flex="1"
+                                                                height="full"
+                                                                display="flex"
+                                                                alignItems="center"
+                                                                justifyContent="center"
+                                                                cursor="pointer"
+                                                                onClick={() =>
+                                                                    handleUnitChange(unit)
+                                                                }
+                                                                background="transparent"
+                                                                disabled={isDepositing}
+                                                            >
+                                                                <Text
+                                                                    fontSize="2xs"
+                                                                    fontWeight="bold"
+                                                                    letterSpacing="0.05em"
+                                                                    textTransform="uppercase"
+                                                                    color={
+                                                                        inputUnit === unit
+                                                                            ? 'text.secondary'
+                                                                            : 'text.muted'
+                                                                    }
+                                                                >
+                                                                    {unit === 'usdc'
+                                                                        ? 'USDC'
+                                                                        : 'Chips'}
+                                                                </Text>
+                                                            </Box>
+                                                        )
+                                                    )}
                                                 </Flex>
                                             </Box>
                                         )}
                                     </Flex>
-                                    <Box position="relative">
+                                    {/* Hero input — borderless, oversized, centered */}
+                                    <Flex
+                                        align="baseline"
+                                        justify="center"
+                                        gap={2}
+                                        opacity={isBalanceInsufficient ? 0.5 : 1}
+                                        transition="opacity 0.2s ease"
+                                    >
                                         <Input
                                             placeholder={
                                                 isCryptoGame
                                                     ? inputUnit === 'usdc'
-                                                        ? 'Enter USDC'
-                                                        : 'Enter chips'
-                                                    : 'Buy-in amount'
+                                                        ? '0.00'
+                                                        : '0'
+                                                    : '0'
                                             }
-                                            type="number"
-                                            step={
-                                                isCryptoGame &&
-                                                inputUnit === 'usdc'
-                                                    ? '0.01'
-                                                    : '1'
-                                            }
+                                            type="text"
                                             inputMode={
-                                                isCryptoGame &&
-                                                inputUnit === 'usdc'
+                                                isCryptoGame && inputUnit === 'usdc'
                                                     ? 'decimal'
                                                     : 'numeric'
                                             }
+                                            pattern={
+                                                isCryptoGame && inputUnit === 'usdc'
+                                                    ? '[0-9]*\\.?[0-9]*'
+                                                    : '[0-9]*'
+                                            }
+                                            autoComplete="off"
                                             onChange={(e) =>
-                                                handleBuyInChange(
-                                                    e.target.value
-                                                )
+                                                handleBuyInChange(e.target.value)
                                             }
                                             data-testid="buy-in-input"
-                                            variant={'takeSeatModal'}
-                                            required
-                                            isDisabled={isDepositing}
                                             value={buyInInput}
-                                            pr="70px"
+                                            isDisabled={isDepositing}
+                                            required
+                                            htmlSize={Math.max(
+                                                buyInInput.length || 4,
+                                                isCryptoGame && inputUnit === 'usdc'
+                                                    ? 4
+                                                    : 1
+                                            )}
+                                            variant="unstyled"
+                                            textAlign="right"
+                                            fontSize="4xl"
+                                            fontWeight="bold"
+                                            letterSpacing="-0.03em"
+                                            color="text.secondary"
+                                            lineHeight={1}
+                                            height="auto"
+                                            width="auto"
+                                            minW={0}
+                                            flex="0 0 auto"
                                         />
                                         <Text
-                                            position="absolute"
-                                            right="16px"
-                                            top="50%"
-                                            transform="translateY(-50%)"
-                                            fontSize="xs"
+                                            fontSize="md"
+                                            fontWeight="bold"
                                             color="text.muted"
-                                            fontWeight="semibold"
-                                            letterSpacing="0.02em"
-                                            pointerEvents="none"
                                             textTransform="uppercase"
+                                            letterSpacing="0.06em"
                                         >
-                                            {isCryptoGame
-                                                ? inputUnit
-                                                : 'chips'}
+                                            {isCryptoGame ? inputUnit : 'chips'}
                                         </Text>
-                                    </Box>
-                                    {isCryptoGame && (
-                                        <Flex
-                                            mt={2}
-                                            alignItems="center"
-                                            justifyContent="space-between"
-                                            gap={2}
-                                            fontSize="xs"
-                                            color="text.secondary"
-                                            fontWeight="medium"
-                                            lineHeight="short"
+                                    </Flex>
+                                    {/* Conversion line: show only the *other* unit */}
+                                    {isCryptoGame && formattedChipsEstimate && (
+                                        <Text
+                                            mt={1.5}
+                                            textAlign="right"
+                                            fontSize="2xs"
+                                            color="text.muted"
+                                            fontWeight="bold"
+                                            textTransform="uppercase"
+                                            letterSpacing="0.06em"
                                         >
-                                            <Flex
-                                                alignItems="center"
-                                                gap={1}
-                                                minWidth={0}
-                                            >
-                                                {inputUnit === 'chips' ? (
-                                                    <>
-                                                        <Text
-                                                            as="span"
-                                                            color="text.secondary"
-                                                            isTruncated
-                                                        >
-                                                            {CHIPS_PER_USDC}{' '}
-                                                            chips = 1
-                                                        </Text>
-                                                        <Text
-                                                            as="span"
-                                                            color="text.secondary"
-                                                            isTruncated
-                                                        >
-                                                            USDC
-                                                        </Text>
-                                                        <Image
-                                                            src={USDC_LOGO_URL}
-                                                            alt="USDC"
-                                                            boxSize="14px"
-                                                            loading="lazy"
-                                                            flexShrink={0}
-                                                        />
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Text
-                                                            as="span"
-                                                            color="text.secondary"
-                                                            isTruncated
-                                                        >
-                                                            1 USDC
-                                                        </Text>
-                                                        <Image
-                                                            src={USDC_LOGO_URL}
-                                                            alt="USDC"
-                                                            boxSize="14px"
-                                                            loading="lazy"
-                                                            flexShrink={0}
-                                                        />
-                                                        <Text
-                                                            as="span"
-                                                            color="text.secondary"
-                                                            isTruncated
-                                                        >
-                                                            = {CHIPS_PER_USDC}{' '}
-                                                            chips
-                                                        </Text>
-                                                    </>
-                                                )}
-                                            </Flex>
-                                            {formattedChipsEstimate &&
-                                                formattedUsdcEstimate && (
-                                                    <Text
-                                                        as="span"
-                                                        color="text.secondary"
-                                                        textAlign="right"
-                                                        whiteSpace="nowrap"
-                                                    >
-                                                        {inputUnit === 'chips'
-                                                            ? `~ ${formattedUsdcEstimate} USDC`
-                                                            : `~ ${formattedChipsEstimate} chips`}
-                                                    </Text>
-                                                )}
-                                        </Flex>
+                                            ≈{' '}
+                                            {inputUnit === 'usdc'
+                                                ? `${formattedChipsEstimate} chips`
+                                                : `$${formattedUsdcEstimate}`}
+                                        </Text>
                                     )}
-                                </FormControl>}
+                                </FormControl>
 
+                                {/* Preset pills */}
+                                {bb > 0 && (
+                                    <BuyInPresets
+                                        bb={bb}
+                                        maxBuyIn={maxBuyIn}
+                                        walletBalanceChips={walletBalanceChips}
+                                        isCrypto={isCryptoGame}
+                                        selectedChips={buyIn}
+                                        onSelect={applyBuyInChips}
+                                        disabled={isDepositing}
+                                    />
+                                )}
                             </VStack>
-                        </Center>
-                    </ModalBody>
+                        </ModalBody>
 
-                    <ModalFooter px={7} pb={7} pt={2}>
-                        <VStack w="100%" spacing={4}>
-                            {/* Wallet Button */}
-                            <WalletButton width="100%" height="56px" />
+                        <ModalFooter px={{ base: 5, sm: 7 }} pb={6} pt={3}>
+                            <VStack w="100%" spacing={3}>
+                                <WalletButton width="100%" height="52px" />
 
-                            {/* Withdraw-first footer: show instead of normal join flow */}
-                            {showWithdrawFirst && (
-                                <>
-                                    {withdrawStatus === 'error' && withdrawError && (
-                                        <HStack
-                                            spacing={2}
-                                            alignItems="flex-start"
-                                            bg="red.50"
-                                            color="red.700"
-                                            borderRadius="md"
-                                            px={3}
-                                            py={2}
+                                {needsWalletSignIn && (
+                                    <HStack
+                                        spacing={2}
+                                        alignItems="flex-start"
+                                        bg="rgba(54, 163, 123, 0.15)"
+                                        borderRadius="md"
+                                        px={3}
+                                        py={2}
+                                        width="100%"
+                                    >
+                                        <Icon
+                                            as={FaInfoCircle}
+                                            boxSize={3.5}
+                                            mt={0.5}
+                                            color="brand.green"
+                                        />
+                                        <Text
                                             fontSize="xs"
-                                            fontWeight="medium"
-                                            width="100%"
-                                            alignSelf="stretch"
+                                            fontWeight="semibold"
+                                            color="brand.green"
+                                            textAlign="left"
                                         >
-                                            <Icon
-                                                as={FaInfoCircle}
-                                                boxSize={3.5}
-                                                mt={0.5}
-                                            />
-                                            <Text
-                                                color="inherit"
-                                                textAlign="left"
-                                                wordBreak="break-word"
-                                            >
-                                                {withdrawError}
-                                            </Text>
-                                        </HStack>
-                                    )}
+                                            {cryptoJoinHint}
+                                        </Text>
+                                    </HStack>
+                                )}
+                                {isBalanceInsufficient && (
+                                    <HStack
+                                        spacing={2}
+                                        alignItems="flex-start"
+                                        bg="red.50"
+                                        borderRadius="md"
+                                        px={3}
+                                        py={2}
+                                        width="100%"
+                                    >
+                                        <Icon
+                                            as={FaInfoCircle}
+                                            boxSize={3.5}
+                                            mt={0.5}
+                                            color="red.700"
+                                        />
+                                        <Text
+                                            fontSize="xs"
+                                            fontWeight="semibold"
+                                            color="red.700"
+                                            textAlign="left"
+                                        >
+                                            Insufficient USDC balance
+                                            {formattedUsdcBalance
+                                                ? ` (you have ${formattedUsdcBalance} USDC)`
+                                                : ''}
+                                            .
+                                        </Text>
+                                    </HStack>
+                                )}
+                                {depositStatus === 'error' && depositError && (
+                                    <HStack
+                                        spacing={2}
+                                        alignItems="flex-start"
+                                        bg="red.50"
+                                        borderRadius="md"
+                                        px={3}
+                                        py={2}
+                                        width="100%"
+                                    >
+                                        <Icon
+                                            as={FaInfoCircle}
+                                            boxSize={3.5}
+                                            mt={0.5}
+                                            color="red.700"
+                                        />
+                                        <Text
+                                            fontSize="xs"
+                                            fontWeight="semibold"
+                                            color="red.700"
+                                            textAlign="left"
+                                            wordBreak="break-word"
+                                        >
+                                            {depositError}
+                                        </Text>
+                                    </HStack>
+                                )}
+
+                                {/* Dual-unit CTA */}
+                                <Tooltip
+                                    label={cryptoJoinHint}
+                                    isDisabled={!needsWalletSignIn}
+                                    placement="top"
+                                    fontSize="xs"
+                                    bg="brand.navy"
+                                    color="white"
+                                    borderRadius="md"
+                                    px={2}
+                                    py={1}
+                                >
                                     <Button
                                         w="100%"
-                                        h="50px"
-                                        fontSize="md"
-                                        fontWeight="bold"
-                                        borderRadius={'bigButton'}
-                                        bg="brand.pink"
-                                        color="white"
+                                        h="56px"
+                                        borderRadius="bigButton"
+                                        bg={
+                                            isJoinVisuallyDisabled
+                                                ? 'btn.lightGray'
+                                                : 'brand.green'
+                                        }
                                         border="none"
-                                        isLoading={isWithdrawing}
-                                        loadingText="Withdrawing chips..."
-                                        _hover={{
-                                            bg: 'brand.pink',
-                                            transform: 'translateY(-2px)',
-                                            boxShadow:
-                                                '0 12px 24px rgba(255, 105, 135, 0.35)',
+                                        cursor={
+                                            isJoinVisuallyDisabled
+                                                ? 'not-allowed'
+                                                : 'pointer'
+                                        }
+                                        aria-disabled={
+                                            isJoinVisuallyDisabled || undefined
+                                        }
+                                        isDisabled={isJoinDisabled}
+                                        isLoading={isDepositing}
+                                        loadingText={
+                                            getDepositStatusMessage() ||
+                                            'Processing...'
+                                        }
+                                        boxShadow={
+                                            isJoinVisuallyDisabled
+                                                ? 'none'
+                                                : '0 6px 18px rgba(54, 163, 123, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                                        }
+                                        _disabled={{
+                                            bg: 'btn.lightGray',
+                                            cursor: 'not-allowed',
+                                            opacity: 0.7,
+                                            boxShadow: 'none',
+                                        }}
+                                        _hover={
+                                            isJoinVisuallyDisabled
+                                                ? {}
+                                                : {
+                                                      bg: '#2E8A66',
+                                                      transform: 'translateY(-2px)',
+                                                      boxShadow:
+                                                          '0 14px 28px rgba(54, 163, 123, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.22)',
+                                                  }
+                                        }
+                                        _active={{
+                                            bg: isJoinVisuallyDisabled
+                                                ? 'btn.lightGray'
+                                                : '#287859',
+                                            transform: isJoinVisuallyDisabled
+                                                ? 'none'
+                                                : 'translateY(0) scale(0.99)',
+                                            boxShadow: isJoinVisuallyDisabled
+                                                ? 'none'
+                                                : '0 4px 12px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
                                         }}
                                         transition="all 0.2s ease"
-                                        onClick={handleWithdraw}
+                                        onClick={handleJoin}
+                                        type="submit"
+                                        data-testid="join-table-btn"
                                     >
-                                        Withdraw chips &amp; start fresh
+                                        <Text
+                                            fontSize="md"
+                                            fontWeight="bold"
+                                            letterSpacing="-0.01em"
+                                            color={
+                                                isJoinVisuallyDisabled
+                                                    ? 'text.muted'
+                                                    : 'white'
+                                            }
+                                        >
+                                            {isCryptoGame
+                                                ? formattedUsdcEstimate
+                                                    ? `Sit down · $${formattedUsdcEstimate}`
+                                                    : 'Sit down'
+                                                : 'Join game'}
+                                        </Text>
                                     </Button>
-                                </>
-                            )}
+                                </Tooltip>
 
-                            {!showWithdrawFirst && needsWalletSignIn && (
-                                <HStack
-                                    spacing={2}
-                                    alignItems="flex-start"
-                                    bg="rgba(54, 163, 123, 0.12)"
-                                    color="green.700"
-                                    borderRadius="md"
-                                    px={3}
-                                    py={2}
-                                    fontSize="xs"
-                                    fontWeight="medium"
-                                    width="100%"
-                                    alignSelf="stretch"
-                                >
-                                    <Icon
-                                        as={FaInfoCircle}
-                                        boxSize={3.5}
-                                        mt={0.5}
-                                    />
-                                    <Text color="inherit" textAlign="left">
-                                        {cryptoJoinHint}
-                                    </Text>
-                                </HStack>
-                            )}
-                            {!showWithdrawFirst && isBalanceInsufficient && (
-                                <HStack
-                                    spacing={2}
-                                    alignItems="flex-start"
-                                    bg="red.50"
-                                    color="red.700"
-                                    borderRadius="md"
-                                    px={3}
-                                    py={2}
-                                    fontSize="xs"
-                                    fontWeight="medium"
-                                    width="100%"
-                                    alignSelf="stretch"
-                                >
-                                    <Icon
-                                        as={FaInfoCircle}
-                                        boxSize={3.5}
-                                        mt={0.5}
-                                    />
-                                    <Text color="inherit" textAlign="left">
-                                        Insufficient USDC balance
-                                        {formattedUsdcBalance
-                                            ? ` (balance: ${formattedUsdcBalance} USDC)`
-                                            : ''}
-                                        .
-                                    </Text>
-                                </HStack>
-                            )}
-                            {/* Deposit Error Message */}
-                            {!showWithdrawFirst && depositStatus === 'error' && depositError && (
-                                <HStack
-                                    spacing={2}
-                                    alignItems="flex-start"
-                                    bg="red.50"
-                                    color="red.700"
-                                    borderRadius="md"
-                                    px={3}
-                                    py={2}
-                                    fontSize="xs"
-                                    fontWeight="medium"
-                                    width="100%"
-                                    alignSelf="stretch"
-                                >
-                                    <Icon
-                                        as={FaInfoCircle}
-                                        boxSize={3.5}
-                                        mt={0.5}
-                                    />
-                                    <Text
-                                        color="inherit"
-                                        textAlign="left"
-                                        wordBreak="break-word"
-                                    >
-                                        {depositError}
-                                    </Text>
-                                </HStack>
-                            )}
-
-                            {/* Join Button */}
-                            {!showWithdrawFirst && <Tooltip
-                                label={cryptoJoinHint}
-                                isDisabled={!needsWalletSignIn}
-                                placement="top"
-                                fontSize="xs"
-                                bg="brand.navy"
-                                color="white"
-                                borderRadius="md"
-                                px={2}
-                                py={1}
-                            >
-                                <Button
-                                    w="100%"
-                                    h="50px"
-                                    fontSize="md"
-                                    fontWeight="bold"
-                                    borderRadius={'bigButton'}
-                                    bg={
-                                        isJoinVisuallyDisabled
-                                            ? 'gray.300'
-                                            : 'brand.green'
-                                    }
-                                    color={
-                                        isJoinVisuallyDisabled
-                                            ? 'gray.500'
-                                            : 'white'
-                                    }
-                                    border="none"
-                                    cursor={
-                                        isJoinVisuallyDisabled
-                                            ? 'not-allowed'
-                                            : 'pointer'
-                                    }
-                                    aria-disabled={
-                                        isJoinVisuallyDisabled || undefined
-                                    }
-                                    isDisabled={isJoinDisabled}
-                                    isLoading={isDepositing}
-                                    loadingText={
-                                        getDepositStatusMessage() ||
-                                        'Processing...'
-                                    }
-                                    _disabled={{
-                                        bg: 'gray.300',
-                                        color: 'gray.500',
-                                        cursor: 'not-allowed',
-                                        opacity: 0.6,
-                                    }}
-                                    _active={{
-                                        transform: isJoinVisuallyDisabled
-                                            ? 'none'
-                                            : 'translateY(0)',
-                                    }}
-                                    position="relative"
-                                    overflow="hidden"
-                                    _before={{
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        bg: 'linear-gradient(135deg, transparent, rgba(255,255,255,0.3), transparent)',
-                                        transform: 'translateX(-100%)',
-                                        transition: 'transform 0.6s',
-                                        opacity: isJoinVisuallyDisabled ? 0 : 1,
-                                    }}
-                                    _hover={
-                                        isJoinVisuallyDisabled
-                                            ? {}
-                                            : {
-                                                  bg: 'brand.green',
-                                                  transform: 'translateY(-2px)',
-                                                  boxShadow:
-                                                      '0 12px 24px rgba(54, 163, 123, 0.35)',
-                                                  _before: {
-                                                      transform:
-                                                          'translateX(100%)',
-                                                  },
-                                              }
-                                    }
-                                    transition="all 0.2s ease"
-                                    onClick={handleJoin}
-                                    type="submit"
-                                    data-testid="join-table-btn"
-                                >
-                                    {isCryptoGame
-                                        ? `Buy In${formattedUsdcEstimate ? ` ${formattedUsdcEstimate} USDC` : ''}`
-                                        : 'Join Game'}
-                                </Button>
-                            </Tooltip>}
-                            {!showWithdrawFirst && isCryptoGame && (
-                                <Text
-                                    fontSize="2xs"
-                                    color="text.muted"
-                                    textAlign="center"
-                                    lineHeight="short"
-                                    px={2}
-                                    opacity={0.7}
-                                >
-                                    Your USDC is deposited into the table
-                                    contract and converted to chips. Chip
-                                    balances update after each settled hand.
-                                    {' '}{CHIPS_PER_USDC}
-                                    {' '}chips&nbsp;=&nbsp;1&nbsp;USDC.
-                                    {contractAddress && (
-                                        <>
-                                            {' '}
-                                            <Link
-                                                href={`https://sepolia.basescan.org/address/${contractAddress}`}
-                                                isExternal
-                                                color="brand.navy"
-                                                _dark={{
-                                                    color: 'brand.lightGray',
-                                                }}
-                                                fontWeight="semibold"
-                                                textDecoration="underline"
-                                                textUnderlineOffset="2px"
+                                {/* Collapsible fine print */}
+                                {isCryptoGame && (
+                                    <Box w="100%" pt={1}>
+                                        <Box
+                                            as="button"
+                                            type="button"
+                                            onClick={finePrintDisclosure.onToggle}
+                                            w="100%"
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            gap={1.5}
+                                            py={1}
+                                            cursor="pointer"
+                                            bg="transparent"
+                                            border="none"
+                                            opacity={0.85}
+                                            _hover={{ opacity: 1 }}
+                                            transition="opacity 0.15s ease"
+                                        >
+                                            <Text
+                                                fontSize="xs"
+                                                color="text.secondary"
+                                                fontWeight="bold"
                                             >
-                                                View contract
-                                            </Link>
-                                        </>
-                                    )}
-                                </Text>
-                            )}
-                        </VStack>
-                    </ModalFooter>
-                </Box>
-
-                {/* Decorative Background Elements */}
-                <Box
-                    position="absolute"
-                    top="-20px"
-                    right="-20px"
-                    width="120px"
-                    height="120px"
-                    borderRadius="50%"
-                    bg="brand.pink"
-                    opacity={0.08}
-                    filter="blur(40px)"
-                    pointerEvents="none"
-                />
-                <Box
-                    position="absolute"
-                    bottom="-30px"
-                    left="-30px"
-                    width="140px"
-                    height="140px"
-                    borderRadius="50%"
-                    bg="brand.green"
-                    opacity={0.08}
-                    filter="blur(50px)"
-                    pointerEvents="none"
-                />
+                                                How does this work?
+                                            </Text>
+                                            <Icon
+                                                as={FaChevronDown}
+                                                boxSize={2.5}
+                                                color="text.secondary"
+                                                transform={
+                                                    finePrintDisclosure.isOpen
+                                                        ? 'rotate(180deg)'
+                                                        : 'rotate(0deg)'
+                                                }
+                                                transition="transform 0.2s ease"
+                                            />
+                                        </Box>
+                                        <Collapse
+                                            in={finePrintDisclosure.isOpen}
+                                            animateOpacity
+                                        >
+                                            <Text
+                                                fontSize="2xs"
+                                                color="text.muted"
+                                                textAlign="center"
+                                                lineHeight="short"
+                                                px={2}
+                                                pt={2}
+                                                opacity={0.75}
+                                            >
+                                                Your USDC is deposited into the table
+                                                contract and converted to chips. Chip
+                                                balances update after each settled hand.
+                                                {' '}{CHIPS_PER_USDC}
+                                                {' '}chips&nbsp;=&nbsp;1&nbsp;USDC.
+                                                {contractAddress && (
+                                                    <>
+                                                        {' '}
+                                                        <Link
+                                                            href={`https://sepolia.basescan.org/address/${contractAddress}`}
+                                                            isExternal
+                                                            color="brand.navy"
+                                                            _dark={{
+                                                                color: 'brand.lightGray',
+                                                            }}
+                                                            fontWeight="semibold"
+                                                            textDecoration="underline"
+                                                            textUnderlineOffset="2px"
+                                                        >
+                                                            View contract
+                                                        </Link>
+                                                    </>
+                                                )}
+                                            </Text>
+                                        </Collapse>
+                                    </Box>
+                                )}
+                            </VStack>
+                        </ModalFooter>
+                    </>
+                )}
             </ModalContent>
         </Modal>
     );

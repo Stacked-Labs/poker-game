@@ -32,7 +32,6 @@ import { RiTwitterXLine } from 'react-icons/ri';
 import PlayTypeToggle from './PlayTypeToggle';
 import NetworkCard from './NetworkCard';
 import gameData from '../../create-game/gameOptions.json';
-import { CHAIN_CONFIG } from '@/app/thirdwebclient';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import WalletButton from '@/app/components/WalletButton';
@@ -1004,7 +1003,7 @@ const GameSettingLeftSide: React.FC = () => {
                                         onClick={() =>
                                             setSelectedNetwork(network.chainId)
                                         }
-                                        disabled={!(network.chainId in CHAIN_CONFIG)}
+                                        disabled={!enabledChainIds.includes(network.chainId)}
                                     />
                                 ))}
                             </Flex>

@@ -345,6 +345,7 @@ export default function AdminStatsPage() {
         ]);
         if (statsResult.status === 'fulfilled') setStats(statsResult.value);
         if (rakeResult.status === 'fulfilled') setActivityRake(rakeResult.value);
+        return statsResult.status === 'fulfilled' ? statsResult.value : null;
     }, []);
 
     const loadHandsData = useCallback(async (chain: 'base-sepolia' | 'base') => {
@@ -369,9 +370,14 @@ export default function AdminStatsPage() {
 
     const loadData = useCallback(async () => {
         setRefreshing(true);
+        const chainsMatch = handsChainRef.current === activityChainRef.current;
         await Promise.all([
-            loadActivityData(activityChainRef.current),
-            loadHandsData(handsChainRef.current),
+            loadActivityData(activityChainRef.current).then((v) => {
+                // Reuse the activity result for totals when both chain selectors agree,
+                // avoiding a duplicate getAdminStats call on initial load.
+                if (chainsMatch && v) setTotals(v);
+            }),
+            chainsMatch ? Promise.resolve() : loadHandsData(handsChainRef.current),
             loadIndexerData(indexerChainRef.current),
             loadSettlementData(settlementChainRef.current),
             loadTablesData(tablesChainRef.current),

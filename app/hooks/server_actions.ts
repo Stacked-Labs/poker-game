@@ -201,6 +201,17 @@ export function sendUpdateBlinds(socket: WebSocket, sb: number, bb: number) {
     }
 }
 
+export function sendToggleRabbitHunt(socket: WebSocket, enabled: boolean) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        sendWebSocketMessage(socket, {
+            action: 'toggle-rabbit-hunt',
+            enabled,
+        });
+    } else {
+        console.error('Cannot send toggle-rabbit-hunt: WebSocket is not open.');
+    }
+}
+
 // Initialize/confirm an HTTP session so cookies are set before subsequent requests
 export async function initSession() {
     isBackendUrlValid();

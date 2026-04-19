@@ -101,6 +101,8 @@ export type Game = {
     owesSB?: boolean[];
     owesBB?: boolean[];
     waitingForBB?: boolean[];
+    /** Community cards that would have been dealt — populated after a concession when rabbit hunt is enabled. */
+    rabbitCards?: Card[];
 };
 
 export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';
@@ -122,6 +124,7 @@ export type Config = {
     contractAddress?: string;
     ownerAddress?: string;
     ownerSessionUUID?: string;
+    rabbitHuntEnabled?: boolean;
 };
 
 export type Pot = {

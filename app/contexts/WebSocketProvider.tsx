@@ -399,6 +399,7 @@ export function SocketProvider(props: SocketProviderProps) {
                                 eventData.game?.actionDeadline ??
                                 eventData.actionDeadline ??
                                 0,
+                            rabbitCards: eventData.game?.rabbitCards,
                         };
 
                         const hasAnyCommunityCard = (

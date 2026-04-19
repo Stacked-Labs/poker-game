@@ -430,6 +430,38 @@ export async function playHandToCompletion3Players(
     }
 }
 
+/**
+ * Enable rabbit hunt via owner's Settings panel.
+ * Assumes Settings > Settings tab is accessible via 'settings-btn'.
+ */
+export async function enableRabbitHunt(owner: Page) {
+    await openSettingsTab(owner, 'Settings');
+    const toggle = owner.getByTestId('rabbit-hunt-toggle');
+    await toggle.waitFor({ timeout: 5_000 });
+    const checked = await toggle.isChecked();
+    if (!checked) {
+        await toggle.click();
+    }
+    await owner.getByTestId('settings-close-btn').click();
+}
+
+/**
+ * Complete one full street of betting for 2 players (check/call until the street advances).
+ * Returns when the street transitions (NewStreetDealt / HandConcluded in the WS layer).
+ * In the UI this manifests as a change in community card count or game-stage indicator.
+ */
+export async function completeStreet(pageA: Page, pageB: Page) {
+    const result1 = await getActingPlayer(pageA, pageB);
+    await clickCheckOrCall(result1.actor);
+    // Second action may or may not exist (if first check moved to a new street via postflop check)
+    try {
+        const result2 = await getActingPlayer(pageA, pageB, 6_000);
+        await clickCheckOrCall(result2.actor);
+    } catch {
+        // Street ended after one action (all-in / other edge case) — fine
+    }
+}
+
 /** Play through one complete hand (check/call every street). */
 export async function playHandToCompletion(pageA: Page, pageB: Page) {
     // Preflop: two actions (SB calls, BB checks)

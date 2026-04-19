@@ -93,6 +93,7 @@ const GuardModal = ({
                     }}
                     _active={{ transform: 'translateY(0)' }}
                     transition="all 0.2s ease"
+                    data-testid="fold-anyway-btn"
                     onClick={() => {
                         handleFold();
                         onClose();

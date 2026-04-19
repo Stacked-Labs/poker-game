@@ -28,7 +28,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { CardBack } from '@/app/components/Card';
 import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
-import { sendUpdateBlinds } from '@/app/hooks/server_actions';
+import { sendUpdateBlinds, sendToggleRabbitHunt } from '@/app/hooks/server_actions';
 import { useConnectX } from '@/app/hooks/useConnectX';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { useToast } from '@chakra-ui/react';
@@ -435,6 +435,63 @@ const GameSettings = () => {
                             BB must be at least 2x SB
                         </Text>
                     )}
+                </Box>
+            </Tooltip>
+            {/* Rabbit Hunt — owner-only table setting */}
+            <Tooltip
+                label={!isOwner ? 'Only the table owner can change this setting' : undefined}
+                isDisabled={isOwner}
+                hasArrow
+                placement="top"
+            >
+                <Box
+                    bg="card.white"
+                    borderRadius="16px"
+                    border="2px solid"
+                    borderColor="border.lightGray"
+                    p={{ base: 2.5, md: 3 }}
+                    boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                    opacity={isOwner ? 1 : 0.6}
+                >
+                    <Flex
+                        direction="row"
+                        justify="space-between"
+                        align="center"
+                        wrap="nowrap"
+                        gap={3}
+                    >
+                        <VStack spacing={0} align="flex-start" flex={1} minWidth={0}>
+                            <Text
+                                fontSize={{ base: 'sm', md: 'lg' }}
+                                fontWeight="bold"
+                                color="text.secondary"
+                                whiteSpace="nowrap"
+                                overflow="hidden"
+                                textOverflow="ellipsis"
+                            >
+                                Rabbit Hunt 🐇
+                            </Text>
+                            <Text
+                                fontSize="2xs"
+                                color="text.secondary"
+                                opacity={0.6}
+                                lineHeight="1.3"
+                            >
+                                Show undealt cards after all fold
+                            </Text>
+                        </VStack>
+                        <Switch
+                            size={{ base: 'md', md: 'lg' }}
+                            isChecked={config?.rabbitHuntEnabled ?? false}
+                            isDisabled={!isOwner}
+                            onChange={(e) => {
+                                if (!socket) return;
+                                sendToggleRabbitHunt(socket, e.target.checked);
+                            }}
+                            colorScheme="green"
+                            data-testid="rabbit-hunt-toggle"
+                        />
+                    </Flex>
                 </Box>
             </Tooltip>
             <Box

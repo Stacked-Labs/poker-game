@@ -58,13 +58,25 @@ const fadeIn = keyframes`
     }
 `;
 
+// why is this called left side... no idea
 const GameSettingLeftSide: React.FC = () => {
     const isCryptoEnabled = true; //process.env.NODE_ENV === 'development';
     const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
+    // Enabled chains come from env var (e.g. "base-sepolia,base"); fall back to sepolia.
+    const enabledChainIds = useMemo(() => {
+        const raw = process.env.NEXT_PUBLIC_ENABLED_CHAINS ?? 'base-sepolia';
+        return raw.split(',').map((s) => s.trim()).filter(Boolean);
+    }, []);
+
+    const enabledNetworks = useMemo(
+        () => gameData.networks.filter((n) => enabledChainIds.includes(n.chainId)),
+        [enabledChainIds]
+    );
+
     const [selectedNetwork, setSelectedNetwork] =
-        useState<string>('Base Sepolia');
+        useState<string>(enabledChainIds[0] ?? 'base-sepolia');
     const [isLoading, setIsLoading] = useState(false);
     const address = useActiveAccount()?.address;
     const wallet = useActiveWallet();
@@ -95,7 +107,7 @@ const GameSettingLeftSide: React.FC = () => {
         return Boolean(turnstileToken) || turnstileError;
     }, [isTurnstileConfigured, turnstileToken, turnstileError]);
 
-    const { gameModes, networks } = gameData;
+    const { gameModes } = gameData;
 
     // Get the description for the selected game mode
     const selectedGameModeDescription = useMemo(() => {
@@ -897,7 +909,7 @@ const GameSettingLeftSide: React.FC = () => {
                                         Select blockchain to play on
                                     </Text>
                                 </Box>
-                                {selectedNetwork === 'Base Sepolia' && (
+                                {selectedNetwork === 'base-sepolia' && (
                                     <Link
                                         href="/free-tokens"
                                         isExternal
@@ -979,19 +991,19 @@ const GameSettingLeftSide: React.FC = () => {
                                     sm: 'flex-start',
                                 }}
                             >
-                                {networks.map((network) => (
+                                {enabledNetworks.map((network) => (
                                     <NetworkCard
-                                        key={network.name}
+                                        key={network.chainId}
                                         name={network.name}
                                         image={network.image}
                                         badge={network.badge}
                                         isSelected={
-                                            selectedNetwork === network.name
+                                            selectedNetwork === network.chainId
                                         }
                                         onClick={() =>
-                                            setSelectedNetwork(network.name)
+                                            setSelectedNetwork(network.chainId)
                                         }
-                                        disabled={network.disabled}
+                                        disabled={!enabledChainIds.includes(network.chainId)}
                                     />
                                 ))}
                             </Flex>

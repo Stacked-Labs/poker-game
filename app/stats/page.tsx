@@ -36,7 +36,7 @@ import {
 } from '@chakra-ui/react';
 import Link from 'next/link';
 import EmergencyWithdrawAllButton from '../components/EmergencyWithdrawAllButton';
-import { useEffect, useState, useCallback, ReactNode } from 'react';
+import { useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import {
     verifyAdmin,
     getAdminStats,
@@ -78,6 +78,53 @@ const StatusDot = ({ ok }: { ok: boolean }) => (
     />
 );
 
+const ChainSelector = ({
+    value,
+    onChange,
+}: {
+    value: 'base' | 'base-sepolia';
+    onChange: (v: 'base' | 'base-sepolia') => void;
+}) => (
+    <HStack gap={2}>
+        {([
+            { key: 'base' as const,         label: 'Base',         badge: 'Mainnet' },
+            { key: 'base-sepolia' as const, label: 'Base Sepolia', badge: 'Testnet' },
+        ] as const).map(({ key, label, badge }) => (
+            <Box
+                key={key}
+                as="button"
+                px={3}
+                py={1.5}
+                borderRadius="full"
+                fontSize="sm"
+                fontWeight="bold"
+                cursor="pointer"
+                transition="all 0.15s"
+                bg={value === key ? 'brand.green' : 'card.white'}
+                color={value === key ? 'white' : 'text.secondary'}
+                boxShadow="0 1px 4px rgba(0,0,0,0.08)"
+                onClick={() => onChange(key)}
+                _hover={{ opacity: 0.85 }}
+                display="flex"
+                alignItems="center"
+                gap={1.5}
+            >
+                {label}
+                <Badge
+                    fontSize="2xs"
+                    px={1.5}
+                    py={0.5}
+                    borderRadius="full"
+                    bg={value === key ? 'whiteAlpha.300' : 'card.lightGray'}
+                    color={value === key ? 'white' : 'text.secondary'}
+                >
+                    {badge}
+                </Badge>
+            </Box>
+        ))}
+    </HStack>
+);
+
 const stateColor = (state: string) => {
     switch (state) {
         case 'operational': return 'brand.green';
@@ -99,7 +146,7 @@ const Card = ({
     children,
 }: {
     title: string;
-    subtitle?: string;
+    subtitle?: ReactNode;
     children: ReactNode;
 }) => (
     <Box
@@ -202,8 +249,8 @@ const ServiceCard = ({
 const SettlementSection = ({ data }: { data: SettlementHealthResponse | null }) => {
     const ok = !data || data.pending_count === 0;
     return (
-        <Card title="Settlement Health" subtitle={data?.timestamp ? new Date(data.timestamp).toLocaleString() : undefined}>
-            <Flex align="center" gap={3} mb={4}>
+        <>
+            <Flex align="center" gap={3} mb={data && data.pending_count > 0 ? 4 : 0}>
                 <StatusDot ok={ok} />
                 <Text fontSize="2xl" fontWeight="extrabold" color={ok ? 'brand.green' : 'brand.pink'}>
                     {data?.pending_count ?? 0}
@@ -211,6 +258,9 @@ const SettlementSection = ({ data }: { data: SettlementHealthResponse | null }) 
                 <Text fontSize="sm" color="text.secondary">stuck settlements</Text>
                 {ok && (
                     <Badge colorScheme="green" fontSize="xs" px={2} py={1} borderRadius="full">All Clear</Badge>
+                )}
+                {data?.timestamp && (
+                    <Text fontSize="xs" color="text.secondary" ml="auto">{new Date(data.timestamp).toLocaleString()}</Text>
                 )}
             </Flex>
 
@@ -250,7 +300,7 @@ const SettlementSection = ({ data }: { data: SettlementHealthResponse | null }) 
                     ))}
                 </VStack>
             )}
-        </Card>
+        </>
     );
 };
 
@@ -260,40 +310,101 @@ export default function AdminStatsPage() {
     const now = new Date().toISOString();
     const [authState, setAuthState] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
     const [stats, setStats]       = useState<AdminStatsResponse | null>(null);
+    const [totals, setTotals]     = useState<AdminStatsResponse | null>(null);
     const [live, setLive]         = useState<AdminLiveStatsResponse | null>(null);
     const [tables, setTables]     = useState<AdminTablesResponse | null>(null);
     const [health, setHealth]     = useState<AdminHealthResponse | null>(null);
     const [settle, setSettle]     = useState<SettlementHealthResponse | null>(null);
-    const [indexer, setIndexer]   = useState<IndexerHealthData | null>(null);
+    const [indexer, setIndexer]         = useState<IndexerHealthData | null>(null);
+    const [activityRake, setActivityRake] = useState<IndexerHealthData | null>(null);
     const [refreshing, setRefreshing] = useState(false);
     const [search, setSearch]         = useState('');
     const [typeFilter, setTypeFilter] = useState<'all' | 'crypto' | 'free'>('all');
+    // Per-section chain filters
+    const [activityChain, setActivityChain]       = useState<'base-sepolia' | 'base'>('base');
+    const [handsChain, setHandsChain]             = useState<'base-sepolia' | 'base'>('base');
+    const [indexerChain, setIndexerChain]         = useState<'base-sepolia' | 'base'>('base');
+    const [settlementChain, setSettlementChain]   = useState<'base-sepolia' | 'base'>('base');
+    const [tablesChain, setTablesChain]           = useState<'base-sepolia' | 'base' | 'all'>('all');
+
+    const activityChainRef   = useRef(activityChain);
+    const handsChainRef      = useRef(handsChain);
+    const indexerChainRef    = useRef(indexerChain);
+    const settlementChainRef = useRef(settlementChain);
+    const tablesChainRef     = useRef(tablesChain);
+    useEffect(() => { activityChainRef.current   = activityChain;   }, [activityChain]);
+    useEffect(() => { handsChainRef.current      = handsChain;      }, [handsChain]);
+    useEffect(() => { indexerChainRef.current    = indexerChain;    }, [indexerChain]);
+    useEffect(() => { settlementChainRef.current = settlementChain; }, [settlementChain]);
+    useEffect(() => { tablesChainRef.current     = tablesChain;     }, [tablesChain]);
+
+    const loadActivityData = useCallback(async (chain: 'base-sepolia' | 'base') => {
+        const [statsResult, rakeResult] = await Promise.allSettled([
+            getAdminStats(chain),
+            getIndexerHealth(chain),
+        ]);
+        if (statsResult.status === 'fulfilled') setStats(statsResult.value);
+        if (rakeResult.status === 'fulfilled') setActivityRake(rakeResult.value);
+        return statsResult.status === 'fulfilled' ? statsResult.value : null;
+    }, []);
+
+    const loadHandsData = useCallback(async (chain: 'base-sepolia' | 'base') => {
+        const result = await Promise.allSettled([getAdminStats(chain)]);
+        if (result[0].status === 'fulfilled') setTotals(result[0].value);
+    }, []);
+
+    const loadIndexerData = useCallback(async (chain: 'base-sepolia' | 'base') => {
+        const result = await Promise.allSettled([getIndexerHealth(chain)]);
+        if (result[0].status === 'fulfilled') setIndexer(result[0].value);
+    }, []);
+
+    const loadSettlementData = useCallback(async (chain: 'base-sepolia' | 'base') => {
+        const result = await Promise.allSettled([getAdminSettlementHealth(chain)]);
+        if (result[0].status === 'fulfilled') setSettle(result[0].value);
+    }, []);
+
+    const loadTablesData = useCallback(async (chain: 'base-sepolia' | 'base' | 'all') => {
+        const result = await Promise.allSettled([getAdminTables({ chain })]);
+        if (result[0].status === 'fulfilled') setTables(result[0].value);
+    }, []);
 
     const loadData = useCallback(async () => {
         setRefreshing(true);
-        const [s, l, t, h, sh, ix] = await Promise.allSettled([
-            getAdminStats(),
-            getAdminLiveStats(),
-            getAdminTables(),
-            getAdminHealth(),
-            getAdminSettlementHealth(),
-            getIndexerHealth(),
+        const chainsMatch = handsChainRef.current === activityChainRef.current;
+        await Promise.all([
+            loadActivityData(activityChainRef.current).then((v) => {
+                // Reuse the activity result for totals when both chain selectors agree,
+                // avoiding a duplicate getAdminStats call on initial load.
+                if (chainsMatch && v) setTotals(v);
+            }),
+            chainsMatch ? Promise.resolve() : loadHandsData(handsChainRef.current),
+            loadIndexerData(indexerChainRef.current),
+            loadSettlementData(settlementChainRef.current),
+            loadTablesData(tablesChainRef.current),
+            getAdminHealth().then((v) => setHealth(v)).catch(() => {}),
+            getAdminLiveStats().then((v) => setLive(v)).catch(() => {}),
         ]);
-        if (s.status  === 'fulfilled') setStats(s.value);
-        if (l.status  === 'fulfilled') setLive(l.value);
-        if (t.status  === 'fulfilled') setTables(t.value);
-        if (h.status  === 'fulfilled') setHealth(h.value);
-        if (sh.status === 'fulfilled') setSettle(sh.value);
-        if (ix.status === 'fulfilled') setIndexer(ix.value);
         setRefreshing(false);
-    }, []);
+    }, [loadActivityData, loadHandsData, loadIndexerData, loadSettlementData, loadTablesData]);
 
+    // Auth check on mount only.
     useEffect(() => {
         verifyAdmin().then((r) => {
             if (r.isAdmin) { setAuthState('authorized'); loadData(); }
             else setAuthState('unauthorized');
         });
     }, [loadData]);
+
+    useEffect(() => { if (authState === 'authorized') loadActivityData(activityChain); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activityChain, loadActivityData]);
+    useEffect(() => { if (authState === 'authorized') loadHandsData(handsChain); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [handsChain, loadHandsData]);
+    useEffect(() => { if (authState === 'authorized') loadIndexerData(indexerChain); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [indexerChain, loadIndexerData]);
+    useEffect(() => { if (authState === 'authorized') loadSettlementData(settlementChain); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [settlementChain, loadSettlementData]);
+    useEffect(() => { if (authState === 'authorized') loadTablesData(tablesChain); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tablesChain, loadTablesData]);
 
     if (authState === 'loading') {
         return (
@@ -321,6 +432,7 @@ export default function AdminStatsPage() {
     const tablesTs = tables?.timestamp ?? now;
 
     const d   = stats?.data;
+    const dt  = totals?.data;
     const lv  = live?.data;
     const pg  = health?.postgres;
     const rd  = health?.redis;
@@ -338,6 +450,9 @@ export default function AdminStatsPage() {
         if (typeFilter === 'free'   &&  t.is_crypto) return false;
         return true;
     });
+
+    // Inline chain selector label helper
+    const chainLabel = (chain: 'base' | 'base-sepolia') => chain === 'base' ? 'Base' : 'Base Sepolia';
 
     return (
         <Flex
@@ -444,8 +559,15 @@ export default function AdminStatsPage() {
                                 </Grid>
                             </Box>
 
-                            {/* Activity over time */}
-                            <Card title="Activity" subtitle={new Date(statsTs).toLocaleString()}>
+                            {/* Activity over time — chain-filtered */}
+                            <Card
+                                title="Activity"
+                                subtitle={
+                                    <Flex align="center" gap={2}>
+                                        <ChainSelector value={activityChain} onChange={setActivityChain} />
+                                    </Flex>
+                                }
+                            >
                                 <TableContainer>
                                     <Table variant="simple" size="md">
                                         <Thead>
@@ -516,76 +638,45 @@ export default function AdminStatsPage() {
                                                         <Text>Platform Rake (USDC)</Text>
                                                     </HStack>
                                                 </Td>
-                                                <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{indexer ? `$${indexer.rake24hUsdc}` : '—'}</Td>
-                                                <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{indexer ? `$${indexer.rake7dUsdc}` : '—'}</Td>
-                                                <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{indexer ? `$${indexer.rake30dUsdc}` : '—'}</Td>
-                                                <Td fontSize="sm" fontWeight="extrabold" border="none" isNumeric color="brand.pink">{indexer ? `$${indexer.rakeAllTimeUsdc}` : '—'}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{activityRake ? `$${activityRake.rake24hUsdc}` : '—'}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{activityRake ? `$${activityRake.rake7dUsdc}` : '—'}</Td>
+                                                <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{activityRake ? `$${activityRake.rake30dUsdc}` : '—'}</Td>
+                                                <Td fontSize="sm" fontWeight="extrabold" border="none" isNumeric color="brand.pink">{activityRake ? `$${activityRake.rakeAllTimeUsdc}` : '—'}</Td>
                                             </Tr>
                                         </Tbody>
                                     </Table>
                                 </TableContainer>
                             </Card>
 
-                            {/* Players */}
-                            <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)' }} gap={4}>
-                                <StatCard label="Unique Players" value={d?.total_unique_players} helpText="All time across all table types" />
-                                <StatCard label="Total Hands Played" value={d?.total_hands_played} helpText="All time" accent="brand.green" />
-                            </Grid>
+                            {/* Unique Players + Total Hands — chain-filtered */}
+                            <Box
+                                bg="card.white"
+                                borderRadius="16px"
+                                p={5}
+                                border="1px solid"
+                                borderColor="card.lightGray"
+                                boxShadow="0 2px 12px rgba(0,0,0,0.06)"
+                            >
+                                <Flex align="center" justify="space-between" mb={4} flexWrap="wrap" gap={2}>
+                                    <Text fontSize="sm" fontWeight="extrabold" color="text.secondary" textTransform="uppercase" letterSpacing="0.08em">
+                                        All-time Totals
+                                    </Text>
+                                    <ChainSelector value={handsChain} onChange={setHandsChain} />
+                                </Flex>
+                                <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)' }} gap={4}>
+                                    <Box>
+                                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1}>Unique Wallets</Text>
+                                        <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1}>{fmt(dt?.unique_wallets)}</Text>
+                                        <Text fontSize="xs" color="text.secondary" mt={1}>{chainLabel(handsChain)}</Text>
+                                    </Box>
+                                    <Box>
+                                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1}>Total Hands Played</Text>
+                                        <Text fontSize="3xl" fontWeight="extrabold" color="brand.green" lineHeight={1}>{fmt(dt?.total_hands_played)}</Text>
+                                        <Text fontSize="xs" color="text.secondary" mt={1}>{chainLabel(handsChain)}</Text>
+                                    </Box>
+                                </Grid>
+                            </Box>
 
-                            {/* Crypto vs Free split */}
-                            <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={5}>
-                                {/* Crypto */}
-                                <Box
-                                    bg="card.white"
-                                    borderRadius="16px"
-                                    border="2px solid"
-                                    borderColor="brand.green"
-                                    p={6}
-                                    boxShadow="0 4px 20px rgba(54,163,123,0.12)"
-                                >
-                                    <HStack mb={5} gap={2.5}>
-                                        <Box w="10px" h="10px" borderRadius="full" bg="brand.green" boxShadow="0 0 8px rgba(54,163,123,0.7)" flexShrink={0} />
-                                        <Text fontSize="md" fontWeight="extrabold" color="brand.green">Crypto Tables</Text>
-                                        <Badge bg="brand.green" color="white" fontSize="xs" px={2} borderRadius="full" ml="auto">On-chain</Badge>
-                                    </HStack>
-                                    <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-                                        <Box>
-                                            <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1}>{fmt(d?.crypto_tables_total)}</Text>
-                                            <Text fontSize="xs" color="text.secondary" mt={1}>Total Created</Text>
-                                        </Box>
-                                        <Box>
-                                            <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1}>{fmt(d?.unique_wallets)}</Text>
-                                            <Text fontSize="xs" color="text.secondary" mt={1}>Unique Wallets</Text>
-                                        </Box>
-                                    </Grid>
-                                </Box>
-
-                                {/* Free */}
-                                <Box
-                                    bg="card.white"
-                                    borderRadius="16px"
-                                    border="1px solid"
-                                    borderColor="card.lightGray"
-                                    p={6}
-                                    boxShadow="0 2px 12px rgba(0,0,0,0.06)"
-                                >
-                                    <HStack mb={5} gap={2.5}>
-                                        <Box w="10px" h="10px" borderRadius="full" bg="gray.400" flexShrink={0} />
-                                        <Text fontSize="md" fontWeight="extrabold" color="text.secondary">Free Tables</Text>
-                                        <Badge bg="card.lightGray" color="text.secondary" fontSize="xs" px={2} borderRadius="full" ml="auto">Play Money</Badge>
-                                    </HStack>
-                                    <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-                                        <Box>
-                                            <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1}>{fmt(d?.free_tables_total)}</Text>
-                                            <Text fontSize="xs" color="text.secondary" mt={1}>Total Created</Text>
-                                        </Box>
-                                        <Box>
-                                            <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1}>{fmt(d?.total_unique_players)}</Text>
-                                            <Text fontSize="xs" color="text.secondary" mt={1}>Unique Players</Text>
-                                        </Box>
-                                    </Grid>
-                                </Box>
-                            </Grid>
 
                         </VStack>
                     </TabPanel>
@@ -621,8 +712,8 @@ export default function AdminStatsPage() {
 
                             {/* Filter + search */}
                             <Flex justify="space-between" align="center" mb={4} gap={4} flexWrap="wrap">
-                                {/* Type filter buttons */}
-                                <HStack gap={2}>
+                                <HStack gap={2} flexWrap="wrap">
+                                    {/* Type filter */}
                                     {([
                                         { key: 'all',    label: 'All' },
                                         { key: 'crypto', label: 'Crypto' },
@@ -646,6 +737,35 @@ export default function AdminStatsPage() {
                                             {label}
                                         </Box>
                                     ))}
+                                    {typeFilter !== 'free' && <Box w="1px" h="20px" bg="card.lightGray" mx={1} />}
+                                    {/* Chain filter — only relevant for crypto/all tables */}
+                                    {typeFilter !== 'free' && (
+                                        <>
+                                            {([
+                                                { key: 'all' as const,          label: 'All Networks' },
+                                                { key: 'base' as const,         label: 'Mainnet' },
+                                                { key: 'base-sepolia' as const, label: 'Testnet' },
+                                            ]).map(({ key, label }) => (
+                                                <Box
+                                                    key={key}
+                                                    as="button"
+                                                    px={3}
+                                                    py={1.5}
+                                                    borderRadius="full"
+                                                    fontSize="sm"
+                                                    fontWeight="bold"
+                                                    cursor="pointer"
+                                                    transition="all 0.15s"
+                                                    bg={tablesChain === key ? 'brand.green' : 'card.lightGray'}
+                                                    color={tablesChain === key ? 'white' : 'text.secondary'}
+                                                    onClick={() => setTablesChain(key)}
+                                                    _hover={{ opacity: 0.85 }}
+                                                >
+                                                    {label}
+                                                </Box>
+                                            ))}
+                                        </>
+                                    )}
                                 </HStack>
                                 <Input
                                     placeholder="Search by name or wallet address…"
@@ -668,6 +788,7 @@ export default function AdminStatsPage() {
                                             <Th color="text.secondary" borderColor="card.lightGray" pl={0}>Status</Th>
                                             <Th color="text.secondary" borderColor="card.lightGray">Name</Th>
                                             <Th color="text.secondary" borderColor="card.lightGray">Type</Th>
+                                            <Th color="text.secondary" borderColor="card.lightGray">Network</Th>
                                             <Th color="text.secondary" borderColor="card.lightGray" isNumeric>Blinds</Th>
                                             <Th color="text.secondary" borderColor="card.lightGray" isNumeric>Players</Th>
                                             <Th color="text.secondary" borderColor="card.lightGray" isNumeric>WS</Th>
@@ -722,6 +843,19 @@ export default function AdminStatsPage() {
                                                             )}
                                                         </HStack>
                                                     </Td>
+                                                    <Td borderColor="card.lightGray">
+                                                        {t.chain ? (
+                                                            <Badge
+                                                                bg={t.chain === 'base' ? 'brand.green' : 'card.lightGray'}
+                                                                color={t.chain === 'base' ? 'white' : 'text.secondary'}
+                                                                fontSize="xs" px={2} borderRadius="full"
+                                                            >
+                                                                {t.chain === 'base' ? 'Mainnet' : 'Testnet'}
+                                                            </Badge>
+                                                        ) : (
+                                                            <Text fontSize="xs" color="text.secondary">—</Text>
+                                                        )}
+                                                    </Td>
                                                     <Td borderColor="card.lightGray" isNumeric>
                                                         <Text fontSize="xs" fontFamily="monospace" color="text.secondary">
                                                             {t.blinds.sb ?? '?'}/{t.blinds.bb ?? '?'}
@@ -749,7 +883,7 @@ export default function AdminStatsPage() {
                                             ))
                                         ) : (
                                             <Tr>
-                                                <Td colSpan={8} textAlign="center" py={10} borderColor="card.lightGray">
+                                                <Td colSpan={9} textAlign="center" py={10} borderColor="card.lightGray">
                                                     <Text color="text.secondary">No tables found</Text>
                                                 </Td>
                                             </Tr>
@@ -790,8 +924,17 @@ export default function AdminStatsPage() {
                                 ))}
                             </Grid>
 
-                            {/* Settlement health – second priority after the overview strip */}
-                            <SettlementSection data={settle} />
+                            {/* Settlement health — chain-filtered */}
+                            <Card
+                                title="Settlement Health"
+                                subtitle={
+                                    <Flex align="center" gap={2}>
+                                        <ChainSelector value={settlementChain} onChange={setSettlementChain} />
+                                    </Flex>
+                                }
+                            >
+                                <SettlementSection data={settle} />
+                            </Card>
 
                             {/* Detail row 1: PG + Redis */}
                             <Flex gap={5} direction={{ base: 'column', md: 'row' }}>
@@ -891,26 +1034,38 @@ export default function AdminStatsPage() {
                                 </ServiceCard>
                             </Flex>
 
-                            {/* Indexer health */}
-                            <ServiceCard
-                                name="Chain Indexer"
-                                ok={indexer?.healthy ?? false}
-                                rows={[
-                                    {
-                                        label: 'Status',
-                                        value: (
-                                            <Text fontWeight="bold" color={indexer?.healthy ? 'brand.green' : indexer === null ? 'gray.400' : 'brand.pink'}>
-                                                {indexer === null ? '—' : indexer.healthy ? 'In sync' : 'Lagging'}
-                                            </Text>
-                                        ),
-                                    },
-                                    { label: 'Indexed Block', value: indexer?.height?.toLocaleString() ?? '—', mono: true },
-                                    { label: 'Chain Tip',     value: indexer?.chainTip?.toLocaleString() ?? '—', mono: true },
-                                    { label: 'Lag (blocks)',  value: indexer?.lag !== null && indexer?.lag !== undefined ? String(indexer.lag) : '—', mono: true },
-                                    { label: 'Hands Indexed', value: indexer?.totalHands?.toLocaleString() ?? '—' },
-                                    { label: 'Total Rake',    value: indexer ? `$${indexer.rakeAllTimeUsdc} USDC` : '—' },
-                                ]}
-                            />
+                            {/* Chain Indexer — chain-filtered */}
+                            <Box
+                                bg="card.white"
+                                borderRadius="16px"
+                                p={6}
+                                border="1px solid"
+                                borderColor={indexer?.healthy ? 'card.lightGray' : 'brand.pink'}
+                                boxShadow={indexer?.healthy ? '0 2px 12px rgba(0,0,0,0.06)' : '0 2px 12px rgba(235,11,92,0.12)'}
+                            >
+                                <Flex align="center" justify="space-between" mb={4} flexWrap="wrap" gap={2}>
+                                    <HStack gap={2.5}>
+                                        <StatusDot ok={indexer?.healthy ?? false} />
+                                        <Text fontSize="md" fontWeight="extrabold" color="text.primary">Chain Indexer</Text>
+                                    </HStack>
+                                    <ChainSelector value={indexerChain} onChange={setIndexerChain} />
+                                </Flex>
+                                <VStack align="stretch" gap={2}>
+                                    {[
+                                        { label: 'Status',        value: <Text fontWeight="bold" color={indexer?.healthy ? 'brand.green' : indexer === null ? 'gray.400' : 'brand.pink'}>{indexer === null ? '—' : indexer.healthy ? 'In sync' : 'Lagging'}</Text> },
+                                        { label: 'Indexed Block', value: indexer?.height?.toLocaleString() ?? '—',  mono: true },
+                                        { label: 'Chain Tip',     value: indexer?.chainTip?.toLocaleString() ?? '—', mono: true },
+                                        { label: 'Lag (blocks)',  value: indexer?.lag !== null && indexer?.lag !== undefined ? String(indexer.lag) : '—', mono: true },
+                                        { label: 'Hands Indexed', value: indexer?.totalHands?.toLocaleString() ?? '—' },
+                                        { label: 'Total Rake',    value: indexer ? `$${indexer.rakeAllTimeUsdc} USDC` : '—' },
+                                    ].map(({ label, value, mono }) => (
+                                        <Flex key={label} justify="space-between" align="center" py={2} px={3} bg="card.lightGray" borderRadius="8px">
+                                            <Text fontSize="sm" color="text.secondary">{label}</Text>
+                                            <Text fontSize="sm" fontWeight="semibold" color="text.primary" fontFamily={mono ? 'monospace' : undefined}>{value}</Text>
+                                        </Flex>
+                                    ))}
+                                </VStack>
+                            </Box>
 
                         </VStack>
                     </TabPanel>

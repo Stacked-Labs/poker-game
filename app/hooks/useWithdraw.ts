@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
 import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
-import { client, baseSepoliaChain } from '../thirdwebclient';
+import { client } from '../thirdwebclient';
 
 export type WithdrawStatus =
     | 'idle'
@@ -23,7 +24,7 @@ interface UseWithdrawResult {
     reset: () => void;
 }
 
-export function useWithdraw(contractAddress: string | undefined): UseWithdrawResult {
+export function useWithdraw(contractAddress: string | undefined, chain: Chain): UseWithdrawResult {
     const account = useActiveAccount();
     const [status, setStatus] = useState<WithdrawStatus>('idle');
     const [error, setError] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export function useWithdraw(contractAddress: string | undefined): UseWithdrawRes
 
             const pokerContract = getContract({
                 client,
-                chain: baseSepoliaChain,
+                chain: chain,
                 address: contractAddress,
             });
 
@@ -81,7 +82,7 @@ export function useWithdraw(contractAddress: string | undefined): UseWithdrawRes
             setStatus('idle');
             return false;
         }
-    }, [account?.address, contractAddress]);
+    }, [account?.address, contractAddress, chain]);
 
     const withdraw = useCallback(async (): Promise<boolean> => {
         if (!account?.address) {
@@ -101,7 +102,7 @@ export function useWithdraw(contractAddress: string | undefined): UseWithdrawRes
 
             const pokerContract = getContract({
                 client,
-                chain: baseSepoliaChain,
+                chain: chain,
                 address: contractAddress,
             });
 
@@ -123,7 +124,7 @@ export function useWithdraw(contractAddress: string | undefined): UseWithdrawRes
             setStatus('error');
             return false;
         }
-    }, [account?.address, contractAddress, sendAndConfirm]);
+    }, [account?.address, contractAddress, chain, sendAndConfirm]);
 
     return {
         withdraw,

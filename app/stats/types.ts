@@ -165,6 +165,7 @@ export interface AdminTableEntry {
     player_count: number;
     ws_connections: number;
     blinds: { sb: number | null; bb: number | null };
+    chain: string;
 }
 
 export interface AdminTablesResponse {

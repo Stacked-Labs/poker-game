@@ -1,4 +1,4 @@
-import { createThirdwebClient } from 'thirdweb';
+import { createThirdwebClient, type Chain } from 'thirdweb';
 import { base, baseSepolia } from 'thirdweb/chains';
 import { createWallet, inAppWallet } from 'thirdweb/wallets';
 
@@ -8,29 +8,50 @@ export const client = createThirdwebClient({
     clientId,
 });
 
-// Chain configuration - Base mainnet
-export const baseChain = base;
-export const baseSepoliaChain = baseSepolia;
-
-// Supported tokens configuration
-export const supportedTokens = {
-    // [base.id]: [
-    //     {
-    //         address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-    //         name: 'USD Coin',
-    //         symbol: 'USDC',
-    //         icon: '/usdc-logo.png',
-    //     },
-    // ],
-        [baseSepolia.id]: [
-        {
-            address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-            name: 'USD Coin',
-            symbol: 'USDC',
-            icon: '/usdc-logo.png',
-        },
-    ],
+// Per-chain configuration: chain object + USDC contract address.
+export const CHAIN_CONFIG: Record<string, { chain: Chain; usdc: string }> = {
+    'base-sepolia': {
+        chain: baseSepolia,
+        usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+    },
+    'base': {
+        chain: base,
+        usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    },
 };
+
+// NEXT_PUBLIC_ENABLED_CHAINS is a comma-separated list of chain names, e.g. "base-sepolia,base".
+// Defaults to "base-sepolia" for backwards compatibility.
+const enabledChainNames = (process.env.NEXT_PUBLIC_ENABLED_CHAINS ?? 'base-sepolia')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+const defaultChainName = enabledChainNames[0] ?? 'base-sepolia';
+
+export const defaultChain: Chain = CHAIN_CONFIG[defaultChainName]?.chain ?? baseSepolia;
+export const defaultUsdcAddress: string =
+    CHAIN_CONFIG[defaultChainName]?.usdc ?? '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+
+// supportedTokens maps chain IDs to their USDC token config for thirdweb's ConnectButton.
+export const supportedTokens = Object.fromEntries(
+    enabledChainNames
+        .filter((name) => CHAIN_CONFIG[name])
+        .map((name) => {
+            const cfg = CHAIN_CONFIG[name];
+            return [
+                cfg.chain.id,
+                [
+                    {
+                        address: cfg.usdc,
+                        name: 'USD Coin',
+                        symbol: 'USDC',
+                        icon: '/usdc-logo.png',
+                    },
+                ],
+            ];
+        })
+);
 
 // Wallet providers - Including social login options
 export const wallets = [

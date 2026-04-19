@@ -628,7 +628,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             dispatch({ type: 'setSettlementStatus', payload: 'success' });
                             // Trigger floating points animation only for crypto games
                             // where the local player was actually dealt into the hand
-                            if (appStateRef.current.game?.config?.crypto && userWasInHandRef.current) {
+                            if (appStateRef.current.game?.config?.crypto && appStateRef.current.game?.config?.chain === 'base' && userWasInHandRef.current) {
                                 const bb = appStateRef.current.game?.config?.bb ?? 0;
                                 if (bb > 0) {
                                     usePointsAnimationStore.getState().triggerPoints(bb);

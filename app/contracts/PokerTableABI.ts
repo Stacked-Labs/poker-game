@@ -103,9 +103,6 @@ export const POKER_TABLE_ABI = [
     },
 ] as const;
 
-// USDC on Base testnet
-export const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
-
 export const ERC20_ABI = [
     {
         type: 'function',

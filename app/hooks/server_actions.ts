@@ -655,9 +655,10 @@ export async function verifyAdmin(): Promise<{ isAdmin: boolean; address?: strin
     }
 }
 
-export async function getAdminStats() {
+export async function getAdminStats(chain?: 'base-sepolia' | 'base') {
     isBackendUrlValid();
-    const response = await fetch(`${backendUrl}/api/admin/stats`, {
+    const qs = chain ? `?chain=${chain}` : '';
+    const response = await fetch(`${backendUrl}/api/admin/stats${qs}`, {
         method: 'GET',
         credentials: 'include',
     });
@@ -665,9 +666,10 @@ export async function getAdminStats() {
     return await response.json();
 }
 
-export async function getAdminLiveStats() {
+export async function getAdminLiveStats(chain?: 'base-sepolia' | 'base') {
     isBackendUrlValid();
-    const response = await fetch(`${backendUrl}/api/admin/stats/live`, {
+    const qs = chain ? `?chain=${chain}` : '';
+    const response = await fetch(`${backendUrl}/api/admin/stats/live${qs}`, {
         method: 'GET',
         credentials: 'include',
     });
@@ -679,12 +681,14 @@ export async function getAdminTables(params?: {
     type?: 'crypto' | 'free' | 'all';
     active?: boolean;
     search?: string;
+    chain?: 'base-sepolia' | 'base' | 'all';
 }) {
     isBackendUrlValid();
     const qs = new URLSearchParams();
     if (params?.type) qs.set('type', params.type);
     if (params?.active !== undefined) qs.set('active', String(params.active));
     if (params?.search) qs.set('search', params.search);
+    if (params?.chain && params.chain !== 'all') qs.set('chain', params.chain);
     const query = qs.toString() ? `?${qs.toString()}` : '';
     const response = await fetch(`${backendUrl}/api/admin/tables${query}`, {
         method: 'GET',
@@ -714,9 +718,10 @@ export async function getAdminHealth() {
     return await response.json();
 }
 
-export async function getAdminSettlementHealth() {
+export async function getAdminSettlementHealth(chain?: 'base-sepolia' | 'base') {
     isBackendUrlValid();
-    const response = await fetch(`${backendUrl}/api/admin/settlement-health`, {
+    const qs = chain ? `?chain=${chain}` : '';
+    const response = await fetch(`${backendUrl}/api/admin/settlement-health${qs}`, {
         method: 'GET',
         credentials: 'include',
     });
@@ -732,7 +737,7 @@ function chipsToUsdc(chips: string | null | undefined): string {
     return (n / 100).toFixed(2);
 }
 
-export async function getIndexerHealth(): Promise<{
+export async function getIndexerHealth(chain: 'base-sepolia' | 'base' = 'base-sepolia'): Promise<{
     height: number | null;
     chainTip: number | null;
     lag: number | null;
@@ -750,6 +755,8 @@ export async function getIndexerHealth(): Promise<{
     // so the indexer port never needs to be publicly exposed.
     // Rake aggregates come from poker-server's /api/stats.
 
+    const rpcUrl = chain === 'base' ? 'https://mainnet.base.org' : 'https://sepolia.base.org';
+
     try {
         type IndexerResp = { height?: number | null; error?: string };
         type RpcResp = { result?: string };
@@ -765,13 +772,13 @@ export async function getIndexerHealth(): Promise<{
         };
 
         const [indexerResult, rpcResult, statsResult] = await Promise.allSettled([
-            fetch(`${backendUrl}/api/indexer/status`).then(r => r.json() as Promise<IndexerResp>),
-            fetch('https://sepolia.base.org', {
+            fetch(`${backendUrl}/api/indexer/status?chain=${chain}`).then(r => r.json() as Promise<IndexerResp>),
+            fetch(rpcUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] }),
             }).then(r => r.json() as Promise<RpcResp>),
-            fetch(`${backendUrl}/api/stats`).then(r => r.json() as Promise<StatsResp>),
+            fetch(`${backendUrl}/api/stats?chain=${chain}`).then(r => r.json() as Promise<StatsResp>),
         ]);
 
         const indexerHeight = indexerResult.status === 'fulfilled'

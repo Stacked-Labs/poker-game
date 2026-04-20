@@ -15,6 +15,7 @@ const PlayerCard = ({
     isCurrentUser = false,
     type,
     isKicking,
+    settlementStuck,
     handleAcceptPlayer,
     handleDenyPlayer,
     confirmKick,
@@ -25,6 +26,7 @@ const PlayerCard = ({
     isCurrentUser?: boolean;
     type: 'accepted' | 'pending';
     isKicking: boolean | null;
+    settlementStuck?: boolean;
     handleAcceptPlayer?: ((uuid: string) => void) | null;
     handleDenyPlayer?: ((uuid: string) => void) | null;
     confirmKick?: ((player: PendingPlayer) => void) | null;
@@ -343,7 +345,7 @@ const PlayerCard = ({
                 isKicking !== null &&
                 confirmKick && (
                     <Tooltip
-                        label="Kick"
+                        label={settlementStuck ? 'Settlement in progress — kick unavailable' : 'Kick'}
                         placement="top"
                         bg="brand.navy"
                         color="white"
@@ -353,15 +355,16 @@ const PlayerCard = ({
                         <Button
                             data-testid={`kick-player-${player.uuid}`}
                             size="sm"
-                            bg="brand.pink"
-                            color="white"
-                            _hover={{
+                            bg={settlementStuck ? 'gray.300' : 'brand.pink'}
+                            color={settlementStuck ? 'gray.500' : 'white'}
+                            _hover={settlementStuck ? {} : {
                                 bg: 'brand.pink',
                                 transform: 'translateY(-1px)',
                                 boxShadow: '0 4px 12px rgba(235, 11, 92, 0.3)',
                             }}
-                            _active={{ transform: 'translateY(0)' }}
-                            onClick={() => confirmKick(player)}
+                            _active={{ transform: settlementStuck ? 'none' : 'translateY(0)' }}
+                            onClick={settlementStuck ? undefined : () => confirmKick(player)}
+                            isDisabled={Boolean(settlementStuck)}
                             isLoading={isKicking}
                             loadingText="Kicking..."
                             minW={{ base: '34px', md: '38px' }}
@@ -369,6 +372,7 @@ const PlayerCard = ({
                             borderRadius="10px"
                             border="none"
                             transition="all 0.2s ease"
+                            cursor={settlementStuck ? 'not-allowed' : 'pointer'}
                         >
                             <GiBootKick size={15} />
                         </Button>

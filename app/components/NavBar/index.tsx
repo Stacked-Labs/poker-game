@@ -448,6 +448,7 @@ const Navbar = () => {
                             <LeaveButton
                                 isUserSeated
                                 isLeaveRequested={leaveAfterHandRequested}
+                                settlementStuck={Boolean(appState.game?.settlementStuck)}
                                 handleLeaveTable={() =>
                                     handleLeaveTable(
                                         socket,

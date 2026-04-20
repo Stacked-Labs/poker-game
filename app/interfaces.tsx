@@ -103,6 +103,8 @@ export type Game = {
     waitingForBB?: boolean[];
     /** Community cards that would have been dealt — populated after a concession when rabbit hunt is enabled. */
     rabbitCards?: Card[];
+    /** True while an on-chain settlement transaction is pending and unconfirmed. */
+    settlementStuck?: boolean;
 };
 
 export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';

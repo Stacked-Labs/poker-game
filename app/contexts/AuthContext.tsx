@@ -76,8 +76,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
             console.log('Auth status:', authenticated, 'Address:', account.address);
         } catch (error) {
-            console.error('Error checking authentication:', error);
-            setIsAuthenticated(false);
+            // Backend temporarily unreachable (e.g. restart). Preserve current auth
+            // state instead of flipping the UI to "Sign In?" on a transient network error.
+            // The 5-second poll will self-correct once the backend is back up.
+            console.error('Error checking authentication (backend unreachable, preserving state):', error);
         }
     }, [account?.address]);
 

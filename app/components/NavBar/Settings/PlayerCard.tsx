@@ -60,8 +60,8 @@ const PlayerCard = ({
 
     // Dark-mode-adaptive values
     const cardBg = useColorModeValue('white', '#212121');
-    const selfBg = useColorModeValue('rgba(54, 163, 123, 0.06)', 'rgba(54, 163, 123, 0.1)');
-    const selfBorder = useColorModeValue('rgba(54, 163, 123, 0.2)', 'rgba(54, 163, 123, 0.3)');
+    const selfBg = useColorModeValue('#EEF8F3', '#1E2A25');
+    const selfBorder = useColorModeValue('rgba(54, 163, 123, 0.35)', 'rgba(54, 163, 123, 0.45)');
     const borderColor = useColorModeValue('#ECEEF5', 'rgba(255, 255, 255, 0.1)');
     const shadowRest = useColorModeValue(
         '0 1px 4px rgba(0, 0, 0, 0.04)',

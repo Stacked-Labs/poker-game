@@ -14,6 +14,7 @@ import {
     Image,
     Input,
     Link,
+    Spinner,
     Text,
     VStack,
     useDisclosure,
@@ -53,6 +54,11 @@ interface TakeSeatPreviewProps {
     seatId?: number;
     chain?: string;
     defaultBuyInChips?: number;
+    depositStatus?:
+        | 'idle'
+        | 'checking_allowance'
+        | 'approving'
+        | 'depositing';
 }
 
 const formatUsdc = (chips: number): string =>
@@ -77,7 +83,17 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
     seatId,
     chain,
     defaultBuyInChips,
+    depositStatus = 'idle',
 }) => {
+    const isDepositing = depositStatus !== 'idle';
+    const depositStatusMessage =
+        depositStatus === 'checking_allowance'
+            ? 'Checking USDC balance...'
+            : depositStatus === 'approving'
+              ? 'Approving USDC transfer...'
+              : depositStatus === 'depositing'
+                ? 'Depositing to table...'
+                : null;
     const [inputUnit, setInputUnit] = useState<'chips' | 'usdc'>(
         isCryptoGame ? 'usdc' : 'chips'
     );
@@ -669,15 +685,42 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                 w="100%"
                                 h="56px"
                                 borderRadius="bigButton"
-                                bg={isJoinDisabled ? 'btn.lightGray' : 'brand.green'}
+                                bg={
+                                    isDepositing
+                                        ? 'brand.green'
+                                        : isJoinDisabled
+                                          ? 'btn.lightGray'
+                                          : 'brand.green'
+                                }
+                                color={isDepositing ? 'white' : undefined}
                                 border="none"
+                                cursor={isDepositing ? 'wait' : undefined}
+                                isLoading={isDepositing}
+                                loadingText={
+                                    depositStatusMessage || 'Processing...'
+                                }
+                                spinner={<Spinner size="sm" color="white" />}
                                 boxShadow={
-                                    isJoinDisabled
-                                        ? 'none'
-                                        : '0 6px 18px rgba(54, 163, 123, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                                    isDepositing
+                                        ? '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                                        : isJoinDisabled
+                                          ? 'none'
+                                          : '0 6px 18px rgba(54, 163, 123, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                                }
+                                _disabled={
+                                    isDepositing
+                                        ? {
+                                              bg: 'brand.green',
+                                              color: 'white',
+                                              cursor: 'wait',
+                                              opacity: 1,
+                                              boxShadow:
+                                                  '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                                          }
+                                        : undefined
                                 }
                                 _hover={
-                                    isJoinDisabled
+                                    isJoinDisabled || isDepositing
                                         ? {}
                                         : {
                                               bg: '#2E8A66',
@@ -808,6 +851,10 @@ const meta = {
         seatId: { control: 'number' },
         chain: { control: 'text' },
         defaultBuyInChips: { control: 'number' },
+        depositStatus: {
+            control: { type: 'select' },
+            options: ['idle', 'checking_allowance', 'approving', 'depositing'],
+        },
     },
     args: {
         isCryptoGame: true,
@@ -825,6 +872,7 @@ const meta = {
         seatId: 3,
         chain: 'Base',
         defaultBuyInChips: 1000,
+        depositStatus: 'idle',
     },
     parameters: {
         docs: {
@@ -962,6 +1010,38 @@ export const InsufficientBalance: Story = {
         isConnected: true,
         isBalanceInsufficient: true,
         defaultBuyInChips: 1000,
+    },
+};
+
+/** Depositing state — CTA stays green-shaded with white spinner + status text. */
+export const Depositing: Story = {
+    name: 'Crypto · depositing (green loading CTA)',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '82.41',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        defaultBuyInChips: 100,
+        depositStatus: 'depositing',
+    },
+};
+
+/** Approving allowance state — same green loading style, different message. */
+export const Approving: Story = {
+    name: 'Crypto · approving USDC',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '82.41',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        defaultBuyInChips: 100,
+        depositStatus: 'approving',
     },
 };
 

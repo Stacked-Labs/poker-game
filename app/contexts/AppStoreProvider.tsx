@@ -44,6 +44,7 @@ const initialState: AppState = {
     isTableOwner: null,
     settlementStatus: null,
     displayMode: 'chips',
+    displayModeExplicit: false,
     tableClosed: null,
 };
 
@@ -87,6 +88,7 @@ export type ACTIONTYPE =
       }
     | { type: 'addMessageWithUnread'; payload: Message }
     | { type: 'setDisplayMode'; payload: DisplayMode }
+    | { type: 'setDisplayModeAuto'; payload: DisplayMode }
     | { type: 'setTableClosed'; payload: { reason: string; message: string } };
 
 const MAX_MESSAGES = 500;
@@ -242,6 +244,16 @@ function reducer(state: AppState, action: ACTIONTYPE) {
         case 'setDisplayMode':
             if (typeof window !== 'undefined') {
                 localStorage.setItem('displayMode', action.payload);
+                localStorage.setItem('displayModeExplicit', 'true');
+            }
+            return {
+                ...state,
+                displayMode: action.payload,
+                displayModeExplicit: true,
+            };
+        case 'setDisplayModeAuto':
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('displayMode', action.payload);
             }
             return { ...state, displayMode: action.payload };
         case 'setTableClosed':
@@ -303,17 +315,38 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
             });
         }
         const storedDisplayMode = localStorage.getItem('displayMode');
+        const storedDisplayModeExplicit =
+            localStorage.getItem('displayModeExplicit') === 'true';
         if (
             storedDisplayMode === 'chips' ||
             storedDisplayMode === 'bb' ||
             storedDisplayMode === 'usdc'
         ) {
             dispatch({
-                type: 'setDisplayMode',
+                type: storedDisplayModeExplicit
+                    ? 'setDisplayMode'
+                    : 'setDisplayModeAuto',
                 payload: storedDisplayMode,
             });
         }
     }, []);
+
+    // Auto-switch display mode based on the current table's crypto flag.
+    // Only fires while the user has not made an explicit choice; any manual
+    // selection in Settings flips displayModeExplicit and locks behavior.
+    useEffect(() => {
+        if (appState.displayModeExplicit) return;
+        const isCrypto = appState.game?.config?.crypto === true;
+        if (isCrypto && appState.displayMode !== 'usdc') {
+            dispatch({ type: 'setDisplayModeAuto', payload: 'usdc' });
+        } else if (!isCrypto && appState.displayMode === 'usdc') {
+            dispatch({ type: 'setDisplayModeAuto', payload: 'chips' });
+        }
+    }, [
+        appState.game?.config?.crypto,
+        appState.displayMode,
+        appState.displayModeExplicit,
+    ]);
 
     // Re-check ownership when table, clientID, or auth state changes
     // For crypto tables, ownership is based on wallet address (JWT), so we need

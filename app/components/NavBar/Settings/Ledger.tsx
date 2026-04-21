@@ -25,6 +25,8 @@ import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { fetchTableLedger } from '@/app/hooks/server_actions';
 import { LedgerResponse, LedgerEntry } from '@/app/interfaces';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
+import PlayerNameLink from '@/app/components/PlayerNameLink';
 
 interface PlayerSession {
     uuid: string;
@@ -46,6 +48,7 @@ interface FinancialEvent {
 
 const Ledger = () => {
     const { appState } = useContext(AppContext);
+    const { format } = useFormatAmount();
     const [loading, setLoading] = useState(true);
     const [ledgerData, setLedgerData] = useState<LedgerResponse | null>(null);
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -195,12 +198,7 @@ const Ledger = () => {
         0
     );
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }).format(Math.abs(amount));
-    };
+    const formatCurrency = (amount: number) => format(Math.abs(amount));
 
     const toggleRow = (uuid: string) => {
         setExpandedRows((prev) => {
@@ -495,12 +493,11 @@ const Ledger = () => {
                                                     flex={1}
                                                 >
                                                     <HStack>
-                                                        <Text
+                                                        <PlayerNameLink
+                                                            username={session.username}
                                                             fontWeight="bold"
                                                             color="text.secondary"
-                                                        >
-                                                            {session.username}
-                                                        </Text>
+                                                        />
                                                         {session.isActive && (
                                                             <Badge
                                                                 bg="brand.green"

@@ -4,6 +4,8 @@ import { Box, VStack, HStack, Text, Button, Spinner } from '@chakra-ui/react';
 import { useGameEvents } from '@/app/contexts/GameEventsProvider';
 import { GameEventRecord } from '@/app/interfaces';
 import { evaluateBest5, EvalCard, Suit } from '@/app/lib/poker/pokerHandEval';
+import { useFormatAmount } from '@/app/hooks/useFormatAmount';
+import PlayerNameLink from '@/app/components/PlayerNameLink';
 
 // Type-safe metadata interfaces
 interface HandStartedMetadata {
@@ -176,6 +178,7 @@ const getHandCategoryFromCards = (winningCards: string[]): string | null => {
 const GameLog = () => {
     const { events, loading, error, hasMore, loadMoreEvents, refreshEvents } =
         useGameEvents();
+    const { format } = useFormatAmount();
     const isUnauthorized = error?.includes('Unauthorized') || false;
 
     const getBadgeColor = (category: string) => {
@@ -227,11 +230,11 @@ const GameLog = () => {
             .join(' ');
     };
 
-    // Helper function to safely format amount
+    // Helper function to safely format amount via the display-mode-aware hook
     const formatAmount = (amt: number | string | null | undefined): string => {
-        if (amt === undefined || amt === null) return '0.00';
+        if (amt === undefined || amt === null) return format(0);
         const numAmount = typeof amt === 'string' ? parseFloat(amt) : amt;
-        return isNaN(numAmount) ? '0.00' : numAmount.toFixed(2);
+        return isNaN(numAmount) ? format(0) : format(numAmount);
     };
 
     // Get color for action keywords
@@ -291,7 +294,7 @@ const GameLog = () => {
                             >
                                 Dealer:
                             </Text>{' '}
-                            {meta.dealer}
+                            <PlayerNameLink username={meta.dealer} />
                             {' • '}
                             <Text
                                 as="span"
@@ -300,7 +303,7 @@ const GameLog = () => {
                             >
                                 SB:
                             </Text>{' '}
-                            {meta.sb_player}
+                            <PlayerNameLink username={meta.sb_player} />
                             {' • '}
                             <Text
                                 as="span"
@@ -309,7 +312,7 @@ const GameLog = () => {
                             >
                                 BB:
                             </Text>{' '}
-                            {meta.bb_player}
+                            <PlayerNameLink username={meta.bb_player} />
                         </Text>
                     </>
                 );
@@ -392,7 +395,7 @@ const GameLog = () => {
             case 'fold':
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text
                             as="span"
                             color={getActionColor('folded')}
@@ -406,7 +409,7 @@ const GameLog = () => {
             case 'check':
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text
                             as="span"
                             color={getActionColor('checked')}
@@ -420,7 +423,7 @@ const GameLog = () => {
             case 'call':
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text
                             as="span"
                             color={getActionColor('called')}
@@ -435,7 +438,7 @@ const GameLog = () => {
             case 'bet':
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text
                             as="span"
                             color={getActionColor('bet')}
@@ -450,7 +453,7 @@ const GameLog = () => {
             case 'raise':
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text
                             as="span"
                             color={getActionColor('raised')}
@@ -465,7 +468,7 @@ const GameLog = () => {
             case 'all_in':
                 return (
                     <>
-                        {player_name || 'Player'} went{' '}
+                        <PlayerNameLink username={player_name || 'Player'} /> went{' '}
                         <Text
                             as="span"
                             color={getActionColor('all-in')}
@@ -561,9 +564,13 @@ const GameLog = () => {
                                                                             color="green.600"
                                                                             fontWeight="bold"
                                                                         >
-                                                                            {
-                                                                                winner.name
-                                                                            }{' '}
+                                                                            <PlayerNameLink
+                                                                                username={
+                                                                                    winner.name
+                                                                                }
+                                                                                color="green.600"
+                                                                                fontWeight="bold"
+                                                                            />{' '}
                                                                             wins{' '}
                                                                             {formatAmount(
                                                                                 winner.share
@@ -687,7 +694,12 @@ const GameLog = () => {
                                                     mt={idx > 0 ? 0.5 : 0}
                                                     fontWeight="bold"
                                                 >
-                                                    {revealedInfo.username}{' '}
+                                                    <PlayerNameLink
+                                                        username={
+                                                            revealedInfo.username
+                                                        }
+                                                        fontWeight="bold"
+                                                    />{' '}
                                                     showed:{' '}
                                                     <Text
                                                         as="span"
@@ -737,7 +749,7 @@ const GameLog = () => {
                 const displayName = player_name || meta.player_name || 'Player';
                 return (
                     <>
-                        {displayName}{' '}
+                        <PlayerNameLink username={displayName} />{' '}
                         <Text as="span" color="green.600" fontWeight="bold">
                             joined
                         </Text>
@@ -758,7 +770,7 @@ const GameLog = () => {
                 const chipStack = amount ?? meta.final_stack;
                 return (
                     <>
-                        {displayName}{' '}
+                        <PlayerNameLink username={displayName} />{' '}
                         <Text as="span" color="red.500" fontWeight="bold">
                             left
                         </Text>{' '}
@@ -773,8 +785,7 @@ const GameLog = () => {
                                     fontWeight="bold"
                                 >
                                     {formatAmount(chipStack)}
-                                </Text>{' '}
-                                chips
+                                </Text>
                             </>
                         )}
                         {meta.reason && (
@@ -802,9 +813,11 @@ const GameLog = () => {
                 const handRef = meta.hand_number ?? event.hand_id;
                 return (
                     <>
-                        <Text as="span" color="red.600" fontWeight="bold">
-                            {displayName}
-                        </Text>{' '}
+                        <PlayerNameLink
+                            username={displayName}
+                            color="red.600"
+                            fontWeight="bold"
+                        />{' '}
                         was eliminated
                         {meta.seat_id !== undefined && (
                             <> (Seat {meta.seat_id})</>
@@ -826,7 +839,7 @@ const GameLog = () => {
                 return (
                     <Box>
                         <Text as="span" fontWeight="bold" color="text.primary">
-                            {displayName}{' '}
+                            <PlayerNameLink username={displayName} />{' '}
                             <Text
                                 as="span"
                                 color="purple.600"
@@ -903,7 +916,7 @@ const GameLog = () => {
                 const meta = metadata as Partial<PlayerAcceptedMetadata>;
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text as="span" color="green.600" fontWeight="bold">
                             accepted
                         </Text>
@@ -931,7 +944,7 @@ const GameLog = () => {
             case 'player_denied': {
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text as="span" color="red.500" fontWeight="bold">
                             denied
                         </Text>{' '}
@@ -945,11 +958,18 @@ const GameLog = () => {
                 const chipStack = amount ?? meta.final_stack;
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text as="span" color="red.600" fontWeight="bold">
                             kicked
                         </Text>
-                        {meta.kicked_by_name && <> by {meta.kicked_by_name}</>}
+                        {meta.kicked_by_name && (
+                            <>
+                                {' '}by{' '}
+                                <PlayerNameLink
+                                    username={meta.kicked_by_name}
+                                />
+                            </>
+                        )}
                         {chipStack !== null && chipStack !== undefined && (
                             <>
                                 {' '}
@@ -961,7 +981,7 @@ const GameLog = () => {
                                 >
                                     {formatAmount(chipStack)}
                                 </Text>{' '}
-                                chips remaining
+                                remaining
                             </>
                         )}
                         {meta.queued && (
@@ -981,7 +1001,7 @@ const GameLog = () => {
             case 'player_set_ready': {
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text as="span" color="green.600" fontWeight="bold">
                             set ready
                         </Text>
@@ -992,7 +1012,7 @@ const GameLog = () => {
             case 'player_set_away': {
                 return (
                     <>
-                        {player_name || 'Player'}{' '}
+                        <PlayerNameLink username={player_name || 'Player'} />{' '}
                         <Text as="span" color="orange.500" fontWeight="bold">
                             set away
                         </Text>
@@ -1005,10 +1025,12 @@ const GameLog = () => {
                 const newName = metadata.new_name as string;
                 return (
                     <>
-                        {oldName || 'Player'} is now{' '}
-                        <Text as="span" color="blue.400" fontWeight="bold">
-                            {newName}
-                        </Text>
+                        <PlayerNameLink username={oldName || 'Player'} /> is now{' '}
+                        <PlayerNameLink
+                            username={newName}
+                            color="blue.400"
+                            fontWeight="bold"
+                        />
                     </>
                 );
             }

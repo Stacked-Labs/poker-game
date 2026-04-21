@@ -23,6 +23,7 @@ import {
     Icon,
     Link,
     Collapse,
+    Spinner,
     useDisclosure,
 } from '@chakra-ui/react';
 import { motion, MotionStyle } from 'framer-motion';
@@ -1013,15 +1014,20 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         h="56px"
                                         borderRadius="bigButton"
                                         bg={
-                                            isJoinVisuallyDisabled
-                                                ? 'btn.lightGray'
-                                                : 'brand.green'
+                                            isDepositing
+                                                ? 'brand.green'
+                                                : isJoinVisuallyDisabled
+                                                  ? 'btn.lightGray'
+                                                  : 'brand.green'
                                         }
+                                        color={isDepositing ? 'white' : undefined}
                                         border="none"
                                         cursor={
-                                            isJoinVisuallyDisabled
-                                                ? 'not-allowed'
-                                                : 'pointer'
+                                            isDepositing
+                                                ? 'wait'
+                                                : isJoinVisuallyDisabled
+                                                  ? 'not-allowed'
+                                                  : 'pointer'
                                         }
                                         aria-disabled={
                                             isJoinVisuallyDisabled || undefined
@@ -1032,17 +1038,47 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             getDepositStatusMessage() ||
                                             'Processing...'
                                         }
-                                        boxShadow={
-                                            isJoinVisuallyDisabled
-                                                ? 'none'
-                                                : '0 6px 18px rgba(54, 163, 123, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                                        spinner={
+                                            <Spinner size="sm" color="white" />
                                         }
-                                        _disabled={{
-                                            bg: 'btn.lightGray',
-                                            cursor: 'not-allowed',
-                                            opacity: 0.7,
-                                            boxShadow: 'none',
-                                        }}
+                                        sx={
+                                            isDepositing
+                                                ? {
+                                                      '&, &:disabled, &[data-loading], &[aria-disabled=true]':
+                                                          {
+                                                              bg: '#36A37B',
+                                                              background:
+                                                                  '#36A37B',
+                                                              color: 'white',
+                                                              opacity: 1,
+                                                          },
+                                                  }
+                                                : undefined
+                                        }
+                                        boxShadow={
+                                            isDepositing
+                                                ? '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                                                : isJoinVisuallyDisabled
+                                                  ? 'none'
+                                                  : '0 6px 18px rgba(54, 163, 123, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                                        }
+                                        _disabled={
+                                            isDepositing
+                                                ? {
+                                                      bg: 'brand.green',
+                                                      color: 'white',
+                                                      cursor: 'wait',
+                                                      opacity: 1,
+                                                      boxShadow:
+                                                          '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                                                  }
+                                                : {
+                                                      bg: 'btn.lightGray',
+                                                      cursor: 'not-allowed',
+                                                      opacity: 0.7,
+                                                      boxShadow: 'none',
+                                                  }
+                                        }
                                         _hover={
                                             isJoinVisuallyDisabled
                                                 ? {}

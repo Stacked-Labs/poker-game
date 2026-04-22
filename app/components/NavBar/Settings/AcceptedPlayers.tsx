@@ -22,9 +22,10 @@ interface Props {
     acceptedPlayers: Player[] | undefined;
     handleKickPlayer: (uuid: string) => void;
     currentUserUuid: string | null;
+    settlementStuck?: boolean;
 }
 
-const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid }: Props) => {
+const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, settlementStuck }: Props) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedPlayer, setSelectedPlayer] = useState<{
         uuid: string;
@@ -90,6 +91,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid }:
                                     isCurrentUser={player.uuid === currentUserUuid}
                                     type={'accepted'}
                                     isKicking={isKicking}
+                                    settlementStuck={settlementStuck}
                                     handleAcceptPlayer={null}
                                     handleDenyPlayer={null}
                                     confirmKick={confirmKick}

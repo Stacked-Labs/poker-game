@@ -400,6 +400,7 @@ export function SocketProvider(props: SocketProviderProps) {
                                 eventData.actionDeadline ??
                                 0,
                             rabbitCards: eventData.game?.rabbitCards,
+                            settlementStuck: eventData.game?.settlementStuck,
                         };
 
                         const hasAnyCommunityCard = (

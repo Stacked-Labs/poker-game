@@ -159,6 +159,7 @@ const PlayerList = () => {
                 acceptedPlayers={appState.game?.players}
                 handleKickPlayer={handleKickPlayer}
                 currentUserUuid={appState.clientID}
+                settlementStuck={Boolean(appState.game?.settlementStuck)}
             />
             <PendingPlayers
                 pendingPlayers={pendingPlayers}

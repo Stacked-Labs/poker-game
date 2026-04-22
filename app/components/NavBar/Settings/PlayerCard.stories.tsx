@@ -228,6 +228,23 @@ export const CryptoXVerified: Story = {
     },
 };
 
+// ── Stuck settlement ─────────────────────────────────────────────────────────
+
+/** Kick button grayed out and disabled when a settlement is still processing. */
+export const SettlementStuck: Story = {
+    name: 'Accepted — Settlement stuck (kick disabled)',
+    args: {
+        type: 'accepted',
+        settlementStuck: true,
+        player: {
+            uuid: 'abc12345-6789-0000-0000-000000000099',
+            username: 'Reckless Ron',
+            seatId: 4,
+            buyIn: 3000,
+        },
+    },
+};
+
 /** Crypto current user — green tint + "You" badge + address link. */
 export const CryptoSelf: Story = {
     name: 'Crypto — You (current user)',

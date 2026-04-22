@@ -7,16 +7,20 @@ interface LeaveButtonProps {
     isUserSeated: boolean;
     isLeaveRequested: boolean;
     handleLeaveTable: () => void;
+    settlementStuck?: boolean;
 }
 
 const LeaveButton = ({
     isUserSeated,
     isLeaveRequested,
     handleLeaveTable,
+    settlementStuck,
 }: LeaveButtonProps) => {
-    const tooltipLabel = isLeaveRequested
-        ? 'Cancel leave request'
-        : 'Leave after this hand';
+    const tooltipLabel = settlementStuck
+        ? 'Settlement in progress — leave unavailable'
+        : isLeaveRequested
+          ? 'Cancel leave request'
+          : 'Leave after this hand';
     const buttonLabel = isLeaveRequested
         ? 'Cancel leave request'
         : 'Leave Table';
@@ -40,17 +44,19 @@ const LeaveButton = ({
                 py={2}
                 width={{ base: '40px', sm: '40px', md: '48px' }}
                 height={{ base: '40px', sm: '40px', md: '48px' }}
-                onClick={handleLeaveTable}
-                bg={bgColor}
+                onClick={settlementStuck ? undefined : handleLeaveTable}
+                isDisabled={settlementStuck}
+                bg={settlementStuck ? 'gray.300' : bgColor}
                 border="none"
                 borderRadius="12px"
-                _hover={{
+                _hover={settlementStuck ? {} : {
                     transform: 'translateY(-2px)',
                     boxShadow: hoverShadow,
                     bg: 'brand.pink',
                 }}
                 _disabled={{
                     cursor: 'not-allowed',
+                    opacity: 0.5,
                 }}
                 sx={{
                     svg: {

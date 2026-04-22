@@ -53,6 +53,13 @@ const SETTLEMENT_SUCCESS_DISPLAY_MS = 2500;
 export function SocketProvider(props: SocketProviderProps) {
     const { tableId } = props;
     const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL; // expected to point to /ws base
+    const WS_DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
+    const debugLog = useCallback(
+        (...args: unknown[]) => {
+            if (WS_DEBUG) console.log(...args);
+        },
+        [WS_DEBUG]
+    );
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const { appState, dispatch } = useContext(AppContext);
     const socketRef = useRef<WebSocket | null>(null);
@@ -124,9 +131,7 @@ export function SocketProvider(props: SocketProviderProps) {
 
     const connectWebSocket = useCallback(async () => {
         const API_URL = process.env.NEXT_PUBLIC_API_URL;
-        console.log(
-            'WebSocket connection attempt start'
-        );
+        debugLog('[WebSocket] connection attempt start');
 
         if (!WS_BASE_URL || !API_URL) {
             console.error('WebSocket URL or API URL is not defined.');
@@ -138,17 +143,13 @@ export function SocketProvider(props: SocketProviderProps) {
         }
 
         if (socketRef.current) {
-            console.log(
-                'WebSocket connection attempt skipped: already connected or in progress.'
-            );
+            debugLog('[WebSocket] connection attempt skipped: already connected/in progress');
             isReconnectingRef.current = false;
             return;
         }
 
         try {
-            console.log(
-                `Initializing session with ${API_URL}/api/init-session`
-            );
+            debugLog('[WebSocket] initializing session', `${API_URL}/api/init-session`);
             const sessionInitResponse = await fetch(
                 `${API_URL}/api/init-session`,
                 {
@@ -172,23 +173,20 @@ export function SocketProvider(props: SocketProviderProps) {
                 return;
             }
             const sessionData = await sessionInitResponse.json();
-            console.log(
-                'Session initialization/confirmation successful:',
-                sessionData
-            );
+            debugLog('[WebSocket] session initialized', sessionData);
             // Build per-table WS URL: `${WS_BASE_URL}/table/${tableId}`
             const trimmed = WS_BASE_URL.endsWith('/')
                 ? WS_BASE_URL.slice(0, -1)
                 : WS_BASE_URL;
             const perTableUrl = `${trimmed}/table/${tableId}`;
-            console.log(`Attempting to connect WebSocket to ${perTableUrl}`);
+            debugLog('[WebSocket] connecting', perTableUrl);
             const _socket = new WebSocket(perTableUrl);
 
             socketRef.current = _socket;
             setSocket(_socket);
 
             _socket.onopen = () => {
-                console.log('WebSocket connected');
+                debugLog('[WebSocket] connected');
                 authStateAtConnectRef.current = {
                     isAuthenticated: authRef.current.isAuthenticated,
                     address: authRef.current.address,
@@ -212,17 +210,13 @@ export function SocketProvider(props: SocketProviderProps) {
                 }
                 // Always send join-table on open
                 const joinMessage = { action: 'join-table' } as const;
-                console.log('🔼 WebSocket Message Sent:', {
-                    timestamp: new Date().toISOString(),
-                    message: joinMessage,
-                    stringified: JSON.stringify(joinMessage),
-                });
+                debugLog('[WebSocket] send', joinMessage);
                 _socket.send(JSON.stringify(joinMessage));
-                console.log('Sent join-table message after connection.');
+                debugLog('[WebSocket] join-table sent');
             };
 
             _socket.onclose = (event) => {
-                console.log('WebSocket disconnected:', event);
+                debugLog('[WebSocket] disconnected', event);
                 socketRef.current = null;
                 setSocket(null);
 
@@ -255,12 +249,8 @@ export function SocketProvider(props: SocketProviderProps) {
                     return; // Stop processing if JSON is invalid
                 }
 
-                // Log all incoming WebSocket messages for debugging
-                console.log('🔽 WebSocket Message Received:', {
-                    timestamp: new Date().toISOString(),
-                    rawData: e.data,
-                    parsedData: eventData,
-                });
+                // Incoming messages can be high-volume; keep behind debug flag.
+                debugLog('[WebSocket] recv', eventData);
 
                 // Handle pending_players_update first as it uses event.type
                 if (eventData.type === 'pending_players_update') {
@@ -768,6 +758,7 @@ export function SocketProvider(props: SocketProviderProps) {
         tableId,
         appStateRef,
         dispatch,
+        debugLog,
         // isReconnecting intentionally excluded: it is not used inside the function body,
         // and including it causes the useCallback to be recreated on every reconnection
         // state change, which triggers the useEffect cleanup and cancels the pending
@@ -816,7 +807,7 @@ export function SocketProvider(props: SocketProviderProps) {
         if (isReconnectingRef.current) return; // Already trying to reconnect
 
         isReconnectingRef.current = true;
-        console.log("is reconnecting!")
+        debugLog('[WebSocket] reconnecting');
         const nextAttempt = reconnectionAttemptsRef.current + 1;
         reconnectionAttemptsRef.current = nextAttempt;
 
@@ -844,7 +835,7 @@ export function SocketProvider(props: SocketProviderProps) {
                 clearTimeout(reconnectTimeoutRef.current);
             }
             if (socketRef.current) {
-                console.log('Closing WebSocket connection on unmount/cleanup.');
+                debugLog('[WebSocket] closing connection on cleanup');
                 manualCloseRef.current = true;
                 socketRef.current.close(1000, 'Component unmounting'); // Clean close
                 socketRef.current = null;
@@ -878,7 +869,7 @@ export function SocketProvider(props: SocketProviderProps) {
         prevIsAuthenticatedRef.current = isAuthenticated;
 
         if (wasAuthenticated && !isAuthenticated && socketRef.current) {
-            console.log('[WebSocketProvider] Auth lost - forcing reconnect as unauthenticated');
+            debugLog('[WebSocket] auth lost; forcing reconnect as unauthenticated');
             forceReconnect('Wallet disconnected');
         }
     }, [forceReconnect, isAuthenticated]);
@@ -896,9 +887,7 @@ export function SocketProvider(props: SocketProviderProps) {
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
-                console.log(
-                    'Tab became visible, checking WebSocket connection...'
-                );
+                debugLog('[WebSocket] tab visible; checking connection');
 
                 // Check if socket is disconnected or in a bad state
                 const isDisconnected =
@@ -907,9 +896,7 @@ export function SocketProvider(props: SocketProviderProps) {
                     socketRef.current.readyState === WebSocket.CLOSING;
 
                 if (isDisconnected && !isReconnectingRef.current) {
-                    console.log(
-                        'WebSocket disconnected, resetting attempts and reconnecting...'
-                    );
+                    debugLog('[WebSocket] disconnected; resetting attempts and reconnecting');
                     // Reset reconnection attempts for a fresh start
                     reconnectionAttemptsRef.current = 0;
 
@@ -926,13 +913,11 @@ export function SocketProvider(props: SocketProviderProps) {
         };
 
         const handleOnline = () => {
-            console.log('Network came back online, checking WebSocket...');
+            debugLog('[WebSocket] network online; checking connection');
 
             // Only attempt if tab is visible and socket is disconnected
             if (document.visibilityState !== 'visible') {
-                console.log(
-                    'Tab not visible, skipping reconnection on online event'
-                );
+                debugLog('[WebSocket] tab not visible; skipping online reconnect');
                 return;
             }
 
@@ -942,7 +927,7 @@ export function SocketProvider(props: SocketProviderProps) {
                 socketRef.current.readyState === WebSocket.CLOSING;
 
             if (isDisconnected && !isReconnectingRef.current) {
-                console.log('Network online + disconnected, reconnecting...');
+                debugLog('[WebSocket] online + disconnected; reconnecting');
 
                 if (reconnectTimeoutRef.current) {
                     clearTimeout(reconnectTimeoutRef.current);
@@ -954,7 +939,7 @@ export function SocketProvider(props: SocketProviderProps) {
         };
 
         const handleOffline = () => {
-            console.log('Network went offline');
+            debugLog('[WebSocket] network offline');
             // Optionally show a toast or update UI state
         };
 
@@ -971,7 +956,7 @@ export function SocketProvider(props: SocketProviderProps) {
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
-    }, [connectWebSocket]);
+    }, [connectWebSocket, debugLog]);
 
     return (
         <>

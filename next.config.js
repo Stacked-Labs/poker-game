@@ -18,29 +18,6 @@ if (fs.existsSync(envPath)) {
 }
 
 const nextConfig = {
-    async headers() {
-        return [
-            {
-                // Apply security headers to all routes
-                source: '/:path*',
-                headers: [
-                    {
-                        key: 'Content-Security-Policy',
-                        value: [
-                            "default-src 'self'",
-                            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://widgets.coingecko.com",
-                            "frame-src 'self' https://challenges.cloudflare.com https://embedded-wallet.thirdweb.com",
-                            "connect-src 'self' http://localhost:8080 ws://localhost:8080 https://api.stackedpoker.io wss://api.stackedpoker.io https://challenges.cloudflare.com https://*.cloudflare.com wss://* ws://* https://*",
-                            "img-src 'self' data: https: blob:",
-                            "style-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-                            "font-src 'self' data:",
-                            "worker-src 'self' blob:",
-                        ].join('; '),
-                    },
-                ],
-            },
-        ];
-    },
     webpack(config) {
         config.module.rules.push({
             test: /\.svg$/,
@@ -60,11 +37,9 @@ const nextConfig = {
         ];
     },
     compiler: {},
-    reactStrictMode: false,
+    reactStrictMode: true,
     eslint: {
-        // Warning: This allows production builds to successfully complete even if
-        // your project has ESLint errors.
-        ignoreDuringBuilds: true,
+        ignoreDuringBuilds: false,
     },
     publicRuntimeConfig: {
         // Will be available on both server and client

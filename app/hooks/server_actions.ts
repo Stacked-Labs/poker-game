@@ -858,15 +858,16 @@ export async function getReferralInfo(address: string): Promise<{
 }
 
 export async function registerReferral(
-    refereeAddress: string,
     referrerAddress: string
 ): Promise<{ success: boolean; message: string }> {
     isBackendUrlValid();
     try {
         const response = await fetch(`${backendUrl}/api/referral`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refereeAddress, referrerAddress }),
+            // refereeAddress is derived on the server from authenticated JWT.
+            body: JSON.stringify({ referrerAddress }),
         });
         return await response.json();
     } catch (error) {

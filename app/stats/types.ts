@@ -182,13 +182,26 @@ export interface AdminHealthPostgres {
     pool_active: number;
 }
 
+export interface StreamGroupInfo {
+    name: string;
+    pending: number;
+    lag: number | null;
+    consumers: number;
+    last_delivered_id: string;
+}
+
+export interface StreamInfo {
+    length: number;
+    groups: StreamGroupInfo[];
+}
+
 export interface AdminHealthRedis {
     status: string;
     latency_ms: number;
     memory_used: string;
     connected_clients: number;
     max_clients: number;
-    streams: Record<string, number>;
+    streams: Record<string, StreamInfo>;
 }
 
 export interface AdminHealthHub {

@@ -53,6 +53,7 @@ import type {
     AdminHealthResponse,
     SettlementHealthResponse,
     IndexerHealthData,
+    StreamInfo,
 } from './types';
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
@@ -242,6 +243,89 @@ const ServiceCard = ({
         )}
         {children}
     </Box>
+);
+
+// ── Redis Streams & Consumer Lag panel ────────────────────────────────────────
+
+const lagBadgeColor = (lag: number | null): string => {
+    if (lag === null) return 'gray.400';
+    if (lag <= 10)   return 'brand.green';
+    if (lag <= 1000) return 'yellow.400';
+    return 'brand.pink';
+};
+
+const StreamsPanel = ({ streams }: { streams: Record<string, StreamInfo> }) => (
+    <Card title="Redis Streams & Consumer Lag">
+        <VStack align="stretch" gap={5}>
+            {Object.entries(streams).map(([stream, info]) => (
+                <Box key={stream}>
+                    <Flex align="center" justify="space-between" mb={2}>
+                        <Text fontSize="sm" fontFamily="monospace" fontWeight="bold" color="text.primary">
+                            {stream}
+                        </Text>
+                        <Text fontSize="xs" color="text.secondary">
+                            {info.length.toLocaleString()} entries
+                        </Text>
+                    </Flex>
+                    {info.groups.length === 0 ? (
+                        <Text fontSize="xs" color="text.secondary" px={3} py={2} bg="card.lightGray" borderRadius="8px">
+                            No active consumers
+                        </Text>
+                    ) : (
+                        <TableContainer>
+                            <Table variant="simple" size="sm">
+                                <Thead>
+                                    <Tr>
+                                        <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray" pl={0}>Group</Th>
+                                        <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray" isNumeric>Lag</Th>
+                                        <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray" isNumeric>Pending</Th>
+                                        <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray" isNumeric>Consumers</Th>
+                                        <Th color="text.secondary" fontSize="xs" borderColor="card.lightGray">Last Delivered ID</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    {info.groups.map((g) => (
+                                        <Tr key={g.name} _hover={{ bg: 'card.lightGray' }} transition="background 0.15s">
+                                            <Td borderColor="card.lightGray" pl={0}>
+                                                <Text fontSize="xs" fontFamily="monospace" color="text.primary">{g.name}</Text>
+                                            </Td>
+                                            <Td borderColor="card.lightGray" isNumeric>
+                                                <Badge
+                                                    bg={lagBadgeColor(g.lag)}
+                                                    color="white"
+                                                    fontSize="xs"
+                                                    px={2}
+                                                    py={0.5}
+                                                    borderRadius="full"
+                                                >
+                                                    {g.lag !== null ? g.lag.toLocaleString() : '—'}
+                                                </Badge>
+                                            </Td>
+                                            <Td borderColor="card.lightGray" isNumeric>
+                                                <Text fontSize="xs" fontWeight="semibold" color={g.pending > 0 ? 'yellow.400' : 'text.secondary'}>
+                                                    {g.pending.toLocaleString()}
+                                                </Text>
+                                            </Td>
+                                            <Td borderColor="card.lightGray" isNumeric>
+                                                <Text fontSize="xs" color="text.secondary">{g.consumers}</Text>
+                                            </Td>
+                                            <Td borderColor="card.lightGray">
+                                                <Tooltip label={g.last_delivered_id} hasArrow placement="top">
+                                                    <Text fontSize="xs" fontFamily="monospace" color="text.secondary" noOfLines={1} maxW="160px">
+                                                        {g.last_delivered_id || '—'}
+                                                    </Text>
+                                                </Tooltip>
+                                            </Td>
+                                        </Tr>
+                                    ))}
+                                </Tbody>
+                            </Table>
+                        </TableContainer>
+                    )}
+                </Box>
+            ))}
+        </VStack>
+    </Card>
 );
 
 // ── Settlement Health ──────────────────────────────────────────────────────────
@@ -966,14 +1050,14 @@ export default function AdminStatsPage() {
                                                 Redis Streams
                                             </Text>
                                             <VStack align="stretch" gap={2}>
-                                                {Object.entries(rd.streams).map(([stream, count]) => (
+                                                {Object.entries(rd.streams).map(([stream, info]) => (
                                                     <Flex key={stream} justify="space-between" align="center" py={2} px={3} bg="card.lightGray" borderRadius="8px">
                                                         <Tooltip label={stream} hasArrow>
                                                             <Text fontSize="sm" color="text.secondary" fontFamily="monospace">
                                                                 {stream.replace('poker:', '')}
                                                             </Text>
                                                         </Tooltip>
-                                                        <Text fontSize="sm" fontWeight="semibold" color="text.primary" fontFamily="monospace">{count}</Text>
+                                                        <Text fontSize="sm" fontWeight="semibold" color="text.primary" fontFamily="monospace">{info.length.toLocaleString()}</Text>
                                                     </Flex>
                                                 ))}
                                             </VStack>
@@ -981,6 +1065,11 @@ export default function AdminStatsPage() {
                                     )}
                                 </ServiceCard>
                             </Flex>
+
+                            {/* Redis Streams & Consumer Lag */}
+                            {rd?.streams && Object.keys(rd.streams).length > 0 && (
+                                <StreamsPanel streams={rd.streams} />
+                            )}
 
                             {/* Detail row 2: Hub + thirdweb */}
                             <Flex gap={5} direction={{ base: 'column', md: 'row' }}>

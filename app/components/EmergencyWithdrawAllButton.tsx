@@ -21,6 +21,7 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { FaExclamationTriangle } from 'react-icons/fa';
+import { type Chain } from 'thirdweb';
 import { useEmergencyWithdrawAll } from '../hooks/useEmergencyWithdrawAll';
 
 const slideUp = keyframes`
@@ -30,10 +31,11 @@ const slideUp = keyframes`
 
 interface Props {
     contractAddress: string;
+    chain: Chain;
 }
 
-const EmergencyWithdrawAllButton = ({ contractAddress }: Props) => {
-    const { trigger, status, error, reset } = useEmergencyWithdrawAll(contractAddress);
+const EmergencyWithdrawAllButton = ({ contractAddress, chain }: Props) => {
+    const { trigger, status, error, reset } = useEmergencyWithdrawAll(contractAddress, chain);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const cancelRef = useRef<HTMLButtonElement>(null);
 

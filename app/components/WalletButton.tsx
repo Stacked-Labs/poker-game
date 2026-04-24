@@ -3,10 +3,12 @@
 import React from 'react';
 import { useMediaQuery } from '@chakra-ui/react';
 import { ConnectButton, darkTheme, lightTheme } from 'thirdweb/react';
+import { type Chain } from 'thirdweb';
 import {
     client,
     defaultChain,
     defaultUsdcAddress,
+    enabledChains,
     supportedTokens,
     wallets,
 } from '@/app/thirdwebclient';
@@ -19,6 +21,8 @@ interface WalletButtonProps {
     className?: string;
     label?: string;
     variant?: 'default' | 'link' | 'hero';
+    /** When set, ConnectButton will prompt "Switch Network" if the wallet is on a different chain. */
+    chain?: Chain;
 }
 
 const WalletButton: React.FC<WalletButtonProps> = ({
@@ -27,6 +31,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     className,
     label = 'Sign In',
     variant = 'default',
+    chain: requiredChain,
 }) => {
     // Use compact on mobile/small screens, wide on larger screens
     const [isLargerScreen] = useMediaQuery('(min-width: 768px)');
@@ -137,10 +142,14 @@ const WalletButton: React.FC<WalletButtonProps> = ({
         },
     });
 
+    // Use the required chain for balance display if specified, otherwise fall back to default.
+    const displayChain = requiredChain ?? defaultChain;
+
     return (
         <ConnectButton
             client={client}
-            chain={defaultChain}
+            chain={requiredChain}
+            chains={enabledChains}
             wallets={wallets}
             supportedTokens={supportedTokens}
             detailsButton={{
@@ -150,7 +159,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                     borderRadius: variant === 'link' ? '0' : theme.radii.md,
                 },
                 displayBalanceToken: {
-                    [defaultChain.id]: defaultUsdcAddress,
+                    [displayChain.id]: defaultUsdcAddress,
                 },
             }}
             detailsModal={{
@@ -162,7 +171,7 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                             symbol: 'USDC',
                             icon: '/usdc-logo.png',
                         },
-                        chain: defaultChain,
+                        chain: displayChain,
                         allowEdits: {
                             amount: true,
                             token: false,

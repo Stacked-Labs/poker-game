@@ -36,6 +36,7 @@ import {
 } from '@chakra-ui/react';
 import Link from 'next/link';
 import EmergencyWithdrawAllButton from '../components/EmergencyWithdrawAllButton';
+import { CHAIN_CONFIG, defaultChain } from '../thirdwebclient';
 import { useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import {
     verifyAdmin,
@@ -876,7 +877,7 @@ export default function AdminStatsPage() {
                                                     </Td>
                                                     <Td borderColor="card.lightGray">
                                                         {t.is_crypto && t.is_active && (
-                                                            <EmergencyWithdrawAllButton contractAddress={t.name} />
+                                                            <EmergencyWithdrawAllButton contractAddress={t.name} chain={CHAIN_CONFIG[t.chain ?? '']?.chain ?? defaultChain} />
                                                         )}
                                                     </Td>
                                                 </Tr>

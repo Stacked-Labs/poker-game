@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { getContract, prepareContractCall } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveWalletChain } from 'thirdweb/react';
+import { getContract, prepareContractCall, type Chain } from 'thirdweb';
+import { useSendAndConfirmTransaction, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { client } from '../thirdwebclient';
 
 export type EmergencyWithdrawStatus = 'idle' | 'pending' | 'success' | 'error';
@@ -15,13 +15,14 @@ interface UseEmergencyWithdrawResult {
 }
 
 export function useEmergencyWithdraw(
-    contractAddress: string | undefined
+    contractAddress: string | undefined,
+    chain: Chain
 ): UseEmergencyWithdrawResult {
     const [status, setStatus] = useState<EmergencyWithdrawStatus>('idle');
     const [error, setError] = useState<string | null>(null);
 
-    const activeChain = useActiveWalletChain();
     const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
+    const switchChain = useSwitchActiveWalletChain();
 
     const reset = useCallback(() => {
         setStatus('idle');
@@ -35,18 +36,13 @@ export function useEmergencyWithdraw(
             return false;
         }
 
-        if (!activeChain) {
-            setError('Wallet not connected');
-            setStatus('error');
-            return false;
-        }
-
         try {
             setStatus('pending');
+            await switchChain(chain);
 
             const pokerContract = getContract({
                 client,
-                chain: activeChain,
+                chain,
                 address: contractAddress,
             });
 
@@ -65,7 +61,7 @@ export function useEmergencyWithdraw(
             setStatus('error');
             return false;
         }
-    }, [contractAddress, activeChain, sendAndConfirm]);
+    }, [contractAddress, chain, sendAndConfirm, switchChain]);
 
     return { trigger, status, error, reset };
 }

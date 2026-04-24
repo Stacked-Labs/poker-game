@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
+import { useSendAndConfirmTransaction, useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { client } from '../thirdwebclient';
 
 /** USDC uses 6 decimals on Base */
@@ -36,6 +36,7 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
+    const switchChain = useSwitchActiveWalletChain();
 
     const refresh = useCallback(async () => {
         if (!account?.address || !contractAddress) {
@@ -76,6 +77,8 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
 
         try {
             setStatus('withdrawing');
+            await switchChain(chain);
+
             const pokerContract = getContract({
                 client,
                 chain: chain,
@@ -99,7 +102,7 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
             setStatus('error');
             return false;
         }
-    }, [account?.address, contractAddress, chain, sendAndConfirm]);
+    }, [account?.address, contractAddress, chain, sendAndConfirm, switchChain]);
 
     // Poll every 30 seconds to pick up new rake from settlements
     useEffect(() => {

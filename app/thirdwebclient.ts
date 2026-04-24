@@ -33,6 +33,12 @@ export const defaultChain: Chain = CHAIN_CONFIG[defaultChainName]?.chain ?? base
 export const defaultUsdcAddress: string =
     CHAIN_CONFIG[defaultChainName]?.usdc ?? '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 
+// All chains that are currently enabled — pass to ConnectButton's `chains` prop so thirdweb
+// knows about them and doesn't prompt "Switch Network" for any of them.
+export const enabledChains: Chain[] = enabledChainNames
+    .filter((name) => CHAIN_CONFIG[name])
+    .map((name) => CHAIN_CONFIG[name].chain);
+
 // supportedTokens maps chain IDs to their USDC token config for thirdweb's ConnectButton.
 export const supportedTokens = Object.fromEntries(
     enabledChainNames

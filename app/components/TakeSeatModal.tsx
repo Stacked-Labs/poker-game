@@ -509,7 +509,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                         </ModalBody>
                         <ModalFooter px={{ base: 5, sm: 7 }} pb={7} pt={4}>
                             <VStack w="100%" spacing={3}>
-                                <WalletButton width="100%" height="52px" />
+                                <WalletButton width="100%" height="52px" chain={isCryptoGame ? tableChain : undefined} />
                                 {withdrawStatus === 'error' && withdrawError && (
                                     <HStack
                                         spacing={2}
@@ -911,7 +911,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
                         <ModalFooter px={{ base: 5, sm: 7 }} pb={6} pt={3}>
                             <VStack w="100%" spacing={3}>
-                                <WalletButton width="100%" height="52px" />
+                                <WalletButton width="100%" height="52px" chain={isCryptoGame ? tableChain : undefined} />
 
                                 {needsWalletSignIn && (
                                     <HStack

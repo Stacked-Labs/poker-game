@@ -72,7 +72,7 @@ const WithdrawBalanceCard = () => {
         status: emergencyStatus,
         error: emergencyError,
         reset: emergencyReset,
-    } = useEmergencyWithdraw(contractAddress);
+    } = useEmergencyWithdraw(contractAddress, tableChain);
 
     const hasRakeBalance = rakeBalance !== null && rakeBalance > BigInt(0);
 

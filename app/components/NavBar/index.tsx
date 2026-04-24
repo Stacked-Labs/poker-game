@@ -36,6 +36,7 @@ import TableMenuBurger from './TableMenuBurger';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
 import WithdrawButton from './WithdrawButton';
+import { CHAIN_CONFIG, defaultChain } from '@/app/thirdwebclient';
 
 
 // Keyframes for the pulse animation
@@ -50,6 +51,9 @@ const Navbar = () => {
     const { isOpen: isOpenChat, onToggle: onToggleChat } = useDisclosure();
     const { appState, dispatch } = useContext(AppContext);
     const isCryptoGame = Boolean(appState.game?.config?.crypto);
+    const tableChain = isCryptoGame
+        ? (CHAIN_CONFIG[appState.game?.config?.chain ?? '']?.chain ?? defaultChain)
+        : undefined;
     const pendingCount = appState.pendingPlayers?.length || 0;
     const [animateBadge, setAnimateBadge] = useState(false);
     const [animateMsgBadge, setAnimateMsgBadge] = useState(false);
@@ -531,7 +535,7 @@ const Navbar = () => {
                             },
                         }}
                     >
-                        <WalletButton />
+                        <WalletButton chain={tableChain} />
                     </Box>
                 </HStack>
 

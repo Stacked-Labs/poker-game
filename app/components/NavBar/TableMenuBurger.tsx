@@ -28,6 +28,7 @@ import useToastHelper from '@/app/hooks/useToastHelper';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
 import WithdrawButton from './WithdrawButton';
+import { CHAIN_CONFIG, defaultChain } from '@/app/thirdwebclient';
 import {
     sendPauseGameCommand,
 } from '@/app/hooks/server_actions';
@@ -62,6 +63,9 @@ const TableMenuBurger = ({
     const { info } = useToastHelper();
     const isOwner = useIsTableOwner();
     const isCryptoGame = Boolean(appState.game?.config?.crypto);
+    const tableChain = isCryptoGame
+        ? (CHAIN_CONFIG[appState.game?.config?.chain ?? '']?.chain ?? defaultChain)
+        : undefined;
     const localPlayer = appState.game?.players?.find(
         (p) => p.uuid === appState.clientID
     );
@@ -131,7 +135,7 @@ const TableMenuBurger = ({
                     gap={2}
                     padding={0}
                 >
-                    <Item button={<WalletButton />} />
+                    <Item button={<WalletButton chain={tableChain} />} />
                     {isCryptoGame && (
                         <Item button={<WithdrawButton />} />
                     )}

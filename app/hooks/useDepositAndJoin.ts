@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
+import { useSendAndConfirmTransaction, useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { approve, allowance, balanceOf } from 'thirdweb/extensions/erc20';
 import { client } from '../thirdwebclient';
 
@@ -43,6 +43,7 @@ export function useDepositAndJoin(
     const [usdcBalance, setUsdcBalance] = useState<bigint | null>(null);
 
     const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
+    const switchChain = useSwitchActiveWalletChain();
 
     const reset = useCallback(() => {
         setStatus('idle');
@@ -96,6 +97,8 @@ export function useDepositAndJoin(
                     chain,
                     address: contractAddress,
                 });
+
+                await switchChain(chain);
 
                 // Step 1: Check USDC balance
                 setStatus('checking_allowance');
@@ -179,7 +182,7 @@ export function useDepositAndJoin(
                 return false;
             }
         },
-        [account?.address, contractAddress, chain, usdcAddress, sendAndConfirm]
+        [account?.address, contractAddress, chain, usdcAddress, sendAndConfirm, switchChain]
     );
 
     return {

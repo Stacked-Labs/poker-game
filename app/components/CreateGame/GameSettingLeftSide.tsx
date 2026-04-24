@@ -43,6 +43,7 @@ import {
     useActiveWallet,
     useDisconnect,
 } from 'thirdweb/react';
+import { CHAIN_CONFIG } from '@/app/thirdwebclient';
 import Turnstile from 'react-turnstile';
 import { keyframes } from '@emotion/react';
 
@@ -1179,6 +1180,7 @@ const GameSettingLeftSide: React.FC = () => {
                                     width="100%"
                                     height="56px"
                                     label="Sign In"
+                                    chain={CHAIN_CONFIG[selectedNetwork]?.chain}
                                 />
                             ) : (
                                 <>

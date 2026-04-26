@@ -3,6 +3,7 @@ import React, { useContext } from 'react';
 import Pot from './Pot';
 import CommunityCards from './CommunityCards';
 import GameStatusBanner from '../GameStatusBanner';
+import GamePausedPopup from '../GamePausedPopup';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
@@ -34,6 +35,7 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
             <Pot activePotIndex={activePotIndex} />
             <CommunityCards activePotIndex={activePotIndex} />
             <GameStatusBanner />
+            <GamePausedPopup />
         </Flex>
     );
 };

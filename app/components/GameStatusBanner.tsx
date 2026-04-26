@@ -6,6 +6,7 @@ import { useFormatAmount } from '../hooks/useFormatAmount';
 import { Box, Flex, Icon, Text, Spinner } from '@chakra-ui/react';
 import { MdPause, MdWarning, MdCheckCircle } from 'react-icons/md';
 import { keyframes } from '@emotion/react';
+import useIsTableOwner from '../hooks/useIsTableOwner';
 
 // ── Cycling copy for pending settlement ──────────────────────────────
 const PENDING_MESSAGES = [
@@ -45,6 +46,7 @@ type BannerMode =
 
 const GameStatusBanner = () => {
     const { appState } = useContext(AppContext);
+    const isOwner = useIsTableOwner();
     const { format, mode: displayMode } = useFormatAmount();
     const formatBlinds = displayMode === 'bb'
         ? (v: number) => v.toLocaleString('en-US')
@@ -59,8 +61,8 @@ const GameStatusBanner = () => {
     if (settlementStatus === 'pending') mode = 'settling';
     else if (settlementStatus === 'success') mode = 'settled';
     else if (settlementStatus === 'failed') mode = 'settlement-failed';
-    else if (isPaused) mode = 'paused';
-    else if (isPendingPause) mode = 'pausing';
+    else if (isPaused && !isOwner) mode = 'paused';
+    else if (isPendingPause && !isOwner) mode = 'pausing';
     else if (pendingBlinds) mode = 'pending-blinds';
 
     // ── Cycling message index for pending settlement ──

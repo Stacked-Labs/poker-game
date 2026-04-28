@@ -200,9 +200,8 @@ const NewsletterSection = () => {
                                 fontWeight="medium"
                                 maxW="lg"
                             >
-                                The world&apos;s funnest digital poker party.
-                                Big pots, bigger personalities. Get invites to
-                                private games and dev Q&As.
+                                Free-entry tournaments. Real USDC prizes.
+                                Closed-beta invites before anyone else.
                             </Text>
                         </VStack>
 

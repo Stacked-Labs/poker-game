@@ -317,12 +317,12 @@ const CommunitySection = () => {
                             <List spacing={3}>
                                 {[
                                     {
-                                        main: '100% Anonymous',
-                                        detail: "We don't want your data",
+                                        main: 'No Signup',
+                                        detail: 'No email, no account',
                                     },
                                     {
-                                        main: 'No Downloads',
-                                        detail: 'Browser-based action',
+                                        main: 'No KYC',
+                                        detail: 'No ID, no verification',
                                     },
                                     {
                                         main: 'Free to Play',
@@ -409,24 +409,23 @@ const CommunitySection = () => {
                                 color="text.primary"
                                 letterSpacing="-0.02em"
                             >
-                                Auth & Crypto Play
+                                Real stakes. No custody risk.
                             </Heading>
                             <Text
                                 fontSize="lg"
                                 color="text.secondary"
                                 lineHeight="tall"
                             >
-                                Ready for real stakes? We use{' '}
+                                Sign in with Google, Discord, X, or your wallet.
+                                Buy in with USDC on Base. Your stack lives in a
+                                smart contract — not our bank account.{' '}
                                 <Text
                                     as="span"
                                     fontWeight="bold"
-                                    color="purple.600"
+                                    color="text.primary"
                                 >
-                                    Thirdweb
-                                </Text>{' '}
-                                for secure payments and seamless sign-in
-                                options. This ensures your connection is safe,
-                                fast, and compatible with modern standards.
+                                    We can&apos;t freeze it. We can&apos;t touch it.
+                                </Text>
                             </Text>
 
                             <Box
@@ -447,10 +446,10 @@ const CommunitySection = () => {
                                         How it works:
                                     </Text>
                                     <Text fontSize="sm" color="brand.lightGray">
-                                        Thirdweb handles the complexity. You
-                                        simply log in using your favorite social
-                                        account (Google, Discord, X) or connect
-                                        your Web3 wallet directly.
+                                        Sign in with your social account or
+                                        connect your Web3 wallet. Buy in with
+                                        USDC. Funds move directly on-chain —
+                                        no intermediary holds your bankroll.
                                     </Text>
                                 </VStack>
                             </Box>

@@ -381,8 +381,7 @@ const OddsAndRandomnessSection = () => {
                                         letterSpacing="-0.02em"
                                         lineHeight="shorter"
                                     >
-                                        How we calculate odds — and keep every
-                                        shuffle fair.
+                                        Random shuffle. Real math.
                                     </Heading>
                                     <Text
                                         fontSize={{ base: 'lg', md: 'xl' }}
@@ -391,17 +390,12 @@ const OddsAndRandomnessSection = () => {
                                         maxW="2xl"
                                         fontWeight="medium"
                                     >
-                                        Every shuffle is powered by Go&apos;s{' '}
-                                        <Box
-                                            as="span"
-                                            fontWeight="bold"
-                                            color="text.primary"
-                                        >
-                                            crypto/rand
-                                        </Box>
-                                        —an industry-standard CSPRNG backed by
-                                        OS entropy. That means shuffles are
-                                        unpredictable, independent, and fair.
+                                        52! is roughly 8 × 10⁶⁷ unique decks —
+                                        more than atoms in the observable
+                                        universe. Every Stacked shuffle picks
+                                        one, with cryptographic-grade randomness
+                                        from the operating system itself. No
+                                        predictable seeds. No insider math.
                                     </Text>
                                 </VStack>
 

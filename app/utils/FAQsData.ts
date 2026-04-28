@@ -33,4 +33,12 @@ export const FAQs: FAQ[] = [
         question: 'Is my money safe while I play?',
         answer: 'Stacked uses a trustless smart contract system. When you buy in with USDC, funds are held in a smart contract on Base—not a company bank account. Payouts are handled automatically so winners are paid out instantly and fairly without human intervention.',
     },
+    {
+        question: 'Can my account get frozen?',
+        answer: 'No. Your funds live in your wallet and the table’s smart contract. We don’t have a “freeze” button. Withdrawals settle on-chain on Base. We can’t gate them, delay them, or close them on a Friday night.',
+    },
+    {
+        question: 'How is this different from CoinPoker / PokerStars?',
+        answer: 'Stacked is the only one built on Base with USDC stakes and zero signup. CoinPoker uses their own token. PokerStars wants your ID and a download. Stacked: open the link, connect a wallet, play. Your funds stay in your control the whole time.',
+    },
 ];

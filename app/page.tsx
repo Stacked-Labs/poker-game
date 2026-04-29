@@ -7,6 +7,7 @@ import YourTableVaultSection from './components/HomePage/YourTableVaultSection';
 import OddsAndRandomnessSection from './components/HomePage/OddsAndRandomnessSection';
 import CustomChipValueSection from './components/HomePage/CustomChipValueSection';
 import FAQSection from './components/HomePage/FAQSection';
+import ComparisonSection from './components/HomePage/ComparisonSection';
 import Footer from './components/HomePage/Footer';
 import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
@@ -18,16 +19,16 @@ const CoinGecko = dynamic(
 );
 
 export const metadata: Metadata = {
-    title: 'Stacked - Poker with Friends',
+    title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',
     description:
-        'The easiest way to play poker for free or with crypto. No download, no sign up needed.',
+        'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no KYC, no account.',
     icons: {
         icon: '/favicon.ico',
     },
     openGraph: {
-        title: 'Stacked - Poker with Friends',
+        title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',
         description:
-            'The easiest way to play poker for free or for crypto. No download, no sign up needed.',
+            'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no KYC, no account.',
         url: 'https://stackedpoker.io/',
         siteName: 'Stacked Poker',
         images: [
@@ -42,12 +43,12 @@ export const metadata: Metadata = {
         type: 'website',
     },
     twitter: {
-        title: 'Stacked - Poker with Friends',
+        title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',
         description:
-            'The easiest way to play poker for free or with crypto. No download, no sign up needed.',
+            'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no KYC, no account.',
         images: ['https://stackedpoker.io/previews/home_preview.png'],
     },
-    keywords: ["poker, online poker, Texas Hold'em, card game, multiplayer"],
+    keywords: ["poker, online poker, Texas Hold'em, USDC, Base, crypto poker, no signup, no KYC"],
     alternates: {
         canonical: 'https://stackedpoker.io/',
     },
@@ -73,6 +74,7 @@ const HomePage: React.FC = () => {
                     <YourTableVaultSection />
                     <OddsAndRandomnessSection />
                     <FAQSection />
+                    <ComparisonSection />
                     <Footer />
                 </VStack>
             </Box>

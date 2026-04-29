@@ -211,12 +211,11 @@ const YourTableVaultSection = () => {
                                 color="text.secondary"
                                 lineHeight="tall"
                             >
-                                We built the perfect compromise. Our
-                                high-performance Go backend handles the
-                                shuffling and game logic instantly—so
-                                there&apos;s no lag between hands. Meanwhile,
-                                Smart Contracts act as the &quot;Banker,&quot;
-                                securing your funds on-chain.
+                                Speed where it matters. Trust where it
+                                counts. The game runs in real time on our
+                                engine. Every dollar lives in a smart contract
+                                on Base. We deal the cards. The contract holds
+                                the cash.
                             </Text>
                         </VStack>
 
@@ -643,12 +642,12 @@ const YourTableVaultSection = () => {
                                             fontSize={{ base: 'sm', md: 'md' }}
                                             fontWeight="medium"
                                         >
-                                            No predictable seeds. We use
-                                            crypto/rand with a Fisher-Yates
-                                            shuffle for true entropy. It&apos;s
-                                            industry-standard cryptographic
-                                            randomness, ensuring every river is
-                                            truly random.
+                                            No predictable seeds. Every shuffle
+                                            uses OS entropy via Go&apos;s
+                                            crypto/rand and a Fisher-Yates pass
+                                            — the same primitives behind TLS
+                                            keys. Server-side, but
+                                            cryptographically unpredictable.
                                         </Text>
                                     </Box>
                                 </Box>

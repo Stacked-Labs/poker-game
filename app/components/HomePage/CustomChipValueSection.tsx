@@ -190,25 +190,17 @@ const CustomChipValueSection = () => {
                                     color="brand.lightGray"
                                     lineHeight="tall"
                                 >
-                                    Simple, predictable, and enforced by smart
-                                    contracts. When you create a game, you set
-                                    the blind structure in{' '}
+                                    No volatility. No conversion games. No
+                                    surprise haircuts. A 100-chip stack is
+                                    $1.00 — at buy-in, at showdown, at
+                                    withdrawal.{' '}
                                     <Box
                                         as="span"
                                         color="white"
                                         fontWeight="semibold"
                                     >
-                                        chips
+                                        Smart contracts hold the math.
                                     </Box>
-                                    , and the{' '}
-                                    <Box
-                                        as="span"
-                                        color="blue.400"
-                                        fontWeight="semibold"
-                                    >
-                                        USDC value
-                                    </Box>{' '}
-                                    is automatically calculated.
                                 </Text>
                                 <Text
                                     fontSize="lg"

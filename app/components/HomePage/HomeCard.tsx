@@ -334,7 +334,7 @@ const HomeCard = () => {
                                 borderColor: 'rgba(54, 163, 123, 0.3)',
                             }}
                         >
-                            ⚡ INSTANT GUEST PLAY
+                            ⚡ PRE-LAUNCH · CLOSED BETA
                         </Badge>
                     </MotionBox>
 
@@ -360,76 +360,30 @@ const HomeCard = () => {
                             lineHeight={1.05}
                             letterSpacing="-0.04em"
                             color="text.primary"
-                            whiteSpace="nowrap"
+                            textAlign="center"
                         >
+                            Poker without the{' '}
                             <Box
                                 as="span"
-                                display="inline-flex"
-                                alignItems="center"
-                                gap="0.25ch"
+                                color="brand.pink"
+                                position="relative"
+                                display="inline-block"
                             >
-                                <Box as="span">Your</Box>
+                                paperwork
                                 <Box
                                     as="span"
-                                    position="relative"
-                                    display="inline-flex"
-                                    alignItems="center"
-                                    minW={{ base: '4.5ch', md: '4.5ch' }}
-                                    height="1em"
-                                >
-                                    <Box
-                                        position="absolute"
-                                        inset={0}
-                                        display="inline-flex"
-                                        alignItems="center"
-                                        justifyContent="center"
-                                        animation={swapHeadingPrimaryMotion}
-                                    >
-                                        <Box
-                                            as="span"
-                                            color="brand.green"
-                                            position="relative"
-                                            display="inline-block"
-                                        >
-                                            Table
-                                            <Box
-                                                as="span"
-                                                position="absolute"
-                                                left="-3px"
-                                                right="-3px"
-                                                bottom="6px"
-                                                height="8px"
-                                                bg="brand.green"
-                                                opacity={0.12}
-                                                borderRadius="full"
-                                                zIndex={-1}
-                                            />
-                                        </Box>
-                                    </Box>
-                                    <Box
-                                        position="absolute"
-                                        inset={0}
-                                        display="inline-flex"
-                                        alignItems="center"
-                                        justifyContent="center"
-                                        opacity={allowMotion ? undefined : 0}
-                                        animation={swapHeadingSecondaryMotion}
-                                    >
-                                        <Box
-                                            as="span"
-                                            bg="brand.pink"
-                                            color="white"
-                                            px={2}
-                                            borderRadius="md"
-                                            display="inline-block"
-                                            transform="rotate(-1deg)"
-                                        >
-                                            Rules
-                                        </Box>
-                                    </Box>
-                                </Box>
-                                <Box as="span">.</Box>
+                                    position="absolute"
+                                    left="-3px"
+                                    right="-3px"
+                                    bottom="6px"
+                                    height="8px"
+                                    bg="brand.pink"
+                                    opacity={0.12}
+                                    borderRadius="full"
+                                    zIndex={-1}
+                                />
                             </Box>
+                            .
                         </Heading>
                     </MotionBox>
 
@@ -451,63 +405,41 @@ const HomeCard = () => {
                                 color="text.gray600"
                                 lineHeight={1.6}
                                 fontWeight="medium"
+                                textAlign="center"
                             >
-                                Host a game and invite the crew.
+                                Browser-based Texas Hold&apos;em with friends. Free play, or real stakes in USDC on Base. Closed beta opening soon — claim your seat.
                             </Text>
 
-                            <HStack spacing={3}>
-                                <HStack
-                                    spacing={1.5}
-                                    bg="rgba(54, 163, 123, 0.06)"
-                                    border="1px solid"
-                                    borderColor="rgba(54, 163, 123, 0.12)"
-                                    borderRadius="full"
-                                    px={3}
-                                    py={1}
-                                >
-                                    <Box
-                                        w="5px"
-                                        h="5px"
-                                        bg="brand.green"
+                            <HStack spacing={2} flexWrap="wrap" justify="center">
+                                {['NO SIGNUP', 'NO KYC', 'BUILT ON BASE'].map((label) => (
+                                    <HStack
+                                        key={label}
+                                        spacing={1.5}
+                                        bg="rgba(54, 163, 123, 0.06)"
+                                        border="1px solid"
+                                        borderColor="rgba(54, 163, 123, 0.12)"
                                         borderRadius="full"
-                                        boxShadow="0 0 6px rgba(54, 163, 123, 0.5)"
-                                    />
-                                    <Text
-                                        fontSize="2xs"
-                                        color="text.muted"
-                                        fontWeight="bold"
-                                        letterSpacing="0.08em"
-                                        textTransform="uppercase"
+                                        px={3}
+                                        py={1}
                                     >
-                                        No Download
-                                    </Text>
-                                </HStack>
-                                <HStack
-                                    spacing={1.5}
-                                    bg="rgba(54, 163, 123, 0.06)"
-                                    border="1px solid"
-                                    borderColor="rgba(54, 163, 123, 0.12)"
-                                    borderRadius="full"
-                                    px={3}
-                                    py={1}
-                                >
-                                    <Box
-                                        w="5px"
-                                        h="5px"
-                                        bg="brand.green"
-                                        borderRadius="full"
-                                        boxShadow="0 0 6px rgba(54, 163, 123, 0.5)"
-                                    />
-                                    <Text
-                                        fontSize="2xs"
-                                        color="text.muted"
-                                        fontWeight="bold"
-                                        letterSpacing="0.08em"
-                                        textTransform="uppercase"
-                                    >
-                                        No Sign-Up
-                                    </Text>
-                                </HStack>
+                                        <Box
+                                            w="5px"
+                                            h="5px"
+                                            bg="brand.green"
+                                            borderRadius="full"
+                                            boxShadow="0 0 6px rgba(54, 163, 123, 0.5)"
+                                        />
+                                        <Text
+                                            fontSize="2xs"
+                                            color="text.muted"
+                                            fontWeight="bold"
+                                            letterSpacing="0.08em"
+                                            textTransform="uppercase"
+                                        >
+                                            {label}
+                                        </Text>
+                                    </HStack>
+                                ))}
                             </HStack>
                         </VStack>
                     </MotionBox>
@@ -891,6 +823,14 @@ const HomeCard = () => {
                                         }}
                                     />
                                 </HStack>
+                                <Text
+                                    fontSize="2xs"
+                                    color="text.muted"
+                                    textAlign="center"
+                                    opacity={0.7}
+                                >
+                                    Get first access + invites to free-entry tournaments with USDC prizes.
+                                </Text>
                             </>
                         )}
                     </VStack>

@@ -430,7 +430,7 @@ const FeaturesSection = () => {
                                         <Highlight color="green">
                                             Wallet
                                         </Highlight>
-                                        . Or just play for free as a{' '}
+                                        . Or play free as a{' '}
                                         <Box
                                             as="span"
                                             fontWeight="bold"
@@ -438,7 +438,7 @@ const FeaturesSection = () => {
                                         >
                                             Guest
                                         </Box>
-                                        . No sign-up forms required.
+                                        {' '}— no signup, no email, no nothing.
                                     </>
                                 }
                             />

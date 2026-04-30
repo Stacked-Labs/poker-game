@@ -6,6 +6,7 @@ import PointsActivityFeed from './components/PointsActivityFeed';
 import ServiceStatusBanner from './components/ServiceStatusBanner';
 import React from 'react';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 
 const poppins = Poppins({
     subsets: ['latin'],
@@ -79,6 +80,8 @@ export default function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
+    const nonce = headers().get('x-nonce') ?? undefined;
+
     return (
         <html lang="en">
             <head>
@@ -92,6 +95,7 @@ export default function RootLayout({
                     href="https://challenges.cloudflare.com"
                 />
                 <script
+                    nonce={nonce}
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />

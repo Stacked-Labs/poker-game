@@ -51,6 +51,12 @@ import EmotePicker from './NavBar/Chat/EmotePicker';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import FloatingPointsText from './Animations/FloatingPointsText';
 import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
+import {
+    ACTION_LABEL_DURATION_MS,
+    actionLabelColor,
+    actionLabelText,
+    usePlayerActionLabelStore,
+} from '@/app/stores/playerActionLabel';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { refreshXIdentity } from '@/app/hooks/server_actions';
 
@@ -421,6 +427,20 @@ const TakenSeatButton = ({
 
     // Floating points: read from store (only relevant for isSelf)
     const showPointsAnimation = usePointsAnimationStore((s) => s.showAnimation);
+
+    // Transient action label that briefly replaces the username (e.g. RAISE).
+    const actionLabel = usePlayerActionLabelStore(
+        (s) => s.labels[player.uuid]
+    );
+    const clearActionLabel = usePlayerActionLabelStore((s) => s.clear);
+    useEffect(() => {
+        if (!actionLabel) return;
+        const { nonce } = actionLabel;
+        const timeout = setTimeout(() => {
+            clearActionLabel(player.uuid, nonce);
+        }, ACTION_LABEL_DURATION_MS);
+        return () => clearTimeout(timeout);
+    }, [actionLabel, clearActionLabel, player.uuid]);
 
     useEffect(() => {
         // Stop any timer if this seat is not the current turn
@@ -1752,31 +1772,124 @@ const TakenSeatButton = ({
                                     gap={{ base: 1 }}
                                     minWidth={0}
                                 >
-                                    <Text
-                                        className="player-username"
-                                        variant="seatText"
-                                        fontSize={{
-                                            base: 'sm',
-                                            md: 'md',
-                                            lg: 'lg',
-                                        }}
-                                        fontWeight="bold"
-                                        color={
-                                            isCurrentTurn || showWinnerHighlight
-                                                ? 'gray.500'
-                                                : 'gray.400'
-                                        }
-                                        cursor="pointer"
-                                        isTruncated
-                                        lineHeight="1.2"
-                                        sx={{
-                                            '@media (orientation: portrait)': {
-                                                fontSize: '11px',
-                                            },
-                                        }}
+                                    <Box
+                                        position="relative"
+                                        minWidth={0}
+                                        flexShrink={1}
                                     >
-                                        {player.username}
-                                    </Text>
+                                        <AnimatePresence
+                                            mode="wait"
+                                            initial={false}
+                                        >
+                                            {actionLabel ? (
+                                                <motion.div
+                                                    key={`action-${actionLabel.nonce}`}
+                                                    initial={{
+                                                        opacity: 0,
+                                                        y: prefersReducedMotion
+                                                            ? 0
+                                                            : 4,
+                                                    }}
+                                                    animate={{
+                                                        opacity: 1,
+                                                        y: 0,
+                                                    }}
+                                                    exit={{
+                                                        opacity: 0,
+                                                        y: prefersReducedMotion
+                                                            ? 0
+                                                            : -4,
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.18,
+                                                        ease: 'easeOut',
+                                                    }}
+                                                >
+                                                    <Text
+                                                        className="player-action-label"
+                                                        variant="seatText"
+                                                        fontSize={{
+                                                            base: 'sm',
+                                                            md: 'md',
+                                                            lg: 'lg',
+                                                        }}
+                                                        fontWeight={900}
+                                                        letterSpacing="0.08em"
+                                                        textTransform="uppercase"
+                                                        color={actionLabelColor(
+                                                            actionLabel.action
+                                                        )}
+                                                        isTruncated
+                                                        lineHeight="1.2"
+                                                        sx={{
+                                                            '@media (orientation: portrait)':
+                                                                {
+                                                                    fontSize:
+                                                                        '11px',
+                                                                },
+                                                        }}
+                                                    >
+                                                        {actionLabelText(
+                                                            actionLabel.action
+                                                        )}
+                                                    </Text>
+                                                </motion.div>
+                                            ) : (
+                                                <motion.div
+                                                    key="username"
+                                                    initial={{
+                                                        opacity: 0,
+                                                        y: prefersReducedMotion
+                                                            ? 0
+                                                            : -4,
+                                                    }}
+                                                    animate={{
+                                                        opacity: 1,
+                                                        y: 0,
+                                                    }}
+                                                    exit={{
+                                                        opacity: 0,
+                                                        y: prefersReducedMotion
+                                                            ? 0
+                                                            : 4,
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.18,
+                                                        ease: 'easeOut',
+                                                    }}
+                                                >
+                                                    <Text
+                                                        className="player-username"
+                                                        variant="seatText"
+                                                        fontSize={{
+                                                            base: 'sm',
+                                                            md: 'md',
+                                                            lg: 'lg',
+                                                        }}
+                                                        fontWeight="bold"
+                                                        color={
+                                                            isCurrentTurn ||
+                                                            showWinnerHighlight
+                                                                ? 'gray.500'
+                                                                : 'gray.400'
+                                                        }
+                                                        cursor="pointer"
+                                                        isTruncated
+                                                        lineHeight="1.2"
+                                                        sx={{
+                                                            '@media (orientation: portrait)':
+                                                                {
+                                                                    fontSize:
+                                                                        '11px',
+                                                                },
+                                                        }}
+                                                    >
+                                                        {player.username}
+                                                    </Text>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </Box>
                                     {canSendSeatReaction && isSelf ? (
                                         <EmotePicker
                                             onSelectEmote={

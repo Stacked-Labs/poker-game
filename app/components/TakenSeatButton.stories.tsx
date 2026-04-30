@@ -10,6 +10,10 @@ import { AuthContext } from '@/app/contexts/AuthContext';
 import type { AppState, Game, Player } from '@/app/interfaces';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
+import {
+    usePlayerActionLabelStore,
+    type PlayerActionType,
+} from '@/app/stores/playerActionLabel';
 
 // ─── Card encoding ─────────────────────────────────────────────────────────────
 // Cards use the riverboat/eval 32-bit int format:
@@ -121,6 +125,7 @@ const mockSocket = {
 // ─── Zustand store baselines (reset in beforeEach) ─────────────────────────────
 const initialSeatReactions = useSeatReactionsStore.getState();
 const initialPointsAnimation = usePointsAnimationStore.getState();
+const initialPlayerActionLabel = usePlayerActionLabelStore.getState();
 
 // ─── Provider decorator factory ────────────────────────────────────────────────
 // Story-level decorators render CLOSER to the component than meta-level ones,
@@ -193,6 +198,7 @@ const meta = {
     beforeEach: () => {
         useSeatReactionsStore.setState(initialSeatReactions, true);
         usePointsAnimationStore.setState(initialPointsAnimation, true);
+        usePlayerActionLabelStore.setState(initialPlayerActionLabel, true);
     },
     argTypes: {
         player: {
@@ -397,6 +403,47 @@ export const WithCheck: Story = {
     args: {
         player: { ...basePlayer, called: true, bet: 0 },
     },
+};
+
+// ── Action labels (transient, briefly replace username) ─────────────────────
+
+/**
+ * Helper: pre-seed the playerActionLabel store so the seat renders with the
+ * label visible. Uses a far-future-style nonce so the auto-clear timer
+ * (1.5s in the component) will still fire — refresh the story or use the
+ * Storybook "Remount" toolbar button to re-trigger and watch it fade.
+ */
+const seedActionLabel = (action: PlayerActionType) => {
+    usePlayerActionLabelStore.setState(initialPlayerActionLabel, true);
+    usePlayerActionLabelStore.getState().trigger(PLAYER_UUID, action);
+};
+
+/** CALL — yellow uppercase label briefly replaces the username. Refresh / remount to retrigger. */
+export const ActionLabelCall: Story = {
+    name: 'Action Label — CALL',
+    beforeEach: () => seedActionLabel('call'),
+    args: { player: { ...basePlayer, bet: 80, totalBet: 80 } },
+};
+
+/** BET — yellow uppercase label, paired with the existing yellow bet bubble. */
+export const ActionLabelBet: Story = {
+    name: 'Action Label — BET',
+    beforeEach: () => seedActionLabel('bet'),
+    args: { player: { ...basePlayer, bet: 120, totalBet: 120 } },
+};
+
+/** RAISE — yellow uppercase label. */
+export const ActionLabelRaise: Story = {
+    name: 'Action Label — RAISE',
+    beforeEach: () => seedActionLabel('raise'),
+    args: { player: { ...basePlayer, bet: 240, totalBet: 240 } },
+};
+
+/** ALL-IN — pink uppercase label, distinct from regular aggressive actions. */
+export const ActionLabelAllIn: Story = {
+    name: 'Action Label — ALL-IN',
+    beforeEach: () => seedActionLabel('all_in'),
+    args: { player: { ...basePlayer, bet: 4_200, totalBet: 4_200, stack: 0 } },
 };
 
 // ── Dealer badge ───────────────────────────────────────────────────────────────

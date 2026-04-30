@@ -26,6 +26,10 @@ import SeatRequestConflictModal from '../components/SeatRequestConflictModal';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
 import {
+    isPlayerActionLabelType,
+    usePlayerActionLabelStore,
+} from '@/app/stores/playerActionLabel';
+import {
     getSeatReactionEmoteUrl,
     parseSeatReactionMessage,
 } from '@/app/utils/seatReaction';
@@ -349,6 +353,16 @@ export function SocketProvider(props: SocketProviderProps) {
 
                         // 1. Play sound immediately (event-driven, no state watching)
                         soundManager.play(event.event_type);
+
+                        // Surface a transient per-seat action label for muted users.
+                        if (
+                            isPlayerActionLabelType(event.event_type) &&
+                            event.player_uuid
+                        ) {
+                            usePlayerActionLabelStore
+                                .getState()
+                                .trigger(event.player_uuid, event.event_type);
+                        }
 
                         // 2. Format and add to logs (if applicable)
                         const logMessage = formatGameEvent(event);

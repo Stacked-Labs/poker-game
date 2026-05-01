@@ -17,6 +17,18 @@ const PENDING_MESSAGES = [
 ];
 const MESSAGE_INTERVAL_MS = 3000;
 
+// Slow-settlement thresholds (measured from when the banner first sees
+// `settlementStatus === 'pending'`; the WebSocket layer already debounces
+// sub-3s settlements so they never reach the banner).
+const SLOW_SETTLEMENT_COUNTER_MS = 5000;
+const SLOW_SETTLEMENT_SOFTEN_MS = 15000;
+const SLOW_PENDING_MESSAGES = [
+    'Taking longer than usual…',
+    'Still working on it…',
+    'Network is busy — hang tight…',
+    'Almost there, just a bit longer…',
+];
+
 // ── Keyframes ────────────────────────────────────────────────────────
 const fadeIn = keyframes`
     from { transform: translateY(4px); }
@@ -84,6 +96,37 @@ const GameStatusBanner = () => {
         };
     }, [mode]);
 
+    // ── Elapsed-time tracking for slow settlements ──
+    const [elapsedSec, setElapsedSec] = useState(0);
+    const settlingStartedAtRef = useRef<number | null>(null);
+    const elapsedTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => {
+        if (mode === 'settling') {
+            settlingStartedAtRef.current = Date.now();
+            setElapsedSec(0);
+            elapsedTickRef.current = setInterval(() => {
+                if (settlingStartedAtRef.current == null) return;
+                setElapsedSec(
+                    Math.floor(
+                        (Date.now() - settlingStartedAtRef.current) / 1000
+                    )
+                );
+            }, 1000);
+        } else {
+            settlingStartedAtRef.current = null;
+            setElapsedSec(0);
+            if (elapsedTickRef.current) clearInterval(elapsedTickRef.current);
+        }
+        return () => {
+            if (elapsedTickRef.current) clearInterval(elapsedTickRef.current);
+        };
+    }, [mode]);
+
+    const elapsedMs = elapsedSec * 1000;
+    const showCounter = elapsedMs >= SLOW_SETTLEMENT_COUNTER_MS;
+    const showSoftened = elapsedMs >= SLOW_SETTLEMENT_SOFTEN_MS;
+
     if (!mode) return null;
 
     return (
@@ -122,17 +165,26 @@ const GameStatusBanner = () => {
                         speed="0.9s"
                         thickness="2px"
                     />
-                    <Text
-                        key={msgIndex}
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="700"
-                        letterSpacing="0.04em"
-                        lineHeight="1"
-                        color="whiteAlpha.700"
-                        animation={`${textSwap} ${MESSAGE_INTERVAL_MS}ms ease-in-out`}
-                    >
-                        {PENDING_MESSAGES[msgIndex]}
-                    </Text>
+                    {(() => {
+                        const messages = showSoftened
+                            ? SLOW_PENDING_MESSAGES
+                            : PENDING_MESSAGES;
+                        const idx = msgIndex % messages.length;
+                        return (
+                            <Text
+                                key={`${showSoftened ? 'slow' : 'fast'}-${idx}`}
+                                fontSize={{ base: 'xs', md: 'sm' }}
+                                fontWeight="700"
+                                letterSpacing="0.04em"
+                                lineHeight="1"
+                                color="whiteAlpha.700"
+                                animation={`${textSwap} ${MESSAGE_INTERVAL_MS}ms ease-in-out`}
+                            >
+                                {messages[idx]}
+                                {showCounter && ` · ${elapsedSec}s`}
+                            </Text>
+                        );
+                    })()}
                 </Flex>
             )}
 

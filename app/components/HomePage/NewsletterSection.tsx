@@ -77,15 +77,14 @@ const NewsletterSection = () => {
                     bg="#073d2a"
                     p={{ base: 8, md: 12, lg: 14 }}
                     overflow="hidden"
-                    boxShadow="0 20px 80px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                    boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                     role="group"
                     border="3px solid"
                     borderColor="#0d5e3f"
                     transition={TRANSITION_SMOOTH}
                     _hover={{
                         transform: 'translateY(-2px)',
-                        boxShadow:
-                            '0 30px 100px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.08)',
                     }}
                 >
                     {/* Felt Texture — dense noise pattern */}

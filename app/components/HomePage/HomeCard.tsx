@@ -12,7 +12,6 @@ import {
     Box,
     Heading,
     Text,
-    Badge,
     Input,
     Icon,
     useMediaQuery,
@@ -306,38 +305,6 @@ const HomeCard = () => {
                     position="relative"
                     zIndex={1}
                 >
-                    {/* Pill Badge */}
-                    <MotionBox
-                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{
-                            ...springTransition,
-                            delay: 0.2,
-                        }}
-                    >
-                        <Badge
-                            bg="rgba(54, 163, 123, 0.08)"
-                            color="brand.green"
-                            px={4}
-                            py={1.5}
-                            borderRadius="full"
-                            fontSize="2xs"
-                            fontWeight="bold"
-                            letterSpacing="0.1em"
-                            textTransform="uppercase"
-                            border="1px solid"
-                            borderColor="rgba(54, 163, 123, 0.15)"
-                            backdropFilter="blur(12px)"
-                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                            _hover={{
-                                bg: 'rgba(54, 163, 123, 0.14)',
-                                borderColor: 'rgba(54, 163, 123, 0.3)',
-                            }}
-                        >
-                            ⚡ PRE-LAUNCH · CLOSED BETA
-                        </Badge>
-                    </MotionBox>
-
                     {/* Logo/Title Section */}
                     <MotionBox
                         textAlign="center"
@@ -360,30 +327,76 @@ const HomeCard = () => {
                             lineHeight={1.05}
                             letterSpacing="-0.04em"
                             color="text.primary"
-                            textAlign="center"
+                            whiteSpace="nowrap"
                         >
-                            Poker without the{' '}
                             <Box
                                 as="span"
-                                color="brand.pink"
-                                position="relative"
-                                display="inline-block"
+                                display="inline-flex"
+                                alignItems="center"
+                                gap="0.25ch"
                             >
-                                paperwork
+                                <Box as="span">Your</Box>
                                 <Box
                                     as="span"
-                                    position="absolute"
-                                    left="-3px"
-                                    right="-3px"
-                                    bottom="6px"
-                                    height="8px"
-                                    bg="brand.pink"
-                                    opacity={0.12}
-                                    borderRadius="full"
-                                    zIndex={-1}
-                                />
+                                    position="relative"
+                                    display="inline-flex"
+                                    alignItems="center"
+                                    minW={{ base: '4.5ch', md: '4.5ch' }}
+                                    height="1em"
+                                >
+                                    <Box
+                                        position="absolute"
+                                        inset={0}
+                                        display="inline-flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        animation={swapHeadingPrimaryMotion}
+                                    >
+                                        <Box
+                                            as="span"
+                                            color="brand.green"
+                                            position="relative"
+                                            display="inline-block"
+                                        >
+                                            Table
+                                            <Box
+                                                as="span"
+                                                position="absolute"
+                                                left="-3px"
+                                                right="-3px"
+                                                bottom="6px"
+                                                height="8px"
+                                                bg="brand.green"
+                                                opacity={0.12}
+                                                borderRadius="full"
+                                                zIndex={-1}
+                                            />
+                                        </Box>
+                                    </Box>
+                                    <Box
+                                        position="absolute"
+                                        inset={0}
+                                        display="inline-flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        opacity={allowMotion ? undefined : 0}
+                                        animation={swapHeadingSecondaryMotion}
+                                    >
+                                        <Box
+                                            as="span"
+                                            bg="brand.pink"
+                                            color="white"
+                                            px={2}
+                                            borderRadius="md"
+                                            display="inline-block"
+                                            transform="rotate(-1deg)"
+                                        >
+                                            Rules
+                                        </Box>
+                                    </Box>
+                                </Box>
+                                <Box as="span">.</Box>
                             </Box>
-                            .
                         </Heading>
                     </MotionBox>
 
@@ -405,9 +418,8 @@ const HomeCard = () => {
                                 color="text.gray600"
                                 lineHeight={1.6}
                                 fontWeight="medium"
-                                textAlign="center"
                             >
-                                Browser-based Texas Hold&apos;em with friends. Free play, or real stakes in USDC on Base. Closed beta opening soon — claim your seat.
+                                Host a game and invite the crew.
                             </Text>
 
                             <HStack spacing={2} flexWrap="wrap" justify="center">

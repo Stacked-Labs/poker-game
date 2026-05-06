@@ -17,18 +17,6 @@ const PENDING_MESSAGES = [
 ];
 const MESSAGE_INTERVAL_MS = 3000;
 
-// Slow-settlement thresholds (measured from when the banner first sees
-// `settlementStatus === 'pending'`; the WebSocket layer already debounces
-// sub-3s settlements so they never reach the banner).
-const SLOW_SETTLEMENT_COUNTER_MS = 5000;
-const SLOW_SETTLEMENT_SOFTEN_MS = 15000;
-const SLOW_PENDING_MESSAGES = [
-    'Taking longer than usual…',
-    'Still working on it…',
-    'Network is busy — hang tight…',
-    'Almost there, just a bit longer…',
-];
-
 // ── Keyframes ────────────────────────────────────────────────────────
 const fadeIn = keyframes`
     from { transform: translateY(4px); }
@@ -49,6 +37,7 @@ const pulse = keyframes`
 
 type BannerMode =
     | 'settling'
+    | 'settlement-recovery'
     | 'settled'
     | 'settlement-failed'
     | 'paused'
@@ -69,15 +58,18 @@ const GameStatusBanner = () => {
     const settlementStatus = appState.settlementStatus;
     const pendingBlinds = appState.game?.pendingBlinds;
 
+    // settlement-recovery takes priority: paused + pending means the background watcher
+    // is polling and the table will auto-resume — don't show the generic pause banner.
     let mode: BannerMode = null;
-    if (settlementStatus === 'pending') mode = 'settling';
+    if (isPaused && settlementStatus === 'pending' && !isOwner) mode = 'settlement-recovery';
+    else if (settlementStatus === 'pending') mode = 'settling';
     else if (settlementStatus === 'success') mode = 'settled';
     else if (settlementStatus === 'failed') mode = 'settlement-failed';
     else if (isPaused && !isOwner) mode = 'paused';
     else if (isPendingPause && !isOwner) mode = 'pausing';
     else if (pendingBlinds) mode = 'pending-blinds';
 
-    // ── Cycling message index for pending settlement ──
+    // ── Cycling message index for settling ──
     const [msgIndex, setMsgIndex] = useState(0);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -96,25 +88,21 @@ const GameStatusBanner = () => {
         };
     }, [mode]);
 
-    // ── Elapsed-time tracking for slow settlements ──
+    // ── Elapsed counter for settlement-recovery ──
     const [elapsedSec, setElapsedSec] = useState(0);
-    const settlingStartedAtRef = useRef<number | null>(null);
+    const recoveryStartRef = useRef<number | null>(null);
     const elapsedTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
-        if (mode === 'settling') {
-            settlingStartedAtRef.current = Date.now();
+        if (mode === 'settlement-recovery') {
+            recoveryStartRef.current = Date.now();
             setElapsedSec(0);
             elapsedTickRef.current = setInterval(() => {
-                if (settlingStartedAtRef.current == null) return;
-                setElapsedSec(
-                    Math.floor(
-                        (Date.now() - settlingStartedAtRef.current) / 1000
-                    )
-                );
+                if (recoveryStartRef.current == null) return;
+                setElapsedSec(Math.floor((Date.now() - recoveryStartRef.current) / 1000));
             }, 1000);
         } else {
-            settlingStartedAtRef.current = null;
+            recoveryStartRef.current = null;
             setElapsedSec(0);
             if (elapsedTickRef.current) clearInterval(elapsedTickRef.current);
         }
@@ -122,10 +110,6 @@ const GameStatusBanner = () => {
             if (elapsedTickRef.current) clearInterval(elapsedTickRef.current);
         };
     }, [mode]);
-
-    const elapsedMs = elapsedSec * 1000;
-    const showCounter = elapsedMs >= SLOW_SETTLEMENT_COUNTER_MS;
-    const showSoftened = elapsedMs >= SLOW_SETTLEMENT_SOFTEN_MS;
 
     if (!mode) return null;
 
@@ -142,7 +126,7 @@ const GameStatusBanner = () => {
             pointerEvents="none"
             userSelect="none"
         >
-            {/* ── Settlement pending ─────────────────────── */}
+            {/* ── Settlement pending (fast path) ────────── */}
             {mode === 'settling' && (
                 <Flex
                     key="settling"
@@ -165,26 +149,58 @@ const GameStatusBanner = () => {
                         speed="0.9s"
                         thickness="2px"
                     />
-                    {(() => {
-                        const messages = showSoftened
-                            ? SLOW_PENDING_MESSAGES
-                            : PENDING_MESSAGES;
-                        const idx = msgIndex % messages.length;
-                        return (
-                            <Text
-                                key={`${showSoftened ? 'slow' : 'fast'}-${idx}`}
-                                fontSize={{ base: 'xs', md: 'sm' }}
-                                fontWeight="700"
-                                letterSpacing="0.04em"
-                                lineHeight="1"
-                                color="whiteAlpha.700"
-                                animation={`${textSwap} ${MESSAGE_INTERVAL_MS}ms ease-in-out`}
-                            >
-                                {messages[idx]}
-                                {showCounter && ` · ${elapsedSec}s`}
-                            </Text>
-                        );
-                    })()}
+                    <Text
+                        key={msgIndex}
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="700"
+                        letterSpacing="0.04em"
+                        lineHeight="1"
+                        color="whiteAlpha.700"
+                        animation={`${textSwap} ${MESSAGE_INTERVAL_MS}ms ease-in-out`}
+                    >
+                        {PENDING_MESSAGES[msgIndex]}
+                    </Text>
+                </Flex>
+            )}
+
+            {/* ── Settlement recovery (paused + pending) ── */}
+            {mode === 'settlement-recovery' && (
+                <Flex
+                    key="settlement-recovery"
+                    direction="column"
+                    align="center"
+                    gap={0.5}
+                    whiteSpace="nowrap"
+                    bg="blackAlpha.200"
+                    backdropFilter="blur(8px)"
+                    borderRadius="full"
+                    px={{ base: 2.5, md: 3 }}
+                    py={{ base: 1, md: 1.5 }}
+                    opacity={0.9}
+                    animation={`${fadeIn} 300ms ease-out`}
+                    role="status"
+                >
+                    <Flex align="center" gap={1.5}>
+                        <Spinner size="xs" color="orange.300" speed="0.9s" thickness="2px" />
+                        <Text
+                            fontSize={{ base: 'xs', md: 'sm' }}
+                            fontWeight="700"
+                            letterSpacing="0.04em"
+                            lineHeight="1"
+                            color="orange.200"
+                        >
+                            Settling on-chain… · {elapsedSec}s
+                        </Text>
+                    </Flex>
+                    <Text
+                        fontSize="xs"
+                        fontWeight="500"
+                        letterSpacing="0.03em"
+                        lineHeight="1"
+                        color="whiteAlpha.400"
+                    >
+                        Resuming automatically
+                    </Text>
                 </Flex>
             )}
 

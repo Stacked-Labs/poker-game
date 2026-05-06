@@ -121,18 +121,28 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// ─── Settlement: pending ───────────────────────────────────────────────────
-//
-// The slow-settlement copy switches by elapsed time measured from when the
-// banner first sees `settlementStatus === 'pending'`. Open this story and
-// watch it age through all three buckets: rotating phrases (<5s), counter
-// appended (5–14s), softened "Taking longer than usual…" copy (≥15s).
-// Reload the story to restart the timer.
+// ─── Settlement: pending (fast path) ──────────────────────────────────────
 
 export const Settling: Story = {
-    name: 'Settling — live (watch it age past 5s and 15s)',
+    name: 'Settling — live (rotating copy)',
     decorators: [
         makeDecorator({ appStateOverride: { settlementStatus: 'pending' } }),
+    ],
+};
+
+// ─── Settlement: recovery (slow path) ─────────────────────────────────────
+//
+// Tx timed out but is still in flight — table is paused, background watcher
+// polling. Banner shows amber spinner + elapsed counter that ticks every second.
+// Reload the story to reset the counter.
+
+export const SettlementRecovery: Story = {
+    name: 'Settlement Recovery — auto-paused (watch elapsed counter tick)',
+    decorators: [
+        makeDecorator({
+            gameOverride: { paused: true },
+            appStateOverride: { settlementStatus: 'pending', isTableOwner: false },
+        }),
     ],
 };
 

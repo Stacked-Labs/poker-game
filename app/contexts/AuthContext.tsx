@@ -26,6 +26,7 @@ interface AuthContextProps {
     lastAuthenticatedAddress: string | null;
     xUsername: string | null;
     xProfileImageUrl: string | null;
+    xStatusChecked: boolean;
     requestAuthentication: () => void;
     refreshAuthStatus: () => Promise<void>;
     refreshXStatus: () => Promise<void>;
@@ -38,6 +39,7 @@ export const AuthContext = createContext<AuthContextProps>({
     lastAuthenticatedAddress: null,
     xUsername: null,
     xProfileImageUrl: null,
+    xStatusChecked: false,
     requestAuthentication: () => {},
     refreshAuthStatus: async () => {},
     refreshXStatus: async () => {},
@@ -59,6 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // X account state
     const [xUsername, setXUsername] = useState<string | null>(null);
     const [xProfileImageUrl, setXProfileImageUrl] = useState<string | null>(null);
+    const [xStatusChecked, setXStatusChecked] = useState(false);
 
     // Define checkAuthentication first (needed by refreshAuthStatus)
     const checkAuthentication = useCallback(async () => {
@@ -105,6 +108,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } catch {
             setXUsername(null);
             setXProfileImageUrl(null);
+        } finally {
+            setXStatusChecked(true);
         }
     }, []);
 
@@ -200,6 +205,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         lastAuthenticatedAddress,
         xUsername,
         xProfileImageUrl,
+        xStatusChecked,
         requestAuthentication,
         refreshAuthStatus,
         refreshXStatus,

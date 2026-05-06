@@ -81,6 +81,10 @@ const LeaderboardTable = ({
                 <Text fontSize="xs" color="text.secondary">
                     {data.length} players
                 </Text>
+                <Spacer />
+                <Text fontSize="2xs" color="text.secondary" opacity={0.6}>
+                    Updates every minute
+                </Text>
             </HStack>
 
             <Box
@@ -95,7 +99,7 @@ const LeaderboardTable = ({
                 {data.length === 0 ? (
                     <Flex justify="center" align="center" py={10}>
                         <Text color="text.secondary" fontSize="sm">
-                            No points earned yet. Play hands on Base Testnet to appear here.
+                            No points earned yet. Play hands on Base Mainnet to appear here.
                         </Text>
                     </Flex>
                 ) : (
@@ -384,7 +388,7 @@ const LeaderboardTable = ({
                         pb={1}
                         opacity={0.6}
                     >
-                        Points are awarded for playing on Base Testnet.
+                        Points are awarded for playing on Base Mainnet.
                     </Text>
                 )}
             </Box>

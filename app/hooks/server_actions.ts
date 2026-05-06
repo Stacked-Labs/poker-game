@@ -875,6 +875,56 @@ export async function registerReferral(
     }
 }
 
+// ============================================================
+// Quest API
+// ============================================================
+
+export interface QuestItem {
+    id: string;
+    title: string;
+    points: number;
+    completed: boolean;
+    prerequisite?: string;
+    actionUrl?: string;
+}
+
+export async function getQuests(address: string): Promise<{
+    quests: QuestItem[];
+    totalQuestPoints: number;
+}> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/quests?address=${encodeURIComponent(address)}`,
+            { method: 'GET', credentials: 'include' }
+        );
+        if (!response.ok) throw new Error(`Quests fetch failed: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch quests.', error);
+        return { quests: [], totalQuestPoints: 0 };
+    }
+}
+
+export async function completeQuest(
+    questId: string,
+    communityCode?: string
+): Promise<{ success: boolean; alreadyCompleted?: boolean; message?: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/quests/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ questId, communityCode }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to complete quest.', error);
+        return { success: false, message: 'Network error' };
+    }
+}
+
 export async function fetchTableLedger(tableName: string) {
     isBackendUrlValid();
 

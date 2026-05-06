@@ -5,6 +5,7 @@ import { Flex, Stack, Box } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import LeaderboardTable, { LeaderboardEntry } from '@/app/components/Leaderboard/LeaderboardTable';
 import PlayerCard from '@/app/components/Leaderboard/PlayerCard';
+import QuestsSection from '@/app/components/Leaderboard/QuestsSection';
 import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
 import { getLeaderboard, getPlayerStats, getReferralInfo } from '@/app/hooks/server_actions';
@@ -34,6 +35,13 @@ const LeaderboardPage: React.FC = () => {
         hasReferrer: boolean;
     } | undefined>(undefined);
     const account = useActiveAccount();
+    const [communityCode, setCommunityCode] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const code = new URLSearchParams(window.location.search).get('community');
+        if (code) setCommunityCode(code);
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -138,6 +146,7 @@ const LeaderboardPage: React.FC = () => {
                             xUsername={playerEntry?.xUsername}
                             xProfileImageUrl={playerEntry?.xProfileImageUrl}
                         />
+                        <QuestsSection communityCode={communityCode} tablesCreated={stats.gamesCreated} />
                     </Box>
                     <Box flex="1" w="full">
                         <LeaderboardTable

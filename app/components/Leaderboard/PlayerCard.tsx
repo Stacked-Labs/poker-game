@@ -82,10 +82,18 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     xProfileImageUrl,
 }) => {
     const account = useActiveAccount();
-    const { isAuthenticated, isAuthenticating, requestAuthentication } =
-        useAuth();
+    const {
+        isAuthenticated, isAuthenticating, requestAuthentication,
+        xUsername: authXUsername, xProfileImageUrl: authXProfileImageUrl, xStatusChecked,
+    } = useAuth();
     const { connectX, disconnectX, isConnecting: isConnectingX, isDisconnecting: isDisconnectingX } =
         useConnectX();
+
+    // Once AuthContext has completed its first X-status fetch, it is authoritative
+    // (handles link/unlink without requiring a leaderboard re-fetch).
+    // Before that, fall back to the snapshot from the leaderboard API.
+    const effectiveXUsername = xStatusChecked ? authXUsername : (xUsername ?? null);
+    const effectiveXProfileImageUrl = xStatusChecked ? authXProfileImageUrl : (xProfileImageUrl ?? null);
     const isConnected = !!account;
     const isFullyAuthenticated = isConnected && isAuthenticated;
 
@@ -178,7 +186,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                                         <Box
                                             position="absolute"
                                             inset="-3px"
-                                            borderRadius={xProfileImageUrl ? 'full' : '7px'}
+                                            borderRadius={effectiveXProfileImageUrl ? 'full' : '7px'}
                                             border="2px solid"
                                             borderColor={tier.color}
                                             opacity={0.5}
@@ -187,11 +195,11 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                                     )}
                                     <Box
                                         as="img"
-                                        src={xProfileImageUrl ?? blo(account!.address as `0x${string}`)}
+                                        src={effectiveXProfileImageUrl ?? blo(account!.address as `0x${string}`)}
                                         alt=""
                                         w="56px"
                                         h="56px"
-                                        borderRadius={xProfileImageUrl ? 'full' : '4px'}
+                                        borderRadius={effectiveXProfileImageUrl ? 'full' : '4px'}
                                         objectFit="cover"
                                         boxShadow={
                                             tier
@@ -239,24 +247,24 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                                     <Text
                                         as="a"
                                         href={
-                                            xUsername
-                                                ? `https://x.com/${xUsername}`
+                                            effectiveXUsername
+                                                ? `https://x.com/${effectiveXUsername}`
                                                 : `https://sepolia.basescan.org/address/${account!.address}`
                                         }
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         color="text.secondary"
                                         fontSize="xs"
-                                        fontFamily={xUsername ? 'body' : 'mono'}
+                                        fontFamily={effectiveXUsername ? 'body' : 'mono'}
                                         mt={1}
                                         _hover={{ color: 'brand.green' }}
                                         transition="color 0.2s ease"
                                     >
-                                        {xUsername ? `@${xUsername}` : truncateAddress(account!.address)}
+                                        {effectiveXUsername ? `@${effectiveXUsername}` : truncateAddress(account!.address)}
                                     </Text>
 
                                     {/* X connect / unlink micro-action — plain text link, no chrome */}
-                                    {xUsername ? (
+                                    {effectiveXUsername ? (
                                         <Text
                                             as="button"
                                             onClick={disconnectX}

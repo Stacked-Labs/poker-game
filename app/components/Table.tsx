@@ -477,8 +477,8 @@ const Table = ({ tableId }: { tableId: string }) => {
                 </GridItem>
             </Grid>
 
-            {/* Session points HUD — top-right corner, crypto games only */}
-            {appState.game?.config?.crypto && (
+            {/* Session points HUD — top-right corner, Base mainnet crypto games only */}
+            {appState.game?.config?.crypto && appState.game?.config?.chain === 'base' && (
                 <Box
                     position="absolute"
                     top={{ base: '52px', md: '60px' }}
@@ -490,7 +490,17 @@ const Table = ({ tableId }: { tableId: string }) => {
                         '@media (orientation: landscape)': { display: 'block' },
                     }}
                 >
-                    <SessionPointsBadge />
+                    <Box
+                        as="a"
+                        href="/leaderboard"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        display="block"
+                        _hover={{ opacity: 0.85 }}
+                        transition="opacity 0.15s"
+                    >
+                        <SessionPointsBadge />
+                    </Box>
                 </Box>
             )}
         </Flex>

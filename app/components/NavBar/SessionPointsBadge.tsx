@@ -87,7 +87,7 @@ const numberColor = useColorModeValue('brand.darkNavy', 'white');
             <Box
                 position="relative"
                 display="inline-flex"
-                cursor="default"
+                cursor="pointer"
                 userSelect="none"
                 bg={badgeBg}
                 sx={{

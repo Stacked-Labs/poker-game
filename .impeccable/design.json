@@ -101,16 +101,16 @@
     "northStar": "The Crypto Card Room",
     "overview": "Stacked is an underground card room that happens to live onchain. The room is dark, warm, intimate. The felt is real. The money is USDC. The door speaks the language of people who already hold a wallet, not the language of people we're trying to convert. This is not a casino floor and it is not a fintech dashboard. It is a confident, lived-in room where the cards move fast and the settlement is invisible until you stand up.\n\nThe aesthetic anchors on three tensions, held in balance: product discipline at the table (every pixel earns its place under decision pressure), brand permission in the lobby (personality, motion, and color carry weight), and crypto-native fluency throughout (wallets, USDC, Base, signing all spoken without translation). The room rejects what it isn't, on purpose: the polished WSOP corporate floor, the Uniswap-clone DEX dashboard, the gradient-mesh Web3 hero page, and the AI-rendered SaaS landing template all live somewhere else.\n\nThe current implementation carries some debt the strategic line will eventually retire: glassmorphic backdrop blurs, glow shadows, and gradient buttons exist in the codebase from earlier eras. They are documented honestly, but they are not the system's future. New work should not extend them.",
     "keyCharacteristics": [
-      "Dark by default in user perception (body is set to legacy.grayDarkest under the global scrim).",
+      "Light and dark modes are both first-class. Every screen designed and reviewed in both. Brand mood (warm, intimate) applies to both modes.",
       "Mobile-first by usage. Primary players are on phones in landscape at the table, in portrait in the lobby.",
-      "Color is committed: Penthouse Midnight + Velvet Navy carry the room; Neon Stake is the rare pink accent that earns its appearances.",
+      "Color is committed: Penthouse Midnight + Velvet Navy + Cold Light carry the room across modes; Neon Stake is the rare pink accent that earns its appearances.",
       "Typography is a single-family system (Poppins). Hierarchy through weight and scale, not type-pairing.",
       "Motion is human, not robotic. Bets settle, chips have weight, deals have rhythm."
     ],
     "rules": [
       { "name": "The Neon Stake Rule", "body": "The signature pink (#EB0B5C) is rare on purpose. Use it for input focus rings, the brand mark, and the single most-important action in any view. Never on body text. Never as a gradient. Never on more than one element per screen.", "section": "colors" },
       { "name": "The No Pure Black/White Rule", "body": "#000 and #fff are forbidden. Every neutral is warmed.", "section": "colors" },
-      { "name": "The Warm-Dark Rule", "body": "When dark, choose warm dark. Ash Charcoal and Black Ash carry mid-tones; Ink carries body; Penthouse Midnight carries hero.", "section": "colors" },
+      { "name": "The Warm-Neutrals Rule", "body": "Both modes share a warm temperature, never cool fintech gray. Light warms toward Cold Light and white; dark warms toward Penthouse Midnight, Ink, Ash Charcoal, Black Ash. The legacy gray.500/700 ramp is debt in both modes.", "section": "colors" },
       { "name": "The One-Family Rule", "body": "Poppins for everything. Hierarchy through weight and scale, never through a second family.", "section": "typography" },
       { "name": "The Tight-Headline Rule", "body": "Headings carry letter-spacing -0.02em.", "section": "typography" },
       { "name": "The Mobile-First-Type Rule", "body": "All display and headline sizes are clamp()-bound. Phones are the primary surface.", "section": "typography" },

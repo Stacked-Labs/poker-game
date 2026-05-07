@@ -66,11 +66,13 @@ Mobile-first: the first value is base. Don't write `@media` blocks in Emotion.
 
 ---
 
-## 5. Dark mode
+## 5. Light and dark modes (both first-class)
 
-`initialColorMode` is **light**. Most semantic tokens already define `{ default, _dark }` pairs in `theme.ts` — if you use them, dark mode is free.
+`initialColorMode` is **light**. Both modes are first-class — never design or review a screen in only one. Most semantic tokens already define `{ default, _dark }` pairs in `theme.ts`; if you use them, dark mode is free.
 
-For component-level dark-mode tweaks: `_dark={{ ... }}` prop. For derived values (e.g., picking an icon variant): `useColorModeValue(light, dark)`.
+For component-level overrides: `_dark={{ ... }}` prop. For derived values (e.g., picking an icon variant): `useColorModeValue(light, dark)`.
+
+Before declaring UI work done, **verify in both modes**. The most common slip is shipping a fix that looks great in one and breaks contrast or feels off-mood in the other. Toggle the theme and look.
 
 Never branch on `colorMode === 'dark'` in render logic when a token or `_dark` prop will do.
 

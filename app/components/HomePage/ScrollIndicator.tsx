@@ -1,98 +1,124 @@
 'use client';
 
-import { Box, VStack, Text } from '@chakra-ui/react';
+import { Box, Button, Icon } from '@chakra-ui/react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { keyframes } from '@emotion/react';
 import { HiChevronDown } from 'react-icons/hi2';
 
-const MotionVStack = motion(VStack);
 const MotionBox = motion(Box);
+
+const haloPulse = keyframes`
+    0%   { transform: scale(0.94); opacity: 0; }
+    40%  { transform: scale(1);    opacity: 0.55; }
+    100% { transform: scale(1.22); opacity: 0; }
+`;
 
 const ScrollIndicator = () => {
     const { scrollY } = useScroll();
-
-    // Fade out as we scroll down.
-    // Start at 1, reach 0 after scrolling 500px
-    const opacity = useTransform(scrollY, [0, 500], [1, 0]);
-    const translateY = useTransform(scrollY, [0, 500], [0, -100]);
+    const opacity = useTransform(scrollY, [0, 400], [1, 0]);
 
     const handleClick = () => {
-        window.scrollBy({
-            top: window.innerHeight,
-            behavior: 'smooth',
-        });
+        const homeSection = document.querySelector('.home-section');
+        const next = homeSection?.nextElementSibling as HTMLElement | null;
+        if (next) {
+            next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+        }
     };
 
     return (
-        <>
-            {/* Subtle floating blend at the very bottom */}
+        <Box
+            position="absolute"
+            bottom={{ base: '24px', md: '36px' }}
+            left="50%"
+            transform="translateX(-50%)"
+            zIndex={10}
+        >
             <MotionBox
-                position="absolute"
-                bottom={0}
-                left={0}
-                right={0}
-                height="100px"
-                bgGradient="linear(to-t, bg.scrollIndicator 0%, bg.scrollIndicatorMid 40%, transparent 100%)"
-                style={{ opacity }}
-                pointerEvents="none"
-                zIndex={0}
-            />
-            <MotionVStack
-                position="absolute"
-                bottom={{ base: '16px', md: '32px' }}
-                left={0}
-                right={0}
-                mx="auto"
-                width="fit-content"
-                spacing={0}
-                cursor="pointer"
-                onClick={handleClick}
-                style={{ opacity, y: translateY }}
-                zIndex={10}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 1.2 }}
-                sx={{
-                    transition:
-                        'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                    _hover: {
-                        transform: 'scale(1.08)',
-                    },
-                }}
+                style={{ opacity }}
+                position="relative"
+                display="inline-flex"
             >
-                <VStack spacing={0}>
-                    <Text
-                        fontSize={{ base: '9px', md: 'xs' }}
-                        fontWeight="bold"
-                        color="brand.green"
-                        letterSpacing="0.25em"
-                        textTransform="uppercase"
-                        mb={0.5}
-                        opacity={0.85}
-                    >
-                        Learn More
-                    </Text>
+                {/* Single tight breathing halo behind the pill */}
+                <Box
+                    position="absolute"
+                    inset="-3px"
+                    borderRadius="full"
+                    border="1px solid"
+                    borderColor="brand.lightGray"
+                    _dark={{ borderColor: 'bg.charcoal' }}
+                    animation={`${haloPulse} 2.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite`}
+                    pointerEvents="none"
+                />
 
+                <Button
+                    aria-label="Scroll to next section"
+                    onClick={handleClick}
+                    height="44px"
+                    px={6}
+                    borderRadius="full"
+                    bg="brand.lightGray"
+                    color="brand.darkNavy"
+                    border="none"
+                    fontWeight="700"
+                    fontSize="11px"
+                    letterSpacing="0.22em"
+                    textTransform="uppercase"
+                    boxShadow="0 8px 22px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.6)"
+                    display="inline-flex"
+                    alignItems="center"
+                    gap={2.5}
+                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                    position="relative"
+                    _hover={{
+                        bg: 'brand.lightGray',
+                        transform: 'translateY(-2px)',
+                        boxShadow:
+                            '0 12px 28px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.7)',
+                        filter: 'brightness(1.04)',
+                    }}
+                    _active={{
+                        transform: 'translateY(0) scale(0.97)',
+                    }}
+                    _focusVisible={{
+                        outline: '2px solid',
+                        outlineColor: 'brand.pink',
+                        outlineOffset: '4px',
+                    }}
+                    _dark={{
+                        bg: 'bg.charcoal',
+                        color: 'white',
+                        boxShadow:
+                            '0 8px 22px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
+                        _hover: {
+                            bg: 'bg.charcoal',
+                            transform: 'translateY(-2px)',
+                            boxShadow:
+                                '0 12px 28px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.14)',
+                            filter: 'brightness(1.25)',
+                        },
+                    }}
+                >
+                    More below
                     <MotionBox
-                        animate={{
-                            y: [0, 4, 0],
-                        }}
+                        animate={{ y: [0, 3, 0] }}
                         transition={{
-                            duration: 2,
+                            duration: 1.6,
                             repeat: Infinity,
                             ease: 'easeInOut',
                         }}
-                        display="flex"
-                        justifyContent="center"
+                        display="inline-flex"
                         alignItems="center"
                     >
-                        <HiChevronDown
-                            size={16}
-                            color="var(--chakra-colors-brand-green)"
-                        />
+                        <Icon as={HiChevronDown} boxSize={4} />
                     </MotionBox>
-                </VStack>
-            </MotionVStack>
-        </>
+                </Button>
+            </MotionBox>
+        </Box>
     );
 };
 

@@ -119,15 +119,15 @@ The aesthetic anchors on three tensions, held in balance: **product discipline a
 The current implementation carries some debt the strategic line will eventually retire: glassmorphic backdrop blurs, glow shadows, and gradient buttons exist in the codebase from earlier eras. They are documented honestly below, but they are not the system's future. New work should not extend them; existing instances are debt to remove.
 
 **Key Characteristics:**
-- Dark by default (`initialColorMode: 'light'` in code, but the global body is set to `legacy.grayDarkest` and the system reads dark to the user).
+- **Light and dark modes are both first-class.** `initialColorMode` is `light`; semantic tokens carry full `{ default, _dark }` pairs. Every screen must be designed and reviewed in both modes before shipping. The brand mood ("warm, intimate, lived-in") applies to both — light warms toward Cold Light surfaces, dark warms toward Penthouse Midnight / Ink. Never cool fintech gray in either mode.
 - Mobile-first by usage. Primary players are on phones in landscape at the table, in portrait in the lobby.
-- Color is committed, not restrained: Penthouse Midnight + Velvet Navy carry the room; Neon Stake is the rare pink accent that earns its appearances.
+- Color is committed, not restrained: Penthouse Midnight + Velvet Navy + Cold Light carry the room across modes; Neon Stake is the rare pink accent that earns its appearances.
 - Typography is a single-family system (Poppins). Hierarchy through weight and scale, not type-pairing.
 - Motion is human, not robotic. Bets settle, chips have weight, deals have rhythm.
 
 ## 2. Colors
 
-The palette is a confident dark-room set: deep navy for the ground, hot pink for action, felt green for affirmation, chip yellow for stakes. Neutrals are warmed by ink and ash, never neutral-cool. Pure white and pure black are forbidden.
+The palette is a confident card-room set that works in both light and dark modes: deep navy for the ground, hot pink for action, felt green for affirmation, chip yellow for stakes, cold light for soft surfaces. Neutrals are warmed by ink and ash, never neutral-cool. Pure white and pure black are forbidden.
 
 ### Primary
 - **Penthouse Midnight** (`#0B1430`): The ground of the room. Headers, hero backgrounds, primary text in light mode, deepest card surfaces. The color the table sits in.
@@ -154,7 +154,7 @@ The palette is a confident dark-room set: deep navy for the ground, hot pink for
 
 **The No Pure Black/White Rule.** `#000` and `#fff` are forbidden. Every neutral is warmed: pure white belongs in incidental cases (button text on saturated grounds); pure black belongs nowhere. Reach for Penthouse Midnight, Ink, Ink Deep, or Cold Light instead.
 
-**The Warm-Dark Rule.** When dark, choose warm dark. Ash Charcoal and Black Ash carry mid-tones; Ink carries body; Penthouse Midnight carries hero. Never cool gray (`gray.700` and `gray.500` exist in the legacy ramp; treat them as legacy, not target).
+**The Warm-Neutrals Rule.** Both modes share a warm temperature, never cool fintech gray. In light mode, warm toward Cold Light (`#ECEEF5`) for soft grounds and white for primary cards; text warms toward Penthouse Midnight, never `gray.700` cool gray. In dark mode, Ash Charcoal and Black Ash carry mid-tones; Ink carries body; Penthouse Midnight carries hero. The legacy `gray.500/700` ramp is debt — treat as legacy, not target, in both modes.
 
 ## 3. Typography
 

@@ -24,6 +24,8 @@ For full product context: `PRODUCT.md`. For our visual system: `DESIGN.md`. Both
 
 **Anti-references — do NOT look like:** generic crypto dashboards (Uniswap-clone), corporate poker rooms (PokerStars/WSOP), Web3 hero-page slop (gradient meshes, glassmorphism), AI-generated UI (lavender gradients, "✨", repeating card grids), Chuck-E-Cheese degen (neon-for-neon's-sake).
 
+**Light and dark are both first-class.** Never bias toward dark-by-default. The brand mood (warm, intimate) applies to both modes. Test every UI change in both before declaring done.
+
 **Accessibility:** WCAG 2.1 AA, mobile-first, respect `prefers-reduced-motion`, never color-only state, color-blind-safe suit indicators.
 
 When writing copy or generating UI, read `PRODUCT.md` first. When picking colors, type, or components, read `DESIGN.md` first.

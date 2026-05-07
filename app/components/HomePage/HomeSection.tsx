@@ -1,10 +1,9 @@
 'use client';
 
-import { Box, Flex, Text, VStack, useBreakpointValue } from '@chakra-ui/react';
-import React, { useRef, useEffect, useState } from 'react';
+import { Box, Flex, useBreakpointValue } from '@chakra-ui/react';
+import { useRef, useEffect, useState } from 'react';
 import HomeCard from './HomeCard';
 import ScrollIndicator from './ScrollIndicator';
-import { keyframes } from '@emotion/react';
 import {
     motion,
     useReducedMotion,
@@ -12,64 +11,6 @@ import {
     useTransform,
 } from 'framer-motion';
 import FloatingDecor from './FloatingDecor';
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-const revealFromLeft = keyframes`
-  from { clip-path: inset(0 100% 0 0); opacity: 1; }
-  to { clip-path: inset(0 0 0 0); opacity: 1; }
-`;
-
-const subtleGlow = keyframes`
-  0%, 100% { text-shadow: 0 0 20px rgba(255,255,255,0.1); }
-  50% { text-shadow: 0 0 30px rgba(255,255,255,0.2), 0 0 40px rgba(255,255,255,0.1); }
-`;
-
-// Random free-floating character animations
-const float1 = keyframes`
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(-3px, -12px); }
-  50% { transform: translate(2px, -18px); }
-  75% { transform: translate(-2px, -10px); }
-`;
-
-const float2 = keyframes`
-  0%, 100% { transform: translate(0, 0); }
-  20% { transform: translate(4px, -8px); }
-  50% { transform: translate(-2px, -20px); }
-  80% { transform: translate(3px, -6px); }
-`;
-
-const float3 = keyframes`
-  0%, 100% { transform: translate(0, 0); }
-  30% { transform: translate(-4px, -15px); }
-  60% { transform: translate(3px, -22px); }
-  90% { transform: translate(-1px, -8px); }
-`;
-
-const float4 = keyframes`
-  0%, 100% { transform: translate(0, 0); }
-  15% { transform: translate(2px, -10px); }
-  45% { transform: translate(-3px, -17px); }
-  70% { transform: translate(4px, -12px); }
-`;
-
-const float5 = keyframes`
-  0%, 100% { transform: translate(0, 0); }
-  35% { transform: translate(-2px, -14px); }
-  55% { transform: translate(3px, -19px); }
-  85% { transform: translate(-4px, -9px); }
-`;
-
-const float6 = keyframes`
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(3px, -11px); }
-  60% { transform: translate(-4px, -21px); }
-  85% { transform: translate(2px, -7px); }
-`;
 
 const MotionBox = motion(Box);
 
@@ -89,35 +30,37 @@ const HomeSection = () => {
     });
 
     // Parallax and Scale transforms for the video
-    // Increased range from 10% to 20% travel to make the parallax more pronounced
     const videoY = useTransform(scrollYProgress, [0, 1], ['0%', '-12%']);
     const videoScale = useTransform(scrollYProgress, [0, 1], [1.05, 1.0]);
 
-    const words = React.useMemo(() => ['HOST', 'YOUR', 'POKER', 'GAME'], []);
-    const floatAnimations = React.useMemo(
-        () => [float1, float2, float3, float4, float5, float6],
-        []
-    );
-
     useEffect(() => {
-        if (!isDesktop || prefersReducedMotion) {
+        if (prefersReducedMotion) {
             setShouldLoadVideo(false);
             return;
         }
 
         const connection = (
-            navigator as Navigator & { connection?: { saveData?: boolean } }
+            navigator as Navigator & {
+                connection?: {
+                    saveData?: boolean;
+                    effectiveType?: string;
+                };
+            }
         ).connection;
         const saveData = connection?.saveData ?? false;
+        const slowConnection =
+            connection?.effectiveType === 'slow-2g' ||
+            connection?.effectiveType === '2g';
 
-        setShouldLoadVideo(!saveData);
-    }, [isDesktop, prefersReducedMotion]);
+        setShouldLoadVideo(!saveData && !slowConnection);
+    }, [prefersReducedMotion]);
 
     // Handle video loading and playback
     useEffect(() => {
         if (!shouldLoadVideo) return;
         const video = videoRef.current;
-        if (!video) return;
+        const section = sectionRef.current;
+        if (!video || !section) return;
 
         setVideoError(false);
 
@@ -132,7 +75,6 @@ const HomeSection = () => {
             setVideoError(true);
         };
 
-        // Defensive: if the browser doesn't honor `loop` for some reason, restart manually.
         const handleEnded = () => {
             try {
                 video.currentTime = 0;
@@ -146,13 +88,28 @@ const HomeSection = () => {
         video.addEventListener('error', handleError);
         video.addEventListener('ended', handleEnded);
 
-        // If we attach after the event already fired (e.g. StrictMode/dev timing), still attempt playback.
+        // Pause when scrolled off-screen so mobile devices don't decode video for nothing.
+        const visibilityObserver = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                if (!entry) return;
+                if (entry.isIntersecting) {
+                    tryPlay();
+                } else {
+                    video.pause();
+                }
+            },
+            { threshold: 0.01 }
+        );
+        visibilityObserver.observe(section);
+
         if (video.readyState >= 3) tryPlay();
 
         return () => {
             video.removeEventListener('canplay', tryPlay);
             video.removeEventListener('error', handleError);
             video.removeEventListener('ended', handleEnded);
+            visibilityObserver.disconnect();
         };
     }, [shouldLoadVideo]);
 
@@ -242,75 +199,6 @@ const HomeSection = () => {
                 <Box width={{ base: '100%', lg: '40%' }}>
                     <HomeCard />
                 </Box>
-                {false && (
-                    <VStack
-                        width={{ base: '100%', lg: '60%' }}
-                        justifyContent="center"
-                        alignItems={{ base: 'center', lg: 'flex-start' }}
-                        spacing={0}
-                        mt={{ base: 8, lg: 16, xl: 20 }}
-                    >
-                        <>
-                            {words.map((word, wordIndex) => (
-                                <Box
-                                    key={wordIndex}
-                                    as="h1"
-                                    fontSize={{
-                                        base: '3xl',
-                                        lg: '8xl',
-                                        xl: '9xl',
-                                    }}
-                                    fontWeight="extrabold"
-                                    fontFamily="heading"
-                                    color="white"
-                                    lineHeight={1.1}
-                                    display="flex"
-                                >
-                                    {word.split('').map((char, charIndex) => {
-                                        const totalDelay =
-                                            wordIndex * 0.15 + charIndex * 0.08;
-                                        const floatDelay = totalDelay + 2;
-
-                                        // Pick random animation and duration for each character
-                                        const animIndex =
-                                            (wordIndex * 7 + charIndex * 3) %
-                                            floatAnimations.length;
-                                        const floatAnim =
-                                            floatAnimations[animIndex];
-                                        const floatDuration =
-                                            20 + (charIndex % 7) * 2.5;
-
-                                        return (
-                                            <Box
-                                                key={charIndex}
-                                                as="span"
-                                                display="inline-block"
-                                                animation={`
-                                                    ${fadeIn} 0.7s ease-out ${totalDelay}s forwards,
-                                                    ${subtleGlow} 8s ease-in-out ${floatDelay}s infinite,
-                                                    ${floatAnim} ${floatDuration}s cubic-bezier(0.42, 0, 0.58, 1) ${floatDelay}s infinite
-                                                `}
-                                                opacity={0}
-                                                willChange="transform"
-                                            >
-                                                {char}
-                                            </Box>
-                                        );
-                                    })}
-                                </Box>
-                            ))}
-                            <Text
-                                fontSize="4xl"
-                                color="white"
-                                animation={`${revealFromLeft} 3s ease-out 2s forwards`}
-                                opacity={0}
-                                fontFamily="var(--font-barcode), system-ui"
-                            >
-                                HOST AND PLAY FOR ANY ERC20
-                            </Text>
-                        </>
-                    </VStack>
-                )}
             </Flex>
 
             {/* Scroll Indicator */}

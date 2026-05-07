@@ -75,12 +75,12 @@ const HomePage: React.FC = () => {
                         <FloatingDecor scale="page" />
                         <Box position="relative" zIndex={1}>
                             <CommunitySection />
-                            <NewsletterSection />
+                            <ComparisonSection />
                             <FeaturesSection />
                             <CustomChipValueSection />
                             <YourTableVaultSection />
                             <FAQSection />
-                            <ComparisonSection />
+                            <NewsletterSection />
                             <Footer />
                         </Box>
                     </Box>

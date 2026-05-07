@@ -13,7 +13,6 @@ import {
 } from '@chakra-ui/react';
 import { MdClose, MdCheck } from 'react-icons/md';
 import { motion, useReducedMotion } from 'framer-motion';
-import FloatingDecor from './FloatingDecor';
 
 const MotionBox = motion(Box);
 
@@ -62,13 +61,10 @@ const ComparisonSection = () => {
     return (
         <Box
             as="section"
-            bg="bg.default"
-            py={{ base: 16, md: 24 }}
+            py={{ base: 10, md: 14 }}
             width="100%"
             position="relative"
-            overflow="hidden"
         >
-            <FloatingDecor density="light" />
             <Container maxW="container.lg" position="relative" zIndex={1}>
                 <MotionBox {...fadeUp(0)} mb={{ base: 10, md: 14 }} textAlign="center">
                     <Heading
@@ -145,6 +141,17 @@ const ComparisonSection = () => {
                                     borderBottom={{ base: '1px solid', md: 'none' }}
                                     borderColor="border.lightGray"
                                 >
+                                    <Text
+                                        display={{ base: 'block', md: 'none' }}
+                                        fontSize="2xs"
+                                        fontWeight="extrabold"
+                                        letterSpacing="0.18em"
+                                        textTransform="uppercase"
+                                        color="text.muted"
+                                        mb={2}
+                                    >
+                                        The old way
+                                    </Text>
                                     <HStack spacing={3} align="center">
                                         <Box
                                             flexShrink={0}
@@ -179,6 +186,17 @@ const ComparisonSection = () => {
                                     px={5}
                                     py={4}
                                 >
+                                    <Text
+                                        display={{ base: 'block', md: 'none' }}
+                                        fontSize="2xs"
+                                        fontWeight="extrabold"
+                                        letterSpacing="0.18em"
+                                        textTransform="uppercase"
+                                        color="brand.green"
+                                        mb={2}
+                                    >
+                                        Stacked
+                                    </Text>
                                     <HStack spacing={3} align="center">
                                         <Box
                                             flexShrink={0}

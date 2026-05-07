@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
     Box,
     Container,
@@ -7,27 +8,380 @@ import {
     Text,
     VStack,
     HStack,
+    Flex,
     SimpleGrid,
     Icon,
-    Badge,
-    Wrap,
-    WrapItem,
+    Button,
+    useClipboard,
 } from '@chakra-ui/react';
-import { keyframes } from '@emotion/react';
-import { MdStorage, MdSecurity } from 'react-icons/md';
-import { SiEthereum } from 'react-icons/si';
-import React from 'react';
+import { MdCheck, MdContentCopy } from 'react-icons/md';
 import { motion, useReducedMotion } from 'framer-motion';
-import FloatingDecor from './FloatingDecor';
 
-const MotionBox = motion(Box);
 const MotionVStack = motion(VStack);
 
-const gradientMove = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
+const GO_SECURE_SHUFFLE_SNIPPET = `import (
+    "crypto/rand"
+    "encoding/binary"
+)
+
+func SecureShuffleDeck(d *Deck) error {
+    n := len(*d)
+    bytes := make([]byte, n*8)
+    // OS CSPRNG entropy — same primitives behind TLS.
+    if _, err := rand.Read(bytes); err != nil { return err }
+
+    for i := n - 1; i > 0; i-- {
+        // Fisher-Yates: uniform over the remaining range.
+        j := int(binary.BigEndian.Uint64(bytes[(n-1-i)*8:]) % uint64(i+1))
+        (*d)[i], (*d)[j] = (*d)[j], (*d)[i]
+    }
+    return nil
+}`;
+
+function highlightGo(code: string): React.ReactNode {
+    const colorize = (segment: string): React.ReactNode[] => {
+        const tokenRegex =
+            /("(?:\\.|[^"\\])*")|(\b(?:import|func|return|for|if|package|var|const|type|struct)\b)|(\b(?:error|int|uint64|byte|string|bool)\b)|(\b(?:rand|binary|BigEndian|Uint64|make|append|len)\b)|(\b\d+\b)/g;
+
+        const nodes: React.ReactNode[] = [];
+        let lastIndex = 0;
+        let match: RegExpExecArray | null;
+
+        while ((match = tokenRegex.exec(segment)) !== null) {
+            if (match.index > lastIndex) {
+                nodes.push(segment.slice(lastIndex, match.index));
+            }
+            const [token, str, kw, prim, builtin, num] = match;
+            const color = str
+                ? '#36A37B'
+                : kw
+                  ? '#EB0B5C'
+                  : prim
+                    ? '#89DDFF'
+                    : builtin
+                      ? '#FDC51D'
+                      : num
+                        ? '#FDC51D'
+                        : undefined;
+            nodes.push(
+                <Box as="span" key={`${match.index}-${token}`} color={color}>
+                    {token}
+                </Box>
+            );
+            lastIndex = match.index + token.length;
+        }
+        if (lastIndex < segment.length) {
+            nodes.push(segment.slice(lastIndex));
+        }
+        return nodes;
+    };
+
+    const lines = code.split('\n');
+    return lines.map((line, lineIndex) => {
+        const commentIndex = line.indexOf('//');
+        const hasComment = commentIndex >= 0;
+        const beforeComment = hasComment ? line.slice(0, commentIndex) : line;
+        const comment = hasComment ? line.slice(commentIndex) : '';
+        return (
+            <Box as="span" key={lineIndex}>
+                <Box as="span" color="rgba(255,255,255,0.9)">
+                    {colorize(beforeComment)}
+                </Box>
+                {comment ? (
+                    <Box as="span" color="rgba(148, 163, 184, 0.85)">
+                        {comment}
+                    </Box>
+                ) : null}
+                {lineIndex < lines.length - 1 ? '\n' : null}
+            </Box>
+        );
+    });
+}
+
+function ShuffleCodeReceipt() {
+    const { hasCopied, onCopy } = useClipboard(GO_SECURE_SHUFFLE_SNIPPET);
+
+    return (
+        <Box
+            border="1px solid"
+            borderColor="border.lightGray"
+            borderRadius="20px"
+            overflow="hidden"
+            bg="bg.default"
+            display="flex"
+            flexDirection="column"
+            height="100%"
+        >
+            <Box
+                bg="brand.darkNavy"
+                _dark={{ bg: 'black' }}
+                position="relative"
+            >
+                <Flex
+                    justify="space-between"
+                    align="center"
+                    px={{ base: 4, md: 5 }}
+                    py={3}
+                    borderBottom="1px solid"
+                    borderBottomColor="rgba(255,255,255,0.08)"
+                >
+                    <HStack spacing={2.5} minW={0}>
+                        <Box
+                            w="8px"
+                            h="8px"
+                            borderRadius="full"
+                            bg="rgba(255,255,255,0.18)"
+                        />
+                        <Text
+                            fontSize="2xs"
+                            fontFamily="mono"
+                            color="rgba(255,255,255,0.55)"
+                            letterSpacing="0.04em"
+                            isTruncated
+                        >
+                            shuffle.go
+                        </Text>
+                    </HStack>
+                    <Button
+                        onClick={onCopy}
+                        size="xs"
+                        leftIcon={<MdContentCopy />}
+                        variant="unstyled"
+                        color="rgba(255,255,255,0.7)"
+                        fontFamily="mono"
+                        fontSize="2xs"
+                        fontWeight="semibold"
+                        textTransform="uppercase"
+                        letterSpacing="0.1em"
+                        height="auto"
+                        display="inline-flex"
+                        alignItems="center"
+                        px={2}
+                        py={1}
+                        borderRadius="6px"
+                        transition="color 0.15s ease"
+                        _hover={{ color: 'white' }}
+                    >
+                        {hasCopied ? 'Copied' : 'Copy'}
+                    </Button>
+                </Flex>
+                <Box px={{ base: 4, md: 5 }} py={{ base: 4, md: 5 }}>
+                    <Box
+                        as="pre"
+                        m={0}
+                        p={0}
+                        whiteSpace="pre"
+                        overflowX="auto"
+                        fontSize={{ base: '11px', md: 'xs' }}
+                        lineHeight="1.85"
+                        fontFamily='ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
+                    >
+                        <Box as="code" display="block">
+                            {highlightGo(GO_SECURE_SHUFFLE_SNIPPET)}
+                        </Box>
+                    </Box>
+                </Box>
+            </Box>
+        </Box>
+    );
+}
+
+function ContractReceipt() {
+    return (
+        <Box
+            border="1px solid"
+            borderColor="border.lightGray"
+            borderRadius="20px"
+            overflow="hidden"
+            bg="bg.default"
+            display="flex"
+            flexDirection="column"
+            height="100%"
+        >
+            <Box
+                p={{ base: 5, md: 6 }}
+                borderBottom="1px solid"
+                borderColor="border.lightGray"
+                bg="bg.greenSubtle"
+            >
+                <HStack justify="space-between" align="center" mb={4}>
+                    <Text
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color="text.muted"
+                        letterSpacing="0.22em"
+                        textTransform="uppercase"
+                    >
+                        Contract · Base
+                    </Text>
+                    <HStack spacing={1.5} align="center">
+                        <Box
+                            w="6px"
+                            h="6px"
+                            borderRadius="full"
+                            bg="brand.green"
+                        />
+                        <Text
+                            fontSize="2xs"
+                            fontWeight="bold"
+                            color="brand.green"
+                            letterSpacing="0.18em"
+                            textTransform="uppercase"
+                        >
+                            Live
+                        </Text>
+                    </HStack>
+                </HStack>
+                <HStack spacing={2} align="center" mb={5}>
+                    <Text
+                        fontFamily="mono"
+                        fontSize={{ base: 'sm', md: 'md' }}
+                        color="text.primary"
+                        fontWeight="semibold"
+                        letterSpacing="0.02em"
+                    >
+                        0x7a2c…f91d
+                    </Text>
+                    <Text
+                        fontFamily="mono"
+                        fontSize="xs"
+                        color="brand.green"
+                        fontWeight="bold"
+                        letterSpacing="0.04em"
+                        title="Verify on BaseScan"
+                    >
+                        ↗ verify
+                    </Text>
+                </HStack>
+                <VStack align="stretch" spacing={2.5}>
+                    {[
+                        { label: 'Custody', sub: 'USDC held by the contract' },
+                        { label: 'Payouts', sub: 'Paid by the contract' },
+                        {
+                            label: 'Settlement',
+                            sub: 'Onchain when the hand ends',
+                        },
+                    ].map((row) => (
+                        <HStack key={row.label} spacing={3} align="center">
+                            <Box
+                                w="20px"
+                                h="20px"
+                                borderRadius="full"
+                                bg="brand.green"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                flexShrink={0}
+                            >
+                                <Icon
+                                    as={MdCheck}
+                                    color="white"
+                                    boxSize="13px"
+                                />
+                            </Box>
+                            <HStack
+                                spacing={2}
+                                align="baseline"
+                                flexWrap="wrap"
+                            >
+                                <Text
+                                    fontSize="sm"
+                                    fontWeight="bold"
+                                    color="text.primary"
+                                >
+                                    {row.label}
+                                </Text>
+                                <Text
+                                    fontSize="xs"
+                                    color="text.secondary"
+                                    fontWeight="medium"
+                                >
+                                    {row.sub}
+                                </Text>
+                            </HStack>
+                        </HStack>
+                    ))}
+                </VStack>
+            </Box>
+
+            <Box
+                p={{ base: 5, md: 6 }}
+                flex={1}
+                display="flex"
+                flexDirection="column"
+                gap={{ base: 5, md: 6 }}
+            >
+                <Box>
+                    <Text
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color="brand.green"
+                        letterSpacing="0.22em"
+                        textTransform="uppercase"
+                        mb={2}
+                    >
+                        Custody proof
+                    </Text>
+                    <Text
+                        fontSize={{ base: 'lg', md: 'xl' }}
+                        fontWeight="bold"
+                        color="text.primary"
+                        letterSpacing="-0.01em"
+                        mb={2}
+                    >
+                        We never touch the cash.
+                    </Text>
+                    <Text
+                        color="text.secondary"
+                        fontSize="sm"
+                        fontWeight="medium"
+                        lineHeight="tall"
+                    >
+                        One smart contract per table. The contract pays the
+                        winner, not us.
+                    </Text>
+                </Box>
+                <Box>
+                    <Text
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color="brand.navy"
+                        _dark={{ color: 'brand.lightGray' }}
+                        letterSpacing="0.22em"
+                        textTransform="uppercase"
+                        mb={2}
+                    >
+                        Shuffle proof
+                    </Text>
+                    <Text
+                        fontSize={{ base: 'lg', md: 'xl' }}
+                        fontWeight="bold"
+                        color="text.primary"
+                        letterSpacing="-0.01em"
+                        mb={2}
+                    >
+                        The same primitives behind TLS keys.
+                    </Text>
+                    <Text
+                        color="text.secondary"
+                        fontSize="sm"
+                        fontWeight="medium"
+                        lineHeight="tall"
+                    >
+                        Real shuffle code. No predictable seeds, no insider
+                        math.
+                    </Text>
+                </Box>
+            </Box>
+        </Box>
+    );
+}
+
+const SUPPORT_STATS = [
+    { value: 'OS CSPRNG', label: 'Entropy source' },
+    { value: 'Fisher-Yates', label: 'Shuffle algo' },
+    { value: '1-to-1', label: 'Contract per table' },
+];
 
 const YourTableVaultSection = () => {
     const prefersReducedMotion = useReducedMotion();
@@ -43,709 +397,373 @@ const YourTableVaultSection = () => {
 
     return (
         <Box
-            bg="bg.default"
-            py={{ base: 8, md: 12 }}
+            as="section"
+            id="under-the-hood"
+            py={{ base: 10, md: 14 }}
             width="100%"
             position="relative"
-            overflow="hidden"
         >
-            <FloatingDecor density="light" />
-            <Container maxW="container.xl" position="relative" zIndex={1}>
-                <Box
-                    bg="card.white"
-                    borderRadius="32px"
-                    p={{ base: 8, md: 16 }}
-                    border="1px solid"
-                    borderColor="border.lightGray"
-                    boxShadow="0 16px 50px rgba(0,0,0,0.08)"
-                    position="relative"
-                    overflow="hidden"
+            <Container maxW="container.lg" position="relative" zIndex={1}>
+                <MotionVStack
+                    align="start"
+                    spacing={{ base: 8, md: 10 }}
+                    {...fadeUp(0)}
                 >
-                    <MotionBox
-                        aria-hidden="true"
-                        position="absolute"
-                        top={{ base: '-50px', md: '-70px' }}
-                        right={{ base: '-30px', md: '-40px' }}
-                        w={{ base: '160px', md: '220px' }}
-                        h={{ base: '160px', md: '220px' }}
-                        bg="brand.yellow"
-                        opacity={0.12}
-                        borderRadius="40px"
-                        transform="rotate(12deg)"
-                        zIndex={0}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        fontSize={{ base: '32px', md: '40px' }}
-                        color="brand.darkNavy"
-                        animate={
-                            prefersReducedMotion
-                                ? undefined
-                                : { y: [0, -8, 0], rotate: [12, 6, 12] }
-                        }
-                        transition={
-                            prefersReducedMotion
-                                ? undefined
-                                : {
-                                      duration: 5,
-                                      repeat: Infinity,
-                                      ease: 'easeInOut',
-                                  }
-                        }
+                    <Text
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color="text.muted"
+                        letterSpacing="0.22em"
+                        textTransform="uppercase"
                     >
-                        ♦
-                    </MotionBox>
-                    <MotionBox
-                        aria-hidden="true"
-                        position="absolute"
-                        bottom={{ base: '-80px', md: '-100px' }}
-                        left={{ base: '-40px', md: '-60px' }}
-                        w={{ base: '180px', md: '240px' }}
-                        h={{ base: '180px', md: '240px' }}
-                        bg="brand.pink"
-                        opacity={0.08}
-                        borderRadius="full"
-                        zIndex={0}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        fontSize={{ base: '30px', md: '36px' }}
-                        color="white"
-                        animate={
-                            prefersReducedMotion
-                                ? undefined
-                                : { y: [0, 10, 0], rotate: [0, -8, 0] }
-                        }
-                        transition={
-                            prefersReducedMotion
-                                ? undefined
-                                : {
-                                      duration: 6,
-                                      repeat: Infinity,
-                                      ease: 'easeInOut',
-                                  }
-                        }
-                    >
-                        ♠
-                    </MotionBox>
-                    <Box
-                        aria-hidden="true"
-                        position="absolute"
-                        inset={0}
-                        backgroundImage="radial-gradient(circle, rgba(51, 68, 121, 0.12) 1px, transparent 1px)"
-                        backgroundSize="24px 24px"
-                        opacity={0.25}
-                        pointerEvents="none"
-                        zIndex={0}
-                    />
-                    <MotionVStack
-                        align="start"
-                        spacing={10}
-                        position="relative"
-                        zIndex={1}
-                        {...fadeUp(0)}
-                    >
-                        <HStack spacing={3} flexWrap="wrap">
-                            <Badge
-                                bg="brand.yellow"
-                                color="brand.darkNavy"
-                                px={4}
-                                py={1.5}
-                                borderRadius="full"
-                                fontSize="xs"
-                                fontWeight="bold"
-                                letterSpacing="0.12em"
-                                textTransform="uppercase"
-                                boxShadow="0 2px 8px rgba(253, 197, 29, 0.3)"
-                            >
-                                Why Onchain?
-                            </Badge>
-                            <Badge
-                                bg="brand.green"
-                                color="white"
-                                px={4}
-                                py={1.5}
-                                borderRadius="full"
-                                fontSize="xs"
-                                fontWeight="bold"
-                                letterSpacing="0.12em"
-                                textTransform="uppercase"
-                                boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
-                            >
-                                Vault Mode
-                            </Badge>
-                        </HStack>
+                        Under the hood
+                    </Text>
 
-                        <Heading
-                            fontSize={{ base: '3xl', md: '4xl' }}
-                            fontWeight="extrabold"
-                            color="text.primary"
+                    <Heading
+                        as="h2"
+                        fontSize={{ base: '4xl', md: '6xl', lg: '7xl' }}
+                        fontWeight="black"
+                        color="text.primary"
+                        letterSpacing="-0.03em"
+                        lineHeight={0.95}
+                        maxW="4xl"
+                    >
+                        Engine deals.{' '}
+                        <Box
+                            as="span"
+                            color="brand.green"
+                            position="relative"
+                            display="inline-block"
                         >
-                            Your Table is Your{' '}
+                            Contract
                             <Box
                                 as="span"
-                                color="brand.green"
-                                position="relative"
-                                display="inline-block"
-                            >
-                                Vault
-                                <Box
-                                    as="span"
-                                    position="absolute"
-                                    left="-4px"
-                                    right="-4px"
-                                    bottom="4px"
-                                    height="12px"
-                                    bg="brand.green"
-                                    opacity={0.16}
-                                    borderRadius="full"
-                                    zIndex={-1}
-                                />
-                            </Box>
-                            .
-                        </Heading>
+                                position="absolute"
+                                left="-4px"
+                                right="-4px"
+                                bottom={{ base: '4px', md: '8px' }}
+                                height={{ base: '10px', md: '14px' }}
+                                bg="brand.green"
+                                opacity={0.18}
+                                borderRadius="full"
+                                zIndex={-1}
+                            />
+                        </Box>{' '}
+                        pays.
+                    </Heading>
 
-                        <VStack align="start" spacing={6} maxW="3xl">
+                    <Text
+                        fontSize={{ base: 'md', md: 'lg' }}
+                        color="text.secondary"
+                        lineHeight="tall"
+                        maxW="2xl"
+                        fontWeight="medium"
+                    >
+                        Speed where it matters. Trust where it counts. The game
+                        runs in real time on our engine. Every dollar lives in
+                        a smart contract on Base. We deal the cards. The
+                        contract holds the cash.
+                    </Text>
+
+                    {/* Engine → Banker — split */}
+                    <Box
+                        w="100%"
+                        pt={{ base: 4, md: 6 }}
+                        display="grid"
+                        gridTemplateColumns={{
+                            base: '1fr',
+                            md: '1fr auto 1fr',
+                        }}
+                        gap={{ base: 4, md: 6 }}
+                        alignItems="stretch"
+                    >
+                        <Box
+                            border="1px solid"
+                            borderColor="rgba(51, 68, 121, 0.20)"
+                            _dark={{
+                                borderColor: 'rgba(150, 170, 230, 0.28)',
+                                bg: 'rgba(150, 170, 230, 0.06)',
+                            }}
+                            borderRadius="16px"
+                            p={{ base: 6, md: 7 }}
+                            bg="rgba(51, 68, 121, 0.04)"
+                            position="relative"
+                        >
+                            <HStack
+                                justify="space-between"
+                                align="center"
+                                mb={3}
+                            >
+                                <Text
+                                    fontSize="2xs"
+                                    fontWeight="bold"
+                                    color="brand.navy"
+                                    _dark={{ color: 'rgba(180, 195, 235, 0.95)' }}
+                                    letterSpacing="0.22em"
+                                    textTransform="uppercase"
+                                >
+                                    Engine · Go
+                                </Text>
+                                <Text
+                                    fontFamily="mono"
+                                    fontSize="2xs"
+                                    color="brand.navy"
+                                    _dark={{ color: 'rgba(180, 195, 235, 0.7)' }}
+                                    opacity={0.7}
+                                >
+                                    {'// off-chain'}
+                                </Text>
+                            </HStack>
                             <Text
-                                fontSize="lg"
+                                fontSize={{ base: 'xl', md: '2xl' }}
+                                fontWeight="bold"
+                                color="text.primary"
+                                letterSpacing="-0.01em"
+                                mb={2}
+                            >
+                                Deals the hand.
+                            </Text>
+                            <Text
+                                fontSize="sm"
                                 color="text.secondary"
+                                fontWeight="medium"
                                 lineHeight="tall"
                             >
-                                Speed where it matters. Trust where it
-                                counts. The game runs in real time on our
-                                engine. Every dollar lives in a smart contract
-                                on Base. We deal the cards. The contract holds
-                                the cash.
+                                Shuffle, deal, pot math. Real-time.
                             </Text>
-                        </VStack>
+                        </Box>
 
-                        {/* Split Diagram: Game Engine + The Banker */}
-                        <Box width="100%" pt={{ base: 8, md: 12 }} pb={4}>
+                        {/* Connector — md+ horizontal, mobile vertical */}
+                        <Box
+                            display={{ base: 'none', md: 'flex' }}
+                            flexDirection="column"
+                            alignItems="center"
+                            justifyContent="center"
+                            position="relative"
+                            px={2}
+                            aria-hidden="true"
+                        >
+                            <Text
+                                fontFamily="mono"
+                                fontSize="2xs"
+                                color="text.muted"
+                                letterSpacing="0.18em"
+                                textTransform="uppercase"
+                                mb={2}
+                                whiteSpace="nowrap"
+                            >
+                                state →
+                            </Text>
                             <Box
-                                bg="linear-gradient(135deg, rgba(51, 68, 121, 0.04) 0%, rgba(54, 163, 123, 0.04) 100%)"
-                                borderRadius="24px"
-                                p={{ base: 6, md: 12 }}
-                                border="1px solid"
-                                borderColor="rgba(51, 68, 121, 0.15)"
-                                boxShadow="glass"
+                                w="80px"
+                                h="2px"
+                                bgGradient="linear(to-r, brand.navy, brand.green)"
                                 position="relative"
-                                overflow="hidden"
-                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                                opacity={0.7}
+                                _dark={{ opacity: 0.85 }}
                             >
                                 <Box
                                     position="absolute"
-                                    top={{ base: '12px', md: '16px' }}
-                                    left={{ base: '12px', md: '16px' }}
-                                    zIndex={2}
-                                    bg="brand.navy"
-                                    color="white"
-                                    px={{ base: 2.5, md: 3.5 }}
-                                    py={{ base: 0.5, md: 1 }}
-                                    borderRadius="full"
-                                    fontSize={{ base: '2xs', md: 'xs' }}
-                                    fontWeight="bold"
-                                    letterSpacing="0.08em"
-                                    textTransform="uppercase"
-                                    boxShadow="0 4px 12px rgba(51, 68, 121, 0.3)"
-                                >
-                                    Engine ↔ Banker
-                                </Box>
-                                <SimpleGrid
-                                    columns={{ base: 1, lg: 2 }}
-                                    spacing={{ base: 8, lg: 12 }}
-                                    alignItems="center"
-                                >
-                                    {/* Left Side: Game Engine (Go) */}
-                                    <VStack
-                                        align="center"
-                                        spacing={{ base: 4, md: 6 }}
-                                        position="relative"
-                                    >
-                                        <MotionBox
-                                            position="relative"
-                                            w={{ base: '96px', md: '120px' }}
-                                            h={{ base: '96px', md: '120px' }}
-                                            borderRadius={{
-                                                base: '20px',
-                                                md: '24px',
-                                            }}
-                                            bgGradient="linear(135deg, brand.navy, brand.darkNavy)"
-                                            display="flex"
-                                            alignItems="center"
-                                            justifyContent="center"
-                                            boxShadow="0 12px 32px rgba(51, 68, 121, 0.35)"
-                                            _before={{
-                                                content: '""',
-                                                position: 'absolute',
-                                                inset: '-3px',
-                                                borderRadius: '26px',
-                                                bgGradient:
-                                                    'linear(135deg, brand.navy, brand.darkNavy)',
-                                                opacity: 0.25,
-                                                filter: 'blur(10px)',
-                                                zIndex: -1,
-                                            }}
-                                            animate={
-                                                prefersReducedMotion
-                                                    ? undefined
-                                                    : { y: [0, -5, 0] }
-                                            }
-                                            transition={
-                                                prefersReducedMotion
-                                                    ? undefined
-                                                    : {
-                                                          duration: 3.6,
-                                                          repeat: Infinity,
-                                                          ease: 'easeInOut',
-                                                      }
-                                            }
-                                        >
-                                            <Icon
-                                                as={MdStorage}
-                                                color="white"
-                                                fontSize={{
-                                                    base: '44px',
-                                                    md: '56px',
-                                                }}
-                                            />
-                                        </MotionBox>
-                                        <VStack spacing={2} align="center">
-                                            <Heading
-                                                fontSize={{
-                                                    base: 'lg',
-                                                    md: 'xl',
-                                                }}
-                                                fontWeight="bold"
-                                                color="text.primary"
-                                            >
-                                                Game Engine (Go)
-                                            </Heading>
-                                            <Wrap
-                                                justify="center"
-                                                spacing={{ base: 2, md: 3 }}
-                                                mt={{ base: 1, md: 2 }}
-                                            >
-                                                {['Whitelist Handling', 'Shuffling', 'Pot Calculation'].map((label) => (
-                                                    <WrapItem key={label}>
-                                                        <Badge
-                                                            bg="rgba(51, 68, 121, 0.08)"
-                                                            color="brand.navy"
-                                                            px={{ base: 2.5, md: 3 }}
-                                                            py={{
-                                                                base: 0.5,
-                                                                md: 1,
-                                                            }}
-                                                            borderRadius="full"
-                                                            fontSize={{
-                                                                base: '10px',
-                                                                md: 'xs',
-                                                            }}
-                                                            fontWeight="semibold"
-                                                            textAlign="center"
-                                                        >
-                                                            {label}
-                                                        </Badge>
-                                                    </WrapItem>
-                                                ))}
-                                            </Wrap>
-                                        </VStack>
-                                    </VStack>
-
-                                    {/* Connection Line */}
-                                    <Box
-                                        display={{
-                                            base: 'none',
-                                            lg: 'flex',
-                                        }}
-                                        position="absolute"
-                                        left="50%"
-                                        top="50%"
-                                        transform="translate(-50%, -50%)"
-                                        alignItems="center"
-                                        zIndex={1}
-                                        width="calc(100% - 280px)"
-                                        justifyContent="center"
-                                    >
-                                        <Box
-                                            flex="1"
-                                            maxW="220px"
-                                            h="2px"
-                                            bgGradient="linear(to-r, brand.navy, brand.green)"
-                                            position="relative"
-                                            opacity={0.7}
-                                        >
-                                            <MotionBox
-                                                position="absolute"
-                                                top="50%"
-                                                left="0"
-                                                w="8px"
-                                                h="8px"
-                                                bg="brand.yellow"
-                                                borderRadius="full"
-                                                transform="translate(-50%, -50%)"
-                                                boxShadow="0 0 10px rgba(253, 197, 29, 0.6), 0 0 20px rgba(253, 197, 29, 0.3)"
-                                                animate={
-                                                    prefersReducedMotion
-                                                        ? undefined
-                                                        : {
-                                                              left: ['0%', '100%', '0%'],
-                                                          }
-                                                }
-                                                transition={
-                                                    prefersReducedMotion
-                                                        ? undefined
-                                                        : {
-                                                              duration: 3.5,
-                                                              repeat: Infinity,
-                                                              ease: 'easeInOut',
-                                                          }
-                                                }
-                                            />
-                                            <Box
-                                                position="absolute"
-                                                right="-7px"
-                                                top="50%"
-                                                transform="translateY(-50%)"
-                                                w="0"
-                                                h="0"
-                                                borderTop="5px solid transparent"
-                                                borderBottom="5px solid transparent"
-                                                borderLeft="7px solid"
-                                                borderLeftColor="brand.green"
-                                                opacity={0.8}
-                                            />
-                                        </Box>
-                                        <Box
-                                            position="absolute"
-                                            left="50%"
-                                            top="-24px"
-                                            transform="translateX(-50%)"
-                                            bg="brand.darkNavy"
-                                            px={3.5}
-                                            py={1}
-                                            borderRadius="full"
-                                            fontSize="xs"
-                                            fontWeight="bold"
-                                            color="white"
-                                            whiteSpace="nowrap"
-                                            boxShadow="0 4px 12px rgba(11, 20, 48, 0.3)"
-                                            letterSpacing="0.04em"
-                                        >
-                                            State Updates
-                                        </Box>
-                                    </Box>
-
-                                    {/* Right Side: The Banker (Contract) */}
-                                    <VStack
-                                        align="center"
-                                        spacing={{ base: 4, md: 6 }}
-                                        position="relative"
-                                    >
-                                        <MotionBox
-                                            position="relative"
-                                            w={{ base: '96px', md: '120px' }}
-                                            h={{ base: '96px', md: '120px' }}
-                                            borderRadius={{
-                                                base: '20px',
-                                                md: '24px',
-                                            }}
-                                            bgGradient="linear(135deg, brand.green, rgba(54, 163, 123, 0.8))"
-                                            display="flex"
-                                            alignItems="center"
-                                            justifyContent="center"
-                                            boxShadow="0 12px 32px rgba(54, 163, 123, 0.35)"
-                                            _before={{
-                                                content: '""',
-                                                position: 'absolute',
-                                                inset: '-3px',
-                                                borderRadius: '26px',
-                                                bgGradient:
-                                                    'linear(135deg, brand.green, rgba(54, 163, 123, 0.7))',
-                                                opacity: 0.25,
-                                                filter: 'blur(10px)',
-                                                zIndex: -1,
-                                            }}
-                                            animate={
-                                                prefersReducedMotion
-                                                    ? undefined
-                                                    : { y: [0, 5, 0] }
-                                            }
-                                            transition={
-                                                prefersReducedMotion
-                                                    ? undefined
-                                                    : {
-                                                          duration: 3.8,
-                                                          repeat: Infinity,
-                                                          ease: 'easeInOut',
-                                                      }
-                                            }
-                                        >
-                                            <Icon
-                                                as={SiEthereum}
-                                                color="white"
-                                                fontSize={{
-                                                    base: '44px',
-                                                    md: '56px',
-                                                }}
-                                            />
-                                        </MotionBox>
-                                        <VStack spacing={2} align="center">
-                                            <Heading
-                                                fontSize={{
-                                                    base: 'lg',
-                                                    md: 'xl',
-                                                }}
-                                                fontWeight="bold"
-                                                color="text.primary"
-                                            >
-                                                The Banker (Contract)
-                                            </Heading>
-                                            <Wrap
-                                                justify="center"
-                                                spacing={{ base: 2, md: 3 }}
-                                                mt={{ base: 1, md: 2 }}
-                                            >
-                                                {['Custody', 'Payouts', 'Settlement'].map((label) => (
-                                                    <WrapItem key={label}>
-                                                        <Badge
-                                                            bg="rgba(54, 163, 123, 0.08)"
-                                                            color="brand.green"
-                                                            px={{ base: 2.5, md: 3 }}
-                                                            py={{
-                                                                base: 0.5,
-                                                                md: 1,
-                                                            }}
-                                                            borderRadius="full"
-                                                            fontSize={{
-                                                                base: '10px',
-                                                                md: 'xs',
-                                                            }}
-                                                            fontWeight="semibold"
-                                                            textAlign="center"
-                                                        >
-                                                            {label}
-                                                        </Badge>
-                                                    </WrapItem>
-                                                ))}
-                                            </Wrap>
-                                        </VStack>
-                                    </VStack>
-                                </SimpleGrid>
-                            </Box>
-                            <Box
-                                position="absolute"
-                                bottom={{ base: '10px', md: '16px' }}
-                                left="50%"
-                                transform="translateX(-50%)"
-                                bg="card.white"
-                                border="1px solid"
-                                borderColor="border.lightGray"
-                                w={{ base: '46px', md: '52px' }}
-                                h={{ base: '46px', md: '52px' }}
-                                borderRadius="full"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                fontWeight="bold"
-                                color="brand.navy"
-                                boxShadow="0 10px 20px rgba(12, 21, 49, 0.12)"
-                            >
-                                D
+                                    right="-1px"
+                                    top="50%"
+                                    transform="translateY(-50%)"
+                                    w="0"
+                                    h="0"
+                                    borderTop="5px solid transparent"
+                                    borderBottom="5px solid transparent"
+                                    borderLeft="6px solid"
+                                    borderLeftColor="brand.green"
+                                />
                             </Box>
                         </Box>
-
-                        <SimpleGrid
-                            columns={{ base: 1, md: 2 }}
-                            spacing={8}
-                            width="100%"
-                            pt={6}
+                        <Box
+                            display={{ base: 'flex', md: 'none' }}
+                            flexDirection="column"
+                            alignItems="center"
+                            color="text.muted"
+                            aria-hidden="true"
                         >
-                            <MotionBox {...fadeUp(0.1)}>
-                                <Box
-                                    position="relative"
-                                    p="2px"
-                                    borderRadius="28px"
-                                    bgGradient="linear(to-r, brand.navy, brand.yellow, brand.navy)"
-                                    backgroundSize="300% 300%"
-                                    animation={`${gradientMove} 8s linear infinite`}
-                                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                    _hover={{
-                                        transform: 'translateY(-3px)',
-                                        boxShadow:
-                                            '0 16px 40px rgba(51, 68, 121, 0.18)',
-                                    }}
+                            <Text
+                                fontFamily="mono"
+                                fontSize="2xs"
+                                letterSpacing="0.18em"
+                                textTransform="uppercase"
+                                mb={1}
+                            >
+                                state ↓
+                            </Text>
+                            <Box
+                                w="2px"
+                                h="28px"
+                                bgGradient="linear(to-b, brand.navy, brand.green)"
+                                opacity={0.7}
+                            />
+                        </Box>
+
+                        <Box
+                            border="1px solid"
+                            borderColor="border.greenStrong"
+                            borderRadius="16px"
+                            p={{ base: 6, md: 7 }}
+                            bg="bg.greenSubtle"
+                        >
+                            <HStack
+                                justify="space-between"
+                                align="center"
+                                mb={3}
+                            >
+                                <Text
+                                    fontSize="2xs"
+                                    fontWeight="bold"
+                                    color="brand.green"
+                                    letterSpacing="0.22em"
+                                    textTransform="uppercase"
                                 >
-                                    <Box
-                                        position="absolute"
-                                        top="14px"
-                                        left="16px"
-                                        fontSize="16px"
-                                        color="brand.navy"
-                                        opacity={0.25}
-                                        zIndex={1}
-                                    >
-                                        ♠
-                                    </Box>
-                                    <Box
-                                        position="absolute"
-                                        top="12px"
-                                        right="14px"
-                                        bg="brand.navy"
-                                        px={2.5}
-                                        py={0.5}
-                                        borderRadius="full"
-                                        fontSize="xs"
-                                        fontWeight="bold"
-                                        color="white"
-                                        letterSpacing="0.08em"
-                                        zIndex={1}
-                                        boxShadow="0 2px 8px rgba(51, 68, 121, 0.3)"
-                                    >
-                                        Proof 01
-                                    </Box>
-                                    <Box
-                                        bg="card.white"
-                                        p={{ base: 6, md: 10 }}
-                                        borderRadius="26px"
-                                        height="100%"
-                                    >
-                                        <HStack
-                                            spacing={{ base: 3, md: 4 }}
-                                            mb={{ base: 4, md: 5 }}
-                                        >
-                                            <Icon
-                                                as={MdStorage}
-                                                color="brand.navy"
-                                                fontSize={{
-                                                    base: '22px',
-                                                    md: '28px',
-                                                }}
-                                            />
-                                            <Heading
-                                                fontSize={{
-                                                    base: 'lg',
-                                                    md: 'xl',
-                                                }}
-                                                fontWeight="bold"
-                                                color="text.primary"
-                                                letterSpacing="-0.01em"
-                                            >
-                                                Cryptographic Shuffling
-                                            </Heading>
-                                        </HStack>
-                                        <Text
-                                            color="text.secondary"
-                                            lineHeight={{
-                                                base: 'taller',
-                                                md: 'tall',
-                                            }}
-                                            fontSize={{ base: 'sm', md: 'md' }}
-                                            fontWeight="medium"
-                                        >
-                                            No predictable seeds. Every shuffle
-                                            uses OS entropy via Go&apos;s
-                                            crypto/rand and a Fisher-Yates pass
-                                            — the same primitives behind TLS
-                                            keys. Server-side, but
-                                            cryptographically unpredictable.
-                                        </Text>
-                                    </Box>
-                                </Box>
-                            </MotionBox>
-                            <MotionBox {...fadeUp(0.2)}>
-                                <Box
-                                    position="relative"
-                                    p="2px"
-                                    borderRadius="28px"
-                                    bgGradient="linear(to-r, brand.green, brand.pink, brand.green)"
-                                    backgroundSize="300% 300%"
-                                    animation={`${gradientMove} 8s linear infinite`}
-                                    transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                    _hover={{
-                                        transform: 'translateY(-3px)',
-                                        boxShadow:
-                                            '0 16px 40px rgba(54, 163, 123, 0.18)',
-                                    }}
+                                    Banker · Base
+                                </Text>
+                                <Text
+                                    fontFamily="mono"
+                                    fontSize="2xs"
+                                    color="brand.green"
+                                    opacity={0.7}
                                 >
-                                    <Box
-                                        position="absolute"
-                                        top="14px"
-                                        left="16px"
-                                        fontSize="16px"
+                                    {'// onchain'}
+                                </Text>
+                            </HStack>
+                            <Text
+                                fontSize={{ base: 'xl', md: '2xl' }}
+                                fontWeight="bold"
+                                color="text.primary"
+                                letterSpacing="-0.01em"
+                                mb={2}
+                            >
+                                Holds the cash.
+                            </Text>
+                            <Text
+                                fontSize="sm"
+                                color="text.secondary"
+                                fontWeight="medium"
+                                lineHeight="tall"
+                            >
+                                One smart contract per table. Custody, payouts,
+                                settlement.
+                            </Text>
+                        </Box>
+                    </Box>
+
+                    <SimpleGrid
+                        columns={{ base: 1, md: 2 }}
+                        spacing={{ base: 5, md: 6 }}
+                        w="100%"
+                        pt={{ base: 4, md: 6 }}
+                    >
+                        <ShuffleCodeReceipt />
+                        <ContractReceipt />
+                    </SimpleGrid>
+
+                    {/* Hero stat + supporting strip */}
+                    <Box
+                        w="100%"
+                        pt={{ base: 2, md: 4 }}
+                        borderTop="1px solid"
+                        borderColor="border.lightGray"
+                    >
+                        <Flex
+                            direction={{ base: 'column', md: 'row' }}
+                            align={{ base: 'start', md: 'flex-end' }}
+                            justify="space-between"
+                            gap={{ base: 8, md: 6 }}
+                            pt={{ base: 6, md: 8 }}
+                            w="100%"
+                        >
+                            <VStack
+                                align="start"
+                                spacing={1}
+                                flexShrink={0}
+                            >
+                                <Text
+                                    fontSize="2xs"
+                                    fontWeight="bold"
+                                    color="text.muted"
+                                    letterSpacing="0.22em"
+                                    textTransform="uppercase"
+                                    mb={1}
+                                >
+                                    Possible decks
+                                </Text>
+                                <HStack
+                                    spacing={3}
+                                    align="baseline"
+                                    flexWrap="wrap"
+                                >
+                                    <Text
+                                        fontSize={{
+                                            base: '5xl',
+                                            md: '6xl',
+                                            lg: '7xl',
+                                        }}
+                                        fontWeight="black"
                                         color="brand.pink"
-                                        opacity={0.25}
-                                        zIndex={1}
+                                        letterSpacing="-0.04em"
+                                        lineHeight={0.9}
                                     >
-                                        ♥
-                                    </Box>
-                                    <Box
-                                        position="absolute"
-                                        top="12px"
-                                        right="14px"
-                                        bg="brand.green"
-                                        px={2.5}
-                                        py={0.5}
-                                        borderRadius="full"
-                                        fontSize="xs"
-                                        fontWeight="bold"
-                                        color="white"
-                                        letterSpacing="0.08em"
-                                        zIndex={1}
-                                        boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
-                                    >
-                                        Proof 02
-                                    </Box>
-                                    <Box
-                                        bg="card.white"
-                                        p={{ base: 6, md: 10 }}
-                                        borderRadius="26px"
-                                        height="100%"
-                                    >
-                                        <HStack
-                                            spacing={{ base: 3, md: 4 }}
-                                            mb={{ base: 4, md: 5 }}
+                                        8 × 10
+                                        <Box
+                                            as="sup"
+                                            fontSize="0.55em"
+                                            top="-0.6em"
+                                            ml="0.05em"
                                         >
-                                            <Icon
-                                                as={MdSecurity}
-                                                color="brand.green"
-                                                fontSize={{
-                                                    base: '22px',
-                                                    md: '28px',
-                                                }}
-                                            />
-                                            <Heading
-                                                fontSize={{
-                                                    base: 'lg',
-                                                    md: 'xl',
-                                                }}
-                                                fontWeight="bold"
-                                                color="text.primary"
-                                                letterSpacing="-0.01em"
-                                            >
-                                                The Smart Contract Banker
-                                            </Heading>
-                                        </HStack>
+                                            67
+                                        </Box>
+                                    </Text>
+                                </HStack>
+                                <Text
+                                    fontSize="sm"
+                                    color="text.secondary"
+                                    fontWeight="medium"
+                                    pt={1}
+                                >
+                                    More than atoms in the observable universe.
+                                </Text>
+                            </VStack>
+
+                            <SimpleGrid
+                                columns={{ base: 1, sm: 3 }}
+                                spacing={{ base: 4, md: 6 }}
+                                w={{ base: '100%', md: 'auto' }}
+                                minW={{ md: '380px' }}
+                            >
+                                {SUPPORT_STATS.map((stat) => (
+                                    <VStack
+                                        key={stat.label}
+                                        align="start"
+                                        spacing={0.5}
+                                    >
                                         <Text
-                                            color="text.secondary"
-                                            lineHeight={{
-                                                base: 'taller',
-                                                md: 'tall',
-                                            }}
-                                            fontSize={{ base: 'sm', md: 'md' }}
-                                            fontWeight="medium"
+                                            fontSize={{ base: 'md', md: 'lg' }}
+                                            fontWeight="bold"
+                                            color="text.primary"
+                                            letterSpacing="-0.01em"
+                                            lineHeight={1.1}
                                         >
-                                            Every table deploys its own
-                                            dedicated Smart Contract (1-to-1).
-                                            It acts as an automated escrow
-                                            vault. We update the score, but the
-                                            contract holds the cash.
+                                            {stat.value}
                                         </Text>
-                                    </Box>
-                                </Box>
-                            </MotionBox>
-                        </SimpleGrid>
-                    </MotionVStack>
-                </Box>
+                                        <Text
+                                            fontSize="2xs"
+                                            fontWeight="bold"
+                                            color="text.muted"
+                                            letterSpacing="0.18em"
+                                            textTransform="uppercase"
+                                        >
+                                            {stat.label}
+                                        </Text>
+                                    </VStack>
+                                ))}
+                            </SimpleGrid>
+                        </Flex>
+                    </Box>
+                </MotionVStack>
             </Container>
         </Box>
     );

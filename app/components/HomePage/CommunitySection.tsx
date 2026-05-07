@@ -25,7 +25,6 @@ import { FcGoogle } from 'react-icons/fc';
 import { RiTwitterXLine } from 'react-icons/ri';
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import FloatingDecor from './FloatingDecor';
 
 const MotionBox = motion(Box);
 const MotionVStack = motion(VStack);
@@ -93,13 +92,28 @@ const CommunitySection = () => {
         <Box
             as="section"
             id="community"
-            bg="bg.default"
-            py={{ base: 12, md: 20 }}
+            py={{ base: 10, md: 14 }}
             width="100%"
             position="relative"
-            overflow="hidden"
         >
-            <FloatingDecor density="light" />
+            {/* Big spade watermark — section signature */}
+            <Box
+                aria-hidden="true"
+                position="absolute"
+                top={{ base: '-40px', md: '-100px' }}
+                right={{ base: '-50px', md: '-80px', lg: '-40px' }}
+                fontSize={{ base: '220px', md: '460px', lg: '560px' }}
+                lineHeight={1}
+                color="brand.navy"
+                opacity={0.05}
+                pointerEvents="none"
+                transform="rotate(-12deg)"
+                fontWeight="bold"
+                userSelect="none"
+            >
+                ♠
+            </Box>
+
             <Container maxW="container.xl" position="relative" zIndex={1}>
                 {/* Header Section */}
                 <MotionVStack
@@ -115,57 +129,14 @@ const CommunitySection = () => {
                         letterSpacing={{ base: '-0.02em', md: '-0.03em' }}
                         color="text.primary"
                     >
-                        <Box as="span" display="inline-block" position="relative" px={1}>
-                            <MotionBox
-                                aria-hidden="true"
-                                position="absolute"
-                                top={{ base: '-10px', md: '-14px' }}
-                                left={{ base: '-10px', md: '-18px' }}
-                                w={{ base: '10px', md: '12px' }}
-                                h={{ base: '10px', md: '12px' }}
-                                borderRadius="full"
-                                bg="brand.pink"
-                                boxShadow="0 0 0 5px rgba(235, 11, 92, 0.15)"
-                                animate={
-                                    shouldAnimate
-                                        ? { y: [0, -6, 0], rotate: [0, 12, 0] }
-                                        : undefined
-                                }
-                                transition={
-                                    shouldAnimate
-                                        ? { duration: 3.4, repeat: Infinity, ease: 'easeInOut' }
-                                        : undefined
-                                }
-                            />
-                            <MotionBox
-                                aria-hidden="true"
-                                position="absolute"
-                                bottom={{ base: '-8px', md: '-12px' }}
-                                right={{ base: '-12px', md: '-20px' }}
-                                w={{ base: '12px', md: '14px' }}
-                                h={{ base: '12px', md: '14px' }}
-                                bg="brand.yellow"
-                                borderRadius="4px"
-                                boxShadow="0 0 0 5px rgba(253, 197, 29, 0.15)"
-                                animate={
-                                    shouldAnimate
-                                        ? { y: [0, 6, 0], rotate: [20, 8, 20] }
-                                        : undefined
-                                }
-                                transition={
-                                    shouldAnimate
-                                        ? { duration: 4, repeat: Infinity, ease: 'easeInOut' }
-                                        : undefined
-                                }
-                            />
+                        <Box
+                            as="span"
+                            display="inline-block"
+                            position="relative"
+                            pr={2}
+                        >
+                            Poker Night
                             <Box
-                                as="span"
-                                display="inline-block"
-                                position="relative"
-                                pr={2}
-                            >
-                                Poker Night
-                            <MotionBox
                                 as="span"
                                 position="absolute"
                                 left="0"
@@ -173,51 +144,24 @@ const CommunitySection = () => {
                                 bottom="-6px"
                                 height="10px"
                                 bg="brand.yellow"
-                                opacity={0.18}
+                                opacity={0.22}
                                 borderRadius="full"
                                 zIndex={-1}
-                                style={{ rotate: -1 }}
+                                transform="rotate(-1deg)"
                             />
-                            </Box>{' '}
-                            <Box
-                                as="span"
-                                display="inline-block"
-                                bg="brand.green"
-                                color="white"
-                                px={{ base: 3, md: 4 }}
-                                py={{ base: 1, md: 1.5 }}
-                                borderRadius="full"
-                                transform="rotate(-2deg)"
-                                boxShadow="0 6px 16px rgba(54, 163, 123, 0.35)"
-                            >
-                                is Back
-                            </Box>{' '}
-                            <MotionBox
-                                as="span"
-                                display="inline-flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                bg="brand.pink"
-                                color="white"
-                                w={{ base: '42px', md: '48px' }}
-                                h={{ base: '42px', md: '48px' }}
-                                borderRadius="full"
-                                transform="rotate(6deg)"
-                                boxShadow="0 8px 18px rgba(235, 11, 92, 0.35)"
-                                ml={1}
-                                animate={
-                                    shouldAnimate
-                                        ? { y: [0, -6, 0], rotate: [6, 2, 6] }
-                                        : undefined
-                                }
-                                transition={
-                                    shouldAnimate
-                                        ? { duration: 3, repeat: Infinity, ease: 'easeInOut' }
-                                        : undefined
-                                }
-                            >
-                                🤑
-                            </MotionBox>
+                        </Box>{' '}
+                        <Box
+                            as="span"
+                            display="inline-block"
+                            bg="brand.green"
+                            color="white"
+                            px={{ base: 3, md: 4 }}
+                            py={{ base: 1, md: 1.5 }}
+                            borderRadius="full"
+                            transform="rotate(-2deg)"
+                            boxShadow="0 6px 16px rgba(54, 163, 123, 0.35)"
+                        >
+                            is Back
                         </Box>
                     </Heading>
                     <Text
@@ -249,26 +193,20 @@ const CommunitySection = () => {
                                 w="full"
                                 maxW={{ base: '100%', lg: '560px' }}
                                 mx="auto"
-                                bg="card.lightGray"
-                                borderRadius="2xl"
-                                overflow="hidden"
-                                boxShadow="glass"
-                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                _hover={{ boxShadow: 'glass-hover', transform: 'translateY(-2px)' }}
                             >
                                 <Image
                                     src="/homepage/lobbyPic.png"
                                     alt="Poker lobby"
                                     fill
                                     sizes="(max-width: 992px) 100vw, 560px"
-                                    style={{ objectFit: 'cover', objectPosition: 'center' }}
+                                    style={{ objectFit: 'contain', objectPosition: 'center' }}
                                 />
                             </AspectRatio>
                         </MotionBox>
 
                         <MotionVStack align="start" spacing={6} {...getFadeUpMotion(0.2)}>
                             <Badge
-                                bg="rgba(54, 163, 123, 0.08)"
+                                bg="bg.greenTint"
                                 color="brand.green"
                                 variant="subtle"
                                 px={4}
@@ -281,11 +219,10 @@ const CommunitySection = () => {
                                 letterSpacing="widest"
                                 textTransform="uppercase"
                                 border="1px solid"
-                                borderColor="rgba(54, 163, 123, 0.15)"
-                                backdropFilter="blur(8px)"
+                                borderColor="border.greenSubtle"
                             >
                                 <Icon as={MdFlashOn} mr={1.5} fontSize="sm" />
-                                ZERO BRAINPOWER NEEDED
+                                INSTANT PLAY
                             </Badge>
                             <Heading
                                 fontSize={{ base: '3xl', md: '4xl' }}
@@ -334,12 +271,12 @@ const CommunitySection = () => {
                                         display="flex"
                                         alignItems="center"
                                         fontSize="md"
-                                        bg="rgba(54, 163, 123, 0.04)"
+                                        bg="bg.greenSubtle"
                                         px={4}
                                         py={2.5}
                                         borderRadius="xl"
                                         border="1px solid"
-                                        borderColor="rgba(54, 163, 123, 0.08)"
+                                        borderColor="border.greenSubtle"
                                     >
                                         <ListIcon
                                             as={MdCheckCircle}
@@ -397,8 +334,7 @@ const CommunitySection = () => {
                                 fontWeight="bold"
                                 letterSpacing="widest"
                                 border="1px solid"
-                                borderColor="rgba(133, 93, 205, 0.15)"
-                                backdropFilter="blur(8px)"
+                                borderColor="rgba(133, 93, 205, 0.18)"
                             >
                                 <Icon as={SiThirdweb} mr={2} fontSize="sm" />
                                 POWERED BY THIRDWEB
@@ -441,15 +377,15 @@ const CommunitySection = () => {
                                     <Text
                                         fontWeight="bold"
                                         fontSize="md"
-                                        color="text.white"
+                                        color="white"
                                     >
                                         How it works:
                                     </Text>
                                     <Text fontSize="sm" color="brand.lightGray">
                                         Sign in with your social account or
                                         connect your Web3 wallet. Buy in with
-                                        USDC. Funds move directly on-chain —
-                                        no intermediary holds your bankroll.
+                                        USDC. Funds move directly on-chain. No
+                                        intermediary holds your bankroll.
                                     </Text>
                                 </VStack>
                             </Box>
@@ -470,7 +406,7 @@ const CommunitySection = () => {
                                         cursor="default"
                                         _hover={{
                                             transform: 'translateY(-2px)',
-                                            boxShadow: 'glass',
+                                            boxShadow: 'card.lift',
                                             borderColor: 'rgba(133, 93, 205, 0.25)',
                                         }}
                                     >
@@ -538,19 +474,15 @@ const CommunitySection = () => {
                             </HStack>
                         </MotionVStack>
 
-                        <MotionBox {...getFadeUpMotion(0.1)}>
+                        <MotionBox
+                            {...getFadeUpMotion(0.1)}
+                            order={{ base: 1, lg: 2 }}
+                        >
                             <AspectRatio
                                 ratio={802 / 623}
                                 w="full"
                                 maxW={{ base: '100%', lg: '520px' }}
                                 mx="auto"
-                                position="relative"
-                                borderRadius="2xl"
-                                overflow="hidden"
-                                order={{ base: 1, lg: 2 }}
-                                boxShadow="glass"
-                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                _hover={{ boxShadow: 'glass-hover', transform: 'translateY(-2px)' }}
                             >
                                 <Image
                                     src="/homepage/thirdwebLogin.png"

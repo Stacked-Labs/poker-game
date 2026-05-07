@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-06T00:00:00.000Z",
+  "title": "Design System: Stacked",
+  "extensions": {
+    "colorMeta": {
+      "penthouse-midnight": { "role": "primary", "displayName": "Penthouse Midnight", "canonical": "#0B1430", "tonalRamp": ["#02040C", "#050918", "#080F24", "#0B1430", "#1A2A5A", "#2D438A", "#7080BC", "#C5CCE0"] },
+      "velvet-navy": { "role": "primary", "displayName": "Velvet Navy", "canonical": "#334479", "tonalRamp": ["#0F1429", "#1A2347", "#243266", "#334479", "#4A5C9A", "#6F80B6", "#A0AED0", "#D4DAEA"] },
+      "neon-stake": { "role": "secondary", "displayName": "Neon Stake", "canonical": "#EB0B5C", "tonalRamp": ["#3D031B", "#660630", "#A30A4B", "#EB0B5C", "#F23A80", "#F671A2", "#FAA9C4", "#FED9E5"] },
+      "felt-green": { "role": "secondary", "displayName": "Felt Green", "canonical": "#36A37B", "tonalRamp": ["#0D2A1F", "#175140", "#236F58", "#36A37B", "#5DBC9C", "#88D1B9", "#B9E5D5", "#E0F4EC"] },
+      "chip-yellow": { "role": "tertiary", "displayName": "Chip Yellow", "canonical": "#FDC51D", "tonalRamp": ["#3D2F02", "#695004", "#A07905", "#B78900", "#FDC51D", "#FEDA63", "#FEEAA0", "#FFF6D5"] },
+      "cold-light": { "role": "neutral", "displayName": "Cold Light", "canonical": "#ECEEF5", "tonalRamp": ["#0E0F14", "#222530", "#3A3F4F", "#5C6378", "#8089A0", "#B8BFCF", "#D5DAE6", "#ECEEF5"] },
+      "ash-charcoal": { "role": "neutral", "displayName": "Ash Charcoal", "canonical": "#363535", "tonalRamp": ["#0E0E0E", "#1A1A1A", "#262626", "#363535", "#5C5959", "#8A8585", "#B5B0B0", "#E0DCDC"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#191414", "tonalRamp": ["#080606", "#0E0A0A", "#121010", "#191414", "#3A3030", "#665555", "#A09090", "#D8CFCF"] },
+      "surface-night": { "role": "neutral", "displayName": "Surface Night", "canonical": "#171717", "tonalRamp": ["#070707", "#0F0F0F", "#171717", "#1F1F1F", "#3A3A3A", "#666666", "#A0A0A0", "#D8D8D8"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headlines on / and marketing surfaces only. Never inside the table." },
+      "headline": { "displayName": "Headline", "purpose": "Section headers in lobby and stats." },
+      "title": { "displayName": "Title", "purpose": "Card titles, modal titles, secondary structure." },
+      "body": { "displayName": "Body", "purpose": "Default paragraph. 65–75ch on text-heavy surfaces." },
+      "label": { "displayName": "Label", "purpose": "Action labels (CALL/RAISE/FOLD), stakes badges, table-side metadata." }
+    },
+    "shadows": [
+      { "name": "default", "value": "0px 0px 8px 0px rgba(0, 0, 0, 0.15)", "purpose": "Quiet ambient lift. Default Chakra component shadow." },
+      { "name": "card-hero-light", "value": "0 25px 80px rgba(0, 0, 0, 0.12), 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.9)", "purpose": "Hero card lift in light mode. Layered with hairline outline." },
+      { "name": "card-hero-dark", "value": "0 25px 80px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)", "purpose": "Hero card lift in dark mode." },
+      { "name": "chat-input-focus", "value": "0 0 0 2px rgba(51, 68, 121, 0.2)", "purpose": "Chat input focus ring. Velvet Navy 2px no blur." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for state transitions on buttons and inputs." },
+      { "name": "duration-standard", "value": "0.25s", "purpose": "Default duration for hover/focus state changes." },
+      { "name": "duration-fast", "value": "0.1s", "purpose": "Press/active scale feedback." },
+      { "name": "duration-slow", "value": "0.3s", "purpose": "Larger surface state changes (social buttons, settings buttons)." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "480px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "992px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default Chakra button in this app: Surface Night ground, white text, white 2px border, 12px radius.",
+      "html": "<button class=\"ds-btn-primary\">SIT DOWN</button>",
+      "css": ".ds-btn-primary { background: #171717; color: #ECEEF5; padding: 10px 20px; border: 2px solid #ECEEF5; border-radius: 12px; font-family: system-ui, sans-serif; font-weight: 500; font-size: 1rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background: #2e2e2e; } .ds-btn-primary:active { transform: scale(0.97); transition: transform 0.1s ease; } .ds-btn-primary:focus-visible { outline: 2px solid #EB0B5C; outline-offset: 2px; }"
+    },
+    {
+      "name": "Confirm Button",
+      "kind": "button",
+      "refersTo": "button-confirm",
+      "description": "Confirm/call/positive-money action. Flat Felt Green (new variants drop the gradient).",
+      "html": "<button class=\"ds-btn-confirm\">CALL $5</button>",
+      "css": ".ds-btn-confirm { background: #36A37B; color: #FFFFFF; padding: 12px 24px; border: none; border-radius: 12px; font-family: system-ui, sans-serif; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-confirm:hover { background: #2C8867; transform: translateY(-1px); } .ds-btn-confirm:active { transform: translateY(0) scale(0.98); } .ds-btn-confirm:focus-visible { outline: 2px solid #EB0B5C; outline-offset: 2px; }"
+    },
+    {
+      "name": "Action / Raise Button",
+      "kind": "button",
+      "refersTo": "button-action-raise",
+      "description": "At-the-table compact action button. Velvet Navy ground, uppercase, letter-spaced.",
+      "html": "<button class=\"ds-btn-action\">RAISE</button>",
+      "css": ".ds-btn-action { background: #334479; color: #FFFFFF; padding: 6px 10px; min-height: 28px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; font-family: system-ui, sans-serif; font-weight: 700; font-size: 0.75rem; letter-spacing: 0.03em; text-transform: uppercase; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-action:hover { background: #36A37B; transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.12); } .ds-btn-action:active { transform: translateY(0) scale(0.96); } .ds-btn-action:disabled { opacity: 0.35; cursor: not-allowed; }"
+    },
+    {
+      "name": "Take-Seat Input",
+      "kind": "input",
+      "refersTo": "input-stake",
+      "description": "Most expressive input in the system. Cold Light ground, becomes white on focus, Felt Green hover, Neon Stake focus halo.",
+      "html": "<input class=\"ds-input-stake\" placeholder=\"Buy in (USDC)\" />",
+      "css": ".ds-input-stake { background: #ECEEF5; color: #334479; height: 56px; padding: 0 16px; border: 2px solid transparent; border-radius: 12px; font-family: system-ui, sans-serif; font-weight: 600; font-size: 1rem; transition: all 0.2s ease; width: 100%; box-sizing: border-box; } .ds-input-stake::placeholder { color: #A0AEC0; } .ds-input-stake:hover { border-color: #36A37B; } .ds-input-stake:focus { outline: none; border-color: #EB0B5C; box-shadow: 0 0 0 3px rgba(235, 11, 92, 0.1); background: #FFFFFF; }"
+    },
+    {
+      "name": "Hero Card",
+      "kind": "card",
+      "refersTo": "card-hero",
+      "description": "Layered hero card on /. Hairline outline + multi-stop ambient shadow.",
+      "html": "<div class=\"ds-card-hero\"><h2 class=\"ds-card-hero-h\">Sit down. Stand up. Stack moves with you.</h2><p class=\"ds-card-hero-p\">USDC on Base. No chips, no withdraw queue.</p></div>",
+      "css": ".ds-card-hero { background: rgba(23, 23, 23, 0.8); color: #ECEEF5; border-radius: 16px; padding: 32px; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05); } .ds-card-hero-h { font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(1.5rem, 4vw, 2.5rem); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 12px 0; color: #ECEEF5; } .ds-card-hero-p { font-family: system-ui, sans-serif; font-weight: 500; font-size: 1rem; line-height: 1.5; margin: 0; color: rgba(236, 238, 245, 0.7); }"
+    },
+    {
+      "name": "Chat Row",
+      "kind": "custom",
+      "description": "Alternating chat row pattern. Hairline border, 3% lightness hover bump, Velvet Navy scroll thumb.",
+      "html": "<ul class=\"ds-chat\"><li class=\"ds-chat-row\"><span class=\"ds-chat-name\">degen.eth</span><span class=\"ds-chat-msg\">good run</span></li><li class=\"ds-chat-row alt\"><span class=\"ds-chat-name\">stx.base</span><span class=\"ds-chat-msg\">gg</span></li></ul>",
+      "css": ".ds-chat { list-style: none; padding: 0; margin: 0; border-top: 1px solid rgba(255, 255, 255, 0.15); border-bottom: 1px solid rgba(255, 255, 255, 0.15); } .ds-chat-row { display: flex; gap: 8px; padding: 8px 12px; background: #262626; transition: background 0.15s ease; font-family: system-ui, sans-serif; font-size: 0.875rem; } .ds-chat-row.alt { background: #363535; } .ds-chat-row:hover { background: #2b2b2b; } .ds-chat-row.alt:hover { background: #1f1f1f; } .ds-chat-name { color: #36A37B; font-weight: 700; } .ds-chat-msg { color: #ECEEF5; }"
+    },
+    {
+      "name": "Empty Seat",
+      "kind": "custom",
+      "description": "Signature 'sit down' affordance at the table. Loud-on-purpose dashed border that scales with viewport.",
+      "html": "<button class=\"ds-empty-seat\">SIT</button>",
+      "css": ".ds-empty-seat { background: transparent; color: #A0AEC0; width: 100%; padding: 16px; border: 2px dashed #A0AEC0; border-radius: 12px; font-family: system-ui, sans-serif; font-weight: 700; font-size: clamp(0.95rem, 4vw, 2.3rem); letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease; } .ds-empty-seat:hover { border-color: #EB0B5C; color: #EB0B5C; } .ds-empty-seat:focus-visible { outline: 2px solid #EB0B5C; outline-offset: 4px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Crypto Card Room",
+    "overview": "Stacked is an underground card room that happens to live onchain. The room is dark, warm, intimate. The felt is real. The money is USDC. The door speaks the language of people who already hold a wallet, not the language of people we're trying to convert. This is not a casino floor and it is not a fintech dashboard. It is a confident, lived-in room where the cards move fast and the settlement is invisible until you stand up.\n\nThe aesthetic anchors on three tensions, held in balance: product discipline at the table (every pixel earns its place under decision pressure), brand permission in the lobby (personality, motion, and color carry weight), and crypto-native fluency throughout (wallets, USDC, Base, signing all spoken without translation). The room rejects what it isn't, on purpose: the polished WSOP corporate floor, the Uniswap-clone DEX dashboard, the gradient-mesh Web3 hero page, and the AI-rendered SaaS landing template all live somewhere else.\n\nThe current implementation carries some debt the strategic line will eventually retire: glassmorphic backdrop blurs, glow shadows, and gradient buttons exist in the codebase from earlier eras. They are documented honestly, but they are not the system's future. New work should not extend them.",
+    "keyCharacteristics": [
+      "Light and dark modes are both first-class. Every screen designed and reviewed in both. Brand mood (warm, intimate) applies to both modes.",
+      "Mobile-first by usage. Primary players are on phones in landscape at the table, in portrait in the lobby.",
+      "Color is committed: Penthouse Midnight + Velvet Navy + Cold Light carry the room across modes; Neon Stake is the rare pink accent that earns its appearances.",
+      "Typography is a single-family system (Poppins). Hierarchy through weight and scale, not type-pairing.",
+      "Motion is human, not robotic. Bets settle, chips have weight, deals have rhythm."
+    ],
+    "rules": [
+      { "name": "The Neon Stake Rule", "body": "The signature pink (#EB0B5C) is rare on purpose. Use it for input focus rings, the brand mark, and the single most-important action in any view. Never on body text. Never as a gradient. Never on more than one element per screen.", "section": "colors" },
+      { "name": "The No Pure Black/White Rule", "body": "#000 and #fff are forbidden. Every neutral is warmed.", "section": "colors" },
+      { "name": "The Warm-Neutrals Rule", "body": "Both modes share a warm temperature, never cool fintech gray. Light warms toward Cold Light and white; dark warms toward Penthouse Midnight, Ink, Ash Charcoal, Black Ash. The legacy gray.500/700 ramp is debt in both modes.", "section": "colors" },
+      { "name": "The One-Family Rule", "body": "Poppins for everything. Hierarchy through weight and scale, never through a second family.", "section": "typography" },
+      { "name": "The Tight-Headline Rule", "body": "Headings carry letter-spacing -0.02em.", "section": "typography" },
+      { "name": "The Mobile-First-Type Rule", "body": "All display and headline sizes are clamp()-bound. Phones are the primary surface.", "section": "typography" },
+      { "name": "The Tonal-First Rule", "body": "Depth is built by stacking warm-dark surfaces, not by reaching for shadows.", "section": "elevation" },
+      { "name": "The No-Glow Rule", "body": "glow-green, glow-pink, glow-yellow exist in theme.ts from an earlier era. Do not add new uses. Existing uses are tracked as cleanup.", "section": "elevation" },
+      { "name": "The Hairline-Outline Rule", "body": "When a card needs more than tone, pair the shadow with a 0 0 0 1px hairline of warm-white at low opacity.", "section": "elevation" },
+      { "name": "The Solid-Over-Gradient Rule", "body": "Confirm and primary actions resolve to solid colors, not gradients.", "section": "components" },
+      { "name": "The Solid-Over-Glass Rule", "body": "Backdrop blur exists in legacy variants. Do not add new uses.", "section": "components" },
+      { "name": "The 44pt Tap Rule", "body": "All tap targets in the table interface and primary lobby flows hit 44x44pt minimum on mobile.", "section": "components" }
+    ],
+    "dos": [
+      "Do use Poppins for all text. Hierarchy comes from weight (500 / 700 / 800) and scale, not from a second family.",
+      "Do reach for Penthouse Midnight and Velvet Navy as the room's grounds. Use Cold Light for soft surfaces in light mode.",
+      "Do reserve Neon Stake for the single most important action per screen, focus rings, and the brand mark.",
+      "Do use Felt Green for confirm / call / positive money states, flat (not gradient) for new variants.",
+      "Do build depth with tonal layering first. Reach for shadow only when tone alone can't do the job.",
+      "Do pair shadow with a 1px hairline outline when a card needs to feel architectural.",
+      "Do clamp display and headline sizes. Mobile is the primary context.",
+      "Do carry letter-spacing -0.02em on headings.",
+      "Do use semantic tokens at call sites; reach for raw colors.brand.* only inside theme definitions.",
+      "Do respect prefers-reduced-motion.",
+      "Do ensure 44x44pt tap targets in the table and primary lobby flows.",
+      "Do pair color with shape, icon, or text for state."
+    ],
+    "donts": [
+      "Don't use #000 or #fff. Every neutral is warmed.",
+      "Don't introduce a second type family. Poppins, all weights, all sizes.",
+      "Don't add glassmorphism. Existing backdropFilter uses are debt.",
+      "Don't add glowing buttons. glow-green, glow-pink, glow-yellow shadows are explicitly anti-reference.",
+      "Don't use gradient text (background-clip: text).",
+      "Don't use gradient meshes or 'Welcome to the Future' hero copy.",
+      "Don't build the hero-metric SaaS template (big number, small label, gradient accent).",
+      "Don't use identical card grids.",
+      "Don't use side-stripe borders (border-left greater than 1px as a colored accent).",
+      "Don't use em dashes in shipped copy.",
+      "Don't ship the WSOP / PokerStars / ClubGG aesthetic.",
+      "Don't ship the Uniswap-clone DEX dashboard aesthetic.",
+      "Don't ship sparkle emoji or three-emoji headers or lavender-to-pink gradients.",
+      "Don't ship Chuck-E-Cheese degen aesthetics.",
+      "Don't modify a shared semantic token in app/theme.ts to fix one component. Use _dark={{}} or useColorModeValue() directly.",
+      "Don't introduce raw hex codes outside theme.ts."
+    ]
+  }
+}

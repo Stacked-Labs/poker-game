@@ -1,8 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Box, HStack, Text, Avatar, useColorModeValue, Icon } from '@chakra-ui/react';
-import { FaBolt } from 'react-icons/fa';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+    Box,
+    HStack,
+    Text,
+    useColorModeValue,
+    usePrefersReducedMotion,
+} from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { keyframes } from '@emotion/react';
 
@@ -11,22 +16,22 @@ const DISPLAY_DURATION_MS = 4_000;
 const MIN_GAP_MS = 5_000;
 const MAX_GAP_MS = 12_000;
 
+const EASE_OUT_QUART = 'cubic-bezier(0.25, 1, 0.5, 1)';
+
 const slideIn = keyframes`
-  0%   { transform: translateY(20px) scale(0.94); opacity: 0; }
-  60%  { transform: translateY(-4px) scale(1.02); opacity: 1; }
-  100% { transform: translateY(0)    scale(1);    opacity: 1; }
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 `;
 
 const slideOut = keyframes`
-  0%   { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(20px); opacity: 0; }
+  from { transform: translateY(0);   opacity: 1; }
+  to   { transform: translateY(12px); opacity: 0; }
 `;
 
-// Pulsing live dot
-const livePing = keyframes`
-  0%   { box-shadow: 0 0 0 0   rgba(54,163,123,0.9); }
-  70%  { box-shadow: 0 0 0 6px rgba(54,163,123,0);   }
-  100% { box-shadow: 0 0 0 0   rgba(54,163,123,0);   }
+// Chip flips face-up on deal-in, like a card off the deck.
+const chipFlip = keyframes`
+  from { transform: rotateY(180deg); }
+  to   { transform: rotateY(0); }
 `;
 
 interface PointsEvent {
@@ -36,27 +41,188 @@ interface PointsEvent {
     delta?: number;
 }
 
+// Suits are decorative: drawn at random per event, pairing brand
+// color with shape so identity survives color-blindness checks.
+const SUITS = [
+    { glyph: '♠', token: 'brand.darkNavy' },
+    { glyph: '♥', token: 'brand.pink' },
+    { glyph: '♦', token: 'brand.navy' },
+    { glyph: '♣', token: 'brand.green' },
+] as const;
+
+type Suit = (typeof SUITS)[number];
+
 function truncate(addr: string) {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+    return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-const AVATAR_COLORS = [
-    '#6C63FF', '#E85D75', '#F4A261', '#2A9D8F', '#E76F51',
-    '#457B9D', '#9B5DE5', '#8338EC', '#FB5607', '#3A86FF',
-];
-
-function avatarColor(addr: string): string {
-    let hash = 0;
-    for (let i = 0; i < addr.length; i++) hash = addr.charCodeAt(i) + ((hash << 5) - hash);
-    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
-function avatarInitials(addr: string): string {
-    return addr.slice(2, 4).toUpperCase();
+function randomSuit(): Suit {
+    return SUITS[Math.floor(Math.random() * SUITS.length)];
 }
 
 function randomGap() {
     return MIN_GAP_MS + Math.random() * (MAX_GAP_MS - MIN_GAP_MS);
+}
+
+export interface PointsPillProps {
+    address: string;
+    points: number;
+    delta?: number;
+    hiding?: boolean;
+    reducedMotion?: boolean;
+}
+
+// Chip avatar: poker-chip cross-section with a suit glyph. Dashed
+// outer ring stands in for the painted edge stripes on a real chip.
+function ChipAvatar({ reducedMotion, seed }: { reducedMotion?: boolean; seed?: string }) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const suit = useMemo(() => randomSuit(), [seed]);
+    const flip = reducedMotion
+        ? undefined
+        : `${chipFlip} 0.55s ${EASE_OUT_QUART} backwards`;
+    return (
+        <Box
+            w="34px"
+            h="34px"
+            borderRadius="full"
+            bg={suit.token}
+            border="2px dashed"
+            borderColor="rgba(255, 255, 255, 0.55)"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            flexShrink={0}
+            boxShadow="0 1px 2px rgba(11, 20, 48, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.08)"
+            animation={flip}
+            sx={{ transformStyle: 'preserve-3d', backfaceVisibility: 'hidden' }}
+        >
+            <Text
+                as="span"
+                fontSize="15px"
+                lineHeight={1}
+                color="white"
+                fontWeight={800}
+                aria-hidden
+            >
+                {suit.glyph}
+            </Text>
+        </Box>
+    );
+}
+
+function PillFrame({
+    hiding,
+    reducedMotion,
+    children,
+}: {
+    hiding?: boolean;
+    reducedMotion?: boolean;
+    children: React.ReactNode;
+}) {
+    const animation = reducedMotion
+        ? undefined
+        : `${hiding ? slideOut : slideIn} 0.35s ${EASE_OUT_QUART} forwards`;
+    return (
+        <Box animation={animation} pointerEvents="none">
+            {children}
+        </Box>
+    );
+}
+
+export function PointsPill({
+    address,
+    points,
+    delta,
+    hiding,
+    reducedMotion,
+}: PointsPillProps) {
+    const bg = useColorModeValue('white', '#171717');
+    const border = useColorModeValue(
+        'rgba(11, 20, 48, 0.08)',
+        'rgba(255, 255, 255, 0.08)',
+    );
+    const addressColor = useColorModeValue('brand.darkNavy', 'brand.lightGray');
+    const labelColor = useColorModeValue(
+        'rgba(11, 20, 48, 0.55)',
+        'rgba(236, 238, 245, 0.55)',
+    );
+    const stripeColor = useColorModeValue(
+        'rgba(11, 20, 48, 0.06)',
+        'rgba(255, 255, 255, 0.05)',
+    );
+
+    return (
+        <PillFrame hiding={hiding} reducedMotion={reducedMotion}>
+            <Box
+                position="relative"
+                bg={bg}
+                border="1px solid"
+                borderColor={border}
+                borderRadius="2xl"
+                px={4}
+                py={3}
+                maxW="300px"
+                boxShadow="card.lift"
+                overflow="hidden"
+                _after={{
+                    content: '""',
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                    backgroundImage: `repeating-linear-gradient(135deg, transparent 0 6px, ${stripeColor} 6px 7px)`,
+                    opacity: 0.55,
+                }}
+            >
+                <HStack spacing={3} align="center" position="relative" zIndex={1}>
+                    <ChipAvatar seed={address} reducedMotion={reducedMotion} />
+                    <Box flex={1} minW={0}>
+                        <Text
+                            fontSize="13px"
+                            fontFamily="mono"
+                            fontWeight={700}
+                            color={addressColor}
+                            letterSpacing="0.02em"
+                            lineHeight={1.2}
+                            noOfLines={1}
+                        >
+                            {truncate(address)}
+                        </Text>
+                        <Text
+                            fontSize="11px"
+                            color={labelColor}
+                            letterSpacing="0.04em"
+                            textTransform="uppercase"
+                            fontWeight={700}
+                            lineHeight={1.2}
+                            mt="2px"
+                        >
+                            stacked points
+                        </Text>
+                    </Box>
+                    <Box
+                        bg="brand.green"
+                        borderRadius="md"
+                        px={2.5}
+                        py={1}
+                        flexShrink={0}
+                    >
+                        <Text
+                            fontSize="12px"
+                            fontWeight={800}
+                            color="white"
+                            letterSpacing="0.02em"
+                            lineHeight={1}
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {delta != null
+                                ? `+${delta.toLocaleString()}`
+                                : points.toLocaleString()}
+                        </Text>
+                    </Box>
+                </HStack>
+            </Box>
+        </PillFrame>
+    );
 }
 
 export default function PointsActivityFeed() {
@@ -65,16 +231,13 @@ export default function PointsActivityFeed() {
     const [current, setCurrent] = useState<PointsEvent | null>(null);
     const [hiding, setHiding] = useState(false);
     const prevSnapshot = useRef<Map<string, number>>(new Map());
+    const snapshotInitialized = useRef(false);
     const displayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const gapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    const reducedMotion = usePrefersReducedMotion();
 
     const visible = pathname === '/';
-
-    const pillBg = useColorModeValue('rgba(255,255,255,0.97)', 'rgba(7, 11, 28, 0.97)');
-    const pillBorder = useColorModeValue('rgba(54,163,123,0.35)', 'rgba(54,163,123,0.4)');
-    const labelColor = useColorModeValue('rgba(0,0,0,0.38)', 'rgba(255,255,255,0.38)');
-    const addressColor = useColorModeValue('rgba(0,0,0,0.38)', 'rgba(255,255,255,0.38)');
 
     const fetchLeaderboard = useCallback(async () => {
         if (!backendUrl) return;
@@ -85,19 +248,14 @@ export default function PointsActivityFeed() {
                 await res.json();
 
             const events: PointsEvent[] = [];
-            const isFirstFetch = prevSnapshot.current.size === 0;
 
             for (const entry of data.leaderboard) {
                 const prev = prevSnapshot.current.get(entry.address);
-                if (isFirstFetch) {
-                    if (events.length < 5) {
-                        events.push({
-                            id: `${entry.address}-seed-${Date.now()}-${events.length}`,
-                            address: entry.address,
-                            points: entry.points,
-                        });
-                    }
-                } else if (prev !== undefined && entry.points > prev) {
+                if (
+                    snapshotInitialized.current &&
+                    prev !== undefined &&
+                    entry.points > prev
+                ) {
                     events.push({
                         id: `${entry.address}-${Date.now()}`,
                         address: entry.address,
@@ -108,11 +266,13 @@ export default function PointsActivityFeed() {
                 prevSnapshot.current.set(entry.address, entry.points);
             }
 
+            snapshotInitialized.current = true;
+
             if (events.length > 0) {
                 setQueue((q) => [...q, ...events]);
             }
         } catch {
-            // silently ignore network errors — this is non-critical UI
+            // non-critical UI; ignore
         }
     }, [backendUrl]);
 
@@ -158,107 +318,20 @@ export default function PointsActivityFeed() {
 
     if (!visible || !current) return null;
 
-    const color = avatarColor(current.address);
-
     return (
         <Box
             position="fixed"
             bottom={{ base: 4, md: 6 }}
             left={{ base: 4, md: 6 }}
             zIndex={200}
-            animation={`${hiding ? slideOut : slideIn} 0.4s ease forwards`}
-            pointerEvents="none"
         >
-            <Box
-                bg={pillBg}
-                backdropFilter="blur(20px)"
-                border="1px solid"
-                borderColor={pillBorder}
-                borderRadius="18px"
-                px={4}
-                py="14px"
-                maxW="290px"
-                boxShadow="0 8px 32px rgba(0,0,0,0.2)"
-            >
-
-                <HStack spacing={3} align="center" position="relative">
-                    {/* Avatar — poker chip style via layered box-shadow */}
-                    <Avatar
-                        size="md"
-                        bg={color}
-                        color="white"
-                        name={avatarInitials(current.address)}
-                        getInitials={() => avatarInitials(current.address)}
-                        flexShrink={0}
-                        fontWeight="800"
-                        fontSize="sm"
-                        style={{
-                            boxShadow: `0 0 0 2px rgba(255,255,255,0.14), 0 0 0 4px ${color}55, 0 0 16px ${color}50`,
-                        }}
-                    />
-
-                    <Box flex={1} minW={0}>
-                        {/* Header row */}
-                        <HStack spacing={1.5} mb="3px" align="center">
-                            <Text
-                                fontSize="11px"
-                                letterSpacing="0.06em"
-                                textTransform="uppercase"
-                                color={labelColor}
-                                fontWeight="700"
-                                lineHeight={1}
-                            >
-                                <Icon as={FaBolt} mr="4px" boxSize="9px" />Just earned
-                            </Text>
-                            {/* Live indicator */}
-                            <Box
-                                w="5px"
-                                h="5px"
-                                borderRadius="full"
-                                bg="brand.green"
-                                flexShrink={0}
-                                animation={`${livePing} 1.6s ease-in-out infinite`}
-                            />
-                        </HStack>
-
-                        {/* Address */}
-                        <Text
-                            fontSize="11px"
-                            fontFamily="mono"
-                            color={addressColor}
-                            letterSpacing="0.03em"
-                            lineHeight={1}
-                            mb="3px"
-                            noOfLines={1}
-                        >
-                            {truncate(current.address)}
-                        </Text>
-
-                        {/* Points badge */}
-                        <Box
-                            display="inline-flex"
-                            alignItems="center"
-                            px="10px"
-                            py="4px"
-                            bg="linear-gradient(135deg, #36A37B 0%, #1f7a59 100%)"
-                            borderRadius="full"
-                            boxShadow="0 2px 8px rgba(54,163,123,0.4)"
-                        >
-                            <Text
-                                fontSize="12px"
-                                fontWeight="700"
-                                color="white"
-                                letterSpacing="0.02em"
-                                lineHeight={1}
-                            >
-                                {current.delta != null
-                                    ? `+${current.delta.toLocaleString()} pts`
-                                    : `${current.points.toLocaleString()} pts`}
-                            </Text>
-                        </Box>
-                    </Box>
-                </HStack>
-            </Box>
+            <PointsPill
+                address={current.address}
+                points={current.points}
+                delta={current.delta}
+                hiding={hiding}
+                reducedMotion={!!reducedMotion}
+            />
         </Box>
     );
 }

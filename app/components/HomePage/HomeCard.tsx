@@ -710,7 +710,7 @@ const HomeCard = () => {
                                     textAlign="center"
                                     opacity={0.7}
                                 >
-                                    Get first access + invites to free-entry tournaments with USDC prizes.
+                                    Game updates. Bonus drops. Special deals.
                                 </Text>
                             </>
                         )}
@@ -742,11 +742,11 @@ const HomeCard = () => {
                                         icon={<RiTwitterXLine size={18} />}
                                         size="sm"
                                         variant="social"
-                                        minW={{ base: '32px', md: '34px' }}
+                                        minW={{ base: '40px', md: '44px' }}
                                         color="text.primary"
-                                        borderRadius="12px"
-                                        w={{ base: '32px', md: '34px' }}
-                                        h={{ base: '32px', md: '34px' }}
+                                        borderRadius="14px"
+                                        w={{ base: '40px', md: '44px' }}
+                                        h={{ base: '40px', md: '44px' }}
                                         transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                         _hover={{
                                             bg: 'brand.darkNavy',
@@ -770,11 +770,11 @@ const HomeCard = () => {
                                         icon={<FaDiscord size={18} />}
                                         size="sm"
                                         variant="social"
-                                        minW={{ base: '32px', md: '34px' }}
+                                        minW={{ base: '40px', md: '44px' }}
                                         color="#5865F2"
-                                        borderRadius="12px"
-                                        w={{ base: '32px', md: '34px' }}
-                                        h={{ base: '32px', md: '34px' }}
+                                        borderRadius="14px"
+                                        w={{ base: '40px', md: '44px' }}
+                                        h={{ base: '40px', md: '44px' }}
                                         transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                         _hover={{
                                             bg: '#5865F2',
@@ -798,11 +798,11 @@ const HomeCard = () => {
                                         icon={<FaTelegram size={18} />}
                                         size="sm"
                                         variant="social"
-                                        minW={{ base: '32px', md: '34px' }}
+                                        minW={{ base: '40px', md: '44px' }}
                                         color="#0088cc"
-                                        borderRadius="12px"
-                                        w={{ base: '32px', md: '34px' }}
-                                        h={{ base: '32px', md: '34px' }}
+                                        borderRadius="14px"
+                                        w={{ base: '40px', md: '44px' }}
+                                        h={{ base: '40px', md: '44px' }}
                                         transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                         _hover={{
                                             bg: '#0088cc',

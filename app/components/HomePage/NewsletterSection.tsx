@@ -11,11 +11,10 @@ import {
     Input,
     Button,
     Icon,
+    useDisclosure,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
-import { useDisclosure } from '@chakra-ui/react';
+import { useState } from 'react';
 import { MdArrowForward, MdCheck } from 'react-icons/md';
-import FloatingDecor from './FloatingDecor';
 import NewsletterSuccessModal from './NewsletterSuccessModal';
 import useToastHelper from '@/app/hooks/useToastHelper';
 
@@ -25,7 +24,11 @@ const NewsletterSection = () => {
     const [email, setEmail] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const { isOpen: isSuccessOpen, onOpen: onSuccessOpen, onClose: onSuccessClose } = useDisclosure();
+    const {
+        isOpen: isSuccessOpen,
+        onOpen: onSuccessOpen,
+        onClose: onSuccessClose,
+    } = useDisclosure();
     const toast = useToastHelper();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -33,29 +36,31 @@ const NewsletterSection = () => {
         if (!email || isSubmitting) return;
 
         setIsSubmitting(true);
-
         try {
             const response = await fetch('/api/newsletter', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email }),
             });
 
             if (response.ok) {
                 setIsSubmitted(true);
                 setEmail('');
-                toast.success('You\'re in!', 'Check your inbox for updates.');
+                toast.success("You're in!", 'Check your inbox for updates.');
                 onSuccessOpen();
-                // Reset success message after 5 seconds
                 setTimeout(() => setIsSubmitted(false), 5000);
             } else {
-                toast.error('Couldn\'t subscribe', 'Please try again in a moment.');
+                toast.error(
+                    "Couldn't subscribe",
+                    'Please try again in a moment.'
+                );
             }
         } catch (error) {
             console.error('Newsletter subscription error:', error);
-            toast.error('Something went wrong', 'Please check your connection and try again.');
+            toast.error(
+                'Something went wrong',
+                'Please check your connection and try again.'
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -63,316 +68,248 @@ const NewsletterSection = () => {
 
     return (
         <Box
-            bg="bg.default"
-            py={{ base: 2, md: 4 }}
+            py={{ base: 10, md: 14 }}
             width="100%"
             position="relative"
-            overflow="hidden"
         >
-            <FloatingDecor density="light" />
             <Container maxW="container.xl" position="relative" zIndex={1}>
                 <Box
                     position="relative"
-                    borderRadius={{ base: '24px', md: '40px' }}
-                    bg="#073d2a"
-                    p={{ base: 8, md: 12, lg: 14 }}
+                    borderRadius={{ base: '20px', md: '28px' }}
+                    bg="card.felt"
+                    p={{ base: 8, md: 11, lg: 14 }}
                     overflow="hidden"
-                    boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                    role="group"
-                    border="3px solid"
-                    borderColor="#0d5e3f"
-                    transition={TRANSITION_SMOOTH}
-                    _hover={{
-                        transform: 'translateY(-2px)',
-                        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                    border="1px solid"
+                    borderColor="border.felt"
+                    boxShadow="0 20px 50px rgba(11, 20, 48, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06)"
+                    transform={{
+                        base: 'rotate(-0.5deg)',
+                        md: 'rotate(-1deg)',
                     }}
+                    transition={TRANSITION_SMOOTH}
                 >
-                    {/* Felt Texture — dense noise pattern */}
+                    {/* Subtle felt grain */}
                     <Box
                         position="absolute"
                         inset={0}
-                        opacity="0.3"
+                        opacity={0.18}
                         pointerEvents="none"
-                        backgroundImage="radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 0.5px, transparent 0.5px)"
+                        backgroundImage="radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.10) 0.5px, transparent 0.5px)"
                         backgroundSize="4px 4px"
+                        aria-hidden="true"
                     />
 
-                    {/* Secondary felt texture layer for depth */}
-                    <Box
+                    {/* Big suit watermarks — felt-fluent decoration */}
+                    <Text
+                        as="span"
                         position="absolute"
-                        inset={0}
-                        opacity="0.15"
+                        bottom={{ base: '-60px', md: '-90px' }}
+                        right={{ base: '-20px', md: '-30px' }}
+                        fontSize={{ base: '220px', md: '320px', lg: '380px' }}
+                        color="rgba(255, 255, 255, 0.05)"
+                        lineHeight={1}
+                        fontWeight="bold"
                         pointerEvents="none"
-                        backgroundImage="radial-gradient(circle at 2px 2px, rgba(0, 0, 0, 0.2) 0.5px, transparent 0.5px)"
-                        backgroundSize="7px 7px"
-                    />
-
-                    {/* Spotlight — overhead lamp effect */}
-                    <Box
+                        transform="rotate(-12deg)"
+                        aria-hidden="true"
+                    >
+                        ♠
+                    </Text>
+                    <Text
+                        as="span"
                         position="absolute"
-                        inset={0}
-                        bgGradient="radial(ellipse at 50% -30%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 70%)"
+                        top={{ base: '-20px', md: '-40px' }}
+                        left={{ base: '-15px', md: '-10px' }}
+                        fontSize={{ base: '120px', md: '180px' }}
+                        color="rgba(235, 11, 92, 0.10)"
+                        lineHeight={1}
+                        fontWeight="bold"
                         pointerEvents="none"
-                    />
-
-                    {/* Subtle vignette for depth */}
-                    <Box
-                        position="absolute"
-                        inset={0}
-                        boxShadow="inset 0 0 120px rgba(0, 0, 0, 0.5)"
-                        pointerEvents="none"
-                        borderRadius="inherit"
-                    />
-
-                    {/* Rail highlight — top edge shine */}
-                    <Box
-                        position="absolute"
-                        top={0}
-                        left="10%"
-                        right="10%"
-                        h="1px"
-                        bgGradient="linear(to-r, transparent, rgba(255, 255, 255, 0.12), transparent)"
-                        pointerEvents="none"
-                    />
+                        transform="rotate(18deg)"
+                        aria-hidden="true"
+                    >
+                        ♥
+                    </Text>
 
                     <Flex
                         direction={{ base: 'column', lg: 'row' }}
                         justify="space-between"
                         align={{ base: 'flex-start', lg: 'center' }}
-                        gap={{ base: 10, lg: 16 }}
+                        gap={{ base: 8, lg: 14 }}
                         position="relative"
-                        zIndex={1}
+                        zIndex={2}
                     >
-                        {/* Text Content */}
-                        <VStack align="start" spacing={6} maxW="2xl">
-                            <HStack spacing={3}>
-                                <Flex align="center" gap={2}>
-                                    <Box
-                                        w="8px"
-                                        h="8px"
-                                        borderRadius="full"
-                                        bg="brand.green"
-                                        boxShadow="0 0 10px rgba(54, 163, 123, 0.6), 0 0 30px rgba(54, 163, 123, 0.2)"
-                                        sx={{
-                                            animation: 'pulse-glow 2.5s ease-in-out infinite',
-                                            '@keyframes pulse-glow': {
-                                                '0%, 100%': { opacity: 1 },
-                                                '50%': { opacity: 0.6 },
-                                            },
-                                        }}
-                                    />
-                                </Flex>
+                        <VStack align="start" spacing={4} maxW="xl">
+                            <HStack spacing={2} align="center">
+                                <Box
+                                    w="6px"
+                                    h="6px"
+                                    borderRadius="full"
+                                    bg="brand.pink"
+                                />
                                 <Text
-                                    color="brand.green"
-                                    fontSize="xs"
-                                    fontWeight="extrabold"
+                                    color="brand.lightGray"
+                                    fontSize="2xs"
+                                    fontWeight="bold"
                                     letterSpacing="0.25em"
                                     textTransform="uppercase"
+                                    opacity={0.85}
                                 >
-                                    Members Only
+                                    Updates &amp; Promos
                                 </Text>
                             </HStack>
 
                             <Heading
                                 color="white"
-                                fontSize={{ base: '3xl', md: '5xl', lg: '6xl' }}
+                                fontSize={{
+                                    base: '3xl',
+                                    md: '5xl',
+                                    lg: '6xl',
+                                }}
                                 fontWeight="extrabold"
-                                lineHeight={1.05}
-                                letterSpacing="-0.04em"
+                                lineHeight={1.0}
+                                letterSpacing="-0.03em"
                             >
-                                A Seat is{' '}
+                                Don&apos;t miss a{' '}
                                 <Box
                                     as="span"
-                                    bgGradient="linear(135deg, brand.yellow, brand.pink)"
-                                    bgClip="text"
-                                    sx={{ WebkitTextFillColor: 'transparent' }}
+                                    display="inline-block"
+                                    position="relative"
+                                    px={1}
                                 >
-                                    Waiting
-                                </Box>{' '}
-                                For You
+                                    hand
+                                    <Box
+                                        as="span"
+                                        position="absolute"
+                                        left="0"
+                                        right="0"
+                                        bottom={{ base: '0px', md: '2px' }}
+                                        height={{ base: '10px', md: '14px' }}
+                                        bg="brand.yellow"
+                                        opacity={0.55}
+                                        borderRadius="full"
+                                        zIndex={-1}
+                                        transform="rotate(-1deg)"
+                                    />
+                                </Box>
+                                .
                             </Heading>
 
                             <Text
-                                color="whiteAlpha.700"
-                                fontSize={{ base: 'md', md: 'lg' }}
+                                color="whiteAlpha.800"
+                                fontSize={{ base: 'sm', md: 'md', lg: 'lg' }}
                                 lineHeight="tall"
                                 fontWeight="medium"
-                                maxW="lg"
+                                maxW="md"
                             >
-                                Free-entry tournaments. Real USDC prizes.
-                                Closed-beta invites before anyone else.
+                                Game updates. Bonus drops. Special deals.
+                                Straight to your inbox.
                             </Text>
                         </VStack>
 
-                        {/* Tear Line Separator */}
-                        <Box
-                            h={{ base: '2px', lg: '220px' }}
-                            w={{ base: '100%', lg: '2px' }}
-                            position="relative"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            flexShrink={0}
-                        >
-                            <Box
-                                h="100%"
-                                w="100%"
-                                borderLeft={{ base: 'none', lg: '2px dashed' }}
-                                borderBottom={{
-                                    base: '2px dashed',
-                                    lg: 'none',
-                                }}
-                                borderColor="whiteAlpha.300"
-                            />
-                            {/* Punch Holes */}
-                            <Box
-                                position="absolute"
-                                top={{ base: '-10px', lg: '-10px' }}
-                                left={{ base: '50%', lg: '50%' }}
-                                transform="translateX(-50%)"
-                                w="20px"
-                                h="20px"
-                                bg="#052c1e"
-                                borderRadius="full"
-                                border="1.5px solid"
-                                borderColor="whiteAlpha.150"
-                                boxShadow="inset 0 2px 6px rgba(0, 0, 0, 0.6)"
-                            />
-                            <Box
-                                position="absolute"
-                                bottom={{ base: '-10px', lg: '-10px' }}
-                                left={{ base: '50%', lg: '50%' }}
-                                transform="translateX(-50%)"
-                                w="20px"
-                                h="20px"
-                                bg="#052c1e"
-                                borderRadius="full"
-                                border="1.5px solid"
-                                borderColor="whiteAlpha.150"
-                                boxShadow="inset 0 2px 6px rgba(0, 0, 0, 0.6)"
-                            />
-                        </Box>
-
-                        {/* Form Section — Ticket Stub */}
                         <VStack
-                            align={{ base: 'stretch', lg: 'flex-end' }}
-                            spacing={5}
+                            as="form"
+                            onSubmit={handleSubmit}
                             w={{ base: '100%', lg: 'sm' }}
+                            spacing={2.5}
+                            align="stretch"
                         >
-                            {/* Ticket header */}
-                            <Text
-                                color="whiteAlpha.500"
-                                fontSize="2xs"
-                                fontWeight="bold"
-                                letterSpacing="0.2em"
+                            <Input
+                                type="email"
+                                name="email"
+                                autoComplete="email"
+                                inputMode="email"
+                                aria-label="Email address"
+                                placeholder="your@email.com"
+                                variant="unstyled"
+                                color="white"
+                                px={5}
+                                height="52px"
+                                fontSize="sm"
+                                fontWeight="medium"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={isSubmitting || isSubmitted}
+                                bg="rgba(255, 255, 255, 0.06)"
+                                borderRadius="12px"
+                                border="1.5px solid"
+                                borderColor={
+                                    isSubmitted
+                                        ? 'brand.green'
+                                        : 'rgba(255, 255, 255, 0.16)'
+                                }
+                                transition={TRANSITION_SMOOTH}
+                                _placeholder={{ color: 'whiteAlpha.450' }}
+                                _hover={{
+                                    borderColor: 'rgba(255, 255, 255, 0.32)',
+                                    bg: 'rgba(255, 255, 255, 0.10)',
+                                }}
+                                _focus={{
+                                    borderColor: 'brand.green',
+                                    bg: 'rgba(255, 255, 255, 0.12)',
+                                    boxShadow:
+                                        '0 0 0 3px rgba(54, 163, 123, 0.20)',
+                                }}
+                                required
+                            />
+                            <Button
+                                type="submit"
+                                aria-label="Save my seat"
+                                bg="brand.green"
+                                color="white"
+                                px={6}
+                                height="52px"
+                                width="100%"
+                                borderRadius="12px"
+                                fontSize="sm"
+                                fontWeight="700"
+                                letterSpacing="0.06em"
                                 textTransform="uppercase"
-                                textAlign={{ base: 'left', lg: 'right' }}
-                            >
-                                Admit One
-                            </Text>
-
-                            <VStack
-                                as="form"
-                                onSubmit={handleSubmit}
-                                w="100%"
-                                spacing={3}
-                                align="stretch"
-                            >
-                                <Input
-                                    type="email"
-                                    placeholder="your@email.com"
-                                    variant="unstyled"
-                                    color="white"
-                                    px={5}
-                                    height="52px"
-                                    fontSize="sm"
-                                    fontWeight="medium"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    disabled={isSubmitting || isSubmitted}
-                                    bg="rgba(255, 255, 255, 0.08)"
-                                    borderRadius="14px"
-                                    border="1.5px solid"
-                                    borderColor={isSubmitted ? 'brand.green' : 'whiteAlpha.200'}
-                                    transition={TRANSITION_SMOOTH}
-                                    _placeholder={{
-                                        color: 'whiteAlpha.400',
-                                    }}
-                                    _hover={{
-                                        borderColor: isSubmitted ? 'brand.green' : 'whiteAlpha.400',
-                                        bg: 'rgba(255, 255, 255, 0.10)',
-                                    }}
-                                    _focus={{
-                                        borderColor: 'brand.green',
-                                        bg: 'rgba(255, 255, 255, 0.12)',
-                                        boxShadow: '0 0 0 3px rgba(54, 163, 123, 0.15)',
-                                    }}
-                                    required
-                                />
-                                <Button
-                                    type="submit"
-                                    variant="unstyled"
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    bgGradient={
-                                        isSubmitted
-                                            ? 'linear(to-r, brand.green, rgba(54, 163, 123, 0.85))'
-                                            : 'linear(to-r, brand.green, rgba(54, 163, 123, 0.85))'
-                                    }
-                                    color="white"
-                                    px={8}
-                                    height="52px"
-                                    width="100%"
-                                    borderRadius="14px"
-                                    fontSize="sm"
-                                    fontWeight="bold"
-                                    textTransform="uppercase"
-                                    letterSpacing="0.08em"
-                                    boxShadow="0 4px 14px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)"
-                                    transition={TRANSITION_SMOOTH}
-                                    disabled={isSubmitting || isSubmitted}
-                                    _hover={{
-                                        bgGradient:
-                                            'linear(to-r, rgba(54, 163, 123, 0.95), rgba(54, 163, 123, 0.78))',
-                                        boxShadow:
-                                            '0 8px 24px rgba(54, 163, 123, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                                        transform: 'translateY(-1px)',
-                                    }}
-                                    _active={{
-                                        transform: 'translateY(0) scale(0.98)',
-                                        boxShadow:
-                                            '0 2px 8px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                                    }}
-                                    gap={2}
-                                >
-                                    {isSubmitting
-                                        ? 'Saving...'
-                                        : isSubmitted
-                                        ? 'Saved!'
-                                        : 'Save My Seat'}
+                                border="none"
+                                rightIcon={
                                     <Icon
-                                        as={isSubmitted ? MdCheck : MdArrowForward}
+                                        as={
+                                            isSubmitted
+                                                ? MdCheck
+                                                : MdArrowForward
+                                        }
                                         boxSize={4}
-                                        transition={TRANSITION_SMOOTH}
                                     />
-                                </Button>
-                            </VStack>
-
-                            {/* Privacy note */}
-                            <Text
-                                color="whiteAlpha.300"
-                                fontSize="2xs"
-                                textAlign={{ base: 'left', lg: 'right' }}
+                                }
+                                disabled={isSubmitting || isSubmitted}
+                                transition={TRANSITION_SMOOTH}
+                                boxShadow="0 6px 18px rgba(54, 163, 123, 0.30)"
+                                _hover={{
+                                    bg: 'brand.green',
+                                    transform: 'translateY(-1px)',
+                                    boxShadow:
+                                        '0 10px 24px rgba(54, 163, 123, 0.42)',
+                                    filter: 'brightness(1.08)',
+                                }}
+                                _active={{
+                                    transform: 'translateY(0) scale(0.98)',
+                                }}
+                                _focusVisible={{
+                                    outline: '2px solid',
+                                    outlineColor: 'brand.pink',
+                                    outlineOffset: '4px',
+                                }}
                             >
-                                No spam. Unsubscribe anytime.
-                            </Text>
+                                {isSubmitting
+                                    ? 'Saving'
+                                    : isSubmitted
+                                      ? 'Saved'
+                                      : 'Save my seat'}
+                            </Button>
                         </VStack>
                     </Flex>
                 </Box>
             </Container>
 
-            <NewsletterSuccessModal isOpen={isSuccessOpen} onClose={onSuccessClose} />
+            <NewsletterSuccessModal
+                isOpen={isSuccessOpen}
+                onClose={onSuccessClose}
+            />
         </Box>
     );
 };

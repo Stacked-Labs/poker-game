@@ -140,6 +140,35 @@ const semanticTokens = {
             _dark: 'charcoal.600',
         },
 
+        // Felt-Green tint family — for soft confirm/positive surfaces
+        'bg.greenSubtle': {
+            default: 'rgba(54, 163, 123, 0.06)',
+            _dark: 'rgba(54, 163, 123, 0.10)',
+        },
+        'bg.greenTint': {
+            default: 'rgba(54, 163, 123, 0.10)',
+            _dark: 'rgba(54, 163, 123, 0.16)',
+        },
+        'border.greenSubtle': {
+            default: 'rgba(54, 163, 123, 0.15)',
+            _dark: 'rgba(54, 163, 123, 0.22)',
+        },
+        'border.greenStrong': {
+            default: 'rgba(54, 163, 123, 0.30)',
+            _dark: 'rgba(54, 163, 123, 0.40)',
+        },
+
+        // Felt Table — a card-room "felt" surface (newsletter, future seat-pickers)
+        // Penthouse-Midnight ground in both modes; the felt is the room, not the color.
+        'card.felt': {
+            default: 'brand.darkNavy',
+            _dark: 'brand.darkNavy',
+        },
+        'border.felt': {
+            default: 'rgba(255, 255, 255, 0.10)',
+            _dark: 'rgba(255, 255, 255, 0.08)',
+        },
+
         // Input
         'input.white': {
             default: 'white',
@@ -164,9 +193,10 @@ const semanticTokens = {
             _dark: 'legacy.grayDark',
         },
         'card.heroBg': {
-            default: 'white',
-            _dark: 'rgba(23, 23, 23, 0.8)',
+            default: 'rgba(255, 255, 255, 0.95)',
+            _dark: 'rgba(23, 23, 23, 0.95)',
         },
+
         'card.heroInnerBg': {
             default: 'white',
             _dark: '#171717',
@@ -237,6 +267,15 @@ const semanticTokens = {
             default:
                 '0 25px 80px rgba(0, 0, 0, 0.12), 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.9)',
             _dark: '0 25px 80px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+        },
+        // Standard card lift — replacement for legacy `glass` / `glass-hover`
+        'card.lift': {
+            default: '0 8px 24px rgba(11, 20, 48, 0.10)',
+            _dark: '0 8px 24px rgba(0, 0, 0, 0.45)',
+        },
+        'card.liftHover': {
+            default: '0 14px 36px rgba(11, 20, 48, 0.16)',
+            _dark: '0 14px 36px rgba(0, 0, 0, 0.55)',
         },
     },
 };

@@ -18,21 +18,17 @@ import { Image } from '@chakra-ui/next-js';
 import { FaDiscord } from 'react-icons/fa';
 import { FaTelegram } from 'react-icons/fa6';
 import { RiTwitterXLine } from 'react-icons/ri';
-import FloatingDecor from './FloatingDecor';
 
 const Footer = () => {
     return (
         <Box
-            bg="bg.default"
             color="text.primary"
-            pt={16}
+            pt={12}
             pb={8}
             position="relative"
-            overflow="hidden"
             borderTop="1px solid"
             borderColor="border.lightGray"
         >
-            <FloatingDecor density="minimal" />
             <Container maxW="container.xl" position="relative" zIndex={1}>
                 <SimpleGrid
                     columns={{ base: 1, md: 2, lg: 4 }}

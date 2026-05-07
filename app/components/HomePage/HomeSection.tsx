@@ -201,6 +201,23 @@ const HomeSection = () => {
                 </Box>
             </Flex>
 
+            {/* Bottom fade — soft transition into the page bg below */}
+            <Box
+                aria-hidden="true"
+                position="absolute"
+                bottom={0}
+                left={0}
+                right={0}
+                height={{ base: '120px', md: '180px' }}
+                bgGradient="linear(to-b, rgba(237, 237, 237, 0), rgba(237, 237, 237, 1))"
+                _dark={{
+                    bgGradient:
+                        'linear(to-b, rgba(25, 25, 25, 0), rgba(25, 25, 25, 1))',
+                }}
+                pointerEvents="none"
+                zIndex={4}
+            />
+
             {/* Scroll Indicator */}
             <ScrollIndicator />
         </Box>

@@ -4,7 +4,6 @@ import {
     Box,
     CloseButton,
     Flex,
-    IconButton,
     Input,
     Link,
     ModalContent,
@@ -17,11 +16,10 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { ReactElement, useContext, useEffect } from 'react';
-import { FaDiscord, FaCopy, FaCheck } from 'react-icons/fa';
-import { RiTwitterXLine } from 'react-icons/ri';
-import { FaTelegram } from 'react-icons/fa6';
+import { useContext, useEffect } from 'react';
+import { FaCopy, FaCheck } from 'react-icons/fa';
 import { AppContext } from '../contexts/AppStoreProvider';
+import { SocialIconButton } from './SocialIconButton';
 
 const pulse = keyframes`
   0% { 
@@ -128,34 +126,6 @@ const LinkBox = () => {
     );
 };
 
-const SocialButton = ({
-    icon,
-    label,
-    color,
-    rotation = '5deg',
-}: {
-    icon: ReactElement;
-    label: string;
-    color: string;
-    rotation?: string;
-}) => {
-    return (
-        <IconButton
-            aria-label={label}
-            icon={icon}
-            size={{ base: 'md', md: 'lg' }}
-            color={color}
-            variant={'social'}
-            _hover={{
-                bg: color,
-                color: 'white',
-                transform: `translateY(-4px) rotate(${rotation})`,
-                boxShadow: `0 8px 16px ${color}40`,
-            }}
-        />
-    );
-};
-
 const LobbyBanner = () => {
     const { appState } = useContext(AppContext);
     const { isOpen, onClose } = useDisclosure({ defaultIsOpen: true });
@@ -250,31 +220,13 @@ const LobbyBanner = () => {
                         justifyContent="center"
                     >
                         <Link href="https://x.com/stacked_poker" isExternal>
-                            <SocialButton
-                                icon={<RiTwitterXLine size={20} />}
-                                label="X (Twitter)"
-                                color="#000000"
-                                rotation="5deg"
-                            />
+                            <SocialIconButton tone="x" chipSize="lg" />
                         </Link>
                         <Link href="https://discord.gg/347RBVcvpn" isExternal>
-                            <SocialButton
-                                icon={<FaDiscord size={20} />}
-                                label="Discord"
-                                color="#5865F2"
-                                rotation="-5deg"
-                            />
+                            <SocialIconButton tone="discord" chipSize="lg" />
                         </Link>
-                        <Link
-                            href="https://t.me/stackedpoker"
-                            isExternal
-                        >
-                            <SocialButton
-                                icon={<FaTelegram size={20} />}
-                                label="Telegram"
-                                color="#0088cc"
-                                rotation="5deg"
-                            />
+                        <Link href="https://t.me/stackedpoker" isExternal>
+                            <SocialIconButton tone="telegram" chipSize="lg" />
                         </Link>
                     </Flex>
 

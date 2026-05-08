@@ -1,6 +1,6 @@
 # Button System Overhaul — Handoff
 
-**Status:** Groups A + B + C + E + F + G complete · Group D skipped (current design retained) · Groups H, I, J remaining · 3 groups remaining
+**Status:** Groups A + B + C + E + F + G + I complete · Groups D, H skipped (current design retained) · Group J remaining · 1 group remaining
 
 This file is a stateful handoff for the next agent picking up this work. Read it end-to-end before touching any button code. Reference it; don't re-derive it.
 
@@ -127,9 +127,9 @@ import { SocialIconButton } from '@/app/components/SocialIconButton';
 | **E** | **Mobile drawer nav** (menu trigger + close + 6 nav-link rows + 3 social) | ✅ **DONE** | `app/components/HomePage/HomeNavBar.tsx` |
 | **F** | **Desktop nav links (`navLink` variant)** | ✅ **DONE** | `app/theme.ts` `navLink` variant (consumed by `HomeNavBar.tsx` `NavButtons`) |
 | **G** | **Leaderboard quests** (Claim button — tactile-tone per quest) | ✅ **DONE** | `app/components/Leaderboard/QuestsSection.tsx` (the Claim Button per row; row stays `<Box>` — intentionally a presentation surface) |
-| **H** | **Leaderboard PlayerCard CTAs** | 🟡 **NEXT** — light review (mostly resolved by A) | PlayerCard (rank rings, accents) |
-| I | Filters / sort / icon-secondary | Light review | PublicGamesGrid |
-| J | Form / preset buttons | Pending | CreateGame presets |
+| H | Leaderboard PlayerCard CTAs | ⏭️ **SKIPPED** — user deemed remaining surfaces irrelevant after spike review | PlayerCard (untouched; Group A already migrated the meaningful CTAs) |
+| **I** | **Filters / sort / icon-secondary** (FilterBar + StakeFilter + SortHeader + Load more) | ✅ **DONE** | `app/components/PublicGames/FilterBar.tsx`, `StakeFilter.tsx`, `SortHeader.tsx`, `PublicGamesGrid.tsx` |
+| **J** | **Form / preset buttons** | 🟡 **NEXT** | CreateGame presets |
 
 **Out of scope (stays untouched):** WalletButton (`app/components/WalletButton.tsx`) and the thirdweb ConnectButton flow.
 
@@ -388,54 +388,118 @@ The locked state ("Requires X account" prerequisite) keeps a neutral muted ghost
 
 ---
 
-## How to do Group H (next)
+## What Group I actually did (audit trail)
+
+### Files modified (4)
+
+| File | Change |
+|---|---|
+| `app/components/PublicGames/FilterBar.tsx` | segmented-pill `<Box as="button">` rows gain tactile press + mode-aware hover bg-tint + active-state inner highlight |
+| `app/components/PublicGames/StakeFilter.tsx` | identical migration to FilterBar (same segmented-pill pattern) |
+| `app/components/PublicGames/SortHeader.tsx` | sort `<Button>` gains `_active` color (brand.greenDark) + 80ms snap timing |
+| `app/components/PublicGames/PublicGamesGrid.tsx` | "Load more tables" CTA drops the `translateY(-1px)` lift + `card.liftHover` shadow swap; gains `bg.greenSubtle` hover tint + tactile press |
+
+### Recipe applied
+
+**Segmented pills (FilterBar + StakeFilter):**
+- Active option: keeps `card.lightGray` bg, gains `inset 0 1px 0 rgba(255,255,255,0.50)` inner highlight (the chip-on-card effect at the smaller pill scale).
+- Inactive option hover: `rgba(0,0,0,0.04)` light-mode / `rgba(255,255,255,0.06)` dark-mode bg-tint, color shifts to `text.primary` / white.
+- Press (both states): `translateY(1px)` + `inset 0 1px 2px rgba(0,0,0,0.10)` inset shadow.
+- Snap 80ms timing.
+- Mode-aware via `_dark={{}}` overrides.
+
+**Sort header buttons:**
+- Color logic preserved (`active` or hover → `brand.green`).
+- `_active` adds `color: brand.greenDark` for press affordance.
+- 80ms snap timing.
+
+**Load more pill:**
+- `card.lift` shadow stays (the chip-on-page floating presence).
+- Hover: `bg.greenSubtle` tint + green color (no lift, no shadow swap — the no-lift rule).
+- Press: `bg.greenTint` + `translateY(1px)` + inset shadow.
+
+### Slop removed
+- "All-state" `transition: all 0.15s ease` on segmented pills (no press feedback)
+- `transform: translateY(-1px)` lift on Load more (no-lift violation)
+- `card.lift → card.liftHover` shadow swap on Load more (the lift was the affordance)
+
+### Layout preserved verbatim
+- Segmented-pill container: `bg`, `borderRadius`, `p={1}`, `boxShadow: card.lift`, `opacity` + `pointerEvents` for disabled state
+- Each pill: `px={4}`, `h="32px"`, `borderRadius="full"`, `fontSize`, `fontWeight`, `letterSpacing`, `textTransform`, `aria-pressed`, `_focusVisible` ring
+- Sort header: `h="20px"`, `px={0}`, alignment, icon position
+- Load more: `h="36px"`, `px={6}`, `borderRadius="full"`, all responsive layout props, `isLoading` + `loadingText`, `_focusVisible` ring
+
+### Pattern: shared segmented-pill recipe (DRY left for later)
+
+`FilterBar.tsx` and `StakeFilter.tsx` are now byte-for-byte identical in their pill recipe (only the options array and prop names differ). A future refactor could lift this into a shared `<SegmentedPill>` component, but per the established "don't refactor during migration" rule, the parallel inline change ships now and DRY can come later.
+
+---
+
+## How to do Group J (next — the last group)
 
 The user's iteration loop is fixed. Follow it.
 
 ### 1. Audit first
 
-Group H is "Leaderboard PlayerCard CTAs" — flagged as *light review, mostly resolved by Group A*. The status note says "rank rings, accents."
+Group J is "Form / preset buttons" on `/create-game` — the stake presets, table-size presets, ante presets, blind-structure presets, etc. inside the CreateGame settings panel. Group A already migrated the *primary action buttons* on this page (Join Game, Create Game, Finish Sign-In, Disconnect, X+Discord) — Group J is about the *option presets* inside the settings card.
 
-Before spiking (or skipping the spike — see step 2), audit:
+Before spiking, audit:
 
 ```bash
-cat app/components/Leaderboard/PlayerCard.tsx | head -100
-grep -nE "Button|IconButton|whileHover|backdropFilter|_hover|_active" app/components/Leaderboard/PlayerCard.tsx
+cat app/components/CreateGame/GameSettingLeftSide.tsx | head -200
+grep -nE "Button|IconButton|preset|stake.*button|whileHover|_hover|_active" app/components/CreateGame/GameSettingLeftSide.tsx
+find app/components/CreateGame -type f -name "*.tsx"
 ```
 
-Group A already migrated PlayerCard's "Finish Sign-In" button (tactilePrimary) and the "Link X" SocialIconButton. What's left is likely:
-- Rank ring visuals (decorative, not buttons — verify they're not `<Box as="button">` somewhere)
-- Brand accent colors on rank tiers (gold/silver/bronze maybe?) that may have hover/click affordances we missed
-- Possibly small CTAs on the back/flip side of the card if there is one
+Likely surfaces:
+- Stake preset buttons (e.g. 1¢/2¢, 5¢/10¢, $1/$2, etc.) — segmented or grid
+- Table-size preset buttons (heads-up / 4-max / 6-max / 9-max)
+- Buy-in preset chips (multiples of BB)
+- Possibly: blind-structure cards, time-bank presets, ante toggles
+- Number-stepper +/− chips for custom values
 
-Don't trust the "mostly resolved" framing — Groups A through G have all found surfaces the original brief missed. Read every interactive element in the file.
+Recent commits already polished some of this (`51c1122` "Polish CreateGame settings: stake presets, dedupe tooltips, prune dead code"). Read what's actually in the file to find what hasn't been tactile-ified.
 
-### 2. Build a Storybook spike (or skip)
+### 2. Build a Storybook spike
 
-If the audit finds genuinely small leftover surfaces (e.g. one or two icon buttons), skip the spike and propose a tactile change directly. If there's anything stateful or with multiple variants (rank tiers, expanded/collapsed state, etc.), build a small spike showing baseline vs tactile.
+These are likely segmented-pill or chip-grid buttons. Group I just established the **segmented-pill tactile recipe** (FilterBar/StakeFilter pattern: inner highlight on active, mode-aware hover bg-tint, snap press with translateY(1px) + inset shadow). If the CreateGame presets are segmented pills, **reuse that exact recipe** — consistency win.
 
-Precedent: Group F (`navLink`) was a tightly-scoped variant change and went straight to migration. Group G had 5 quest tones × 4 states and warranted a spike.
+If they're a chip grid (each preset is its own standalone chip, not part of a connected segmented control), the chip-style tactile recipe from Group A applies (solid bg + 2px edge + translateY(2px) press) — but at preset scale, probably 1px edge.
 
-### 3. Group H context
+- Path: `app/components/_design/CreateGamePresets.stories.tsx`
+- Title: `'Design Spikes / Group J — CreateGame Presets'`
+- Show 2 directions: Baseline + Tactile (consistent with Group I/G/etc. — at this point in the overhaul, "Tactile" is the only system-aligned answer; the spike is mostly to verify the recipe lands cleanly at this scale and per the actual control shape).
+- Backdrop: `bg.default` page bg + `card.white` settings card surface.
 
-PlayerCard is part of the `/leaderboard` page surface (`bg.default`). Whatever buttons/affordances remain should match the family established by:
-- Group A's tactile primary/outline/destructive for action CTAs
-- Group G's tactile-tone Claim button for per-row CTAs
-- Group F's pink hover for nav links
+### 3. Group J context
 
-If there are rank-tier accents (gold for #1, silver for #2, bronze for #3), they're likely decorative — verify before tactile-ifying. Decorative chrome shouldn't grow buttons it doesn't have.
+Form preset buttons differ from action CTAs:
+- They're *selectors*, not *triggers*. The press affordance signals "I picked this," not "I'm taking action."
+- Active state is load-bearing — the user needs to see at a glance which preset is selected.
+- Often grouped 4–6 in a row; visual rhythm matters (consistent height, spacing).
+
+Selector recipe (per Group I):
+- Active: subtle bg fill + inner highlight + label color shift
+- Inactive: transparent, hover bg-tint
+- Press (both): translateY(1px) + inset shadow
 
 ### 4. Migration
 
-- Inline tactile recipe per surface (or use existing variants if the surface fits).
-- **Layout-preserving rule applies** — don't change card dimensions, ring sizes, badge positions, etc.
-- Don't add `_disabled` / `_loading` blocks (baseStyle owns those).
+- Reuse the segmented-pill recipe from FilterBar/StakeFilter if the controls are segmented. Otherwise apply chip recipe inline.
+- **Layout-preserving rule applies** — don't change preset dimensions, grid gap, label sizes.
+- Don't add `_disabled` / `_loading` (baseStyle owns those).
 - Verify type-check + lint + build clean.
-- Update this file's status table.
+- Update this file's status table — this should mark Group J ✅ DONE and the overhaul complete.
 
-### 5. Hand back
+### 5. Hand back — the final hand back
 
-Self-review, list what to eyeball in browser (`/leaderboard` PlayerCard at top + lower ranks, all auth states, light + dark), ask if they want to move to Group I (filters / sort / icon-secondary on PublicGamesGrid) or Group J (form / preset buttons on CreateGame).
+Self-review, list what to eyeball in browser (`/create-game` settings panel, all preset selectors, idle + selected + disabled states, light + dark), and call the overhaul **complete**.
+
+Optional cleanup post-Group-J:
+- Lift the FilterBar/StakeFilter shared segmented-pill recipe into a `<SegmentedPill>` component (DRY refactor)
+- Lift Telegram + Discord + Orange-pendingPause edge hexes into named brand tokens if more chrome ever lands in those tones
+- Decide whether the leftover spike files (none should remain — verify `app/components/_design/` is empty)
+- Consider a final write-up commit summarizing the whole overhaul and the durable patterns it established (tactile recipe, layout-preserving rule, audit-first loop, Chakra `_hover._disabled.bg: 'initial'` gotcha)
 
 ---
 

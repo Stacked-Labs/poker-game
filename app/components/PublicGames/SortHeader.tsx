@@ -33,7 +33,8 @@ function SortHeaderButton({
             px={0}
             color={active ? 'brand.green' : 'text.muted'}
             _hover={{ color: 'brand.green' }}
-            transition="color 0.15s ease"
+            _active={{ color: 'brand.greenDark' }}
+            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), color 80ms ease"
             display="inline-flex"
             justifyContent={align === 'right' ? 'flex-end' : 'flex-start'}
             w="full"

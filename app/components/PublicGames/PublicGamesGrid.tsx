@@ -109,13 +109,18 @@ export default function PublicGamesGrid({
                         display="inline-flex"
                         alignItems="center"
                         justifyContent="center"
+                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease"
                         _hover={{
                             color: 'brand.green',
-                            boxShadow: 'card.liftHover',
-                            transform: 'translateY(-1px)',
+                            bg: 'bg.greenSubtle',
+                        }}
+                        _active={{
+                            color: 'brand.greenDark',
+                            bg: 'bg.greenTint',
+                            transform: 'translateY(1px)',
+                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
                         }}
                         _focusVisible={{ boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)' }}
-                        transition="all 0.15s ease"
                     >
                         Load more tables
                     </Button>

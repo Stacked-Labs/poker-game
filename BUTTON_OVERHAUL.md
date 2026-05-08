@@ -1,6 +1,6 @@
 # Button System Overhaul — Handoff
 
-**Status:** Groups A + B + C complete · Group D next · 6 groups remaining
+**Status:** Groups A + B + C + E complete · Group D skipped (current design retained) · Group F next · 4 groups remaining
 
 This file is a stateful handoff for the next agent picking up this work. Read it end-to-end before touching any button code. Reference it; don't re-derive it.
 
@@ -123,9 +123,9 @@ import { SocialIconButton } from '@/app/components/SocialIconButton';
 | **A** | **Hero / marketing CTAs** | ✅ **DONE** | HomeCard, PublicGames, CreateGame, error pages, TakeSeatModal, GuardModal, NewsletterSuccessModal, PlayerCard, ShareRankCard, Footer |
 | **B** | **Table action buttons** (primary trio + raise presets + blind obligations + away rejoin) | ✅ **DONE** | `Footer/ActionButton.tsx`, `raiseActionButton` variant in theme.ts (consumed in `RaiseInputBox.tsx`), `Footer/BlindObligationControls.tsx`, `Footer/AwayRejoinFooter.tsx` |
 | **C** | **Table chrome (settings, volume, chat, away, leave, withdraw, pause/resume, burger)** | ✅ **DONE** | `theme.ts` `tactileChrome` variant (replaces `gameSettingsButton`); consumers: `NavBar/index.tsx`, `VolumeButton.tsx`, `AwayButton.tsx`, `LeaveButton.tsx`, `WithdrawButton.tsx` (trigger only), `TableMenuBurger.tsx` |
-| **D** | **Felt seat buttons (Sit Down)** | 🟡 **NEXT** | EmptySeatButton |
-| E | Mobile drawer nav | Pending | HomeNavBar drawer items + mobile social row |
-| F | Desktop nav links (`navLink` variant) | Working — light review | HomeNavBar |
+| D | Felt seat buttons (Sit Down) | ⏭️ **SKIPPED** — user kept current design after spike review | `app/components/EmptySeatButton.tsx` (untouched) |
+| **E** | **Mobile drawer nav** (menu trigger + close + 6 nav-link rows + 3 social) | ✅ **DONE** | `app/components/HomePage/HomeNavBar.tsx` |
+| **F** | **Desktop nav links (`navLink` variant)** | 🟡 **NEXT** — light review | HomeNavBar (the desktop `NavButtons` component using `navLink` variant) |
 | G | Leaderboard quests (currently `Box` not `Button`) | Pending — biggest open question | QuestsSection |
 | H | Leaderboard PlayerCard CTAs | Mostly resolved by A | PlayerCard (rank rings, accents) |
 | I | Filters / sort / icon-secondary | Light review | PublicGamesGrid |
@@ -275,59 +275,100 @@ This is the first variant in the overhaul to use `_dark` *inside* the variant bo
 
 ---
 
-## How to do Group D (next)
+## What Group E actually did (audit trail)
 
-The user's iteration loop is fixed. Follow it:
+### Files modified (1)
+
+- `app/components/HomePage/HomeNavBar.tsx` — all 11 button surfaces in the mobile drawer + the menu trigger, migrated to tactile.
+
+### Surfaces migrated
+
+| # | Surface | Recipe applied |
+|---|---|---|
+| 1 | Mobile menu trigger (hamburger on desktop nav) | `variant="tactileChrome"` |
+| 2 | Drawer close (X icon in drawer header) | `variant="tactileChrome"` |
+| 3–5 | Play section nav-links (Create Game / Public Games / Leaderboard) | green-tone tactile rows: 10% green-tint hover, 16% + `translateY(1px)` + inset shadow press |
+| 6–8 | Resources section nav-links (Docs / Support / Discord) | neutral-tone tactile rows: 6% navy-tint hover (light) / 8% white-tint (dark), 10%/14% press |
+| 9–11 | Mobile social row (X / Discord / Telegram) | swapped to `<SocialIconButton tone="..." chipSize="lg" />` (already exists from Group A) |
+
+### Slop removed
+
+- `transform: 'translateX(2px)'` slide-nudge on nav-link rows (no-lift rule)
+- `transform: 'translateY(-2px)'` lift on social IconButtons (no-lift rule)
+- Hardcoded `#000` / `#5865F2` / `#0088cc` social colors → now flow through `SocialIconButton`'s tone palette
+- Duplicated inline `_hover` blocks on the 6 nav-link rows (3 green + 3 neutral) — still 6 inline blocks, but now consistent with the same recipe shape and one shared `TACTILE_TRANSITION` constant
+- 3 unused imports (`RiTwitterXLine`, `FaTelegram`, plus the inline-styled IconButton paths)
+
+### Layout preserved verbatim
+
+- All nav-link Button props: `as="a" href={...}`, `onClick={onClose}`, `leftIcon`, `rightIcon`, `variant="ghost"`, `justifyContent="flex-start"`, `height="44px"`, `px={3}`, `borderRadius="12px"`, `fontWeight="semibold"`, `fontSize="sm"`, `color`, `bg="transparent"`, `border="none"`, `sx={{ '& > span:last-of-type': { ml: 'auto' } }}`
+- Drawer header layout (Logo + close button), Spacer Box flex={1}, Tooltip wrapping Leaderboard
+- All section labels, dividers, theme toggle, WalletButton, decorative bottom gradient
+- `MotionFlex` wrapper, `Drawer placement="right" size="xs"`, `DrawerOverlay backdropFilter`, `DrawerContent` bg/border/shadow
+- The disabled "Soon"-badged Leaderboard row keeps its `opacity={0.5}` + `cursor="default"` + transparent hover
+
+### Pattern: nav-link tactile row
+
+For full-width drawer rows (vs chip-style tactile buttons), the press affordance is `translateY(1px)` (not 2px — preserves the row's vertical rhythm) plus a soft `inset 0 1px 2px rgba(0,0,0,0.10)` indent. No bottom-edge shadow since rows aren't chip-shaped. Hover is a tone-tint bg only — no lift, no glow, no slide-nudge. The tone tint is per-section: green for Play (action-adjacent), navy for Resources (utility).
+
+### Out of scope (deliberately)
+
+- The desktop nav `NavButtons` component (Group F) — uses `navLink` variant in theme. Light-review group; the current `navLink` has a `transform: translateY(-3px)` hover lift that violates the no-lift rule and a pink hover color, but the rest is reasonable.
+- `WalletButton` (master scope exclusion).
+- `ColorModeButton` — separate component, separate concern.
+
+---
+
+## How to do Group F (next)
+
+The user's iteration loop is fixed. Follow it.
 
 ### 1. Audit first
 
-Group D per this doc is "Felt seat buttons (Sit Down)" — the empty-seat affordances around the poker table. The doc's open-questions section already flags one issue: the existing `EmptySeatButton.tsx` does NOT use a theme variant. It carries inline custom styling (dashed border, blur, glow, scale 1.02). The original `emptySeat` variant in `theme.ts` had 0 consumers and was deleted in Group A's cleanup. So Group D needs a fresh variant or a custom-component approach.
+Group F per this doc is "Desktop nav links (`navLink` variant)" — the top-of-page nav on desktop (the `NavButtons` component inside `HomeNavBar.tsx`). It's a *light review* group: the variant is reasonably scoped already, but it has a hover lift and a pink hover color that don't match the rest of the system.
 
-Before spiking, audit the felt seat surfaces:
+Before spiking, audit:
 
 ```bash
-grep -rn 'EmptySeat\|SitDown\|FeltSeat\|empty-seat' app/ --include='*.tsx' --include='*.ts'
-find app/components/Felt -type f
+grep -rn 'variant="navLink"\|variant={"navLink"}\|variant={\x27navLink\x27}\|navLink' app/ --include='*.tsx' --include='*.ts'
 ```
 
-Expect to find at minimum:
-- `app/components/Felt/EmptySeatButton.tsx` (or similar) — the "click to take this seat" target
-- Possibly a sibling component for occupied-but-disabled seats
-- Maybe avatar slots with hover affordances that should match the same family
+The `navLink` variant in `app/theme.ts` currently has:
+- `transform: 'translateY(-3px)'` on hover (no-lift rule violation)
+- `color: 'brand.pink'` on hover (out of family with the green-action / navy-utility palette we've established)
+- `bg: 'none'`, `boxShadow: 'none'` on all states (good — chrome-leaning)
+- All-state `border: 'none'` and explicit `outline: 'none'` reset (good)
+- `transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'` (slow vs the 80ms snap we use elsewhere)
 
-Group A and Group B and Group C audits each found surfaces the original brief missed. Expect the same here. Read every consumer; don't trust the brief's surface list verbatim.
+Consumers: only the `NavButtons` component inside `HomeNavBar.tsx:55–112` (Home / Create / Public / Leaderboard / Sign In path). No other consumers — this is a tightly scoped variant.
 
-### 2. Build a Storybook spike
+### 2. Build a Storybook spike (or skip)
 
-- Path: `app/components/_design/FeltSeats.stories.tsx`
-- Title: `'Design Spikes / Group D — Felt Seats'`
-- Show **4 directions side-by-side**: Baseline (current EmptySeatButton inline styles), Tactile (chip mechanic adapted to circular/square seat shape), plus 2 alternates that suit a felt-physical context (e.g., "Inviting" — pulsing dashed ring, "Embedded" — recessed felt indent). The shown buttons sit *on the green felt* (the actual table cloth) — so for this spike's backdrop, **use a felt-green container, not `bg.default`**. This is the one Group where the chrome-buttons-on-page-bg rule doesn't apply: empty seats literally are on the felt.
-- Render: 9 seat positions around an oval, with a mix of empty + occupied states.
-- Toggle light/dark via existing toolbar (the felt color may need `useColorModeValue` since the table cloth might shift between modes).
-- Each direction self-contained inline styles — don't add new theme variants until the user picks.
-- Delete the spike file after the user decides.
+This is a small variant change — could go straight to migration without a spike, OR build a tiny spike showing baseline vs tactile. The user has consistently picked Tactile in every prior group; for a tightly-scoped change like this, I'd recommend just proposing the tactile change directly (no spike needed) and asking the user to confirm.
 
-### 3. Group D context
+If they want a spike: `app/components/_design/DesktopNav.stories.tsx`, two directions only (baseline vs tactile-quiet), single small story.
 
-Empty-seat buttons are **invitations**, not actions. They want to draw the eye to "join here" without screaming. The current EmptySeatButton uses dashed border + blur + glow + scale 1.02 — which is the "AI-slop attention magnet" pattern. The right tactile-family answer is probably:
-- A subtle dashed-border chip (the dashed signal is meaningful — it says "this is a slot, not a player")
-- Hover bumps the dash to solid + slight bg fill
-- Press is the same tactile recipe (translateY(2px) + edge collapse) — though for circular/avatar-shaped buttons, "edge" needs a ring shape instead of a bottom shadow
+### 3. Group F context
 
-Felt seats are also **state-dense**: empty / pending-take / occupied / disabled (game in progress, not enough chips, etc.). Each state needs a distinct visual.
+Desktop nav links are **chrome, not actions**. They should:
+- Have NO hover lift (just like the drawer rows in Group E)
+- Have a quiet hover signal — bg tint or color shift, not transform
+- Use the green tone for hover (consistent with Group E's Play section) since these link into actions, OR neutral for utility consistency
+- Use the 80ms snap transition
 
-### 4. After the user picks
+Current `_hover` color is `brand.pink` — that's tactile-incompatible (pink is reserved for destructive in our system, not nav-hover). Switch to `brand.green` to match Group E or stay neutral.
 
-- Add a new variant `tactileFeltSeat` (or just inline-style if the seat is the only consumer — the inline-vs-variant call is a judgment based on whether more seat-shaped surfaces exist).
-- Define **only the live state**. Don't hand-roll `_disabled` or `_loading` — Button baseStyle already owns those.
-- **Layout-preserving rule applies** (Groups B + C established it as canon). Don't change avatar dimensions, position, transform-origin, or any layout primitive. Only the visual layer changes.
-- Migrate `EmptySeatButton.tsx` (and any sibling consumers found in the audit). Don't pass `opacity`/`cursor`/raw `disabled` consumer-side — use `isDisabled`.
+### 4. Migration
+
+- Update the `navLink` variant in `app/theme.ts`: drop the `translateY(-3px)`, swap pink for green or a neutral token, use `TACTILE_TRANSITION` timing. Add a tactile press state (`_active`).
+- Don't add `_disabled` / `_loading` blocks (baseStyle owns those).
+- The consumer doesn't need any changes — variants flow through.
 - Verify type-check + lint + build clean.
 - Update this file's status table.
 
 ### 5. Hand back
 
-Self-review, list what to eyeball in browser, ask if they want to move to Group E.
+Self-review, list what to eyeball in browser (`/` desktop nav at the top, links should hover-tint green without lifting), ask if they want to move to Group G (Leaderboard quests — the biggest open question).
 
 ---
 

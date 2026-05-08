@@ -45,9 +45,10 @@ const SideBarChat = ({
             top="0"
             bg="card.white"
             zIndex={1000}
-            boxShadow="-4px 0 24px rgba(0, 0, 0, 0.12)"
+            boxShadow="-4px 0 24px rgba(11, 20, 48, 0.10)"
+            _dark={{ boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.45)' }}
             borderLeft="1px solid"
-            borderColor="rgba(0, 0, 0, 0.08)"
+            borderColor="border.lightGray"
         >
             {hasOpened && (
                 <Chatbox

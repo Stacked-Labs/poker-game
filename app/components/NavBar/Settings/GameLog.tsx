@@ -764,7 +764,7 @@ const GameLog = () => {
                 return (
                     <>
                         Pot{' '}
-                        <Text as="span" fontWeight="bold">
+                        <Text as="span" fontWeight="bold" color="text.primary">
                             awarded
                         </Text>
                         : {formatAmount(amount)}

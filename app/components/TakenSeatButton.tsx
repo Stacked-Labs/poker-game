@@ -1904,17 +1904,6 @@ const TakenSeatButton = ({
                                             showSearch={false}
                                             popoverContentProps={{
                                                 zIndex: 2000,
-                                                borderWidth: 2,
-                                                borderColor: 'input.lightGray',
-                                                bg: 'card.white',
-                                            }}
-                                            popoverArrowProps={{
-                                                border: 'none',
-                                                boxShadow: 'lg',
-                                                bg: 'card.white',
-                                            }}
-                                            popoverBodyProps={{
-                                                bg: 'card.white',
                                             }}
                                             trigger={
                                                 <IconButton

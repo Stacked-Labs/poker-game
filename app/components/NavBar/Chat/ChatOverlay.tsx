@@ -20,10 +20,10 @@ type OverlayMessage = {
 const FADE_DURATION_MS = 10000;
 
 const fadeMessage = keyframes`
-    0% { opacity: 0; transform: translateY(6px); }
-    12% { opacity: 1; transform: translateY(0); }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
+    0% { opacity: 0; transform: translateY(4px); }
+    8% { opacity: 1; transform: translateY(0); }
+    82% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-2px); }
 `;
 
 const ChatOverlay = () => {
@@ -117,12 +117,7 @@ const ChatOverlay = () => {
         >
             <Flex
                 direction="column"
-                gap={2}
-                p={0}
-                bg="transparent"
-                borderRadius="0"
-                boxShadow="none"
-                backdropFilter="none"
+                gap={1.5}
                 maxH={{ base: '120px', md: '160px' }}
                 overflow="hidden"
                 justifyContent="flex-end"
@@ -134,19 +129,27 @@ const ChatOverlay = () => {
                             key={item.id}
                             opacity={0}
                             animation={`${fadeMessage} ${FADE_DURATION_MS}ms ease-in-out forwards`}
+                            sx={{
+                                '@media (prefers-reduced-motion: reduce)': {
+                                    animationDuration: '0ms',
+                                    opacity: 1,
+                                },
+                            }}
                         >
                             <Text
                                 fontSize={{ base: 'xs', md: 'sm' }}
-                                lineHeight="1.35"
+                                lineHeight="1.4"
                                 color={userColor}
                                 whiteSpace="break-spaces"
-                                opacity={0.8}
+                                fontWeight="medium"
+                                textShadow="0 1px 2px rgba(0,0,0,0.55), 0 0 1px rgba(0,0,0,0.45)"
                             >
                                 <Text
                                     as="span"
-                                    fontWeight="bold"
+                                    fontWeight={700}
                                     mr={2}
                                     color={userColor}
+                                    letterSpacing="0.01em"
                                 >
                                     {item.isSeated && (
                                         <Icon
@@ -155,6 +158,7 @@ const ChatOverlay = () => {
                                             mr={1}
                                             verticalAlign="middle"
                                             display="inline"
+                                            aria-label="seated"
                                         />
                                     )}
                                     {item.name}:

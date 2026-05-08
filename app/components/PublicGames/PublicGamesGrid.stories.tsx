@@ -35,7 +35,13 @@ const mixedGames: PublicGame[] = [
     makeGame('practice-table', { small_blind: 5, big_blind: 10, player_count: 0, max_players: 6, spectator_count: 0, is_active: false }),
 ];
 
-function InteractiveGrid({ games }: { games: PublicGame[] }) {
+interface InteractiveGridProps {
+    games: PublicGame[];
+    hasMore?: boolean;
+    isLoadingMore?: boolean;
+}
+
+function InteractiveGrid({ games, hasMore = false, isLoadingMore = false }: InteractiveGridProps) {
     const [filter, setFilter] = useState<FilterValue>('all');
     const [stake, setStake] = useState<StakeFilterValue>('all');
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
@@ -71,8 +77,8 @@ function InteractiveGrid({ games }: { games: PublicGame[] }) {
                     onStakeChange={setStake}
                     sortConfig={sortConfig}
                     onSortChange={handleSort}
-                    hasMore={false}
-                    isLoadingMore={false}
+                    hasMore={hasMore}
+                    isLoadingMore={isLoadingMore}
                     onLoadMore={() => {}}
                 />
             </Container>
@@ -99,6 +105,16 @@ export const Mixed: Story = {
 
 export const SingleGame: Story = {
     render: () => <InteractiveGrid games={[mixedGames[0]]} />,
+};
+
+export const WithLoadMore: Story = {
+    name: 'With Load More button',
+    render: () => <InteractiveGrid games={mixedGames} hasMore />,
+};
+
+export const LoadMoreLoading: Story = {
+    name: 'Load More — loading state',
+    render: () => <InteractiveGrid games={mixedGames} hasMore isLoadingMore />,
 };
 
 export const ManyGames: Story = {

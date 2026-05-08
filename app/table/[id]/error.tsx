@@ -122,7 +122,7 @@ export default function TableError({
                 <VStack spacing={3}>
                     <Button
                         onClick={reset}
-                        variant="greenGradient"
+                        variant="tactilePrimary"
                         size="lg"
                         w="100%"
                         borderRadius="14px"
@@ -134,7 +134,7 @@ export default function TableError({
                     <Button
                         as={Link}
                         href="/public-games"
-                        variant="outlineMuted"
+                        variant="tactileOutline"
                         size="lg"
                         w="100%"
                         borderRadius="14px"

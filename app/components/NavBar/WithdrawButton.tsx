@@ -193,27 +193,34 @@ const WithdrawButton = () => {
                     width="auto"
                     height={{ base: '40px', sm: '40px', md: '48px' }}
                     bg="brand.yellow"
-                    color="white"
+                    color="#1A1A1A"
                     border="none"
                     borderRadius="12px"
-                    fontWeight="semibold"
+                    fontWeight={700}
                     fontSize={{ base: 'xs', md: 'sm' }}
+                    letterSpacing="0.02em"
                     leftIcon={
                         <Icon as={FaCoins} boxSize={{ base: 4, md: 5 }} />
                     }
                     iconSpacing={1.5}
                     filter={isUserSeated ? 'blur(1px)' : 'none'}
                     opacity={isUserSeated ? 0.6 : 1}
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.30), 0 2px 0 #B78900"
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, filter 200ms ease"
                     _hover={{
-                        transform: isUserSeated
-                            ? 'none'
-                            : 'translateY(-2px)',
-                        boxShadow: isUserSeated
-                            ? 'none'
-                            : '0 4px 12px rgba(253, 197, 29, 0.4)',
+                        bg: 'brand.yellow',
                         filter: isUserSeated ? 'blur(1px)' : 'none',
                     }}
-                    transition="all 0.2s ease"
+                    _active={
+                        isUserSeated
+                            ? undefined
+                            : {
+                                  bg: 'brand.yellowDark',
+                                  transform: 'translateY(2px)',
+                                  boxShadow:
+                                      'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
+                              }
+                    }
                 >
                     Withdraw
                 </Button>

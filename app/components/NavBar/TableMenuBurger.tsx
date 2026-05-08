@@ -108,24 +108,30 @@ const TableMenuBurger = ({
                     width={{ base: '40px', sm: '40px', md: '48px' }}
                     height={{ base: '40px', sm: '40px', md: '48px' }}
                     zIndex={999}
-                    bg="btn.lightGray"
-                    color="text.secondary"
-                    border="none"
-                    borderRadius="12px"
-                    _hover={
-                        isOpen
-                            ? {
-                                  bg: 'brand.navy',
-                                  color: 'white',
-                              }
-                            : {
-                                  bg: 'brand.navy',
-                                  color: 'white',
+                    {...(isOpen
+                        ? {
+                              // Open state — solid navy tactile chip,
+                              // signals "menu open, click to close."
+                              bg: 'brand.navy',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '12px',
+                              boxShadow:
+                                  'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #1B2754',
+                              transition:
+                                  'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease',
+                              _hover: { bg: 'brand.navy' },
+                              _active: {
+                                  bg: '#243059',
+                                  transform: 'translateY(2px)',
                                   boxShadow:
-                                      '0 4px 12px rgba(51, 68, 121, 0.3)',
-                              }
-                    }
-                    transition="all 0.2s ease"
+                                      'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #1B2754',
+                              },
+                          }
+                        : {
+                              // Closed: idle chrome via tactileChrome variant.
+                              variant: 'tactileChrome',
+                          })}
                 />
                 <MenuList
                     zIndex={999}

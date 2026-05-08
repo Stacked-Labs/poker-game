@@ -63,22 +63,12 @@ const SeatRequestConflictModal = ({ isOpen, onClose, seatId }: Props) => {
 
                 <ModalFooter pt={3} pb={5}>
                     <Button
+                        variant="tactilePrimary"
                         onClick={onClose}
                         size="md"
                         height="44px"
                         width="100%"
-                        bg="brand.green"
-                        color="white"
-                        border="none"
                         borderRadius="12px"
-                        fontWeight="bold"
-                        _hover={{
-                            transform: 'translateY(-1px)',
-                            boxShadow:
-                                '0 10px 18px rgba(54, 163, 123, 0.22)',
-                        }}
-                        _active={{ transform: 'translateY(0)' }}
-                        transition="all 0.2s ease"
                     >
                         Choose Another Seat
                     </Button>

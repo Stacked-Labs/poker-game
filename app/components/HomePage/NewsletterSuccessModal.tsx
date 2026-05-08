@@ -8,8 +8,8 @@ import {
     ModalCloseButton,
     ModalBody,
     Box,
+    Button,
     VStack,
-    HStack,
     Heading,
     Text,
     Icon,
@@ -27,17 +27,6 @@ const gradientShift = keyframes`
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
-`;
-
-const pulse = keyframes`
-    0% { box-shadow: 0 0 0 0 rgba(0, 136, 204, 0.5); }
-    70% { box-shadow: 0 0 0 18px rgba(0, 136, 204, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0, 136, 204, 0); }
-`;
-
-const shimmer = keyframes`
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
 `;
 
 interface NewsletterSuccessModalProps {
@@ -181,68 +170,12 @@ const NewsletterSuccessModal = ({
                             isExternal
                             _hover={{ textDecoration: 'none' }}
                         >
-                            <Box
-                                bg="linear-gradient(135deg, #0088cc 0%, #00BFFF 100%)"
-                                borderRadius="14px"
-                                py={2.5}
-                                px={5}
-                                transition="all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                cursor="pointer"
-                                position="relative"
-                                overflow="hidden"
-                                animation={`${pulse} 2s ease-out infinite`}
-                                _hover={{
-                                    transform: 'translateY(-3px) scale(1.02)',
-                                    boxShadow:
-                                        '0 16px 40px rgba(0, 136, 204, 0.4)',
-                                }}
-                                _active={{
-                                    transform: 'translateY(0) scale(0.98)',
-                                }}
-                                sx={{
-                                    '&::before': {
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        height: '50%',
-                                        background:
-                                            'linear-gradient(to bottom, rgba(255, 255, 255, 0.18), transparent)',
-                                        borderRadius: 'inherit',
-                                        pointerEvents: 'none',
-                                    },
-                                    '&::after': {
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        width: '100%',
-                                        height: '100%',
-                                        background:
-                                            'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                                        animation: `${shimmer} 2.5s ease-in-out infinite`,
-                                        pointerEvents: 'none',
-                                    },
-                                }}
+                            <Button
+                                variant="tactileTelegram"
+                                leftIcon={<Icon as={FaTelegram} boxSize={5} />}
                             >
-                                <HStack spacing={3}>
-                                    <Icon
-                                        as={FaTelegram}
-                                        boxSize={6}
-                                        color="white"
-                                        filter="drop-shadow(0 2px 4px rgba(0,0,0,0.2))"
-                                    />
-                                    <Text
-                                        fontSize="sm"
-                                        color="white"
-                                        fontWeight="700"
-                                        letterSpacing="-0.01em"
-                                    >
-                                        Join the Telegram
-                                    </Text>
-                                </HStack>
-                            </Box>
+                                Join the Telegram
+                            </Button>
                         </Link>
 
                         {/* Social proof nudge */}

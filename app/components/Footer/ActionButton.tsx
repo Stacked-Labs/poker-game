@@ -2,16 +2,6 @@
 
 import { Badge, Box, Button } from '@chakra-ui/react';
 import React from 'react';
-import { motion } from 'framer-motion';
-import { keyframes } from '@emotion/react';
-
-const MotionButton = motion(Button);
-
-// Subtle shimmer effect on hover
-const shimmer = keyframes`
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-`;
 
 interface ActionButtonProps {
     text: string;
@@ -34,50 +24,37 @@ const ActionButton = ({
     queued = false,
     queueMode = false,
 }: ActionButtonProps) => {
-    const brandColorMap: {
+    // Tactile palette per tone — solid fill + matching darker shade for press
+    // and an edge color for the chip's bottom rim. Brand tokens, no hex leaks.
+    const tonePalette: {
         [key: string]: {
             bg: string;
-            bgHover: string;
-            border: string;
+            press: string;
+            edge: string;
             text: string;
-            hoverBg: string;
-            glowColor: string;
-            gradient: string;
         };
     } = {
         green: {
             bg: 'brand.green',
-            bgHover: '#2d8763',
-            border: 'rgba(54, 163, 123, 0.6)',
+            press: 'brand.greenDark',
+            edge: '#22674E', // brand.greenEdge
             text: 'white',
-            hoverBg: '#2d8763',
-            glowColor: 'rgba(54, 163, 123, 0.4)',
-            gradient:
-                'linear-gradient(135deg, rgba(54, 163, 123, 1) 0%, rgba(45, 135, 99, 1) 100%)',
         },
         red: {
             bg: 'brand.pink',
-            bgHover: '#c9094c',
-            border: 'rgba(235, 11, 92, 0.6)',
+            press: 'brand.pinkDark',
+            edge: '#950839', // brand.pinkEdge
             text: 'white',
-            hoverBg: '#c9094c',
-            glowColor: 'rgba(235, 11, 92, 0.4)',
-            gradient:
-                'linear-gradient(135deg, rgba(235, 11, 92, 1) 0%, rgba(201, 9, 76, 1) 100%)',
         },
         white: {
             bg: 'brand.pink',
-            bgHover: '#c9094c',
-            border: 'rgba(235, 11, 92, 0.6)',
+            press: 'brand.pinkDark',
+            edge: '#950839',
             text: 'brand.lightGray',
-            hoverBg: '#c9094c',
-            glowColor: 'rgba(235, 11, 92, 0.4)',
-            gradient:
-                'linear-gradient(135deg, rgba(235, 11, 92, 1) 0%, rgba(201, 9, 76, 1) 100%)',
         },
     };
 
-    const buttonColors = brandColorMap[color] || brandColorMap.green;
+    const t = tonePalette[color] || tonePalette.green;
 
     const queueStyles = queueMode
         ? {
@@ -90,13 +67,11 @@ const ActionButton = ({
     const actionTestId = `action-${text.split(/[\s(]/)[0].toLowerCase()}`;
 
     return (
-        <MotionButton
+        <Button
             data-testid={actionTestId}
-            bg={buttonColors.bg}
-            bgGradient={!queueMode ? buttonColors.gradient : undefined}
-            color={buttonColors.text}
-            borderColor={buttonColors.border}
-            border="1.5px solid"
+            bg={t.bg}
+            color={t.text}
+            border="none"
             textTransform={'uppercase'}
             onClick={clickHandler}
             isDisabled={isDisabled}
@@ -106,77 +81,23 @@ const ActionButton = ({
             zIndex={10}
             cursor="pointer"
             overflow="hidden"
-            // Framer Motion spring animation
-            whileHover={
-                !isDisabled && !queueMode
-                    ? {
-                          y: -2,
-                          scale: 1.03,
-                          transition: {
-                              type: 'spring',
-                              stiffness: 400,
-                              damping: 17,
-                          },
+            boxShadow={`inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 ${t.edge}`}
+            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+            _hover={{ bg: t.bg }}
+            _active={
+                queueMode
+                    ? undefined
+                    : {
+                          bg: t.press,
+                          transform: 'translateY(2px)',
+                          boxShadow: `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${t.edge}`,
                       }
-                    : undefined
             }
-            whileTap={
-                !isDisabled && !queueMode
-                    ? {
-                          scale: 0.95,
-                          y: 0,
-                          transition: {
-                              type: 'spring',
-                              stiffness: 500,
-                              damping: 15,
-                          },
-                      }
-                    : undefined
-            }
-            _hover={{
-                boxShadow:
-                    !isDisabled && !queueMode
-                        ? `0 8px 24px ${buttonColors.glowColor}, inset 0 1px 0 rgba(255, 255, 255, 0.2)`
-                        : 'none',
-            }}
-            transition="box-shadow 0.3s ease, background 0.3s ease"
             className={`action-button ${text.toLowerCase()}-button ${className}`.trim()}
             data-queue-mode={queueMode ? 'true' : undefined}
             style={queueStyles}
             sx={{
-                // Inner light effect
-                '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '50%',
-                    background:
-                        'linear-gradient(to bottom, rgba(255, 255, 255, 0.15), transparent)',
-                    borderRadius: 'inherit',
-                    pointerEvents: 'none',
-                },
-                // Shimmer effect on hover
-                '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background:
-                        'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent)',
-                    backgroundSize: '200% 100%',
-                    opacity: 0,
-                    transition: 'opacity 0.3s ease',
-                    pointerEvents: 'none',
-                },
-                '&:hover::after': {
-                    opacity: isDisabled || queueMode ? 0 : 1,
-                    animation: `${shimmer} 1.5s ease-in-out infinite`,
-                },
-                // Portrait/Vertical mode
+                // Portrait/Vertical mode — sizing preserved verbatim
                 '@media (orientation: portrait)': {
                     borderRadius: '10px',
                     padding: '2%',
@@ -188,7 +109,7 @@ const ActionButton = ({
                     maxHeight: '100%',
                     flexShrink: 1,
                 },
-                // Landscape/Horizontal mode
+                // Landscape/Horizontal mode — sizing preserved verbatim
                 '@media (orientation: landscape)': {
                     borderRadius: '10px',
                     padding: '0.5% 1.5%',
@@ -207,7 +128,7 @@ const ActionButton = ({
                 left={1}
                 opacity={'60%'}
                 textTransform={'uppercase'}
-                color={buttonColors.text}
+                color={t.text}
                 sx={{
                     '@media (orientation: portrait)': {
                         display: 'none',
@@ -232,7 +153,7 @@ const ActionButton = ({
                     px={1.5}
                     py={0.5}
                     bg="rgba(253, 197, 29, 0.25)"
-                    color={buttonColors.text}
+                    color={t.text}
                     border="1px solid rgba(253, 197, 29, 0.5)"
                     backdropFilter="blur(4px)"
                 >
@@ -240,7 +161,7 @@ const ActionButton = ({
                 </Badge>
             )}
             {text}
-        </MotionButton>
+        </Button>
     );
 };
 

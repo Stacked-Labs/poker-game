@@ -29,7 +29,7 @@ export default function EmptyState({ variant, onRetry }: EmptyStateProps) {
                 <Text color="text.secondary" fontSize="lg" fontWeight="bold">
                     Unable to load games. Please try again.
                 </Text>
-                <Button variant="greenGradient" borderRadius="14px" onClick={onRetry}>
+                <Button variant="tactilePrimary" borderRadius="14px" onClick={onRetry}>
                     Retry
                 </Button>
             </Flex>
@@ -45,7 +45,7 @@ export default function EmptyState({ variant, onRetry }: EmptyStateProps) {
                 as={Link}
                 href="/create-game"
                 leftIcon={<FiPlus />}
-                variant="greenGradient"
+                variant="tactilePrimary"
                 borderRadius="14px"
             >
                 Create one

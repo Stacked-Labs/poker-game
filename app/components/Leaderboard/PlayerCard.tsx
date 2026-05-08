@@ -20,6 +20,7 @@ import { FaMedal, FaXTwitter } from 'react-icons/fa6';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
 import WalletButton from '../WalletButton';
+import { SocialIconButton } from '@/app/components/SocialIconButton';
 import StatsSection from './StatsSection';
 import ReferralCodeSection from './ReferralCodeSection';
 import ShareRankCard from './ShareRankCard';
@@ -252,18 +253,12 @@ export function PlayerCardView({
                                 )
                             ) : (
                                 <Button
+                                    variant="tactilePrimary"
                                     height="48px"
                                     px={6}
-                                    bg="brand.green"
-                                    color="white"
-                                    fontWeight="bold"
-                                    borderRadius="12px"
                                     onClick={onRequestAuth}
                                     isLoading={isAuthenticating}
                                     loadingText="Waiting…"
-                                    _hover={{ bg: '#2d9268' }}
-                                    _active={{ transform: 'translateY(1px)' }}
-                                    transition="all 0.15s ease"
                                 >
                                     Finish Sign-In
                                 </Button>
@@ -429,41 +424,15 @@ export function PlayerCardView({
                                     />
                                 </HStack>
                             ) : (
-                                <HStack
-                                    as="button"
-                                    onClick={onConnectX}
-                                    disabled={isConnectingX}
-                                    spacing={1.5}
-                                    mt={2}
-                                    h="32px"
-                                    px={3.5}
-                                    borderRadius="full"
-                                    bg="#0A0B12"
-                                    boxShadow="0 1px 2px rgba(0, 0, 0, 0.2)"
-                                    cursor="pointer"
-                                    border="none"
-                                    outline="none"
-                                    _hover={{ bg: '#15161E' }}
-                                    _focus={{ outline: 'none', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)' }}
-                                    _focusVisible={{ outline: 'none', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)' }}
-                                    _dark={{
-                                        bg: '#0A0B12',
-                                        boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.08)',
-                                        _hover: { bg: '#15161E' },
-                                    }}
-                                    _disabled={{ opacity: 0.5, cursor: 'not-allowed' }}
-                                    transition="all 0.15s ease"
-                                >
-                                    <Text
-                                        fontSize="xs"
-                                        fontWeight="semibold"
-                                        letterSpacing="-0.01em"
-                                        color="white"
-                                    >
-                                        {isConnectingX ? 'Linking…' : 'Link'}
-                                    </Text>
-                                    <Icon as={FaXTwitter} boxSize="13px" color="white" />
-                                </HStack>
+                                <Box mt={2} alignSelf="flex-start">
+                                    <SocialIconButton
+                                        tone="x"
+                                        label={isConnectingX ? 'Linking…' : 'Link X'}
+                                        chipSize="sm"
+                                        onClick={onConnectX}
+                                        isDisabled={isConnectingX}
+                                    />
+                                </Box>
                             )}
                         </VStack>
                     </Flex>

@@ -24,17 +24,16 @@ import {
     FaUsers,
     FaArrowRight,
     FaCheckCircle,
-    FaDiscord,
     FaExternalLinkAlt,
 } from 'react-icons/fa';
 import { FiGift } from 'react-icons/fi';
-import { RiTwitterXLine } from 'react-icons/ri';
 import PlayTypeToggle from './PlayTypeToggle';
 import NetworkCard from './NetworkCard';
 import gameData from '../../create-game/gameOptions.json';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import WalletButton from '@/app/components/WalletButton';
+import { SocialIconButton } from '@/app/components/SocialIconButton';
 import { useAuth } from '@/app/contexts/AuthContext';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { initSession } from '@/app/hooks/server_actions';
@@ -499,19 +498,14 @@ const GameSettingLeftSide: React.FC = () => {
                     </Text>
                 </Box>
                 <Button
+                    variant="tactilePrimary"
                     size={{ base: 'sm', md: 'md' }}
-                    bg="brand.green"
-                    color="white"
                     borderRadius={{ base: '10px', md: '12px' }}
                     px={{ base: 4, md: 6 }}
                     height={{ base: '36px', md: '44px' }}
                     fontWeight={{ base: 'semibold', md: 'bold' }}
                     fontSize={{ base: 'xs', md: 'sm' }}
                     onClick={handleJoinPublicGame}
-                    _hover={{
-                        bg: '#2e8d6a',
-                    }}
-                    transition="all 0.2s"
                     leftIcon={<Icon as={FaUsers} boxSize={{ base: 3.5, md: 4 }} />}
                     rightIcon={<Icon as={FaArrowRight} boxSize={{ base: 2.5, md: 3 }} />}
                     flexShrink={0}
@@ -703,17 +697,44 @@ const GameSettingLeftSide: React.FC = () => {
                                                 ? 'brand.green'
                                                 : 'transparent'
                                         }
-                                        border="1px solid"
+                                        border="1.5px solid"
                                         borderColor={
                                             isActive
                                                 ? 'brand.green'
                                                 : 'border.greenStrong'
                                         }
-                                        transition="background-color 0.15s ease, border-color 0.15s ease"
+                                        boxShadow={
+                                            isActive
+                                                ? 'inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #22674E'
+                                                : '0 1.5px 0 #22674E'
+                                        }
+                                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease"
                                         _hover={
                                             isActive
-                                                ? {}
-                                                : { bg: 'bg.greenSubtle' }
+                                                ? { bg: 'brand.green' }
+                                                : {
+                                                      bg: 'rgba(54, 163, 123, 0.10)',
+                                                      borderColor:
+                                                          'brand.greenDark',
+                                                  }
+                                        }
+                                        _active={
+                                            isActive
+                                                ? {
+                                                      bg: 'brand.greenDark',
+                                                      transform:
+                                                          'translateY(1.5px)',
+                                                      boxShadow:
+                                                          'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
+                                                  }
+                                                : {
+                                                      bg: 'rgba(54, 163, 123, 0.16)',
+                                                      borderColor:
+                                                          'brand.greenDark',
+                                                      transform:
+                                                          'translateY(1.5px)',
+                                                      boxShadow: '0 0 0 #22674E',
+                                                  }
                                         }
                                     >
                                         <HStack spacing={1.5} align="baseline">
@@ -1221,34 +1242,26 @@ const GameSettingLeftSide: React.FC = () => {
                             tirelessly. Follow us for updates.
                         </Text>
                         <HStack spacing={3}>
-                            <Button
-                                as={Link}
+                            <Link
                                 href="https://x.com/stacked_poker"
                                 isExternal
-                                variant="outline"
-                                bg="card.white"
-                                borderColor="border.lightGray"
-                                borderWidth="2px"
-                                borderRadius="14px"
-                                size="sm"
-                                leftIcon={<Icon as={RiTwitterXLine} />}
                             >
-                                X
-                            </Button>
-                            <Button
-                                as={Link}
+                                <SocialIconButton
+                                    tone="x"
+                                    label="X"
+                                    chipSize="sm"
+                                />
+                            </Link>
+                            <Link
                                 href="https://discord.gg/347RBVcvpn"
                                 isExternal
-                                variant="outline"
-                                bg="card.white"
-                                borderColor="border.lightGray"
-                                borderWidth="2px"
-                                borderRadius="14px"
-                                size="sm"
-                                leftIcon={<Icon as={FaDiscord} />}
                             >
-                                Discord
-                            </Button>
+                                <SocialIconButton
+                                    tone="discord"
+                                    label="Discord"
+                                    chipSize="sm"
+                                />
+                            </Link>
                         </HStack>
                     </Flex>
                 </Box>
@@ -1277,46 +1290,23 @@ const GameSettingLeftSide: React.FC = () => {
                             ) : (
                                 <>
                                     <Button
+                                        variant="tactilePrimary"
                                         flex="1"
                                         height="56px"
-                                        bg="brand.green"
-                                        color="white"
                                         fontWeight="bold"
                                         borderRadius="16px"
                                         onClick={requestAuthentication}
                                         isLoading={isAuthenticating}
                                         loadingText="Waiting…"
-                                        _hover={{
-                                            bg: '#2d9268',
-                                            transform: 'translateY(-2px)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(54, 163, 123, 0.35)',
-                                        }}
-                                        _active={{
-                                            transform: 'translateY(0)',
-                                        }}
-                                        transition="all 0.2s ease"
                                     >
                                         Finish Sign-In
                                     </Button>
                                     <Button
+                                        variant="tactileDestructive"
                                         flex="1"
                                         height="56px"
-                                        bg="brand.pink"
-                                        color="white"
-                                        fontWeight="bold"
                                         borderRadius="16px"
                                         onClick={handleDisconnectWallet}
-                                        _hover={{
-                                            bg: '#d50a52',
-                                            transform: 'translateY(-2px)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(235, 11, 92, 0.25)',
-                                        }}
-                                        _active={{
-                                            transform: 'translateY(0)',
-                                        }}
-                                        transition="all 0.2s ease"
                                     >
                                         Disconnect
                                     </Button>
@@ -1334,43 +1324,20 @@ const GameSettingLeftSide: React.FC = () => {
                 >
                     <Box width="100%" maxW="480px">
                         <Button
+                            variant="tactilePrimary"
                             data-testid="create-game-btn"
-                            bg="brand.green"
-                            color="white"
                             onClick={handleCreateGame}
                             size="lg"
                             height="56px"
                             width="100%"
                             fontSize="md"
-                            fontWeight="bold"
                             borderRadius="16px"
-                            border="none"
                             isLoading={isLoading}
                             loadingText="Creating..."
                             spinner={<Spinner size="md" color="white" />}
-                            opacity={
-                                isFormValid && isCloudflareReady && !isLoading
-                                    ? 1
-                                    : 0.6
-                            }
-                            cursor={
-                                isFormValid && isCloudflareReady && !isLoading
-                                    ? 'pointer'
-                                    : 'not-allowed'
-                            }
-                            disabled={
+                            isDisabled={
                                 !isFormValid || !isCloudflareReady || isLoading
                             }
-                            _hover={{
-                                bg: '#2d9268',
-                                transform: 'translateY(-2px)',
-                                boxShadow:
-                                    '0 8px 20px rgba(54, 163, 123, 0.35)',
-                            }}
-                            _active={{
-                                transform: 'translateY(0)',
-                            }}
-                            transition="all 0.2s ease"
                         >
                             Create Game
                         </Button>

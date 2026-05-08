@@ -1010,18 +1010,10 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     py={1}
                                 >
                                     <Button
+                                        variant="tactilePrimary"
                                         w="100%"
                                         h="56px"
                                         borderRadius="bigButton"
-                                        bg={
-                                            isDepositing
-                                                ? 'brand.green'
-                                                : isJoinVisuallyDisabled
-                                                  ? 'btn.lightGray'
-                                                  : 'brand.green'
-                                        }
-                                        color={isDepositing ? 'white' : undefined}
-                                        border="none"
                                         cursor={
                                             isDepositing
                                                 ? 'wait'
@@ -1041,66 +1033,6 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         spinner={
                                             <Spinner size="sm" color="white" />
                                         }
-                                        sx={
-                                            isDepositing
-                                                ? {
-                                                      '&, &:disabled, &[data-loading], &[aria-disabled=true]':
-                                                          {
-                                                              bg: '#36A37B',
-                                                              background:
-                                                                  '#36A37B',
-                                                              color: 'white',
-                                                              opacity: 1,
-                                                          },
-                                                  }
-                                                : undefined
-                                        }
-                                        boxShadow={
-                                            isDepositing
-                                                ? '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                                                : isJoinVisuallyDisabled
-                                                  ? 'none'
-                                                  : '0 6px 18px rgba(54, 163, 123, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                                        }
-                                        _disabled={
-                                            isDepositing
-                                                ? {
-                                                      bg: 'brand.green',
-                                                      color: 'white',
-                                                      cursor: 'wait',
-                                                      opacity: 1,
-                                                      boxShadow:
-                                                          '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                                                  }
-                                                : {
-                                                      bg: 'btn.lightGray',
-                                                      cursor: 'not-allowed',
-                                                      opacity: 0.7,
-                                                      boxShadow: 'none',
-                                                  }
-                                        }
-                                        _hover={
-                                            isJoinVisuallyDisabled
-                                                ? {}
-                                                : {
-                                                      bg: '#2E8A66',
-                                                      transform: 'translateY(-2px)',
-                                                      boxShadow:
-                                                          '0 14px 28px rgba(54, 163, 123, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.22)',
-                                                  }
-                                        }
-                                        _active={{
-                                            bg: isJoinVisuallyDisabled
-                                                ? 'btn.lightGray'
-                                                : '#287859',
-                                            transform: isJoinVisuallyDisabled
-                                                ? 'none'
-                                                : 'translateY(0) scale(0.99)',
-                                            boxShadow: isJoinVisuallyDisabled
-                                                ? 'none'
-                                                : '0 4px 12px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
-                                        }}
-                                        transition="all 0.2s ease"
                                         onClick={handleJoin}
                                         type="submit"
                                         data-testid="join-table-btn"

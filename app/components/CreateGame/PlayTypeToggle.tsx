@@ -14,15 +14,16 @@ export default function PlayTypeToggle({
 }: PlayTypeToggleProps) {
     return (
         <Box position="relative" width="220px" height="40px">
-            {/* Track */}
+            {/* Track — recessed groove for the sliding pill to sit in */}
             <Box
                 position="absolute"
                 inset={0}
                 bg="card.lightGray"
                 borderRadius="full"
+                boxShadow="inset 0 1px 2px rgba(0,0,0,0.10)"
             />
 
-            {/* Sliding pill */}
+            {/* Sliding pill — tactile chip with hairline highlight + pink edge */}
             <Box
                 position="absolute"
                 top="4px"
@@ -31,8 +32,8 @@ export default function PlayTypeToggle({
                 height="32px"
                 bg="brand.pink"
                 borderRadius="full"
-                boxShadow="sm"
-                transition="left 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+                boxShadow="inset 0 1px 0 rgba(255,255,255,0.22), 0 1.5px 0 #950839"
+                transition="left 220ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease"
             />
 
             {/* Labels */}
@@ -56,11 +57,15 @@ export default function PlayTypeToggle({
                     cursor="pointer"
                     onClick={() => setPlayType('Free')}
                     background="transparent"
+                    transition="color 80ms ease"
+                    _hover={
+                        playType === 'Free' ? {} : { color: 'text.primary' }
+                    }
                 >
                     <Text
                         data-testid="play-type-free"
                         fontSize="sm"
-                        fontWeight="semibold"
+                        fontWeight={700}
                         color={
                             playType === 'Free' ? 'brand.lightGray' : 'gray.500'
                         }
@@ -88,11 +93,17 @@ export default function PlayTypeToggle({
                         cursor="pointer"
                         onClick={() => setPlayType('Crypto')}
                         background="transparent"
+                        transition="color 80ms ease"
+                        _hover={
+                            playType === 'Crypto'
+                                ? {}
+                                : { color: 'text.primary' }
+                        }
                     >
                         <Text
                             data-testid="play-type-crypto"
                             fontSize="sm"
-                            fontWeight="semibold"
+                            fontWeight={700}
                             color={
                                 playType === 'Crypto'
                                     ? 'brand.lightGray'

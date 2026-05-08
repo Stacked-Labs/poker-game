@@ -12,7 +12,6 @@ import {
     OrderedList,
     UnorderedList,
     ListItem,
-    Code,
 } from '@chakra-ui/react';
 
 const SECTION_LABEL_PROPS = {
@@ -47,30 +46,6 @@ const TitleText = ({ children }: { children: React.ReactNode }) => (
     <Text as="span" fontWeight="bold" color="text.secondary">
         {children}
     </Text>
-);
-
-const ActionChip = ({
-    bg,
-    color = 'white',
-    children,
-}: {
-    bg: string;
-    color?: string;
-    children: React.ReactNode;
-}) => (
-    <Code
-        bg={bg}
-        color={color}
-        px={2.5}
-        py={1}
-        borderRadius="6px"
-        fontWeight={700}
-        fontSize="xs"
-        letterSpacing="0.02em"
-        boxShadow="inset 0 1px 0 rgba(255,255,255,0.18)"
-    >
-        {children}
-    </Code>
 );
 
 const ItemHeader = ({ title }: { title: string }) => (
@@ -115,11 +90,10 @@ const HowTo = () => {
                             mb={3}
                             lineHeight="tall"
                         >
-                            No email, no password, no KYC. Your wallet{' '}
-                            <Text as="span" color="text.muted">
-                                is
-                            </Text>{' '}
-                            your account.
+                            Your wallet is your account. There&apos;s no email
+                            signup, password, or KYC step. You connect, sign a
+                            message to prove the wallet is yours, and you&apos;re
+                            in.
                         </Text>
                         <UnorderedList
                             spacing={2.5}
@@ -128,28 +102,70 @@ const HowTo = () => {
                             ml={0}
                         >
                             <ListItem>
-                                <TitleText>Already have a wallet</TitleText>{' '}
+                                <TitleText>If you have a wallet</TitleText>{' '}
                                 <Text as="span" color="text.muted">
                                     — connect MetaMask, Coinbase Wallet, Rabby,
-                                    or any WalletConnect option
+                                    or anything that speaks WalletConnect.
                                 </Text>
                             </ListItem>
                             <ListItem>
-                                <TitleText>New to crypto</TitleText>{' '}
+                                <TitleText>If you don&apos;t</TitleText>{' '}
                                 <Text as="span" color="text.muted">
                                     — sign in with Google, Discord, X, Apple,
-                                    or email; thirdweb spins up a wallet for
-                                    you
+                                    email, or phone. A wallet is created for you
+                                    in the background; you can export the keys
+                                    later if you want to.
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <TitleText>Sign the message</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — a one-time signature proves the wallet is
-                                    yours. Free, gasless, no transaction
+                                    — after connecting, you&apos;ll be asked to
+                                    sign a one-time login message. This is free
+                                    and gasless. It is not a transaction and
+                                    does not move any funds.
                                 </Text>
                             </ListItem>
                         </UnorderedList>
+                    </AccordionPanel>
+                </AccordionItem>
+
+                <AccordionItem {...ITEM_CHROME} mb={2}>
+                    <ItemHeader title="Joining a table" />
+                    <AccordionPanel pb={4} px={4} pt={1}>
+                        <Text
+                            color="text.secondary"
+                            fontSize="sm"
+                            mb={3}
+                            lineHeight="tall"
+                        >
+                            Tables are hosted by other players. To play, you
+                            pick an open table, request a seat, and wait for the
+                            host to let you in.
+                        </Text>
+                        <OrderedList spacing={2.5} color="text.secondary">
+                            <ListItem>
+                                <TitleText>Find a table</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — browse Public Games, or open a private
+                                    table from a link the host shared with you.
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Pick an empty seat</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — tap the seat you want and choose your
+                                    buy-in within the host&apos;s min/max range.
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Wait for the host</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — the host approves seat requests. Once they
+                                    do, you&apos;re dealt in on the next hand.
+                                </Text>
+                            </ListItem>
+                        </OrderedList>
                     </AccordionPanel>
                 </AccordionItem>
 
@@ -164,10 +180,11 @@ const HowTo = () => {
                             mb={3}
                             lineHeight="tall"
                         >
-                            Real-money tables run in <TitleText>USDC</TitleText>{' '}
-                            on <TitleText>Base</TitleText>. At the table,
-                            balances are denominated in chips so the math reads
-                            cleanly.
+                            Real-money tables are played in{' '}
+                            <TitleText>USDC</TitleText> on{' '}
+                            <TitleText>Base</TitleText>. The chips you see at
+                            the table are just a display unit for that USDC, so
+                            bet sizes read cleanly.
                         </Text>
                         <UnorderedList
                             spacing={2}
@@ -178,23 +195,25 @@ const HowTo = () => {
                             <ListItem>
                                 <TitleText>100 chips = 1 USDC</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — fixed. No volatility, no conversion games
+                                    — fixed conversion. There is no internal
+                                    token and no exchange rate to track.
                                 </Text>
                             </ListItem>
                             <ListItem>
-                                <TitleText>Custody is onchain</TitleText>{' '}
+                                <TitleText>Funds live in the table contract</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — every table is its own smart contract.
-                                    Your USDC sits there, not in a Stacked
-                                    bank account
+                                    — every table is its own smart contract on
+                                    Base. When you buy in, your USDC moves into
+                                    that contract. Stacked does not custody it.
                                 </Text>
                             </ListItem>
                             <ListItem>
-                                <TitleText>The contract pays winners</TitleText>{' '}
+                                <TitleText>Payouts are automatic</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — settlement is automatic when a hand ends.
-                                    We deal the cards; the contract holds the
-                                    cash
+                                    — when a hand ends, the contract updates
+                                    each player&apos;s balance. You withdraw
+                                    your balance directly from the contract when
+                                    you&apos;re done playing.
                                 </Text>
                             </ListItem>
                         </UnorderedList>
@@ -210,35 +229,40 @@ const HowTo = () => {
                             mb={3}
                             lineHeight="tall"
                         >
-                            You need USDC on Base in your wallet. Bridge or
-                            send it from any exchange that supports Base.
+                            To sit down at a real-money table, you need USDC on
+                            Base in your wallet. You can bridge to Base or send
+                            USDC from any exchange that supports the network.
                         </Text>
                         <OrderedList spacing={2.5} color="text.secondary">
                             <ListItem>
                                 <TitleText>Pick a seat</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — tap an empty seat at the table
+                                    — tap an empty seat at the table.
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <TitleText>Choose your buy-in</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — within the host&apos;s min/max range
+                                    — enter an amount within the host&apos;s
+                                    min/max range. This is how many chips you
+                                    start with.
                                 </Text>
                             </ListItem>
                             <ListItem>
-                                <TitleText>Approve once, deposit</TitleText>{' '}
+                                <TitleText>Approve, then deposit</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — first time at a contract you approve USDC
-                                    spend, then deposit. After that, just
-                                    deposit
+                                    — the first time you play at a given table
+                                    contract, you&apos;ll sign a USDC approval
+                                    so the contract can pull the buy-in. After
+                                    that, only the deposit transaction is
+                                    needed.
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <TitleText>Get dealt in</TitleText>{' '}
                                 <Text as="span" color="text.muted">
                                     — once the host approves your seat request,
-                                    you&apos;re live
+                                    you join on the next hand.
                                 </Text>
                             </ListItem>
                         </OrderedList>
@@ -254,30 +278,33 @@ const HowTo = () => {
                             mb={3}
                             lineHeight="tall"
                         >
-                            Withdrawals settle onchain. No review queue, no
-                            holds, no &ldquo;contact support.&rdquo;
+                            When you&apos;re done playing, you withdraw your
+                            chip balance back to your wallet as USDC. The
+                            withdrawal is a normal onchain transaction from the
+                            table contract — no review queue, no holds.
                         </Text>
                         <OrderedList spacing={2.5} color="text.secondary">
                             <ListItem>
                                 <TitleText>Stand up</TitleText>{' '}
                                 <Text as="span" color="text.muted">
                                     — leave your seat. You can&apos;t withdraw
-                                    while playing a hand
+                                    while you&apos;re still in a hand.
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <TitleText>Wait for settlement</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — the contract finalizes the last hand.
-                                    Usually a few seconds; the Withdraw modal
-                                    polls automatically
+                                    — the contract needs to finalize the last
+                                    hand you were in. This is usually a few
+                                    seconds; the Withdraw panel checks for you.
                                 </Text>
                             </ListItem>
                             <ListItem>
                                 <TitleText>Hit Withdraw</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — chips convert back to USDC and land in
-                                    your wallet on Base
+                                    — sign the transaction. Your chips convert
+                                    back to USDC at 100 chips = 1 USDC and
+                                    arrive in your wallet on Base.
                                 </Text>
                             </ListItem>
                         </OrderedList>
@@ -287,19 +314,30 @@ const HowTo = () => {
                             fontSize="xs"
                             lineHeight="tall"
                         >
-                            <TitleText>Emergency Withdraw</TitleText> is the
-                            backup path — use it if a table gets stuck and the
-                            normal flow won&apos;t resolve. Funds still come
-                            from the same contract; you keep what&apos;s yours.
+                            <TitleText>Emergency Withdraw</TitleText> is a
+                            backup path. If a table gets stuck and the normal
+                            flow won&apos;t complete, this lets you pull your
+                            balance straight from the contract. The funds are
+                            the same; only the path differs.
                         </Text>
                     </AccordionPanel>
                 </AccordionItem>
 
-                <SectionHeader label="AT THE TABLE" />
+                <SectionHeader label="HOSTING" />
 
                 <AccordionItem {...ITEM_CHROME} mb={2}>
-                    <ItemHeader title="Joining vs hosting" />
+                    <ItemHeader title="Hosting your own table" />
                     <AccordionPanel pb={4} px={4} pt={1}>
+                        <Text
+                            color="text.secondary"
+                            fontSize="sm"
+                            mb={3}
+                            lineHeight="tall"
+                        >
+                            Hosting means you create the table and run the
+                            game. You set the rules, decide who plays, and earn
+                            a share of the rake on every hand that settles.
+                        </Text>
                         <UnorderedList
                             spacing={2.5}
                             color="text.secondary"
@@ -307,75 +345,37 @@ const HowTo = () => {
                             ml={0}
                         >
                             <ListItem>
-                                <TitleText>Joining</TitleText>{' '}
+                                <TitleText>Set the rules</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — pick an empty seat, request a sit-down,
-                                    wait for the host to wave you in
+                                    — choose blinds, min and max buy-in, table
+                                    size, and whether the table is public or
+                                    invite-only. Creating a real-money table
+                                    deploys its own contract on Base.
                                 </Text>
                             </ListItem>
                             <ListItem>
-                                <TitleText>Hosting</TitleText>{' '}
+                                <TitleText>Manage the seats</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — set the blinds, min/max buy-in, and table
-                                    size. You approve seat requests, kick if
-                                    needed, and start the game when the crew is
-                                    ready
+                                    — players request seats; you approve or
+                                    deny them. You can also remove a player
+                                    between hands if you need to.
                                 </Text>
                             </ListItem>
                             <ListItem>
-                                <TitleText>Host rewards</TitleText>{' '}
+                                <TitleText>Start the game</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — running the table earns you a share of
-                                    the rake. Collect anytime from the
-                                    Withdraw panel
-                                </Text>
-                            </ListItem>
-                        </UnorderedList>
-                    </AccordionPanel>
-                </AccordionItem>
-
-                <AccordionItem {...ITEM_CHROME} mb={2}>
-                    <ItemHeader title="Action grammar" />
-                    <AccordionPanel pb={4} px={4} pt={1}>
-                        <UnorderedList
-                            spacing={2.5}
-                            color="text.secondary"
-                            styleType="none"
-                            ml={0}
-                        >
-                            <ListItem>
-                                <ActionChip bg="brand.pink">Fold</ActionChip>{' '}
-                                <Text as="span" color="text.muted">
-                                    — give up the hand
+                                    — once the seats you want are filled, you
+                                    deal the first hand. Action runs from there
+                                    automatically.
                                 </Text>
                             </ListItem>
                             <ListItem>
-                                <ActionChip bg="brand.navy">Check</ActionChip>{' '}
+                                <TitleText>Collect host rewards</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — pass when no bet is owed
-                                </Text>
-                            </ListItem>
-                            <ListItem>
-                                <ActionChip
-                                    bg="brand.yellow"
-                                    color="brand.darkNavy"
-                                >
-                                    Call
-                                </ActionChip>{' '}
-                                <Text as="span" color="text.muted">
-                                    — match the current bet
-                                </Text>
-                            </ListItem>
-                            <ListItem>
-                                <ActionChip bg="brand.green">Raise</ActionChip>{' '}
-                                <Text as="span" color="text.muted">
-                                    — push the bet up
-                                </Text>
-                            </ListItem>
-                            <ListItem>
-                                <ActionChip bg="brand.pink">All-In</ActionChip>{' '}
-                                <Text as="span" color="text.muted">
-                                    — every chip you have left, on the line
+                                    — a portion of the rake goes to the host.
+                                    You can collect it at any time from the
+                                    Withdraw panel; it pays out in USDC on
+                                    Base.
                                 </Text>
                             </ListItem>
                         </UnorderedList>

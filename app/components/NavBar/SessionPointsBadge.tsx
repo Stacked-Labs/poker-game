@@ -91,7 +91,7 @@ export default function SessionPointsBadge() {
 
     return (
         <Tooltip
-            label={`Leaderboard points this session: ${fullValue}. Awarded each hand — equal to the big blind.`}
+            label={`Leaderboard points this session: ${fullValue}. Bigger stakes, bigger points.`}
             placement="top"
             hasArrow
             fontSize="xs"

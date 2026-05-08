@@ -1,7 +1,8 @@
 'use client';
 
 import { useContext, useMemo } from 'react';
-import { Box, Text, Image, Flex } from '@chakra-ui/react';
+import { Box, Text, Image, Flex, Link, Icon } from '@chakra-ui/react';
+import { FiUser } from 'react-icons/fi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 
@@ -11,6 +12,7 @@ interface ConfigWithCrypto {
     sb: number;
     crypto?: boolean;
     chain?: string;
+    ownerAddress?: string;
 }
 
 const GameConfigWatermark = () => {
@@ -83,6 +85,19 @@ const GameConfigWatermark = () => {
         return null;
     }, [config, appState.game?.players]);
 
+    const hostExplorerUrl = useMemo(() => {
+        const configWithCrypto = config as ConfigWithCrypto | undefined;
+        if (!configWithCrypto?.ownerAddress) return null;
+        const chain = configWithCrypto.chain?.toLowerCase();
+        if (chain === 'base') {
+            return `https://basescan.org/address/${configWithCrypto.ownerAddress}`;
+        }
+        if (chain === 'base sepolia' || chain === 'base-sepolia') {
+            return `https://sepolia.basescan.org/address/${configWithCrypto.ownerAddress}`;
+        }
+        return null;
+    }, [config]);
+
     if (!configText && !chainInfo) return null;
 
     const uppercaseText = configText ? configText.toUpperCase() : '';
@@ -100,16 +115,17 @@ const GameConfigWatermark = () => {
             <Flex direction="column" gap={1}>
                 {configText && (
                     <Text
-                        color="text.secondary"
-                        fontSize={{ base: '10px', sm: '11px', md: '12px' }}
+                        color="text.primary"
+                        fontSize={{ base: '11px', sm: '12px', md: '13px' }}
                         lineHeight={1.2}
-                        fontWeight="medium"
+                        fontWeight="semibold"
+                        letterSpacing="0.04em"
                     >
                         {uppercaseText}
                     </Text>
                 )}
                 {chainInfo && (
-                    <Flex align="center" gap={1}>
+                    <Flex align="center" gap={1.5}>
                         {chainInfo.logo && (
                             <Image
                                 src={chainInfo.logo}
@@ -120,24 +136,55 @@ const GameConfigWatermark = () => {
                             />
                         )}
                         <Text
-                            color="text.secondary"
+                            color="text.muted"
                             fontSize={{ base: '10px', sm: '11px', md: '12px' }}
                             lineHeight={1.2}
                             fontWeight="medium"
+                            letterSpacing="0.04em"
                         >
                             {chainInfo.name.toUpperCase()}
                         </Text>
                     </Flex>
                 )}
                 {hostLabel && (
-                    <Text
-                        color="text.secondary"
-                        fontSize={{ base: '10px', sm: '11px', md: '12px' }}
-                        lineHeight={1.2}
-                        fontWeight="medium"
-                    >
-                        {`HOST: ${hostLabel}`}
-                    </Text>
+                    <Flex align="center" gap={1.5}>
+                        <Icon
+                            as={FiUser}
+                            boxSize={{ base: '12px', md: '14px' }}
+                            color="text.muted"
+                        />
+                        {hostExplorerUrl ? (
+                            <Link
+                                href={hostExplorerUrl}
+                                isExternal
+                                pointerEvents="auto"
+                                color="text.muted"
+                                fontSize={{ base: '10px', sm: '11px', md: '12px' }}
+                                lineHeight={1.2}
+                                fontWeight="medium"
+                                letterSpacing="0.04em"
+                                transition="color 80ms ease"
+                                _hover={{
+                                    color: 'text.primary',
+                                    textDecoration: 'underline',
+                                    textDecorationThickness: '1.5px',
+                                    textUnderlineOffset: '3px',
+                                }}
+                            >
+                                {hostLabel}
+                            </Link>
+                        ) : (
+                            <Text
+                                color="text.muted"
+                                fontSize={{ base: '10px', sm: '11px', md: '12px' }}
+                                lineHeight={1.2}
+                                fontWeight="medium"
+                                letterSpacing="0.04em"
+                            >
+                                {hostLabel}
+                            </Text>
+                        )}
+                    </Flex>
                 )}
             </Flex>
         </Box>

@@ -1,6 +1,6 @@
 # Button System Overhaul — Handoff
 
-**Status:** Groups A + B + C + E + F complete · Group D skipped (current design retained) · Group G next · 3 groups remaining
+**Status:** Groups A + B + C + E + F + G complete · Group D skipped (current design retained) · Groups H, I, J remaining · 3 groups remaining
 
 This file is a stateful handoff for the next agent picking up this work. Read it end-to-end before touching any button code. Reference it; don't re-derive it.
 
@@ -126,8 +126,8 @@ import { SocialIconButton } from '@/app/components/SocialIconButton';
 | D | Felt seat buttons (Sit Down) | ⏭️ **SKIPPED** — user kept current design after spike review | `app/components/EmptySeatButton.tsx` (untouched) |
 | **E** | **Mobile drawer nav** (menu trigger + close + 6 nav-link rows + 3 social) | ✅ **DONE** | `app/components/HomePage/HomeNavBar.tsx` |
 | **F** | **Desktop nav links (`navLink` variant)** | ✅ **DONE** | `app/theme.ts` `navLink` variant (consumed by `HomeNavBar.tsx` `NavButtons`) |
-| **G** | **Leaderboard quests (currently `Box` not `Button`)** | 🟡 **NEXT** — biggest open question | QuestsSection |
-| H | Leaderboard PlayerCard CTAs | Mostly resolved by A | PlayerCard (rank rings, accents) |
+| **G** | **Leaderboard quests** (Claim button — tactile-tone per quest) | ✅ **DONE** | `app/components/Leaderboard/QuestsSection.tsx` (the Claim Button per row; row stays `<Box>` — intentionally a presentation surface) |
+| **H** | **Leaderboard PlayerCard CTAs** | 🟡 **NEXT** — light review (mostly resolved by A) | PlayerCard (rank rings, accents) |
 | I | Filters / sort / icon-secondary | Light review | PublicGamesGrid |
 | J | Form / preset buttons | Pending | CreateGame presets |
 
@@ -341,68 +341,101 @@ For full-width drawer rows (vs chip-style tactile buttons), the press affordance
 
 ---
 
-## How to do Group G (next)
+## What Group G actually did (audit trail)
 
-The user's iteration loop is fixed. Follow it. **This is the biggest open question of the overhaul.**
+### Files modified (1)
+
+- `app/components/Leaderboard/QuestsSection.tsx` — extended `BrandPaint` interface with `dark` + `edge` shades; rewrote the per-row Claim button to use the tactile-tone recipe. Row stays `<Box>` (presentation surface) — see scope note below.
+
+### Audit-revealed scope correction
+
+The original Group G handoff in this doc speculated that quest rows would need converting from `<Box>` to `<Button>` for a11y. Reading the actual code showed that's a **misread of the design**: the row is intentionally a Box, and the click target is the Claim button on the right (already a `<Button>`). The brand-color-per-quest tile + dot are decoration, not affordance. The row's hover bg-tint is just a visual reinforcement of "this row is the context for the Claim CTA," not a click signal. So the migration was scoped to just the Claim button. No `<Box>` → `<Button>` conversion happened.
+
+### Recipe applied — Tactile-Tone Claim
+
+Each quest's Claim button is now a solid chip in that quest's brand color:
+- X: `#0A0B12` (black) / edge `#000000`
+- Create Table: `brand.green` (`#36A37B`) / edge `#22674E` (brand.greenEdge)
+- Telegram: `#229ED9` / edge `#136687` (new — derived darker shade)
+- Discord: `#5865F2` / edge `#3F4ABF` (new — derived darker shade)
+- Community: `brand.pink` (`#EB0B5C`) / edge `#950839` (brand.pinkEdge)
+
+The `BrandPaint` interface gained two fields per quest: `dark` (press-state bg) and `edge` (chip's bottom rim). The Telegram and Discord edge hexes are new one-offs since those tones aren't in our brand-shade tokens; if more chrome ever lands in those tones, lift them into named tokens.
+
+Press recipe matches the tactile family: `inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 ${edge}` resting → `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${edge}` + `translateY(2px)` on press.
+
+### Locked state — deliberately neutral
+
+The locked state ("Requires X account" prerequisite) keeps a neutral muted ghost styling (transparent bg, `text.secondary` color, `border.lightGray`). Brand-tone fill on a locked button would misread as "available, click me." The user-facing affordance is intentionally desaturated.
+
+### Slop removed
+
+- `variant="ghost"` + green-only outline regardless of quest tone (out of family with the row's brand-color-per-quest treatment elsewhere)
+- Hover-only `bg: 'bg.greenSubtle'` affordance (no press signal)
+
+### Layout preserved verbatim
+
+- `size="sm"`, `h="30px"`, `px={3}`, `borderRadius="full"`, `fontWeight={700}`, `fontSize="xs"`
+- `isLoading={isClaiming}`, `loadingText="…"`, `onClick={handle}`, `rightIcon`
+- `isDisabled` still wires through `isClaiming` and the `isCommunity && !code.trim()` rule
+- Row Box, tilted icon tile, brand dot, points text, prereq label, community-code Input — all untouched
+
+### Out of scope (deliberately)
+
+- The `<Box>` → `<Button>` row conversion was not done — see "scope correction" above.
+- Row hover `_hover.bg: 'rgba(0, 0, 0, 0.02)'` left in place — it's a soft contextual highlight, not a misleading click affordance.
+- The Community quest's input field styling — separate concern (Group J — form/preset buttons).
+
+---
+
+## How to do Group H (next)
+
+The user's iteration loop is fixed. Follow it.
 
 ### 1. Audit first
 
-Group G is "Leaderboard quests" — the per-quest rows on `/leaderboard`'s QuestsSection. Per the open-questions section below, the user committed `ef6c7d5` ("vertical felt-rows with brand pop") which validated a brand-color-per-quest treatment (X black, Discord purple, Telegram blue, Create Table green). They like that direction.
+Group H is "Leaderboard PlayerCard CTAs" — flagged as *light review, mostly resolved by Group A*. The status note says "rank rings, accents."
 
-The wrinkle: **quests are currently `<Box>`, not `<Button>`.** They look clickable but aren't typed as interactive elements. Group G has two intertwined concerns:
-1. Convert the quest rows to real `<Button>` elements (a11y win — keyboard nav, focus rings, semantic role)
-2. Apply the tactile family while preserving the brand-color-per-quest treatment the user already validated
-
-Before spiking, read:
+Before spiking (or skipping the spike — see step 2), audit:
 
 ```bash
-cat app/components/Leaderboard/QuestsSection.tsx
-git log --oneline ef6c7d5 -1   # check what the recent commit message says about the design intent
+cat app/components/Leaderboard/PlayerCard.tsx | head -100
+grep -nE "Button|IconButton|whileHover|backdropFilter|_hover|_active" app/components/Leaderboard/PlayerCard.tsx
 ```
 
-Look for: state per quest (idle / completed / locked / claimable / pending), brand color binding, what the click handler does (open a modal? deep link out? trigger a server action?). The interactive contract dictates whether `<Button>` or `<Link>` is the right element.
+Group A already migrated PlayerCard's "Finish Sign-In" button (tactilePrimary) and the "Link X" SocialIconButton. What's left is likely:
+- Rank ring visuals (decorative, not buttons — verify they're not `<Box as="button">` somewhere)
+- Brand accent colors on rank tiers (gold/silver/bronze maybe?) that may have hover/click affordances we missed
+- Possibly small CTAs on the back/flip side of the card if there is one
 
-### 2. Build a Storybook spike
+Don't trust the "mostly resolved" framing — Groups A through G have all found surfaces the original brief missed. Read every interactive element in the file.
 
-- Path: `app/components/_design/LeaderboardQuests.stories.tsx`
-- Title: `'Design Spikes / Group G — Leaderboard Quests'`
-- Show **3 directions side-by-side** (smaller than the usual 4, because the user has already validated the brand-color-per-quest direction — the spike is mostly about *how the tactile mechanic plugs in*, not whether to keep the brand colors):
-  - **A · Baseline** — current `<Box>`-based rows
-  - **B · Tactile-Felt-Row** — `<Button>` rows with tactile recipe per quest tone (each row is a wide tactile chip in its brand color, with felt-row layout)
-  - **C · Tactile-Outline-Row** — `<Button>` rows with tone outline + tone tint hover (quieter, less brand-saturated)
-- Render: 4 quests stacked (X, Discord, Telegram, Create Table) at desktop and mobile widths.
-- Backdrop: `bg.default` (leaderboard page bg).
-- Toggle light/dark via existing toolbar.
+### 2. Build a Storybook spike (or skip)
 
-### 3. Group G context — the *active hand* problem
+If the audit finds genuinely small leftover surfaces (e.g. one or two icon buttons), skip the spike and propose a tactile change directly. If there's anything stateful or with multiple variants (rank tiers, expanded/collapsed state, etc.), build a small spike showing baseline vs tactile.
 
-Quest rows are state-dense:
-- **Idle / not started** — most likely the resting visual
-- **Claimable** — quest complete, click to claim reward
-- **Pending claim** — claim in flight
-- **Claimed / completed** — done, locked-out style
-- Possibly: **locked** (prerequisite quest not done)
+Precedent: Group F (`navLink`) was a tightly-scoped variant change and went straight to migration. Group G had 5 quest tones × 4 states and warranted a spike.
 
-Each state needs to read clearly. Tactile press is fine for idle and claimable; completed should not be press-able (use `Button.baseStyle._disabled` per the established pattern).
+### 3. Group H context
 
-Brand-color-per-quest means each row's *color* is fixed by the quest, not by state. The recipe needs to express state through luminance/saturation/border weight rather than swapping the tone color. e.g.:
-- Idle: full brand fill at moderate saturation
-- Hover: slight brightening or tonal shift
-- Claimable: maybe a subtle pulse OR a brighter edge to invite the click — but keep it disciplined (no glow shadow per the no-glow rule)
-- Claimed: filter desaturate (matches the baseStyle disabled treatment)
+PlayerCard is part of the `/leaderboard` page surface (`bg.default`). Whatever buttons/affordances remain should match the family established by:
+- Group A's tactile primary/outline/destructive for action CTAs
+- Group G's tactile-tone Claim button for per-row CTAs
+- Group F's pink hover for nav links
 
-### 4. After the user picks
+If there are rank-tier accents (gold for #1, silver for #2, bronze for #3), they're likely decorative — verify before tactile-ifying. Decorative chrome shouldn't grow buttons it doesn't have.
 
-- Add 1–2 variants if the recipe is shared across all quests (`tactileQuestRow`?) OR keep per-row tone styles inline if every quest needs different tones (likely the latter — there's no clean way to encode 4 different tone palettes in one variant without parameterization).
-- Convert `<Box>` rows to `<Button>` (or `<Link as={Button}>` if they're external nav). Add proper `onClick` / `aria-label`. **This is the a11y change** — verify focus-ring works.
-- **Layout-preserving rule applies.** Don't change row dimensions, gap, internal layout (icon + label + reward badge), or the section's grid/stack.
-- Don't hand-roll `_disabled` / `_loading` (baseStyle owns those).
+### 4. Migration
+
+- Inline tactile recipe per surface (or use existing variants if the surface fits).
+- **Layout-preserving rule applies** — don't change card dimensions, ring sizes, badge positions, etc.
+- Don't add `_disabled` / `_loading` blocks (baseStyle owns those).
 - Verify type-check + lint + build clean.
 - Update this file's status table.
 
 ### 5. Hand back
 
-Self-review, list what to eyeball in browser (`/leaderboard` quests in idle / claimable / claimed states, light + dark, mobile + desktop), ask if they want to move to Group H (PlayerCard CTAs — mostly resolved by Group A, light review).
+Self-review, list what to eyeball in browser (`/leaderboard` PlayerCard at top + lower ranks, all auth states, light + dark), ask if they want to move to Group I (filters / sort / icon-secondary on PublicGamesGrid) or Group J (form / preset buttons on CreateGame).
 
 ---
 

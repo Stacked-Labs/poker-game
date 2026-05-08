@@ -9,7 +9,6 @@ import {
     Heading,
     Stack,
     Text,
-    useColorModeValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 
@@ -34,40 +33,38 @@ import { keyframes } from '@emotion/react';
  * Delete this file after the user decides.
  */
 
-// ─── Felt surface (mounts the buttons in their real context) ─────────────
-const FeltBackdrop = ({
+// ─── App backdrop — matches the real page bg in light + dark mode.
+// Uses `bg.default` semantic token from app/theme.ts so the spike shows
+// buttons against the *actual* page bg users see, not a fabricated felt.
+// Toggle light/dark via the Storybook toolbar.
+const AppBackdrop = ({
     label,
     children,
 }: {
     label: string;
     children: React.ReactNode;
-}) => {
-    const feltBg = useColorModeValue(
-        'linear-gradient(180deg, #0E3A2A 0%, #0A2E22 100%)',
-        'linear-gradient(180deg, #0A2E22 0%, #061C15 100%)'
-    );
-    return (
-        <Box
-            bg={feltBg}
-            borderRadius="14px"
-            p={4}
-            border="1px solid rgba(255,255,255,0.06)"
-            boxShadow="inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 32px rgba(0,0,0,0.35)"
+}) => (
+    <Box
+        bg="bg.default"
+        borderRadius="14px"
+        p={4}
+        border="1px solid"
+        borderColor="border.lightGray"
+        boxShadow="0 12px 32px rgba(0,0,0,0.10)"
+    >
+        <Text
+            fontSize="2xs"
+            color="text.muted"
+            textTransform="uppercase"
+            letterSpacing="0.12em"
+            mb={3}
+            fontWeight={700}
         >
-            <Text
-                fontSize="2xs"
-                color="rgba(255,255,255,0.55)"
-                textTransform="uppercase"
-                letterSpacing="0.12em"
-                mb={3}
-                fontWeight={700}
-            >
-                {label}
-            </Text>
-            {children}
-        </Box>
-    );
-};
+            {label}
+        </Text>
+        {children}
+    </Box>
+);
 
 const RowHeader = ({ children }: { children: React.ReactNode }) => (
     <Heading
@@ -835,9 +832,9 @@ export const PrimaryActions: Story = {
             <Stack spacing={6}>
                 {DIRECTIONS.map((dir) => (
                     <DirectionBlock key={dir.key} dir={dir}>
-                        <FeltBackdrop label="At the felt — landscape">
+                        <AppBackdrop label="At the felt — landscape">
                             <ActionTrioRow dir={dir.key} />
-                        </FeltBackdrop>
+                        </AppBackdrop>
                     </DirectionBlock>
                 ))}
             </Stack>
@@ -856,9 +853,9 @@ export const RaisePresets: Story = {
             <Stack spacing={6}>
                 {DIRECTIONS.map((dir) => (
                     <DirectionBlock key={dir.key} dir={dir}>
-                        <FeltBackdrop label="At the felt — preset row">
+                        <AppBackdrop label="At the felt — preset row">
                             <PresetRow dir={dir.key} />
-                        </FeltBackdrop>
+                        </AppBackdrop>
                     </DirectionBlock>
                 ))}
             </Stack>
@@ -877,9 +874,9 @@ export const BlindObligations: Story = {
             <Stack spacing={6}>
                 {DIRECTIONS.map((dir) => (
                     <DirectionBlock key={dir.key} dir={dir}>
-                        <FeltBackdrop label="At the felt — blind decision">
+                        <AppBackdrop label="At the felt — blind decision">
                             <BlindRow dir={dir.key} />
-                        </FeltBackdrop>
+                        </AppBackdrop>
                     </DirectionBlock>
                 ))}
             </Stack>
@@ -897,13 +894,13 @@ export const FullFooterPerDirection: Story = {
             <Stack spacing={6}>
                 {DIRECTIONS.map((dir) => (
                     <DirectionBlock key={dir.key} dir={dir}>
-                        <FeltBackdrop label="Full table footer surface">
+                        <AppBackdrop label="Full table footer surface">
                             <Stack spacing={2}>
                                 <ActionTrioRow dir={dir.key} />
                                 <PresetRow dir={dir.key} />
                                 <BlindRow dir={dir.key} />
                             </Stack>
-                        </FeltBackdrop>
+                        </AppBackdrop>
                     </DirectionBlock>
                 ))}
             </Stack>
@@ -927,7 +924,7 @@ export const DisabledStates: Story = {
             <Stack spacing={6}>
                 {DIRECTIONS.map((dir) => (
                     <DirectionBlock key={dir.key} dir={dir}>
-                        <FeltBackdrop label="Disabled — hover should not ghost">
+                        <AppBackdrop label="Disabled — hover should not ghost">
                             <HStack spacing={2}>
                                 {dir.key === 'baseline' ? (
                                     <>
@@ -1003,7 +1000,7 @@ export const DisabledStates: Story = {
                                     </>
                                 )}
                             </HStack>
-                        </FeltBackdrop>
+                        </AppBackdrop>
                     </DirectionBlock>
                 ))}
             </Stack>
@@ -1022,13 +1019,13 @@ export const SideBySide: Story = {
                 {DIRECTIONS.map((dir) => (
                     <Box key={dir.key} flex="1 1 280px" minW="280px">
                         <DirectionBlock dir={dir}>
-                            <FeltBackdrop label={dir.key}>
+                            <AppBackdrop label={dir.key}>
                                 <Stack spacing={2}>
                                     <ActionTrioRow dir={dir.key} />
                                     <PresetRow dir={dir.key} />
                                     <BlindRow dir={dir.key} />
                                 </Stack>
-                            </FeltBackdrop>
+                            </AppBackdrop>
                         </DirectionBlock>
                     </Box>
                 ))}

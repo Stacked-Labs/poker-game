@@ -667,24 +667,55 @@ const components = {
                 },
                 transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
             },
-            gameSettingsButton: {
-                bg: 'btn.lightGray',
+            // Tactile chrome — Group C (table NavBar utility chips)
+            //
+            // For *secondary* chrome (settings, volume, chat, away, leave,
+            // burger, etc.) — the same family as primary tactile actions but
+            // quieter: 1px edge, lower-contrast bg, snap 80ms press, no hover
+            // lift. Mode-aware so the chip reads on both light and dark page
+            // bg. _disabled handled by Button.baseStyle.
+            //
+            // For ACTIVE toggle states (Leave queued, Away rejoin pending,
+            // Pause active, etc.) consumers render a solid-tone tactile chip
+            // inline — see the consumers in NavBar/* for the pattern.
+            tactileChrome: {
+                bg: 'rgba(0,0,0,0.05)',
                 color: 'text.secondary',
                 border: '1px solid',
-                borderColor: 'transparent',
-                borderRadius: '14px',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                backdropFilter: 'blur(8px)',
+                borderColor: 'rgba(0,0,0,0.10)',
+                borderRadius: '12px',
+                boxShadow:
+                    'inset 0 1px 0 rgba(255,255,255,0.50), 0 1px 0 rgba(0,0,0,0.10)',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease, border-color 80ms ease',
                 _hover: {
-                    bg: 'brand.navy',
-                    color: 'white',
-                    transform: 'translateY(-2px)',
-                    boxShadow:
-                        '0 8px 24px rgba(51, 68, 121, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                    borderColor: 'rgba(255, 255, 255, 0.06)',
+                    bg: 'rgba(0,0,0,0.08)',
+                    color: 'text.primary',
+                    borderColor: 'rgba(0,0,0,0.18)',
                 },
                 _active: {
-                    transform: 'translateY(0) scale(0.97)',
+                    bg: 'rgba(0,0,0,0.12)',
+                    transform: 'translateY(1px)',
+                    boxShadow:
+                        'inset 0 1px 2px rgba(0,0,0,0.15), 0 0 0 transparent',
+                },
+                _dark: {
+                    bg: 'rgba(255,255,255,0.06)',
+                    color: 'rgba(255,255,255,0.85)',
+                    borderColor: 'rgba(255,255,255,0.14)',
+                    boxShadow:
+                        'inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 0 rgba(0,0,0,0.4)',
+                    _hover: {
+                        bg: 'rgba(255,255,255,0.10)',
+                        color: 'white',
+                        borderColor: 'rgba(255,255,255,0.20)',
+                    },
+                    _active: {
+                        bg: 'rgba(0,0,0,0.20)',
+                        transform: 'translateY(1px)',
+                        boxShadow:
+                            'inset 0 1px 2px rgba(0,0,0,0.30), 0 0 0 transparent',
+                    },
                 },
             },
             homeNav: {

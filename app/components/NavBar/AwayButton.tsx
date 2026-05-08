@@ -12,6 +12,10 @@ interface AwayButtonProps {
     handleCancelRejoin: () => void;
 }
 
+// Tactile transition shared across all states.
+const TACTILE_TRANSITION =
+    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease';
+
 const AwayButton = ({
     isAway,
     sitOutNextHand,
@@ -21,6 +25,7 @@ const AwayButton = ({
     handleCancelRejoin,
 }: AwayButtonProps) => {
     // State 1: Away & Requested to Rejoin -> Show "Cancel Rejoin"
+    // Solid green tactile chip — signals "rejoin queued, click to cancel."
     if (isAway && readyNextHand) {
         return (
             <Tooltip
@@ -41,19 +46,22 @@ const AwayButton = ({
                     color="white"
                     border="none"
                     borderRadius="12px"
-                    _hover={{
-                        bg: 'brand.navy',
-                        color: 'white',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(54, 163, 123, 0.4)',
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #22674E"
+                    transition={TACTILE_TRANSITION}
+                    _hover={{ bg: 'brand.green' }}
+                    _active={{
+                        bg: 'brand.greenDark',
+                        transform: 'translateY(2px)',
+                        boxShadow:
+                            'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
                     }}
-                    transition="all 0.2s ease"
                 />
             </Tooltip>
         );
     }
 
     // State 2: Away & Not Requested -> Show "I'm Back"
+    // Solid green tactile chip — primary action to return.
     if (isAway) {
         return (
             <Tooltip label="I'm back" aria-label="I'm back">
@@ -73,20 +81,22 @@ const AwayButton = ({
                     color="white"
                     border="none"
                     borderRadius="12px"
-                    _hover={{
-                        bg: 'brand.navy',
-                        color: 'white',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(54, 163, 123, 0.4)',
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #22674E"
+                    transition={TACTILE_TRANSITION}
+                    _hover={{ bg: 'brand.green' }}
+                    _active={{
+                        bg: 'brand.greenDark',
+                        transform: 'translateY(2px)',
+                        boxShadow:
+                            'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
                     }}
-                    transition="all 0.2s ease"
                 />
             </Tooltip>
         );
     }
 
-    // State 3: Playing & Sit Out Next -> Show "Cancel Sit Out"
-    // State 4: Playing & Normal -> Show "Sit Out Next Hand"
+    // State 3: Playing & Sit Out Next -> Show "Cancel Sit Out" (solid pink)
+    // State 4: Playing & Normal       -> Show "Sit Out Next" (idle chrome)
     const isSitOutNext = sitOutNextHand;
 
     return (
@@ -108,19 +118,29 @@ const AwayButton = ({
                 width={{ base: '40px', sm: '40px', md: '48px' }}
                 height={{ base: '40px', sm: '40px', md: '48px' }}
                 onClick={handleSitOutNext}
-                bg={isSitOutNext ? 'brand.pink' : 'btn.lightGray'}
-                color={isSitOutNext ? 'white' : 'text.secondary'}
-                border="none"
-                borderRadius="12px"
-                _hover={{
-                    bg: isSitOutNext ? 'brand.pink' : 'brand.navy',
-                    color: 'white',
-                    transform: 'translateY(-2px)',
-                    boxShadow: isSitOutNext
-                        ? '0 4px 12px rgba(253, 197, 29, 0.4)'
-                        : '0 4px 12px rgba(51, 68, 121, 0.3)',
-                }}
-                transition="all 0.2s ease"
+                {...(isSitOutNext
+                    ? {
+                          // Active toggle: solid pink tactile chip.
+                          bg: 'brand.pink',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '12px',
+                          boxShadow:
+                              'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #950839',
+                          transition: TACTILE_TRANSITION,
+                          _hover: { bg: 'brand.pink' },
+                          _active: {
+                              bg: 'brand.pinkDark',
+                              transform: 'translateY(2px)',
+                              boxShadow:
+                                  'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                          },
+                      }
+                    : {
+                          // Idle chrome — uses tactileChrome variant via the
+                          // `variant` prop so light/dark mode is automatic.
+                          variant: 'tactileChrome',
+                      })}
             />
         </Tooltip>
     );

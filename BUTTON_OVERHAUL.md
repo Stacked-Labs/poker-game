@@ -1,6 +1,6 @@
 # Button System Overhaul — Handoff
 
-**Status:** Group A complete (incl. disabled/loading polish pass) · Group B next · 8 groups remaining
+**Status:** Groups A + B + C complete · Group D next · 6 groups remaining
 
 This file is a stateful handoff for the next agent picking up this work. Read it end-to-end before touching any button code. Reference it; don't re-derive it.
 
@@ -121,9 +121,9 @@ import { SocialIconButton } from '@/app/components/SocialIconButton';
 | # | Group | Status | Surfaces |
 |---|---|---|---|
 | **A** | **Hero / marketing CTAs** | ✅ **DONE** | HomeCard, PublicGames, CreateGame, error pages, TakeSeatModal, GuardModal, NewsletterSuccessModal, PlayerCard, ShareRankCard, Footer |
-| **B** | **Table action buttons (Raise/Call/Fold)** | 🟡 **NEXT** | RaiseInputBox |
-| C | Table chrome (settings, volume, leave, away) | Pending | NavBar (table), VolumeButton, AwayButton, LeaveButton, WithdrawButton |
-| D | Felt seat buttons (Sit Down) | Pending | EmptySeatButton |
+| **B** | **Table action buttons** (primary trio + raise presets + blind obligations + away rejoin) | ✅ **DONE** | `Footer/ActionButton.tsx`, `raiseActionButton` variant in theme.ts (consumed in `RaiseInputBox.tsx`), `Footer/BlindObligationControls.tsx`, `Footer/AwayRejoinFooter.tsx` |
+| **C** | **Table chrome (settings, volume, chat, away, leave, withdraw, pause/resume, burger)** | ✅ **DONE** | `theme.ts` `tactileChrome` variant (replaces `gameSettingsButton`); consumers: `NavBar/index.tsx`, `VolumeButton.tsx`, `AwayButton.tsx`, `LeaveButton.tsx`, `WithdrawButton.tsx` (trigger only), `TableMenuBurger.tsx` |
+| **D** | **Felt seat buttons (Sit Down)** | 🟡 **NEXT** | EmptySeatButton |
 | E | Mobile drawer nav | Pending | HomeNavBar drawer items + mobile social row |
 | F | Desktop nav links (`navLink` variant) | Working — light review | HomeNavBar |
 | G | Leaderboard quests (currently `Box` not `Button`) | Pending — biggest open question | QuestsSection |
@@ -176,41 +176,158 @@ The "fight the design system" iterations along the way are documented in memory 
 
 ---
 
-## How to do Group B (next)
+## What Group B actually did (audit trail)
+
+The original brief in this doc only mentioned `RaiseInputBox.tsx`. The actual scope had **four surfaces** sharing the same physical table-footer zone — they were migrated together so the footer doesn't look schizophrenic.
+
+### Files modified (4) + spike (1)
+
+- `app/components/Footer/ActionButton.tsx` — Bet/Call/Fold/Check/Raise/Back. Removed `bgGradient`, `::before` top-light, `::after` shimmer keyframe, framer-motion `MotionButton` + `whileHover`/`whileTap` springs, hover glow shadow. Added solid tone bg + tactile chip recipe + 80ms snap press. Brand color leaks (`#2d8763`, `#c9094c`) replaced with `brand.greenDark/Edge` + `brand.pinkDark/Edge` tokens.
+- `app/theme.ts` `raiseActionButton` variant — preset chips (1/2 Pot, 3/4 Pot, Pot, All In, +1, +5, +10, +chip). Removed `backdropFilter: blur(8px)`, hover lift + glow shadow, `scale(0.96)` press, bespoke `_disabled`. Added on-felt chip recipe (subtle white tint + hairline highlight + thin edge), tactile press at smaller scale (`translateY(1px)` instead of 2px because the chips are 28–40px tall).
+- `app/components/Footer/BlindObligationControls.tsx` — Wait BB / Post Now / Sit Out. Removed `translateY(-1px)` hover, `boxShadow: 'lg'` glows, hardcoded `#2d8763`. Added tactile edge per tone (`#B78900` for yellow outline, `#22674E` for green solid, `rgba(0,0,0,0.45)` for neutral outline). Preserved queued-state `border` switch and `opacity` signaling — those carry meaning.
+- `app/components/Footer/AwayRejoinFooter.tsx` — I'm Back / Cancel / Rejoining-status pill. Removed `MotionButton` + framer-motion entirely, `pulseGlow` + `shimmer` keyframes, `glassPseudos` helper, `bgGradient`. Added solid green tactile for I'm Back, pink-outline tactile for Cancel. Status pill (dashed border, not a button) untouched.
+- `app/components/_design/TableActions.stories.tsx` (spike) — four directions side-by-side (Baseline / Tactile / Felt-Inset / Sharp) for the user to pick. Tactile picked. Spike retained for now in case Group C wants to reference the same direction-comparison pattern; can be deleted any time.
+
+### Critical constraint from this group
+
+**Layout-preserving migration.** The user's brief on Group B was explicit: "no sizing or scaling or anything to do with layout changes — only button look and styling." Every responsive `cqw`/breakpoint rule, every `@media (orientation: portrait/landscape)` block, every `height`/`width`/`padding`/`fontSize`/`flex`/`maxW`/`flexShrink`/`zIndex` was preserved verbatim. Only `bg`/`border`/`boxShadow`/`transition`/`_hover`/`_active`/animation-pseudos changed.
+
+This is the right default for any future group that touches a working surface — change the look, don't move the boxes. Layout migration is a separate task with its own risk profile.
+
+### Tactile recipe at table scale
+
+For surfaces smaller than the Group A 44–56px buttons, the recipe drops down a weight-class:
+
+- Edge `0 2px 0 <edge>` is fine for 40px+ tall buttons (Bet/Call/Fold, Wait/Post/Sit, I'm Back).
+- For 28–40px chips (raise presets), edge becomes `0 1px 0 rgba(0,0,0,0.4)` and press `translateY(1px)` instead of 2px — keeps the affordance without consuming the chip's vertical budget.
+- Letter-spacing stays at `0.03–0.04em` regardless of size.
+
+---
+
+## What Group C actually did (audit trail)
+
+### Files modified (6) + spike (1) — `gameSettingsButton` variant retired
+
+- `app/theme.ts` — added `tactileChrome` variant for idle chrome chips. Mode-aware (light: subtle dark-tint chip on cream; dark: subtle light-tint chip on near-black) so the same variant reads in both modes without consumer overrides. Deleted `gameSettingsButton` (had glass blur + lift + glow + scale press).
+- `app/components/VolumeButton.tsx` — variant swap (one line).
+- `app/components/NavBar/index.tsx` — variant swap on Settings + Chat IconButtons. Pause/Resume IconButtons converted from inline lift+glow to inline tactile chips (green when paused, orange when pendingPause, yellow when normal — each with its matching edge-color hex). Pulse keyframe on the pending-players badge untouched (badges are not buttons).
+- `app/components/NavBar/AwayButton.tsx` — 4 states migrated. Solid green tactile for "Cancel rejoin" + "I'm Back," solid pink tactile for "Cancel sit out," idle `tactileChrome` for the resting playing state.
+- `app/components/NavBar/LeaveButton.tsx` — 2 states migrated. Idle uses `tactileChrome` with brand.pink icon (signals destructive); queued uses solid pink tactile chip. `aria-pressed` retained.
+- `app/components/NavBar/WithdrawButton.tsx` — only the trigger button (line ~187). Solid yellow tactile chip with darker text (`#1A1A1A`) for contrast against the bright yellow. The is-user-seated `filter: blur(1px)` + `opacity: 0.6` signal preserved verbatim. Modal internals (animated gradient border, slideUp keyframe, etc.) deliberately untouched — separate concern.
+- `app/components/NavBar/TableMenuBurger.tsx` — toggle migrated. Idle uses `tactileChrome`; open state uses solid navy tactile chip (with a new edge `#1B2754` since this is the only place navy is used as a tactile fill).
+
+Not modified — out of scope for chrome migration:
+- `WalletButton.tsx` (thirdweb integration — explicitly excluded by the master scope)
+- `StartGameButton` (separate concern; revisit in a later group if needed)
+- `Modal` internals of `WithdrawButton`, `SettingsModal` (Group J or separate)
+
+### Pattern: idle vs active toggle states
+
+Chrome buttons are *toggles*. Many have an idle state (variant `tactileChrome`) and an active state (solid brand-tone tactile chip with the same chip mechanic). Rather than encoding all the toggle-tone permutations as variants (would need green/pink/yellow/orange/navy solid tactile variants — overkill for a handful of consumers), each consumer renders its active state inline using the recipe:
+
+```tsx
+{
+  bg: '<brand.tone>',
+  color: 'white',                              // or '#1A1A1A' for yellow
+  border: 'none',
+  borderRadius: '12px',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 <edge-hex>',
+  transition: TACTILE_TRANSITION,
+  _hover: { bg: '<brand.tone>' },
+  _active: {
+    bg: '<brand.toneDark>',
+    transform: 'translateY(2px)',
+    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 <edge-hex>',
+  },
+}
+```
+
+The edge-hex values used in chrome (matching the `brand.<tone>Edge` shades from Group A + B):
+- Green edge: `#22674E`
+- Pink edge: `#950839`
+- Yellow edge: `#B78900`
+- Orange edge (pendingPause): `#B45A0B` (new — only used once)
+- Navy edge (burger open): `#1B2754` (new — only used once)
+
+If a future group adds more navy or orange chrome states, lift those edges into named brand shades in `theme.ts`. For one-offs, hex inline is fine (the same call we made for Group A's edge hexes).
+
+### Mode-aware idle chip — the new approach
+
+The `tactileChrome` variant uses Chakra's `_dark` style key inside the variant body to flip its colors:
+
+```ts
+tactileChrome: {
+  bg: 'rgba(0,0,0,0.05)',          // light-mode: subtle dark tint
+  color: 'text.secondary',
+  borderColor: 'rgba(0,0,0,0.10)',
+  ...
+  _dark: {
+    bg: 'rgba(255,255,255,0.06)',  // dark-mode: subtle light tint
+    color: 'rgba(255,255,255,0.85)',
+    borderColor: 'rgba(255,255,255,0.14)',
+    _hover: { ... },
+    _active: { ... },
+  },
+}
+```
+
+This is the first variant in the overhaul to use `_dark` *inside* the variant body. It's the right call here because the chip's bg/border/text values don't have semantic-token equivalents — the rgba alpha tints are computed against whichever bg the page uses. If a future group needs the same pattern (likely Group D for felt-seat buttons), reuse this shape.
+
+---
+
+## How to do Group D (next)
 
 The user's iteration loop is fixed. Follow it:
 
-### 1. Build a Storybook spike
-- Path: `app/components/_design/TableActions.stories.tsx`
-- Title: `'Design Spikes / Group B — Table Actions'`
-- Show 4 rows: **Baseline** (current), **Tactile**, plus 2 alternates appropriate to the surface (Soft / Sharp worked for Group A; pick what makes sense for raise/call/fold)
-- Render: Raise / Call / Fold trio, plus the +chips/all-in row
-- Toggle light/dark via existing toolbar (already wired in `.storybook/preview.tsx`)
-- Each row should be self-contained inline styles — don't add new theme variants until the user picks
-- Delete the spike file after the user decides
+### 1. Audit first
 
-### 2. Group B context
+Group D per this doc is "Felt seat buttons (Sit Down)" — the empty-seat affordances around the poker table. The doc's open-questions section already flags one issue: the existing `EmptySeatButton.tsx` does NOT use a theme variant. It carries inline custom styling (dashed border, blur, glow, scale 1.02). The original `emptySeat` variant in `theme.ts` had 0 consumers and was deleted in Group A's cleanup. So Group D needs a fresh variant or a custom-component approach.
 
-The current `raiseActionButton` variant in `theme.ts` is the loudest debt in the app:
-- `backdropFilter: blur(8px)` (Solid-Over-Glass debt)
-- Hover transforms to brand.green with `0 6px 16px rgba(54, 163, 123, 0.35)` glow shadow (No-Glow debt)
-- `translateY(-2px)` lift on hover
-- Active: `scale(0.96)`
+Before spiking, audit the felt seat surfaces:
 
-Used 8× in `app/components/Footer/RaiseInputBox.tsx`. Most-pressed surface in the entire app.
+```bash
+grep -rn 'EmptySeat\|SitDown\|FeltSeat\|empty-seat' app/ --include='*.tsx' --include='*.ts'
+find app/components/Felt -type f
+```
 
-The user already noted: "the press-down (`scale 0.96`) is good — that's the satisfying part. The glow undermines it." Tactile's `translateY(2px)` + edge-collapse press is more honest than `scale(0.96)` here, but the table surface has tighter physical scale (these buttons live over the felt at responsive sizes 70–85px wide × 28–40px tall) — your tactile recipe needs to read at those dimensions. Think about: edge thickness on a 28px-tall button (probably 1px not 2px), letter-spacing tightening at 8–10px font sizes.
+Expect to find at minimum:
+- `app/components/Felt/EmptySeatButton.tsx` (or similar) — the "click to take this seat" target
+- Possibly a sibling component for occupied-but-disabled seats
+- Maybe avatar slots with hover affordances that should match the same family
 
-### 3. After the user picks
-- Add new variant(s) to `theme.ts` (likely just `tactileTableAction` — one variant; Raise/Call/Fold are stylistically identical)
-- Define **only the live state** (bg, color, border, hover, active). Don't hand-roll `_disabled` or `_loading` — `Button.baseStyle` already handles both via `filter` + `pointerEvents: 'none'`. Override only if the table-action surface genuinely needs something different (e.g. a louder disabled tell because the table is fast-paced).
-- Update `RaiseInputBox.tsx` to use the new variant. Don't pass `opacity` / `cursor` / raw `disabled` props on the consumer side — use `isDisabled`.
-- Delete the `raiseActionButton` variant
-- Verify type-check + lint + build clean
-- Update this file's status table
+Group A and Group B and Group C audits each found surfaces the original brief missed. Expect the same here. Read every consumer; don't trust the brief's surface list verbatim.
 
-### 4. Hand back
-Self-review, list what to eyeball in browser, ask if they want to move to Group C.
+### 2. Build a Storybook spike
+
+- Path: `app/components/_design/FeltSeats.stories.tsx`
+- Title: `'Design Spikes / Group D — Felt Seats'`
+- Show **4 directions side-by-side**: Baseline (current EmptySeatButton inline styles), Tactile (chip mechanic adapted to circular/square seat shape), plus 2 alternates that suit a felt-physical context (e.g., "Inviting" — pulsing dashed ring, "Embedded" — recessed felt indent). The shown buttons sit *on the green felt* (the actual table cloth) — so for this spike's backdrop, **use a felt-green container, not `bg.default`**. This is the one Group where the chrome-buttons-on-page-bg rule doesn't apply: empty seats literally are on the felt.
+- Render: 9 seat positions around an oval, with a mix of empty + occupied states.
+- Toggle light/dark via existing toolbar (the felt color may need `useColorModeValue` since the table cloth might shift between modes).
+- Each direction self-contained inline styles — don't add new theme variants until the user picks.
+- Delete the spike file after the user decides.
+
+### 3. Group D context
+
+Empty-seat buttons are **invitations**, not actions. They want to draw the eye to "join here" without screaming. The current EmptySeatButton uses dashed border + blur + glow + scale 1.02 — which is the "AI-slop attention magnet" pattern. The right tactile-family answer is probably:
+- A subtle dashed-border chip (the dashed signal is meaningful — it says "this is a slot, not a player")
+- Hover bumps the dash to solid + slight bg fill
+- Press is the same tactile recipe (translateY(2px) + edge collapse) — though for circular/avatar-shaped buttons, "edge" needs a ring shape instead of a bottom shadow
+
+Felt seats are also **state-dense**: empty / pending-take / occupied / disabled (game in progress, not enough chips, etc.). Each state needs a distinct visual.
+
+### 4. After the user picks
+
+- Add a new variant `tactileFeltSeat` (or just inline-style if the seat is the only consumer — the inline-vs-variant call is a judgment based on whether more seat-shaped surfaces exist).
+- Define **only the live state**. Don't hand-roll `_disabled` or `_loading` — Button baseStyle already owns those.
+- **Layout-preserving rule applies** (Groups B + C established it as canon). Don't change avatar dimensions, position, transform-origin, or any layout primitive. Only the visual layer changes.
+- Migrate `EmptySeatButton.tsx` (and any sibling consumers found in the audit). Don't pass `opacity`/`cursor`/raw `disabled` consumer-side — use `isDisabled`.
+- Verify type-check + lint + build clean.
+- Update this file's status table.
+
+### 5. Hand back
+
+Self-review, list what to eyeball in browser, ask if they want to move to Group E.
 
 ---
 

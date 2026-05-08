@@ -31,7 +31,7 @@ export default function PublicGamesHero() {
                 as={Link}
                 href="/create-game"
                 leftIcon={<FiPlus />}
-                variant="greenGradient"
+                variant="tactilePrimary"
                 borderRadius="14px"
                 height={{ base: '40px', md: '44px' }}
                 px={6}

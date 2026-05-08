@@ -99,7 +99,30 @@ If you reach for `sx` to set a color, you're skipping step 1.
 
 ---
 
-## 8. Don't fight the design system
+## 8. Buttons — disabled & loading states (Chakra gotcha)
+
+Chakra v2's framework `Button.baseStyle` ships with this default:
+
+```js
+_hover: { _disabled: { bg: 'initial' } }
+```
+
+(See `node_modules/@chakra-ui/theme/dist/esm/components/button.mjs`.) Hovering a disabled button resets `background-color` to transparent, wiping the chip on any solid-fill variant. `:hover:disabled` outranks `:disabled` in CSS specificity, so you can't out-cascade it from a variant's `_disabled.bg`.
+
+**Our fix lives in `app/theme.ts` → `Button.baseStyle`** as a shared `_disabled` / `_loading` block:
+
+- `pointerEvents: 'none'` — load-bearing. `:hover` never fires on the button, so the bg-reset never runs. Wrapping `Tooltip`s still work because they listen on the parent element.
+- `filter: saturate(...) brightness(...)` — desaturates the live variant uniformly across solid fills, outlines, and text-only variants. No per-variant rewrites.
+- **Never `opacity`** — on light-mode bg it lets the page color bleed through and the chip visually disappears.
+
+**When working on buttons:**
+- Don't add bespoke `_disabled` / `_loading` blocks per variant unless the shared baseStyle treatment genuinely doesn't fit. Variants describe the *live* state; the baseStyle owns disabled/loading.
+- Don't pass `opacity` / `cursor` / raw HTML `disabled={...}` directly on a `<Button>` consumer — they clobber the variant. Use `isDisabled` and `isLoading`.
+- If you remove `pointerEvents: 'none'`, expect every solid-fill disabled button in the app to flash transparent on hover.
+
+---
+
+## 9. Don't fight the design system
 
 Smell tests that mean you're going off-rails:
 - `style={{ ... }}` on a Chakra component (use props)

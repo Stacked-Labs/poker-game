@@ -302,9 +302,10 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                     flex={1}
                                     py={2}
                                     cursor="pointer"
-                                    opacity={0.7}
-                                    _hover={{ opacity: 1 }}
-                                    transition="opacity 0.15s ease"
+                                    boxShadow="0 2px 0 rgba(0,0,0,0.06)"
+                                    _dark={{ boxShadow: '0 2px 0 rgba(255,255,255,0.06)' }}
+                                    _active={{ transform: 'translateY(2px)', boxShadow: '0 0 0 transparent' }}
+                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease"
                                     onClick={handleShareX}
                                 >
                                     <Icon as={FaXTwitter} boxSize="20px" color="text.primary" />
@@ -321,12 +322,13 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                     flex={1}
                                     py={2}
                                     cursor="pointer"
-                                    opacity={0.7}
-                                    _hover={{ opacity: 1 }}
-                                    transition="opacity 0.15s ease"
+                                    boxShadow="0 2px 0 rgba(0,0,0,0.06)"
+                                    _dark={{ boxShadow: '0 2px 0 rgba(255,255,255,0.06)' }}
+                                    _active={{ transform: 'translateY(2px)', boxShadow: '0 0 0 transparent' }}
+                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease"
                                     onClick={() => window.open(telegramUrl, '_blank', 'noopener,noreferrer')}
                                 >
-                                    <Icon as={FaTelegram} boxSize="20px" color="#229ED9" />
+                                    <Icon as={FaTelegram} boxSize="20px" color="brand.telegram" />
                                     <Text fontSize="2xs" color="text.secondary" fontWeight="medium">
                                         Send
                                     </Text>
@@ -340,9 +342,10 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                     flex={1}
                                     py={2}
                                     cursor="pointer"
-                                    opacity={0.7}
-                                    _hover={{ opacity: 1 }}
-                                    transition="opacity 0.15s ease"
+                                    boxShadow="0 2px 0 rgba(0,0,0,0.06)"
+                                    _dark={{ boxShadow: '0 2px 0 rgba(255,255,255,0.06)' }}
+                                    _active={{ transform: 'translateY(2px)', boxShadow: '0 0 0 transparent' }}
+                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease"
                                     onClick={handleDownload}
                                 >
                                     <Icon as={FaDownload} boxSize="18px" color="text.secondary" />

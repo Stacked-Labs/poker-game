@@ -37,9 +37,16 @@ const colors = {
         darkNavy: '#0B1430',
         lightGray: '#ECEEF5',
         pink: '#EB0B5C',
+        pinkDark: '#C00A4D',
+        pinkEdge: '#950839',
         green: '#36A37B',
+        greenDark: '#2A8463',
+        greenEdge: '#22674E',
         yellow: '#FDC51D',
         yellowDark: '#B78900',
+        telegram: '#0088CC',
+        telegramDark: '#0077B5',
+        telegramEdge: '#006A9D',
     },
     // Legacy colors (consider migrating)
     legacy: {
@@ -439,45 +446,138 @@ const components = {
                 transform: 'scale(0.97)',
                 transition: 'transform 0.1s ease',
             },
+            // Shared disabled treatment for the whole app.
+            //
+            // `filter` desaturates the live variant uniformly (solid fills,
+            // outlines, text-only variants) and keeps full alpha so the chip
+            // stays opaque against any bg (light or dark). No `opacity` here —
+            // that lets light-mode page bg bleed through.
+            //
+            // `pointerEvents: 'none'` is the load-bearing line. Chakra's
+            // framework default has `_hover: { _disabled: { bg: 'initial' } }`,
+            // which wipes the chip's bg to transparent the moment you hover a
+            // disabled button. `:hover:disabled` has higher specificity than
+            // `:disabled`, so it can't be cascaded over from _disabled.
+            // Disabling pointer events on the button itself stops `:hover`
+            // from ever firing, sidestepping the reset. Wrapping Tooltips
+            // still detect hover on their parent <Box>, so they continue to
+            // show their label (e.g. the Cloudflare-pending tooltip).
+            _disabled: {
+                filter: 'saturate(0.45) brightness(0.92)',
+                cursor: 'not-allowed',
+                pointerEvents: 'none',
+                boxShadow: 'none',
+                _active: { transform: 'none' },
+            },
+            // Loading: a lighter desaturation so the spinner reads against
+            // the chip while the live identity is mostly preserved.
+            _loading: {
+                filter: 'saturate(0.75)',
+                pointerEvents: 'none',
+                _active: { transform: 'none' },
+            },
         },
         variants: {
             base: {},
-            greenGradient: {
-                bgGradient:
-                    'linear(to-r, brand.green, rgba(54, 163, 123, 0.85))',
+
+            // ─── Tactile feel — Group A (hero / marketing CTAs) ──────────────
+            // Recipe: hairline highlight on top, dark "edge" underneath, no
+            // hover lift, press sinks 2px and the edge collapses. 80ms snap.
+            //
+            // tactilePrimary    — solid green. Default brand action.
+            // tactileOutline    — green outline. Secondary action paired with primary.
+            // tactileDestructive — pink outline. Destructive secondary.
+            // tactileTelegram   — solid telegram-blue. Newsletter/community CTA.
+            //
+            // Sizes (44 / 48 / 56 px) come from the consumer via `height` or
+            // Chakra's `size` prop; the variant only owns the mechanic.
+            tactilePrimary: {
+                bg: 'brand.green',
                 color: 'white',
-                fontWeight: 'bold',
                 border: 'none',
+                borderRadius: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
                 boxShadow:
-                    '0 4px 14px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                _hover: {
-                    bgGradient:
-                        'linear(to-r, rgba(54, 163, 123, 0.98), rgba(54, 163, 123, 0.82))',
+                    'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #22674E',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease',
+                _hover: { bg: 'brand.green' },
+                _active: {
+                    bg: 'brand.greenDark',
+                    transform: 'translateY(2px)',
                     boxShadow:
-                        '0 8px 24px rgba(54, 163, 123, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
-                    transform: 'translateY(-1px)',
+                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
+                },
+            },
+            tactileOutline: {
+                bg: 'transparent',
+                color: 'brand.green',
+                border: '2px solid',
+                borderColor: 'brand.green',
+                borderRadius: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow: '0 2px 0 #22674E',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease, color 80ms ease',
+                _hover: {
+                    bg: 'rgba(54, 163, 123, 0.12)',
+                    borderColor: 'brand.greenDark',
+                    color: 'brand.greenDark',
                 },
                 _active: {
-                    transform: 'translateY(0) scale(0.98)',
-                    boxShadow:
-                        '0 2px 8px rgba(54, 163, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+                    bg: 'rgba(54, 163, 123, 0.18)',
+                    borderColor: 'brand.greenDark',
+                    color: 'brand.greenDark',
+                    transform: 'translateY(2px)',
+                    boxShadow: '0 0 0 #22674E',
                 },
             },
-            outlineSuccess: {
-                bg: 'white',
-                color: 'brand.green',
-                border: '1px solid',
-                borderColor: 'rgba(54, 163, 123, 0.35)',
-                _hover: { bg: 'rgba(54, 163, 123, 0.08)' },
+            tactileDestructive: {
+                bg: 'transparent',
+                color: 'brand.pink',
+                border: '2px solid',
+                borderColor: 'brand.pink',
+                borderRadius: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow: '0 2px 0 #950839',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease, color 80ms ease',
+                _hover: {
+                    bg: 'rgba(235, 11, 92, 0.12)',
+                    borderColor: 'brand.pinkDark',
+                    color: 'brand.pinkDark',
+                },
+                _active: {
+                    bg: 'rgba(235, 11, 92, 0.18)',
+                    borderColor: 'brand.pinkDark',
+                    color: 'brand.pinkDark',
+                    transform: 'translateY(2px)',
+                    boxShadow: '0 0 0 #950839',
+                },
             },
-            outlineMuted: {
-                bg: 'card.white',
-                border: '1px solid',
-                borderColor: 'rgba(12, 21, 49, 0.2)',
-                color: 'text.primary',
-                fontWeight: 'bold',
-                _hover: { bg: 'card.lightGray' },
+            tactileTelegram: {
+                bg: 'brand.telegram',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow:
+                    'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #006A9D',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease',
+                _hover: { bg: 'brand.telegram' },
+                _active: {
+                    bg: 'brand.telegramDark',
+                    transform: 'translateY(2px)',
+                    boxShadow:
+                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #006A9D',
+                },
             },
+
             themeButton: {
                 border: 'none',
                 bg: 'transparent',
@@ -485,22 +585,6 @@ const components = {
                 _hover: {
                     bg: 'transparent',
                     color: 'brand.pink',
-                },
-            },
-            social: {
-                bg: 'btn.lightGray',
-                border: '1px solid',
-                borderColor: 'transparent',
-                borderRadius: { base: '12px', md: '14px' },
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                backdropFilter: 'blur(8px)',
-                _hover: {
-                    color: 'white',
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    transform: 'translateY(-3px) scale(1.05)',
-                },
-                _active: {
-                    transform: 'translateY(-1px) scale(0.98)',
                 },
             },
             underlined: {
@@ -580,45 +664,6 @@ const components = {
                     bg: 'none',
                 },
                 transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-            },
-            homeSectionButton: {
-                paddingY: 8,
-                border: 0,
-            },
-            settingsSmallButton: {
-                width: '50px',
-                border: 0,
-            },
-            connectButton: {
-                paddingY: 8,
-                border: '2px',
-                bg: '#2D2D2D',
-            },
-            outlined: {
-                bg: 'gray.200',
-                _focus: {
-                    boxShadow: 'outline',
-                },
-            },
-            emptySeat: {
-                width: '100%',
-                height: {
-                    base: 'fit-content',
-                    sm: '100%',
-                },
-                border: '2px dashed',
-                borderColor: 'gray.400',
-                color: 'gray.400',
-                fontSize: {
-                    base: '0.95rem',
-                    sm: '1rem',
-                    md: '1.5rem',
-                    lg: '2.3rem',
-                },
-                paddingY: {
-                    base: '1rem',
-                    xs: '2rem',
-                },
             },
             gameSettingsButton: {
                 bg: 'btn.lightGray',

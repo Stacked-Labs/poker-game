@@ -92,12 +92,30 @@ export default function PublicGamesGrid({
             {hasMore && (
                 <Flex justify="center">
                     <Button
-                        variant="ghost"
-                        size="sm"
-                        color="text.secondary"
+                        variant="unstyled"
+                        onClick={onLoadMore}
                         isLoading={isLoadingMore}
                         loadingText="Loading…"
-                        onClick={onLoadMore}
+                        bg="card.white"
+                        color="text.primary"
+                        boxShadow="card.lift"
+                        borderRadius="full"
+                        h="36px"
+                        px={6}
+                        fontSize="xs"
+                        fontWeight="bold"
+                        letterSpacing="0.08em"
+                        textTransform="uppercase"
+                        display="inline-flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        _hover={{
+                            color: 'brand.green',
+                            boxShadow: 'card.liftHover',
+                            transform: 'translateY(-1px)',
+                        }}
+                        _focusVisible={{ boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)' }}
+                        transition="all 0.15s ease"
                     >
                         Load more tables
                     </Button>

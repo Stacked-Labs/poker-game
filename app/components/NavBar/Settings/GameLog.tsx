@@ -1,11 +1,38 @@
 'use client';
 
-import { Box, VStack, HStack, Text, Button, Spinner } from '@chakra-ui/react';
+import { Box, Flex, Stack, VStack, HStack, Text, Button } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
 import { useGameEvents } from '@/app/contexts/GameEventsProvider';
 import { GameEventRecord } from '@/app/interfaces';
 import { evaluateBest5, EvalCard, Suit } from '@/app/lib/poker/pokerHandEval';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import PlayerNameLink from '@/app/components/PlayerNameLink';
+
+const TONE_TINT_LIGHT: Record<string, string> = {
+    action: 'rgba(54, 163, 123, 0.05)',
+    game_event: 'rgba(51, 68, 121, 0.045)',
+    meta_event: 'rgba(235, 11, 92, 0.05)',
+};
+
+const TONE_TINT_DARK: Record<string, string> = {
+    action: 'rgba(54, 163, 123, 0.10)',
+    game_event: 'rgba(51, 68, 121, 0.12)',
+    meta_event: 'rgba(235, 11, 92, 0.10)',
+};
+
+const skeletonShimmer = keyframes`
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+`;
+
+const SKELETON_CATS: Array<'action' | 'game_event' | 'meta_event'> = [
+    'action',
+    'game_event',
+    'action',
+    'meta_event',
+    'action',
+];
 
 // Type-safe metadata interfaces
 interface HandStartedMetadata {
@@ -195,17 +222,17 @@ const GameLog = () => {
     };
 
     const formatTime = (timestamp: string) => {
-        return new Date(timestamp)
-            .toLocaleString(undefined, {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false,
-            })
-            .replace(',', '');
+        const d = new Date(timestamp);
+        const now = new Date();
+        const isToday =
+            d.getFullYear() === now.getFullYear() &&
+            d.getMonth() === now.getMonth() &&
+            d.getDate() === now.getDate();
+        const pad = (n: number) => String(n).padStart(2, '0');
+        if (isToday) {
+            return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        }
+        return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
 
     const convertCardsToEmojis = (cards: string[]): string => {
@@ -791,7 +818,7 @@ const GameLog = () => {
                         {meta.reason && (
                             <Text
                                 as="span"
-                                color="gray.500"
+                                color="text.muted"
                                 fontSize="xs"
                                 fontWeight="normal"
                             >
@@ -1055,86 +1082,70 @@ const GameLog = () => {
         }
     };
 
+    const renderHeader = (count: number) => (
+        <Flex
+            justify="space-between"
+            align="center"
+            bg="card.lightGray"
+            px={{ base: 3, md: 4 }}
+            py={2.5}
+            borderBottom="1px solid"
+            borderColor="border.lightGray"
+        >
+            <HStack spacing={2.5}>
+                <HStack spacing={1}>
+                    <Box w="6px" h="6px" borderRadius="full" bg="brand.green" />
+                    <Box w="6px" h="6px" borderRadius="full" bg="brand.navy" />
+                    <Box w="6px" h="6px" borderRadius="full" bg="brand.pink" />
+                </HStack>
+                <Text
+                    fontSize="2xs"
+                    color="text.secondary"
+                    textTransform="uppercase"
+                    letterSpacing="0.10em"
+                    fontWeight={800}
+                >
+                    Activity
+                </Text>
+                <Text
+                    fontSize="xs"
+                    color="text.muted"
+                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                >
+                    {count} events
+                </Text>
+            </HStack>
+            <Button
+                onClick={refreshEvents}
+                isLoading={loading}
+                loadingText="..."
+                size="xs"
+                bg="brand.navy"
+                color="white"
+                fontFamily="mono"
+                fontSize="2xs"
+                px={3}
+                h="26px"
+                borderRadius="6px"
+                fontWeight={700}
+                border="none"
+                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #1B2754"
+                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                _hover={{ bg: 'brand.navy' }}
+                _active={{
+                    bg: '#1B2754',
+                    transform: 'translateY(1.5px)',
+                    boxShadow:
+                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #1B2754',
+                }}
+            >
+                Refresh
+            </Button>
+        </Flex>
+    );
+
     if (loading) {
         return (
-            <Box>
-                <Box
-                    p={8}
-                    textAlign="center"
-                    bg="card.lightGray"
-                    borderRadius="16px"
-                >
-                    <Spinner
-                        size="xl"
-                        color="brand.green"
-                        thickness="4px"
-                        speed="0.65s"
-                    />
-                    <Text mt={4} color="text.gray600" fontWeight="medium">
-                        Loading events...
-                    </Text>
-                </Box>
-            </Box>
-        );
-    }
-
-    if (isUnauthorized) {
-        return (
-            <Box>
-                <Box
-                    p={8}
-                    textAlign="center"
-                    bg="card.lightGray"
-                    borderRadius="16px"
-                    border="2px solid"
-                    borderColor="white"
-                >
-                    <Text
-                        color="text.gray600"
-                        fontWeight="bold"
-                        fontSize="lg"
-                        mb={2}
-                    >
-                        Authentication Required
-                    </Text>
-                    <Text color="gray.500" fontWeight="medium" fontSize="sm">
-                        Please connect your wallet to view game events
-                    </Text>
-                </Box>
-            </Box>
-        );
-    }
-
-    return (
-        <Box>
-            <HStack justify="space-between" align="center" mb={4}>
-                <Button
-                    onClick={refreshEvents}
-                    isLoading={loading}
-                    loadingText="Refreshing..."
-                    size="sm"
-                    bg="brand.navy"
-                    color="white"
-                    fontFamily="mono"
-                    fontSize="xs"
-                    px={4}
-                    py={2}
-                    borderRadius="6px"
-                    fontWeight="bold"
-                    border="none"
-                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #1B2754"
-                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
-                    _hover={{ bg: 'brand.navy' }}
-                    _active={{
-                        bg: '#1B2754',
-                        transform: 'translateY(1.5px)',
-                        boxShadow:
-                            'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #1B2754',
-                    }}
-                >
-                    Refresh
-                </Button>
-            </HStack>
             <Box
                 bg="card.white"
                 borderRadius="12px"
@@ -1142,141 +1153,224 @@ const GameLog = () => {
                 borderColor="border.lightGray"
                 overflow="hidden"
             >
-                {/* Log container with terminal-like styling */}
-                <Box
-                    bg="gray.50"
-                    px={{ base: 3, md: 4 }}
-                    py={2}
-                    borderBottom="1px solid"
-                    borderColor="gray.200"
-                >
-                    <Text
-                        fontSize="xs"
-                        fontWeight="bold"
-                        color="brand.lightGray"
-                        fontFamily="mono"
-                    >
-                        EVENT LOG — {events.length} entries
-                    </Text>
-                </Box>
-                <Box
-                    maxH="70vh"
-                    overflowY="auto"
-                    fontFamily="mono"
-                    lineHeight="1.4"
-                    sx={{
-                        '&::-webkit-scrollbar': {
-                            width: '8px',
-                        },
-                        '&::-webkit-scrollbar-track': {
-                            bg: 'gray.50',
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                            bg: 'gray.300',
-                            borderRadius: 'full',
-                            _hover: {
-                                bg: 'brand.navy',
-                            },
-                        },
-                    }}
-                >
-                    {events.length === 0 ? (
-                        <Box p={6} textAlign="center">
-                            <Text
-                                color="gray.500"
-                                fontFamily="mono"
-                                fontWeight="bold"
-                            >
-                                — No events recorded —
-                            </Text>
-                        </Box>
-                    ) : (
-                        <VStack align="stretch" gap={0} spacing={0}>
-                            {events.map((event, index) => (
-                                <Box
-                                    key={event.id}
-                                    px={{ base: 2, md: 3 }}
-                                    py={{ base: 1.5, md: 2 }}
-                                    bg={
-                                        index % 2 === 0
-                                            ? 'input.white'
-                                            : 'input.lightGray'
-                                    }
-                                    borderLeft="3px solid"
-                                    borderLeftColor={getBadgeColor(
-                                        event.event_category
-                                    )}
-                                >
-                                    <HStack
-                                        gap={{ base: 2, md: 3 }}
-                                        align="flex-start"
-                                    >
-                                        <Text
-                                            color="gray.500"
-                                            fontWeight="bold"
-                                            minW={{ base: '144px', md: '168px' }}
-                                            whiteSpace="nowrap"
-                                            fontSize={{
-                                                base: '10px',
-                                                md: 'xs',
-                                            }}
-                                        >
-                                            [{formatTime(event.timestamp)}]
-                                        </Text>
-                                        <Text
-                                            color="text.primary"
-                                            wordBreak="break-word"
-                                            fontSize={{
-                                                base: '12px',
-                                                md: 'sm',
-                                            }}
-                                            fontWeight="medium"
-                                            flex="1"
-                                            pr={1}
-                                        >
-                                            {formatLogMessage(event)}
-                                        </Text>
-                                    </HStack>
-                                </Box>
-                            ))}
-                        </VStack>
-                    )}
-                    {hasMore && (
+                {renderHeader(0)}
+                <Stack spacing={0}>
+                    {SKELETON_CATS.map((cat, i) => (
                         <Box
-                            p={3}
-                            textAlign="center"
-                            borderTop="1px solid"
-                            borderColor="gray.200"
-                            bg="gray.50"
+                            key={i}
+                            px={{ base: 3, md: 4 }}
+                            py={2.5}
+                            bg={{
+                                base: TONE_TINT_LIGHT[cat],
+                                _dark: TONE_TINT_DARK[cat],
+                            }}
+                            borderLeft={{ base: '2px solid', md: '3px solid' }}
+                            borderLeftColor={getBadgeColor(cat)}
+                            borderBottom={
+                                i === SKELETON_CATS.length - 1
+                                    ? undefined
+                                    : '1px solid'
+                            }
+                            borderBottomColor="border.lightGray"
+                            animation={`${skeletonShimmer} 1.5s ease-in-out infinite`}
                         >
-                            <Button
-                                onClick={loadMoreEvents}
-                                loadingText="Loading..."
-                                size="sm"
-                                bg="brand.navy"
-                                color="white"
-                                fontFamily="mono"
-                                fontSize="xs"
-                                px={6}
-                                py={2}
-                                borderRadius="6px"
-                                fontWeight="bold"
-                                border="none"
-                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #1B2754"
-                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
-                                _hover={{ bg: 'brand.navy' }}
-                                _active={{
-                                    bg: '#1B2754',
-                                    transform: 'translateY(1.5px)',
-                                    boxShadow:
-                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #1B2754',
-                                }}
-                            >
-                                Load More Events
-                            </Button>
+                            <HStack spacing={3}>
+                                <Box
+                                    w="80px"
+                                    h="10px"
+                                    borderRadius="3px"
+                                    bg="card.lightGray"
+                                />
+                                <Box
+                                    flex={1}
+                                    h="11px"
+                                    borderRadius="3px"
+                                    bg="card.lightGray"
+                                />
+                            </HStack>
                         </Box>
-                    )}
-                </Box>
+                    ))}
+                </Stack>
+            </Box>
+        );
+    }
+
+    if (isUnauthorized) {
+        return (
+            <Flex
+                direction="column"
+                alignItems="center"
+                justifyContent="center"
+                py={8}
+                px={5}
+                bg="card.lightGray"
+                borderRadius="16px"
+                border="1px dashed"
+                borderColor="border.lightGray"
+                gap={2}
+            >
+                <Text fontWeight="bold" fontSize="md" color="text.primary">
+                    Sign in to view game events
+                </Text>
+                <Text
+                    fontSize="sm"
+                    color="text.muted"
+                    textAlign="center"
+                    maxW="320px"
+                >
+                    Connect your wallet from the table NavBar — the activity
+                    log shows once you&apos;re authenticated.
+                </Text>
+            </Flex>
+        );
+    }
+
+    if (events.length === 0) {
+        return (
+            <Flex
+                direction="column"
+                alignItems="center"
+                justifyContent="center"
+                py={6}
+                px={4}
+                bg="card.lightGray"
+                borderRadius="16px"
+                border="1px dashed"
+                borderColor="border.lightGray"
+                gap={1.5}
+            >
+                <Text fontWeight="bold" fontSize="sm" color="text.secondary">
+                    No events yet
+                </Text>
+                <Text fontSize="xs" color="text.muted" textAlign="center">
+                    Player actions and game events will appear here as the
+                    hand progresses.
+                </Text>
+            </Flex>
+        );
+    }
+
+    return (
+        <Box
+            bg="card.white"
+            borderRadius="12px"
+            border="1px solid"
+            borderColor="border.lightGray"
+            overflow="hidden"
+        >
+            {renderHeader(events.length)}
+            <Box
+                maxH="70vh"
+                overflowY="auto"
+                lineHeight="1.4"
+                sx={{
+                    '&::-webkit-scrollbar': {
+                        width: '8px',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                        bg: 'card.lightGray',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        bg: 'text.muted',
+                        borderRadius: 'full',
+                        _hover: {
+                            bg: 'text.secondary',
+                        },
+                    },
+                }}
+            >
+                <VStack align="stretch" gap={0} spacing={0}>
+                    {events.map((event, index) => (
+                        <Box
+                            key={event.id}
+                            px={{ base: 3, md: 4 }}
+                            py={{ base: 2, md: 2.5 }}
+                            bg={{
+                                base:
+                                    TONE_TINT_LIGHT[event.event_category] ??
+                                    'transparent',
+                                _dark:
+                                    TONE_TINT_DARK[event.event_category] ??
+                                    'transparent',
+                            }}
+                            borderLeft={{ base: '2px solid', md: '3px solid' }}
+                            borderLeftColor={getBadgeColor(
+                                event.event_category
+                            )}
+                            borderBottom={
+                                index === events.length - 1
+                                    ? undefined
+                                    : '1px solid'
+                            }
+                            borderBottomColor="border.lightGray"
+                        >
+                            <HStack
+                                gap={{ base: 2, md: 3 }}
+                                align="flex-start"
+                            >
+                                <Text
+                                    color="text.secondary"
+                                    fontWeight={700}
+                                    minW={{ base: '70px', md: '110px' }}
+                                    whiteSpace="nowrap"
+                                    fontSize={{ base: '11px', md: 'xs' }}
+                                    fontFamily="mono"
+                                    sx={{
+                                        fontVariantNumeric: 'tabular-nums',
+                                    }}
+                                >
+                                    {formatTime(event.timestamp)}
+                                </Text>
+                                <Text
+                                    color="text.primary"
+                                    wordBreak="break-word"
+                                    fontSize={{ base: 'sm', md: 'sm' }}
+                                    fontWeight={500}
+                                    lineHeight="1.45"
+                                    flex="1"
+                                    pr={1}
+                                >
+                                    {formatLogMessage(event)}
+                                </Text>
+                            </HStack>
+                        </Box>
+                    ))}
+                </VStack>
+                {hasMore && (
+                    <Box
+                        p={3}
+                        textAlign="center"
+                        borderTop="1px solid"
+                        borderColor="border.lightGray"
+                        bg="card.lightGray"
+                    >
+                        <Button
+                            onClick={loadMoreEvents}
+                            loadingText="Loading..."
+                            size="sm"
+                            bg="brand.navy"
+                            color="white"
+                            fontFamily="mono"
+                            fontSize="xs"
+                            px={6}
+                            py={2}
+                            borderRadius="6px"
+                            fontWeight="bold"
+                            border="none"
+                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #1B2754"
+                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                            _hover={{ bg: 'brand.navy' }}
+                            _active={{
+                                bg: '#1B2754',
+                                transform: 'translateY(1.5px)',
+                                boxShadow:
+                                    'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #1B2754',
+                            }}
+                        >
+                            Load More Events
+                        </Button>
+                    </Box>
+                )}
             </Box>
         </Box>
     );

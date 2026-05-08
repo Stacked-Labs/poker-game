@@ -10,7 +10,6 @@ import {
     HStack,
     Icon,
     IconButton,
-    Tooltip,
     useMediaQuery,
     VStack,
     NumberInput,
@@ -18,7 +17,7 @@ import {
 } from '@chakra-ui/react';
 import { FaMoon } from 'react-icons/fa';
 import { IoMdSunny } from 'react-icons/io';
-import { FiCheck, FiEye, FiEyeOff, FiVolume2, FiVolumeX, FiX } from 'react-icons/fi';
+import { FiCheck, FiEye, FiEyeOff, FiLock, FiVolume2, FiVolumeX, FiX } from 'react-icons/fi';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useColorMode, useColorModeValue } from '@chakra-ui/react';
 import React, { useContext, useState, useEffect } from 'react';
@@ -33,19 +32,63 @@ import { useConnectX } from '@/app/hooks/useConnectX';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { useToast } from '@chakra-ui/react';
 
+// Chip Display backgrounds — chips/bb use brand tokens (raw hex avoided
+// where possible). USDC keeps its real brand hex since it identifies
+// the network.
 const chipDisplayColors: Record<string, string> = {
-    chips: '#1A1A2E',
-    bb: '#0A2A1B',
+    chips: '#0B1430', // brand.darkNavy
+    bb: '#22674E', // brand.greenEdge
     usdc: '#2775CA',
 };
 
+// Card-back colors are network-branded — these crypto hex codes
+// identify the network and are intentional. Classic uses brand.darkNavy.
 const cardBackColors: Record<CardBackVariant, string> = {
-    classic: '#0B1430',
+    classic: '#0B1430', // brand.darkNavy
     bitcoin: '#F7931A',
     ethereum: '#627EEA',
     base: '#1A6BFF',
     usdc: '#2775CA',
 };
+
+// ─── Section group header ────────────────────────────────────────────────
+// Used to group settings cards into Account / Table / Display / App
+// sections. The Owner-only chip is rendered next to the section label
+// when the section's controls are gated to the table owner; non-owners
+// see the chip as a quiet "this is locked" indicator.
+const SectionGroupHeader = ({
+    label,
+    ownerOnly,
+}: {
+    label: string;
+    ownerOnly?: boolean;
+}) => (
+    <HStack spacing={1.5} px={1} mb={1.5}>
+        <Text
+            fontSize="2xs"
+            color="text.muted"
+            textTransform="uppercase"
+            letterSpacing="0.10em"
+            fontWeight={800}
+        >
+            {label}
+        </Text>
+        {ownerOnly && (
+            <HStack
+                spacing={1}
+                px={1.5}
+                py={0.5}
+                bg="card.lightGray"
+                borderRadius="full"
+            >
+                <Icon as={FiLock} boxSize="9px" color="text.muted" />
+                <Text fontSize="2xs" color="text.muted" fontWeight={700}>
+                    Owner only
+                </Text>
+            </HStack>
+        )}
+    </HStack>
+);
 
 const ConnectXSection = () => {
     const { isAuthenticated, xUsername, xProfileImageUrl } = useAuth();
@@ -296,21 +339,24 @@ const GameSettings = () => {
     };
 
     return (
-        <VStack spacing={{ base: 2, md: 4 }} align="stretch">
-            <ConnectXSection />
-            <Tooltip
-                label={!isOwner ? 'Only the table owner can change blinds' : undefined}
-                isDisabled={isOwner}
-                hasArrow
-                placement="top"
-            >
+        <VStack spacing={{ base: 4, md: 5 }} align="stretch">
+            {/* Account */}
+            <Box>
+                <SectionGroupHeader label="Account" />
+                <ConnectXSection />
+            </Box>
+
+            {/* Table — owner-only controls */}
+            <Box>
+                <SectionGroupHeader label="Table" ownerOnly />
+                <VStack spacing={2} align="stretch">
                 <Box
                     bg="card.white"
-                    borderRadius="16px"
-                    border="2px solid"
+                    borderRadius="14px"
+                    border="1px solid"
                     borderColor="border.lightGray"
                     p={{ base: 2.5, md: 3 }}
-                    boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                    boxShadow="card.lift"
                 >
                     <Flex
                         direction="row"
@@ -319,10 +365,10 @@ const GameSettings = () => {
                         wrap="nowrap"
                         gap={{ base: 1.5, md: 3 }}
                     >
-                        <HStack spacing={1.5} flex={1} minWidth={0} align="baseline">
+                        <HStack spacing={2} flex={1} minWidth={0} align="baseline">
                             <Text
-                                fontSize={{ base: 'sm', md: 'lg' }}
-                                fontWeight="bold"
+                                fontSize={{ base: 'sm', md: 'md' }}
+                                fontWeight={700}
                                 color="text.secondary"
                                 whiteSpace="nowrap"
                                 lineHeight="1"
@@ -330,15 +376,33 @@ const GameSettings = () => {
                                 Blinds
                             </Text>
                             {hasPending && (
-                                <Text
-                                    fontSize={{ base: '2xs', md: 'xs' }}
-                                    fontWeight="bold"
-                                    color="orange.400"
-                                    whiteSpace="nowrap"
-                                    lineHeight="1"
+                                <HStack
+                                    spacing={1}
+                                    px={1.5}
+                                    py={0.5}
+                                    bg="rgba(253, 197, 29, 0.15)"
+                                    borderRadius="full"
                                 >
-                                    NEXT: {formatBlinds(pendingBlinds.sb)}/{formatBlinds(pendingBlinds.bb)}
-                                </Text>
+                                    <Box
+                                        w="5px"
+                                        h="5px"
+                                        borderRadius="full"
+                                        bg="brand.yellow"
+                                    />
+                                    <Text
+                                        fontSize="2xs"
+                                        fontWeight={700}
+                                        color="brand.yellowDark"
+                                        whiteSpace="nowrap"
+                                        sx={{
+                                            fontVariantNumeric:
+                                                'tabular-nums',
+                                        }}
+                                    >
+                                        Next {formatBlinds(pendingBlinds.sb)}/
+                                        {formatBlinds(pendingBlinds.bb)}
+                                    </Text>
+                                </HStack>
                             )}
                         </HStack>
                         <HStack spacing={{ base: 1, md: 1.5 }} flexShrink={0}>
@@ -454,26 +518,19 @@ const GameSettings = () => {
                         </HStack>
                     </Flex>
                     {isOwner && !isValidBlinds && (
-                        <Text color="red.400" fontSize="xs" mt={1.5} textAlign="right">
+                        <Text color="brand.pink" fontSize="xs" mt={1.5} textAlign="right">
                             BB must be at least 2x SB
                         </Text>
                     )}
                 </Box>
-            </Tooltip>
-            {/* Rabbit Hunt — owner-only table setting */}
-            <Tooltip
-                label={!isOwner ? 'Only the table owner can change this setting' : undefined}
-                isDisabled={isOwner}
-                hasArrow
-                placement="top"
-            >
+                {/* Rabbit Hunt — owner-only */}
                 <Box
                     bg="card.white"
-                    borderRadius="16px"
-                    border="2px solid"
+                    borderRadius="14px"
+                    border="1px solid"
                     borderColor="border.lightGray"
                     p={{ base: 2.5, md: 3 }}
-                    boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                    boxShadow="card.lift"
                     opacity={isOwner ? 1 : 0.6}
                 >
                     <Flex
@@ -485,8 +542,8 @@ const GameSettings = () => {
                     >
                         <VStack spacing={0} align="flex-start" flex={1} minWidth={0}>
                             <Text
-                                fontSize={{ base: 'sm', md: 'lg' }}
-                                fontWeight="bold"
+                                fontSize={{ base: 'sm', md: 'md' }}
+                                fontWeight={700}
                                 color="text.secondary"
                                 whiteSpace="nowrap"
                                 overflow="hidden"
@@ -496,8 +553,7 @@ const GameSettings = () => {
                             </Text>
                             <Text
                                 fontSize="2xs"
-                                color="text.secondary"
-                                opacity={0.6}
+                                color="text.muted"
                                 lineHeight="1.3"
                             >
                                 Show undealt cards after all fold
@@ -516,14 +572,20 @@ const GameSettings = () => {
                         />
                     </Flex>
                 </Box>
-            </Tooltip>
+                </VStack>
+            </Box>
+
+            {/* Display */}
+            <Box>
+                <SectionGroupHeader label="Display" />
+                <VStack spacing={2} align="stretch">
             <Box
                 bg="card.white"
-                borderRadius="16px"
-                border="2px solid"
+                borderRadius="14px"
+                border="1px solid"
                 borderColor="border.lightGray"
                 p={{ base: 2.5, md: 3 }}
-                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                boxShadow="card.lift"
             >
                 <Flex
                     direction="row"
@@ -533,8 +595,8 @@ const GameSettings = () => {
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'sm', md: 'lg' }}
-                        fontWeight="bold"
+                        fontSize={{ base: 'sm', md: 'md' }}
+                        fontWeight={700}
                         color="text.secondary"
                         flex={1}
                         minWidth={0}
@@ -583,11 +645,11 @@ const GameSettings = () => {
             </Box>
             <Box
                 bg="card.white"
-                borderRadius="16px"
-                border="2px solid"
+                borderRadius="14px"
+                border="1px solid"
                 borderColor="border.lightGray"
                 p={{ base: 2.5, md: 3 }}
-                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                boxShadow="card.lift"
             >
                 <Flex
                     direction="row"
@@ -597,8 +659,8 @@ const GameSettings = () => {
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'sm', md: 'lg' }}
-                        fontWeight="bold"
+                        fontSize={{ base: 'sm', md: 'md' }}
+                        fontWeight={700}
                         color="text.secondary"
                         flex={1}
                         minWidth={0}
@@ -656,11 +718,11 @@ const GameSettings = () => {
             </Box>
             <Box
                 bg="card.white"
-                borderRadius="16px"
-                border="2px solid"
+                borderRadius="14px"
+                border="1px solid"
                 borderColor="border.lightGray"
                 p={{ base: 2.5, md: 3 }}
-                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                boxShadow="card.lift"
             >
                 <Flex
                     direction="row"
@@ -670,8 +732,8 @@ const GameSettings = () => {
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'sm', md: 'lg' }}
-                        fontWeight="bold"
+                        fontSize={{ base: 'sm', md: 'md' }}
+                        fontWeight={700}
                         color="text.secondary"
                         flex={1}
                         minWidth={0}
@@ -731,11 +793,11 @@ const GameSettings = () => {
             </Box>
             <Box
                 bg="card.white"
-                borderRadius="16px"
-                border="2px solid"
+                borderRadius="14px"
+                border="1px solid"
                 borderColor="border.lightGray"
                 p={{ base: 2.5, md: 3 }}
-                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                boxShadow="card.lift"
             >
                 <Flex
                     direction="row"
@@ -745,8 +807,8 @@ const GameSettings = () => {
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'sm', md: 'lg' }}
-                        fontWeight="bold"
+                        fontSize={{ base: 'sm', md: 'md' }}
+                        fontWeight={700}
                         color="text.secondary"
                         flex={1}
                         minWidth={0}
@@ -789,13 +851,20 @@ const GameSettings = () => {
                     </Select>
                 </Flex>
             </Box>
+                </VStack>
+            </Box>
+
+            {/* App */}
+            <Box>
+                <SectionGroupHeader label="App" />
+                <VStack spacing={2} align="stretch">
             <Box
                 bg="card.white"
-                borderRadius="16px"
-                border="2px solid"
+                borderRadius="14px"
+                border="1px solid"
                 borderColor="border.lightGray"
                 p={{ base: 2.5, md: 3 }}
-                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                boxShadow="card.lift"
             >
                 <Flex
                     direction="row"
@@ -805,8 +874,8 @@ const GameSettings = () => {
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'sm', md: 'lg' }}
-                        fontWeight="bold"
+                        fontSize={{ base: 'sm', md: 'md' }}
+                        fontWeight={700}
                         color="text.secondary"
                         flex={1}
                         minWidth={0}
@@ -833,11 +902,11 @@ const GameSettings = () => {
             </Box>
             <Box
                 bg="card.white"
-                borderRadius="16px"
-                border="2px solid"
+                borderRadius="14px"
+                border="1px solid"
                 borderColor="border.lightGray"
                 p={{ base: 2.5, md: 3 }}
-                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                boxShadow="card.lift"
             >
                 <Flex
                     direction="row"
@@ -847,8 +916,8 @@ const GameSettings = () => {
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'sm', md: 'lg' }}
-                        fontWeight="bold"
+                        fontSize={{ base: 'sm', md: 'md' }}
+                        fontWeight={700}
                         color="text.secondary"
                         flex={1}
                         minWidth={0}
@@ -910,11 +979,11 @@ const GameSettings = () => {
             </Box>
             <Box
                 bg="card.white"
-                borderRadius="16px"
-                border="2px solid"
+                borderRadius="14px"
+                border="1px solid"
                 borderColor="border.lightGray"
                 p={{ base: 2.5, md: 3 }}
-                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
+                boxShadow="card.lift"
             >
                 <Flex
                     direction="row"
@@ -924,8 +993,8 @@ const GameSettings = () => {
                     gap={3}
                 >
                     <Text
-                        fontSize={{ base: 'sm', md: 'lg' }}
-                        fontWeight="bold"
+                        fontSize={{ base: 'sm', md: 'md' }}
+                        fontWeight={700}
                         color="text.secondary"
                         flex={1}
                         minWidth={0}
@@ -959,6 +1028,8 @@ const GameSettings = () => {
                         />
                     </HStack>
                 </Flex>
+            </Box>
+                </VStack>
             </Box>
         </VStack>
     );

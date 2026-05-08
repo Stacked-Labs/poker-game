@@ -2,255 +2,217 @@
 
 import {
     VStack,
-    Heading,
     Text,
     Box,
     HStack,
     Icon,
     Link,
-    Card,
-    CardBody,
-    Divider,
+    SimpleGrid,
+    Badge,
 } from '@chakra-ui/react';
-import { FaDiscord } from 'react-icons/fa';
 import { FiInfo } from 'react-icons/fi';
-import { RiTwitterXLine } from 'react-icons/ri';
-import { keyframes } from '@emotion/react';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 
-// Animation for the cards
-const fadeInUp = keyframes`
-    from { 
-        opacity: 0; 
-        transform: translateY(20px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
-`;
+const SectionGroupHeader = ({ label }: { label: string }) => (
+    <HStack spacing={1.5} px={1} mb={1.5}>
+        <Text
+            fontSize="2xs"
+            color="text.muted"
+            textTransform="uppercase"
+            letterSpacing="0.10em"
+            fontWeight={800}
+        >
+            {label}
+        </Text>
+    </HStack>
+);
+
+const SecondaryChannelCard = ({
+    title,
+    blurb,
+    href,
+    tone,
+    cta,
+}: {
+    title: string;
+    blurb: string;
+    href: string;
+    tone: 'telegram' | 'x';
+    cta: string;
+}) => (
+    <Box
+        bg="card.white"
+        borderRadius={{ base: '12px', md: '14px' }}
+        border="1px solid"
+        borderColor="border.lightGray"
+        p={{ base: 2.5, md: 3 }}
+        boxShadow="card.lift"
+    >
+        <VStack spacing={2} align="stretch" h="100%">
+            <VStack spacing={0.5} align="flex-start">
+                <Text
+                    fontSize={{ base: 'sm', md: 'md' }}
+                    fontWeight={700}
+                    color="text.secondary"
+                    lineHeight="1.2"
+                >
+                    {title}
+                </Text>
+                <Text
+                    fontSize="2xs"
+                    color="text.muted"
+                    lineHeight="1.35"
+                >
+                    {blurb}
+                </Text>
+            </VStack>
+            <Link
+                href={href}
+                isExternal
+                _hover={{ textDecoration: 'none' }}
+                alignSelf="flex-start"
+            >
+                <SocialIconButton tone={tone} chipSize="sm" label={cta} />
+            </Link>
+        </VStack>
+    </Box>
+);
 
 const Support = () => {
     return (
-        <VStack
-            spacing={{ base: 4, md: 6 }}
-            align="stretch"
-            maxW="800px"
-            mx="auto"
-            p={{ base: 4, md: 6 }}
-        >
-            <Card
-                variant="outline"
-                bg="rgba(15, 23, 42, 0.55)"
-                borderColor="rgba(255, 255, 255, 0.2)"
-                borderWidth="1px"
-                borderRadius="24px"
-                boxShadow="0 18px 40px rgba(0, 0, 0, 0.35)"
-                backdropFilter="blur(12px) saturate(140%)"
-                animation={`${fadeInUp} 0.5s ease-out`}
-                transition="all 0.3s ease"
-            >
-                <CardBody p={{ base: 5, md: 7 }}>
-                    <VStack spacing={{ base: 5, md: 6 }} align="stretch">
-                        <VStack spacing={{ base: 2, md: 3 }}>
+        <VStack spacing={{ base: 4, md: 5 }} align="stretch">
+            {/* Primary support — Discord */}
+            <Box>
+                <SectionGroupHeader label="Support" />
+                <Box
+                    bg="card.white"
+                    borderRadius={{ base: '12px', md: '14px' }}
+                    border="1px solid"
+                    borderColor="border.lightGray"
+                    p={{ base: 3, md: 3.5 }}
+                    boxShadow="card.lift"
+                    position="relative"
+                    overflow="hidden"
+                >
+                    <Box
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        right={0}
+                        height="3px"
+                        bg="#5865F2"
+                    />
+                    <VStack spacing={2.5} align="stretch">
+                        <VStack
+                            spacing={1}
+                            align="flex-start"
+                            flex={1}
+                            minWidth={0}
+                        >
+                            <HStack spacing={2} align="center">
+                                <Text
+                                    fontSize={{ base: 'md', md: 'lg' }}
+                                    fontWeight={800}
+                                    color="text.secondary"
+                                    lineHeight="1.15"
+                                >
+                                    Open a ticket in Discord
+                                </Text>
+                                <Badge
+                                    bg="rgba(88, 101, 242, 0.10)"
+                                    color="#5865F2"
+                                    textTransform="uppercase"
+                                    letterSpacing="0.08em"
+                                    fontSize="2xs"
+                                    fontWeight={800}
+                                    px={1.5}
+                                    py={0.5}
+                                    borderRadius="6px"
+                                >
+                                    Official
+                                </Badge>
+                            </HStack>
                             <Text
                                 fontSize="xs"
-                                letterSpacing="0.08em"
-                                textTransform="uppercase"
-                                bg="brand.pink"
-                                color="text.white"
-                                px={3}
-                                py={1}
-                                borderRadius="999px"
-                                fontWeight="bold"
+                                color="text.muted"
+                                lineHeight="1.45"
                             >
-                                Support Desk
-                            </Text>
-                            <Text
-                                fontSize={{ base: 'xs', md: 'md' }}
-                                color="whiteAlpha.900"
-                                fontWeight="semibold"
-                                textAlign="center"
-                                textShadow="0 1px 2px rgba(0, 0, 0, 0.35)"
-                                maxW="640px"
-                                mx="auto"
-                            >
-                                We&apos;re here to help! Reach out to us through
-                                Discord or Twitter for support with any game
-                                issues or questions.
+                                Our team handles support via tickets in
+                                Discord — bug reports, payouts, account
+                                questions. Fastest path to a human.
                             </Text>
                         </VStack>
-
-                        <Divider borderColor="rgba(255, 255, 255, 0.15)" />
-
-                        <VStack spacing={4} align="stretch">
-                            <HStack spacing={3}>
-                                <Box
-                                    p={3}
-                                    bg="#5865F2"
-                                    borderRadius="12px"
-                                    aspectRatio={1}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                >
-                                    <Icon
-                                        as={FaDiscord}
-                                        boxSize={{ base: 6, md: 8 }}
-                                        color="white"
-                                    />
-                                </Box>
-                                <Box flex={1}>
-                                    <Heading
-                                        as="h3"
-                                        size={{ base: 'md', md: 'lg' }}
-                                        color="text.white"
-                                        mb={1}
-                                    >
-                                        Discord Support
-                                    </Heading>
-                                    <Text
-                                        fontSize={{ base: 'sm', md: 'md' }}
-                                        color="whiteAlpha.700"
-                                    >
-                                        Join our Discord server
-                                    </Text>
-                                </Box>
-                            </HStack>
-
-                            <Text
-                                fontSize={{ base: 'sm', md: 'md' }}
-                                color="whiteAlpha.800"
-                            >
-                                For game issues, bug reports, or general
-                                support, please join our Discord community and
-                                submit a ticket. Our team will respond as soon
-                                as possible.
-                            </Text>
-
-                            <Link
-                                href="https://discord.gg/347RBVcvpn"
-                                isExternal
-                                _hover={{ textDecoration: 'none' }}
-                            >
-                                <SocialIconButton
-                                    tone="discord"
-                                    chipSize="lg"
-                                    label="Join Discord"
-                                    width="100%"
-                                />
-                            </Link>
-                        </VStack>
-
-                        <Divider borderColor="rgba(255, 255, 255, 0.12)" />
-
-                        <VStack spacing={4} align="stretch">
-                            <HStack spacing={3}>
-                                <Box
-                                    p={3}
-                                    bg="#000000"
-                                    borderRadius="12px"
-                                    aspectRatio={1}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                >
-                                    <Icon
-                                        as={RiTwitterXLine}
-                                        boxSize={{ base: 6, md: 8 }}
-                                        color="white"
-                                    />
-                                </Box>
-                                <Box flex={1}>
-                                    <Heading
-                                        as="h3"
-                                        size={{ base: 'md', md: 'lg' }}
-                                        color="text.white"
-                                        mb={1}
-                                    >
-                                        Twitter/X Support
-                                    </Heading>
-                                    <Text
-                                        fontSize={{ base: 'sm', md: 'md' }}
-                                        color="whiteAlpha.700"
-                                    >
-                                        Reach out on Twitter
-                                    </Text>
-                                </Box>
-                            </HStack>
-
-                            <Text
-                                fontSize={{ base: 'sm', md: 'md' }}
-                                color="whiteAlpha.800"
-                            >
-                                You can also contact us on Twitter for quick
-                                questions or updates. Send us a DM or mention us
-                                in your tweet!
-                            </Text>
-
-                            <Link
-                                href="https://x.com/stacked_poker"
-                                isExternal
-                                _hover={{ textDecoration: 'none' }}
-                            >
-                                <SocialIconButton
-                                    tone="x"
-                                    chipSize="lg"
-                                    label="Follow on Twitter"
-                                    width="100%"
-                                />
-                            </Link>
-                        </VStack>
-
-                        <Box
-                            textAlign="center"
-                            p={{ base: 2, md: 4 }}
-                            bg="rgba(54, 163, 123, 0.18)"
-                            border="1px solid rgba(54, 163, 123, 0.35)"
-                            borderLeftWidth="6px"
-                            borderLeftColor="brand.green"
-                            borderRadius="16px"
-                            boxShadow="0 6px 18px rgba(0, 0, 0, 0.12)"
-                            backdropFilter="blur(8px)"
-                            animation={`${fadeInUp} 0.5s ease-out 0.2s backwards`}
+                        <Link
+                            href="https://discord.gg/347RBVcvpn"
+                            isExternal
+                            _hover={{ textDecoration: 'none' }}
+                            alignSelf="flex-start"
                         >
-                            <HStack spacing={3} justify="center">
-                                <Box
-                                    bg="rgba(54, 163, 123, 0.9)"
-                                    color="white"
-                                    w={8}
-                                    h={8}
-                                    borderRadius="999px"
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    border="1px solid rgba(255, 255, 255, 0.35)"
-                                    boxShadow="0 6px 12px rgba(54, 163, 123, 0.35)"
-                                    flexShrink={0}
-                                >
-                                    <Icon as={FiInfo} boxSize={5} />
-                                </Box>
-                                <Text
-                                    fontSize={{ base: 'sm', md: 'md' }}
-                                    color="gray.300"
-                                    fontWeight="medium"
-                                >
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="gray.300"
-                                    >
-                                        Tip:
-                                    </Text>{' '}
-                                    For the fastest response, join our Discord
-                                    and create a support ticket with details
-                                    about your issue.
-                                </Text>
-                            </HStack>
-                        </Box>
+                            <SocialIconButton
+                                tone="discord"
+                                chipSize="md"
+                                label="Open a ticket"
+                            />
+                        </Link>
                     </VStack>
-                </CardBody>
-            </Card>
+                </Box>
+            </Box>
+
+            {/* Community channels */}
+            <Box>
+                <SectionGroupHeader label="Also find us" />
+                <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={2}>
+                    <SecondaryChannelCard
+                        title="Telegram"
+                        blurb="Real-time chat with the community. Quick questions, table-talk, announcements."
+                        href="https://t.me/stackedpoker"
+                        tone="telegram"
+                        cta="Join chat"
+                    />
+                    <SecondaryChannelCard
+                        title="X / Twitter"
+                        blurb="Follow @stacked_poker for product updates, drops, and patch notes."
+                        href="https://x.com/stacked_poker"
+                        tone="x"
+                        cta="Follow"
+                    />
+                </SimpleGrid>
+            </Box>
+
+            {/* Tip */}
+            <Box
+                p={{ base: 2.5, md: 3 }}
+                bg="card.lightGray"
+                borderRadius={{ base: '12px', md: '14px' }}
+                border="1px dashed"
+                borderColor="border.lightGray"
+            >
+                <HStack spacing={2.5} align="flex-start">
+                    <Icon
+                        as={FiInfo}
+                        boxSize={4}
+                        color="brand.green"
+                        mt="2px"
+                        flexShrink={0}
+                    />
+                    <Text
+                        fontSize="xs"
+                        color="text.muted"
+                        lineHeight="1.45"
+                    >
+                        <Text
+                            as="span"
+                            fontWeight={700}
+                            color="text.secondary"
+                        >
+                            Heads up:
+                        </Text>{' '}
+                        Include your wallet address, table ID, and a short
+                        description when you open a ticket — it gets you
+                        unblocked faster.
+                    </Text>
+                </HStack>
+            </Box>
         </VStack>
     );
 };

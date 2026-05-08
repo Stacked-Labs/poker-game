@@ -2,7 +2,7 @@
 
 import {
     Box,
-    VStack,
+    HStack,
     Text,
     Accordion,
     AccordionItem,
@@ -12,501 +12,373 @@ import {
     OrderedList,
     UnorderedList,
     ListItem,
-    Heading,
     Code,
 } from '@chakra-ui/react';
+
+const SECTION_LABEL_PROPS = {
+    fontSize: '2xs' as const,
+    color: 'text.muted',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.10em',
+    fontWeight: 800,
+};
+
+const ITEM_CHROME = {
+    bg: 'card.white',
+    borderRadius: { base: '12px', md: '14px' },
+    border: '1px solid',
+    borderColor: 'border.lightGray',
+    overflow: 'hidden' as const,
+    boxShadow: 'card.lift',
+};
+
+const BUTTON_PRESS = {
+    _hover: { bg: 'card.lightGray' },
+    _active: {
+        bg: 'card.lightGray',
+        transform: 'translateY(1px)',
+        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
+    },
+    transition:
+        'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease',
+};
+
+const TitleText = ({ children }: { children: React.ReactNode }) => (
+    <Text as="span" fontWeight="bold" color="text.secondary">
+        {children}
+    </Text>
+);
+
+const ActionChip = ({
+    bg,
+    color = 'white',
+    children,
+}: {
+    bg: string;
+    color?: string;
+    children: React.ReactNode;
+}) => (
+    <Code
+        bg={bg}
+        color={color}
+        px={2.5}
+        py={1}
+        borderRadius="6px"
+        fontWeight={700}
+        fontSize="xs"
+        letterSpacing="0.02em"
+        boxShadow="inset 0 1px 0 rgba(255,255,255,0.18)"
+    >
+        {children}
+    </Code>
+);
+
+const ItemHeader = ({ title }: { title: string }) => (
+    <AccordionButton
+        {...BUTTON_PRESS}
+        borderRadius={{ base: '12px', md: '14px' }}
+        py={3.5}
+        px={4}
+    >
+        <Box flex="1" textAlign="left">
+            <Text
+                fontSize={{ base: 'sm', md: 'md' }}
+                color="text.secondary"
+                fontWeight={700}
+                letterSpacing="0.01em"
+            >
+                {title}
+            </Text>
+        </Box>
+        <AccordionIcon color="text.muted" boxSize={5} />
+    </AccordionButton>
+);
+
+const SectionHeader = ({ label }: { label: string }) => (
+    <HStack spacing={1.5} px={1} mb={1.5} mt={2}>
+        <Text {...SECTION_LABEL_PROPS}>{label}</Text>
+    </HStack>
+);
 
 const HowTo = () => {
     return (
         <Box>
             <Accordion allowMultiple defaultIndex={[0]}>
-                <AccordionItem
-                    bg="card.white"
-                    borderRadius="16px"
-                    mb={3}
-                    border="2px solid"
-                    borderColor="border.lightGray"
-                    overflow="hidden"
-                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
-                    _hover={{
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    }}
-                    transition="all 0.2s ease"
-                >
-                    <AccordionButton
-                        _hover={{ bg: 'card.lightGray' }}
-                        _active={{
-                            bg: 'card.lightGray',
-                            transform: 'translateY(1px)',
-                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
-                        }}
-                        borderRadius="16px"
-                        py={4}
-                        px={5}
-                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
-                    >
-                        <Box flex="1" textAlign="left">
-                            <Heading
-                                size={{ base: 'sm', md: 'md' }}
-                                color="text.secondary"
-                                fontWeight="bold"
-                            >
-                                Getting Started
-                            </Heading>
-                        </Box>
-                        <AccordionIcon color="text.secondary" boxSize={6} />
-                    </AccordionButton>
-                    <AccordionPanel pb={5} px={5}>
-                        <VStack align="start" gap={3}>
-                            <OrderedList spacing={3} color="text.gray700">
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Connect your wallet
-                                    </Text>{' '}
-                                    - Click the wallet button in the top right
-                                    to connect your Web3 wallet
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Join a table
-                                    </Text>{' '}
-                                    - Click on an empty seat to request joining
-                                    the game
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Wait for approval
-                                    </Text>{' '}
-                                    - The table owner will accept your request
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Start playing
-                                    </Text>{' '}
-                                    - Once seated, you can begin playing poker!
-                                </ListItem>
-                            </OrderedList>
-                        </VStack>
+                <SectionHeader label="GETTING STARTED" />
+
+                <AccordionItem {...ITEM_CHROME} mb={2}>
+                    <ItemHeader title="Sign in with your wallet" />
+                    <AccordionPanel pb={4} px={4} pt={1}>
+                        <Text
+                            color="text.secondary"
+                            fontSize="sm"
+                            mb={3}
+                            lineHeight="tall"
+                        >
+                            No email, no password, no KYC. Your wallet{' '}
+                            <Text as="span" color="text.muted">
+                                is
+                            </Text>{' '}
+                            your account.
+                        </Text>
+                        <UnorderedList
+                            spacing={2.5}
+                            color="text.secondary"
+                            styleType="none"
+                            ml={0}
+                        >
+                            <ListItem>
+                                <TitleText>Already have a wallet</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — connect MetaMask, Coinbase Wallet, Rabby,
+                                    or any WalletConnect option
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>New to crypto</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — sign in with Google, Discord, X, Apple,
+                                    or email; thirdweb spins up a wallet for
+                                    you
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Sign the message</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — a one-time signature proves the wallet is
+                                    yours. Free, gasless, no transaction
+                                </Text>
+                            </ListItem>
+                        </UnorderedList>
                     </AccordionPanel>
                 </AccordionItem>
 
-                <AccordionItem
-                    bg="card.white"
-                    borderRadius="16px"
-                    mb={3}
-                    border="2px solid"
-                    borderColor="border.lightGray"
-                    overflow="hidden"
-                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
-                    _hover={{
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    }}
-                    transition="all 0.2s ease"
-                >
-                    <AccordionButton
-                        _hover={{ bg: 'card.lightGray' }}
-                        _active={{
-                            bg: 'card.lightGray',
-                            transform: 'translateY(1px)',
-                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
-                        }}
-                        borderRadius="16px"
-                        py={4}
-                        px={5}
-                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
-                    >
-                        <Box flex="1" textAlign="left">
-                            <Heading
-                                size={{ base: 'sm', md: 'md' }}
-                                color="text.secondary"
-                                fontWeight="bold"
-                            >
-                                Game Actions
-                            </Heading>
-                        </Box>
-                        <AccordionIcon color="text.secondary" boxSize={6} />
-                    </AccordionButton>
-                    <AccordionPanel pb={5} px={5}>
-                        <VStack align="start" gap={3}>
-                            <UnorderedList spacing={3} color="text.gray700">
-                                <ListItem fontWeight="medium">
-                                    <Code
-                                        bg="brand.pink"
-                                        color="white"
-                                        px={3}
-                                        py={1.5}
-                                        borderRadius="6px"
-                                        fontWeight="bold"
-                                        fontSize="sm"
-                                    >
-                                        Fold
-                                    </Code>{' '}
-                                    - Give up your hand and forfeit the current
-                                    pot
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Code
-                                        bg="brand.navy"
-                                        color="white"
-                                        px={3}
-                                        py={1.5}
-                                        borderRadius="6px"
-                                        fontWeight="bold"
-                                        fontSize="sm"
-                                    >
-                                        Check
-                                    </Code>{' '}
-                                    - Pass the action without betting (only when
-                                    no bet is required)
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Code
-                                        bg="brand.yellow"
-                                        color="white"
-                                        px={3}
-                                        py={1.5}
-                                        borderRadius="6px"
-                                        fontWeight="bold"
-                                        fontSize="sm"
-                                    >
-                                        Call
-                                    </Code>{' '}
-                                    - Match the current bet amount
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Code
-                                        bg="brand.green"
-                                        color="white"
-                                        px={3}
-                                        py={1.5}
-                                        borderRadius="6px"
-                                        fontWeight="bold"
-                                        fontSize="sm"
-                                    >
-                                        Raise
-                                    </Code>{' '}
-                                    - Increase the current bet amount
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Code
-                                        bg="brand.pink"
-                                        color="white"
-                                        px={3}
-                                        py={1.5}
-                                        borderRadius="6px"
-                                        fontWeight="bold"
-                                        fontSize="sm"
-                                    >
-                                        All-In
-                                    </Code>{' '}
-                                    - Bet all your remaining chips
-                                </ListItem>
-                            </UnorderedList>
-                        </VStack>
+                <SectionHeader label="WALLET & CHIPS" />
+
+                <AccordionItem {...ITEM_CHROME} mb={2}>
+                    <ItemHeader title="How chips work" />
+                    <AccordionPanel pb={4} px={4} pt={1}>
+                        <Text
+                            color="text.secondary"
+                            fontSize="sm"
+                            mb={3}
+                            lineHeight="tall"
+                        >
+                            Real-money tables run in <TitleText>USDC</TitleText>{' '}
+                            on <TitleText>Base</TitleText>. At the table,
+                            balances are denominated in chips so the math reads
+                            cleanly.
+                        </Text>
+                        <UnorderedList
+                            spacing={2}
+                            color="text.secondary"
+                            styleType="none"
+                            ml={0}
+                        >
+                            <ListItem>
+                                <TitleText>100 chips = 1 USDC</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — fixed. No volatility, no conversion games
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Custody is onchain</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — every table is its own smart contract.
+                                    Your USDC sits there, not in a Stacked
+                                    bank account
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>The contract pays winners</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — settlement is automatic when a hand ends.
+                                    We deal the cards; the contract holds the
+                                    cash
+                                </Text>
+                            </ListItem>
+                        </UnorderedList>
                     </AccordionPanel>
                 </AccordionItem>
 
-                <AccordionItem
-                    bg="card.white"
-                    borderRadius="16px"
-                    mb={3}
-                    border="2px solid"
-                    borderColor="border.lightGray"
-                    overflow="hidden"
-                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
-                    _hover={{
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    }}
-                    transition="all 0.2s ease"
-                >
-                    <AccordionButton
-                        _hover={{ bg: 'card.lightGray' }}
-                        _active={{
-                            bg: 'card.lightGray',
-                            transform: 'translateY(1px)',
-                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
-                        }}
-                        borderRadius="16px"
-                        py={4}
-                        px={5}
-                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
-                    >
-                        <Box flex="1" textAlign="left">
-                            <Heading
-                                size={{ base: 'sm', md: 'md' }}
-                                color="text.secondary"
-                                fontWeight="bold"
-                            >
-                                Hand Rankings
-                            </Heading>
-                        </Box>
-                        <AccordionIcon color="text.secondary" boxSize={6} />
-                    </AccordionButton>
-                    <AccordionPanel pb={5} px={5}>
-                        <VStack align="start" gap={2}>
-                            <Text
-                                fontSize="sm"
-                                color="text.gray600"
-                                mb={2}
-                                fontWeight="semibold"
-                            >
-                                From highest to lowest:
-                            </Text>
-                            <OrderedList spacing={2} color="text.gray700">
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Royal Flush
-                                    </Text>{' '}
-                                    - A, K, Q, J, 10, all same suit
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Straight Flush
-                                    </Text>{' '}
-                                    - Five cards in sequence, all same suit
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Four of a Kind
-                                    </Text>{' '}
-                                    - Four cards of the same rank
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Full House
-                                    </Text>{' '}
-                                    - Three of a kind plus a pair
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Flush
-                                    </Text>{' '}
-                                    - Five cards of the same suit
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Straight
-                                    </Text>{' '}
-                                    - Five cards in sequence
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Three of a Kind
-                                    </Text>{' '}
-                                    - Three cards of the same rank
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        Two Pair
-                                    </Text>{' '}
-                                    - Two different pairs
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        One Pair
-                                    </Text>{' '}
-                                    - Two cards of the same rank
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                    >
-                                        High Card
-                                    </Text>{' '}
-                                    - Highest card wins
-                                </ListItem>
-                            </OrderedList>
-                        </VStack>
+                <AccordionItem {...ITEM_CHROME} mb={2}>
+                    <ItemHeader title="Buying in" />
+                    <AccordionPanel pb={4} px={4} pt={1}>
+                        <Text
+                            color="text.secondary"
+                            fontSize="sm"
+                            mb={3}
+                            lineHeight="tall"
+                        >
+                            You need USDC on Base in your wallet. Bridge or
+                            send it from any exchange that supports Base.
+                        </Text>
+                        <OrderedList spacing={2.5} color="text.secondary">
+                            <ListItem>
+                                <TitleText>Pick a seat</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — tap an empty seat at the table
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Choose your buy-in</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — within the host&apos;s min/max range
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Approve once, deposit</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — first time at a contract you approve USDC
+                                    spend, then deposit. After that, just
+                                    deposit
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Get dealt in</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — once the host approves your seat request,
+                                    you&apos;re live
+                                </Text>
+                            </ListItem>
+                        </OrderedList>
                     </AccordionPanel>
                 </AccordionItem>
 
-                <AccordionItem
-                    bg="card.white"
-                    borderRadius="16px"
-                    mb={3}
-                    border="2px solid"
-                    borderColor="border.lightGray"
-                    overflow="hidden"
-                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
-                    _hover={{
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    }}
-                    transition="all 0.2s ease"
-                >
-                    <AccordionButton
-                        _hover={{ bg: 'card.lightGray' }}
-                        _active={{
-                            bg: 'card.lightGray',
-                            transform: 'translateY(1px)',
-                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
-                        }}
-                        borderRadius="16px"
-                        py={4}
-                        px={5}
-                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
-                    >
-                        <Box flex="1" textAlign="left">
-                            <Heading
-                                size={{ base: 'sm', md: 'md' }}
-                                color="text.secondary"
-                                fontWeight="bold"
-                            >
-                                Tips & Tricks
-                            </Heading>
-                        </Box>
-                        <AccordionIcon color="text.secondary" boxSize={6} />
-                    </AccordionButton>
-                    <AccordionPanel pb={5} px={5}>
-                        <VStack align="start" gap={3}>
-                            <UnorderedList spacing={3} color="text.gray700">
-                                <ListItem fontWeight="medium">
-                                    Pay attention to other players&apos; betting
-                                    patterns
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    Position matters - later positions have more
-                                    information
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    Don&apos;t play every hand - be selective
-                                    with starting hands
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    Manage your bankroll - don&apos;t bet more
-                                    than you can afford
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    Use the chat to communicate with other
-                                    players
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    Toggle &quot;Away&quot; mode if you need to
-                                    step away briefly
-                                </ListItem>
-                            </UnorderedList>
-                        </VStack>
+                <AccordionItem {...ITEM_CHROME} mb={2}>
+                    <ItemHeader title="Cashing out" />
+                    <AccordionPanel pb={4} px={4} pt={1}>
+                        <Text
+                            color="text.secondary"
+                            fontSize="sm"
+                            mb={3}
+                            lineHeight="tall"
+                        >
+                            Withdrawals settle onchain. No review queue, no
+                            holds, no &ldquo;contact support.&rdquo;
+                        </Text>
+                        <OrderedList spacing={2.5} color="text.secondary">
+                            <ListItem>
+                                <TitleText>Stand up</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — leave your seat. You can&apos;t withdraw
+                                    while playing a hand
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Wait for settlement</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — the contract finalizes the last hand.
+                                    Usually a few seconds; the Withdraw modal
+                                    polls automatically
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Hit Withdraw</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — chips convert back to USDC and land in
+                                    your wallet on Base
+                                </Text>
+                            </ListItem>
+                        </OrderedList>
+                        <Text
+                            mt={3}
+                            color="text.muted"
+                            fontSize="xs"
+                            lineHeight="tall"
+                        >
+                            <TitleText>Emergency Withdraw</TitleText> is the
+                            backup path — use it if a table gets stuck and the
+                            normal flow won&apos;t resolve. Funds still come
+                            from the same contract; you keep what&apos;s yours.
+                        </Text>
                     </AccordionPanel>
                 </AccordionItem>
 
-                <AccordionItem
-                    bg="card.white"
-                    borderRadius="16px"
-                    mb={3}
-                    border="2px solid"
-                    borderColor="border.lightGray"
-                    overflow="hidden"
-                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
-                    _hover={{
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    }}
-                    transition="all 0.2s ease"
-                >
-                    <AccordionButton
-                        _hover={{ bg: 'card.lightGray' }}
-                        _active={{
-                            bg: 'card.lightGray',
-                            transform: 'translateY(1px)',
-                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
-                        }}
-                        borderRadius="16px"
-                        py={4}
-                        px={5}
-                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
-                    >
-                        <Box flex="1" textAlign="left">
-                            <Heading
-                                size={{ base: 'sm', md: 'md' }}
-                                color="text.secondary"
-                                fontWeight="bold"
-                            >
-                                Table Owner Controls
-                            </Heading>
-                        </Box>
-                        <AccordionIcon color="text.secondary" boxSize={6} />
-                    </AccordionButton>
-                    <AccordionPanel pb={5} px={5}>
-                        <VStack align="start" gap={3}>
-                            <Text
-                                fontSize="sm"
-                                color="text.gray600"
-                                fontWeight="semibold"
-                            >
-                                If you&apos;re the table owner, you have
-                                additional controls:
-                            </Text>
-                            <UnorderedList spacing={3} color="text.gray700">
-                                <ListItem fontWeight="medium">
-                                    Accept or deny player requests to join
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    Kick players from the table if needed
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    Configure game settings (blinds, antes,
-                                    etc.)
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    Start the game when ready
-                                </ListItem>
-                                <ListItem fontWeight="medium">
-                                    View the financial ledger and game log
-                                </ListItem>
-                            </UnorderedList>
-                        </VStack>
+                <SectionHeader label="AT THE TABLE" />
+
+                <AccordionItem {...ITEM_CHROME} mb={2}>
+                    <ItemHeader title="Joining vs hosting" />
+                    <AccordionPanel pb={4} px={4} pt={1}>
+                        <UnorderedList
+                            spacing={2.5}
+                            color="text.secondary"
+                            styleType="none"
+                            ml={0}
+                        >
+                            <ListItem>
+                                <TitleText>Joining</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — pick an empty seat, request a sit-down,
+                                    wait for the host to wave you in
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Hosting</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — set the blinds, min/max buy-in, and table
+                                    size. You approve seat requests, kick if
+                                    needed, and start the game when the crew is
+                                    ready
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <TitleText>Host rewards</TitleText>{' '}
+                                <Text as="span" color="text.muted">
+                                    — running the table earns you a share of
+                                    the rake. Collect anytime from the
+                                    Withdraw panel
+                                </Text>
+                            </ListItem>
+                        </UnorderedList>
+                    </AccordionPanel>
+                </AccordionItem>
+
+                <AccordionItem {...ITEM_CHROME} mb={2}>
+                    <ItemHeader title="Action grammar" />
+                    <AccordionPanel pb={4} px={4} pt={1}>
+                        <UnorderedList
+                            spacing={2.5}
+                            color="text.secondary"
+                            styleType="none"
+                            ml={0}
+                        >
+                            <ListItem>
+                                <ActionChip bg="brand.pink">Fold</ActionChip>{' '}
+                                <Text as="span" color="text.muted">
+                                    — give up the hand
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <ActionChip bg="brand.navy">Check</ActionChip>{' '}
+                                <Text as="span" color="text.muted">
+                                    — pass when no bet is owed
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <ActionChip
+                                    bg="brand.yellow"
+                                    color="brand.darkNavy"
+                                >
+                                    Call
+                                </ActionChip>{' '}
+                                <Text as="span" color="text.muted">
+                                    — match the current bet
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <ActionChip bg="brand.green">Raise</ActionChip>{' '}
+                                <Text as="span" color="text.muted">
+                                    — push the bet up
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <ActionChip bg="brand.pink">All-In</ActionChip>{' '}
+                                <Text as="span" color="text.muted">
+                                    — every chip you have left, on the line
+                                </Text>
+                            </ListItem>
+                        </UnorderedList>
                     </AccordionPanel>
                 </AccordionItem>
             </Accordion>

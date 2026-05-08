@@ -603,9 +603,11 @@ const components = {
                 },
             },
             // Tactile preset chips — Group B (raise presets: 1/2 Pot, Pot, +5, etc.)
-            // Sizing preserved verbatim from prior variant; only the visual
-            // recipe changed: subtle on-felt chip, hairline highlight, edge
-            // shadow, snap press. _disabled handled by Button.baseStyle.
+            // Sizing preserved verbatim from prior variant; visual recipe is a
+            // solid navy chip so the chips read on any surrounding bg (light
+            // page bg, dark page bg, or the felt strip in the Footer). Mode-
+            // invariant — brand.navy reads on both light and dark.
+            // _disabled handled by Button.baseStyle.
             raiseActionButton: {
                 fontSize: { base: '8px', sm: '10px', md: 'sm', lg: 'sm' },
                 width: { base: '70px', sm: '75px', md: '80px', lg: '85px' },
@@ -613,27 +615,23 @@ const components = {
                 minH: { base: '28px', sm: '28px', md: '34px', lg: '36px' },
                 maxH: { base: '34px', sm: '36px', md: '38px', lg: '40px' },
                 padding: { base: 1 },
-                bg: 'rgba(255, 255, 255, 0.06)',
+                bg: 'brand.navy',
                 color: 'white',
-                border: '1px solid',
-                borderColor: 'rgba(255, 255, 255, 0.14)',
+                border: 'none',
                 borderRadius: '10px',
                 fontWeight: 'bold',
                 textTransform: 'uppercase',
                 letterSpacing: '0.03em',
                 boxShadow:
-                    'inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 0 rgba(0,0,0,0.4)',
+                    'inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #1B2754',
                 transition:
-                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease',
-                _hover: {
-                    bg: 'rgba(255, 255, 255, 0.10)',
-                    borderColor: 'rgba(255, 255, 255, 0.20)',
-                },
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease',
+                _hover: { bg: 'brand.navy' },
                 _active: {
-                    bg: 'rgba(0, 0, 0, 0.20)',
-                    transform: 'translateY(1px)',
+                    bg: 'brand.darkNavy',
+                    transform: 'translateY(1.5px)',
                     boxShadow:
-                        'inset 0 1px 2px rgba(0,0,0,0.30), 0 0 0 transparent',
+                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #1B2754',
                 },
             },
             // Desktop nav links — Group F (top-of-page nav on home/marketing).

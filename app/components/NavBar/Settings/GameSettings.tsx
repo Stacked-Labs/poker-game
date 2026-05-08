@@ -66,7 +66,7 @@ const SectionGroupHeader = ({
     <HStack spacing={1.5} px={1} mb={1.5}>
         <Text
             fontSize="2xs"
-            color="text.muted"
+            color="text.secondary"
             textTransform="uppercase"
             letterSpacing="0.10em"
             fontWeight={800}
@@ -82,7 +82,7 @@ const SectionGroupHeader = ({
                 borderRadius="full"
             >
                 <Icon as={FiLock} boxSize="9px" color="text.muted" />
-                <Text fontSize="2xs" color="text.muted" fontWeight={700}>
+                <Text fontSize="2xs" color="text.secondary" fontWeight={700}>
                     Owner only
                 </Text>
             </HStack>

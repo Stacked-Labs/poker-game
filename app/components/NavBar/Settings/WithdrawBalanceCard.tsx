@@ -493,24 +493,57 @@ const WithdrawBalanceCard = () => {
             {/* Emergency Withdraw (testing) */}
             <Divider borderColor="border.lightGray" />
             <Flex justify="space-between" align="center" w="100%" gap={3}>
-                <Text fontSize="xs" color="text.muted" fontWeight="medium">
-                    Emergency Withdraw
-                </Text>
+                <VStack spacing={0.5} align="flex-start" flex={1} minW={0}>
+                    <Text
+                        fontSize="xs"
+                        color="text.muted"
+                        fontWeight="medium"
+                        lineHeight="1.2"
+                    >
+                        Emergency Withdraw
+                    </Text>
+                    <Text
+                        fontSize="2xs"
+                        color="text.muted"
+                        lineHeight="1.3"
+                        opacity={0.7}
+                    >
+                        Balance reflects the last settled hand. {CHIPS_PER_USDC}{' '}
+                        chips&nbsp;=&nbsp;1&nbsp;USDC.
+                        {contractAddress && (
+                            <>
+                                {' '}
+                                <Link
+                                    href={`https://sepolia.basescan.org/address/${contractAddress}`}
+                                    isExternal
+                                    color="brand.navy"
+                                    _dark={{ color: 'brand.lightGray' }}
+                                    fontWeight="semibold"
+                                    textDecoration="underline"
+                                    textUnderlineOffset="2px"
+                                >
+                                    View contract
+                                </Link>
+                            </>
+                        )}
+                    </Text>
+                </VStack>
                 <Button
                     data-testid="emergency-withdraw-btn"
-                    px={3}
-                    py={2}
+                    px={2.5}
+                    py={1.5}
                     h="auto"
                     minH={0}
-                    borderRadius="10px"
-                    fontSize="xs"
+                    borderRadius="8px"
+                    fontSize="2xs"
                     fontWeight={700}
-                    lineHeight="1.1"
+                    lineHeight="1.05"
                     whiteSpace="pre-line"
                     letterSpacing="0.02em"
                     bg={emergencyStatus === 'success' ? 'brand.green' : 'brand.pink'}
                     color="white"
                     border="none"
+                    flexShrink={0}
                     isLoading={emergencyStatus === 'pending'}
                     loadingText="Processing"
                     boxShadow={
@@ -567,33 +600,6 @@ const WithdrawBalanceCard = () => {
                     </Text>
                 </HStack>
             )}
-
-            {/* Disclaimer */}
-            <Text
-                fontSize="2xs"
-                color="text.muted"
-                lineHeight="short"
-                opacity={0.7}
-            >
-                Balance reflects the last settled hand. {CHIPS_PER_USDC}{' '}
-                chips&nbsp;=&nbsp;1&nbsp;USDC.
-                {contractAddress && (
-                    <>
-                        {' '}
-                        <Link
-                            href={`https://sepolia.basescan.org/address/${contractAddress}`}
-                            isExternal
-                            color="brand.navy"
-                            _dark={{ color: 'brand.lightGray' }}
-                            fontWeight="semibold"
-                            textDecoration="underline"
-                            textUnderlineOffset="2px"
-                        >
-                            View contract
-                        </Link>
-                    </>
-                )}
-            </Text>
         </Flex>
     );
 };

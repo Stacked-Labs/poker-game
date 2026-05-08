@@ -243,7 +243,7 @@ const StatsRibbon = ({
                 <Stack key={stat.label} spacing={0.5}>
                     <Text
                         fontSize="2xs"
-                        color="text.muted"
+                        color="text.secondary"
                         textTransform="uppercase"
                         letterSpacing="0.10em"
                         fontWeight={700}
@@ -330,7 +330,7 @@ const MobileSessionCard = ({
                     <Stack spacing={0}>
                         <Text
                             fontSize="2xs"
-                            color="text.muted"
+                            color="text.secondary"
                             textTransform="uppercase"
                             letterSpacing="0.08em"
                             fontWeight={700}
@@ -349,7 +349,7 @@ const MobileSessionCard = ({
                     <Stack spacing={0}>
                         <Text
                             fontSize="2xs"
-                            color="text.muted"
+                            color="text.secondary"
                             textTransform="uppercase"
                             letterSpacing="0.08em"
                             fontWeight={700}
@@ -372,7 +372,7 @@ const MobileSessionCard = ({
                     <Stack spacing={0}>
                         <Text
                             fontSize="2xs"
-                            color="text.muted"
+                            color="text.secondary"
                             textTransform="uppercase"
                             letterSpacing="0.08em"
                             fontWeight={700}
@@ -757,7 +757,7 @@ const Ledger = () => {
                         >
                             <Tr>
                                 <Th
-                                    color="text.muted"
+                                    color="text.secondary"
                                     fontWeight={700}
                                     fontSize="2xs"
                                     letterSpacing="0.10em"
@@ -768,7 +768,7 @@ const Ledger = () => {
                                     Player
                                 </Th>
                                 <Th
-                                    color="text.muted"
+                                    color="text.secondary"
                                     fontWeight={700}
                                     fontSize="2xs"
                                     letterSpacing="0.10em"
@@ -780,7 +780,7 @@ const Ledger = () => {
                                     Buy-in
                                 </Th>
                                 <Th
-                                    color="text.muted"
+                                    color="text.secondary"
                                     fontWeight={700}
                                     fontSize="2xs"
                                     letterSpacing="0.10em"
@@ -792,7 +792,7 @@ const Ledger = () => {
                                     Cash-out
                                 </Th>
                                 <Th
-                                    color="text.muted"
+                                    color="text.secondary"
                                     fontWeight={700}
                                     fontSize="2xs"
                                     letterSpacing="0.10em"
@@ -804,7 +804,7 @@ const Ledger = () => {
                                     Stack
                                 </Th>
                                 <Th
-                                    color="text.muted"
+                                    color="text.secondary"
                                     fontWeight={700}
                                     fontSize="2xs"
                                     letterSpacing="0.10em"

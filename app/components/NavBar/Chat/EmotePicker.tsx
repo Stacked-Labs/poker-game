@@ -37,7 +37,7 @@ const SECTION_HEADING_PROPS = {
     fontWeight: 800,
     letterSpacing: '0.10em',
     textTransform: 'uppercase' as const,
-    color: 'text.muted',
+    color: 'text.secondary',
 };
 
 const TACTILE_TRANSITION =
@@ -367,7 +367,7 @@ const EmotePicker = ({
 
                             {filteredEmotes.length > visibleEmotes.length && (
                                 <Text
-                                    color="text.muted"
+                                    color="text.secondary"
                                     fontSize="2xs"
                                     fontWeight={700}
                                     letterSpacing="0.08em"

@@ -2,8 +2,6 @@
 
 import { useContext } from 'react';
 import { Flex, Button, Text, Spinner, Icon } from '@chakra-ui/react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { keyframes } from '@emotion/react';
 import { FaUserCheck } from 'react-icons/fa';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
@@ -12,19 +10,6 @@ import {
     handleReturnReady,
     handleCancelRejoin,
 } from '@/app/hooks/useTableOptions';
-
-const MotionButton = motion(Button);
-
-const pulseGlow = keyframes`
-  0%   { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.5); }
-  70%  { box-shadow: 0 0 0 8px rgba(54, 163, 123, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0); }
-`;
-
-const shimmer = keyframes`
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-`;
 
 /* ── shared responsive sizing (matches ActionButton scale) ─────────────── */
 const portraitButton = {
@@ -46,50 +31,9 @@ const landscapeButton = {
     flexShrink: 0,
 };
 
-/* ── shared glass + shimmer pseudo-elements ────────────────────────────── */
-const glassPseudos = (shimmerRef: typeof shimmer, glassOpacity = 0.06) => ({
-    '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '50%',
-        background: `linear-gradient(to bottom, rgba(255,255,255,${glassOpacity}), transparent)`,
-        borderRadius: 'inherit',
-        pointerEvents: 'none',
-    },
-    '&::after': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background:
-            'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)',
-        backgroundSize: '200% 100%',
-        opacity: 0,
-        transition: 'opacity 0.3s ease',
-        pointerEvents: 'none',
-    },
-    '&:hover::after': {
-        opacity: 1,
-        animation: `${shimmerRef} 1.5s ease-in-out infinite`,
-    },
-});
-
-/* ── shared framer-motion spring presets ───────────────────────────────── */
-const hoverSpring = {
-    y: -2,
-    scale: 1.03,
-    transition: { type: 'spring' as const, stiffness: 400, damping: 17 },
-};
-const tapSpring = {
-    scale: 0.95,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 500, damping: 15 },
-};
+/* ── shared tactile transition ─────────────────────────────────────────── */
+const TACTILE_TRANSITION =
+    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease';
 
 /* ── wrapper Flex — identical to FooterWithActionButtons layout ────────── */
 const footerFlexSx = {
@@ -112,7 +56,6 @@ const AwayRejoinFooter = () => {
     const { appState } = useContext(AppContext);
     const socket = useContext(SocketContext);
     const { info } = useToastHelper();
-    const prefersReducedMotion = useReducedMotion();
 
     const localPlayer = appState.game?.players?.find(
         (p) => p.uuid === appState.clientID
@@ -131,7 +74,7 @@ const AwayRejoinFooter = () => {
                 zIndex={1}
                 sx={footerFlexSx}
             >
-                {/* Status indicator */}
+                {/* Status indicator — dashed felt pill, unchanged layout */}
                 <Flex
                     alignItems="center"
                     justifyContent="center"
@@ -173,13 +116,13 @@ const AwayRejoinFooter = () => {
                     </Text>
                 </Flex>
 
-                {/* Cancel — fold-colour ghost */}
-                <MotionButton
+                {/* Cancel — pink-outline tactile (destructive secondary) */}
+                <Button
                     data-testid="cancel-rejoin-btn"
-                    bg="rgba(235, 11, 92, 0.1)"
-                    color="rgba(235, 11, 92, 0.9)"
-                    border="1.5px solid"
-                    borderColor="rgba(235, 11, 92, 0.5)"
+                    bg="transparent"
+                    color="brand.pink"
+                    border="2px solid"
+                    borderColor="brand.pink"
                     fontWeight="bold"
                     letterSpacing="0.04em"
                     textTransform="uppercase"
@@ -187,15 +130,14 @@ const AwayRejoinFooter = () => {
                     overflow="hidden"
                     cursor="pointer"
                     onClick={() => handleCancelRejoin(socket, info)}
-                    whileHover={hoverSpring}
-                    whileTap={tapSpring}
-                    _hover={{
+                    boxShadow="0 2px 0 #950839"
+                    transition={TACTILE_TRANSITION}
+                    _hover={{ bg: 'rgba(235, 11, 92, 0.12)' }}
+                    _active={{
                         bg: 'rgba(235, 11, 92, 0.18)',
-                        borderColor: 'rgba(235, 11, 92, 0.75)',
-                        boxShadow:
-                            '0 8px 24px rgba(235, 11, 92, 0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+                        transform: 'translateY(2px)',
+                        boxShadow: '0 0 0 #950839',
                     }}
-                    transition="box-shadow 0.3s ease, background 0.3s ease"
                     sx={{
                         '@media (orientation: portrait)': {
                             ...portraitButton,
@@ -206,16 +148,15 @@ const AwayRejoinFooter = () => {
                             minWidth: '7cqw',
                             maxWidth: '12cqw',
                         },
-                        ...glassPseudos(shimmer),
                     }}
                 >
                     Cancel
-                </MotionButton>
+                </Button>
             </Flex>
         );
     }
 
-    // "I'm Back" state
+    // "I'm Back" state — solid green tactile chip
     return (
         <Flex
             className="away-rejoin-footer"
@@ -227,13 +168,11 @@ const AwayRejoinFooter = () => {
             zIndex={1}
             sx={footerFlexSx}
         >
-            <MotionButton
+            <Button
                 data-testid="rejoin-footer-btn"
                 bg="brand.green"
-                bgGradient="linear-gradient(135deg, rgba(54, 163, 123, 1) 0%, rgba(45, 135, 99, 1) 100%)"
                 color="white"
-                border="1.5px solid"
-                borderColor="rgba(54, 163, 123, 0.6)"
+                border="none"
                 fontWeight="bold"
                 letterSpacing="0.04em"
                 textTransform="uppercase"
@@ -241,18 +180,15 @@ const AwayRejoinFooter = () => {
                 overflow="hidden"
                 cursor="pointer"
                 onClick={() => handleReturnReady(socket, info)}
-                animation={
-                    prefersReducedMotion
-                        ? undefined
-                        : `${pulseGlow} 2s ease-out infinite`
-                }
-                whileHover={hoverSpring}
-                whileTap={tapSpring}
-                _hover={{
+                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #22674E"
+                transition={TACTILE_TRANSITION}
+                _hover={{ bg: 'brand.green' }}
+                _active={{
+                    bg: 'brand.greenDark',
+                    transform: 'translateY(2px)',
                     boxShadow:
-                        '0 8px 24px rgba(54, 163, 123, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
                 }}
-                transition="box-shadow 0.3s ease, background 0.3s ease"
                 sx={{
                     '@media (orientation: portrait)': portraitButton,
                     '@media (orientation: landscape)': {
@@ -260,12 +196,11 @@ const AwayRejoinFooter = () => {
                         minWidth: '7cqw',
                         maxWidth: '12cqw',
                     },
-                    ...glassPseudos(shimmer, 0.15),
                 }}
             >
                 <Icon as={FaUserCheck} boxSize={{ base: 5, md: 6 }} mr={2} />
                 {"I'm Back"}
-            </MotionButton>
+            </Button>
         </Flex>
     );
 };

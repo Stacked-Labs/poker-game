@@ -682,68 +682,22 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                             )}
 
                             <Button
+                                variant="tactilePrimary"
                                 w="100%"
                                 h="56px"
                                 borderRadius="bigButton"
-                                bg={
-                                    isDepositing
-                                        ? 'brand.green'
-                                        : isJoinDisabled
-                                          ? 'btn.lightGray'
-                                          : 'brand.green'
-                                }
-                                color={isDepositing ? 'white' : undefined}
-                                border="none"
-                                cursor={isDepositing ? 'wait' : undefined}
+                                isDisabled={isJoinDisabled && !isDepositing}
                                 isLoading={isDepositing}
                                 loadingText={
                                     depositStatusMessage || 'Processing...'
                                 }
                                 spinner={<Spinner size="sm" color="white" />}
-                                boxShadow={
-                                    isDepositing
-                                        ? '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                                        : isJoinDisabled
-                                          ? 'none'
-                                          : '0 6px 18px rgba(54, 163, 123, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                                }
-                                _disabled={
-                                    isDepositing
-                                        ? {
-                                              bg: 'brand.green',
-                                              color: 'white',
-                                              cursor: 'wait',
-                                              opacity: 1,
-                                              boxShadow:
-                                                  '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                                          }
-                                        : undefined
-                                }
-                                _hover={
-                                    isJoinDisabled || isDepositing
-                                        ? {}
-                                        : {
-                                              bg: '#2E8A66',
-                                              transform: 'translateY(-2px)',
-                                              boxShadow:
-                                                  '0 14px 28px rgba(54, 163, 123, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.22)',
-                                          }
-                                }
-                                _active={{
-                                    bg: isJoinDisabled
-                                        ? 'btn.lightGray'
-                                        : '#287859',
-                                    transform: isJoinDisabled
-                                        ? 'none'
-                                        : 'translateY(0) scale(0.99)',
-                                }}
-                                transition="all 0.2s ease"
                             >
                                 <Text
                                     fontSize="md"
-                                    fontWeight="bold"
-                                    letterSpacing="-0.01em"
-                                    color={isJoinDisabled ? 'text.muted' : 'white'}
+                                    fontWeight={700}
+                                    letterSpacing="0.02em"
+                                    color="white"
                                 >
                                     {isCryptoGame
                                         ? `Sit down · $${formattedUsdcEst}`

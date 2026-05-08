@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { QuestsSectionView } from './QuestsSection';
 import type { QuestItem } from '@/app/hooks/server_actions';
 
@@ -65,9 +65,8 @@ const MIXED_QUESTS: QuestItem[] = [
 const ALL_COMPLETED: QuestItem[] = ALL_QUESTS_FRESH.map((q) => ({ ...q, completed: true }));
 
 function StagedSurface({ children }: { children: React.ReactNode }) {
-    const bg = useColorModeValue('#ECEEF5', '#191919');
     return (
-        <Box bg={bg} minH="100vh" p={{ base: 4, md: 8 }}>
+        <Box bg="bg.default" minH="100vh" p={{ base: 4, md: 8 }}>
             <Box maxW="400px">{children}</Box>
         </Box>
     );

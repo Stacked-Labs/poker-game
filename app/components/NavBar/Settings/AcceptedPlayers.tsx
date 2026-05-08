@@ -1,5 +1,6 @@
 import { PendingPlayer, Player } from '@/app/interfaces';
 import {
+    Flex,
     Text,
     useDisclosure,
     Modal,
@@ -58,6 +59,40 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
         }
     };
 
+    // Empty-state hint shown when there are 0 other players at the table
+    // (either fully empty or only the host). Renders below the player list
+    // (when host is alone, alongside their own card).
+    const otherPlayerCount =
+        acceptedPlayers?.filter((p) => p.uuid !== currentUserUuid).length ?? 0;
+    const showEmptyHint = otherPlayerCount === 0;
+
+    const EmptyHint = () => (
+        <Flex
+            direction="column"
+            alignItems="center"
+            justifyContent="center"
+            py={6}
+            px={4}
+            bg="card.lightGray"
+            borderRadius="16px"
+            border="1px dashed"
+            borderColor="border.lightGray"
+            gap={1.5}
+        >
+            <Text fontWeight="bold" fontSize="sm" color="text.secondary">
+                Waiting for players
+            </Text>
+            <Text fontSize="xs" color="text.muted" textAlign="center">
+                Share the table link from the lobby banner to invite friends.
+            </Text>
+        </Flex>
+    );
+
+    // Fully empty (no host card to render either) → just the hint.
+    if (!acceptedPlayers || acceptedPlayers.length === 0) {
+        return <EmptyHint />;
+    }
+
     if (acceptedPlayers && acceptedPlayers.length > 0) {
         // Sort so current user is always first
         const sortedPlayers = [...acceptedPlayers].sort((a, b) => {
@@ -69,6 +104,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
         return (
             <>
                 <VStack align="stretch" gap={{ base: 2.5, md: 4 }} w="100%">
+                    {showEmptyHint && <EmptyHint />}
                     {sortedPlayers.map((player: Player, index: number) => {
                         if (player) {
                             const isKicking = kickingInProgress === player.uuid;
@@ -174,17 +210,17 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
                                 size="md"
                                 height="52px"
                                 flex={1}
-                                bg="brand.lightGray"
-                                color="brand.navy"
+                                bg="card.lightGray"
+                                color="text.secondary"
                                 border="none"
                                 borderRadius="12px"
                                 fontWeight="bold"
                                 boxShadow="inset 0 1px 0 rgba(255,255,255,0.50), 0 2px 0 rgba(0,0,0,0.10)"
                                 _hover={{
-                                    bg: 'gray.300',
+                                    bg: 'border.lightGray',
                                 }}
                                 _active={{
-                                    bg: 'gray.300',
+                                    bg: 'border.lightGray',
                                     transform: 'translateY(2px)',
                                     boxShadow:
                                         'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 rgba(0,0,0,0.10)',

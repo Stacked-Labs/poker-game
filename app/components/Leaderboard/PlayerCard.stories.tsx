@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, Button, useColorModeValue } from '@chakra-ui/react';
+import { Box, Button } from '@chakra-ui/react';
 import { ThirdwebProvider } from 'thirdweb/react';
 import { PlayerCardView } from './PlayerCard';
 
@@ -17,23 +17,14 @@ const MOCK_X_PROFILE_IMAGE =
     'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg';
 
 const STUB_SIGN_IN_BUTTON = (
-    <Button
-        height="48px"
-        width="200px"
-        bg="brand.green"
-        color="white"
-        fontWeight="bold"
-        borderRadius="12px"
-        _hover={{ bg: '#2d9268' }}
-    >
+    <Button variant="tactilePrimary" height="48px" width="200px">
         Sign In
     </Button>
 );
 
 function StagedSurface({ children }: { children: React.ReactNode }) {
-    const bg = useColorModeValue('#ECEEF5', '#191919');
     return (
-        <Box bg={bg} minH="100vh" p={{ base: 4, md: 8 }}>
+        <Box bg="bg.default" minH="100vh" p={{ base: 4, md: 8 }}>
             <Box maxW="400px">{children}</Box>
         </Box>
     );

@@ -250,7 +250,7 @@ const WithdrawBalanceCard = () => {
                         px={{ base: 4, md: 5 }}
                         h={{ base: '34px', sm: '36px', md: '40px' }}
                         bg="brand.yellow"
-                        color="#1A1A1A"
+                        color="white"
                         border="none"
                         borderRadius={{ base: '10px', md: '12px' }}
                         fontWeight="bold"
@@ -464,7 +464,7 @@ const WithdrawBalanceCard = () => {
                             px={{ base: 4, md: 5 }}
                             h={{ base: '34px', sm: '36px', md: '40px' }}
                             bg="brand.yellow"
-                            color="#1A1A1A"
+                            color="white"
                             border="none"
                             borderRadius={{ base: '10px', md: '12px' }}
                             fontWeight="bold"
@@ -498,13 +498,15 @@ const WithdrawBalanceCard = () => {
                 </Text>
                 <Button
                     data-testid="emergency-withdraw-btn"
-                    px={2.5}
-                    py={1}
+                    px={3}
+                    py={2}
                     h="auto"
                     minH={0}
-                    borderRadius="full"
+                    borderRadius="10px"
                     fontSize="xs"
-                    fontWeight="bold"
+                    fontWeight={700}
+                    lineHeight="1.1"
+                    whiteSpace="pre-line"
                     letterSpacing="0.02em"
                     bg={emergencyStatus === 'success' ? 'brand.green' : 'brand.pink'}
                     color="white"
@@ -541,7 +543,7 @@ const WithdrawBalanceCard = () => {
                         ? 'Done'
                         : emergencyStatus === 'error'
                         ? 'Retry'
-                        : 'Emergency Withdraw'}
+                        : 'Emergency\nWithdraw'}
                 </Button>
             </Flex>
 

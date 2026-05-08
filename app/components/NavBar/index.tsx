@@ -402,12 +402,7 @@ const Navbar = () => {
                                               ? 'orange.400'
                                               : 'brand.yellow'
                                     }
-                                    color={
-                                        appState.game?.paused ||
-                                        appState.game?.pendingPause
-                                            ? 'white'
-                                            : '#1A1A1A'
-                                    }
+                                    color="white"
                                     border="none"
                                     borderRadius="12px"
                                     boxShadow={

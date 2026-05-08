@@ -2,47 +2,27 @@
 
 import { useState, useEffect } from 'react';
 
-function formatRelativeTime(dateStr: string, isActive: boolean): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    if (diff < 0) return isActive ? 'Running' : 'Just created';
-
+function formatRelativeTime(dateStr: string): string {
+    const diff = Math.max(0, Date.now() - new Date(dateStr).getTime());
     const minutes = Math.floor(diff / 60_000);
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes}m`;
     const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-
-    if (isActive) {
-        if (hours > 0) return `Running ${hours}h ${remainingMinutes}m`;
-        if (minutes > 0) return `Running ${minutes}m`;
-        return 'Just started';
-    }
-
-    if (hours > 0) return `Created ${hours}h ${remainingMinutes}m ago`;
-    if (minutes > 0) return `Created ${minutes}m ago`;
-    return 'Just created';
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `${days}d`;
 }
 
-export function useRelativeTime(dateStr: string, isActive: boolean): string {
-    const [text, setText] = useState(() => formatRelativeTime(dateStr, isActive));
+export function useRelativeTime(dateStr: string): string {
+    const [text, setText] = useState(() => formatRelativeTime(dateStr));
 
     useEffect(() => {
-        setText(formatRelativeTime(dateStr, isActive));
+        setText(formatRelativeTime(dateStr));
         const id = setInterval(() => {
-            setText(formatRelativeTime(dateStr, isActive));
+            setText(formatRelativeTime(dateStr));
         }, 60_000);
         return () => clearInterval(id);
-    }, [dateStr, isActive]);
+    }, [dateStr]);
 
     return text;
-}
-
-export function isNewTable(createdAt: string): boolean {
-    return Date.now() - new Date(createdAt).getTime() < 600_000;
-}
-
-export function isHotTable(spectatorCount: number, playerCount: number): boolean {
-    return spectatorCount >= 3 || (spectatorCount > playerCount && spectatorCount > 0);
-}
-
-export function getSeatsLeft(playerCount: number, maxPlayers: number): number {
-    return maxPlayers - playerCount;
 }

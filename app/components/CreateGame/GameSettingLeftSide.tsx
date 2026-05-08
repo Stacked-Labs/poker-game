@@ -49,15 +49,73 @@ import { keyframes } from '@emotion/react';
 
 // Animations
 const fadeIn = keyframes`
-    from { 
-        opacity: 0; 
-        transform: translateY(20px); 
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 `;
+
+interface StakePreset {
+    name: string;
+    sb: number;
+    bb: number;
+}
+
+const STAKE_PRESETS: StakePreset[] = [
+    { name: 'Micro', sb: 5, bb: 10 },
+    { name: 'Casual', sb: 25, bb: 50 },
+    { name: 'Serious', sb: 100, bb: 200 },
+];
+
+const BLINDS_STORAGE_KEY = 'stacked:create-game:blinds';
+
+function readStoredBlinds(): { sb: number; bb: number } | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = window.localStorage.getItem(BLINDS_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (
+            Number.isInteger(parsed?.sb) &&
+            Number.isInteger(parsed?.bb) &&
+            parsed.sb > 0 &&
+            parsed.bb > 0
+        ) {
+            return { sb: parsed.sb, bb: parsed.bb };
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function InfoDot({ label }: { label: string }) {
+    return (
+        <Tooltip
+            label={label}
+            bg="brand.darkNavy"
+            color="white"
+            borderRadius="8px"
+            px={3}
+            py={2}
+            hasArrow
+        >
+            <Box
+                as="span"
+                display="inline-flex"
+                alignItems="center"
+                color="gray.400"
+                cursor="help"
+            >
+                <FaInfoCircle size={14} />
+            </Box>
+        </Tooltip>
+    );
+}
 
 // why is this called left side... no idea
 const GameSettingLeftSide: React.FC = () => {
@@ -93,6 +151,7 @@ const GameSettingLeftSide: React.FC = () => {
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileError, setTurnstileError] = useState(false);
     const isCreatingRef = useRef(false);
+    const blindsHydratedRef = useRef(false);
     const [isPublicGame, setIsPublicGame] = useState(true);
     const isE2E = process.env.NEXT_PUBLIC_E2E === 'true';
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -222,6 +281,30 @@ const GameSettingLeftSide: React.FC = () => {
         setSmallBlind((prev) => (prev < 5 ? 5 : prev));
         setBigBlind((prev) => (prev < 10 ? 10 : prev));
     }, [playType]);
+
+    // Hydrate blinds from localStorage on mount.
+    useEffect(() => {
+        const stored = readStoredBlinds();
+        if (stored) {
+            setSmallBlind(stored.sb);
+            setBigBlind(stored.bb);
+        }
+        blindsHydratedRef.current = true;
+    }, []);
+
+    // Persist blinds to localStorage after hydration completes.
+    useEffect(() => {
+        if (!blindsHydratedRef.current) return;
+        if (!Number.isInteger(smallBlind) || !Number.isInteger(bigBlind)) return;
+        try {
+            window.localStorage.setItem(
+                BLINDS_STORAGE_KEY,
+                JSON.stringify({ sb: smallBlind, bb: bigBlind })
+            );
+        } catch {
+            // localStorage unavailable (private mode, quota); ignore.
+        }
+    }, [smallBlind, bigBlind]);
 
     const handleCreateGame = async () => {
         if (isCreatingRef.current) {
@@ -450,20 +533,15 @@ const GameSettingLeftSide: React.FC = () => {
                     px={{ base: 5, md: 8 }}
                     py={3}
                     justifyContent="space-between"
-                    alignItems="flex-start"
+                    alignItems="center"
                 >
-                    <Box>
-                        <Text
-                            fontWeight="bold"
-                            fontSize="md"
-                            color="text.primary"
-                        >
-                            Play Mode
-                        </Text>
-                        <Text fontSize="sm" color="gray.500">
-                            Select currency type
-                        </Text>
-                    </Box>
+                    <Text
+                        fontWeight="bold"
+                        fontSize="md"
+                        color="text.primary"
+                    >
+                        Play Mode
+                    </Text>
                     <PlayTypeToggle
                         playType={playType}
                         setPlayType={setPlayType}
@@ -480,18 +558,16 @@ const GameSettingLeftSide: React.FC = () => {
                     justifyContent="space-between"
                     alignItems="center"
                 >
-                    <Box>
+                    <HStack spacing={2} align="center">
                         <Text
                             fontWeight="bold"
                             fontSize="md"
                             color="text.primary"
                         >
-                            Public
+                            List publicly
                         </Text>
-                        <Text fontSize="sm" color="gray.500">
-                            Show this game in the lobby
-                        </Text>
-                    </Box>
+                        <InfoDot label="Public games appear in the lobby. Off keeps it invite-only." />
+                    </HStack>
                     <Switch
                         isChecked={isPublicGame}
                         onChange={(e) => setIsPublicGame(e.target.checked)}
@@ -512,37 +588,16 @@ const GameSettingLeftSide: React.FC = () => {
                     flexDirection={{ base: 'column', sm: 'row' }}
                     gap={4}
                 >
-                    <Box
-                        display="flex"
-                        flexDirection="column"
-                        justifyContent="center"
-                        alignItems="flex-start"
-                    >
-                        <Flex alignItems="center" gap={2}>
-                            <Text
-                                fontWeight="bold"
-                                fontSize="md"
-                                color="text.primary"
-                            >
-                                Game Mode
-                            </Text>
-                            <Tooltip
-                                label="Choose the poker variant you want to play"
-                                bg="brand.darkNavy"
-                                color="white"
-                                borderRadius="8px"
-                                px={3}
-                                py={2}
-                            >
-                                <Box display="flex" alignItems="center">
-                                    <FaInfoCircle color="#EB0B5C" size={14} />
-                                </Box>
-                            </Tooltip>
-                        </Flex>
-                        <Text fontSize="sm" color="gray.500">
-                            Choose the poker variant
+                    <HStack spacing={2} align="center">
+                        <Text
+                            fontWeight="bold"
+                            fontSize="md"
+                            color="text.primary"
+                        >
+                            Variant
                         </Text>
-                    </Box>
+                        <InfoDot label="Choose the poker variant you want to play." />
+                    </HStack>
                     <Box
                         width={{ base: '100%', sm: '200px' }}
                         mt={{ base: 3, sm: 0 }}
@@ -600,43 +655,101 @@ const GameSettingLeftSide: React.FC = () => {
                     flexDirection={{ base: 'column', sm: 'row' }}
                     gap={4}
                 >
-                    <Box mt={{ base: 3, sm: 0 }}>
-                        <Flex alignItems="center" gap={2}>
-                            <Text
-                                fontWeight="bold"
-                                fontSize="md"
-                                color="text.primary"
-                                zIndex={1}
-                            >
-                                Blinds
-                            </Text>
-                            <Tooltip
-                                label={
-                                    playType === 'Crypto'
-                                        ? 'Crypto blinds are in chips. Amounts shown in USDC. Min 5/10 • 1 chip = $0.01 USDC.'
-                                        : 'Blinds must be whole-chip amounts.'
-                                }
-                                bg="brand.darkNavy"
-                                color="white"
-                                borderRadius="8px"
-                                px={3}
-                                py={2}
-                                zIndex={1}
-                            >
-                                <Box display="flex" alignItems="center">
-                                    <FaInfoCircle color="#EB0B5C" size={14} />
-                                </Box>
-                            </Tooltip>
-                        </Flex>
-                        <Text fontSize="sm" color="gray.500">
-                            Set the table stakes
+                    <HStack spacing={2} align="center" mt={{ base: 3, sm: 0 }}>
+                        <Text
+                            fontWeight="bold"
+                            fontSize="md"
+                            color="text.primary"
+                        >
+                            Blinds
                         </Text>
-                    </Box>
+                        <InfoDot
+                            label={
+                                playType === 'Crypto'
+                                    ? 'Crypto blinds are in chips. Amounts shown in USDC. Min 5/10 • 1 chip = $0.01 USDC.'
+                                    : 'Blinds must be whole-chip amounts.'
+                            }
+                        />
+                    </HStack>
                     <Flex
                         width="100%"
                         flexDirection="column"
                         alignItems="flex-end"
                     >
+                        {/* Stake presets */}
+                        <HStack
+                            spacing={2}
+                            mb={2}
+                            justifyContent="flex-end"
+                            flexWrap="wrap"
+                        >
+                            {STAKE_PRESETS.map((preset) => {
+                                const isActive =
+                                    smallBlind === preset.sb &&
+                                    bigBlind === preset.bb;
+                                return (
+                                    <Button
+                                        key={preset.name}
+                                        onClick={() => {
+                                            setSmallBlind(preset.sb);
+                                            setBigBlind(preset.bb);
+                                        }}
+                                        variant="unstyled"
+                                        height="32px"
+                                        px={4}
+                                        borderRadius="full"
+                                        bg={
+                                            isActive
+                                                ? 'brand.green'
+                                                : 'transparent'
+                                        }
+                                        border="1px solid"
+                                        borderColor={
+                                            isActive
+                                                ? 'brand.green'
+                                                : 'border.greenStrong'
+                                        }
+                                        transition="background-color 0.15s ease, border-color 0.15s ease"
+                                        _hover={
+                                            isActive
+                                                ? {}
+                                                : { bg: 'bg.greenSubtle' }
+                                        }
+                                    >
+                                        <HStack spacing={1.5} align="baseline">
+                                            <Text
+                                                fontSize="xs"
+                                                fontWeight="semibold"
+                                                lineHeight={1}
+                                                color={
+                                                    isActive
+                                                        ? 'white'
+                                                        : 'brand.green'
+                                                }
+                                            >
+                                                {preset.name}
+                                            </Text>
+                                            <Text
+                                                fontSize="11px"
+                                                fontWeight="medium"
+                                                lineHeight={1}
+                                                color={
+                                                    isActive
+                                                        ? 'whiteAlpha.800'
+                                                        : 'brand.green'
+                                                }
+                                                sx={{
+                                                    fontVariantNumeric:
+                                                        'tabular-nums',
+                                                }}
+                                            >
+                                                {preset.sb}/{preset.bb}
+                                            </Text>
+                                        </HStack>
+                                    </Button>
+                                );
+                            })}
+                        </HStack>
                         <HStack
                             spacing={{ base: 3, md: 4 }}
                             alignItems="flex-start"
@@ -828,16 +941,21 @@ const GameSettingLeftSide: React.FC = () => {
                             </Box>
                         </HStack>
                         {blindsErrorMessage && (
-                            <Box mt={1} maxW="220px">
+                            <Flex mt={2} align="center" gap={1.5}>
+                                <Icon
+                                    as={FaInfoCircle}
+                                    color="brand.pink"
+                                    boxSize={3.5}
+                                />
                                 <Text
-                                    fontSize="10px"
-                                    color="red.100"
+                                    fontSize="sm"
+                                    color="brand.pink"
                                     fontWeight="medium"
-                                    lineHeight="shorter"
+                                    lineHeight="short"
                                 >
                                     {blindsErrorMessage}
                                 </Text>
-                            </Box>
+                            </Flex>
                         )}
                         {playType === 'Crypto' && (
                             <Flex
@@ -874,42 +992,16 @@ const GameSettingLeftSide: React.FC = () => {
                                 justifyContent="space-between"
                                 mb={4}
                             >
-                                <Box>
-                                    <Flex alignItems="center" gap={2}>
-                                        <Text
-                                            fontWeight="bold"
-                                            fontSize="md"
-                                            color="text.primary"
-                                        >
-                                            Network
-                                        </Text>
-                                        <Tooltip
-                                            label="Select the blockchain network for your crypto game"
-                                            bg="brand.darkNavy"
-                                            color="white"
-                                            borderRadius="8px"
-                                            px={3}
-                                            py={2}
-                                        >
-                                            <Box
-                                                display="flex"
-                                                alignItems="center"
-                                            >
-                                                <FaInfoCircle
-                                                    color="#EB0B5C"
-                                                    size={14}
-                                                />
-                                            </Box>
-                                        </Tooltip>
-                                    </Flex>
+                                <HStack spacing={2} align="center">
                                     <Text
-                                        fontSize="sm"
-                                        color="gray.500"
-                                        mt={1}
+                                        fontWeight="bold"
+                                        fontSize="md"
+                                        color="text.primary"
                                     >
-                                        Select blockchain to play on
+                                        Network
                                     </Text>
-                                </Box>
+                                    <InfoDot label="Select the blockchain network for your crypto game." />
+                                </HStack>
                                 {selectedNetwork === 'base-sepolia' && (
                                     <Link
                                         href="/free-tokens"

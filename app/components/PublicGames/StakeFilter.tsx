@@ -1,20 +1,22 @@
 'use client';
 
 import { Box, HStack } from '@chakra-ui/react';
-import type { FilterValue } from './types';
+import type { StakeFilter as StakeFilterValue } from './types';
 
-const filterOptions: { value: FilterValue; label: string }[] = [
+const stakeOptions: { value: StakeFilterValue; label: string }[] = [
     { value: 'all', label: 'All' },
-    { value: 'crypto', label: 'Crypto' },
-    { value: 'free', label: 'Free' },
+    { value: 'micro', label: 'Micro' },
+    { value: 'mid', label: 'Mid' },
+    { value: 'high', label: 'High' },
 ];
 
-interface FilterBarProps {
-    filter: FilterValue;
-    onFilterChange: (f: FilterValue) => void;
+interface StakeFilterProps {
+    stake: StakeFilterValue;
+    onStakeChange: (s: StakeFilterValue) => void;
+    disabled?: boolean;
 }
 
-export default function FilterBar({ filter, onFilterChange }: FilterBarProps) {
+export default function StakeFilter({ stake, onStakeChange, disabled = false }: StakeFilterProps) {
     return (
         <HStack
             spacing={1}
@@ -22,14 +24,17 @@ export default function FilterBar({ filter, onFilterChange }: FilterBarProps) {
             borderRadius="full"
             p={1}
             boxShadow="card.lift"
+            opacity={disabled ? 0.4 : 1}
+            pointerEvents={disabled ? 'none' : 'auto'}
+            aria-disabled={disabled}
         >
-            {filterOptions.map((option) => {
-                const active = filter === option.value;
+            {stakeOptions.map((option) => {
+                const active = stake === option.value;
                 return (
                     <Box
                         key={option.value}
                         as="button"
-                        onClick={() => onFilterChange(option.value)}
+                        onClick={() => onStakeChange(option.value)}
                         aria-pressed={active}
                         px={4}
                         h="32px"

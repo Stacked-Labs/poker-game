@@ -1,6 +1,6 @@
 # Button System Overhaul — Handoff
 
-**Status:** Groups A + B + C + E + F + G + I complete · Groups D, H skipped (current design retained) · Group J remaining · 1 group remaining
+**Status:** ✅ **COMPLETE** — Groups A + B + C + E + F + G + I + J done · Groups D, H skipped (current design retained) · 0 groups remaining
 
 This file is a stateful handoff for the next agent picking up this work. Read it end-to-end before touching any button code. Reference it; don't re-derive it.
 
@@ -129,7 +129,7 @@ import { SocialIconButton } from '@/app/components/SocialIconButton';
 | **G** | **Leaderboard quests** (Claim button — tactile-tone per quest) | ✅ **DONE** | `app/components/Leaderboard/QuestsSection.tsx` (the Claim Button per row; row stays `<Box>` — intentionally a presentation surface) |
 | H | Leaderboard PlayerCard CTAs | ⏭️ **SKIPPED** — user deemed remaining surfaces irrelevant after spike review | PlayerCard (untouched; Group A already migrated the meaningful CTAs) |
 | **I** | **Filters / sort / icon-secondary** (FilterBar + StakeFilter + SortHeader + Load more) | ✅ **DONE** | `app/components/PublicGames/FilterBar.tsx`, `StakeFilter.tsx`, `SortHeader.tsx`, `PublicGamesGrid.tsx` |
-| **J** | **Form / preset buttons** | 🟡 **NEXT** | CreateGame presets |
+| **J** | **Form / preset buttons** (stake chips + PlayTypeToggle + NetworkCard) | ✅ **DONE** | `app/components/CreateGame/GameSettingLeftSide.tsx` (stake presets), `PlayTypeToggle.tsx`, `NetworkCard.tsx` |
 
 **Out of scope (stays untouched):** WalletButton (`app/components/WalletButton.tsx`) and the thirdweb ConnectButton flow.
 
@@ -435,7 +435,68 @@ The locked state ("Requires X account" prerequisite) keeps a neutral muted ghost
 
 ---
 
-## How to do Group J (next — the last group)
+## What Group J actually did (audit trail) — final group
+
+### Files modified (3)
+
+| File | Change |
+|---|---|
+| `app/components/CreateGame/GameSettingLeftSide.tsx` (lines 685–743) | Stake preset chips: active = solid green tactile chip with hairline highlight + 1.5px green-edge shadow. Inactive = outline tactile (green outline + green text + 1.5px green-edge shadow). Both states press: `translateY(1.5px)` + edge collapse + bg-darken. Snap 80ms. |
+| `app/components/CreateGame/PlayTypeToggle.tsx` | Track gains an `inset 0 1px 2px rgba(0,0,0,0.10)` recess. Sliding pink pill upgraded from `boxShadow: 'sm'` to a tactile chip — `inset 0 1px 0 rgba(255,255,255,0.22), 0 1.5px 0 #950839` (pink edge). Slide animation tightened from 250ms to 220ms cubic-bezier. Labels gain `transition: 'color 80ms ease'` + hover color shift on the inactive label. |
+| `app/components/CreateGame/NetworkCard.tsx` | Active card gets `inset 0 1px 0 rgba(255,255,255,0.50), 0 2px 0 #950839` (pink edge — matches the active pink border). Inactive cards get a subtle `0 1.5px 0 rgba(0,0,0,0.08)` neutral edge. Hover drops the shadow lift, replaced with a faint pink bg-tint on inactive cards. Press: `translateY(2px)` + edge collapse. |
+
+### Slop removed
+
+- Stake presets: `transition: 'background-color 0.15s ease, border-color 0.15s ease'` (slow, no press feedback)
+- PlayTypeToggle: `boxShadow: 'sm'` Chakra-default sliding pill (no chip identity)
+- NetworkCard: `_hover.boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'` shadow lift + `transition: 'all 0.2s ease'`
+
+### Layout preserved verbatim
+
+- Stake chips: `height="32px"`, `px={4}`, `borderRadius="full"`, the inner HStack with two Texts (preset name + sb/bb numbers), font sizes/weights, `flexWrap="wrap"`
+- PlayTypeToggle: outer Box `width="220px"`, `height="40px"`, the Track absolute fill, the sliding pill's `top="4px"`, `left="4px"` / `'calc(50% + 4px)'`, `width="calc(50% - 8px)"`, `height="32px"`, the Flex labels with `flex="1"` and `data-testid` attrs, the Tooltip wrapping Crypto when disabled
+- NetworkCard: `borderWidth="2px"`, `borderRadius="16px"`, `width={{ base: '90px', sm: '110px' }}`, `height={{ base: '90px', sm: '110px' }}`, the badge positioning (`top="2px" right="2px"` with `transform: rotate(10deg)`), the inner VStack with logo + label, all responsive font sizes
+
+---
+
+## ✅ Overhaul complete — final state
+
+The button-system overhaul shipped through 8 active groups + 2 deliberate skips on a single branch (`polish/button-overhaul-group-a`).
+
+### Done
+- **A** Hero / marketing CTAs (`tactilePrimary`, `tactileOutline`, `tactileDestructive`, `tactileTelegram` variants + `SocialIconButton` component)
+- **B** Table action buttons (Bet/Call/Fold + raise presets + blind obligations + away rejoin)
+- **C** Table NavBar chrome (`tactileChrome` variant + 6 inline-styled consumers migrated)
+- **E** Mobile drawer nav (11 button surfaces inside `HomeNavBar.tsx`)
+- **F** Desktop nav links (`navLink` variant — pink hover retained as documented exception)
+- **G** Leaderboard quests (per-quest tactile-tone Claim button + 5 brand-tone palettes)
+- **I** PublicGames filters / sort / load-more (segmented-pill recipe + tactile press)
+- **J** CreateGame presets (stake chips + PlayTypeToggle + NetworkCard)
+
+### Skipped (current design retained)
+- **D** Felt seat buttons (EmptySeatButton.tsx) — user kept the existing dashed-border treatment after spike review
+- **H** PlayerCard CTAs — Group A already covered the meaningful surfaces; remaining Unlink + identity link were deemed irrelevant after spike review
+
+### Durable patterns established
+
+These should outlive the overhaul and inform future work:
+
+1. **Tactile chip recipe** — `inset 0 1px 0 rgba(255,255,255,0.18)` highlight + `0 2px 0 <edge>` bottom edge + 80ms snap press = `translateY(2px)` + edge collapse + bg darken. Scales down to 1.5px / 1px edges for smaller controls.
+2. **No-lift hover rule** — hover never uses `transform: translateY(-Npx)` or `scale(1.0X)`. Hover changes color, bg-tint, or border. Press is the only animated affordance.
+3. **No-glow rule** — hover never uses `boxShadow: '0 N Mpx <color-rgba(...0.X)>'` glow. Edge shadows only.
+4. **Layout-preserving migration rule** — when applying tactile to existing surfaces, change *only* `bg`, `color`, `border`, `boxShadow`, `transition`, `_hover`, `_active`, animation pseudo-elements. Every responsive sizing prop, `@media`, `cqw` rule, height/width/padding/fontSize stays verbatim. Established in Group B, applied to every group thereafter.
+5. **Audit-first iteration loop** — every group's brief understated the actual scope. Always grep + read every consumer before spiking. Groups A, B, C, E, I all found surfaces the brief missed.
+6. **Spike → pick → migrate → delete spike** — `app/components/_design/` is a transient workspace. Files are deleted post-decision. Folder may be recreated for future design work.
+7. **Mode-aware via `_dark={{}}` inside variant body** — first used in Group C's `tactileChrome`, repeated in Group I. Use when rgba alpha tints have no semantic-token equivalent.
+8. **Chakra `_hover._disabled.bg: 'initial'` gotcha** — framework default. The fix is `pointerEvents: 'none'` in `Button.baseStyle._disabled`. Documented in `.claude/CHAKRA.md` §8 and in memory (`feedback_chakra_disabled_button.md`).
+9. **Brand color shades** — `brand.<color>Dark` and `brand.<color>Edge` tokens established for green / pink / telegram. Several one-off edge hexes still inline (Telegram quest `#136687`, Discord quest `#3F4ABF`, orange pendingPause `#B45A0B`, navy burger-open `#1B2754`); lift to named tokens if more chrome lands in those tones.
+
+### Optional follow-ups (not blockers)
+
+- DRY the `FilterBar` ↔ `StakeFilter` segmented-pill recipe into a shared `<SegmentedPill>` component.
+- Lift the Telegram / Discord / orange / navy edge hexes into named brand tokens.
+- Audit modal-internal styling (WithdrawButton modal, SettingsModal, CreateGame internals beyond presets) — separate concern from the button overhaul.
+- Player tile (`TakenSeatButton.tsx`, 2000+ lines) — not a button family; future polish if pursued at all.
 
 The user's iteration loop is fixed. Follow it.
 
@@ -591,18 +652,27 @@ app/components/Footer/RaiseInputBox.tsx
 
 ---
 
-## Open questions that may come up
+## Resolved open questions
 
-- **Group G (Leaderboard quests):** currently `<Box>` not `<Button>`, with per-quest brand colors (X black, Discord purple, Telegram blue, Create Table green). The user committed `ef46cc0` ("vertical felt-rows with brand pop") recently — they like the brand-color-per-quest treatment. Decision when we get there: keep brand-color-per-quest (yes, almost certainly) and convert to real Button + tactile mechanic.
+All resolved through the overhaul. Kept here as historical context:
 
-- **Group D (Felt seat):** the existing `EmptySeatButton.tsx` does NOT use the `emptySeat` variant — it has all custom inline styles (dashed border, blur, glow, scale 1.02). The `emptySeat` variant in theme.ts had 0 consumers and was deleted in Group A's cleanup. Group D will need a fresh variant or a custom component approach.
-
-- **Disabled state:** `tactilePrimary` has a `_disabled` block that overrides the press behavior to a no-op. Other tactile variants don't (they didn't need it for Group A). Add `_disabled` to other variants only when a consumer needs it — don't preemptively add it.
-
-- **Dark mode:** Group A variants work in both modes because `brand.*` colors are mode-invariant. If a future variant needs to differ in dark mode, use `_dark={{}}` on the consumer or add `_dark` to the variant — never modify a shared semantic token to fix one component (that rule is in `CLAUDE.md` and the user has been bitten by it before).
+- ~~**Group G (Leaderboard quests):**~~ Resolved Group G — per-quest brand-color tactile-tone Claim button shipped. The `<Box>` → `<Button>` row conversion was *not* needed (audit-revealed scope correction); the row is intentionally a presentation surface, the Claim button is the click target.
+- ~~**Group D (Felt seat):**~~ Skipped — user retained the existing `EmptySeatButton.tsx` design after spike review.
+- ~~**Disabled state:**~~ Resolved Group A polish pass — moved disabled/loading treatment to `Button.baseStyle` via `filter` + `pointerEvents: 'none'`. No per-variant `_disabled` blocks needed for any variant after that.
+- **Dark mode:** Established Group C — use `_dark={{}}` inside the variant body when rgba alpha tints have no semantic-token equivalents (see `tactileChrome` for the canonical pattern). Never modify a shared semantic token to fix one component.
 
 ---
 
-## TL;DR for the next agent
+## TL;DR for future agents
 
-Read `CLAUDE.md`, `DESIGN.md` button section, then this file. Confirm with the user that **Tactile & weighty** is still the desired feel for Group B. Build a Storybook spike at `app/components/_design/TableActions.stories.tsx` showing baseline + 2–3 directions, let the user pick, implement via theme variants (don't pile inline styles), delete debt, update this file's status table, hand back.
+The overhaul is **complete**. If a new button surface needs work, follow the established patterns:
+
+1. Read `CLAUDE.md`, `DESIGN.md` button section, then this file's "Tactile recipe" + "Durable patterns established" sections.
+2. **Audit first** — read every consumer of the surface; the original brief always understates scope.
+3. **Spike if non-trivial** — `app/components/_design/<SurfaceName>.stories.tsx` with 2–4 directions side-by-side (Baseline + Tactile + alternates), real backdrop (page bg, drawer glass, felt, or card surface — match the actual context).
+4. **Migrate with the layout-preserving rule** — change only `bg`, `color`, `border`, `boxShadow`, `transition`, `_hover`, `_active`, animation pseudo-elements. Every responsive sizing prop stays verbatim.
+5. **Don't add `_disabled` / `_loading`** — `Button.baseStyle` owns those.
+6. **Delete the spike post-decision.** Update this file's status table.
+7. Verify: `npx tsc --noEmit -p tsconfig.json && npm run lint && rm -rf .next && npm run build`.
+
+If the system needs to *change* (new variant, new pattern, new constraint), update this file + `.claude/CHAKRA.md` + memory. The overhaul shipped via 8 active groups + 2 skips on `polish/button-overhaul-group-a` — keep that branch as the historical anchor.

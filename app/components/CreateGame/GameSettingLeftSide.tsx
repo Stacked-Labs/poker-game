@@ -697,17 +697,44 @@ const GameSettingLeftSide: React.FC = () => {
                                                 ? 'brand.green'
                                                 : 'transparent'
                                         }
-                                        border="1px solid"
+                                        border="1.5px solid"
                                         borderColor={
                                             isActive
                                                 ? 'brand.green'
                                                 : 'border.greenStrong'
                                         }
-                                        transition="background-color 0.15s ease, border-color 0.15s ease"
+                                        boxShadow={
+                                            isActive
+                                                ? 'inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #22674E'
+                                                : '0 1.5px 0 #22674E'
+                                        }
+                                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease"
                                         _hover={
                                             isActive
-                                                ? {}
-                                                : { bg: 'bg.greenSubtle' }
+                                                ? { bg: 'brand.green' }
+                                                : {
+                                                      bg: 'rgba(54, 163, 123, 0.10)',
+                                                      borderColor:
+                                                          'brand.greenDark',
+                                                  }
+                                        }
+                                        _active={
+                                            isActive
+                                                ? {
+                                                      bg: 'brand.greenDark',
+                                                      transform:
+                                                          'translateY(1.5px)',
+                                                      boxShadow:
+                                                          'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
+                                                  }
+                                                : {
+                                                      bg: 'rgba(54, 163, 123, 0.16)',
+                                                      borderColor:
+                                                          'brand.greenDark',
+                                                      transform:
+                                                          'translateY(1.5px)',
+                                                      boxShadow: '0 0 0 #22674E',
+                                                  }
                                         }
                                     >
                                         <HStack spacing={1.5} align="baseline">

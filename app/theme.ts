@@ -636,6 +636,19 @@ const components = {
                         'inset 0 1px 2px rgba(0,0,0,0.30), 0 0 0 transparent',
                 },
             },
+            // Desktop nav links — Group F (top-of-page nav on home/marketing).
+            //
+            // Typography-only chrome: no bg, no edge, no border. Hover is
+            // a color shift to brand.pink — kept deliberately as the brand
+            // accent for nav (the rest of the system uses pink only for
+            // destructive, but desktop nav is the one place where pink is
+            // the brand-voice nav highlight). Press is a 1px sink + color
+            // darken; no bg/inset since there's no surface to indent. Snap
+            // 80ms transitions.
+            //
+            // The disabled "Leaderboard" consumer in HomeNavBar overrides
+            // `_hover.color` back to `text.primary` so the pink hover
+            // doesn't fire on the soon-coming entry.
             navLink: {
                 bg: 'none',
                 fontSize: { base: '2xl', md: '2xl' },
@@ -645,13 +658,14 @@ const components = {
                 border: 'none',
                 outline: 'none',
                 boxShadow: 'none',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), color 120ms ease, background-color 120ms ease',
                 _hover: {
-                    transform: 'translateY(-3px)',
                     color: 'brand.pink',
+                    bg: 'none',
                     border: 'none',
                     outline: 'none',
                     boxShadow: 'none',
-                    bg: 'none',
                 },
                 _focus: {
                     border: 'none',
@@ -660,12 +674,13 @@ const components = {
                     bg: 'none',
                 },
                 _active: {
+                    color: 'brand.pinkDark',
+                    transform: 'translateY(1px)',
+                    bg: 'none',
                     border: 'none',
                     outline: 'none',
                     boxShadow: 'none',
-                    bg: 'none',
                 },
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
             },
             // Tactile chrome — Group C (table NavBar utility chips)
             //

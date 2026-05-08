@@ -1,6 +1,6 @@
 # Button System Overhaul — Handoff
 
-**Status:** Groups A + B + C + E complete · Group D skipped (current design retained) · Group F next · 4 groups remaining
+**Status:** Groups A + B + C + E + F complete · Group D skipped (current design retained) · Group G next · 3 groups remaining
 
 This file is a stateful handoff for the next agent picking up this work. Read it end-to-end before touching any button code. Reference it; don't re-derive it.
 
@@ -125,8 +125,8 @@ import { SocialIconButton } from '@/app/components/SocialIconButton';
 | **C** | **Table chrome (settings, volume, chat, away, leave, withdraw, pause/resume, burger)** | ✅ **DONE** | `theme.ts` `tactileChrome` variant (replaces `gameSettingsButton`); consumers: `NavBar/index.tsx`, `VolumeButton.tsx`, `AwayButton.tsx`, `LeaveButton.tsx`, `WithdrawButton.tsx` (trigger only), `TableMenuBurger.tsx` |
 | D | Felt seat buttons (Sit Down) | ⏭️ **SKIPPED** — user kept current design after spike review | `app/components/EmptySeatButton.tsx` (untouched) |
 | **E** | **Mobile drawer nav** (menu trigger + close + 6 nav-link rows + 3 social) | ✅ **DONE** | `app/components/HomePage/HomeNavBar.tsx` |
-| **F** | **Desktop nav links (`navLink` variant)** | 🟡 **NEXT** — light review | HomeNavBar (the desktop `NavButtons` component using `navLink` variant) |
-| G | Leaderboard quests (currently `Box` not `Button`) | Pending — biggest open question | QuestsSection |
+| **F** | **Desktop nav links (`navLink` variant)** | ✅ **DONE** | `app/theme.ts` `navLink` variant (consumed by `HomeNavBar.tsx` `NavButtons`) |
+| **G** | **Leaderboard quests (currently `Box` not `Button`)** | 🟡 **NEXT** — biggest open question | QuestsSection |
 | H | Leaderboard PlayerCard CTAs | Mostly resolved by A | PlayerCard (rank rings, accents) |
 | I | Filters / sort / icon-secondary | Light review | PublicGamesGrid |
 | J | Form / preset buttons | Pending | CreateGame presets |
@@ -319,56 +319,90 @@ For full-width drawer rows (vs chip-style tactile buttons), the press affordance
 
 ---
 
-## How to do Group F (next)
+## What Group F actually did (audit trail)
 
-The user's iteration loop is fixed. Follow it.
+### Files modified (1)
+
+- `app/theme.ts` — `navLink` variant rewritten in place. No consumer changes needed (the variant flows through to all 4 buttons in `HomeNavBar.tsx`'s `NavButtons` component).
+
+### Slop removed
+- `transform: 'translateY(-3px)'` hover lift (no-lift rule)
+- `transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'` (slow vs the 80ms snap we use everywhere else)
+
+### Recipe applied
+- Hover: `color: brand.pink` — **deliberately retained**. Pink is reserved for destructive in the rest of the system, but the desktop nav is the one place where pink is the brand-voice nav highlight. The user explicitly opted to keep this, so it's now a documented exception, not slop.
+- Press: `color: brand.pinkDark` + `transform: translateY(1px)`. Typography-only chrome, no bg/edge/border, so the press is a 1px sink + slight color darken — no inset shadow (there's no surface to indent).
+- Transition: `transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), color 120ms ease, background-color 120ms ease` (snap on transform, smoother on color shift)
+- All `bg`/`border`/`outline`/`boxShadow` resets in `_hover`/`_focus`/`_active` retained — they kill Chakra's default focus-ring + ghost-bg cascade
+
+### Layout preserved
+- `fontSize` / `fontWeight` / `textTransform` / `color` (resting) — all untouched
+- The disabled "Leaderboard" consumer in `HomeNavBar.tsx:71–82` keeps its inline `_hover` override (`transform: 'none'` + `color: 'text.primary'`). The `transform: 'none'` is now redundant (variant has no lift anymore) but harmless; the `color: 'text.primary'` is still load-bearing — it suppresses the pink hover for the soon-coming entry. Left it alone.
+
+---
+
+## How to do Group G (next)
+
+The user's iteration loop is fixed. Follow it. **This is the biggest open question of the overhaul.**
 
 ### 1. Audit first
 
-Group F per this doc is "Desktop nav links (`navLink` variant)" — the top-of-page nav on desktop (the `NavButtons` component inside `HomeNavBar.tsx`). It's a *light review* group: the variant is reasonably scoped already, but it has a hover lift and a pink hover color that don't match the rest of the system.
+Group G is "Leaderboard quests" — the per-quest rows on `/leaderboard`'s QuestsSection. Per the open-questions section below, the user committed `ef6c7d5` ("vertical felt-rows with brand pop") which validated a brand-color-per-quest treatment (X black, Discord purple, Telegram blue, Create Table green). They like that direction.
 
-Before spiking, audit:
+The wrinkle: **quests are currently `<Box>`, not `<Button>`.** They look clickable but aren't typed as interactive elements. Group G has two intertwined concerns:
+1. Convert the quest rows to real `<Button>` elements (a11y win — keyboard nav, focus rings, semantic role)
+2. Apply the tactile family while preserving the brand-color-per-quest treatment the user already validated
+
+Before spiking, read:
 
 ```bash
-grep -rn 'variant="navLink"\|variant={"navLink"}\|variant={\x27navLink\x27}\|navLink' app/ --include='*.tsx' --include='*.ts'
+cat app/components/Leaderboard/QuestsSection.tsx
+git log --oneline ef6c7d5 -1   # check what the recent commit message says about the design intent
 ```
 
-The `navLink` variant in `app/theme.ts` currently has:
-- `transform: 'translateY(-3px)'` on hover (no-lift rule violation)
-- `color: 'brand.pink'` on hover (out of family with the green-action / navy-utility palette we've established)
-- `bg: 'none'`, `boxShadow: 'none'` on all states (good — chrome-leaning)
-- All-state `border: 'none'` and explicit `outline: 'none'` reset (good)
-- `transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'` (slow vs the 80ms snap we use elsewhere)
+Look for: state per quest (idle / completed / locked / claimable / pending), brand color binding, what the click handler does (open a modal? deep link out? trigger a server action?). The interactive contract dictates whether `<Button>` or `<Link>` is the right element.
 
-Consumers: only the `NavButtons` component inside `HomeNavBar.tsx:55–112` (Home / Create / Public / Leaderboard / Sign In path). No other consumers — this is a tightly scoped variant.
+### 2. Build a Storybook spike
 
-### 2. Build a Storybook spike (or skip)
+- Path: `app/components/_design/LeaderboardQuests.stories.tsx`
+- Title: `'Design Spikes / Group G — Leaderboard Quests'`
+- Show **3 directions side-by-side** (smaller than the usual 4, because the user has already validated the brand-color-per-quest direction — the spike is mostly about *how the tactile mechanic plugs in*, not whether to keep the brand colors):
+  - **A · Baseline** — current `<Box>`-based rows
+  - **B · Tactile-Felt-Row** — `<Button>` rows with tactile recipe per quest tone (each row is a wide tactile chip in its brand color, with felt-row layout)
+  - **C · Tactile-Outline-Row** — `<Button>` rows with tone outline + tone tint hover (quieter, less brand-saturated)
+- Render: 4 quests stacked (X, Discord, Telegram, Create Table) at desktop and mobile widths.
+- Backdrop: `bg.default` (leaderboard page bg).
+- Toggle light/dark via existing toolbar.
 
-This is a small variant change — could go straight to migration without a spike, OR build a tiny spike showing baseline vs tactile. The user has consistently picked Tactile in every prior group; for a tightly-scoped change like this, I'd recommend just proposing the tactile change directly (no spike needed) and asking the user to confirm.
+### 3. Group G context — the *active hand* problem
 
-If they want a spike: `app/components/_design/DesktopNav.stories.tsx`, two directions only (baseline vs tactile-quiet), single small story.
+Quest rows are state-dense:
+- **Idle / not started** — most likely the resting visual
+- **Claimable** — quest complete, click to claim reward
+- **Pending claim** — claim in flight
+- **Claimed / completed** — done, locked-out style
+- Possibly: **locked** (prerequisite quest not done)
 
-### 3. Group F context
+Each state needs to read clearly. Tactile press is fine for idle and claimable; completed should not be press-able (use `Button.baseStyle._disabled` per the established pattern).
 
-Desktop nav links are **chrome, not actions**. They should:
-- Have NO hover lift (just like the drawer rows in Group E)
-- Have a quiet hover signal — bg tint or color shift, not transform
-- Use the green tone for hover (consistent with Group E's Play section) since these link into actions, OR neutral for utility consistency
-- Use the 80ms snap transition
+Brand-color-per-quest means each row's *color* is fixed by the quest, not by state. The recipe needs to express state through luminance/saturation/border weight rather than swapping the tone color. e.g.:
+- Idle: full brand fill at moderate saturation
+- Hover: slight brightening or tonal shift
+- Claimable: maybe a subtle pulse OR a brighter edge to invite the click — but keep it disciplined (no glow shadow per the no-glow rule)
+- Claimed: filter desaturate (matches the baseStyle disabled treatment)
 
-Current `_hover` color is `brand.pink` — that's tactile-incompatible (pink is reserved for destructive in our system, not nav-hover). Switch to `brand.green` to match Group E or stay neutral.
+### 4. After the user picks
 
-### 4. Migration
-
-- Update the `navLink` variant in `app/theme.ts`: drop the `translateY(-3px)`, swap pink for green or a neutral token, use `TACTILE_TRANSITION` timing. Add a tactile press state (`_active`).
-- Don't add `_disabled` / `_loading` blocks (baseStyle owns those).
-- The consumer doesn't need any changes — variants flow through.
+- Add 1–2 variants if the recipe is shared across all quests (`tactileQuestRow`?) OR keep per-row tone styles inline if every quest needs different tones (likely the latter — there's no clean way to encode 4 different tone palettes in one variant without parameterization).
+- Convert `<Box>` rows to `<Button>` (or `<Link as={Button}>` if they're external nav). Add proper `onClick` / `aria-label`. **This is the a11y change** — verify focus-ring works.
+- **Layout-preserving rule applies.** Don't change row dimensions, gap, internal layout (icon + label + reward badge), or the section's grid/stack.
+- Don't hand-roll `_disabled` / `_loading` (baseStyle owns those).
 - Verify type-check + lint + build clean.
 - Update this file's status table.
 
 ### 5. Hand back
 
-Self-review, list what to eyeball in browser (`/` desktop nav at the top, links should hover-tint green without lifting), ask if they want to move to Group G (Leaderboard quests — the biggest open question).
+Self-review, list what to eyeball in browser (`/leaderboard` quests in idle / claimable / claimed states, light + dark, mobile + desktop), ask if they want to move to Group H (PlayerCard CTAs — mostly resolved by Group A, light review).
 
 ---
 

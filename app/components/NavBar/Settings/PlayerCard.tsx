@@ -93,9 +93,8 @@ const PlayerCard = ({
             boxShadow={shadowRest}
             _hover={{
                 boxShadow: shadowHover,
-                transform: 'translateY(-1px)',
             }}
-            transition="all 0.2s ease"
+            transition="box-shadow 120ms ease"
             flexDirection="row"
             gap={{ base: 3, md: 3 }}
         >
@@ -292,18 +291,22 @@ const PlayerCard = ({
                                 size="sm"
                                 bg="brand.green"
                                 color="white"
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #22674E"
                                 _hover={{
                                     bg: 'brand.green',
-                                    transform: 'translateY(-1px)',
-                                    boxShadow: '0 4px 12px rgba(54, 163, 123, 0.3)',
                                 }}
-                                _active={{ transform: 'translateY(0)' }}
+                                _active={{
+                                    bg: 'brand.greenDark',
+                                    transform: 'translateY(1.5px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
+                                }}
                                 onClick={() => handleAcceptPlayer(player.uuid)}
                                 minW={{ base: '34px', md: '38px' }}
                                 h={{ base: '34px', md: '38px' }}
                                 borderRadius="10px"
                                 border="none"
-                                transition="all 0.2s ease"
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                             >
                                 <FaCircleCheck size={15} />
                             </Button>
@@ -320,18 +323,22 @@ const PlayerCard = ({
                                 size="sm"
                                 bg="brand.pink"
                                 color="white"
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #950839"
                                 _hover={{
                                     bg: 'brand.pink',
-                                    transform: 'translateY(-1px)',
-                                    boxShadow: '0 4px 12px rgba(235, 11, 92, 0.3)',
                                 }}
-                                _active={{ transform: 'translateY(0)' }}
+                                _active={{
+                                    bg: 'brand.pinkDark',
+                                    transform: 'translateY(1.5px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                                }}
                                 onClick={() => handleDenyPlayer(player.uuid)}
                                 minW={{ base: '34px', md: '38px' }}
                                 h={{ base: '34px', md: '38px' }}
                                 borderRadius="10px"
                                 border="none"
-                                transition="all 0.2s ease"
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                             >
                                 <FaCircleXmark size={15} />
                             </Button>
@@ -355,15 +362,19 @@ const PlayerCard = ({
                         <Button
                             data-testid={`kick-player-${player.uuid}`}
                             size="sm"
-                            bg={settlementStuck ? 'gray.300' : 'brand.pink'}
-                            color={settlementStuck ? 'gray.500' : 'white'}
-                            _hover={settlementStuck ? {} : {
+                            bg="brand.pink"
+                            color="white"
+                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #950839"
+                            _hover={{
                                 bg: 'brand.pink',
-                                transform: 'translateY(-1px)',
-                                boxShadow: '0 4px 12px rgba(235, 11, 92, 0.3)',
                             }}
-                            _active={{ transform: settlementStuck ? 'none' : 'translateY(0)' }}
-                            onClick={settlementStuck ? undefined : () => confirmKick(player)}
+                            _active={{
+                                bg: 'brand.pinkDark',
+                                transform: 'translateY(1.5px)',
+                                boxShadow:
+                                    'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                            }}
+                            onClick={() => confirmKick(player)}
                             isDisabled={Boolean(settlementStuck)}
                             isLoading={isKicking}
                             loadingText="Kicking..."
@@ -371,8 +382,7 @@ const PlayerCard = ({
                             h={{ base: '34px', md: '38px' }}
                             borderRadius="10px"
                             border="none"
-                            transition="all 0.2s ease"
-                            cursor={settlementStuck ? 'not-allowed' : 'pointer'}
+                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                         >
                             <GiBootKick size={15} />
                         </Button>

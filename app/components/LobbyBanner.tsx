@@ -61,11 +61,6 @@ const LinkBox = () => {
             boxShadow="0 2px 12px rgba(0, 0, 0, 0.08)"
             border="2px solid"
             borderColor="brand.green"
-            transition="all 0.3s ease"
-            _hover={{
-                boxShadow: '0 4px 16px rgba(54, 163, 123, 0.3)',
-                transform: 'translateY(-2px)',
-            }}
         >
             <Box
                 flex={1}
@@ -101,25 +96,21 @@ const LinkBox = () => {
                     onClick={onCopy}
                     minW="44px"
                     py={1.5}
-                    bg={hasCopied ? 'brand.green' : 'brand.green'}
+                    bg="brand.green"
                     cursor="pointer"
                     justifyContent="center"
                     alignItems="center"
                     color="white"
-                    transition="all 0.2s ease"
-                    _hover={{
-                        bg: 'brand.green',
-                        transform: 'scale(1.05)',
-                    }}
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), inset 2px 0 0 rgba(0,0,0,0.10)"
+                    transition="background-color 80ms ease, box-shadow 80ms ease"
+                    _hover={{ bg: 'brand.green' }}
                     _active={{
-                        transform: 'scale(0.95)',
+                        bg: 'brand.greenDark',
+                        boxShadow:
+                            'inset 0 2px 4px rgba(0,0,0,0.18), inset 2px 0 0 rgba(0,0,0,0.10)',
                     }}
                 >
-                    <Icon
-                        as={hasCopied ? FaCheck : FaCopy}
-                        boxSize={3.5}
-                        transition="all 0.2s ease"
-                    />
+                    <Icon as={hasCopied ? FaCheck : FaCopy} boxSize={3.5} />
                 </Flex>
             </Tooltip>
         </Flex>

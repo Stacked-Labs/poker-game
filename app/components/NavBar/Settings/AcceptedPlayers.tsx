@@ -135,9 +135,11 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
                             borderRadius="full"
                             _hover={{
                                 bg: 'brand.lightGray',
-                                transform: 'rotate(90deg)',
                             }}
-                            transition="all 0.3s ease"
+                            _active={{
+                                transform: 'translateY(1px)',
+                            }}
+                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 80ms ease"
                         />
                         <ModalBody py={6}>
                             <Text
@@ -177,11 +179,17 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
                                 border="none"
                                 borderRadius="12px"
                                 fontWeight="bold"
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.50), 0 2px 0 rgba(0,0,0,0.10)"
                                 _hover={{
                                     bg: 'gray.300',
-                                    transform: 'translateY(-2px)',
                                 }}
-                                transition="all 0.2s ease"
+                                _active={{
+                                    bg: 'gray.300',
+                                    transform: 'translateY(2px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 rgba(0,0,0,0.10)',
+                                }}
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                             >
                                 Cancel
                             </Button>
@@ -197,14 +205,17 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
                                 borderRadius="12px"
                                 border="none"
                                 fontWeight="bold"
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #950839"
                                 _hover={{
                                     bg: 'brand.pink',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 12px 24px rgba(235, 11, 92, 0.3)',
                                 }}
-                                _active={{ transform: 'translateY(0)' }}
-                                transition="all 0.2s ease"
+                                _active={{
+                                    bg: 'brand.pinkDark',
+                                    transform: 'translateY(2px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                                }}
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                             >
                                 Confirm
                             </Button>

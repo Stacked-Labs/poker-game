@@ -129,18 +129,17 @@ const ConnectXSection = () => {
                     <Text
                         as="button"
                         onClick={disconnectX}
-                        disabled={isDisconnecting}
+                        aria-disabled={isDisconnecting}
                         fontSize="xs"
                         fontWeight="medium"
                         color={unlinkColor}
-                        cursor="pointer"
                         bg="transparent"
                         border="none"
                         p={0}
                         flexShrink={0}
                         _hover={{ color: 'brand.pink' }}
-                        _disabled={{ opacity: 0.4, cursor: 'not-allowed' }}
-                        transition="color 0.15s ease"
+                        _active={{ color: 'brand.pinkDark', transform: 'translateY(1px)' }}
+                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), color 120ms ease"
                     >
                         {isDisconnecting ? 'Unlinking…' : 'Unlink'}
                     </Text>
@@ -191,13 +190,21 @@ const ConnectXSection = () => {
                 </HStack>
                 <Button
                     size="sm"
-                    bg="#000"
+                    bg="#0A0B12"
                     color="white"
+                    border="none"
                     borderRadius="8px"
                     fontSize={{ base: 'xs', md: 'sm' }}
-                    _hover={{ bg: '#1a1a1a', transform: 'translateY(-1px)' }}
-                    _active={{ transform: 'translateY(0)' }}
-                    transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+                    fontWeight={700}
+                    letterSpacing="0.02em"
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #000000"
+                    _hover={{ bg: '#15161E' }}
+                    _active={{
+                        bg: '#000000',
+                        transform: 'translateY(2px)',
+                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #000000',
+                    }}
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                     onClick={connectX}
                     isLoading={isConnecting}
                     leftIcon={<Icon as={FaXTwitter} boxSize={3.5} />}
@@ -403,8 +410,16 @@ const GameSettings = () => {
                                         minW="unset"
                                         bg="brand.green"
                                         color="white"
+                                        border="none"
                                         borderRadius="8px"
-                                        _hover={{ opacity: 0.85 }}
+                                        boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #22674E"
+                                        _hover={{ bg: 'brand.green' }}
+                                        _active={{
+                                            bg: 'brand.greenDark',
+                                            transform: 'translateY(1.5px)',
+                                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
+                                        }}
+                                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                                         onClick={handleBlindsSubmit}
                                         isDisabled={!isValidBlinds || !isBlindsChanged}
                                         mt={2}
@@ -418,10 +433,18 @@ const GameSettings = () => {
                                             h={{ base: '30px', md: '34px' }}
                                             w={{ base: '30px', md: '34px' }}
                                             minW="unset"
-                                            bg="red.500"
+                                            bg="brand.pink"
                                             color="white"
+                                            border="none"
                                             borderRadius="8px"
-                                            _hover={{ opacity: 0.85 }}
+                                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #950839"
+                                            _hover={{ bg: 'brand.pink' }}
+                                            _active={{
+                                                bg: 'brand.pinkDark',
+                                                transform: 'translateY(1.5px)',
+                                                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                                            }}
+                                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                                             onClick={handleBlindsCancel}
                                             mt={2}
                                         />

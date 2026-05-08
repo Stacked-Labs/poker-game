@@ -35,10 +35,15 @@ const HowTo = () => {
                 >
                     <AccordionButton
                         _hover={{ bg: 'card.lightGray' }}
+                        _active={{
+                            bg: 'card.lightGray',
+                            transform: 'translateY(1px)',
+                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
+                        }}
                         borderRadius="16px"
                         py={4}
                         px={5}
-                        transition="all 0.2s ease"
+                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                     >
                         <Box flex="1" textAlign="left">
                             <Heading
@@ -116,10 +121,15 @@ const HowTo = () => {
                 >
                     <AccordionButton
                         _hover={{ bg: 'card.lightGray' }}
+                        _active={{
+                            bg: 'card.lightGray',
+                            transform: 'translateY(1px)',
+                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
+                        }}
                         borderRadius="16px"
                         py={4}
                         px={5}
-                        transition="all 0.2s ease"
+                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                     >
                         <Box flex="1" textAlign="left">
                             <Heading
@@ -227,10 +237,15 @@ const HowTo = () => {
                 >
                     <AccordionButton
                         _hover={{ bg: 'card.lightGray' }}
+                        _active={{
+                            bg: 'card.lightGray',
+                            transform: 'translateY(1px)',
+                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
+                        }}
                         borderRadius="16px"
                         py={4}
                         px={5}
-                        transition="all 0.2s ease"
+                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                     >
                         <Box flex="1" textAlign="left">
                             <Heading
@@ -374,10 +389,15 @@ const HowTo = () => {
                 >
                     <AccordionButton
                         _hover={{ bg: 'card.lightGray' }}
+                        _active={{
+                            bg: 'card.lightGray',
+                            transform: 'translateY(1px)',
+                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
+                        }}
                         borderRadius="16px"
                         py={4}
                         px={5}
-                        transition="all 0.2s ease"
+                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                     >
                         <Box flex="1" textAlign="left">
                             <Heading
@@ -437,10 +457,15 @@ const HowTo = () => {
                 >
                     <AccordionButton
                         _hover={{ bg: 'card.lightGray' }}
+                        _active={{
+                            bg: 'card.lightGray',
+                            transform: 'translateY(1px)',
+                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
+                        }}
                         borderRadius="16px"
                         py={4}
                         px={5}
-                        transition="all 0.2s ease"
+                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                     >
                         <Box flex="1" textAlign="left">
                             <Heading

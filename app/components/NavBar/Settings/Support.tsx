@@ -4,7 +4,6 @@ import {
     VStack,
     Heading,
     Text,
-    Button,
     Box,
     HStack,
     Icon,
@@ -17,6 +16,7 @@ import { FaDiscord } from 'react-icons/fa';
 import { FiInfo } from 'react-icons/fi';
 import { RiTwitterXLine } from 'react-icons/ri';
 import { keyframes } from '@emotion/react';
+import { SocialIconButton } from '@/app/components/SocialIconButton';
 
 // Animation for the cards
 const fadeInUp = keyframes`
@@ -128,36 +128,18 @@ const Support = () => {
                                 as possible.
                             </Text>
 
-                            <Button
-                                as={Link}
+                            <Link
                                 href="https://discord.gg/347RBVcvpn"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                size={{ base: 'md', md: 'lg' }}
-                                bg="#5865F2"
-                                color="white"
-                                borderRadius="12px"
-                                fontWeight="bold"
-                                leftIcon={
-                                    <Icon
-                                        as={FaDiscord}
-                                        boxSize={{ base: 5, md: 6 }}
-                                    />
-                                }
-                                _hover={{
-                                    bg: '#4752C4',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 6px 16px rgba(88, 101, 242, 0.3)',
-                                    textDecoration: 'none',
-                                }}
-                                _active={{
-                                    bg: '#3C45A5',
-                                }}
-                                transition="all 0.2s ease"
+                                isExternal
+                                _hover={{ textDecoration: 'none' }}
                             >
-                                Join Discord
-                            </Button>
+                                <SocialIconButton
+                                    tone="discord"
+                                    chipSize="lg"
+                                    label="Join Discord"
+                                    width="100%"
+                                />
+                            </Link>
                         </VStack>
 
                         <Divider borderColor="rgba(255, 255, 255, 0.12)" />
@@ -206,35 +188,18 @@ const Support = () => {
                                 in your tweet!
                             </Text>
 
-                            <Button
-                                as={Link}
+                            <Link
                                 href="https://x.com/stacked_poker"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                size={{ base: 'md', md: 'lg' }}
-                                bg="#111111"
-                                color="white"
-                                borderRadius="12px"
-                                fontWeight="bold"
-                                leftIcon={
-                                    <Icon
-                                        as={RiTwitterXLine}
-                                        boxSize={{ base: 5, md: 6 }}
-                                    />
-                                }
-                                _hover={{
-                                    bg: '#2A2A2A',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.35)',
-                                    textDecoration: 'none',
-                                }}
-                                _active={{
-                                    bg: '#000000',
-                                }}
-                                transition="all 0.2s ease"
+                                isExternal
+                                _hover={{ textDecoration: 'none' }}
                             >
-                                Follow on Twitter
-                            </Button>
+                                <SocialIconButton
+                                    tone="x"
+                                    chipSize="lg"
+                                    label="Follow on Twitter"
+                                    width="100%"
+                                />
+                            </Link>
                         </VStack>
 
                         <Box

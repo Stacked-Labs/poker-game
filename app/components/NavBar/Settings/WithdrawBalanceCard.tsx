@@ -2,7 +2,6 @@
 
 import React, { useContext, useEffect, useCallback } from 'react';
 import {
-    Box,
     Button,
     Flex,
     Text,
@@ -250,34 +249,26 @@ const WithdrawBalanceCard = () => {
                         size={{ base: 'sm', md: 'md' }}
                         px={{ base: 4, md: 5 }}
                         h={{ base: '34px', sm: '36px', md: '40px' }}
-                        bg={isButtonDisabled ? 'gray.300' : 'brand.yellow'}
-                        color={isButtonDisabled ? 'gray.500' : 'white'}
+                        bg="brand.yellow"
+                        color="#1A1A1A"
                         border="none"
                         borderRadius={{ base: '10px', md: '12px' }}
                         fontWeight="bold"
                         fontSize={{ base: 'xs', md: 'sm' }}
+                        letterSpacing="0.02em"
                         isDisabled={isButtonDisabled}
                         isLoading={isLoading && status === 'withdrawing'}
                         loadingText={getStatusMessage()}
                         onClick={handleWithdraw}
                         flexShrink={0}
-                        _disabled={{
-                            bg: 'gray.300',
-                            color: 'gray.500',
-                            cursor: 'not-allowed',
-                            opacity: 0.6,
+                        boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900"
+                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                        _hover={{ bg: 'brand.yellow' }}
+                        _active={{
+                            bg: 'brand.yellowDark',
+                            transform: 'translateY(2px)',
+                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
                         }}
-                        _hover={
-                            isButtonDisabled
-                                ? {}
-                                : { opacity: 0.85 }
-                        }
-                        _active={
-                            isButtonDisabled
-                                ? {}
-                                : { opacity: 0.7 }
-                        }
-                        transition="opacity 0.15s ease"
                     >
                         Withdraw
                     </Button>
@@ -472,34 +463,26 @@ const WithdrawBalanceCard = () => {
                             size={{ base: 'sm', md: 'md' }}
                             px={{ base: 4, md: 5 }}
                             h={{ base: '34px', sm: '36px', md: '40px' }}
-                            bg={!hasRakeBalance || rakeLoading ? 'gray.300' : 'brand.yellow'}
-                            color={!hasRakeBalance || rakeLoading ? 'gray.500' : 'white'}
+                            bg="brand.yellow"
+                            color="#1A1A1A"
                             border="none"
                             borderRadius={{ base: '10px', md: '12px' }}
                             fontWeight="bold"
                             fontSize={{ base: 'xs', md: 'sm' }}
+                            letterSpacing="0.02em"
                             isDisabled={!hasRakeBalance || rakeLoading}
                             isLoading={rakeStatus === 'withdrawing'}
                             loadingText="Collecting..."
                             onClick={handleCollectRake}
                             flexShrink={0}
-                            _disabled={{
-                                bg: 'gray.300',
-                                color: 'gray.500',
-                                cursor: 'not-allowed',
-                                opacity: 0.6,
+                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900"
+                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                            _hover={{ bg: 'brand.yellow' }}
+                            _active={{
+                                bg: 'brand.yellowDark',
+                                transform: 'translateY(2px)',
+                                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
                             }}
-                            _hover={
-                                !hasRakeBalance || rakeLoading
-                                    ? {}
-                                    : { opacity: 0.85 }
-                            }
-                            _active={
-                                !hasRakeBalance || rakeLoading
-                                    ? {}
-                                    : { opacity: 0.7 }
-                            }
-                            transition="opacity 0.15s ease"
                         >
                             Collect
                         </Button>
@@ -513,36 +496,53 @@ const WithdrawBalanceCard = () => {
                 <Text fontSize="xs" color="text.muted" fontWeight="medium">
                     Emergency Withdraw
                 </Text>
-                <Box
+                <Button
                     data-testid="emergency-withdraw-btn"
-                    as="button"
                     px={2.5}
                     py={1}
+                    h="auto"
+                    minH={0}
                     borderRadius="full"
                     fontSize="xs"
                     fontWeight="bold"
-                    cursor={emergencyStatus === 'pending' ? 'not-allowed' : 'pointer'}
+                    letterSpacing="0.02em"
                     bg={emergencyStatus === 'success' ? 'brand.green' : 'brand.pink'}
                     color="white"
-                    opacity={emergencyStatus === 'pending' ? 0.6 : 1}
-                    transition="opacity 0.15s"
-                    _hover={{ opacity: emergencyStatus === 'pending' ? 0.6 : 0.85 }}
+                    border="none"
+                    isLoading={emergencyStatus === 'pending'}
+                    loadingText="Processing"
+                    boxShadow={
+                        emergencyStatus === 'success'
+                            ? 'inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #22674E'
+                            : 'inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #950839'
+                    }
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                    _hover={{
+                        bg: emergencyStatus === 'success' ? 'brand.green' : 'brand.pink',
+                    }}
+                    _active={{
+                        bg:
+                            emergencyStatus === 'success'
+                                ? 'brand.greenDark'
+                                : 'brand.pinkDark',
+                        transform: 'translateY(1.5px)',
+                        boxShadow:
+                            emergencyStatus === 'success'
+                                ? 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E'
+                                : 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                    }}
                     onClick={() => {
                         if (emergencyStatus === 'pending') return;
                         if (emergencyStatus === 'error') emergencyReset();
                         emergencyWithdraw();
                     }}
-                    display="inline-flex"
-                    alignItems="center"
-                    gap={1.5}
                 >
-                    {emergencyStatus === 'pending' && <Spinner size="xs" />}
                     {emergencyStatus === 'success'
                         ? 'Done'
                         : emergencyStatus === 'error'
                         ? 'Retry'
                         : 'Emergency Withdraw'}
-                </Box>
+                </Button>
             </Flex>
 
             {emergencyError && (

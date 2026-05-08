@@ -1121,10 +1121,16 @@ const GameLog = () => {
                     py={2}
                     borderRadius="6px"
                     fontWeight="bold"
-                    _hover={{
-                        bg: 'brand.green',
+                    border="none"
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #1B2754"
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                    _hover={{ bg: 'brand.navy' }}
+                    _active={{
+                        bg: '#1B2754',
+                        transform: 'translateY(1.5px)',
+                        boxShadow:
+                            'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #1B2754',
                     }}
-                    transition="all 0.2s ease"
                 >
                     Refresh
                 </Button>
@@ -1255,10 +1261,16 @@ const GameLog = () => {
                                 py={2}
                                 borderRadius="6px"
                                 fontWeight="bold"
-                                _hover={{
-                                    bg: 'brand.green',
+                                border="none"
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #1B2754"
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                                _hover={{ bg: 'brand.navy' }}
+                                _active={{
+                                    bg: '#1B2754',
+                                    transform: 'translateY(1.5px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #1B2754',
                                 }}
-                                transition="all 0.2s ease"
                             >
                                 Load More Events
                             </Button>

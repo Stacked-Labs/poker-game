@@ -731,6 +731,33 @@ const components = {
                     },
                 },
             },
+            // Tactile ghost — for in-card utility toggles (chat header
+            // buttons, scroll arrows in dense surfaces) where the chip-
+            // style chrome of `tactileChrome` would add too much visual
+            // weight. Transparent resting, hover fills with a light bg
+            // tint, snap 80ms press with subtle translateY(1px).
+            // Mode-aware via semantic tokens. _disabled handled by
+            // Button.baseStyle.
+            tactileGhost: {
+                bg: 'transparent',
+                color: 'text.secondary',
+                border: 'none',
+                borderRadius: '8px',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 80ms ease, color 80ms ease',
+                _hover: {
+                    bg: 'card.lightGray',
+                    color: 'text.primary',
+                },
+                _active: {
+                    bg: 'border.lightGray',
+                    transform: 'translateY(1px)',
+                },
+                _focus: { boxShadow: 'none' },
+                _focusVisible: {
+                    boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)',
+                },
+            },
             homeNav: {
                 size: 'lg',
                 fontWeight: 'semibold',

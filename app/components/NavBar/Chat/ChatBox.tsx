@@ -291,7 +291,7 @@ const Chatbox = ({
                         placement="top"
                     >
                         <IconButton
-                            variant="tactileChrome"
+                            variant="tactileGhost"
                             icon={
                                 <Icon
                                     as={
@@ -308,8 +308,8 @@ const Chatbox = ({
                                     : 'Chat overlay off'
                             }
                             size="sm"
-                            height="32px"
-                            minW="32px"
+                            height="36px"
+                            minW="36px"
                             onClick={() => {
                                 const nextState = !appState.chatOverlayEnabled;
                                 dispatch({
@@ -333,7 +333,7 @@ const Chatbox = ({
                         placement="top"
                     >
                         <IconButton
-                            variant="tactileChrome"
+                            variant="tactileGhost"
                             icon={
                                 <Icon
                                     as={
@@ -350,8 +350,8 @@ const Chatbox = ({
                                     : 'Chat sound muted'
                             }
                             size="sm"
-                            height="32px"
-                            minW="32px"
+                            height="36px"
+                            minW="36px"
                             onClick={() =>
                                 dispatch({
                                     type: 'setChatSoundEnabled',
@@ -361,18 +361,22 @@ const Chatbox = ({
                         />
                     </Tooltip>
                     <IconButton
-                        variant="tactileChrome"
+                        variant="tactileGhost"
                         onClick={onToggle}
                         icon={<IoClose size={20} />}
                         aria-label="Close Chat Box"
-                        size="md"
+                        size="sm"
                         height="36px"
                         minW="36px"
                         color="brand.pink"
-                        _hover={{ color: 'brand.pinkDark' }}
-                        _dark={{
-                            color: 'brand.pink',
-                            _hover: { color: 'brand.pinkDark' },
+                        _hover={{
+                            bg: 'card.lightGray',
+                            color: 'brand.pinkDark',
+                        }}
+                        _active={{
+                            bg: 'border.lightGray',
+                            color: 'brand.pinkDark',
+                            transform: 'translateY(1px)',
                         }}
                     />
                 </Flex>
@@ -400,14 +404,14 @@ const Chatbox = ({
                                 fontSize="sm"
                                 color="text.secondary"
                             >
-                                No messages yet
+                                dead chat 💀
                             </Text>
                             <Text
                                 fontSize="xs"
                                 color="text.muted"
                                 textAlign="center"
                             >
-                                Say hello to start the conversation.
+                                be the first to say something
                             </Text>
                         </Flex>
                     </Flex>

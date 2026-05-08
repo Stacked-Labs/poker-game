@@ -30,10 +30,17 @@ const StartGameButton = () => {
         const isDisabled = !game.running && readyPlayersCount < 2;
         return (
             <Tooltip
-                bg="red.600"
-                label={'Needs 2 or more ready players to start a game.'}
+                label="Need 2+ ready players"
                 isDisabled={game.running || readyPlayersCount >= 2}
+                placement="top"
                 hasArrow
+                bg="brand.navy"
+                color="white"
+                borderRadius="md"
+                fontSize="xs"
+                fontWeight="semibold"
+                px={2.5}
+                py={1.5}
             >
                 {/* Icon button for mobile */}
                 <IconButton

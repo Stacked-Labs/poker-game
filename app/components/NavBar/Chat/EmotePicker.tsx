@@ -207,9 +207,9 @@ const EmotePicker = ({
                         aria-label="Open emote picker"
                         variant="tactileChrome"
                         size="lg"
-                        height="44px"
-                        width="44px"
-                        minW="44px"
+                        height="48px"
+                        width="48px"
+                        minW="48px"
                         borderRadius="12px"
                         isDisabled={isDisabled}
                     />

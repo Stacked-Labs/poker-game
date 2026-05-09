@@ -49,22 +49,14 @@ const BackToTopButton = () => {
                 >
                     <IconButton
                         aria-label="Back to top"
-                        icon={<Icon as={HiArrowUp} boxSize={6} />}
+                        icon={<Icon as={HiArrowUp} boxSize={5} />}
                         onClick={scrollToTop}
                         size="lg"
-                        bg="brand.pink"
-                        color="white"
+                        variant="tactileChrome"
                         borderRadius="full"
-                        boxShadow="0 4px 15px rgba(235, 11, 92, 0.4)"
-                        _hover={{
-                            bg: 'brand.pink',
-                            transform: 'translateY(-4px)',
-                            boxShadow: '0 6px 20px rgba(235, 11, 92, 0.6)',
-                        }}
-                        _active={{
-                            transform: 'translateY(0)',
-                        }}
-                        transition="all 0.2s"
+                        h="48px"
+                        w="48px"
+                        minW="48px"
                     />
                 </MotionBox>
             )}

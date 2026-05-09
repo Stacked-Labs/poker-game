@@ -196,24 +196,23 @@ const WithdrawButton = () => {
                     color="white"
                     border="none"
                     borderRadius="12px"
-                    fontWeight="semibold"
+                    fontWeight={700}
                     fontSize={{ base: 'xs', md: 'sm' }}
+                    letterSpacing="0.02em"
                     leftIcon={
                         <Icon as={FaCoins} boxSize={{ base: 4, md: 5 }} />
                     }
                     iconSpacing={1.5}
-                    filter={isUserSeated ? 'blur(1px)' : 'none'}
-                    opacity={isUserSeated ? 0.6 : 1}
-                    _hover={{
-                        transform: isUserSeated
-                            ? 'none'
-                            : 'translateY(-2px)',
-                        boxShadow: isUserSeated
-                            ? 'none'
-                            : '0 4px 12px rgba(253, 197, 29, 0.4)',
-                        filter: isUserSeated ? 'blur(1px)' : 'none',
+                    opacity={isUserSeated ? 0.85 : 1}
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900"
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, opacity 120ms ease"
+                    _hover={{ bg: 'brand.yellow', opacity: 1 }}
+                    _active={{
+                        bg: 'brand.yellowDark',
+                        transform: 'translateY(2px)',
+                        boxShadow:
+                            'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
                     }}
-                    transition="all 0.2s ease"
                 >
                     Withdraw
                 </Button>
@@ -267,11 +266,8 @@ const WithdrawButton = () => {
                             top={4}
                             right={4}
                             borderRadius="full"
-                            _hover={{
-                                bg: 'brand.lightGray',
-                                transform: 'rotate(90deg)',
-                            }}
-                            transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                            _hover={{ bg: 'card.lightGray' }}
+                            transition="background-color 80ms ease, color 80ms ease"
                         />
 
                         <ModalHeader textAlign="center" pt={10} pb={2}>
@@ -499,23 +495,21 @@ const WithdrawButton = () => {
                                     w="100%"
                                     h="56px"
                                     fontSize="md"
-                                    fontWeight="bold"
+                                    fontWeight={700}
+                                    letterSpacing="0.02em"
                                     borderRadius="bigButton"
                                     bg={
-                                        isPendingWithdraw || isButtonDisabled
-                                            ? 'gray.300'
+                                        isPendingWithdraw
+                                            ? 'transparent'
                                             : 'brand.yellow'
                                     }
                                     color={
                                         isPendingWithdraw
-                                            ? 'brand.yellow'
-                                            : isButtonDisabled
-                                              ? 'gray.500'
-                                              : 'white'
+                                            ? 'brand.yellowDark'
+                                            : 'white'
                                     }
                                     border={isPendingWithdraw ? '2px solid' : 'none'}
                                     borderColor={isPendingWithdraw ? 'brand.yellow' : 'transparent'}
-                                    opacity={isButtonDisabled || isPendingWithdraw ? 0.6 : 1}
                                     isDisabled={isButtonDisabled && !isPendingWithdraw}
                                     isLoading={
                                         isLoading && status === 'withdrawing'
@@ -523,61 +517,38 @@ const WithdrawButton = () => {
                                     loadingText={getStatusMessage()}
                                     onClick={isPendingWithdraw ? refreshWithdrawStatus : handleWithdraw}
                                     cursor={isPendingWithdraw ? 'default' : undefined}
-                                    _disabled={{
-                                        bg: 'gray.300',
-                                        color: 'gray.500',
-                                        cursor: 'not-allowed',
-                                        opacity: 0.6,
-                                    }}
                                     position="relative"
                                     overflow="hidden"
-                                    _before={{
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        bg: isPendingWithdraw
+                                    boxShadow={
+                                        isPendingWithdraw
                                             ? 'none'
-                                            : 'linear-gradient(135deg, transparent, rgba(255,255,255,0.3), transparent)',
-                                        transform: 'translateX(-100%)',
-                                        transition: 'transform 0.6s',
-                                        opacity: isButtonDisabled ? 0 : 1,
-                                    }}
+                                            : 'inset 0 1px 0 rgba(255,255,255,0.18), 0 3px 0 #B78900'
+                                    }
+                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                                     _hover={
                                         isPendingWithdraw
-                                            ? { bg: 'gray.300' }
-                                            : isButtonDisabled
-                                              ? {}
-                                              : {
-                                                    bg: 'brand.yellow',
-                                                    transform:
-                                                        'translateY(-2px)',
-                                                    boxShadow:
-                                                        '0 12px 24px rgba(253, 197, 29, 0.35)',
-                                                    _before: {
-                                                        transform:
-                                                            'translateX(100%)',
-                                                    },
-                                                }
+                                            ? { bg: 'transparent' }
+                                            : { bg: 'brand.yellow' }
                                     }
-                                    _active={{
-                                        transform:
-                                            isButtonDisabled || isPendingWithdraw
-                                                ? 'none'
-                                                : 'translateY(0)',
-                                    }}
-                                    transition="all 0.2s ease"
+                                    _active={
+                                        isPendingWithdraw
+                                            ? {}
+                                            : {
+                                                  bg: 'brand.yellowDark',
+                                                  transform: 'translateY(2px)',
+                                                  boxShadow:
+                                                      'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
+                                              }
+                                    }
                                 >
                                     {isPendingWithdraw ? (
                                         <HStack spacing={2} zIndex={1}>
                                             <Spinner
                                                 size="xs"
-                                                color="gray.500"
+                                                color="brand.yellowDark"
                                                 thickness="2px"
                                             />
-                                            <Text color="gray.500">
+                                            <Text color="brand.yellowDark" fontWeight={600}>
                                                 Checking in {countdown}s...
                                             </Text>
                                         </HStack>

@@ -61,7 +61,7 @@ export default function GlobalError({
                 </Text>
                 <Button
                     onClick={reset}
-                    variant="greenGradient"
+                    variant="tactilePrimary"
                     size="lg"
                     w="100%"
                     borderRadius="14px"

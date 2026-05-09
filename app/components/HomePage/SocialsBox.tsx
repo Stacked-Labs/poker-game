@@ -21,7 +21,7 @@ const SocialsBox = ({
                     size={{ base: 'md', md: 'lg' }}
                 />
             </Link>
-            <Text textAlign={'justify'}>{text}</Text>
+            <Text color="text.primary" textAlign={'justify'}>{text}</Text>
         </VStack>
     );
 };

@@ -2,6 +2,7 @@
 
 import {
     Box,
+    Flex,
     IconButton,
     Input,
     Popover,
@@ -9,9 +10,9 @@ import {
     PopoverBody,
     PopoverContent,
     PopoverTrigger,
+    Spinner,
     Text,
     Tooltip,
-    useColorModeValue,
     Portal,
     useDisclosure,
     type PopoverContentProps,
@@ -31,13 +32,24 @@ import {
 import { useEmotesData } from '@/app/hooks/useEmotesData';
 import type { Emote } from '@/app/stores/emotes';
 
+const SECTION_HEADING_PROPS = {
+    fontSize: '2xs',
+    fontWeight: 800,
+    letterSpacing: '0.10em',
+    textTransform: 'uppercase' as const,
+    color: 'text.secondary',
+};
+
+const TACTILE_TRANSITION =
+    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease, border-color 80ms ease';
+
 const EmotePicker = ({
     onSelectEmote,
     isDisabled,
     trigger,
     columns = 5,
     maxHeight = { base: '420px', md: '470px' },
-    width = { base: '360px', md: '420px' },
+    width = { base: '320px', md: '420px' },
     showSearch = true,
     popoverContentProps,
     popoverBodyProps,
@@ -66,14 +78,6 @@ const EmotePicker = ({
     const [search, setSearch] = useState('');
     const [visibleCount, setVisibleCount] = useState(80);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const emoteHoverBg = useColorModeValue(
-        'rgba(0, 0, 0, 0.06)',
-        'rgba(255, 255, 255, 0.08)'
-    );
-    const emoteActiveBg = useColorModeValue(
-        'rgba(0, 0, 0, 0.12)',
-        'rgba(255, 255, 255, 0.14)'
-    );
     const { isOpen, onOpen, onClose } = useDisclosure();
     const handleOpen = useCallback(() => {
         if (isDisabled) return;
@@ -116,6 +120,78 @@ const EmotePicker = ({
         }
     }, [search, emotes.length]);
 
+    const handlePick = useCallback(
+        (emote: Emote) => {
+            addRecentEmoteId(emote.id);
+            onSelectEmote(emote);
+            onClose();
+        },
+        [addRecentEmoteId, onSelectEmote, onClose]
+    );
+
+    const renderEmoteTile = (emote: Emote) => (
+        <Tooltip
+            key={emote.id}
+            label={`:${emote.name}:`}
+            placement="top"
+            hasArrow
+            openDelay={250}
+        >
+            <Box
+                as="button"
+                aria-label={`Send ${emote.name}`}
+                onClick={() => handlePick(emote)}
+                position="relative"
+                p={1}
+                borderRadius="10px"
+                width="100%"
+                height={{ base: '52px', md: '60px' }}
+                bg="transparent"
+                transition={TACTILE_TRANSITION}
+                _hover={{ bg: 'card.lightGray' }}
+                _active={{
+                    bg: 'card.lightGray',
+                    transform: 'translateY(1px)',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
+                }}
+                _focusVisible={{
+                    outline: '2px solid',
+                    outlineColor: 'brand.green',
+                    outlineOffset: '2px',
+                }}
+            >
+                <Box
+                    as="img"
+                    src={emote.url}
+                    alt={emote.name}
+                    height={{ base: '32px', md: '40px' }}
+                    minWidth={{ base: '32px', md: '40px' }}
+                    width="auto"
+                    display="inline-block"
+                    verticalAlign="middle"
+                    loading="lazy"
+                    decoding="async"
+                />
+            </Box>
+        </Tooltip>
+    );
+
+    const showEmptyPanel = filteredEmotes.length === 0;
+    const emptyTitle = emotesError
+        ? 'Emotes failed to load'
+        : emotesLoading
+          ? 'Loading emotes'
+          : search
+            ? 'No matches'
+            : 'No emotes yet';
+    const emptyBody = emotesError
+        ? 'Check your connection and try opening the picker again.'
+        : emotesLoading
+          ? 'Hang tight — fetching the set.'
+          : search
+            ? `Nothing matches “${search.trim()}”. Try a shorter query.`
+            : 'Pop back in once emotes are available.';
+
     return (
         <Popover
             isLazy
@@ -127,58 +203,78 @@ const EmotePicker = ({
             <PopoverTrigger>
                 {trigger ?? (
                     <IconButton
-                        icon={<FiSmile size={22} />}
+                        icon={<FiSmile size={20} />}
                         aria-label="Open emote picker"
+                        variant="tactileChrome"
                         size="lg"
                         height="48px"
                         width="48px"
-                        bg="transparent"
-                        color="text.secondary"
-                        border="1px solid"
-                        borderColor="chat.border"
+                        minW="48px"
                         borderRadius="12px"
-                        _hover={{
-                            bg: 'card.lightGray',
-                            color: 'text.primary',
-                        }}
-                        _active={{
-                            bg: 'card.lighterGray',
-                        }}
-                        _focus={{ outline: 'none', boxShadow: 'none' }}
-                        _disabled={{
-                            opacity: 0.5,
-                            cursor: 'not-allowed',
-                        }}
-                        transition="background 0.15s ease, color 0.15s ease"
                         isDisabled={isDisabled}
                     />
                 )}
             </PopoverTrigger>
             <Portal>
                 <PopoverContent
-                    borderWidth={2}
-                    borderColor="input.lightGray"
-                    boxShadow="lg"
+                    bg="card.white"
+                    border="1px solid"
+                    borderColor="border.lightGray"
+                    borderRadius="14px"
+                    boxShadow="card.lift"
                     width={width}
+                    maxW="calc(100vw - 16px)"
                     zIndex={1500}
+                    _focus={{ outline: 'none', boxShadow: 'card.lift' }}
                     {...popoverContentProps}
                 >
                     <PopoverArrow
-                        border="none"
-                        boxShadow="lg"
+                        bg="card.white"
+                        boxShadow="card.lift"
                         {...popoverArrowProps}
                     />
-                    <PopoverBody bg="card.white" p={2} {...popoverBodyProps}>
+                    <PopoverBody
+                        bg="card.white"
+                        p={3}
+                        borderRadius="14px"
+                        {...popoverBodyProps}
+                    >
+                        {showSearch && (
+                            <Input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search emotes"
+                                height="40px"
+                                bg="input.lightGray"
+                                color="text.primary"
+                                border="1px solid"
+                                borderColor="border.lightGray"
+                                borderRadius="10px"
+                                fontSize="sm"
+                                fontWeight="medium"
+                                px={3}
+                                mb={3}
+                                transition={TACTILE_TRANSITION}
+                                _placeholder={{ color: 'text.muted' }}
+                                _hover={{
+                                    borderColor: 'border.lightGray',
+                                    bg: 'input.white',
+                                }}
+                                _focus={{
+                                    bg: 'input.white',
+                                    borderColor: 'border.lightGray',
+                                    boxShadow: 'chat.inputFocus',
+                                }}
+                            />
+                        )}
                         <Box
                             ref={scrollRef}
                             maxH={maxHeight}
-                            overflowY="scroll"
+                            overflowY="auto"
                             overscrollBehavior="contain"
                             sx={{
                                 scrollbarWidth: 'none',
-                                '&::-webkit-scrollbar': {
-                                    display: 'none',
-                                },
+                                '&::-webkit-scrollbar': { display: 'none' },
                             }}
                             onScroll={() => {
                                 const container = scrollRef.current;
@@ -199,38 +295,9 @@ const EmotePicker = ({
                                 }
                             }}
                         >
-                            {showSearch && (
-                                <Input
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Search emotes"
-                                    height="36px"
-                                    bg="input.lightGray"
-                                    color="text.secondary"
-                                    border="none"
-                                    borderRadius="10px"
-                                    fontSize="sm"
-                                    fontWeight="light"
-                                    px={3}
-                                    mb={3}
-                                    _placeholder={{
-                                        color: 'text.primary',
-                                    }}
-                                    _focus={{
-                                        bg: 'input.white',
-                                        boxShadow:
-                                            'var(--chakra-shadows-chat-inputFocus)',
-                                    }}
-                                />
-                            )}
                             {recentEmotes.length > 0 && (
                                 <>
-                                    <Text
-                                        fontSize="sm"
-                                        fontWeight="semibold"
-                                        color="text.secondary"
-                                        mb={2}
-                                    >
+                                    <Text {...SECTION_HEADING_PROPS} mb={2}>
                                         Recent
                                     </Text>
                                     <Box
@@ -239,147 +306,76 @@ const EmotePicker = ({
                                         gap={1.5}
                                         mb={3}
                                     >
-                                        {recentEmotes.map((emote) => (
-                                            <Tooltip
-                                                key={emote.id}
-                                                label={`:${emote.name}:`}
-                                                placement="top"
-                                                hasArrow
-                                            >
-                                                <Box
-                                                    as="button"
-                                                    onClick={() => {
-                                                        addRecentEmoteId(
-                                                            emote.id
-                                                        );
-                                                        onSelectEmote(emote);
-                                                        onClose();
-                                                    }}
-                                                    position="relative"
-                                                    p={0.5}
-                                                    borderRadius="md"
-                                                    width="100%"
-                                                    height={{
-                                                        base: '56px',
-                                                        md: '64px',
-                                                    }}
-                                                    _hover={{
-                                                        bg: emoteHoverBg,
-                                                    }}
-                                                    _active={{
-                                                        bg: emoteActiveBg,
-                                                    }}
-                                                >
-                                                    <Box
-                                                        as="img"
-                                                        src={emote.url}
-                                                        alt={emote.name}
-                                                        height={{
-                                                            base: '32px',
-                                                            md: '40px',
-                                                        }}
-                                                        minWidth={{
-                                                            base: '32px',
-                                                            md: '40px',
-                                                        }}
-                                                        width="auto"
-                                                        display="inline-block"
-                                                        verticalAlign="middle"
-                                                        loading="lazy"
-                                                        decoding="async"
-                                                    />
-                                                </Box>
-                                            </Tooltip>
-                                        ))}
+                                        {recentEmotes.map(renderEmoteTile)}
                                     </Box>
                                 </>
                             )}
-                            <Text
-                                fontSize="sm"
-                                fontWeight="semibold"
-                                color="text.secondary"
-                                mb={2}
-                            >
-                                Other
-                            </Text>
-                            <Box
-                                display="grid"
-                                gridTemplateColumns={`repeat(${columns}, 1fr)`}
-                                gap={0.5}
-                            >
-                                {visibleEmotes.map((emote) => (
-                                    <Tooltip
-                                        key={emote.id}
-                                        label={`:${emote.name}:`}
-                                        placement="top"
-                                        hasArrow
+
+                            {visibleEmotes.length > 0 && (
+                                <>
+                                    <Text {...SECTION_HEADING_PROPS} mb={2}>
+                                        {recentEmotes.length > 0
+                                            ? 'All emotes'
+                                            : 'Emotes'}
+                                    </Text>
+                                    <Box
+                                        display="grid"
+                                        gridTemplateColumns={`repeat(${columns}, 1fr)`}
+                                        gap={1.5}
                                     >
-                                        <Box
-                                            as="button"
-                                            onClick={() => {
-                                                addRecentEmoteId(emote.id);
-                                                onSelectEmote(emote);
-                                                onClose();
-                                            }}
-                                            position="relative"
-                                            p={1}
-                                            borderRadius="md"
-                                            width="100%"
-                                            height={{
-                                                base: '56px',
-                                                md: '64px',
-                                            }}
-                                            _hover={{ bg: emoteHoverBg }}
-                                            _active={{ bg: emoteActiveBg }}
-                                        >
-                                            <Box
-                                                as="img"
-                                                src={emote.url}
-                                                alt={emote.name}
-                                                height={{
-                                                    base: '32px',
-                                                    md: '40px',
-                                                }}
-                                                minWidth={{
-                                                    base: '32px',
-                                                    md: '40px',
-                                                }}
-                                                width="auto"
-                                                display="inline-block"
-                                                verticalAlign="middle"
-                                                loading="lazy"
-                                                decoding="async"
-                                            />
-                                        </Box>
-                                    </Tooltip>
-                                ))}
-                            </Box>
-                            {filteredEmotes.length === 0 && (
-                                <Text color="text.secondary" fontSize="sm">
-                                    {emotesError
-                                        ? 'Emotes failed to load.'
-                                        : emotesLoading
-                                          ? 'Loading emotes...'
-                                          : 'No emotes found'}
-                                </Text>
+                                        {visibleEmotes.map(renderEmoteTile)}
+                                    </Box>
+                                </>
                             )}
+
+                            {showEmptyPanel && (
+                                <Flex
+                                    direction="column"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    py={6}
+                                    px={4}
+                                    bg="card.lightGray"
+                                    borderRadius="14px"
+                                    border="1px dashed"
+                                    borderColor="border.lightGray"
+                                    gap={1.5}
+                                >
+                                    {emotesLoading && (
+                                        <Spinner
+                                            size="sm"
+                                            color="text.muted"
+                                            mb={1}
+                                        />
+                                    )}
+                                    <Text
+                                        fontWeight="bold"
+                                        fontSize="sm"
+                                        color="text.secondary"
+                                    >
+                                        {emptyTitle}
+                                    </Text>
+                                    <Text
+                                        fontSize="xs"
+                                        color="text.muted"
+                                        textAlign="center"
+                                    >
+                                        {emptyBody}
+                                    </Text>
+                                </Flex>
+                            )}
+
                             {filteredEmotes.length > visibleEmotes.length && (
                                 <Text
                                     color="text.secondary"
-                                    fontSize="xs"
-                                    mt={2}
+                                    fontSize="2xs"
+                                    fontWeight={700}
+                                    letterSpacing="0.08em"
+                                    textTransform="uppercase"
+                                    textAlign="center"
+                                    mt={3}
                                 >
-                                    Scroll for more emotes
-                                </Text>
-                            )}
-                            {filteredEmotes.length > 0 && (
-                                <Text
-                                    color="text.secondary"
-                                    fontSize="xs"
-                                    mt={1}
-                                >
-                                    Showing {visibleEmotes.length} of{' '}
-                                    {filteredEmotes.length}
+                                    Scroll for more
                                 </Text>
                             )}
                         </Box>

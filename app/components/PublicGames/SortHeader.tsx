@@ -31,15 +31,20 @@ function SortHeaderButton({
             onClick={() => onSortChange(sortKey)}
             h="20px"
             px={0}
-            color={active ? 'brand.green' : 'text.muted'}
+            border="none"
+            color={active ? 'brand.green' : 'text.secondary'}
             _hover={{ color: 'brand.green' }}
-            transition="color 0.15s ease"
+            _active={{ color: 'brand.greenDark' }}
+            _focus={{ boxShadow: 'none' }}
+            _focusVisible={{ boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)', borderRadius: '4px' }}
+            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), color 80ms ease"
             display="inline-flex"
             justifyContent={align === 'right' ? 'flex-end' : 'flex-start'}
             w="full"
         >
             <HStack spacing={1} align="center">
                 <Text
+                    color="currentColor"
                     fontSize="2xs"
                     fontWeight="bold"
                     letterSpacing="0.1em"
@@ -83,7 +88,7 @@ export default function SortHeader({ sortConfig, onSortChange, ruleColor }: Sort
                     fontWeight="bold"
                     letterSpacing="0.1em"
                     textTransform="uppercase"
-                    color="text.muted"
+                    color="text.secondary"
                     textAlign="right"
                 >
                     Age

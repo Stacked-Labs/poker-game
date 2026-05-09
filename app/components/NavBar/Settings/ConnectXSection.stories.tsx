@@ -163,13 +163,22 @@ const ConnectXPreview: React.FC<ConnectXPreviewProps> = ({
                 </HStack>
                 <Button
                     size="sm"
-                    bg="#000"
+                    bg="#0A0B12"
                     color="white"
-                    borderRadius="8px"
+                    border="none"
+                    borderRadius="10px"
+                    fontWeight={700}
                     fontSize={{ base: 'xs', md: 'sm' }}
-                    _hover={{ bg: '#1a1a1a', transform: 'translateY(-1px)' }}
-                    _active={{ transform: 'translateY(0)' }}
-                    transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+                    letterSpacing="0.02em"
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #000000"
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                    _hover={{ bg: '#0A0B12' }}
+                    _active={{
+                        bg: '#000000',
+                        transform: 'translateY(1.5px)',
+                        boxShadow:
+                            'inset 0 2px 4px rgba(0,0,0,0.30), 0 0 0 #000000',
+                    }}
                     isLoading={isConnecting}
                     leftIcon={<Icon as={FaXTwitter} boxSize={3.5} />}
                     flexShrink={0}

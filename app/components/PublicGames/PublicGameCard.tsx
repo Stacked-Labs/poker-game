@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import {
     Box,
+    Flex,
     HStack,
     Icon,
     Image,
@@ -12,7 +13,7 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { FiExternalLink, FiEye, FiUsers } from 'react-icons/fi';
+import { FiExternalLink, FiEye } from 'react-icons/fi';
 import {
     BASESCAN_URL,
     USDC_BLUE,
@@ -34,18 +35,30 @@ interface PublicGameCardProps {
     isLast: boolean;
 }
 
+function getChainLogo(chain: string): string | null {
+    const c = chain.toLowerCase();
+    if (c === 'base' || c === 'base sepolia' || c === 'base-sepolia')
+        return '/networkLogos/base-logo.png';
+    if (c === 'arbitrum') return '/networkLogos/arbitrum-logo.png';
+    if (c === 'optimism') return '/networkLogos/optimism-logo.png';
+    if (c === 'solana') return '/networkLogos/solana-logo.png';
+    return null;
+}
+
 export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCardProps) {
     const rowHover = useColorModeValue('rgba(11, 20, 48, 0.025)', 'rgba(255, 255, 255, 0.03)');
     const relTime = useRelativeTime(game.created_at);
     const hot = isHot(game);
+    const chainName = game.is_crypto ? 'Base' : null;
+    const chainLogo = chainName ? getChainLogo(chainName) : null;
 
     return (
         <HStack
             as={Link}
             href={`/table/${game.name}`}
-            px={{ base: 4, md: 6 }}
+            px={{ base: 3, md: 6 }}
             py={{ base: 3, md: 3.5 }}
-            spacing={4}
+            spacing={{ base: 3, md: 4 }}
             borderBottom={isLast ? 'none' : '1px solid'}
             borderColor={ruleColor}
             cursor="pointer"
@@ -53,10 +66,12 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
             _hover={{ bg: rowHover, textDecoration: 'none' }}
             transition="background 0.12s ease"
             role="group"
+            minH={{ base: '64px', md: 'auto' }}
+            align="center"
         >
             <Box
-                w="10px"
-                h="10px"
+                w={{ base: '8px', md: '10px' }}
+                h={{ base: '8px', md: '10px' }}
                 borderRadius="full"
                 bg={game.is_active ? 'brand.green' : 'brand.yellow'}
                 animation={game.is_active ? `${dotPulse} 2s ease-in-out infinite` : undefined}
@@ -64,36 +79,75 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
             />
 
             <VStack align="start" spacing={0} flex="2.2" minW={0}>
-                <HStack spacing={2}>
-                    <Text fontWeight="semibold" color="text.primary" noOfLines={1}>
+                <HStack spacing={2} maxW="100%" minW={0}>
+                    <Text
+                        fontWeight="semibold"
+                        color="text.primary"
+                        noOfLines={1}
+                        fontSize={{ base: 'sm', md: 'md' }}
+                        minW={0}
+                    >
                         {game.name}
                     </Text>
                     <MarketTag game={game} />
                     <ContractLink game={game} />
                 </HStack>
-                <Text fontSize="2xs" color="text.muted">
-                    {game.is_crypto ? 'Base' : 'Play money'}
-                    {' · '}
-                    {game.is_active ? 'Running' : 'Open'}
-                    {hot && ' · Hot'}
-                </Text>
+                <Flex
+                    align="center"
+                    gap={1.5}
+                    fontSize="2xs"
+                    color="text.muted"
+                    mt={0.5}
+                    flexWrap="wrap"
+                >
+                    {chainLogo && chainName && (
+                        <Image
+                            src={chainLogo}
+                            alt={`${chainName} logo`}
+                            w={{ base: '14px', md: '16px' }}
+                            h={{ base: '14px', md: '16px' }}
+                            objectFit="contain"
+                            loading="lazy"
+                            flexShrink={0}
+                        />
+                    )}
+                    <Text as="span" color="text.muted">
+                        {chainName ?? 'Play money'}
+                        {' · '}
+                        {game.is_active ? 'Running' : 'Open'}
+                        {hot && ' · Hot'}
+                    </Text>
+                </Flex>
                 {/* Mobile-only inline data */}
                 <HStack
                     display={{ base: 'flex', md: 'none' }}
                     spacing={2}
-                    color="text.secondary"
                     fontSize="xs"
-                    pt={1}
+                    pt={1.5}
+                    flexWrap="wrap"
                 >
-                    <Text fontWeight="semibold">
-                        {game.player_count}/{game.max_players} seats
+                    <Text
+                        fontWeight="semibold"
+                        color={
+                            game.player_count >= game.max_players
+                                ? 'brand.pink'
+                                : 'text.secondary'
+                        }
+                        sx={{ fontVariantNumeric: 'tabular-nums' }}
+                    >
+                        {game.player_count}/{game.max_players}{' '}
+                        {game.player_count >= game.max_players
+                            ? 'full'
+                            : 'seats'}
                     </Text>
                     {game.spectator_count > 0 && (
                         <>
                             <Text color="text.muted">·</Text>
                             <HStack spacing={1} color="text.muted">
                                 <Icon as={FiEye} boxSize="11px" />
-                                <Text>{game.spectator_count}</Text>
+                                <Text color="text.muted">
+                                    {game.spectator_count}
+                                </Text>
                             </HStack>
                         </>
                     )}
@@ -105,13 +159,10 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
             <BlindsCell game={game} />
 
             <HStack flex="1.2" spacing={3} display={{ base: 'none', md: 'flex' }}>
-                <SeatDots taken={game.player_count} total={game.max_players} />
-                <HStack spacing={1} color="text.secondary" fontSize="xs">
-                    <Icon as={FiUsers} boxSize="11px" />
-                    <Text fontWeight="semibold" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {game.player_count}/{game.max_players}
-                    </Text>
-                </HStack>
+                <SeatProgress
+                    taken={game.player_count}
+                    total={game.max_players}
+                />
                 <SpectatorPip count={game.spectator_count} />
             </HStack>
 
@@ -137,6 +188,7 @@ function MarketTag({ game }: { game: PublicGame }) {
                 fontWeight="bold"
                 letterSpacing="0.08em"
                 color={USDC_BLUE}
+                flexShrink={0}
             >
                 USDC
             </Text>
@@ -148,6 +200,7 @@ function MarketTag({ game }: { game: PublicGame }) {
             fontWeight="bold"
             letterSpacing="0.08em"
             color="text.muted"
+            flexShrink={0}
         >
             FREE
         </Text>
@@ -178,6 +231,7 @@ function ContractLink({ game }: { game: PublicGame }) {
                 h="20px"
                 borderRadius="6px"
                 color="text.muted"
+                flexShrink={0}
                 _hover={{ color: USDC_BLUE, bg: 'rgba(39, 117, 202, 0.1)' }}
                 transition="all 0.15s ease"
             >
@@ -189,16 +243,22 @@ function ContractLink({ game }: { game: PublicGame }) {
 
 function BlindsCell({ game }: { game: PublicGame }) {
     return (
-        <HStack flex="1" justify="flex-end" spacing={1.5}>
+        <HStack flex={{ base: '0 0 auto', md: '1' }} justify="flex-end" spacing={1.5} flexShrink={0}>
             {game.is_crypto && (
-                <Image src={USDC_LOGO} alt="USDC" boxSize="14px" />
+                <Image
+                    src={USDC_LOGO}
+                    alt="USDC"
+                    boxSize={{ base: '12px', md: '14px' }}
+                    flexShrink={0}
+                />
             )}
             <Text
                 fontWeight="bold"
-                fontSize="sm"
+                fontSize={{ base: 'xs', md: 'sm' }}
                 letterSpacing="-0.01em"
                 color={game.is_crypto ? USDC_BLUE : 'text.primary'}
                 sx={{ fontVariantNumeric: 'tabular-nums' }}
+                whiteSpace="nowrap"
             >
                 {blindsLabel(game)}
             </Text>
@@ -218,7 +278,11 @@ function SpectatorPip({ count }: { count: number }) {
         >
             <HStack spacing={1} color="text.muted" fontSize="xs">
                 <Icon as={FiEye} boxSize="11px" />
-                <Text fontWeight="semibold" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                <Text
+                    color="text.muted"
+                    fontWeight="semibold"
+                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                >
                     {count}
                 </Text>
             </HStack>
@@ -226,21 +290,57 @@ function SpectatorPip({ count }: { count: number }) {
     );
 }
 
-function SeatDots({ taken, total }: { taken: number; total: number }) {
-    const emptyBorder = useColorModeValue('rgba(11, 20, 48, 0.18)', 'rgba(255, 255, 255, 0.22)');
+function SeatProgress({ taken, total }: { taken: number; total: number }) {
+    const ratio = total === 0 ? 0 : Math.min(1, taken / total);
+    const isFull = taken >= total;
+    const trackBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.10)',
+        'rgba(255, 255, 255, 0.10)'
+    );
+    const fillFg = isFull ? 'brand.pink' : 'text.secondary';
+
     return (
-        <HStack spacing="3px">
-            {Array.from({ length: total }).map((_, i) => (
+        <VStack spacing={1.5} align="flex-start" minW="78px">
+            <HStack spacing={1.5} align="baseline">
+                <Text
+                    fontWeight="bold"
+                    fontSize="xs"
+                    color="text.primary"
+                    lineHeight="1"
+                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                >
+                    {taken}/{total}
+                </Text>
+                <Text
+                    fontSize="2xs"
+                    color={isFull ? 'brand.pink' : 'text.muted'}
+                    textTransform="uppercase"
+                    letterSpacing="0.10em"
+                    fontWeight="semibold"
+                    lineHeight="1"
+                >
+                    {isFull ? 'full' : 'seats'}
+                </Text>
+            </HStack>
+            <Box
+                position="relative"
+                w="78px"
+                h="2px"
+                borderRadius="full"
+                bg={trackBg}
+            >
                 <Box
-                    key={i}
-                    w="6px"
-                    h="6px"
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    h="2px"
+                    w={`${ratio * 100}%`}
                     borderRadius="full"
-                    bg={i < taken ? 'brand.green' : 'transparent'}
-                    border={i < taken ? 'none' : '1px solid'}
-                    borderColor={emptyBorder}
+                    bg={fillFg}
+                    opacity={0.85}
+                    transition="width 0.2s ease"
                 />
-            ))}
-        </HStack>
+            </Box>
+        </VStack>
     );
 }

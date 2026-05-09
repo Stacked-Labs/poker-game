@@ -35,14 +35,31 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
             onClick={disabled ? undefined : onClick}
             width={{ base: '90px', sm: '110px' }}
             height={{ base: '90px', sm: '110px' }}
-            transition="all 0.2s ease"
             position="relative"
+            boxShadow={
+                isSelected
+                    ? 'inset 0 1px 0 rgba(255,255,255,0.50), 0 2px 0 #950839'
+                    : '0 1.5px 0 rgba(0,0,0,0.08)'
+            }
+            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease"
             _hover={
                 disabled
                     ? {}
+                    : isSelected
+                      ? { borderColor: 'brand.pink' }
+                      : {
+                            borderColor: 'brand.pink',
+                            bg: 'rgba(235, 11, 92, 0.04)',
+                        }
+            }
+            _active={
+                disabled
+                    ? undefined
                     : {
-                          borderColor: 'brand.pink',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                          transform: 'translateY(2px)',
+                          boxShadow: isSelected
+                              ? 'inset 0 2px 4px rgba(0,0,0,0.14), 0 0 0 #950839'
+                              : 'inset 0 1px 2px rgba(0,0,0,0.10), 0 0 0 transparent',
                       }
             }
             opacity={disabled ? 0.7 : 1}

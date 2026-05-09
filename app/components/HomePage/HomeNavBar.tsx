@@ -15,8 +15,6 @@ import {
     Divider,
     Link,
     Icon,
-    Tooltip,
-    Badge,
 } from '@chakra-ui/react';
 import { Image } from '@chakra-ui/next-js';
 import React from 'react';
@@ -28,12 +26,11 @@ import {
     RiTrophyLine,
     RiBookOpenLine,
     RiExternalLinkLine,
-    RiTwitterXLine,
     RiChat3Line,
 } from 'react-icons/ri';
 import { FaDiscord } from 'react-icons/fa';
-import { FaTelegram } from 'react-icons/fa6';
 import WalletButton from '../WalletButton';
+import { SocialIconButton } from '../SocialIconButton';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ColorModeButton } from '../ColorModeButton';
@@ -42,6 +39,10 @@ const MotionFlex = motion(Flex);
 
 const logoImage = '/IconLogo.png';
 const logoSizes = '(max-width: 48em) 56px, (max-width: 62em) 64px, 72px';
+
+// Group E (Tactile): shared snap transition for nav-link rows.
+const TACTILE_TRANSITION =
+    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 120ms ease, color 120ms ease';
 
 const HomeNavBar: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -54,29 +55,22 @@ const HomeNavBar: React.FC = () => {
 
     const NavButtons = React.memo(() => (
         <>
-            <Tooltip
-                label="Coming soon"
-                hasArrow
-                bg="brand.darkNavy"
-                color="white"
-                fontSize="xs"
-                fontWeight="semibold"
-                borderRadius="8px"
-                px={3}
-                py={1.5}
+            <Button
+                as="a"
+                href="/public-games"
+                aria-label="Browse public games"
+                variant="navLink"
             >
-                <Button
-                    variant="navLink"
-                    opacity={0.4}
-                    cursor="default"
-                    _hover={{
-                        transform: 'none',
-                        color: 'text.primary',
-                    }}
-                >
-                    Leaderboard
-                </Button>
-            </Tooltip>
+                Games
+            </Button>
+            <Button
+                as="a"
+                href="/leaderboard"
+                aria-label="Leaderboard"
+                variant="navLink"
+            >
+                Leaderboard
+            </Button>
             <Button
                 as="a"
                 href="https://docs.stackedpoker.io/docs/introduction"
@@ -187,15 +181,7 @@ const HomeNavBar: React.FC = () => {
                 icon={<RiMenu3Line size={24} />}
                 onClick={onOpen}
                 display={{ base: 'flex', lg: 'none' }}
-                bg="transparent"
-                color="text.secondary"
-                borderRadius="12px"
-                _hover={{
-                    bg: 'rgba(12, 21, 49, 0.08)',
-                }}
-                _active={{
-                    bg: 'rgba(12, 21, 49, 0.12)',
-                }}
+                variant="tactileChrome"
             />
 
             {/* Mobile Drawer */}
@@ -261,19 +247,8 @@ const HomeNavBar: React.FC = () => {
                             icon={<RiCloseLine size={22} />}
                             onClick={onClose}
                             size="sm"
-                            bg="transparent"
-                            color="text.muted"
-                            border="none"
+                            variant="tactileChrome"
                             borderRadius="10px"
-                            _hover={{
-                                bg: 'rgba(12, 21, 49, 0.06)',
-                                color: 'text.primary',
-                            }}
-                            _dark={{
-                                _hover: {
-                                    bg: 'rgba(255, 255, 255, 0.08)',
-                                },
-                            }}
                         />
                     </Flex>
 
@@ -319,17 +294,28 @@ const HomeNavBar: React.FC = () => {
                                     color="text.primary"
                                     bg="transparent"
                                     border="none"
+                                    transition={TACTILE_TRANSITION}
                                     _hover={{
-                                        bg: 'rgba(54, 163, 123, 0.08)',
+                                        bg: 'rgba(54, 163, 123, 0.10)',
                                         color: 'brand.green',
-                                        transform: 'translateX(2px)',
+                                    }}
+                                    _active={{
+                                        bg: 'rgba(54, 163, 123, 0.16)',
+                                        transform: 'translateY(1px)',
+                                        boxShadow:
+                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
                                     }}
                                     _dark={{
                                         _hover: {
-                                            bg: 'rgba(54, 163, 123, 0.12)',
+                                            bg: 'rgba(54, 163, 123, 0.16)',
+                                        },
+                                        _active: {
+                                            bg: 'rgba(54, 163, 123, 0.22)',
+                                            transform: 'translateY(1px)',
+                                            boxShadow:
+                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
                                         },
                                     }}
-                                    transition="all 0.2s ease"
                                 >
                                     Create Game
                                 </Button>
@@ -353,74 +339,76 @@ const HomeNavBar: React.FC = () => {
                                     color="text.primary"
                                     bg="transparent"
                                     border="none"
+                                    transition={TACTILE_TRANSITION}
                                     _hover={{
-                                        bg: 'rgba(54, 163, 123, 0.08)',
+                                        bg: 'rgba(54, 163, 123, 0.10)',
                                         color: 'brand.green',
-                                        transform: 'translateX(2px)',
+                                    }}
+                                    _active={{
+                                        bg: 'rgba(54, 163, 123, 0.16)',
+                                        transform: 'translateY(1px)',
+                                        boxShadow:
+                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
                                     }}
                                     _dark={{
                                         _hover: {
-                                            bg: 'rgba(54, 163, 123, 0.12)',
+                                            bg: 'rgba(54, 163, 123, 0.16)',
+                                        },
+                                        _active: {
+                                            bg: 'rgba(54, 163, 123, 0.22)',
+                                            transform: 'translateY(1px)',
+                                            boxShadow:
+                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
                                         },
                                     }}
-                                    transition="all 0.2s ease"
                                 >
                                     Public Games
                                 </Button>
-                                <Tooltip
-                                    label="Coming soon"
-                                    hasArrow
-                                    placement="right"
-                                    bg="brand.darkNavy"
-                                    color="white"
-                                    fontSize="xs"
-                                    fontWeight="semibold"
-                                    borderRadius="8px"
+                                <Button
+                                    as="a"
+                                    href="/leaderboard"
+                                    onClick={onClose}
+                                    leftIcon={
+                                        <Icon
+                                            as={RiTrophyLine}
+                                            boxSize={5}
+                                        />
+                                    }
+                                    variant="ghost"
+                                    justifyContent="flex-start"
+                                    height="44px"
                                     px={3}
-                                    py={1.5}
+                                    borderRadius="12px"
+                                    fontWeight="semibold"
+                                    fontSize="sm"
+                                    color="text.primary"
+                                    bg="transparent"
+                                    border="none"
+                                    transition={TACTILE_TRANSITION}
+                                    _hover={{
+                                        bg: 'rgba(54, 163, 123, 0.10)',
+                                        color: 'brand.green',
+                                    }}
+                                    _active={{
+                                        bg: 'rgba(54, 163, 123, 0.16)',
+                                        transform: 'translateY(1px)',
+                                        boxShadow:
+                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
+                                    }}
+                                    _dark={{
+                                        _hover: {
+                                            bg: 'rgba(54, 163, 123, 0.16)',
+                                        },
+                                        _active: {
+                                            bg: 'rgba(54, 163, 123, 0.22)',
+                                            transform: 'translateY(1px)',
+                                            boxShadow:
+                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
+                                        },
+                                    }}
                                 >
-                                    <Button
-                                        leftIcon={
-                                            <Icon
-                                                as={RiTrophyLine}
-                                                boxSize={5}
-                                            />
-                                        }
-                                        variant="ghost"
-                                        justifyContent="flex-start"
-                                        height="44px"
-                                        px={3}
-                                        borderRadius="12px"
-                                        fontWeight="semibold"
-                                        fontSize="sm"
-                                        color="text.muted"
-                                        bg="transparent"
-                                        border="none"
-                                        opacity={0.5}
-                                        cursor="default"
-                                        _hover={{
-                                            bg: 'transparent',
-                                            transform: 'none',
-                                        }}
-                                        transition="all 0.2s ease"
-                                    >
-                                        Leaderboard
-                                        <Badge
-                                            ml={2}
-                                            fontSize="2xs"
-                                            fontWeight="bold"
-                                            bg="brand.yellow"
-                                            color="brand.darkNavy"
-                                            borderRadius="full"
-                                            px={2}
-                                            py={0.5}
-                                            textTransform="uppercase"
-                                            letterSpacing="0.05em"
-                                        >
-                                            Soon
-                                        </Badge>
-                                    </Button>
-                                </Tooltip>
+                                    Leaderboard
+                                </Button>
                             </VStack>
                         </Box>
 
@@ -475,16 +463,27 @@ const HomeNavBar: React.FC = () => {
                                     color="text.primary"
                                     bg="transparent"
                                     border="none"
+                                    transition={TACTILE_TRANSITION}
                                     _hover={{
-                                        bg: 'rgba(12, 21, 49, 0.05)',
-                                        transform: 'translateX(2px)',
+                                        bg: 'rgba(12, 21, 49, 0.06)',
+                                    }}
+                                    _active={{
+                                        bg: 'rgba(12, 21, 49, 0.10)',
+                                        transform: 'translateY(1px)',
+                                        boxShadow:
+                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
                                     }}
                                     _dark={{
                                         _hover: {
-                                            bg: 'rgba(255, 255, 255, 0.06)',
+                                            bg: 'rgba(255, 255, 255, 0.08)',
+                                        },
+                                        _active: {
+                                            bg: 'rgba(255, 255, 255, 0.14)',
+                                            transform: 'translateY(1px)',
+                                            boxShadow:
+                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
                                         },
                                     }}
-                                    transition="all 0.2s ease"
                                     sx={{
                                         '& > span:last-of-type': {
                                             ml: 'auto',
@@ -522,16 +521,27 @@ const HomeNavBar: React.FC = () => {
                                     color="text.primary"
                                     bg="transparent"
                                     border="none"
+                                    transition={TACTILE_TRANSITION}
                                     _hover={{
-                                        bg: 'rgba(12, 21, 49, 0.05)',
-                                        transform: 'translateX(2px)',
+                                        bg: 'rgba(12, 21, 49, 0.06)',
+                                    }}
+                                    _active={{
+                                        bg: 'rgba(12, 21, 49, 0.10)',
+                                        transform: 'translateY(1px)',
+                                        boxShadow:
+                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
                                     }}
                                     _dark={{
                                         _hover: {
-                                            bg: 'rgba(255, 255, 255, 0.06)',
+                                            bg: 'rgba(255, 255, 255, 0.08)',
+                                        },
+                                        _active: {
+                                            bg: 'rgba(255, 255, 255, 0.14)',
+                                            transform: 'translateY(1px)',
+                                            boxShadow:
+                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
                                         },
                                     }}
-                                    transition="all 0.2s ease"
                                     sx={{
                                         '& > span:last-of-type': {
                                             ml: 'auto',
@@ -569,16 +579,27 @@ const HomeNavBar: React.FC = () => {
                                     color="text.primary"
                                     bg="transparent"
                                     border="none"
+                                    transition={TACTILE_TRANSITION}
                                     _hover={{
-                                        bg: 'rgba(12, 21, 49, 0.05)',
-                                        transform: 'translateX(2px)',
+                                        bg: 'rgba(12, 21, 49, 0.06)',
+                                    }}
+                                    _active={{
+                                        bg: 'rgba(12, 21, 49, 0.10)',
+                                        transform: 'translateY(1px)',
+                                        boxShadow:
+                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
                                     }}
                                     _dark={{
                                         _hover: {
-                                            bg: 'rgba(255, 255, 255, 0.06)',
+                                            bg: 'rgba(255, 255, 255, 0.08)',
+                                        },
+                                        _active: {
+                                            bg: 'rgba(255, 255, 255, 0.14)',
+                                            transform: 'translateY(1px)',
+                                            boxShadow:
+                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
                                         },
                                     }}
-                                    transition="all 0.2s ease"
                                     sx={{
                                         '& > span:last-of-type': {
                                             ml: 'auto',
@@ -625,69 +646,27 @@ const HomeNavBar: React.FC = () => {
                                     href="https://x.com/stacked_poker"
                                     isExternal
                                 >
-                                    <IconButton
-                                        aria-label="X"
-                                        icon={<RiTwitterXLine size={20} />}
-                                        size="md"
-                                        variant="ghost"
-                                        color="text.muted"
-                                        bg="transparent"
-                                        border="none"
-                                        borderRadius="12px"
-                                        w="44px"
-                                        h="44px"
-                                        _hover={{
-                                            bg: '#000',
-                                            color: 'white',
-                                            transform: 'translateY(-2px)',
-                                        }}
-                                        transition="all 0.2s ease"
+                                    <SocialIconButton
+                                        tone="x"
+                                        chipSize="lg"
                                     />
                                 </Link>
                                 <Link
                                     href="https://discord.gg/347RBVcvpn"
                                     isExternal
                                 >
-                                    <IconButton
-                                        aria-label="Discord"
-                                        icon={<FaDiscord size={20} />}
-                                        size="md"
-                                        variant="ghost"
-                                        color="#5865F2"
-                                        bg="transparent"
-                                        border="none"
-                                        borderRadius="12px"
-                                        w="44px"
-                                        h="44px"
-                                        _hover={{
-                                            bg: '#5865F2',
-                                            color: 'white',
-                                            transform: 'translateY(-2px)',
-                                        }}
-                                        transition="all 0.2s ease"
+                                    <SocialIconButton
+                                        tone="discord"
+                                        chipSize="lg"
                                     />
                                 </Link>
                                 <Link
                                     href="https://t.me/stackedpoker"
                                     isExternal
                                 >
-                                    <IconButton
-                                        aria-label="Telegram"
-                                        icon={<FaTelegram size={20} />}
-                                        size="md"
-                                        variant="ghost"
-                                        color="#0088cc"
-                                        bg="transparent"
-                                        border="none"
-                                        borderRadius="12px"
-                                        w="44px"
-                                        h="44px"
-                                        _hover={{
-                                            bg: '#0088cc',
-                                            color: 'white',
-                                            transform: 'translateY(-2px)',
-                                        }}
-                                        transition="all 0.2s ease"
+                                    <SocialIconButton
+                                        tone="telegram"
+                                        chipSize="lg"
                                     />
                                 </Link>
                             </HStack>

@@ -38,6 +38,10 @@ interface BrandPaint {
     color: string;
     tint: string;
     tintDark: string;
+    /** Darker shade for tactile press. */
+    dark: string;
+    /** Edge color for the chip's bottom rim (tactile-tone Claim button). */
+    edge: string;
 }
 
 const QUEST_BRAND: Record<string, BrandPaint> = {
@@ -45,26 +49,36 @@ const QUEST_BRAND: Record<string, BrandPaint> = {
         color: '#0A0B12',
         tint: 'rgba(10, 11, 18, 0.06)',
         tintDark: 'rgba(255, 255, 255, 0.10)',
+        dark: '#000000',
+        edge: '#000000',
     },
     create_table: {
         color: '#36A37B',
         tint: 'rgba(54, 163, 123, 0.10)',
         tintDark: 'rgba(54, 163, 123, 0.18)',
+        dark: '#2A8463',
+        edge: '#22674E',
     },
     join_telegram: {
         color: '#229ED9',
         tint: 'rgba(34, 158, 217, 0.10)',
         tintDark: 'rgba(34, 158, 217, 0.20)',
+        dark: '#1A86B8',
+        edge: '#136687',
     },
     join_discord: {
         color: '#5865F2',
         tint: 'rgba(88, 101, 242, 0.10)',
         tintDark: 'rgba(88, 101, 242, 0.22)',
+        dark: '#4752D6',
+        edge: '#3F4ABF',
     },
     verify_sbt: {
         color: '#FDC51D',
         tint: 'rgba(253, 197, 29, 0.10)',
         tintDark: 'rgba(253, 197, 29, 0.18)',
+        dark: '#D4A010',
+        edge: '#A07800',
     },
 };
 
@@ -72,6 +86,8 @@ const NEUTRAL_PAINT: BrandPaint = {
     color: 'text.primary',
     tint: 'card.lightGray',
     tintDark: 'rgba(255, 255, 255, 0.06)',
+    dark: '#1A1A1A',
+    edge: '#000000',
 };
 
 function paintFor(quest: QuestItem): BrandPaint {
@@ -206,33 +222,60 @@ const QuestRow: React.FC<QuestRowProps> = ({
                     </HStack>
                 </VStack>
 
-                {!quest.completed && (
-                    <Button
-                        size="sm"
-                        h="30px"
-                        px={3}
-                        borderRadius="full"
-                        variant="ghost"
-                        color={isLocked ? 'text.secondary' : 'brand.green'}
-                        bg="transparent"
-                        border="1px solid"
-                        borderColor={isLocked ? 'border.lightGray' : 'border.greenStrong'}
-                        fontWeight={700}
-                        fontSize="xs"
-                        isDisabled={isLocked || isClaiming || (isVerifySbt && !quest.hasNft)}
-                        isLoading={isClaiming}
-                        loadingText="…"
-                        onClick={handle}
-                        _hover={isLocked ? {} : { bg: 'bg.greenSubtle' }}
-                        rightIcon={
-                            !isLocked && quest.actionUrl ? (
-                                <Icon as={FaArrowRight} boxSize="9px" />
-                            ) : undefined
-                        }
-                    >
-                        {buttonLabel}
-                    </Button>
-                )}
+                {!quest.completed &&
+                    (isLocked ? (
+                        // Locked state: neutral muted ghost — desaturated so it
+                        // doesn't read as "available".
+                        <Button
+                            size="sm"
+                            h="30px"
+                            px={3}
+                            borderRadius="full"
+                            variant="ghost"
+                            color="text.secondary"
+                            bg="transparent"
+                            border="1px solid"
+                            borderColor="border.lightGray"
+                            fontWeight={700}
+                            fontSize="xs"
+                            isDisabled
+                            _hover={{}}
+                        >
+                            Locked
+                        </Button>
+                    ) : (
+                        // Tactile-tone Claim — solid chip in the quest's brand color.
+                        <Button
+                            size="sm"
+                            h="30px"
+                            px={3}
+                            borderRadius="full"
+                            color="white"
+                            bg={paint.color}
+                            border="none"
+                            fontWeight={700}
+                            fontSize="xs"
+                            isDisabled={isClaiming || (isVerifySbt && !quest.hasNft)}
+                            isLoading={isClaiming}
+                            loadingText="…"
+                            onClick={handle}
+                            boxShadow={`inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 ${paint.edge}`}
+                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                            _hover={{ bg: paint.color }}
+                            _active={{
+                                bg: paint.dark,
+                                transform: 'translateY(2px)',
+                                boxShadow: `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${paint.edge}`,
+                            }}
+                            rightIcon={
+                                quest.actionUrl ? (
+                                    <Icon as={FaArrowRight} boxSize="9px" />
+                                ) : undefined
+                            }
+                        >
+                            {buttonLabel}
+                        </Button>
+                    ))}
             </HStack>
 
             {isVerifySbt && !quest.completed && !quest.hasNft && !isLocked && (

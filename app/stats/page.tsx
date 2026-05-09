@@ -296,8 +296,8 @@ const SettlementSection = ({ data }: { data: SettlementHealthResponse | null }) 
                                 </Badge>
                             </Flex>
                             <HStack gap={4} fontSize="sm" color="text.secondary">
-                                <Text>Hand #{ps.hand_id}</Text>
-                                <Text>{ps.player_count} players</Text>
+                                <Text color="text.secondary">Hand #{ps.hand_id}</Text>
+                                <Text color="text.secondary">{ps.player_count} players</Text>
                             </HStack>
                             {ps.thirdweb_error && (
                                 <Text fontSize="xs" color="brand.pink" mt={2}>{ps.thirdweb_error}</Text>
@@ -621,7 +621,7 @@ export default function AdminStatsPage() {
                                                 <Td fontSize="sm" fontWeight="semibold" borderColor="card.lightGray" pl={0}>
                                                     <HStack gap={1.5}>
                                                         <Badge bg="brand.green" color="white" fontSize="xs" px={1.5} borderRadius="full">Crypto</Badge>
-                                                        <Text>Tables Created</Text>
+                                                        <Text color="text.primary">Tables Created</Text>
                                                     </HStack>
                                                 </Td>
                                                 <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_tables_24h)}</Td>
@@ -633,7 +633,7 @@ export default function AdminStatsPage() {
                                                 <Td fontSize="sm" fontWeight="semibold" borderColor="card.lightGray" pl={0}>
                                                     <HStack gap={1.5}>
                                                         <Badge bg="brand.green" color="white" fontSize="xs" px={1.5} borderRadius="full">Crypto</Badge>
-                                                        <Text>Hands Played</Text>
+                                                        <Text color="text.primary">Hands Played</Text>
                                                     </HStack>
                                                 </Td>
                                                 <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.crypto_hands_24h)}</Td>
@@ -646,7 +646,7 @@ export default function AdminStatsPage() {
                                                 <Td fontSize="sm" fontWeight="semibold" borderColor="card.lightGray" pl={0}>
                                                     <HStack gap={1.5}>
                                                         <Badge bg="card.lightGray" color="text.secondary" fontSize="xs" px={1.5} borderRadius="full">Free</Badge>
-                                                        <Text>Tables Created</Text>
+                                                        <Text color="text.primary">Tables Created</Text>
                                                     </HStack>
                                                 </Td>
                                                 <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_tables_24h)}</Td>
@@ -658,7 +658,7 @@ export default function AdminStatsPage() {
                                                 <Td fontSize="sm" fontWeight="semibold" borderColor="card.lightGray" pl={0}>
                                                     <HStack gap={1.5}>
                                                         <Badge bg="card.lightGray" color="text.secondary" fontSize="xs" px={1.5} borderRadius="full">Free</Badge>
-                                                        <Text>Hands Played</Text>
+                                                        <Text color="text.primary">Hands Played</Text>
                                                     </HStack>
                                                 </Td>
                                                 <Td fontSize="sm" fontWeight="bold" borderColor="card.lightGray" isNumeric>{fmt(d?.free_hands_24h)}</Td>
@@ -671,7 +671,7 @@ export default function AdminStatsPage() {
                                                 <Td fontSize="sm" fontWeight="semibold" border="none" pl={0}>
                                                     <HStack gap={1.5}>
                                                         <Badge bg="brand.pink" color="white" fontSize="xs" px={1.5} borderRadius="full">Rake</Badge>
-                                                        <Text>Platform Rake (USDC)</Text>
+                                                        <Text color="text.primary">Platform Rake (USDC)</Text>
                                                     </HStack>
                                                 </Td>
                                                 <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink">{activityRake ? `$${activityRake.rake24hUsdc}` : '—'}</Td>

@@ -4,6 +4,10 @@ interface PlayerNameLinkProps extends TextProps {
     username: string | null | undefined;
 }
 
+// Default text color is set on the inner <Text> directly (Chakra Text
+// baseStyle's hardcoded `charcoal.800` wins via cascade if we don't —
+// invisible in dark mode). Consumers can still override via textProps
+// since the spread comes after the default color.
 export const PlayerNameLink = ({
     username,
     ...textProps
@@ -12,7 +16,11 @@ export const PlayerNameLink = ({
     const isX = name.startsWith('@');
 
     if (!isX) {
-        return <Text as="span" {...textProps}>{name}</Text>;
+        return (
+            <Text as="span" color="text.primary" {...textProps}>
+                {name}
+            </Text>
+        );
     }
 
     const handle = name.replace(/^@/, '');
@@ -26,9 +34,15 @@ export const PlayerNameLink = ({
         >
             <Text
                 as="span"
-                _hover={{ color: 'brand.green' }}
-                transition="color 0.15s ease"
+                color="text.primary"
                 {...textProps}
+                _hover={{
+                    textDecoration: 'underline',
+                    textDecorationThickness: '1.5px',
+                    textUnderlineOffset: '3px',
+                }}
+                transition="text-decoration-color 80ms ease"
+                cursor="pointer"
             >
                 {name}
             </Text>

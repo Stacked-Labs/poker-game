@@ -297,23 +297,14 @@ const BlindObligationControls = () => {
                               ? 0.7
                               : 0.85
                     }
-                    _hover={{
-                        bg: !(submitting !== null || waitingForBB)
-                            ? 'rgba(253, 197, 29, 0.12)'
-                            : 'transparent',
-                        transform: !(submitting !== null || waitingForBB)
-                            ? 'translateY(-1px)'
-                            : 'none',
-                        boxShadow: !(submitting !== null || waitingForBB)
-                            ? 'lg'
-                            : 'none',
-                    }}
+                    boxShadow="0 2px 0 #B78900"
+                    _hover={{ bg: 'rgba(253, 197, 29, 0.12)' }}
                     _active={{
-                        transform: !(submitting !== null || waitingForBB)
-                            ? 'translateY(0px)'
-                            : 'none',
+                        bg: 'rgba(253, 197, 29, 0.18)',
+                        transform: 'translateY(2px)',
+                        boxShadow: '0 0 0 #B78900',
                     }}
-                    transition="all 0.2s"
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                 >
                     {waitingForBB
                         ? 'Waiting for BB'
@@ -326,8 +317,7 @@ const BlindObligationControls = () => {
                 <Button
                     bg="brand.green"
                     color="white"
-                    borderColor="brand.green"
-                    border="2px solid"
+                    border="none"
                     borderRadius={{ base: '8px', md: '10px' }}
                     padding={{ base: 4, sm: 5, md: 4, lg: 5 }}
                     textTransform={'uppercase'}
@@ -352,19 +342,16 @@ const BlindObligationControls = () => {
                     flexShrink={{ base: 1, md: 0 }}
                     position={'relative'}
                     zIndex={10}
-                    _hover={{
-                        bg: !submitting ? '#2d8763' : 'brand.green',
-                        transform: !submitting ? 'translateY(-1px)' : 'none',
-                        boxShadow: !submitting ? 'lg' : 'none',
-                    }}
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #22674E"
+                    _hover={{ bg: 'brand.green' }}
                     _active={{
-                        transform: !submitting ? 'translateY(0px)' : 'none',
+                        bg: 'brand.greenDark',
+                        transform: 'translateY(2px)',
+                        boxShadow:
+                            'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
                     }}
                     opacity={queuedBlindAction === 'post_now' ? 1 : 0.95}
-                    borderStyle={
-                        queuedBlindAction === 'post_now' ? 'solid' : 'solid'
-                    }
-                    transition="all 0.2s"
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                 >
                     {queuedBlindAction === 'post_now'
                         ? 'Post now (Queued)'
@@ -401,17 +388,14 @@ const BlindObligationControls = () => {
                     flexShrink={{ base: 1, md: 0 }}
                     position={'relative'}
                     zIndex={10}
-                    _hover={{
-                        bg: !submitting
-                            ? 'rgba(255, 255, 255, 0.06)'
-                            : 'transparent',
-                        transform: !submitting ? 'translateY(-1px)' : 'none',
-                        boxShadow: !submitting ? 'lg' : 'none',
-                    }}
+                    boxShadow="0 2px 0 rgba(0,0,0,0.45)"
+                    _hover={{ bg: 'rgba(255, 255, 255, 0.08)' }}
                     _active={{
-                        transform: !submitting ? 'translateY(0px)' : 'none',
+                        bg: 'rgba(255, 255, 255, 0.12)',
+                        transform: 'translateY(2px)',
+                        boxShadow: '0 0 0 rgba(0,0,0,0.45)',
                     }}
-                    transition="all 0.2s"
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                 >
                     Sit out
                 </Button>

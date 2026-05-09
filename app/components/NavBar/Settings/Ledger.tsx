@@ -3,25 +3,28 @@
 import React, { useContext, useState, useMemo, useEffect } from 'react';
 import {
     Box,
+    Flex,
+    Grid,
     HStack,
-    Text,
-    Table,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td,
-    TableContainer,
-    Badge,
-    Stat,
-    StatLabel,
-    StatNumber,
-    StatHelpText,
-    VStack,
-    Spinner,
     Icon,
+    Image,
+    Stack,
+    Table,
+    Tbody,
+    Td,
+    Text,
+    Th,
+    Thead,
+    Tr,
 } from '@chakra-ui/react';
-import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { getColorForUsername } from '@/app/utils/chatColors';
+import { keyframes } from '@emotion/react';
+import {
+    FiArrowDownRight,
+    FiArrowUpRight,
+    FiChevronDown,
+    FiSlash,
+} from 'react-icons/fi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { fetchTableLedger } from '@/app/hooks/server_actions';
 import { LedgerResponse, LedgerEntry } from '@/app/interfaces';
@@ -31,6 +34,7 @@ import PlayerNameLink from '@/app/components/PlayerNameLink';
 interface PlayerSession {
     uuid: string;
     username: string;
+    profileImageUrl?: string;
     totalBuyIns: number;
     totalBuyOuts: number;
     currentStack: number;
@@ -46,6 +50,476 @@ interface FinancialEvent {
     amount: number;
 }
 
+// ─── Animations ──────────────────────────────────────────────────────────
+const pulseDot = keyframes`
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 1; }
+`;
+
+const skeletonShimmer = keyframes`
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+`;
+
+// ─── Player avatar — image with initials fallback + active corner badge ──
+const LedgerAvatar = ({
+    username,
+    profileImageUrl,
+    isActive,
+    size = '32px',
+}: {
+    username: string;
+    profileImageUrl?: string;
+    isActive: boolean;
+    size?: string;
+}) => {
+    const [imgFailed, setImgFailed] = useState(false);
+    const showImg = Boolean(profileImageUrl) && !imgFailed;
+    const displayName = username || '';
+    const color = getColorForUsername(displayName);
+    const initials =
+        displayName
+            .replace(/^@/, '')
+            .split(/[\s._-]+/)
+            .slice(0, 2)
+            .map((w) => w[0]?.toUpperCase() ?? '')
+            .join('') ||
+        displayName.replace(/^@/, '').slice(0, 2).toUpperCase() ||
+        '?';
+
+    return (
+        <Box position="relative" flexShrink={0} w={size} h={size}>
+            {showImg ? (
+                <Image
+                    src={profileImageUrl}
+                    alt=""
+                    w="100%"
+                    h="100%"
+                    borderRadius="full"
+                    objectFit="cover"
+                    onError={() => setImgFailed(true)}
+                />
+            ) : (
+                <Flex
+                    w="100%"
+                    h="100%"
+                    borderRadius="full"
+                    bg={{ base: `${color}24`, _dark: `${color}3A` }}
+                    alignItems="center"
+                    justifyContent="center"
+                >
+                    <Text
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color={color}
+                        lineHeight="1"
+                        userSelect="none"
+                    >
+                        {initials}
+                    </Text>
+                </Flex>
+            )}
+            {isActive && (
+                <Box
+                    position="absolute"
+                    bottom="-1px"
+                    right="-1px"
+                    w="10px"
+                    h="10px"
+                    borderRadius="full"
+                    bg="brand.green"
+                    border="2px solid"
+                    borderColor="card.white"
+                    animation={`${pulseDot} 2s ease-in-out infinite`}
+                    aria-label="Active player"
+                />
+            )}
+        </Box>
+    );
+};
+
+// ─── Smart NET cell — value + trend arrow + sign ─────────────────────────
+const NetCell = ({
+    net,
+    formatCurrency,
+}: {
+    net: number;
+    formatCurrency: (n: number) => string;
+}) => {
+    const positive = net > 0;
+    const breakeven = net === 0;
+    const color = breakeven
+        ? 'text.muted'
+        : positive
+          ? 'brand.green'
+          : 'brand.pink';
+    return (
+        <HStack spacing={1} justify="flex-end">
+            {!breakeven && (
+                <Icon
+                    as={positive ? FiArrowUpRight : FiArrowDownRight}
+                    boxSize="13px"
+                    color={color}
+                />
+            )}
+            <Text
+                fontWeight={700}
+                color={color}
+                sx={{ fontVariantNumeric: 'tabular-nums' }}
+                fontSize="sm"
+            >
+                {breakeven ? '—' : `${positive ? '+' : '−'}${formatCurrency(net)}`}
+            </Text>
+        </HStack>
+    );
+};
+
+// ─── Transaction tone helper ─────────────────────────────────────────────
+const TX_TONE: Record<
+    FinancialEvent['type'],
+    { label: string; color: string; bg: string; edge: string; icon: React.ElementType; sign: '+' | '−' }
+> = {
+    'buy-in': {
+        label: 'Buy-in',
+        color: 'brand.green',
+        bg: 'bg.greenSubtle',
+        edge: 'brand.green',
+        icon: FiArrowUpRight,
+        sign: '+',
+    },
+    'buy-out': {
+        label: 'Cash-out',
+        color: 'brand.pink',
+        bg: 'rgba(235, 11, 92, 0.06)',
+        edge: 'brand.pink',
+        icon: FiArrowDownRight,
+        sign: '−',
+    },
+    kicked: {
+        label: 'Kicked',
+        color: 'brand.pink',
+        bg: 'rgba(235, 11, 92, 0.06)',
+        edge: 'brand.pink',
+        icon: FiSlash,
+        sign: '−',
+    },
+};
+
+// ─── Skeleton row (loading) ──────────────────────────────────────────────
+const SkeletonRow = () => (
+    <Flex
+        bg="card.white"
+        borderRadius="12px"
+        border="1px solid"
+        borderColor="border.lightGray"
+        p={3}
+        align="center"
+        justify="space-between"
+        animation={`${skeletonShimmer} 1.5s ease-in-out infinite`}
+    >
+        <HStack spacing={2.5}>
+            <Box w="8px" h="8px" borderRadius="full" bg="card.lightGray" />
+            <Stack spacing={1}>
+                <Box
+                    w="100px"
+                    h="12px"
+                    borderRadius="4px"
+                    bg="card.lightGray"
+                />
+                <Box
+                    w="60px"
+                    h="9px"
+                    borderRadius="3px"
+                    bg="card.lightGray"
+                />
+            </Stack>
+        </HStack>
+        <Box w="60px" h="14px" borderRadius="4px" bg="card.lightGray" />
+    </Flex>
+);
+
+// ─── Empty state panel ───────────────────────────────────────────────────
+const EmptyPanel = () => (
+    <Flex
+        direction="column"
+        alignItems="center"
+        justifyContent="center"
+        py={6}
+        px={4}
+        bg="card.lightGray"
+        borderRadius="16px"
+        border="1px dashed"
+        borderColor="border.lightGray"
+        gap={1.5}
+    >
+        <Text fontWeight="bold" fontSize="sm" color="text.secondary">
+            No session data yet
+        </Text>
+        <Text fontSize="xs" color="text.muted" textAlign="center">
+            Player buy-ins and cash-outs will appear here as the game
+            progresses.
+        </Text>
+    </Flex>
+);
+
+// ─── Stats ribbon ────────────────────────────────────────────────────────
+const StatsRibbon = ({
+    totalBuyIns,
+    totalCashOuts,
+    totalChipsInPlay,
+    formatCurrency,
+}: {
+    totalBuyIns: number;
+    totalCashOuts: number;
+    totalChipsInPlay: number;
+    formatCurrency: (n: number) => string;
+}) => (
+    <Box
+        bg="card.white"
+        p={4}
+        borderRadius="12px"
+        border="1px solid"
+        borderColor="border.lightGray"
+        boxShadow="card.lift"
+    >
+        <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+            {[
+                {
+                    label: 'Buy-ins',
+                    value: formatCurrency(totalBuyIns),
+                    sub: 'all players',
+                    accent: false,
+                },
+                {
+                    label: 'Cash-outs',
+                    value: formatCurrency(totalCashOuts),
+                    sub: 'exits & kicks',
+                    accent: false,
+                },
+                {
+                    label: 'In play',
+                    value: formatCurrency(totalChipsInPlay),
+                    sub: 'current stacks',
+                    accent: true,
+                },
+            ].map((stat) => (
+                <Stack key={stat.label} spacing={0.5}>
+                    <Text
+                        fontSize="2xs"
+                        color="text.secondary"
+                        textTransform="uppercase"
+                        letterSpacing="0.10em"
+                        fontWeight={700}
+                    >
+                        {stat.label}
+                    </Text>
+                    <Text
+                        fontSize={{ base: 'lg', md: 'xl' }}
+                        fontWeight={700}
+                        color={stat.accent ? 'brand.green' : 'text.primary'}
+                        sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        lineHeight={1.1}
+                    >
+                        {stat.value}
+                    </Text>
+                    <Text fontSize="2xs" color="text.muted">
+                        {stat.sub}
+                    </Text>
+                </Stack>
+            ))}
+        </Grid>
+    </Box>
+);
+
+// ─── Mobile card — one player ────────────────────────────────────────────
+const MobileSessionCard = ({
+    session,
+    expanded,
+    onToggle,
+    formatCurrency,
+    formatTime,
+    truncateUuid,
+}: {
+    session: PlayerSession;
+    expanded: boolean;
+    onToggle: () => void;
+    formatCurrency: (n: number) => string;
+    formatTime: (ts: string) => string;
+    truncateUuid: (uuid: string) => string;
+}) => {
+    const hasTx = session.transactions.length > 0;
+    const cashOutDisplay =
+        session.totalBuyOuts > 0 ? formatCurrency(session.totalBuyOuts) : '—';
+
+    return (
+        <Stack spacing={0}>
+            <Box
+                as={hasTx ? 'button' : 'div'}
+                bg="card.white"
+                borderRadius={expanded ? '12px 12px 0 0' : '12px'}
+                border="1px solid"
+                borderColor="border.lightGray"
+                borderBottom={expanded ? 'none' : '1px solid'}
+                p={3}
+                cursor={hasTx ? 'pointer' : 'default'}
+                onClick={hasTx ? onToggle : undefined}
+                textAlign="left"
+                w="100%"
+                transition="background-color 80ms ease"
+                _hover={hasTx ? { bg: 'card.lightGray' } : undefined}
+            >
+                <Flex align="center" justify="space-between" mb={2.5}>
+                    <HStack spacing={2.5} minW={0}>
+                        <LedgerAvatar
+                            username={session.username}
+                            profileImageUrl={session.profileImageUrl}
+                            isActive={session.isActive}
+                            size="32px"
+                        />
+                        <Stack spacing={0} minW={0}>
+                            <PlayerNameLink
+                                username={session.username}
+                                fontWeight={700}
+                                color="text.primary"
+                                fontSize="sm"
+                            />
+                            <Text
+                                fontSize="2xs"
+                                color="text.muted"
+                                fontFamily="mono"
+                            >
+                                {truncateUuid(session.uuid)}
+                            </Text>
+                        </Stack>
+                    </HStack>
+                    <NetCell net={session.net} formatCurrency={formatCurrency} />
+                </Flex>
+                <Grid templateColumns="repeat(3, 1fr)" gap={2}>
+                    <Stack spacing={0}>
+                        <Text
+                            fontSize="2xs"
+                            color="text.secondary"
+                            textTransform="uppercase"
+                            letterSpacing="0.08em"
+                            fontWeight={700}
+                        >
+                            Buy-in
+                        </Text>
+                        <Text
+                            fontSize="sm"
+                            fontWeight={600}
+                            color="text.primary"
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {formatCurrency(session.totalBuyIns)}
+                        </Text>
+                    </Stack>
+                    <Stack spacing={0}>
+                        <Text
+                            fontSize="2xs"
+                            color="text.secondary"
+                            textTransform="uppercase"
+                            letterSpacing="0.08em"
+                            fontWeight={700}
+                        >
+                            Cash-out
+                        </Text>
+                        <Text
+                            fontSize="sm"
+                            fontWeight={600}
+                            color={
+                                session.totalBuyOuts > 0
+                                    ? 'text.primary'
+                                    : 'text.muted'
+                            }
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {cashOutDisplay}
+                        </Text>
+                    </Stack>
+                    <Stack spacing={0}>
+                        <Text
+                            fontSize="2xs"
+                            color="text.secondary"
+                            textTransform="uppercase"
+                            letterSpacing="0.08em"
+                            fontWeight={700}
+                        >
+                            Stack
+                        </Text>
+                        <Text
+                            fontSize="sm"
+                            fontWeight={700}
+                            color="text.primary"
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {formatCurrency(session.currentStack)}
+                        </Text>
+                    </Stack>
+                </Grid>
+            </Box>
+            {expanded &&
+                session.transactions.map((tx, i) => {
+                    const tone = TX_TONE[tx.type];
+                    const isLast = i === session.transactions.length - 1;
+                    return (
+                        <Box
+                            key={tx.id}
+                            bg={tone.bg}
+                            borderLeft="2px solid"
+                            borderLeftColor={tone.edge}
+                            borderRight="1px solid"
+                            borderRightColor="border.lightGray"
+                            borderBottom={isLast ? '1px solid' : 'none'}
+                            borderBottomColor="border.lightGray"
+                            borderRadius={isLast ? '0 0 12px 12px' : undefined}
+                            p={3}
+                        >
+                            <HStack
+                                spacing={2.5}
+                                pl={1}
+                                justify="space-between"
+                                flexWrap="wrap"
+                            >
+                                <HStack spacing={2}>
+                                    <Icon
+                                        as={tone.icon}
+                                        boxSize="13px"
+                                        color={tone.color}
+                                    />
+                                    <Text
+                                        fontSize="xs"
+                                        fontWeight={700}
+                                        color={tone.color}
+                                        textTransform="uppercase"
+                                        letterSpacing="0.06em"
+                                    >
+                                        {tone.label}
+                                    </Text>
+                                    <Text fontSize="2xs" color="text.muted">
+                                        {formatTime(tx.timestamp)}
+                                    </Text>
+                                </HStack>
+                                <Text
+                                    fontSize="sm"
+                                    fontWeight={700}
+                                    color={tone.color}
+                                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                                >
+                                    {tone.sign}
+                                    {formatCurrency(tx.amount)}
+                                </Text>
+                            </HStack>
+                        </Box>
+                    );
+                })}
+        </Stack>
+    );
+};
+
+// ─── Main component ──────────────────────────────────────────────────────
 const Ledger = () => {
     const { appState } = useContext(AppContext);
     const { format } = useFormatAmount();
@@ -153,11 +627,14 @@ const Ledger = () => {
                     session.currentStack = player.stack;
                     session.isActive = !player.left && player.in;
                     session.username = player.username || session.username;
+                    session.profileImageUrl =
+                        player.profileImageUrl ?? session.profileImageUrl;
                 } else {
                     // Player is active but no ledger entries yet
                     playerMap.set(player.uuid, {
                         uuid: player.uuid,
                         username: player.username,
+                        profileImageUrl: player.profileImageUrl,
                         totalBuyIns: player.totalBuyIn || 0,
                         totalBuyOuts: 0,
                         currentStack: player.stack,
@@ -169,12 +646,17 @@ const Ledger = () => {
             });
         }
 
-        // Calculate net for each session
+        // Calculate net for each session, and sort transactions newest-first
         playerMap.forEach((session) => {
             session.net =
                 session.totalBuyOuts +
                 session.currentStack -
                 session.totalBuyIns;
+            session.transactions.sort(
+                (a, b) =>
+                    new Date(b.timestamp).getTime() -
+                    new Date(a.timestamp).getTime()
+            );
         });
 
         return Array.from(playerMap.values()).sort((a, b) => {
@@ -226,473 +708,430 @@ const Ledger = () => {
         });
     };
 
+    // ─── Loading state ───────────────────────────────────────────────────
     if (loading) {
         return (
-            <Box>
+            <Stack spacing={{ base: 2, md: 4 }}>
                 <Box
-                    p={8}
-                    textAlign="center"
-                    bg="input.lightGray"
-                    borderRadius="16px"
+                    bg="card.white"
+                    p={4}
+                    borderRadius="12px"
+                    border="1px solid"
+                    borderColor="border.lightGray"
+                    boxShadow="card.lift"
+                    animation={`${skeletonShimmer} 1.5s ease-in-out infinite`}
                 >
-                    <Spinner
-                        size="xl"
-                        color="brand.green"
-                        thickness="4px"
-                        speed="0.65s"
-                    />
-                    <Text mt={4} color="gray.600" fontWeight="medium">
-                        Loading session data...
-                    </Text>
+                    <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+                        {[0, 1, 2].map((i) => (
+                            <Stack key={i} spacing={1}>
+                                <Box
+                                    w="48px"
+                                    h="9px"
+                                    borderRadius="3px"
+                                    bg="card.lightGray"
+                                />
+                                <Box
+                                    w="80px"
+                                    h="20px"
+                                    borderRadius="4px"
+                                    bg="card.lightGray"
+                                />
+                                <Box
+                                    w="60px"
+                                    h="9px"
+                                    borderRadius="3px"
+                                    bg="card.lightGray"
+                                />
+                            </Stack>
+                        ))}
+                    </Grid>
                 </Box>
-            </Box>
+                <Stack spacing={2}>
+                    <SkeletonRow />
+                    <SkeletonRow />
+                    <SkeletonRow />
+                </Stack>
+            </Stack>
+        );
+    }
+
+    // ─── Empty state ─────────────────────────────────────────────────────
+    if (sessions.length === 0) {
+        return (
+            <Stack spacing={{ base: 2, md: 4 }}>
+                <StatsRibbon
+                    totalBuyIns={totalBuyIns}
+                    totalCashOuts={totalCashOuts}
+                    totalChipsInPlay={totalChipsInPlay}
+                    formatCurrency={formatCurrency}
+                />
+                <EmptyPanel />
+            </Stack>
         );
     }
 
     return (
-        <Box>
-            {/* Summary Stats */}
-            <HStack
-                gap={{ base: 1, md: 4 }}
-                mb={{ base: 3, md: 6 }}
-                flexWrap="wrap"
-                justify="space-around"
-                bg={'card.white'}
-                p={{ base: 2, md: 6 }}
-                borderRadius="16px"
-                border="2px solid"
-                borderColor="border.lightGray"
-                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
-            >
-                <Stat textAlign="center">
-                    <StatLabel
-                        color="text.gray"
-                        fontWeight="semibold"
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                    >
-                        Buy-ins
-                    </StatLabel>
-                    <StatNumber
-                        color="brand.green"
-                        fontSize={{ base: 'lg', md: '3xl' }}
-                        fontWeight="bold"
-                    >
-                        {formatCurrency(totalBuyIns)}
-                    </StatNumber>
-                    <StatHelpText
-                        color="gray.500"
-                        fontWeight="medium"
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        mb={0}
-                    >
-                        All players
-                    </StatHelpText>
-                </Stat>
-                <Stat textAlign="center">
-                    <StatLabel
-                        color="text.gray"
-                        fontWeight="semibold"
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                    >
-                        Cash-outs
-                    </StatLabel>
-                    <StatNumber
-                        color="brand.pink"
-                        fontSize={{ base: 'lg', md: '3xl' }}
-                        fontWeight="bold"
-                    >
-                        {formatCurrency(totalCashOuts)}
-                    </StatNumber>
-                    <StatHelpText
-                        color="gray.500"
-                        fontWeight="medium"
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        mb={0}
-                    >
-                        Exits & Kicks
-                    </StatHelpText>
-                </Stat>
-                <Stat textAlign="center">
-                    <StatLabel
-                        color="text.gray"
-                        fontWeight="semibold"
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                    >
-                        Chips in Play
-                    </StatLabel>
-                    <StatNumber
-                        color="brand.navy"
-                        fontSize={{ base: 'lg', md: '3xl' }}
-                        fontWeight="bold"
-                    >
-                        {formatCurrency(totalChipsInPlay)}
-                    </StatNumber>
-                    <StatHelpText
-                        color="gray.500"
-                        fontWeight="medium"
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        mb={0}
-                    >
-                        Current Stacks
-                    </StatHelpText>
-                </Stat>
-            </HStack>
+        <Stack spacing={{ base: 2, md: 4 }}>
+            {/* Stats ribbon */}
+            <StatsRibbon
+                totalBuyIns={totalBuyIns}
+                totalCashOuts={totalCashOuts}
+                totalChipsInPlay={totalChipsInPlay}
+                formatCurrency={formatCurrency}
+            />
 
-            {/* Players Table */}
-            <TableContainer
-                bg={'card.white'}
-                borderRadius="16px"
-                border="2px solid"
-                borderColor="border.lightGray"
-                overflowY="auto"
-                maxH="500px"
-                boxShadow="0 4px 12px rgba(0, 0, 0, 0.08)"
-                sx={{
-                    '&::-webkit-scrollbar': {
-                        width: '8px',
-                        height: '4px',
-                    },
-                    '&::-webkit-scrollbar-track': {
-                        bg: 'input.lightGray',
-                        borderRadius: 'full',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                        bg: 'text.secondary',
-                        borderRadius: 'full',
-                        _hover: {
-                            bg: 'brand.pink',
-                        },
-                    },
-                }}
-            >
-                <Table
-                    variant="simple"
-                    size={{ base: 'sm', md: 'md' }}
+            {/* Mobile / portrait — card layout */}
+            <Box display={{ base: 'block', md: 'none' }}>
+                <Stack spacing={2}>
+                    {sessions.map((session) => (
+                        <MobileSessionCard
+                            key={session.uuid}
+                            session={session}
+                            expanded={expandedRows.has(session.uuid)}
+                            onToggle={() => toggleRow(session.uuid)}
+                            formatCurrency={formatCurrency}
+                            formatTime={formatTime}
+                            truncateUuid={truncateUuid}
+                        />
+                    ))}
+                </Stack>
+            </Box>
+
+            {/* Desktop — table layout */}
+            <Box display={{ base: 'none', md: 'block' }}>
+                <Box
+                    bg="card.white"
+                    borderRadius="12px"
+                    border="1px solid"
+                    borderColor="border.lightGray"
+                    overflow="hidden"
+                    boxShadow="card.lift"
+                    maxH="500px"
+                    overflowY="auto"
                     sx={{
-                        borderCollapse: 'collapse',
-                        borderSpacing: 0,
-                        tr: {
-                            borderBottom: '1px solid',
-                            borderColor: 'gray.200',
+                        '&::-webkit-scrollbar': {
+                            width: '8px',
+                            height: '4px',
                         },
-                        'td, th': {
-                            borderBottom: 'none',
+                        '&::-webkit-scrollbar-track': {
+                            bg: 'card.lightGray',
+                            borderRadius: 'full',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            bg: 'text.muted',
+                            borderRadius: 'full',
+                            _hover: {
+                                bg: 'text.secondary',
+                            },
                         },
                     }}
                 >
-                    <Thead
-                        position="sticky"
-                        top={0}
-                        bg="card.lightGray"
-                        zIndex={1}
-                    >
-                        <Tr>
-                            <Th
-                                color={'text.secondary'}
-                                fontWeight="bold"
-                                fontSize="xs"
-                            >
-                                PLAYER
-                            </Th>
-                            <Th
-                                color={'brand.navy'}
-                                fontWeight="bold"
-                                fontSize="xs"
-                                isNumeric
-                            >
-                                BUY-IN
-                            </Th>
-                            <Th
-                                color={'text.secondary'}
-                                fontWeight="bold"
-                                fontSize="xs"
-                                isNumeric
-                            >
-                                BUY-OUT
-                            </Th>
-                            <Th
-                                color={'text.secondary'}
-                                fontWeight="bold"
-                                fontSize="xs"
-                                isNumeric
-                            >
-                                STACK
-                            </Th>
-                            <Th
-                                color={'text.secondary'}
-                                fontWeight="bold"
-                                fontSize="xs"
-                                isNumeric
-                            >
-                                NET
-                            </Th>
-                        </Tr>
-                    </Thead>
-                    <Tbody>
-                        {sessions.length === 0 ? (
+                    <Table variant="simple" size="md">
+                        <Thead
+                            position="sticky"
+                            top={0}
+                            bg="card.lightGray"
+                            zIndex={1}
+                        >
                             <Tr>
-                                <Td colSpan={5} textAlign="center" py={8}>
-                                    <Text
-                                        color="text.gray600"
-                                        fontWeight="medium"
-                                    >
-                                        No session data yet
-                                    </Text>
-                                </Td>
+                                <Th
+                                    color="text.secondary"
+                                    fontWeight={700}
+                                    fontSize="2xs"
+                                    letterSpacing="0.10em"
+                                    py={3}
+                                    borderBottom="1px solid"
+                                    borderColor="border.lightGray"
+                                >
+                                    Player
+                                </Th>
+                                <Th
+                                    color="text.secondary"
+                                    fontWeight={700}
+                                    fontSize="2xs"
+                                    letterSpacing="0.10em"
+                                    isNumeric
+                                    py={3}
+                                    borderBottom="1px solid"
+                                    borderColor="border.lightGray"
+                                >
+                                    Buy-in
+                                </Th>
+                                <Th
+                                    color="text.secondary"
+                                    fontWeight={700}
+                                    fontSize="2xs"
+                                    letterSpacing="0.10em"
+                                    isNumeric
+                                    py={3}
+                                    borderBottom="1px solid"
+                                    borderColor="border.lightGray"
+                                >
+                                    Cash-out
+                                </Th>
+                                <Th
+                                    color="text.secondary"
+                                    fontWeight={700}
+                                    fontSize="2xs"
+                                    letterSpacing="0.10em"
+                                    isNumeric
+                                    py={3}
+                                    borderBottom="1px solid"
+                                    borderColor="border.lightGray"
+                                >
+                                    Stack
+                                </Th>
+                                <Th
+                                    color="text.secondary"
+                                    fontWeight={700}
+                                    fontSize="2xs"
+                                    letterSpacing="0.10em"
+                                    isNumeric
+                                    py={3}
+                                    borderBottom="1px solid"
+                                    borderColor="border.lightGray"
+                                >
+                                    Net
+                                </Th>
                             </Tr>
-                        ) : (
-                            sessions.map((session) => (
-                                <React.Fragment key={session.uuid}>
-                                    <Tr
-                                        onClick={() =>
-                                            session.transactions.length > 0 &&
-                                            toggleRow(session.uuid)
-                                        }
-                                        cursor={
-                                            session.transactions.length > 0
-                                                ? 'pointer'
-                                                : 'default'
-                                        }
-                                        _hover={{
-                                            bg:
-                                                session.transactions.length > 0
-                                                    ? 'input.lightGray'
+                        </Thead>
+                        <Tbody>
+                            {sessions.map((session) => {
+                                const hasTx = session.transactions.length > 0;
+                                const isExpanded = expandedRows.has(
+                                    session.uuid
+                                );
+                                const cashOutDisplay =
+                                    session.totalBuyOuts > 0
+                                        ? formatCurrency(session.totalBuyOuts)
+                                        : '—';
+                                return (
+                                    <React.Fragment key={session.uuid}>
+                                        <Tr
+                                            onClick={() =>
+                                                hasTx && toggleRow(session.uuid)
+                                            }
+                                            cursor={
+                                                hasTx ? 'pointer' : 'default'
+                                            }
+                                            _hover={{
+                                                bg: hasTx
+                                                    ? 'card.lightGray'
                                                     : 'transparent',
-                                        }}
-                                        transition="all 0.2s ease"
-                                        bg={
-                                            expandedRows.has(session.uuid)
-                                                ? 'input.lightGray'
-                                                : 'transparent'
-                                        }
-                                        borderBottom="1px solid"
-                                        borderColor="gray.200"
-                                    >
-                                        <Td>
-                                            <HStack spacing={3}>
-                                                {session.transactions.length >
-                                                0 ? (
-                                                    <Icon
-                                                        as={
-                                                            expandedRows.has(
-                                                                session.uuid
-                                                            )
-                                                                ? FiChevronUp
-                                                                : FiChevronDown
+                                            }}
+                                            transition="background-color 80ms ease"
+                                            bg={
+                                                isExpanded
+                                                    ? 'card.lightGray'
+                                                    : 'transparent'
+                                            }
+                                            borderBottom="1px solid"
+                                            borderColor="border.lightGray"
+                                        >
+                                            <Td py={3}>
+                                                <HStack spacing={3}>
+                                                    {hasTx ? (
+                                                        <Icon
+                                                            as={FiChevronDown}
+                                                            boxSize={4}
+                                                            color="text.muted"
+                                                            transform={
+                                                                isExpanded
+                                                                    ? 'rotate(180deg)'
+                                                                    : undefined
+                                                            }
+                                                            transition="transform 80ms ease"
+                                                        />
+                                                    ) : (
+                                                        <Box w={4} />
+                                                    )}
+                                                    <LedgerAvatar
+                                                        username={session.username}
+                                                        profileImageUrl={
+                                                            session.profileImageUrl
                                                         }
-                                                        boxSize={5}
-                                                        color="brand.navy"
-                                                        transition="all 0.2s ease"
+                                                        isActive={session.isActive}
+                                                        size="32px"
                                                     />
-                                                ) : (
-                                                    <Box w={5} />
-                                                )}
-                                                <VStack
-                                                    align="start"
-                                                    spacing={1}
-                                                    flex={1}
-                                                >
-                                                    <HStack>
+                                                    <Stack spacing={0}>
                                                         <PlayerNameLink
                                                             username={session.username}
-                                                            fontWeight="bold"
-                                                            color="text.secondary"
+                                                            fontWeight={700}
+                                                            color="text.primary"
+                                                            fontSize="sm"
                                                         />
-                                                        {session.isActive && (
-                                                            <Badge
-                                                                bg="brand.green"
-                                                                color="white"
-                                                                fontSize="2xs"
-                                                                px={2}
-                                                                py={0.5}
-                                                                borderRadius="4px"
-                                                            >
-                                                                ACTIVE
-                                                            </Badge>
-                                                        )}
-                                                    </HStack>
-                                                    <Text
-                                                        fontSize="xs"
-                                                        color="gray.500"
-                                                        fontFamily="mono"
-                                                    >
-                                                        {truncateUuid(
-                                                            session.uuid
-                                                        )}
-                                                    </Text>
-                                                </VStack>
-                                            </HStack>
-                                        </Td>
-                                        <Td isNumeric>
-                                            <Text
-                                                fontWeight="semibold"
-                                                color="brand.green"
-                                            >
-                                                {formatCurrency(
-                                                    session.totalBuyIns
-                                                )}
-                                            </Text>
-                                        </Td>
-                                        <Td isNumeric>
-                                            <Text
-                                                fontWeight="semibold"
-                                                color="brand.pink"
-                                            >
-                                                {formatCurrency(
-                                                    session.totalBuyOuts
-                                                )}
-                                            </Text>
-                                        </Td>
-                                        <Td isNumeric>
-                                            <Text
-                                                fontWeight="bold"
-                                                color="brand.navy"
-                                            >
-                                                {formatCurrency(
-                                                    session.currentStack
-                                                )}
-                                            </Text>
-                                        </Td>
-                                        <Td isNumeric>
-                                            <Text
-                                                fontWeight="bold"
-                                                color={
-                                                    session.net >= 0
-                                                        ? 'brand.green'
-                                                        : 'brand.pink'
-                                                }
-                                            >
-                                                {session.net >= 0 ? '+' : '-'}
-                                                {formatCurrency(session.net)}
-                                            </Text>
-                                        </Td>
-                                    </Tr>
-                                    {/* Expandable transaction history */}
-                                    {session.transactions.length > 0 &&
-                                        expandedRows.has(session.uuid) &&
-                                        session.transactions.map((tx) => (
-                                            <Tr
-                                                key={tx.id}
-                                                bg="input.lightGray"
-                                                transition="all 0.2s ease"
-                                            >
-                                                {/* PLAYER column - shows timestamp and badge */}
-                                                <Td
-                                                    position="relative"
-                                                    _before={{
-                                                        content: '""',
-                                                        position: 'absolute',
-                                                        left: 0,
-                                                        top: 0,
-                                                        bottom: 0,
-                                                        width: '3px',
-                                                        bg: 'brand.navy',
-                                                    }}
-                                                >
-                                                    <HStack spacing={2}>
                                                         <Text
-                                                            fontSize="xs"
-                                                            color="gray.500"
-                                                            fontStyle="italic"
-                                                        >
-                                                            {formatTime(
-                                                                tx.timestamp
-                                                            )}
-                                                        </Text>
-                                                        <Badge
-                                                            bg={
-                                                                tx.type ===
-                                                                'buy-in'
-                                                                    ? 'brand.green'
-                                                                    : tx.type ===
-                                                                        'buy-out'
-                                                                      ? 'brand.pink'
-                                                                      : 'brand.pink'
-                                                            }
-                                                            color="white"
                                                             fontSize="2xs"
-                                                            px={2}
-                                                            py={0.5}
-                                                            borderRadius="4px"
-                                                            textTransform="uppercase"
-                                                            fontWeight="bold"
+                                                            color="text.muted"
+                                                            fontFamily="mono"
                                                         >
-                                                            {tx.type}
-                                                        </Badge>
-                                                    </HStack>
-                                                </Td>
-
-                                                {/* BUY-IN column */}
-                                                <Td isNumeric>
-                                                    {tx.type === 'buy-in' ? (
-                                                        <Text
-                                                            fontWeight="bold"
-                                                            color="brand.green"
-                                                        >
-                                                            {formatCurrency(
-                                                                tx.amount
+                                                            {truncateUuid(
+                                                                session.uuid
                                                             )}
                                                         </Text>
-                                                    ) : (
-                                                        <Text
-                                                            color="gray.400"
-                                                            fontSize="sm"
-                                                        >
-                                                            0.00
-                                                        </Text>
+                                                    </Stack>
+                                                </HStack>
+                                            </Td>
+                                            <Td isNumeric>
+                                                <Text
+                                                    fontWeight={600}
+                                                    color="text.primary"
+                                                    sx={{
+                                                        fontVariantNumeric:
+                                                            'tabular-nums',
+                                                    }}
+                                                    fontSize="sm"
+                                                >
+                                                    {formatCurrency(
+                                                        session.totalBuyIns
                                                     )}
-                                                </Td>
-
-                                                {/* BUY-OUT column */}
-                                                <Td isNumeric>
-                                                    {tx.type === 'buy-out' ||
-                                                    tx.type === 'kicked' ? (
-                                                        <Text
-                                                            fontWeight="bold"
-                                                            color="brand.pink"
-                                                        >
-                                                            {formatCurrency(
-                                                                tx.amount
-                                                            )}
-                                                        </Text>
-                                                    ) : (
-                                                        <Text
-                                                            color="gray.400"
-                                                            fontSize="sm"
-                                                        >
-                                                            0.00
-                                                        </Text>
+                                                </Text>
+                                            </Td>
+                                            <Td isNumeric>
+                                                <Text
+                                                    fontWeight={
+                                                        session.totalBuyOuts > 0
+                                                            ? 600
+                                                            : 400
+                                                    }
+                                                    color={
+                                                        session.totalBuyOuts > 0
+                                                            ? 'text.primary'
+                                                            : 'text.muted'
+                                                    }
+                                                    sx={{
+                                                        fontVariantNumeric:
+                                                            'tabular-nums',
+                                                    }}
+                                                    fontSize="sm"
+                                                >
+                                                    {cashOutDisplay}
+                                                </Text>
+                                            </Td>
+                                            <Td isNumeric>
+                                                <Text
+                                                    fontWeight={700}
+                                                    color="text.primary"
+                                                    sx={{
+                                                        fontVariantNumeric:
+                                                            'tabular-nums',
+                                                    }}
+                                                    fontSize="sm"
+                                                >
+                                                    {formatCurrency(
+                                                        session.currentStack
                                                     )}
-                                                </Td>
-
-                                                {/* STACK column */}
-                                                <Td isNumeric>
-                                                    <Text
-                                                        color="gray.400"
-                                                        fontSize="sm"
+                                                </Text>
+                                            </Td>
+                                            <Td isNumeric>
+                                                <NetCell
+                                                    net={session.net}
+                                                    formatCurrency={
+                                                        formatCurrency
+                                                    }
+                                                />
+                                            </Td>
+                                        </Tr>
+                                        {/* Expanded transactions — log line per tx, tone-matched bar */}
+                                        {hasTx &&
+                                            isExpanded &&
+                                            session.transactions.map((tx) => {
+                                                const tone = TX_TONE[tx.type];
+                                                return (
+                                                    <Tr
+                                                        key={tx.id}
+                                                        bg={tone.bg}
                                                     >
-                                                        0.00
-                                                    </Text>
-                                                </Td>
-
-                                                {/* NET column */}
-                                                <Td isNumeric>
-                                                    <Text
-                                                        color="gray.400"
-                                                        fontSize="sm"
-                                                    >
-                                                        0.00
-                                                    </Text>
-                                                </Td>
-                                            </Tr>
-                                        ))}
-                                </React.Fragment>
-                            ))
-                        )}
-                    </Tbody>
-                </Table>
-            </TableContainer>
-        </Box>
+                                                        <Td
+                                                            py={2.5}
+                                                            colSpan={5}
+                                                            position="relative"
+                                                            _before={{
+                                                                content: '""',
+                                                                position:
+                                                                    'absolute',
+                                                                left: 0,
+                                                                top: 0,
+                                                                bottom: 0,
+                                                                width: '2px',
+                                                                bg: tone.edge,
+                                                            }}
+                                                        >
+                                                            <HStack
+                                                                spacing={3}
+                                                                pl={8}
+                                                                justify="space-between"
+                                                                flexWrap="wrap"
+                                                            >
+                                                                <HStack
+                                                                    spacing={
+                                                                        2.5
+                                                                    }
+                                                                >
+                                                                    <Icon
+                                                                        as={
+                                                                            tone.icon
+                                                                        }
+                                                                        boxSize="14px"
+                                                                        color={
+                                                                            tone.color
+                                                                        }
+                                                                    />
+                                                                    <Text
+                                                                        fontSize="xs"
+                                                                        fontWeight={
+                                                                            700
+                                                                        }
+                                                                        color={
+                                                                            tone.color
+                                                                        }
+                                                                        textTransform="uppercase"
+                                                                        letterSpacing="0.06em"
+                                                                    >
+                                                                        {
+                                                                            tone.label
+                                                                        }
+                                                                    </Text>
+                                                                    <Text
+                                                                        fontSize="xs"
+                                                                        color="text.muted"
+                                                                    >
+                                                                        {formatTime(
+                                                                            tx.timestamp
+                                                                        )}
+                                                                    </Text>
+                                                                </HStack>
+                                                                <Text
+                                                                    fontSize="sm"
+                                                                    fontWeight={
+                                                                        700
+                                                                    }
+                                                                    color={
+                                                                        tone.color
+                                                                    }
+                                                                    sx={{
+                                                                        fontVariantNumeric:
+                                                                            'tabular-nums',
+                                                                    }}
+                                                                >
+                                                                    {tone.sign}
+                                                                    {formatCurrency(
+                                                                        tx.amount
+                                                                    )}
+                                                                </Text>
+                                                            </HStack>
+                                                        </Td>
+                                                    </Tr>
+                                                );
+                                            })}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </Tbody>
+                    </Table>
+                </Box>
+            </Box>
+        </Stack>
     );
 };
 

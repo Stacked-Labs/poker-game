@@ -16,11 +16,9 @@ import {
     Icon,
     useMediaQuery,
 } from '@chakra-ui/react';
-import { RiTwitterXLine } from 'react-icons/ri';
 import { MdArrowForward, MdCheck } from 'react-icons/md';
-import { FaDiscord } from 'react-icons/fa';
-import { FaTelegram } from 'react-icons/fa6';
 import WalletButton from '@/app/components/WalletButton';
+import { SocialIconButton } from '@/app/components/SocialIconButton';
 import NewsletterSuccessModal from './NewsletterSuccessModal';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useRouter } from 'next/navigation';
@@ -428,29 +426,11 @@ const HomeCard = () => {
                                         }}
                                     >
                                         <Button
+                                            variant="tactilePrimary"
                                             height="48px"
                                             width="100%"
                                             fontSize={{ base: 'md', md: 'lg' }}
-                                            fontWeight="700"
-                                            letterSpacing="0.04em"
-                                            borderRadius="12px"
-                                            bg="brand.green"
-                                            color="white"
-                                            border="none"
                                             onClick={handlePlayNow}
-                                            boxShadow="0 6px 16px rgba(54, 163, 123, 0.25)"
-                                            transition="all 0.2s ease"
-                                            _hover={{
-                                                bg: 'brand.green',
-                                                transform: 'translateY(-1px)',
-                                                boxShadow:
-                                                    '0 8px 20px rgba(54, 163, 123, 0.35)',
-                                                filter: 'brightness(1.05)',
-                                            }}
-                                            _active={{
-                                                transform:
-                                                    'translateY(0) scale(0.98)',
-                                            }}
                                         >
                                             PLAY NOW
                                         </Button>
@@ -472,18 +452,13 @@ const HomeCard = () => {
                                     >
                                         <HStack spacing={2.5} width="100%">
                                             <Button
+                                                variant="tactilePrimary"
                                                 flex={1}
                                                 height="48px"
                                                 fontSize={{
                                                     base: 'sm',
                                                     md: 'md',
                                                 }}
-                                                fontWeight="700"
-                                                letterSpacing="0.04em"
-                                                borderRadius="12px"
-                                                bg="brand.green"
-                                                color="white"
-                                                border="none"
                                                 onClick={handleCreateGame}
                                                 isLoading={isCreating}
                                                 loadingText="Creating"
@@ -493,37 +468,17 @@ const HomeCard = () => {
                                                         color="white"
                                                     />
                                                 }
-                                                boxShadow="0 6px 16px rgba(54, 163, 123, 0.25)"
-                                                transition="all 0.2s ease"
-                                                _hover={{
-                                                    bg: 'brand.green',
-                                                    transform:
-                                                        'translateY(-1px)',
-                                                    boxShadow:
-                                                        '0 8px 20px rgba(54, 163, 123, 0.35)',
-                                                    filter: 'brightness(1.05)',
-                                                }}
-                                                _active={{
-                                                    transform:
-                                                        'translateY(0) scale(0.98)',
-                                                }}
                                             >
                                                 CREATE
                                             </Button>
                                             <Button
+                                                variant="tactileOutline"
                                                 flex={1}
                                                 height="48px"
                                                 fontSize={{
                                                     base: 'sm',
                                                     md: 'md',
                                                 }}
-                                                fontWeight="700"
-                                                letterSpacing="0.04em"
-                                                borderRadius="12px"
-                                                bg="transparent"
-                                                color="brand.green"
-                                                border="1.5px solid"
-                                                borderColor="brand.green"
                                                 onClick={handleJoinGame}
                                                 isLoading={isJoining}
                                                 loadingText="Joining"
@@ -533,21 +488,6 @@ const HomeCard = () => {
                                                         color="brand.green"
                                                     />
                                                 }
-                                                transition="all 0.2s ease"
-                                                _hover={{
-                                                    bg: 'rgba(54, 163, 123, 0.08)',
-                                                    transform:
-                                                        'translateY(-1px)',
-                                                }}
-                                                _active={{
-                                                    transform:
-                                                        'translateY(0) scale(0.98)',
-                                                }}
-                                                _dark={{
-                                                    _hover: {
-                                                        bg: 'rgba(54, 163, 123, 0.14)',
-                                                    },
-                                                }}
                                             >
                                                 JOIN
                                             </Button>
@@ -676,6 +616,7 @@ const HomeCard = () => {
                                     />
                                     <IconButton
                                         type="submit"
+                                        variant="tactilePrimary"
                                         aria-label="Subscribe"
                                         icon={
                                             <Icon
@@ -683,25 +624,12 @@ const HomeCard = () => {
                                                 boxSize={4}
                                             />
                                         }
-                                        bg="brand.green"
-                                        color="white"
                                         size="sm"
                                         borderRadius="full"
                                         minW={{ base: '40px', md: '36px' }}
                                         h={{ base: '40px', md: '36px' }}
                                         flexShrink={0}
                                         isLoading={isSubscribing}
-                                        disabled={isSubscribing}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                        _hover={{
-                                            bg: 'rgba(54, 163, 123, 0.85)',
-                                            transform: 'scale(1.05)',
-                                            boxShadow:
-                                                '0 4px 12px rgba(54, 163, 123, 0.3)',
-                                        }}
-                                        _active={{
-                                            transform: 'scale(0.95)',
-                                        }}
                                     />
                                 </HStack>
                                 <Text
@@ -737,85 +665,19 @@ const HomeCard = () => {
                                     href="https://x.com/stacked_poker"
                                     isExternal
                                 >
-                                    <IconButton
-                                        aria-label="X"
-                                        icon={<RiTwitterXLine size={18} />}
-                                        size="sm"
-                                        variant="social"
-                                        minW={{ base: '40px', md: '44px' }}
-                                        color="text.primary"
-                                        borderRadius="14px"
-                                        w={{ base: '40px', md: '44px' }}
-                                        h={{ base: '40px', md: '44px' }}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                        _hover={{
-                                            bg: 'brand.darkNavy',
-                                            color: 'white',
-                                            transform:
-                                                'translateY(-2px) scale(1.05)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(11, 20, 48, 0.3)',
-                                        }}
-                                        _active={{
-                                            transform: 'scale(0.95)',
-                                        }}
-                                    />
+                                    <SocialIconButton tone="x" chipSize="lg" />
                                 </Link>
                                 <Link
                                     href="https://discord.gg/347RBVcvpn"
                                     isExternal
                                 >
-                                    <IconButton
-                                        aria-label="Discord"
-                                        icon={<FaDiscord size={18} />}
-                                        size="sm"
-                                        variant="social"
-                                        minW={{ base: '40px', md: '44px' }}
-                                        color="#5865F2"
-                                        borderRadius="14px"
-                                        w={{ base: '40px', md: '44px' }}
-                                        h={{ base: '40px', md: '44px' }}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                        _hover={{
-                                            bg: '#5865F2',
-                                            color: 'white',
-                                            transform:
-                                                'translateY(-2px) scale(1.05)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(88, 101, 242, 0.4)',
-                                        }}
-                                        _active={{
-                                            transform: 'scale(0.95)',
-                                        }}
-                                    />
+                                    <SocialIconButton tone="discord" chipSize="lg" />
                                 </Link>
                                 <Link
                                     href="https://t.me/stackedpoker"
                                     isExternal
                                 >
-                                    <IconButton
-                                        aria-label="Telegram"
-                                        icon={<FaTelegram size={18} />}
-                                        size="sm"
-                                        variant="social"
-                                        minW={{ base: '40px', md: '44px' }}
-                                        color="#0088cc"
-                                        borderRadius="14px"
-                                        w={{ base: '40px', md: '44px' }}
-                                        h={{ base: '40px', md: '44px' }}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                        _hover={{
-                                            bg: '#0088cc',
-                                            color: 'white',
-                                            transform:
-                                                'translateY(-2px) scale(1.05)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(0, 136, 204, 0.4)',
-                                        }}
-                                        _active={{
-                                            transform: 'scale(0.95)',
-                                        }}
-                                    />
+                                    <SocialIconButton tone="telegram" chipSize="lg" />
                                 </Link>
                         </Flex>
                     </MotionBox>

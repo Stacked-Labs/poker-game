@@ -254,18 +254,15 @@ const NewsletterSection = () => {
                             />
                             <Button
                                 type="submit"
+                                variant="tactilePrimary"
                                 aria-label="Save my seat"
-                                bg="brand.green"
-                                color="white"
                                 px={6}
                                 height="52px"
                                 width="100%"
                                 borderRadius="12px"
                                 fontSize="sm"
-                                fontWeight="700"
                                 letterSpacing="0.06em"
                                 textTransform="uppercase"
-                                border="none"
                                 rightIcon={
                                     <Icon
                                         as={
@@ -276,30 +273,16 @@ const NewsletterSection = () => {
                                         boxSize={4}
                                     />
                                 }
-                                disabled={isSubmitting || isSubmitted}
-                                transition={TRANSITION_SMOOTH}
-                                boxShadow="0 6px 18px rgba(54, 163, 123, 0.30)"
-                                _hover={{
-                                    bg: 'brand.green',
-                                    transform: 'translateY(-1px)',
-                                    boxShadow:
-                                        '0 10px 24px rgba(54, 163, 123, 0.42)',
-                                    filter: 'brightness(1.08)',
-                                }}
-                                _active={{
-                                    transform: 'translateY(0) scale(0.98)',
-                                }}
+                                isLoading={isSubmitting}
+                                loadingText="Saving"
+                                isDisabled={isSubmitted}
                                 _focusVisible={{
                                     outline: '2px solid',
                                     outlineColor: 'brand.pink',
                                     outlineOffset: '4px',
                                 }}
                             >
-                                {isSubmitting
-                                    ? 'Saving'
-                                    : isSubmitted
-                                      ? 'Saved'
-                                      : 'Save my seat'}
+                                {isSubmitted ? 'Saved' : 'Save my seat'}
                             </Button>
                         </VStack>
                     </Flex>

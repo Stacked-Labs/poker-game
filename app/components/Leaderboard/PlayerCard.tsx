@@ -55,6 +55,8 @@ interface ReferralInfo {
     count: number;
     multiplier: number;
     nextTier: { required: number; multiplier: number } | null;
+    hasReferrer?: boolean;
+    myCode?: string | null;
 }
 
 export type PlayerAuthState = 'disconnected' | 'connected-not-authed' | 'authed';
@@ -74,6 +76,7 @@ export interface PlayerCardViewProps {
     previousRank?: number;
     stats?: UserStats;
     referralInfo?: ReferralInfo;
+    initialReferralCode?: string;
     isAuthenticating?: boolean;
     isConnectingX?: boolean;
     isDisconnectingX?: boolean;
@@ -89,6 +92,7 @@ interface PlayerCardProps {
     points?: number;
     stats?: UserStats;
     referralInfo?: ReferralInfo;
+    initialReferralCode?: string;
     pointsToNext?: number;
     nextRank?: number;
     nextPoints?: number;
@@ -140,6 +144,7 @@ export function PlayerCardView({
     previousRank,
     stats,
     referralInfo,
+    initialReferralCode,
     isAuthenticating,
     isConnectingX,
     isDisconnectingX,
@@ -535,7 +540,7 @@ export function PlayerCardView({
 
                     <Box h="1px" bg="border.lightGray" opacity={0.5} />
 
-                    <ReferralCodeSection referralInfo={referralInfo} />
+                    <ReferralCodeSection referralInfo={referralInfo} initialReferralCode={initialReferralCode} />
                 </VStack>
             </Box>
         </Box>
@@ -547,6 +552,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     points,
     stats,
     referralInfo,
+    initialReferralCode,
     pointsToNext,
     nextRank,
     nextPoints,
@@ -606,6 +612,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             previousRank={previousRank ?? undefined}
             stats={stats}
             referralInfo={referralInfo}
+            initialReferralCode={initialReferralCode}
             isAuthenticating={isAuthenticating}
             isConnectingX={isConnectingX}
             isDisconnectingX={isDisconnectingX}

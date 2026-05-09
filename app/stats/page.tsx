@@ -33,6 +33,8 @@ import {
     StatLabel,
     StatNumber,
     StatHelpText,
+    Button,
+    Textarea,
 } from '@chakra-ui/react';
 import Link from 'next/link';
 import EmergencyWithdrawAllButton from '../components/EmergencyWithdrawAllButton';
@@ -46,6 +48,9 @@ import {
     getAdminHealth,
     getAdminSettlementHealth,
     getIndexerHealth,
+    getAdminSBTWhitelist,
+    addToSBTWhitelist,
+    type SBTWhitelistEntry,
 } from '../hooks/server_actions';
 import type {
     AdminStatsResponse,
@@ -328,6 +333,16 @@ export default function AdminStatsPage() {
     const [settlementChain, setSettlementChain]   = useState<'base-sepolia' | 'base'>('base');
     const [tablesChain, setTablesChain]           = useState<'base-sepolia' | 'base' | 'all'>('all');
 
+    // Whitelist tab state
+    const [whitelist, setWhitelist]           = useState<SBTWhitelistEntry[]>([]);
+    const [wlLoading, setWlLoading]           = useState(false);
+    const [wlSearch, setWlSearch]             = useState('');
+    const [wlTotal, setWlTotal]               = useState(0);
+    const [wlTotalClaimed, setWlTotalClaimed] = useState(0);
+    const [wlInputMode, setWlInputMode]       = useState<'paste' | 'csv'>('paste');
+    const [wlPasteText, setWlPasteText]       = useState('');
+    const [wlAdding, setWlAdding]             = useState(false);
+
     const activityChainRef   = useRef(activityChain);
     const handsChainRef      = useRef(handsChain);
     const indexerChainRef    = useRef(indexerChain);
@@ -369,6 +384,18 @@ export default function AdminStatsPage() {
         if (result[0].status === 'fulfilled') setTables(result[0].value);
     }, []);
 
+    const loadWhitelist = useCallback(async (search = '') => {
+        setWlLoading(true);
+        try {
+            const data = await getAdminSBTWhitelist({ search });
+            setWhitelist(data.entries);
+            setWlTotal(data.total);
+            setWlTotalClaimed(data.claimed);
+        } finally {
+            setWlLoading(false);
+        }
+    }, []);
+
     const loadData = useCallback(async () => {
         setRefreshing(true);
         const chainsMatch = handsChainRef.current === activityChainRef.current;
@@ -391,10 +418,10 @@ export default function AdminStatsPage() {
     // Auth check on mount only.
     useEffect(() => {
         verifyAdmin().then((r) => {
-            if (r.isAdmin) { setAuthState('authorized'); loadData(); }
+            if (r.isAdmin) { setAuthState('authorized'); loadData(); loadWhitelist(); }
             else setAuthState('unauthorized');
         });
-    }, [loadData]);
+    }, [loadData, loadWhitelist]);
 
     useEffect(() => { if (authState === 'authorized') loadActivityData(activityChain); // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activityChain, loadActivityData]);
@@ -406,6 +433,13 @@ export default function AdminStatsPage() {
     }, [settlementChain, loadSettlementData]);
     useEffect(() => { if (authState === 'authorized') loadTablesData(tablesChain); // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tablesChain, loadTablesData]);
+
+    // Debounced whitelist search
+    useEffect(() => {
+        if (authState !== 'authorized') return;
+        const t = setTimeout(() => loadWhitelist(wlSearch), 300);
+        return () => clearTimeout(t);
+    }, [wlSearch, authState]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (authState === 'loading') {
         return (
@@ -511,9 +545,10 @@ export default function AdminStatsPage() {
                     gap={1}
                 >
                     {[
-                        { label: 'Stats',  accent: 'brand.green' },
-                        { label: 'Tables', accent: 'brand.pink' },
-                        { label: 'Health', accent: 'yellow.400' },
+                        { label: 'Stats',     accent: 'brand.green' },
+                        { label: 'Tables',    accent: 'brand.pink' },
+                        { label: 'Health',    accent: 'yellow.400' },
+                        { label: 'Whitelist', accent: 'brand.yellow' },
                     ].map(({ label, accent }) => (
                         <Tab
                             key={label}
@@ -1066,6 +1101,226 @@ export default function AdminStatsPage() {
                                         </Flex>
                                     ))}
                                 </VStack>
+                            </Box>
+
+                        </VStack>
+                    </TabPanel>
+
+                    {/* ── Whitelist tab ── */}
+                    <TabPanel px={0} py={0}>
+                        <VStack align="stretch" gap={6}>
+
+                            {/* Whitelist table */}
+                            <Box bg="card.white" borderRadius="16px" p={6} border="1px solid" borderColor="card.lightGray" boxShadow="0 2px 12px rgba(0,0,0,0.06)">
+                                <Flex justify="space-between" align="center" mb={4} gap={4} flexWrap="wrap">
+                                    <VStack align="start" gap={0}>
+                                        <Text fontSize="md" fontWeight="extrabold" color="text.primary">NFT Whitelist</Text>
+                                        <Text fontSize="xs" color="text.secondary">
+                                            {wlTotal.toLocaleString()} addresses · {wlTotalClaimed.toLocaleString()} claimed
+                                            {wlSearch && ` · filtered`}
+                                        </Text>
+                                    </VStack>
+                                    <HStack gap={2}>
+                                        <Input
+                                            placeholder="Search address…"
+                                            size="sm"
+                                            maxW="220px"
+                                            borderRadius="8px"
+                                            value={wlSearch}
+                                            onChange={(e) => setWlSearch(e.target.value)}
+                                            bg="card.lightGray"
+                                            border="none"
+                                            fontFamily="monospace"
+                                            fontSize="xs"
+                                            _focus={{ boxShadow: 'none', bg: 'card.lighterGray' }}
+                                        />
+                                        <Box
+                                            as="button"
+                                            px={3} py={1.5}
+                                            borderRadius="full"
+                                            fontSize="xs"
+                                            fontWeight="bold"
+                                            cursor="pointer"
+                                            bg="card.lightGray"
+                                            color="text.secondary"
+                                            _hover={{ opacity: 0.8 }}
+                                            onClick={() => loadWhitelist(wlSearch)}
+                                        >
+                                            Refresh
+                                        </Box>
+                                    </HStack>
+                                </Flex>
+                                {wlLoading ? (
+                                    <Flex justify="center" py={8}><Spinner size="md" color="brand.yellow" /></Flex>
+                                ) : whitelist.length === 0 ? (
+                                    <Text fontSize="sm" color="text.secondary" textAlign="center" py={6}>
+                                        {wlSearch ? 'No addresses match your search.' : 'No addresses yet.'}
+                                    </Text>
+                                ) : (
+                                    <>
+                                        <TableContainer>
+                                            <Table size="sm" variant="unstyled">
+                                                <Thead>
+                                                    <Tr>
+                                                        <Th fontSize="xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" pb={3}>Address</Th>
+                                                        <Th fontSize="xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" pb={3}>Added</Th>
+                                                        <Th fontSize="xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" pb={3} isNumeric>Claimed</Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                    {whitelist.map((entry) => (
+                                                        <Tr key={entry.address} _hover={{ bg: 'card.lightGray' }} borderRadius="8px">
+                                                            <Td py={2.5}>
+                                                                <HStack gap={2}>
+                                                                    <Text fontSize="xs" fontFamily="monospace" color="text.primary">
+                                                                        {entry.address.slice(0, 6)}…{entry.address.slice(-4)}
+                                                                    </Text>
+                                                                    <Box
+                                                                        as="button"
+                                                                        fontSize="2xs"
+                                                                        color="text.secondary"
+                                                                        cursor="pointer"
+                                                                        _hover={{ color: 'text.primary' }}
+                                                                        onClick={() => navigator.clipboard.writeText(entry.address)}
+                                                                    >
+                                                                        Copy
+                                                                    </Box>
+                                                                </HStack>
+                                                            </Td>
+                                                            <Td py={2.5}>
+                                                                <Text fontSize="xs" color="text.secondary">
+                                                                    {new Date(entry.addedAt).toLocaleDateString()}
+                                                                </Text>
+                                                            </Td>
+                                                            <Td py={2.5} isNumeric>
+                                                                <Text fontSize="xs" color={entry.claimed ? 'brand.green' : 'text.secondary'} fontWeight={entry.claimed ? 700 : 400}>
+                                                                    {entry.claimed ? '✓' : '—'}
+                                                                </Text>
+                                                            </Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+                                        </TableContainer>
+
+                                    </>
+                                )}
+                            </Box>
+
+                            {/* Add addresses */}
+                            <Box bg="card.white" borderRadius="16px" p={6} border="1px solid" borderColor="card.lightGray" boxShadow="0 2px 12px rgba(0,0,0,0.06)">
+                                <Text fontSize="md" fontWeight="extrabold" color="text.primary" mb={4}>Add Addresses</Text>
+
+                                {/* Mode toggle */}
+                                <HStack gap={2} mb={4}>
+                                    {(['paste', 'csv'] as const).map((mode) => (
+                                        <Box
+                                            key={mode}
+                                            as="button"
+                                            px={3} py={1.5}
+                                            borderRadius="full"
+                                            fontSize="sm"
+                                            fontWeight="bold"
+                                            cursor="pointer"
+                                            transition="all 0.15s"
+                                            bg={wlInputMode === mode ? 'brand.yellow' : 'card.lightGray'}
+                                            color={wlInputMode === mode ? 'white' : 'text.secondary'}
+                                            onClick={() => setWlInputMode(mode)}
+                                            _hover={{ opacity: 0.85 }}
+                                            textTransform="capitalize"
+                                        >
+                                            {mode === 'paste' ? 'Paste' : 'CSV File'}
+                                        </Box>
+                                    ))}
+                                </HStack>
+
+                                {wlInputMode === 'paste' ? (
+                                    <Textarea
+                                        value={wlPasteText}
+                                        onChange={(e) => setWlPasteText(e.target.value)}
+                                        placeholder={"0x1234…\n0xabcd…"}
+                                        rows={6}
+                                        fontSize="xs"
+                                        fontFamily="monospace"
+                                        borderRadius="10px"
+                                        resize="vertical"
+                                        mb={3}
+                                    />
+                                ) : (
+                                    <Box mb={3}>
+                                        <Input
+                                            type="file"
+                                            accept=".csv"
+                                            fontSize="xs"
+                                            borderRadius="10px"
+                                            py={1.5}
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+                                                const reader = new FileReader();
+                                                reader.onload = (ev) => {
+                                                    const text = ev.target?.result as string;
+                                                    const addresses = text
+                                                        .split('\n')
+                                                        .map((line) => line.split(',')[0].trim())
+                                                        .filter((a) => /^0x/i.test(a));
+                                                    setWlPasteText(addresses.join('\n'));
+                                                    setWlInputMode('paste');
+                                                };
+                                                reader.readAsText(file);
+                                            }}
+                                        />
+                                        <Text fontSize="xs" color="text.secondary" mt={1}>First column used. Parsed addresses will appear in Paste mode.</Text>
+                                    </Box>
+                                )}
+
+                                {/* Preview */}
+                                {wlPasteText.trim() && (() => {
+                                    const addrs = wlPasteText
+                                        .split(/[\n,]+/)
+                                        .map((a) => a.trim())
+                                        .filter((a) => /^0x/i.test(a));
+                                    return (
+                                        <Box mb={3} p={3} bg="card.lightGray" borderRadius="8px">
+                                            <Text fontSize="xs" color="text.secondary" mb={1}>{addrs.length} address{addrs.length !== 1 ? 'es' : ''} detected</Text>
+                                            {addrs.slice(0, 5).map((a) => (
+                                                <Text key={a} fontSize="xs" fontFamily="monospace" color="text.primary">{a}</Text>
+                                            ))}
+                                            {addrs.length > 5 && <Text fontSize="xs" color="text.secondary">…and {addrs.length - 5} more</Text>}
+                                        </Box>
+                                    );
+                                })()}
+
+                                <Button
+                                    bg="brand.yellow"
+                                    color="white"
+                                    fontWeight={800}
+                                    borderRadius="10px"
+                                    size="sm"
+                                    isLoading={wlAdding}
+                                    loadingText="Adding…"
+                                    isDisabled={!wlPasteText.trim()}
+                                    _hover={{ opacity: 0.9 }}
+                                    onClick={async () => {
+                                        const addrs = wlPasteText
+                                            .split(/[\n,]+/)
+                                            .map((a) => a.trim())
+                                            .filter((a) => /^0x/i.test(a));
+                                        if (!addrs.length) return;
+                                        setWlAdding(true);
+                                        try {
+                                            const result = await addToSBTWhitelist(addrs);
+                                            if (result.success) {
+                                                setWlPasteText('');
+                                                await loadWhitelist(wlSearch);
+                                            }
+                                        } finally {
+                                            setWlAdding(false);
+                                        }
+                                    }}
+                                >
+                                    Add to Whitelist
+                                </Button>
                             </Box>
 
                         </VStack>

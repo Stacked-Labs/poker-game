@@ -14,7 +14,6 @@ import {
     Icon,
     Spinner,
     Image,
-    Link,
     Divider,
     Tooltip,
     useDisclosure,
@@ -30,6 +29,7 @@ import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { useActiveWallet } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useAuth } from '@/app/contexts/AuthContext';
+import ExternalLink from '@/app/components/ExternalLink';
 
 const CHIPS_PER_USDC = 100;
 const USDC_LOGO_URL = '/usdc-logo.png';
@@ -524,17 +524,12 @@ const WithdrawBalanceCard = () => {
                             {contractAddress && (
                                 <>
                                     {' '}
-                                    <Link
+                                    <ExternalLink
                                         href={`https://sepolia.basescan.org/address/${contractAddress}`}
-                                        isExternal
-                                        color="brand.navy"
-                                        _dark={{ color: 'brand.lightGray' }}
                                         fontWeight="semibold"
-                                        textDecoration="underline"
-                                        textUnderlineOffset="2px"
                                     >
                                         View contract
-                                    </Link>
+                                    </ExternalLink>
                                 </>
                             )}
                         </Text>

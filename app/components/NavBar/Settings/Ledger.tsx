@@ -647,12 +647,17 @@ const Ledger = () => {
             });
         }
 
-        // Calculate net for each session
+        // Calculate net for each session, and sort transactions newest-first
         playerMap.forEach((session) => {
             session.net =
                 session.totalBuyOuts +
                 session.currentStack -
                 session.totalBuyIns;
+            session.transactions.sort(
+                (a, b) =>
+                    new Date(b.timestamp).getTime() -
+                    new Date(a.timestamp).getTime()
+            );
         });
 
         return Array.from(playerMap.values()).sort((a, b) => {

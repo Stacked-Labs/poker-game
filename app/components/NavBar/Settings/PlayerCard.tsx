@@ -7,6 +7,7 @@ import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { useContext, useState } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { getColorForUsername } from '@/app/utils/chatColors';
+import ExternalLink from '@/app/components/ExternalLink';
 
 const PlayerCard = ({
     index,
@@ -141,18 +142,38 @@ const PlayerCard = ({
                         <Link
                             href={xProfileUrl}
                             isExternal
-                            _hover={{ textDecoration: 'none' }}
+                            display="inline-flex"
+                            alignItems="center"
+                            gap="3px"
+                            color="text.secondary"
+                            transition="color 80ms ease"
+                            _hover={{
+                                textDecoration: 'underline',
+                                textDecorationThickness: '1.5px',
+                                textUnderlineOffset: '3px',
+                                '& .x-handle-icon': { opacity: 0.7 },
+                            }}
+                            sx={{
+                                '& .x-handle-icon': {
+                                    opacity: 0.4,
+                                    transition: 'opacity 80ms ease',
+                                },
+                            }}
                         >
                             <Text
                                 color="text.secondary"
                                 fontWeight="bold"
                                 fontSize={{ base: 'sm', md: 'md' }}
-                                _hover={{ color: 'brand.green' }}
-                                _active={{ color: 'brand.greenDark' }}
-                                transition="color 80ms ease"
                             >
                                 {displayName}
                             </Text>
+                            <Icon
+                                as={FiExternalLink}
+                                className="x-handle-icon"
+                                boxSize="10px"
+                                color="text.muted"
+                                aria-hidden
+                            />
                         </Link>
                     ) : (
                         <Text
@@ -202,31 +223,18 @@ const PlayerCard = ({
                 >
                     {/* ID / address */}
                     {isCrypto && truncatedAddress && baseScanUrl ? (
-                        <Link
+                        <ExternalLink
                             href={baseScanUrl}
-                            isExternal
-                            _hover={{ textDecoration: 'none' }}
+                            iconSize="9px"
+                            bg="card.lightGray"
+                            px={2}
+                            py={0.5}
+                            borderRadius="6px"
+                            fontSize="2xs"
+                            fontWeight="medium"
                         >
-                            <Badge
-                                bg="card.lightGray"
-                                color="text.secondary"
-                                px={2}
-                                py={0.5}
-                                borderRadius="6px"
-                                fontSize="2xs"
-                                fontWeight="medium"
-                                cursor="pointer"
-                                display="flex"
-                                alignItems="center"
-                                gap={1}
-                                _hover={{ color: 'brand.green' }}
-                                _active={{ color: 'brand.greenDark' }}
-                                transition="color 80ms ease"
-                            >
-                                {truncatedAddress}
-                                <Icon as={FiExternalLink} boxSize="9px" />
-                            </Badge>
-                        </Link>
+                            {truncatedAddress}
+                        </ExternalLink>
                     ) : (
                         <Badge
                             bg="card.lightGray"

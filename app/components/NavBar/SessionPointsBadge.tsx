@@ -114,7 +114,7 @@ export default function SessionPointsBadge() {
                     py="5px"
                     boxShadow="card.lift"
                     overflow="hidden"
-                    cursor="default"
+                    cursor="pointer"
                     userSelect="none"
                     _after={{
                         content: '""',

@@ -92,8 +92,6 @@ const SeatRequestPopup = () => {
         Boolean(currentRequest) && isOwner && showPopups && !isSettingsOpen;
 
     // Dark-mode-adaptive values
-    const popupBg = useColorModeValue('white', '#212121');
-    const headerBg = useColorModeValue('#ECEEF5', '#191414');
     const subtleBorder = useColorModeValue('rgba(0, 0, 0, 0.08)', 'rgba(255, 255, 255, 0.1)');
     const popupShadow = useColorModeValue(
         '0 16px 40px rgba(0, 0, 0, 0.22)',

@@ -12,7 +12,6 @@ import {
     AccordionPanel,
     Link,
     VStack,
-    HStack,
     Icon,
 } from '@chakra-ui/react';
 import { MdAdd, MdRemove } from 'react-icons/md';

@@ -4,12 +4,12 @@ import React from 'react';
 export const metadata: Metadata = {
     title: 'Free Testnet USDC - Stacked Poker',
     description:
-        'Get free testnet USDC to play crypto poker on Stacked. Connect your wallet, claim tokens from the faucet, and start playing real-money style poker on Base Sepolia.',
+        'Grab free Base Sepolia ETH and USDC, then sit down at a table on Stacked. No account, no signup.',
     icons: { icon: '/favicon.ico' },
     openGraph: {
         title: 'Free Testnet USDC - Stacked Poker',
         description:
-            'Get free testnet USDC to try crypto poker on Stacked. No real money needed — connect your wallet and claim tokens instantly.',
+            'Grab free Base Sepolia ETH and USDC, then sit down at a table on Stacked. No account, no signup.',
         url: 'https://stackedpoker.io/free-tokens',
         siteName: 'Stacked Poker',
         images: [
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     twitter: {
         title: 'Free Testnet USDC - Stacked Poker',
         description:
-            'Get free testnet USDC to try crypto poker on Stacked. No real money needed.',
+            'Free Base Sepolia ETH and USDC for Stacked. Two minutes, no signup.',
         images: ['https://stackedpoker.io/previews/home_preview.png'],
     },
     keywords: ['testnet USDC', 'free crypto poker', 'Base Sepolia faucet', 'poker faucet', 'crypto poker testnet'],

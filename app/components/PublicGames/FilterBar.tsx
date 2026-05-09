@@ -31,8 +31,9 @@ export default function FilterBar({ filter, onFilterChange }: FilterBarProps) {
                         as="button"
                         onClick={() => onFilterChange(option.value)}
                         aria-pressed={active}
-                        px={4}
-                        h="32px"
+                        px={{ base: 3.5, md: 4 }}
+                        h={{ base: '36px', md: '32px' }}
+                        minW={{ base: '52px', md: 'auto' }}
                         borderRadius="full"
                         fontSize="xs"
                         fontWeight="bold"

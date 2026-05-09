@@ -15,8 +15,6 @@ import {
     Divider,
     Link,
     Icon,
-    Tooltip,
-    Badge,
 } from '@chakra-ui/react';
 import { Image } from '@chakra-ui/next-js';
 import React from 'react';
@@ -57,29 +55,22 @@ const HomeNavBar: React.FC = () => {
 
     const NavButtons = React.memo(() => (
         <>
-            <Tooltip
-                label="Coming soon"
-                hasArrow
-                bg="brand.darkNavy"
-                color="white"
-                fontSize="xs"
-                fontWeight="semibold"
-                borderRadius="8px"
-                px={3}
-                py={1.5}
+            <Button
+                as="a"
+                href="/public-games"
+                aria-label="Browse public games"
+                variant="navLink"
             >
-                <Button
-                    variant="navLink"
-                    opacity={0.4}
-                    cursor="default"
-                    _hover={{
-                        transform: 'none',
-                        color: 'text.primary',
-                    }}
-                >
-                    Leaderboard
-                </Button>
-            </Tooltip>
+                Games
+            </Button>
+            <Button
+                as="a"
+                href="/leaderboard"
+                aria-label="Leaderboard"
+                variant="navLink"
+            >
+                Leaderboard
+            </Button>
             <Button
                 as="a"
                 href="https://docs.stackedpoker.io/docs/introduction"
@@ -373,58 +364,51 @@ const HomeNavBar: React.FC = () => {
                                 >
                                     Public Games
                                 </Button>
-                                <Tooltip
-                                    label="Coming soon"
-                                    hasArrow
-                                    placement="right"
-                                    bg="brand.darkNavy"
-                                    color="white"
-                                    fontSize="xs"
-                                    fontWeight="semibold"
-                                    borderRadius="8px"
+                                <Button
+                                    as="a"
+                                    href="/leaderboard"
+                                    onClick={onClose}
+                                    leftIcon={
+                                        <Icon
+                                            as={RiTrophyLine}
+                                            boxSize={5}
+                                        />
+                                    }
+                                    variant="ghost"
+                                    justifyContent="flex-start"
+                                    height="44px"
                                     px={3}
-                                    py={1.5}
+                                    borderRadius="12px"
+                                    fontWeight="semibold"
+                                    fontSize="sm"
+                                    color="text.primary"
+                                    bg="transparent"
+                                    border="none"
+                                    transition={TACTILE_TRANSITION}
+                                    _hover={{
+                                        bg: 'rgba(54, 163, 123, 0.10)',
+                                        color: 'brand.green',
+                                    }}
+                                    _active={{
+                                        bg: 'rgba(54, 163, 123, 0.16)',
+                                        transform: 'translateY(1px)',
+                                        boxShadow:
+                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
+                                    }}
+                                    _dark={{
+                                        _hover: {
+                                            bg: 'rgba(54, 163, 123, 0.16)',
+                                        },
+                                        _active: {
+                                            bg: 'rgba(54, 163, 123, 0.22)',
+                                            transform: 'translateY(1px)',
+                                            boxShadow:
+                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
+                                        },
+                                    }}
                                 >
-                                    <Button
-                                        leftIcon={
-                                            <Icon
-                                                as={RiTrophyLine}
-                                                boxSize={5}
-                                            />
-                                        }
-                                        variant="ghost"
-                                        justifyContent="flex-start"
-                                        height="44px"
-                                        px={3}
-                                        borderRadius="12px"
-                                        fontWeight="semibold"
-                                        fontSize="sm"
-                                        color="text.muted"
-                                        bg="transparent"
-                                        border="none"
-                                        opacity={0.5}
-                                        cursor="default"
-                                        _hover={{ bg: 'transparent' }}
-                                        _active={{ bg: 'transparent' }}
-                                        transition={TACTILE_TRANSITION}
-                                    >
-                                        Leaderboard
-                                        <Badge
-                                            ml={2}
-                                            fontSize="2xs"
-                                            fontWeight="bold"
-                                            bg="brand.yellow"
-                                            color="brand.darkNavy"
-                                            borderRadius="full"
-                                            px={2}
-                                            py={0.5}
-                                            textTransform="uppercase"
-                                            letterSpacing="0.05em"
-                                        >
-                                            Soon
-                                        </Badge>
-                                    </Button>
-                                </Tooltip>
+                                    Leaderboard
+                                </Button>
                             </VStack>
                         </Box>
 

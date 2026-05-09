@@ -616,6 +616,7 @@ const HomeCard = () => {
                                     />
                                     <IconButton
                                         type="submit"
+                                        variant="tactilePrimary"
                                         aria-label="Subscribe"
                                         icon={
                                             <Icon
@@ -623,25 +624,12 @@ const HomeCard = () => {
                                                 boxSize={4}
                                             />
                                         }
-                                        bg="brand.green"
-                                        color="white"
                                         size="sm"
                                         borderRadius="full"
                                         minW={{ base: '40px', md: '36px' }}
                                         h={{ base: '40px', md: '36px' }}
                                         flexShrink={0}
                                         isLoading={isSubscribing}
-                                        disabled={isSubscribing}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                        _hover={{
-                                            bg: 'rgba(54, 163, 123, 0.85)',
-                                            transform: 'scale(1.05)',
-                                            boxShadow:
-                                                '0 4px 12px rgba(54, 163, 123, 0.3)',
-                                        }}
-                                        _active={{
-                                            transform: 'scale(0.95)',
-                                        }}
                                     />
                                 </HStack>
                                 <Text

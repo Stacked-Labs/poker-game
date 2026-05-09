@@ -16,7 +16,6 @@ import {
     Th,
     Thead,
     Tr,
-    VStack,
 } from '@chakra-ui/react';
 import { getColorForUsername } from '@/app/utils/chatColors';
 import { keyframes } from '@emotion/react';

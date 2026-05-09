@@ -19,18 +19,18 @@ import { Image } from '@chakra-ui/next-js';
 import { useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
 import { baseSepolia } from 'thirdweb/chains';
 import {
-    FiExternalLink,
     FiAlertTriangle,
     FiCheckCircle,
     FiInfo,
     FiZap,
 } from 'react-icons/fi';
 import Footer from '../components/HomePage/Footer';
+import ExternalLink from '../components/ExternalLink';
 
 const imgWidth = 1200;
 const imgHeight = 800;
 
-/* ── Highlight — coloured text with subtle bg underline (FeaturesSection pattern) ── */
+/* Tinted highlighter underline behind a colored word. */
 const Highlight = ({
     children,
     color = 'pink',
@@ -61,7 +61,7 @@ const Highlight = ({
                 right="-2px"
                 height="35%"
                 bg={c}
-                opacity={0.08}
+                opacity={0.1}
                 zIndex={-1}
                 borderRadius="sm"
             />
@@ -69,32 +69,27 @@ const Highlight = ({
     );
 };
 
-/* ── Step colour palette ── */
 const stepColors = [
     {
         bg: 'brand.green',
-        shadow: 'rgba(54, 163, 123, 0.3)',
         labelBg: 'rgba(54, 163, 123, 0.1)',
         labelColor: 'brand.green',
         labelDark: 'green.300',
     },
     {
         bg: 'blue.500',
-        shadow: 'rgba(66, 153, 225, 0.3)',
         labelBg: 'rgba(66, 153, 225, 0.1)',
         labelColor: 'blue.600',
         labelDark: 'blue.300',
     },
     {
         bg: 'brand.pink',
-        shadow: 'rgba(235, 11, 92, 0.3)',
         labelBg: 'rgba(235, 11, 92, 0.08)',
         labelColor: 'brand.pink',
         labelDark: 'pink.300',
     },
     {
         bg: 'brand.yellow',
-        shadow: 'rgba(253, 197, 29, 0.3)',
         labelBg: 'rgba(253, 197, 29, 0.12)',
         labelColor: 'brand.yellowDark',
         labelDark: 'yellow.300',
@@ -107,15 +102,14 @@ const StepBadge = ({ number }: { number: number }) => {
         <Flex
             align="center"
             justify="center"
-            w={{ base: '30px', sm: '34px', md: '40px' }}
-            h={{ base: '30px', sm: '34px', md: '40px' }}
+            w={{ base: '32px', md: '40px' }}
+            h={{ base: '32px', md: '40px' }}
             borderRadius={{ base: '10px', md: '14px' }}
             bg={colors.bg}
             color="white"
             fontWeight="bold"
             fontSize={{ base: 'sm', md: 'md' }}
             flexShrink={0}
-            boxShadow={`0 6px 12px -4px ${colors.shadow}`}
         >
             {number}
         </Flex>
@@ -155,22 +149,9 @@ const FaucetLink = ({
         <Text fontWeight="bold" color="text.primary" fontSize="sm">
             {label}
         </Text>
-        <Link
-            href={href}
-            isExternal
-            color="brand.green"
-            fontWeight="semibold"
-            fontSize="sm"
-            _hover={{ color: 'brand.pink', textDecoration: 'underline' }}
-            display="inline-flex"
-            alignItems="center"
-            gap={1}
-            wordBreak="break-all"
-            transition="color 0.2s ease"
-        >
+        <ExternalLink href={href} fontSize="sm" wordBreak="break-all">
             {href}
-            <Icon as={FiExternalLink} boxSize="12px" flexShrink={0} />
-        </Link>
+        </ExternalLink>
         {note ? (
             <Text fontSize="xs" color="text.muted" mt={0.5}>
                 {note}
@@ -205,7 +186,6 @@ const StepCard = ({
     title: React.ReactNode;
     children: React.ReactNode;
 }) => {
-    const colors = stepColors[(number - 1) % stepColors.length];
     return (
         <Box
             w="full"
@@ -214,27 +194,7 @@ const StepCard = ({
             p={{ base: 4, sm: 5, md: 7 }}
             border="1px solid"
             borderColor="border.lightGray"
-            boxShadow="0 4px 18px rgba(0, 0, 0, 0.03)"
-            position="relative"
-            overflow="hidden"
-            transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-            _hover={{
-                transform: 'translateY(-4px)',
-                boxShadow: '0 12px 28px rgba(0, 0, 0, 0.08)',
-                borderColor: colors.bg,
-            }}
         >
-            {/* Left accent bar */}
-            <Box
-                position="absolute"
-                left="0"
-                top="0"
-                bottom="0"
-                w="3px"
-                bg={colors.bg}
-                opacity={0.5}
-            />
-
             <VStack align="start" spacing={{ base: 3, md: 4 }} w="full">
                 <VStack align="start" spacing={{ base: 2, md: 3 }}>
                     <StepLabel number={number} />
@@ -245,6 +205,7 @@ const StepCard = ({
                             fontWeight="bold"
                             color="text.primary"
                             lineHeight="short"
+                            letterSpacing="-0.02em"
                         >
                             {title}
                         </Heading>
@@ -295,19 +256,18 @@ const ChainWarningBanner = () => {
             />
             <VStack align="start" spacing={1}>
                 <Text fontWeight="bold" color="brand.pink" fontSize="sm">
-                    Wrong Network Detected
+                    Wrong network
                 </Text>
                 <Text
                     fontSize="sm"
                     color="text.secondary"
                     fontWeight="medium"
                 >
-                    Your wallet is connected to a different network. Please
-                    switch to{' '}
+                    Switch your wallet to{' '}
                     <Text as="span" fontWeight="bold" color="text.primary">
                         Base Sepolia
                     </Text>{' '}
-                    to use testnet tokens with Stacked Poker.
+                    to use testnet tokens on Stacked.
                 </Text>
             </VStack>
         </Flex>
@@ -323,40 +283,15 @@ const FreeTokensPage = () => {
             position="relative"
             overflow="hidden"
         >
-            {/* Decorative background blurs */}
+            {/* Soft tonal wash (single, restrained) */}
             <Box
                 aria-hidden="true"
                 position="absolute"
-                top={{ base: '200px', md: '160px' }}
-                right={{ base: '-100px', md: '-60px' }}
-                w={{ base: '200px', md: '280px' }}
-                h={{ base: '200px', md: '280px' }}
+                top={{ base: '160px', md: '120px' }}
+                right={{ base: '-120px', md: '-80px' }}
+                w={{ base: '240px', md: '320px' }}
+                h={{ base: '240px', md: '320px' }}
                 bg="brand.green"
-                opacity={0.08}
-                borderRadius="full"
-                pointerEvents="none"
-            />
-            <Box
-                aria-hidden="true"
-                position="absolute"
-                bottom={{ base: '400px', md: '300px' }}
-                left={{ base: '-100px', md: '-60px' }}
-                w={{ base: '200px', md: '260px' }}
-                h={{ base: '200px', md: '260px' }}
-                bg="brand.pink"
-                opacity={0.08}
-                borderRadius="40px"
-                transform="rotate(12deg)"
-                pointerEvents="none"
-            />
-            <Box
-                aria-hidden="true"
-                position="absolute"
-                top={{ base: '600px', md: '500px' }}
-                left={{ base: '60%', md: '70%' }}
-                w={{ base: '160px', md: '200px' }}
-                h={{ base: '160px', md: '200px' }}
-                bg="brand.yellow"
                 opacity={0.06}
                 borderRadius="full"
                 pointerEvents="none"
@@ -369,9 +304,12 @@ const FreeTokensPage = () => {
                 position="relative"
                 zIndex={1}
             >
-                <Container maxW="container.md" px={{ base: 3, sm: 4, md: 6, lg: 8 }}>
+                <Container
+                    maxW="container.md"
+                    px={{ base: 4, sm: 5, md: 6, lg: 8 }}
+                >
                     <VStack spacing={{ base: 4, sm: 5, md: 8 }} w="full">
-                        {/* ─── Page header card ─── */}
+                        {/* Page header */}
                         <Box
                             w="full"
                             bg="card.white"
@@ -379,64 +317,10 @@ const FreeTokensPage = () => {
                             p={{ base: 5, sm: 6, md: 10 }}
                             border="1px solid"
                             borderColor="border.lightGray"
-                            boxShadow="0 16px 50px rgba(0, 0, 0, 0.08)"
-                            position="relative"
-                            overflow="hidden"
                         >
-                            {/* Radial gradient backdrop */}
-                            <Box
-                                aria-hidden="true"
-                                position="absolute"
-                                inset="0"
-                                bgGradient="radial(circle at 20% 30%, rgba(54, 163, 123, 0.12) 0%, transparent 50%), radial(circle at 85% 20%, rgba(235, 11, 92, 0.1) 0%, transparent 45%), radial(circle at 50% 90%, rgba(253, 197, 29, 0.1) 0%, transparent 50%)"
-                                opacity={0.7}
-                                pointerEvents="none"
-                                _dark={{ opacity: 0.4 }}
-                            />
-                            {/* Dot-grid overlay */}
-                            <Box
-                                aria-hidden="true"
-                                position="absolute"
-                                inset="0"
-                                backgroundImage="radial-gradient(circle, rgba(51, 68, 121, 0.15) 1px, transparent 1px)"
-                                backgroundSize="22px 22px"
-                                opacity={0.25}
-                                pointerEvents="none"
-                                _dark={{ opacity: 0.08 }}
-                            />
-                            {/* Floating decorative pink dot (CommunitySection) */}
-                            <Box
-                                aria-hidden="true"
-                                position="absolute"
-                                top={{ base: '12px', md: '20px' }}
-                                right={{ base: '16px', md: '28px' }}
-                                w={{ base: '10px', md: '12px' }}
-                                h={{ base: '10px', md: '12px' }}
-                                borderRadius="full"
-                                bg="brand.pink"
-                                boxShadow="0 0 0 6px rgba(235, 11, 92, 0.12)"
-                                pointerEvents="none"
-                            />
-                            {/* Floating decorative yellow square */}
-                            <Box
-                                aria-hidden="true"
-                                position="absolute"
-                                bottom={{ base: '16px', md: '24px' }}
-                                right={{ base: '40px', md: '60px' }}
-                                w={{ base: '12px', md: '14px' }}
-                                h={{ base: '12px', md: '14px' }}
-                                bg="brand.yellow"
-                                borderRadius="4px"
-                                transform="rotate(20deg)"
-                                boxShadow="0 0 0 6px rgba(253, 197, 29, 0.18)"
-                                pointerEvents="none"
-                            />
-
                             <VStack
                                 align="start"
                                 spacing={{ base: 4, md: 5 }}
-                                position="relative"
-                                zIndex={1}
                             >
                                 <HStack spacing={2} flexWrap="wrap">
                                     <Badge
@@ -450,7 +334,7 @@ const FreeTokensPage = () => {
                                         letterSpacing="0.12em"
                                         textTransform="uppercase"
                                     >
-                                        Testnet Guide
+                                        Testnet
                                     </Badge>
                                     <Badge
                                         bg="rgba(54, 163, 123, 0.1)"
@@ -470,101 +354,57 @@ const FreeTokensPage = () => {
                                     </Badge>
                                 </HStack>
 
-                                {/* ── Playful heading (single-line) ── */}
                                 <Heading
+                                    as="h1"
                                     fontSize={{
-                                        base: '2xl',
-                                        sm: '3xl',
-                                        md: '4xl',
-                                        lg: '5xl',
+                                        base: 'clamp(1.75rem, 7vw, 2.25rem)',
+                                        md: 'clamp(2.25rem, 5vw, 3.25rem)',
                                     }}
                                     fontWeight="extrabold"
                                     color="text.primary"
-                                    lineHeight={1.15}
+                                    lineHeight={1.1}
                                     letterSpacing="-0.03em"
                                 >
-                                    <Box
-                                        as="span"
-                                        display="inline"
-                                        position="relative"
-                                    >
-                                        Get Free
-                                        {/* Yellow underline highlight */}
-                                        <Box
-                                            as="span"
-                                            position="absolute"
-                                            left="0"
-                                            right="0"
-                                            bottom={{ base: '0px', md: '-2px' }}
-                                            height={{ base: '6px', md: '10px' }}
-                                            bg="brand.yellow"
-                                            opacity={0.2}
-                                            borderRadius="full"
-                                            zIndex={-1}
-                                            style={{ rotate: '-1deg' }}
-                                        />
-                                    </Box>{' '}
-                                    <Box
-                                        as="span"
-                                        display="inline-block"
-                                        bg="brand.green"
-                                        color="white"
-                                        px={{ base: 2.5, sm: 3, md: 4 }}
-                                        py={{ base: 0, sm: 0.5, md: 1 }}
-                                        borderRadius="full"
-                                        transform="rotate(-2deg)"
-                                        boxShadow="0 6px 16px rgba(54, 163, 123, 0.35)"
-                                    >
-                                        Tokens
-                                    </Box>{' '}
-                                    <Flex
-                                        as="span"
-                                        display="inline-flex"
-                                        align="center"
-                                        justify="center"
-                                        bg="brand.pink"
-                                        color="white"
-                                        w={{ base: '28px', sm: '32px', md: '40px' }}
-                                        h={{ base: '28px', sm: '32px', md: '40px' }}
-                                        borderRadius="full"
-                                        transform="rotate(6deg)"
-                                        boxShadow="0 8px 18px rgba(235, 11, 92, 0.35)"
-                                        ml={{ base: 0.5, md: 1 }}
-                                        verticalAlign="middle"
-                                    >
-                                        <Icon
-                                            as={FiZap}
-                                            color="white"
-                                            boxSize={{ base: '13px', sm: '15px', md: '20px' }}
-                                        />
-                                    </Flex>
+                                    Free testnet{' '}
+                                    <Highlight color="green">tokens</Highlight>
+                                    , in two minutes.
                                 </Heading>
 
                                 <Text
                                     color="text.secondary"
-                                    fontSize={{ base: 'sm', md: 'md', lg: 'lg' }}
+                                    fontSize={{
+                                        base: 'sm',
+                                        md: 'md',
+                                        lg: 'lg',
+                                    }}
                                     lineHeight="tall"
                                     fontWeight="medium"
                                     maxW="xl"
                                 >
-                                    Grab testnet tokens on{' '}
-                                    <Text
-                                        as="span"
-                                        fontWeight="bold"
-                                        color="text.primary"
-                                    >
-                                        Base Sepolia
-                                    </Text>{' '}
-                                    and start playing poker on Stacked — no
-                                    account needed.
+                                    Grab Base Sepolia ETH and USDC, then sit
+                                    down at a table on Stacked. No account,
+                                    no signup.
                                 </Text>
+
+                                <HStack
+                                    spacing={2}
+                                    color="text.muted"
+                                    fontSize="xs"
+                                    fontWeight="semibold"
+                                    letterSpacing="0.06em"
+                                    textTransform="uppercase"
+                                >
+                                    <Icon as={FiZap} boxSize="12px" />
+                                    <Text color="text.muted">
+                                        Testnet only. No real value.
+                                    </Text>
+                                </HStack>
                             </VStack>
                         </Box>
 
-                        {/* Chain warning banner */}
                         <ChainWarningBanner />
 
-                        {/* ─── Important notice ─── */}
+                        {/* What you need */}
                         <Box
                             w="full"
                             bg="card.white"
@@ -572,10 +412,6 @@ const FreeTokensPage = () => {
                             p={{ base: 4, sm: 5, md: 6 }}
                             border="1px solid"
                             borderColor="border.lightGray"
-                            borderLeft="4px solid"
-                            borderLeftColor="brand.navy"
-                            _dark={{ borderLeftColor: 'blue.400' }}
-                            boxShadow="0 4px 18px rgba(0, 0, 0, 0.03)"
                         >
                             <HStack align="flex-start" spacing={3}>
                                 <Icon
@@ -592,14 +428,14 @@ const FreeTokensPage = () => {
                                         color="text.primary"
                                         fontSize={{ base: 'sm', md: 'md' }}
                                     >
-                                        You Need Both ETH and USDC
+                                        You need both ETH and USDC
                                     </Text>
                                     <Text
                                         fontSize="sm"
                                         color="text.secondary"
                                         fontWeight="medium"
                                     >
-                                        To play poker on Stacked, you need both:
+                                        To play on Stacked, you need:
                                     </Text>
                                     <List spacing={2}>
                                         <ListItem
@@ -615,6 +451,7 @@ const FreeTokensPage = () => {
                                             <Text
                                                 as="span"
                                                 fontWeight="medium"
+                                                color="text.secondary"
                                             >
                                                 <Text
                                                     as="span"
@@ -623,8 +460,7 @@ const FreeTokensPage = () => {
                                                 >
                                                     Base Sepolia ETH
                                                 </Text>{' '}
-                                                &mdash; for gas fees
-                                                (transaction costs)
+                                                for gas.
                                             </Text>
                                         </ListItem>
                                         <ListItem
@@ -640,6 +476,7 @@ const FreeTokensPage = () => {
                                             <Text
                                                 as="span"
                                                 fontWeight="medium"
+                                                color="text.secondary"
                                             >
                                                 <Text
                                                     as="span"
@@ -648,8 +485,7 @@ const FreeTokensPage = () => {
                                                 >
                                                     Base Sepolia USDC
                                                 </Text>{' '}
-                                                &mdash; for buying into poker
-                                                tables
+                                                for buy-ins.
                                             </Text>
                                         </ListItem>
                                     </List>
@@ -658,14 +494,13 @@ const FreeTokensPage = () => {
                                         color="text.muted"
                                         fontWeight="medium"
                                     >
-                                        Follow the steps below to get both
-                                        tokens.
+                                        Steps below cover both.
                                     </Text>
                                 </VStack>
                             </HStack>
                         </Box>
 
-                        {/* ─── Step 1: Get Base Sepolia ETH ─── */}
+                        {/* Step 1: ETH */}
                         <StepCard
                             number={1}
                             title={
@@ -678,7 +513,7 @@ const FreeTokensPage = () => {
                                         fontWeight="medium"
                                         fontSize={{ base: 'sm', md: 'md' }}
                                     >
-                                        (for gas fees)
+                                        (for gas)
                                     </Text>
                                 </>
                             }
@@ -689,8 +524,8 @@ const FreeTokensPage = () => {
                                 fontWeight="medium"
                                 lineHeight="tall"
                             >
-                                You need Base Sepolia ETH to pay for transaction
-                                fees (gas). Choose one of these faucets:
+                                Pick a faucet, connect your wallet, request
+                                ETH.
                             </Text>
 
                             <Box
@@ -720,13 +555,13 @@ const FreeTokensPage = () => {
                                     }
                                 >
                                     <FaucetLink
-                                        label="Option 1: Alchemy Faucet"
+                                        label="Option 1: Alchemy faucet"
                                         href="https://www.alchemy.com/faucets/base-sepolia"
                                     />
                                     <FaucetLink
-                                        label="Option 2: QuickNode Faucet"
+                                        label="Option 2: QuickNode faucet"
                                         href="https://faucet.quicknode.com/base/sepolia"
-                                        note="Note: QuickNode requires 0.001 ETH on Ethereum Mainnet"
+                                        note="Requires 0.001 ETH on Ethereum mainnet."
                                     />
                                 </VStack>
                             </Box>
@@ -756,14 +591,12 @@ const FreeTokensPage = () => {
                                     color="text.secondary"
                                     fontWeight="medium"
                                 >
-                                    Visit the faucet, connect your wallet, and
-                                    request Base Sepolia ETH. Tokens should
-                                    arrive in a few minutes.
+                                    Tokens land in a few minutes.
                                 </Text>
                             </HStack>
                         </StepCard>
 
-                        {/* ─── Step 2: Get Base Sepolia USDC ─── */}
+                        {/* Step 2: USDC */}
                         <StepCard
                             number={2}
                             title={
@@ -787,8 +620,7 @@ const FreeTokensPage = () => {
                                 fontWeight="medium"
                                 lineHeight="tall"
                             >
-                                Get free testnet USDC from Circle&apos;s public
-                                faucet:
+                                Free testnet USDC from Circle.
                             </Text>
 
                             <VStack align="start" spacing={4} w="full">
@@ -805,36 +637,28 @@ const FreeTokensPage = () => {
                                             fontWeight="bold"
                                             color="text.primary"
                                         >
-                                            Visit the Circle Testnet Faucet:
+                                            Open the Circle faucet:
                                         </Text>{' '}
-                                        Go to{' '}
-                                        <Link
-                                            href="https://faucet.circle.com/"
-                                            isExternal
-                                            color="brand.green"
-                                            fontWeight="semibold"
-                                            _hover={{
-                                                color: 'brand.pink',
-                                                textDecoration: 'underline',
-                                            }}
-                                            transition="color 0.2s ease"
-                                        >
+                                        head to{' '}
+                                        <ExternalLink href="https://faucet.circle.com/">
                                             faucet.circle.com
-                                            <Icon
-                                                as={FiExternalLink}
-                                                boxSize="11px"
-                                                ml={1}
-                                                mb="2px"
-                                            />
-                                        </Link>
+                                        </ExternalLink>
+                                        .
                                     </Text>
                                 </HStack>
 
                                 <HStack align="flex-start" spacing={3}>
                                     <SubStepBadge label="b" />
-                                    <VStack align="start" spacing={3} flex={1}>
+                                    <VStack
+                                        align="start"
+                                        spacing={3}
+                                        flex={1}
+                                    >
                                         <Text
-                                            fontSize={{ base: 'sm', md: 'md' }}
+                                            fontSize={{
+                                                base: 'sm',
+                                                md: 'md',
+                                            }}
                                             color="text.secondary"
                                             fontWeight="medium"
                                             lineHeight="tall"
@@ -844,19 +668,18 @@ const FreeTokensPage = () => {
                                                 fontWeight="bold"
                                                 color="text.primary"
                                             >
-                                                Request free USDC tokens:
+                                                Request USDC:
                                             </Text>{' '}
-                                            Select{' '}
+                                            pick{' '}
                                             <Text
                                                 as="span"
                                                 fontWeight="bold"
                                                 color="text.primary"
                                             >
                                                 Base-Sepolia
-                                            </Text>{' '}
-                                            from the dropdown, enter your wallet
-                                            address, and click &ldquo;Send 10
-                                            USDC&rdquo;.
+                                            </Text>
+                                            , drop in your wallet address,
+                                            hit &ldquo;Send 10 USDC&rdquo;.
                                         </Text>
                                         <Box
                                             borderRadius="16px"
@@ -881,13 +704,13 @@ const FreeTokensPage = () => {
                             </VStack>
                         </StepCard>
 
-                        {/* ─── Step 3: Connect Your Wallet ─── */}
+                        {/* Step 3: Connect */}
                         <StepCard
                             number={3}
                             title={
                                 <>
                                     <Highlight color="pink">Connect</Highlight>{' '}
-                                    Your Wallet to Stacked
+                                    your wallet
                                 </>
                             }
                         >
@@ -897,22 +720,22 @@ const FreeTokensPage = () => {
                                 fontWeight="medium"
                                 lineHeight="tall"
                             >
-                                Head to{' '}
+                                Open{' '}
                                 <Link
                                     href="/"
-                                    color="brand.green"
+                                    color="brand.navy"
+                                    _dark={{ color: 'brand.lightGray' }}
                                     fontWeight="semibold"
-                                    _hover={{
-                                        color: 'brand.pink',
-                                        textDecoration: 'underline',
-                                    }}
-                                    transition="color 0.2s ease"
+                                    textDecoration="underline"
+                                    textUnderlineOffset="3px"
+                                    textDecorationThickness="1.5px"
+                                    transition="color 80ms ease"
+                                    _hover={{ color: 'brand.green' }}
                                 >
                                     stackedpoker.io
                                 </Link>{' '}
-                                and connect your wallet. You can use MetaMask,
-                                Coinbase Wallet, or sign in with Google, Discord,
-                                and more.
+                                and connect. MetaMask, Coinbase Wallet,
+                                Google, Discord all work.
                             </Text>
 
                             <VStack align="start" spacing={3} w="full">
@@ -932,13 +755,19 @@ const FreeTokensPage = () => {
                                 ].map((img) => (
                                     <Box
                                         key={img.src}
-                                        borderRadius={{ base: '12px', md: '16px' }}
+                                        borderRadius={{
+                                            base: '12px',
+                                            md: '16px',
+                                        }}
                                         overflow="hidden"
                                         border="1px solid"
                                         borderColor="border.lightGray"
                                         bg="card.lightGray"
                                         w="full"
-                                        maxW={{ base: 'full', md: '520px' }}
+                                        maxW={{
+                                            base: 'full',
+                                            md: '520px',
+                                        }}
                                     >
                                         <Image
                                             src={img.src}
@@ -953,14 +782,14 @@ const FreeTokensPage = () => {
                             </VStack>
                         </StepCard>
 
-                        {/* ─── Step 4: Verify Your Balance ─── */}
+                        {/* Step 4: Verify */}
                         <StepCard
                             number={4}
                             title={
                                 <>
-                                    Verify Your{' '}
+                                    Verify your{' '}
                                     <Highlight color="yellow">
-                                        Balance
+                                        balance
                                     </Highlight>
                                 </>
                             }
@@ -971,9 +800,8 @@ const FreeTokensPage = () => {
                                 fontWeight="medium"
                                 lineHeight="tall"
                             >
-                                Check your wallet to confirm you have both ETH
-                                and USDC. It may take a minute or two for tokens
-                                to arrive. You should see:
+                                Open your wallet. Tokens may take a minute
+                                to land. You should see:
                             </Text>
                             <List spacing={2}>
                                 <ListItem
@@ -988,7 +816,7 @@ const FreeTokensPage = () => {
                                         color="brand.green"
                                         fontSize="lg"
                                     />
-                                    Base Sepolia ETH balance (for gas)
+                                    Base Sepolia ETH (gas)
                                 </ListItem>
                                 <ListItem
                                     fontSize={{ base: 'sm', md: 'md' }}
@@ -1002,7 +830,7 @@ const FreeTokensPage = () => {
                                         color="brand.green"
                                         fontSize="lg"
                                     />
-                                    Base Sepolia USDC balance (for buy-ins)
+                                    Base Sepolia USDC (buy-ins)
                                 </ListItem>
                             </List>
 
@@ -1026,7 +854,7 @@ const FreeTokensPage = () => {
                             </Box>
                         </StepCard>
 
-                        {/* ─── Disclaimer ─── */}
+                        {/* Disclaimer */}
                         <Box
                             w="full"
                             bg="card.white"
@@ -1034,9 +862,6 @@ const FreeTokensPage = () => {
                             p={{ base: 3, sm: 4, md: 5 }}
                             border="1px solid"
                             borderColor="border.lightGray"
-                            borderLeft="4px solid"
-                            borderLeftColor="brand.yellow"
-                            boxShadow="0 2px 8px rgba(0, 0, 0, 0.03)"
                         >
                             <HStack align="flex-start" spacing={3}>
                                 <Icon
@@ -1060,15 +885,14 @@ const FreeTokensPage = () => {
                                     >
                                         Disclaimer:
                                     </Text>{' '}
-                                    Testnet tokens on Base Sepolia have no
-                                    real-world or monetary value. They are
-                                    provided solely for development and testing
-                                    and cannot be exchanged for real currency.
+                                    Base Sepolia testnet tokens have no
+                                    real-world value. They exist for
+                                    development and testing, and can&apos;t
+                                    be exchanged for real currency.
                                 </Text>
                             </HStack>
                         </Box>
 
-                        {/* Footer note */}
                         <Text
                             fontSize="xs"
                             color="text.muted"
@@ -1076,8 +900,8 @@ const FreeTokensPage = () => {
                             fontWeight="medium"
                             px={4}
                         >
-                            Always double-check that you are on the correct
-                            testnet before requesting or using tokens.
+                            Always confirm you&apos;re on the right testnet
+                            before requesting or using tokens.
                         </Text>
                     </VStack>
                 </Container>

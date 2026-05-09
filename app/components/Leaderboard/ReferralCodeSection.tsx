@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
     Box,
     Text,
-    Button,
     HStack,
     VStack,
     Icon,

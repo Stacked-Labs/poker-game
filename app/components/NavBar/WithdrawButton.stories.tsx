@@ -138,10 +138,9 @@ const WithdrawButtonStory = ({
                     py={2}
                     width="auto"
                     height={{ base: '40px', sm: '40px', md: '48px' }}
-                    bg={isUserSeated ? 'transparent' : 'brand.yellow'}
-                    color={isUserSeated ? 'brand.yellow' : 'white'}
-                    border={isUserSeated ? '2px solid' : 'none'}
-                    borderColor={isUserSeated ? 'brand.yellow' : 'transparent'}
+                    bg="brand.yellow"
+                    color="white"
+                    border="none"
                     borderRadius="12px"
                     fontWeight={700}
                     fontSize={{ base: 'xs', md: 'sm' }}
@@ -150,30 +149,16 @@ const WithdrawButtonStory = ({
                         <Icon as={FaCoins} boxSize={{ base: 4, md: 5 }} />
                     }
                     iconSpacing={1.5}
-                    boxShadow={
-                        isUserSeated
-                            ? 'none'
-                            : 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900'
-                    }
-                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease"
-                    _hover={
-                        isUserSeated
-                            ? { bg: 'rgba(232, 175, 25, 0.10)' }
-                            : { bg: 'brand.yellow' }
-                    }
-                    _active={
-                        isUserSeated
-                            ? {
-                                  bg: 'rgba(232, 175, 25, 0.16)',
-                                  transform: 'translateY(1px)',
-                              }
-                            : {
-                                  bg: 'brand.yellowDark',
-                                  transform: 'translateY(2px)',
-                                  boxShadow:
-                                      'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
-                              }
-                    }
+                    opacity={isUserSeated ? 0.85 : 1}
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900"
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, opacity 120ms ease"
+                    _hover={{ bg: 'brand.yellow', opacity: 1 }}
+                    _active={{
+                        bg: 'brand.yellowDark',
+                        transform: 'translateY(2px)',
+                        boxShadow:
+                            'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
+                    }}
                 >
                     Withdraw
                 </Button>

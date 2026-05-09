@@ -16,7 +16,7 @@ import {
 
 const SECTION_LABEL_PROPS = {
     fontSize: '2xs' as const,
-    color: 'text.secondary',
+    color: 'whiteAlpha.700',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.10em',
     fontWeight: 800,

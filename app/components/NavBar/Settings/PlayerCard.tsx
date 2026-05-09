@@ -70,17 +70,21 @@ const PlayerCard = ({
             alignItems="center"
             justifyContent="space-between"
             width="100%"
-            bg={isCurrentUser ? 'bg.greenSubtle' : 'card.white'}
+            bg="card.white"
             borderRadius={{ base: '12px', md: '16px' }}
             border="1px solid"
             borderColor={
-                isCurrentUser ? 'border.greenSubtle' : 'border.lightGray'
+                isCurrentUser ? 'border.greenStrong' : 'border.lightGray'
             }
             paddingX={{ base: 3, sm: 4, md: 5 }}
             paddingY={{ base: 2.5, sm: 3, md: 4 }}
             boxShadow={{
-                base: '0 1px 4px rgba(0, 0, 0, 0.04)',
-                _dark: '0 1px 4px rgba(0, 0, 0, 0.2)',
+                base: isCurrentUser
+                    ? 'inset 0 0 0 9999px rgba(54, 163, 123, 0.07), 0 1px 4px rgba(0, 0, 0, 0.04)'
+                    : '0 1px 4px rgba(0, 0, 0, 0.04)',
+                _dark: isCurrentUser
+                    ? 'inset 0 0 0 9999px rgba(54, 163, 123, 0.10), 0 1px 4px rgba(0, 0, 0, 0.2)'
+                    : '0 1px 4px rgba(0, 0, 0, 0.2)',
             }}
             flexDirection="row"
             gap={{ base: 3, md: 3 }}

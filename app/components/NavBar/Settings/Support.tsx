@@ -17,7 +17,7 @@ const SectionGroupHeader = ({ label }: { label: string }) => (
     <HStack spacing={1.5} px={1} mb={1.5}>
         <Text
             fontSize="2xs"
-            color="text.secondary"
+            color="whiteAlpha.700"
             textTransform="uppercase"
             letterSpacing="0.10em"
             fontWeight={800}

@@ -144,8 +144,16 @@ const GameSettingLeftSide: React.FC = () => {
     const router = useRouter();
     const { dispatch } = useContext(AppContext);
     const toast = useToastHelper();
-    const [smallBlind, setSmallBlind] = useState<number>(5);
-    const [bigBlind, setBigBlind] = useState<number>(10);
+    // Blinds are stored as display strings so the field renders without
+    // leading-zero artifacts ("05" vs "5") when the user pastes or retypes.
+    const [smallBlindStr, setSmallBlindStr] = useState<string>('5');
+    const [bigBlindStr, setBigBlindStr] = useState<string>('10');
+    const smallBlind = smallBlindStr === '' ? NaN : Number(smallBlindStr);
+    const bigBlind = bigBlindStr === '' ? NaN : Number(bigBlindStr);
+    const setSmallBlind = (n: number) =>
+        setSmallBlindStr(Number.isFinite(n) ? String(n) : '');
+    const setBigBlind = (n: number) =>
+        setBigBlindStr(Number.isFinite(n) ? String(n) : '');
     const [isFormValid, setIsFormValid] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileError, setTurnstileError] = useState(false);
@@ -217,10 +225,10 @@ const GameSettingLeftSide: React.FC = () => {
                 : 'Blinds must be positive values.';
         }
         if (!Number.isInteger(smallBlind) || !Number.isInteger(bigBlind)) {
-            return 'Blinds must be whole-chip amounts.';
+            return 'Whole chips only — no decimals.';
         }
         if (bigBlind < smallBlind) {
-            return 'Big blind must be greater than or equal to small blind.';
+            return 'Big blind must be at least the small blind.';
         }
         return '';
     }, [
@@ -277,9 +285,9 @@ const GameSettingLeftSide: React.FC = () => {
 
     useEffect(() => {
         if (playType !== 'Crypto') return;
-        setSmallBlind((prev) => (prev < 5 ? 5 : prev));
-        setBigBlind((prev) => (prev < 10 ? 10 : prev));
-    }, [playType]);
+        if (!Number.isFinite(smallBlind) || smallBlind < 5) setSmallBlindStr('5');
+        if (!Number.isFinite(bigBlind) || bigBlind < 10) setBigBlindStr('10');
+    }, [playType, smallBlind, bigBlind]);
 
     // Hydrate blinds from localStorage on mount.
     useEffect(() => {
@@ -362,8 +370,8 @@ const GameSettingLeftSide: React.FC = () => {
                 toast.warning(
                     'Invalid Blinds',
                     playType === 'Crypto'
-                        ? 'Minimum stakes are 5/10 chips. Blinds must be whole-chip amounts (big ≥ small).'
-                        : 'Please enter valid blinds (big ≥ small).'
+                        ? 'Minimum stakes are 5/10 chips. Whole chips only, big ≥ small.'
+                        : 'Whole chips only, big blind ≥ small blind.'
                 );
                 return;
             }
@@ -670,7 +678,8 @@ const GameSettingLeftSide: React.FC = () => {
                         flexDirection="column"
                         alignItems="flex-end"
                     >
-                        {/* Stake presets */}
+                        {/* Stake presets — Crypto only; Free Play uses raw chip values */}
+                        {playType === 'Crypto' && (
                         <HStack
                             spacing={2}
                             mb={2}
@@ -771,6 +780,7 @@ const GameSettingLeftSide: React.FC = () => {
                                 );
                             })}
                         </HStack>
+                        )}
                         <HStack
                             spacing={{ base: 3, md: 4 }}
                             alignItems="flex-start"
@@ -795,13 +805,25 @@ const GameSettingLeftSide: React.FC = () => {
                                     SB
                                 </Text>
                                 <Input
-                                    type="number"
-                                    step="1"
-                                    min={blindsMinChips.small}
-                                    value={smallBlind}
-                                    onChange={(e) =>
-                                        setSmallBlind(Number(e.target.value))
-                                    }
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={smallBlindStr}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        if (/[.,]/.test(raw)) {
+                                            toast.warning(
+                                                'Whole chips only',
+                                                "Blinds can't be split into decimals.",
+                                                3000,
+                                                'blinds-no-decimal'
+                                            );
+                                        }
+                                        const digits = raw.replace(/\D/g, '');
+                                        setSmallBlindStr(
+                                            digits === '' ? '' : String(Number(digits))
+                                        );
+                                    }}
                                     bg="input.white"
                                     borderWidth="1px"
                                     borderColor="border.lightGray"
@@ -891,13 +913,25 @@ const GameSettingLeftSide: React.FC = () => {
                                     BB
                                 </Text>
                                 <Input
-                                    type="number"
-                                    step="1"
-                                    min={blindsMinChips.big}
-                                    value={bigBlind}
-                                    onChange={(e) =>
-                                        setBigBlind(Number(e.target.value))
-                                    }
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={bigBlindStr}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        if (/[.,]/.test(raw)) {
+                                            toast.warning(
+                                                'Whole chips only',
+                                                "Blinds can't be split into decimals.",
+                                                3000,
+                                                'blinds-no-decimal'
+                                            );
+                                        }
+                                        const digits = raw.replace(/\D/g, '');
+                                        setBigBlindStr(
+                                            digits === '' ? '' : String(Number(digits))
+                                        );
+                                    }}
                                     bg="input.white"
                                     borderWidth="1px"
                                     borderColor="border.lightGray"

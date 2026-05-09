@@ -59,14 +59,13 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
         }
     };
 
-    // Empty-state hint shown when there are 0 other players at the table
-    // (either fully empty or only the host). Renders below the player list
-    // (when host is alone, alongside their own card).
+    // Hint to invite friends — shown only when there are 0 other players.
+    // Sits *below* the host's own card so the seated player leads the list.
     const otherPlayerCount =
         acceptedPlayers?.filter((p) => p.uuid !== currentUserUuid).length ?? 0;
-    const showEmptyHint = otherPlayerCount === 0;
+    const showInviteHint = otherPlayerCount === 0;
 
-    const EmptyHint = () => (
+    const EmptyHint = ({ aloneAtTable = false }: { aloneAtTable?: boolean }) => (
         <Flex
             direction="column"
             alignItems="center"
@@ -80,7 +79,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
             gap={1.5}
         >
             <Text fontWeight="bold" fontSize="sm" color="text.secondary">
-                Waiting for players
+                {aloneAtTable ? 'Invite friends' : 'Waiting for players'}
             </Text>
             <Text fontSize="xs" color="text.muted" textAlign="center">
                 Share the table link from the lobby banner to invite friends.
@@ -104,7 +103,6 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
         return (
             <>
                 <VStack align="stretch" gap={{ base: 2.5, md: 4 }} w="100%">
-                    {showEmptyHint && <EmptyHint />}
                     {sortedPlayers.map((player: Player, index: number) => {
                         if (player) {
                             const isKicking = kickingInProgress === player.uuid;
@@ -135,6 +133,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
                             );
                         }
                     })}
+                    {showInviteHint && <EmptyHint aloneAtTable />}
                 </VStack>
 
                 {/* Confirmation Modal */}

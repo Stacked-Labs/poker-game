@@ -1041,11 +1041,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             fontSize="md"
                                             fontWeight="bold"
                                             letterSpacing="-0.01em"
-                                            color={
-                                                isJoinVisuallyDisabled
-                                                    ? 'text.muted'
-                                                    : 'white'
-                                            }
+                                            color="white"
                                         >
                                             {isCryptoGame
                                                 ? formattedUsdcEstimate

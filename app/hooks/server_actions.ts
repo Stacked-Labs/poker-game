@@ -840,6 +840,7 @@ export async function getReferralInfo(address: string): Promise<{
     multiplier: number;
     nextTier: { required: number; multiplier: number } | null;
     hasReferrer: boolean;
+    myCode: string | null;
 }> {
     isBackendUrlValid();
     try {
@@ -853,24 +854,42 @@ export async function getReferralInfo(address: string): Promise<{
         return await response.json();
     } catch (error) {
         console.error('Unable to fetch referral info.', error);
-        return { count: 0, multiplier: 1.0, nextTier: { required: 5, multiplier: 1.1 }, hasReferrer: false };
+        return { count: 0, multiplier: 1.0, nextTier: { required: 5, multiplier: 1.1 }, hasReferrer: false, myCode: null };
     }
 }
 
 export async function registerReferral(
     refereeAddress: string,
-    referrerAddress: string
+    referrerCode: string
 ): Promise<{ success: boolean; message: string }> {
     isBackendUrlValid();
     try {
         const response = await fetch(`${backendUrl}/api/referral`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refereeAddress, referrerAddress }),
+            body: JSON.stringify({ refereeAddress, referrerCode }),
         });
         return await response.json();
     } catch (error) {
         console.error('Unable to register referral.', error);
+        return { success: false, message: 'Network error' };
+    }
+}
+
+export async function setMyReferralCode(
+    code: string
+): Promise<{ success: boolean; message: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/referral/code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ code }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to set referral code.', error);
         return { success: false, message: 'Network error' };
     }
 }
@@ -886,6 +905,7 @@ export interface QuestItem {
     completed: boolean;
     prerequisite?: string;
     actionUrl?: string;
+    hasNft?: boolean;
 }
 
 export async function getQuests(address: string): Promise<{
@@ -922,6 +942,81 @@ export async function completeQuest(
     } catch (error) {
         console.error('Unable to complete quest.', error);
         return { success: false, message: 'Network error' };
+    }
+}
+
+// ============================================================
+// SBT (Soulbound NFT) API
+// ============================================================
+
+export async function checkSBTEligibility(
+    address: string
+): Promise<{ eligible: boolean; claimed: boolean }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/sbt/eligibility?address=${encodeURIComponent(address)}`,
+            { method: 'GET', credentials: 'include' }
+        );
+        if (!response.ok) throw new Error(`SBT eligibility fetch failed: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch SBT eligibility.', error);
+        return { eligible: false, claimed: false };
+    }
+}
+
+export async function claimSBT(): Promise<{ success: boolean; txHash?: string; message?: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/sbt/claim`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to claim SBT.', error);
+        return { success: false, message: 'Network error' };
+    }
+}
+
+export interface SBTWhitelistEntry {
+    address: string;
+    addedAt: string;
+    claimed: boolean;
+}
+
+export async function getAdminSBTWhitelist(): Promise<SBTWhitelistEntry[]> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/admin/sbt/whitelist`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        if (!response.ok) throw new Error(`SBT whitelist fetch failed: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch SBT whitelist.', error);
+        return [];
+    }
+}
+
+export async function addToSBTWhitelist(
+    addresses: string[]
+): Promise<{ success: boolean; added: number; message?: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/admin/sbt/whitelist`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ addresses }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to add to SBT whitelist.', error);
+        return { success: false, added: 0, message: 'Network error' };
     }
 }
 

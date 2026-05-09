@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Box,
     Button,
     Flex,
     HStack,
     Icon,
-    Input,
     Spinner,
     Text,
     VStack,
@@ -19,8 +18,7 @@ import {
     FaTelegram,
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
-import { GiPokerHand } from 'react-icons/gi';
-import { MdGroups } from 'react-icons/md';
+import { GiPokerHand, GiSpades } from 'react-icons/gi';
 import type { IconType } from 'react-icons';
 import { useActiveAccount } from 'thirdweb/react';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -32,7 +30,7 @@ const QUEST_ICONS: Record<string, IconType> = {
     create_table: GiPokerHand,
     join_telegram: FaTelegram,
     join_discord: FaDiscord,
-    community_join: MdGroups,
+    verify_sbt: GiSpades,
 };
 
 interface BrandPaint {
@@ -62,10 +60,10 @@ const QUEST_BRAND: Record<string, BrandPaint> = {
         tint: 'rgba(88, 101, 242, 0.10)',
         tintDark: 'rgba(88, 101, 242, 0.22)',
     },
-    community_join: {
-        color: '#EB0B5C',
-        tint: 'rgba(235, 11, 92, 0.10)',
-        tintDark: 'rgba(235, 11, 92, 0.20)',
+    verify_sbt: {
+        color: '#FDC51D',
+        tint: 'rgba(253, 197, 29, 0.10)',
+        tintDark: 'rgba(253, 197, 29, 0.18)',
     },
 };
 
@@ -88,8 +86,7 @@ function prereqLabel(quest: QuestItem): string | null {
 interface QuestRowProps {
     quest: QuestItem;
     isLocked: boolean;
-    communityCode?: string;
-    onClaim: (questId: string, communityCode?: string) => Promise<void> | void;
+    onClaim: (questId: string) => Promise<void> | void;
     isClaiming: boolean;
     isLast: boolean;
     rowIndex: number;
@@ -98,26 +95,31 @@ interface QuestRowProps {
 const QuestRow: React.FC<QuestRowProps> = ({
     quest,
     isLocked,
-    communityCode,
     onClaim,
     isClaiming,
     isLast,
     rowIndex,
 }) => {
     const IconComponent = QUEST_ICONS[quest.id] ?? FaCheck;
-    const isCommunity = quest.id === 'community_join';
-    const [code, setCode] = useState(communityCode ?? '');
+    const isVerifySbt = quest.id === 'verify_sbt';
     const prereq = prereqLabel(quest);
     const paint = paintFor(quest);
     const tilt = rowIndex % 2 === 0 ? -2 : 2;
 
     const handle = () => {
-        if (isCommunity) onClaim(quest.id, code.trim() || undefined);
-        else if (quest.actionUrl) {
+        if (quest.actionUrl) {
             window.open(quest.actionUrl, '_blank', 'noopener,noreferrer');
-            onClaim(quest.id);
-        } else onClaim(quest.id);
+        }
+        onClaim(quest.id);
     };
+
+    const buttonLabel = isLocked
+        ? 'Locked'
+        : isVerifySbt
+          ? 'Verify & Claim'
+          : quest.actionUrl
+            ? 'Go & Claim'
+            : 'Claim';
 
     return (
         <Box
@@ -216,7 +218,7 @@ const QuestRow: React.FC<QuestRowProps> = ({
                         borderColor={isLocked ? 'border.lightGray' : 'border.greenStrong'}
                         fontWeight={700}
                         fontSize="xs"
-                        isDisabled={isLocked || isClaiming || (isCommunity && !code.trim())}
+                        isDisabled={isLocked || isClaiming || (isVerifySbt && !quest.hasNft)}
                         isLoading={isClaiming}
                         loadingText="…"
                         onClick={handle}
@@ -227,23 +229,15 @@ const QuestRow: React.FC<QuestRowProps> = ({
                             ) : undefined
                         }
                     >
-                        {isLocked ? 'Locked' : 'Claim'}
+                        {buttonLabel}
                     </Button>
                 )}
             </HStack>
 
-            {isCommunity && !quest.completed && !isLocked && (
-                <Input
-                    mt={2}
-                    ml="46px"
-                    size="sm"
-                    placeholder="Community code"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    borderRadius="8px"
-                    fontSize="xs"
-                    maxW="240px"
-                />
+            {isVerifySbt && !quest.completed && !quest.hasNft && !isLocked && (
+                <Text fontSize="xs" color="text.secondary" mt={2} ml="46px">
+                    Ask around to get whitelisted.
+                </Text>
             )}
         </Box>
     );
@@ -253,17 +247,15 @@ export interface QuestsSectionViewProps {
     quests: QuestItem[];
     totalQuestPoints: number;
     loading: boolean;
-    communityCode?: string;
     claimingId?: string | null;
     isQuestLocked: (quest: QuestItem) => boolean;
-    onClaim: (questId: string, code?: string) => Promise<void> | void;
+    onClaim: (questId: string) => Promise<void> | void;
 }
 
 export const QuestsSectionView: React.FC<QuestsSectionViewProps> = ({
     quests,
     totalQuestPoints,
     loading,
-    communityCode,
     claimingId,
     isQuestLocked,
     onClaim,
@@ -307,7 +299,6 @@ export const QuestsSectionView: React.FC<QuestsSectionViewProps> = ({
                             key={q.id}
                             quest={q}
                             isLocked={isQuestLocked(q)}
-                            communityCode={q.id === 'community_join' ? communityCode : undefined}
                             onClaim={onClaim}
                             isClaiming={claimingId === q.id}
                             isLast={i === quests.length - 1}
@@ -321,11 +312,10 @@ export const QuestsSectionView: React.FC<QuestsSectionViewProps> = ({
 };
 
 interface QuestsSectionProps {
-    communityCode?: string;
     tablesCreated?: number;
 }
 
-const QuestsSection: React.FC<QuestsSectionProps> = ({ communityCode, tablesCreated = 0 }) => {
+const QuestsSection: React.FC<QuestsSectionProps> = ({ tablesCreated = 0 }) => {
     const account = useActiveAccount();
     const { isAuthenticated, xUsername } = useAuth();
     const toast = useToastHelper();
@@ -333,7 +323,6 @@ const QuestsSection: React.FC<QuestsSectionProps> = ({ communityCode, tablesCrea
     const [totalQuestPoints, setTotalQuestPoints] = useState(0);
     const [loading, setLoading] = useState(false);
     const [claimingId, setClaimingId] = useState<string | null>(null);
-    const communityAutoFired = useRef(false);
 
     const address = account?.address;
 
@@ -353,34 +342,12 @@ const QuestsSection: React.FC<QuestsSectionProps> = ({ communityCode, tablesCrea
         loadQuests();
     }, [loadQuests]);
 
-    useEffect(() => {
-        if (
-            !address ||
-            !isAuthenticated ||
-            !communityCode ||
-            communityAutoFired.current
-        ) return;
-
-        const communityQuest = quests.find((q) => q.id === 'community_join');
-        if (!communityQuest || communityQuest.completed) return;
-
-        communityAutoFired.current = true;
-        completeQuest('community_join', communityCode)
-            .then((result) => {
-                if (!result.success && !result.alreadyCompleted) {
-                    toast.error('Quest failed', result.message ?? 'Could not claim community quest');
-                }
-                return loadQuests();
-            })
-            .catch(() => toast.error('Quest failed', 'Could not claim community quest'));
-    }, [address, isAuthenticated, communityCode, quests, loadQuests]);
-
     const handleClaim = useCallback(
-        async (questId: string, code?: string) => {
+        async (questId: string) => {
             if (!address) return;
             setClaimingId(questId);
             try {
-                const result = await completeQuest(questId, code);
+                const result = await completeQuest(questId);
                 if (!result.success && !result.alreadyCompleted) {
                     toast.error('Quest failed', result.message ?? 'Could not claim quest');
                 }
@@ -407,7 +374,6 @@ const QuestsSection: React.FC<QuestsSectionProps> = ({ communityCode, tablesCrea
             quests={quests}
             totalQuestPoints={totalQuestPoints}
             loading={loading}
-            communityCode={communityCode}
             claimingId={claimingId}
             isQuestLocked={isLocked}
             onClaim={handleClaim}

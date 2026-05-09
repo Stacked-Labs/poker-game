@@ -1,0 +1,166 @@
+'use client';
+
+import React from 'react';
+import {
+    Box,
+    Button,
+    Flex,
+    Icon,
+    Image,
+    Spinner,
+    Text,
+    VStack,
+} from '@chakra-ui/react';
+import { FaCheck, FaExternalLinkAlt } from 'react-icons/fa';
+import type { Account } from 'thirdweb/wallets';
+import WalletButton from '@/app/components/WalletButton';
+import NotEligiblePanel from './NotEligiblePanel';
+
+interface ClaimCardProps {
+    account: Account | undefined;
+    eligibility: { eligible: boolean; claimed: boolean } | null;
+    claiming: boolean;
+    onClaim: () => void;
+}
+
+const NFT_IMAGE_URL = '/previews/home_preview.png';
+const NFT_NAME = 'Stacked Poker — King of Spades';
+
+const ClaimCard: React.FC<ClaimCardProps> = ({ account, eligibility, claiming, onClaim }) => {
+    const renderContent = () => {
+        if (!account) {
+            return (
+                <VStack spacing={4} align="center" py={4}>
+                    <Text fontSize="sm" color="text.secondary" textAlign="center">
+                        Connect your wallet to check eligibility.
+                    </Text>
+                    <WalletButton />
+                </VStack>
+            );
+        }
+
+        if (eligibility === null) {
+            return (
+                <Flex justify="center" py={8}>
+                    <Spinner size="md" color="brand.yellow" />
+                </Flex>
+            );
+        }
+
+        if (eligibility.claimed) {
+            return (
+                <VStack spacing={5} align="center">
+                    <Box position="relative">
+                        <Image
+                            src={NFT_IMAGE_URL}
+                            alt={NFT_NAME}
+                            borderRadius="16px"
+                            w="180px"
+                            h="180px"
+                            objectFit="cover"
+                            boxShadow="0 8px 32px rgba(253, 197, 29, 0.25)"
+                        />
+                        <Flex
+                            position="absolute"
+                            bottom="-10px"
+                            right="-10px"
+                            w="32px"
+                            h="32px"
+                            borderRadius="full"
+                            bg="brand.green"
+                            align="center"
+                            justify="center"
+                            boxShadow="0 2px 8px rgba(0,0,0,0.2)"
+                        >
+                            <Icon as={FaCheck} color="white" boxSize="14px" />
+                        </Flex>
+                    </Box>
+                    <VStack spacing={1} align="center">
+                        <Text fontSize="sm" fontWeight={800} color="brand.green">
+                            You own this NFT
+                        </Text>
+                        <Text fontSize="xs" color="text.secondary" textAlign="center">
+                            {NFT_NAME}
+                        </Text>
+                    </VStack>
+                    <Button
+                        as="a"
+                        href={`https://opensea.io/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        size="sm"
+                        variant="ghost"
+                        color="text.secondary"
+                        fontSize="xs"
+                        rightIcon={<Icon as={FaExternalLinkAlt} boxSize="10px" />}
+                    >
+                        View on chain
+                    </Button>
+                </VStack>
+            );
+        }
+
+        if (!eligibility.eligible) {
+            return <NotEligiblePanel />;
+        }
+
+        return (
+            <VStack spacing={5} align="center">
+                <Image
+                    src={NFT_IMAGE_URL}
+                    alt={NFT_NAME}
+                    borderRadius="16px"
+                    w="180px"
+                    h="180px"
+                    objectFit="cover"
+                    boxShadow="0 8px 32px rgba(253, 197, 29, 0.20)"
+                />
+                <VStack spacing={1} align="center">
+                    <Text fontSize="md" fontWeight={800} color="text.primary">
+                        {NFT_NAME}
+                    </Text>
+                    <Text fontSize="xs" color="text.secondary" textAlign="center">
+                        Soulbound — non-transferable
+                    </Text>
+                </VStack>
+                <Button
+                    w="full"
+                    bg="brand.green"
+                    color="white"
+                    fontWeight={800}
+                    borderRadius="12px"
+                    size="lg"
+                    isLoading={claiming}
+                    loadingText="Minting…"
+                    onClick={onClaim}
+                    _hover={{ opacity: 0.9 }}
+                    _active={{ transform: 'scale(0.98)' }}
+                >
+                    Claim Your Badge
+                </Button>
+            </VStack>
+        );
+    };
+
+    return (
+        <Box
+            bg="card.white"
+            borderRadius="24px"
+            p={{ base: 6, md: 8 }}
+            boxShadow="0 14px 40px rgba(12, 21, 49, 0.12)"
+            _dark={{ boxShadow: '0 16px 40px rgba(0, 0, 0, 0.4)' }}
+        >
+            <VStack spacing={2} mb={6} align="center">
+                <Text fontSize="xl" fontWeight={900} color="text.primary" textAlign="center">
+                    Claim Your NFT
+                </Text>
+                <Text fontSize="sm" color="text.secondary" textAlign="center">
+                    Exclusive badge for Stacked Poker community members.
+                </Text>
+            </VStack>
+            {renderContent()}
+        </Box>
+    );
+};
+
+export default ClaimCard;

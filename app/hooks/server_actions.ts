@@ -859,7 +859,6 @@ export async function getReferralInfo(address: string): Promise<{
 }
 
 export async function registerReferral(
-    refereeAddress: string,
     referrerCode: string
 ): Promise<{ success: boolean; message: string }> {
     isBackendUrlValid();
@@ -867,7 +866,8 @@ export async function registerReferral(
         const response = await fetch(`${backendUrl}/api/referral`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refereeAddress, referrerCode }),
+            credentials: 'include',
+            body: JSON.stringify({ referrerCode }),
         });
         return await response.json();
     } catch (error) {
@@ -1012,23 +1012,16 @@ export interface SBTWhitelistResponse {
     entries: SBTWhitelistEntry[];
     total: number;
     claimed: number;
-    page: number;
-    pageSize: number;
-    pages: number;
 }
 
 export async function getAdminSBTWhitelist(params?: {
     search?: string;
-    page?: number;
-    pageSize?: number;
 }): Promise<SBTWhitelistResponse> {
     isBackendUrlValid();
-    const empty: SBTWhitelistResponse = { entries: [], total: 0, claimed: 0, page: 1, pageSize: 50, pages: 1 };
+    const empty: SBTWhitelistResponse = { entries: [], total: 0, claimed: 0 };
     try {
         const qs = new URLSearchParams();
         if (params?.search) qs.set('search', params.search);
-        if (params?.page)     qs.set('page',     String(params.page));
-        if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
         const response = await fetch(`${backendUrl}/api/admin/sbt/whitelist?${qs}`, {
             method: 'GET',
             credentials: 'include',

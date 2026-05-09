@@ -93,7 +93,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
         if (!code || !account?.address) return;
         setSubmitting(true);
         try {
-            const result = await registerReferral(account.address, code);
+            const result = await registerReferral(code);
             if (result.success) {
                 toast.success('Referral registered!', result.message, 3000);
                 setSubmitted(true);

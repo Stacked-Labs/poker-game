@@ -337,14 +337,11 @@ export default function AdminStatsPage() {
     const [whitelist, setWhitelist]           = useState<SBTWhitelistEntry[]>([]);
     const [wlLoading, setWlLoading]           = useState(false);
     const [wlSearch, setWlSearch]             = useState('');
-    const [wlPage, setWlPage]                 = useState(1);
     const [wlTotal, setWlTotal]               = useState(0);
     const [wlTotalClaimed, setWlTotalClaimed] = useState(0);
-    const [wlPages, setWlPages]               = useState(1);
     const [wlInputMode, setWlInputMode]       = useState<'paste' | 'csv'>('paste');
     const [wlPasteText, setWlPasteText]       = useState('');
     const [wlAdding, setWlAdding]             = useState(false);
-    const WL_PAGE_SIZE = 50;
 
     const activityChainRef   = useRef(activityChain);
     const handsChainRef      = useRef(handsChain);
@@ -387,18 +384,17 @@ export default function AdminStatsPage() {
         if (result[0].status === 'fulfilled') setTables(result[0].value);
     }, []);
 
-    const loadWhitelist = useCallback(async (search = '', page = 1) => {
+    const loadWhitelist = useCallback(async (search = '') => {
         setWlLoading(true);
         try {
-            const data = await getAdminSBTWhitelist({ search, page, pageSize: WL_PAGE_SIZE });
+            const data = await getAdminSBTWhitelist({ search });
             setWhitelist(data.entries);
             setWlTotal(data.total);
             setWlTotalClaimed(data.claimed);
-            setWlPages(data.pages);
         } finally {
             setWlLoading(false);
         }
-    }, [WL_PAGE_SIZE]);
+    }, []);
 
     const loadData = useCallback(async () => {
         setRefreshing(true);
@@ -422,7 +418,7 @@ export default function AdminStatsPage() {
     // Auth check on mount only.
     useEffect(() => {
         verifyAdmin().then((r) => {
-            if (r.isAdmin) { setAuthState('authorized'); loadData(); }
+            if (r.isAdmin) { setAuthState('authorized'); loadData(); loadWhitelist(); }
             else setAuthState('unauthorized');
         });
     }, [loadData, loadWhitelist]);
@@ -438,18 +434,12 @@ export default function AdminStatsPage() {
     useEffect(() => { if (authState === 'authorized') loadTablesData(tablesChain); // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tablesChain, loadTablesData]);
 
-    // Debounced whitelist search — resets to page 1 on new query
+    // Debounced whitelist search
     useEffect(() => {
         if (authState !== 'authorized') return;
-        const t = setTimeout(() => { setWlPage(1); loadWhitelist(wlSearch, 1); }, 300);
+        const t = setTimeout(() => loadWhitelist(wlSearch), 300);
         return () => clearTimeout(t);
     }, [wlSearch, authState]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Page change (only when page changes without a concurrent search change)
-    useEffect(() => {
-        if (authState !== 'authorized') return;
-        loadWhitelist(wlSearch, wlPage);
-    }, [wlPage, authState]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (authState === 'loading') {
         return (
@@ -1154,7 +1144,7 @@ export default function AdminStatsPage() {
                                             bg="card.lightGray"
                                             color="text.secondary"
                                             _hover={{ opacity: 0.8 }}
-                                            onClick={() => loadWhitelist(wlSearch, wlPage)}
+                                            onClick={() => loadWhitelist(wlSearch)}
                                         >
                                             Refresh
                                         </Box>
@@ -1213,65 +1203,6 @@ export default function AdminStatsPage() {
                                             </Table>
                                         </TableContainer>
 
-                                        {/* Pagination */}
-                                        {wlPages > 1 && (
-                                            <Flex justify="space-between" align="center" mt={4} pt={4} borderTop="1px solid" borderColor="card.lightGray">
-                                                <Text fontSize="xs" color="text.secondary">
-                                                    Page {wlPage} of {wlPages} · {wlTotal.toLocaleString()} total
-                                                </Text>
-                                                <HStack gap={1}>
-                                                    <Box
-                                                        as="button"
-                                                        px={3} py={1.5}
-                                                        borderRadius="8px"
-                                                        fontSize="xs"
-                                                        fontWeight="bold"
-                                                        cursor={wlPage <= 1 ? 'default' : 'pointer'}
-                                                        bg="card.lightGray"
-                                                        color={wlPage <= 1 ? 'text.secondary' : 'text.primary'}
-                                                        opacity={wlPage <= 1 ? 0.4 : 1}
-                                                        onClick={() => wlPage > 1 && setWlPage(wlPage - 1)}
-                                                    >
-                                                        ← Prev
-                                                    </Box>
-                                                    {/* Up to 5 page buttons */}
-                                                    {Array.from({ length: Math.min(5, wlPages) }, (_, i) => {
-                                                        const mid = Math.min(Math.max(wlPage, 3), wlPages - 2);
-                                                        const p = wlPages <= 5 ? i + 1 : mid - 2 + i;
-                                                        return (
-                                                            <Box
-                                                                key={p}
-                                                                as="button"
-                                                                px={3} py={1.5}
-                                                                borderRadius="8px"
-                                                                fontSize="xs"
-                                                                fontWeight="bold"
-                                                                cursor="pointer"
-                                                                bg={wlPage === p ? 'brand.yellow' : 'card.lightGray'}
-                                                                color={wlPage === p ? 'white' : 'text.secondary'}
-                                                                onClick={() => setWlPage(p)}
-                                                            >
-                                                                {p}
-                                                            </Box>
-                                                        );
-                                                    })}
-                                                    <Box
-                                                        as="button"
-                                                        px={3} py={1.5}
-                                                        borderRadius="8px"
-                                                        fontSize="xs"
-                                                        fontWeight="bold"
-                                                        cursor={wlPage >= wlPages ? 'default' : 'pointer'}
-                                                        bg="card.lightGray"
-                                                        color={wlPage >= wlPages ? 'text.secondary' : 'text.primary'}
-                                                        opacity={wlPage >= wlPages ? 0.4 : 1}
-                                                        onClick={() => wlPage < wlPages && setWlPage(wlPage + 1)}
-                                                    >
-                                                        Next →
-                                                    </Box>
-                                                </HStack>
-                                            </Flex>
-                                        )}
                                     </>
                                 )}
                             </Box>
@@ -1381,7 +1312,7 @@ export default function AdminStatsPage() {
                                             const result = await addToSBTWhitelist(addrs);
                                             if (result.success) {
                                                 setWlPasteText('');
-                                                await loadWhitelist(wlSearch, wlPage);
+                                                await loadWhitelist(wlSearch);
                                             }
                                         } finally {
                                             setWlAdding(false);

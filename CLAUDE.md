@@ -78,6 +78,9 @@ Read `PRODUCT.md` and `DESIGN.md` before generating new visuals — they encode 
 - `app/stores/` — Zustand stores
 - `app/lib/` — poker hand evaluation, `takeSeat` logic
 - `app/components/` — feature-organized components (HomePage, Felt, NavBar, CreateGame, …)
+- `app/components/ExternalLink.tsx` — shared external-link recipe (use for all outbound URLs)
+- `app/components/PlayerNameLink.tsx` — in-app handle/identity link (X handles, etc.)
+- `app/components/SocialIconButton.tsx` — iconified social CTA chip (Discord/Telegram/X)
 - `app/table/[id]/` — live poker table (the game surface)
 - `app/contracts/` — poker table ABI
 

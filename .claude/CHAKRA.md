@@ -36,7 +36,23 @@ The theme is the source of truth. Before writing `color="#..."` or `bg="gray.700
 `chat.*` (border, rowEven/Odd, rowEvenHover/OddHover, scrollThumb, scrollThumbHover)
 
 **Existing Button variants** (prefer these over custom `sx`):
-`greenGradient` · `outlineSuccess` · `outlineMuted` · `themeButton` · `social` · `underlined` · `raiseActionButton` · `navLink` · `homeSectionButton` · `connectButton` · `emptySeat` · `gameSettingsButton` · `homeNav`
+
+*Tactile family* — the system default; see §10 for the full recipe:
+- `tactilePrimary` — solid green CTA
+- `tactileOutline` — green outline secondary
+- `tactileDestructive` — pink outline (never solid pink)
+- `tactileTelegram` — solid telegram-blue
+- `tactileChrome` — mode-aware idle chip for in-cluster chrome (NavBar, table chrome)
+- `tactileGhost` — transparent in-card utility chrome (chat header, popover toggles); fills `card.lightGray` on hover
+
+*Other current variants:*
+- `raiseActionButton` — at-table raise preset chips (smaller-edge tactile, on-felt)
+- `navLink` — desktop nav typography (pink hover is a documented exception)
+- `homeNav` — mobile drawer nav rows
+- `themeButton` — theme/mode toggle
+- `outlined`, `socialIcon` — older surfaces
+
+For toggle states (idle ↔ active), use `tactileChrome` for the idle state and inline a solid brand-tone tactile chip for the active state (see `app/components/NavBar/AwayButton.tsx` for the canonical pattern). For external links and outbound URLs, use the shared `ExternalLink` component (see §11) — don't reinvent the recipe inline.
 
 **Existing Input variants:** `outlined` · `white` · `takeSeatModal` · `settings`
 **Existing Text variants:** `secondary` · `seatText` · `statSubHead` · `statBody`
@@ -132,3 +148,104 @@ Smell tests that mean you're going off-rails:
 - Re-implementing a token's light/dark pair inline (use the token)
 
 When in doubt, read `app/theme.ts` first.
+
+---
+
+## 10. Tactile button recipe (the system default)
+
+Every new button variant defaults to the **tactile chip** mechanic established across the button overhaul. The variant owns the live styling; never bake size into a variant — `height`, `px`, `borderRadius`, and `size` come from the consumer.
+
+| Property | Value |
+|---|---|
+| Top highlight (solid fills) | `inset 0 1px 0 rgba(255,255,255,0.18)` |
+| Bottom edge (resting) | `0 2px 0 <darker-shade>` (1.5–2px depending on size) |
+| Hover | `bg` shift only — **no lift, no glow, no scale** |
+| Press | `translateY(2px)` (1px on chips ≤32px) + edge collapses to `0 0 0` + bg shifts to `*Dark` + `inset 0 2px 4px rgba(0,0,0,0.18)` |
+| Easing | `transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease` |
+| Type | weight 700, letter-spacing `0.02em` |
+| Outline variant | 2px solid border in action color, transparent fill, hover bg = 12% color tint with border/text shifting to `*Dark` |
+
+Brand edge tokens already exist for green / pink / telegram (`brand.<color>Edge`); for one-off tones (yellow `#B78900`, navy `#1B2754`, orange `#B45A0B`) inline hex is acceptable. If a tone lands in three or more places, lift it into a named brand shade.
+
+**Disabled and loading** are owned by `Button.baseStyle` (see §8). Don't add per-variant `_disabled` / `_loading` blocks. Don't use `filter: blur(...)` for a disabled visual — it reads as broken UI. If a click target is intentionally muted but still clickable, use `opacity: 0.85 → 1 on hover` instead.
+
+---
+
+## 11. Standard link components
+
+Two reusable components own the link patterns. Don't reinvent inline.
+
+**`app/components/ExternalLink.tsx`** — for external/outbound URLs (BaseScan, contracts, docs, social rooms when not iconified).
+
+```tsx
+<ExternalLink href="https://basescan.org/...">View contract</ExternalLink>
+```
+
+Recipe: `brand.navy` rest (`brand.lightGray` dark) → hover shifts to `brand.green` with a 1.5px underline at 3px offset. Trailing `FiExternalLink` icon (default 11px, opacity 0.6 → 1) inherits color via `currentColor`. `iconSize` and Chakra `LinkProps` forward through.
+
+**`app/components/PlayerNameLink.tsx`** — for X handles inside player identity surfaces. Identity-first: text color/weight stays unchanged on hover, only the underline appears. The `Text` baseStyle cascade (see §12) is the reason `color="text.primary"` is set explicitly inside.
+
+**Iconified social CTAs** (Discord/Telegram/X social-row chips) use `<SocialIconButton tone="..." />` — don't wrap them with the underline-link recipe; they're already a chip affordance.
+
+---
+
+## 12. Chakra `Text` dark-mode cascade gotcha
+
+`Text.baseStyle` ships a hardcoded `color: 'charcoal.800'` that wins via cascade in dark mode. A `<Text>` without an explicit `color` prop will be invisible (or near-invisible) on dark backgrounds, even when its parent sets a color.
+
+Fix: set `color="text.primary"` (or another mode-aware token) **directly on the `<Text>`**, not on a parent. This bit us repeatedly until we made it a rule:
+
+```tsx
+<Text color="text.primary">{name}</Text>          // ✓ readable in both modes
+<Box color="text.primary"><Text>{name}</Text></Box>   // ✗ baseStyle wins inside <Text>
+```
+
+`PlayerNameLink.tsx` documents this pattern at the source.
+
+---
+
+## 13. The Settings modal panel context
+
+`app/components/NavBar/Settings/SettingsModal.tsx` renders `TabPanels` with `bg="rgba(255, 255, 255, 0.05)"` over a `ModalOverlay bg="rgba(11, 20, 48, 0.5)"`. The result: tab content sits on a **dark** surface in *both* light and dark mode.
+
+Implications when working inside any Settings tab:
+
+- **Section labels** (uppercase, letter-spaced) that render directly on the panel surface need `color="whiteAlpha.700"` — not `text.secondary`. `text.secondary` resolves to `brand.navy` in light mode, which disappears on the dark panel.
+- **Cards** sitting on the panel must use **opaque** backgrounds (`card.white`, never `bg.greenSubtle` / `card.heroBg` or other semi-transparent tokens). Semi-transparent fills wash out against the dark panel.
+- For the "current user" or "selected" tinted-card affordance, layer the tint on top of a solid base via `boxShadow: inset 0 0 0 9999px rgba(54, 163, 123, 0.07)` — the inset shadow gives the green tint without sacrificing opacity. See `PlayerCard.tsx` for the canonical implementation.
+- Labels *inside* white cards on the panel still use `text.secondary` (their surface is light, the dark-panel rule doesn't apply).
+
+When in doubt, check the parent surface's bg before picking a label color.
+
+---
+
+## 14. Numeric input pattern — block at the source
+
+For chip / blind / amount inputs where decimals or non-digits are invalid, **don't** rely on `type="number"` and post-validate. Browsers preserve `"05"` typed input even when the parsed `Number()` doesn't change, and the controlled-value reconciler skips DOM updates when the prop value matches.
+
+Use the string-state pattern (see `CreateGame/GameSettingLeftSide.tsx` blinds for the canonical implementation):
+
+```tsx
+const [valueStr, setValueStr] = useState<string>('5');
+const value = valueStr === '' ? NaN : Number(valueStr);
+
+<Input
+    type="text"
+    inputMode="numeric"
+    pattern="[0-9]*"
+    value={valueStr}
+    onChange={(e) => {
+        const raw = e.target.value;
+        if (/[.,]/.test(raw)) {
+            toast.warning('Whole chips only', "Blinds can't be split into decimals.", 3000, 'blinds-no-decimal');
+        }
+        const digits = raw.replace(/\D/g, '');
+        setValueStr(digits === '' ? '' : String(Number(digits)));
+    }}
+/>
+```
+
+Why each piece matters:
+- `type="text" inputMode="numeric"` — keeps the numeric keypad on mobile without `type="number"`'s DOM reconciliation quirk.
+- String state — `String(Number(digits))` strips leading zeros at write time, and the displayed string always matches state.
+- The decimal-detection branch fires a transient toast with a fixed `id` so spam keypresses don't stack notifications.

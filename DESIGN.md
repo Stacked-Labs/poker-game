@@ -208,15 +208,29 @@ The system uses a **hybrid**: tonal layering (warm-dark surfaces stacked on warm
 
 ### Buttons
 
-- **Shape:** Soft-cornered rectangles. Default radius `12px` (`rounded.lg`); larger surfaces step up to `14px`–`16px`; `raiseActionButton` drops to `10px` for compactness.
-- **Primary (`base`):** Surface Night (`#171717`) ground, white text, 2px white border, 12px radius. The default Chakra button in this app is dark-on-light-border. Hover lifts to `#2e2e2e`; active scales to 0.97.
-- **Confirm (`greenGradient`):** Linear gradient between Felt Green and a softer Felt Green. Bold, white. Currently carries a green-tinted shadow stack — the gradient itself is on the watchlist (PRODUCT.md anti-refs include "swap gradients" — confirm whether confirm-action gradient stays as a deliberate exception or migrates to flat Felt Green). New confirm buttons should default to flat Felt Green.
-- **Action / Raise (`raiseActionButton`):** Velvet Navy at 80% opacity (`rgba(51, 68, 121, 0.8)`), white text, uppercase, 10px radius. Backdrop blur applied — this is the at-the-table action button. Backdrop blur is on the watchlist; new variants should drop the `backdropFilter` and lean on solid Velvet Navy.
-- **Ghost / Underlined:** Transparent, primary-text colored, hover shifts to secondary text. Used for in-line links and modal dismiss actions.
-- **Nav (`navLink`):** Massive, black-weight, uppercase, transparent ground, hover lifts and shifts to Neon Stake. Brand-surface only (lobby/marketing).
-- **Theme button (`themeButton`):** Transparent, navy text, hover shifts text to Neon Stake. Used for the theme/mode toggle.
-- **Settings (`gameSettingsButton`):** Light-gray button ground, secondary text, hover ground shifts to Velvet Navy with white text and a translateY lift. The settings-cluster pattern.
-- **Home nav (`homeNav`):** Light-gray ground, 16px radius, 56px height, hover translates 4px right. Mobile-friendly large tap target.
+The button system is built on the **tactile chip** mechanic: every CTA has a hairline top highlight, a colored bottom edge, and presses by sinking 1–2px while the edge collapses. Hover changes color or bg-tint only — never a lift, never a glow, never a scale. Snap easing (80ms) on transform, slightly slower (120ms) on color shifts. The full per-property recipe and the `Button.baseStyle` disabled/loading rule live in `.claude/CHAKRA.md` §10.
+
+**Current Button variants** (in `app/theme.ts`):
+
+- **`tactilePrimary`** — solid Felt Green CTA (`brand.green` → `brand.greenDark` press, `brand.greenEdge` rim). The default brand action.
+- **`tactileOutline`** — Felt Green outlined secondary (2px border, transparent fill, 12% green tint on hover). Pairs with `tactilePrimary`.
+- **`tactileDestructive`** — Neon Stake outlined destructive (2px pink border, never solid pink fill).
+- **`tactileTelegram`** — solid Telegram blue, used on community CTAs and newsletter.
+- **`tactileChrome`** — mode-aware idle chip for clusters where multiple chrome buttons live together (NavBar settings/chat/away/leave/withdraw triggers, table chrome). Subtle dark-tint chip on cream / subtle light-tint chip on near-black via `_dark` inside the variant body.
+- **`tactileGhost`** — transparent in-card utility chrome (chat header X / sound / overlay-toggle, popover toggles). Fills `card.lightGray` on hover. Use this *inside* card surfaces where `tactileChrome`'s chip would compete with the content.
+
+**Other variants in active use:**
+
+- **`raiseActionButton`** — at-table raise preset chips (1/2 Pot, Pot, All In, +1/+5/+10). Smaller-edge tactile recipe (1px edge, `translateY(1px)` press) tuned for 28–40px chips on the felt.
+- **`navLink`** — desktop nav links (`HomeNavBar` `NavButtons`). Typography-only, transparent ground. The hover shifts to Neon Stake — this is the **one documented exception** to the otherwise reserved-pink rule, deliberately retained as the lobby-nav signature.
+- **`homeNav`** — mobile drawer nav rows. Tactile row recipe (no edge shadow, `translateY(1px)` press, soft inset indent), tone-tinted per section (green for Play, navy for Resources).
+- **`themeButton`** — the theme/mode toggle. Transparent, hover shifts text to Neon Stake.
+
+**Toggle states (idle ↔ active).** Several chrome buttons toggle between an idle and an active state (Pause/Resume, Away/Back, Leave/Cancel-leave). Use `tactileChrome` for the idle state and inline a solid brand-tone tactile chip for the active state — see `app/components/NavBar/AwayButton.tsx` for the canonical pattern. Don't add a variant per tone permutation.
+
+**The state-aware action slot.** When a primary action becomes contextually unavailable (e.g., the Withdraw button in the settings card while the user is seated), prefer **replacing the action with the unblocking action** ("Leave seat") in the same slot rather than disabling-with-a-blur. The replacement button must mirror the source action's full state set — for Leave seat, that's `idle / queued / settlement-stuck`, matching the navbar `LeaveButton`. See `WithdrawBalanceCard.tsx` for the canonical implementation.
+
+**Linkouts.** External URLs use the shared `<ExternalLink>` component (see `.claude/CHAKRA.md` §11). In-app handle/identity links use `<PlayerNameLink>`. Iconified social CTAs use `<SocialIconButton tone="..." />`. Don't reinvent the recipes inline.
 
 ### Inputs
 
@@ -248,9 +262,15 @@ The action label cluster (`CALL` / `BET` / `RAISE` / `ALL-IN`) is treated as a t
 
 ### Named Rules
 
-**The Solid-Over-Gradient Rule.** Confirm and primary actions resolve to solid colors, not gradients. The current `greenGradient` is debt; new variants should default to a flat color from the palette.
+**The Solid-Over-Gradient Rule.** Confirm and primary actions resolve to solid colors, not gradients. The legacy `greenGradient` variant is gone; all CTAs land on `tactilePrimary` (flat Felt Green).
 
-**The Solid-Over-Glass Rule.** Backdrop blur (`backdropFilter`) exists on `social`, `raiseActionButton`, and `gameSettingsButton`. Do not add new uses. Existing uses are tracked.
+**The No-Lift Hover Rule.** Hover never uses `transform: translateY(-Npx)` or `scale(1.0X)`. Hover changes color, bg-tint, or border. **Press** is the only animated affordance — `translateY(1–2px)` with the bottom edge collapsing.
+
+**The No-Glow Rule.** Hover never uses colored `boxShadow` glows (`0 0 20px rgba(...,0.4)` etc.). Edge shadows only. The legacy `glow-green` / `glow-pink` / `glow-yellow` shadow tokens exist in `theme.ts`; do not extend them.
+
+**The Solid-Over-Glass Rule.** `backdropFilter: blur(...)` is reserved for modal overlays only. The button overhaul retired all in-button blur usage; do not reintroduce it on chips or chrome.
+
+**The Disabled-Visual Rule.** A muted-but-clickable button uses `opacity: 0.85 → 1 on hover`. Never `filter: blur(...)` — it reads as broken UI. A truly disabled button uses `isDisabled` and lets `Button.baseStyle._disabled` (filter desaturate + `pointerEvents: none`) handle the visual.
 
 **The 44pt Tap Rule.** All tap targets in the table interface and primary lobby flows hit a 44×44pt minimum on mobile. The `raiseActionButton` minimum height of 28px on `base` is a deliberate exception inside a known-zoomed table layout — do not propagate that exception elsewhere.
 

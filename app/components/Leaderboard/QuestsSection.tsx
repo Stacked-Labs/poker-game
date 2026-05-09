@@ -20,6 +20,7 @@ import {
 import { FaXTwitter } from 'react-icons/fa6';
 import { GiPokerHand, GiSpades } from 'react-icons/gi';
 import type { IconType } from 'react-icons';
+import Link from 'next/link';
 import { useActiveAccount } from 'thirdweb/react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { getQuests, completeQuest, type QuestItem } from '@/app/hooks/server_actions';
@@ -235,9 +236,16 @@ const QuestRow: React.FC<QuestRowProps> = ({
             </HStack>
 
             {isVerifySbt && !quest.completed && !quest.hasNft && !isLocked && (
-                <Text fontSize="xs" color="text.secondary" mt={2} ml="46px">
-                    Ask around to get whitelisted.
-                </Text>
+                <Box mt={2} ml="46px">
+                    <Link href="/claim" style={{ textDecoration: 'none' }}>
+                        <HStack spacing={1} display="inline-flex">
+                            <Text fontSize="xs" color="brand.yellow" fontWeight={600}>
+                                Claim your NFT badge
+                            </Text>
+                            <Icon as={FaArrowRight} color="brand.yellow" boxSize="9px" />
+                        </HStack>
+                    </Link>
+                </Box>
             )}
         </Box>
     );

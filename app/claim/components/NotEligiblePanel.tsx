@@ -18,10 +18,10 @@ const NotEligiblePanel: React.FC = () => (
         </Box>
         <VStack spacing={1} align="center">
             <Text fontSize="sm" fontWeight={700} color="text.primary">
-                Not on the whitelist
+                Not eligible yet
             </Text>
             <Text fontSize="sm" color="text.secondary" textAlign="center" maxW="280px">
-                Your wallet isn&apos;t on the whitelist. Ask around to get a spot.
+                Climb the ranks on the leaderboard to unlock your badge.
             </Text>
         </VStack>
     </VStack>

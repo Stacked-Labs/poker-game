@@ -11,8 +11,11 @@ import {
     Text,
     VStack,
 } from '@chakra-ui/react';
-import { FaCheck, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaCheck, FaArrowRight } from 'react-icons/fa';
+import { FiExternalLink } from 'react-icons/fi';
+import Link from 'next/link';
 import type { Account } from 'thirdweb/wallets';
+import type { SBTInfo } from '@/app/hooks/server_actions';
 import WalletButton from '@/app/components/WalletButton';
 import NotEligiblePanel from './NotEligiblePanel';
 
@@ -21,12 +24,18 @@ interface ClaimCardProps {
     eligibility: { eligible: boolean; claimed: boolean } | null;
     claiming: boolean;
     onClaim: () => void;
+    sbtInfo: SBTInfo | null;
+    justClaimed?: boolean;
 }
 
-const NFT_IMAGE_URL = '/previews/home_preview.png';
-const NFT_NAME = 'Stacked Poker — King of Spades';
+const FALLBACK_IMAGE = '/previews/home_preview.png';
+const FALLBACK_NAME  = 'Stacked Poker Badge';
 
-const ClaimCard: React.FC<ClaimCardProps> = ({ account, eligibility, claiming, onClaim }) => {
+const ClaimCard: React.FC<ClaimCardProps> = ({ account, eligibility, claiming, onClaim, sbtInfo, justClaimed }) => {
+    const nftImage = sbtInfo?.image || FALLBACK_IMAGE;
+    const nftName  = sbtInfo?.name  || FALLBACK_NAME;
+    const explorerURL = sbtInfo?.explorerURL || null;
+
     const renderContent = () => {
         if (!account) {
             return (
@@ -52,8 +61,8 @@ const ClaimCard: React.FC<ClaimCardProps> = ({ account, eligibility, claiming, o
                 <VStack spacing={5} align="center">
                     <Box position="relative">
                         <Image
-                            src={NFT_IMAGE_URL}
-                            alt={NFT_NAME}
+                            src={nftImage}
+                            alt={nftName}
                             borderRadius="16px"
                             w="180px"
                             h="180px"
@@ -80,22 +89,48 @@ const ClaimCard: React.FC<ClaimCardProps> = ({ account, eligibility, claiming, o
                             You own this NFT
                         </Text>
                         <Text fontSize="xs" color="text.secondary" textAlign="center">
-                            {NFT_NAME}
+                            {nftName}
                         </Text>
                     </VStack>
-                    <Button
-                        as="a"
-                        href={`https://opensea.io/`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        size="sm"
-                        variant="ghost"
-                        color="text.secondary"
-                        fontSize="xs"
-                        rightIcon={<Icon as={FaExternalLinkAlt} boxSize="10px" />}
-                    >
-                        View on chain
-                    </Button>
+                    {explorerURL && (
+                        <Text
+                            as="a"
+                            href={explorerURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            fontSize="xs"
+                            color="text.secondary"
+                            textDecoration="underline"
+                            textDecorationColor="border.lightGray"
+                            textUnderlineOffset="3px"
+                            cursor="pointer"
+                            display="inline-flex"
+                            alignItems="center"
+                            gap={1}
+                            transition="color 0.15s ease"
+                            _hover={{ color: 'text.primary' }}
+                        >
+                            View on chain
+                            <Icon as={FiExternalLink} boxSize="10px" />
+                        </Text>
+                    )}
+                    {justClaimed && (
+                        <Link href="/leaderboard" style={{ textDecoration: 'none', width: '100%' }}>
+                            <Button
+                                w="full"
+                                bg="brand.green"
+                                color="white"
+                                fontWeight={800}
+                                borderRadius="12px"
+                                size="md"
+                                rightIcon={<Icon as={FaArrowRight} boxSize="12px" />}
+                                _hover={{ opacity: 0.9 }}
+                                _active={{ transform: 'scale(0.98)' }}
+                            >
+                                Verify quest & earn points
+                            </Button>
+                        </Link>
+                    )}
                 </VStack>
             );
         }
@@ -107,8 +142,8 @@ const ClaimCard: React.FC<ClaimCardProps> = ({ account, eligibility, claiming, o
         return (
             <VStack spacing={5} align="center">
                 <Image
-                    src={NFT_IMAGE_URL}
-                    alt={NFT_NAME}
+                    src={nftImage}
+                    alt={nftName}
                     borderRadius="16px"
                     w="180px"
                     h="180px"
@@ -117,8 +152,13 @@ const ClaimCard: React.FC<ClaimCardProps> = ({ account, eligibility, claiming, o
                 />
                 <VStack spacing={1} align="center">
                     <Text fontSize="md" fontWeight={800} color="text.primary">
-                        {NFT_NAME}
+                        {nftName}
                     </Text>
+                    {sbtInfo?.description && (
+                        <Text fontSize="xs" color="text.secondary" textAlign="center" maxW="260px">
+                            {sbtInfo.description}
+                        </Text>
+                    )}
                     <Text fontSize="xs" color="text.secondary" textAlign="center">
                         Soulbound — non-transferable
                     </Text>

@@ -5,7 +5,7 @@ import { Box, Container } from '@chakra-ui/react';
 import { useActiveAccount } from 'thirdweb/react';
 import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
-import { checkSBTEligibility, claimSBT } from '@/app/hooks/server_actions';
+import { checkSBTEligibility, claimSBT, getSBTInfo, type SBTInfo } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import ClaimCard from './components/ClaimCard';
 
@@ -14,6 +14,10 @@ export default function ClaimPage() {
     const toast = useToastHelper();
     const [eligibility, setEligibility] = useState<{ eligible: boolean; claimed: boolean } | null>(null);
     const [claiming, setClaiming] = useState(false);
+    const [justClaimed, setJustClaimed] = useState(false);
+    const [sbtInfo, setSbtInfo] = useState<SBTInfo | null>(null);
+
+    useEffect(() => { getSBTInfo().then(setSbtInfo); }, []);
 
     useEffect(() => {
         if (!account?.address) {
@@ -29,6 +33,7 @@ export default function ClaimPage() {
         try {
             const result = await claimSBT();
             if (result.success) {
+                setJustClaimed(true);
                 if (account?.address) {
                     const updated = await checkSBTEligibility(account.address);
                     setEligibility(updated);
@@ -82,6 +87,8 @@ export default function ClaimPage() {
                     eligibility={eligibility}
                     claiming={claiming}
                     onClaim={handleClaim}
+                    sbtInfo={sbtInfo}
+                    justClaimed={justClaimed}
                 />
             </Container>
 

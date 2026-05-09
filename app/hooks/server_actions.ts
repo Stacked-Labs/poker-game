@@ -949,6 +949,27 @@ export async function completeQuest(
 // SBT (Soulbound NFT) API
 // ============================================================
 
+export interface SBTInfo {
+    contractAddress: string;
+    chainName: string;
+    explorerURL: string;
+    tokenURI: string;
+    name: string;
+    image: string;
+    description: string;
+}
+
+export async function getSBTInfo(): Promise<SBTInfo | null> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/sbt/info`);
+        if (!response.ok) return null;
+        return await response.json();
+    } catch {
+        return null;
+    }
+}
+
 export async function checkSBTEligibility(
     address: string
 ): Promise<{ eligible: boolean; claimed: boolean }> {
@@ -987,10 +1008,28 @@ export interface SBTWhitelistEntry {
     claimed: boolean;
 }
 
-export async function getAdminSBTWhitelist(): Promise<SBTWhitelistEntry[]> {
+export interface SBTWhitelistResponse {
+    entries: SBTWhitelistEntry[];
+    total: number;
+    claimed: number;
+    page: number;
+    pageSize: number;
+    pages: number;
+}
+
+export async function getAdminSBTWhitelist(params?: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+}): Promise<SBTWhitelistResponse> {
     isBackendUrlValid();
+    const empty: SBTWhitelistResponse = { entries: [], total: 0, claimed: 0, page: 1, pageSize: 50, pages: 1 };
     try {
-        const response = await fetch(`${backendUrl}/api/admin/sbt/whitelist`, {
+        const qs = new URLSearchParams();
+        if (params?.search) qs.set('search', params.search);
+        if (params?.page)     qs.set('page',     String(params.page));
+        if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
+        const response = await fetch(`${backendUrl}/api/admin/sbt/whitelist?${qs}`, {
             method: 'GET',
             credentials: 'include',
         });
@@ -998,7 +1037,7 @@ export async function getAdminSBTWhitelist(): Promise<SBTWhitelistEntry[]> {
         return await response.json();
     } catch (error) {
         console.error('Unable to fetch SBT whitelist.', error);
-        return [];
+        return empty;
     }
 }
 

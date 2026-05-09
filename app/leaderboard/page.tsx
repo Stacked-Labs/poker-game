@@ -40,7 +40,7 @@ const LeaderboardPage: React.FC = () => {
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        const code = new URLSearchParams(window.location.search).get('referalCode');
+        const code = new URLSearchParams(window.location.search).get('referralCode');
         if (code) setInitialReferralCode(code);
     }, []);
 

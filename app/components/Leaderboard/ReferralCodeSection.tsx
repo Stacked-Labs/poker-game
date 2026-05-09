@@ -41,6 +41,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const [codeInput, setCodeInput] = useState('');
     const [settingCode, setSettingCode] = useState(false);
     const [showSetCode, setShowSetCode] = useState(false);
+    const [localCode, setLocalCode] = useState<string | null>(null);
     const toast = useToastHelper();
 
     // If a code arrives via URL param after mount, open the input automatically
@@ -54,7 +55,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const referralLoading = referralInfo === undefined;
     const info = referralInfo ?? { count: 0, multiplier: 1.0, nextTier: { required: 5, multiplier: 1.1 }, hasReferrer: false, myCode: null };
     const alreadyReferred = info.hasReferrer || submitted;
-    const myCode = info.myCode ?? null;
+    const myCode = localCode ?? info.myCode ?? null;
 
     const handleCopy = async () => {
         if (!myCode) return;
@@ -75,8 +76,8 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
             const result = await setMyReferralCode(code);
             if (result.success) {
                 toast.success('Code set!', result.message, 3000);
+                setLocalCode(code);
                 setShowSetCode(false);
-                // myCode will update on next referralInfo refresh (parent re-fetches)
             } else {
                 toast.error('Could not set code', result.message, 3000);
             }

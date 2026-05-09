@@ -336,9 +336,15 @@ export default function AdminStatsPage() {
     // Whitelist tab state
     const [whitelist, setWhitelist]           = useState<SBTWhitelistEntry[]>([]);
     const [wlLoading, setWlLoading]           = useState(false);
+    const [wlSearch, setWlSearch]             = useState('');
+    const [wlPage, setWlPage]                 = useState(1);
+    const [wlTotal, setWlTotal]               = useState(0);
+    const [wlTotalClaimed, setWlTotalClaimed] = useState(0);
+    const [wlPages, setWlPages]               = useState(1);
     const [wlInputMode, setWlInputMode]       = useState<'paste' | 'csv'>('paste');
     const [wlPasteText, setWlPasteText]       = useState('');
     const [wlAdding, setWlAdding]             = useState(false);
+    const WL_PAGE_SIZE = 50;
 
     const activityChainRef   = useRef(activityChain);
     const handsChainRef      = useRef(handsChain);
@@ -381,15 +387,18 @@ export default function AdminStatsPage() {
         if (result[0].status === 'fulfilled') setTables(result[0].value);
     }, []);
 
-    const loadWhitelist = useCallback(async () => {
+    const loadWhitelist = useCallback(async (search = '', page = 1) => {
         setWlLoading(true);
         try {
-            const data = await getAdminSBTWhitelist();
-            setWhitelist(data);
+            const data = await getAdminSBTWhitelist({ search, page, pageSize: WL_PAGE_SIZE });
+            setWhitelist(data.entries);
+            setWlTotal(data.total);
+            setWlTotalClaimed(data.claimed);
+            setWlPages(data.pages);
         } finally {
             setWlLoading(false);
         }
-    }, []);
+    }, [WL_PAGE_SIZE]);
 
     const loadData = useCallback(async () => {
         setRefreshing(true);
@@ -413,7 +422,7 @@ export default function AdminStatsPage() {
     // Auth check on mount only.
     useEffect(() => {
         verifyAdmin().then((r) => {
-            if (r.isAdmin) { setAuthState('authorized'); loadData(); loadWhitelist(); }
+            if (r.isAdmin) { setAuthState('authorized'); loadData(); }
             else setAuthState('unauthorized');
         });
     }, [loadData, loadWhitelist]);
@@ -428,6 +437,19 @@ export default function AdminStatsPage() {
     }, [settlementChain, loadSettlementData]);
     useEffect(() => { if (authState === 'authorized') loadTablesData(tablesChain); // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tablesChain, loadTablesData]);
+
+    // Debounced whitelist search — resets to page 1 on new query
+    useEffect(() => {
+        if (authState !== 'authorized') return;
+        const t = setTimeout(() => { setWlPage(1); loadWhitelist(wlSearch, 1); }, 300);
+        return () => clearTimeout(t);
+    }, [wlSearch, authState]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Page change (only when page changes without a concurrent search change)
+    useEffect(() => {
+        if (authState !== 'authorized') return;
+        loadWhitelist(wlSearch, wlPage);
+    }, [wlPage, authState]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (authState === 'loading') {
         return (
@@ -1100,10 +1122,28 @@ export default function AdminStatsPage() {
 
                             {/* Whitelist table */}
                             <Box bg="card.white" borderRadius="16px" p={6} border="1px solid" borderColor="card.lightGray" boxShadow="0 2px 12px rgba(0,0,0,0.06)">
-                                <Flex justify="space-between" align="center" mb={4}>
-                                    <Text fontSize="md" fontWeight="extrabold" color="text.primary">NFT Whitelist</Text>
+                                <Flex justify="space-between" align="center" mb={4} gap={4} flexWrap="wrap">
+                                    <VStack align="start" gap={0}>
+                                        <Text fontSize="md" fontWeight="extrabold" color="text.primary">NFT Whitelist</Text>
+                                        <Text fontSize="xs" color="text.secondary">
+                                            {wlTotal.toLocaleString()} addresses · {wlTotalClaimed.toLocaleString()} claimed
+                                            {wlSearch && ` · filtered`}
+                                        </Text>
+                                    </VStack>
                                     <HStack gap={2}>
-                                        <Text fontSize="xs" color="text.secondary">{whitelist.length} addresses · {whitelist.filter((e) => e.claimed).length} claimed</Text>
+                                        <Input
+                                            placeholder="Search address…"
+                                            size="sm"
+                                            maxW="220px"
+                                            borderRadius="8px"
+                                            value={wlSearch}
+                                            onChange={(e) => setWlSearch(e.target.value)}
+                                            bg="card.lightGray"
+                                            border="none"
+                                            fontFamily="monospace"
+                                            fontSize="xs"
+                                            _focus={{ boxShadow: 'none', bg: 'card.lighterGray' }}
+                                        />
                                         <Box
                                             as="button"
                                             px={3} py={1.5}
@@ -1114,7 +1154,7 @@ export default function AdminStatsPage() {
                                             bg="card.lightGray"
                                             color="text.secondary"
                                             _hover={{ opacity: 0.8 }}
-                                            onClick={loadWhitelist}
+                                            onClick={() => loadWhitelist(wlSearch, wlPage)}
                                         >
                                             Refresh
                                         </Box>
@@ -1123,52 +1163,116 @@ export default function AdminStatsPage() {
                                 {wlLoading ? (
                                     <Flex justify="center" py={8}><Spinner size="md" color="brand.yellow" /></Flex>
                                 ) : whitelist.length === 0 ? (
-                                    <Text fontSize="sm" color="text.secondary" textAlign="center" py={6}>No addresses yet.</Text>
+                                    <Text fontSize="sm" color="text.secondary" textAlign="center" py={6}>
+                                        {wlSearch ? 'No addresses match your search.' : 'No addresses yet.'}
+                                    </Text>
                                 ) : (
-                                    <TableContainer>
-                                        <Table size="sm" variant="unstyled">
-                                            <Thead>
-                                                <Tr>
-                                                    <Th fontSize="xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" pb={3}>Address</Th>
-                                                    <Th fontSize="xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" pb={3}>Added</Th>
-                                                    <Th fontSize="xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" pb={3} isNumeric>Claimed</Th>
-                                                </Tr>
-                                            </Thead>
-                                            <Tbody>
-                                                {whitelist.map((entry) => (
-                                                    <Tr key={entry.address} _hover={{ bg: 'card.lightGray' }} borderRadius="8px">
-                                                        <Td py={2.5}>
-                                                            <HStack gap={2}>
-                                                                <Text fontSize="xs" fontFamily="monospace" color="text.primary">
-                                                                    {entry.address.slice(0, 6)}…{entry.address.slice(-4)}
-                                                                </Text>
-                                                                <Box
-                                                                    as="button"
-                                                                    fontSize="2xs"
-                                                                    color="text.secondary"
-                                                                    cursor="pointer"
-                                                                    _hover={{ color: 'text.primary' }}
-                                                                    onClick={() => navigator.clipboard.writeText(entry.address)}
-                                                                >
-                                                                    Copy
-                                                                </Box>
-                                                            </HStack>
-                                                        </Td>
-                                                        <Td py={2.5}>
-                                                            <Text fontSize="xs" color="text.secondary">
-                                                                {new Date(entry.addedAt).toLocaleDateString()}
-                                                            </Text>
-                                                        </Td>
-                                                        <Td py={2.5} isNumeric>
-                                                            <Text fontSize="xs" color={entry.claimed ? 'brand.green' : 'text.secondary'} fontWeight={entry.claimed ? 700 : 400}>
-                                                                {entry.claimed ? '✓' : '—'}
-                                                            </Text>
-                                                        </Td>
+                                    <>
+                                        <TableContainer>
+                                            <Table size="sm" variant="unstyled">
+                                                <Thead>
+                                                    <Tr>
+                                                        <Th fontSize="xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" pb={3}>Address</Th>
+                                                        <Th fontSize="xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" pb={3}>Added</Th>
+                                                        <Th fontSize="xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" pb={3} isNumeric>Claimed</Th>
                                                     </Tr>
-                                                ))}
-                                            </Tbody>
-                                        </Table>
-                                    </TableContainer>
+                                                </Thead>
+                                                <Tbody>
+                                                    {whitelist.map((entry) => (
+                                                        <Tr key={entry.address} _hover={{ bg: 'card.lightGray' }} borderRadius="8px">
+                                                            <Td py={2.5}>
+                                                                <HStack gap={2}>
+                                                                    <Text fontSize="xs" fontFamily="monospace" color="text.primary">
+                                                                        {entry.address.slice(0, 6)}…{entry.address.slice(-4)}
+                                                                    </Text>
+                                                                    <Box
+                                                                        as="button"
+                                                                        fontSize="2xs"
+                                                                        color="text.secondary"
+                                                                        cursor="pointer"
+                                                                        _hover={{ color: 'text.primary' }}
+                                                                        onClick={() => navigator.clipboard.writeText(entry.address)}
+                                                                    >
+                                                                        Copy
+                                                                    </Box>
+                                                                </HStack>
+                                                            </Td>
+                                                            <Td py={2.5}>
+                                                                <Text fontSize="xs" color="text.secondary">
+                                                                    {new Date(entry.addedAt).toLocaleDateString()}
+                                                                </Text>
+                                                            </Td>
+                                                            <Td py={2.5} isNumeric>
+                                                                <Text fontSize="xs" color={entry.claimed ? 'brand.green' : 'text.secondary'} fontWeight={entry.claimed ? 700 : 400}>
+                                                                    {entry.claimed ? '✓' : '—'}
+                                                                </Text>
+                                                            </Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+                                        </TableContainer>
+
+                                        {/* Pagination */}
+                                        {wlPages > 1 && (
+                                            <Flex justify="space-between" align="center" mt={4} pt={4} borderTop="1px solid" borderColor="card.lightGray">
+                                                <Text fontSize="xs" color="text.secondary">
+                                                    Page {wlPage} of {wlPages} · {wlTotal.toLocaleString()} total
+                                                </Text>
+                                                <HStack gap={1}>
+                                                    <Box
+                                                        as="button"
+                                                        px={3} py={1.5}
+                                                        borderRadius="8px"
+                                                        fontSize="xs"
+                                                        fontWeight="bold"
+                                                        cursor={wlPage <= 1 ? 'default' : 'pointer'}
+                                                        bg="card.lightGray"
+                                                        color={wlPage <= 1 ? 'text.secondary' : 'text.primary'}
+                                                        opacity={wlPage <= 1 ? 0.4 : 1}
+                                                        onClick={() => wlPage > 1 && setWlPage(wlPage - 1)}
+                                                    >
+                                                        ← Prev
+                                                    </Box>
+                                                    {/* Up to 5 page buttons */}
+                                                    {Array.from({ length: Math.min(5, wlPages) }, (_, i) => {
+                                                        const mid = Math.min(Math.max(wlPage, 3), wlPages - 2);
+                                                        const p = wlPages <= 5 ? i + 1 : mid - 2 + i;
+                                                        return (
+                                                            <Box
+                                                                key={p}
+                                                                as="button"
+                                                                px={3} py={1.5}
+                                                                borderRadius="8px"
+                                                                fontSize="xs"
+                                                                fontWeight="bold"
+                                                                cursor="pointer"
+                                                                bg={wlPage === p ? 'brand.yellow' : 'card.lightGray'}
+                                                                color={wlPage === p ? 'white' : 'text.secondary'}
+                                                                onClick={() => setWlPage(p)}
+                                                            >
+                                                                {p}
+                                                            </Box>
+                                                        );
+                                                    })}
+                                                    <Box
+                                                        as="button"
+                                                        px={3} py={1.5}
+                                                        borderRadius="8px"
+                                                        fontSize="xs"
+                                                        fontWeight="bold"
+                                                        cursor={wlPage >= wlPages ? 'default' : 'pointer'}
+                                                        bg="card.lightGray"
+                                                        color={wlPage >= wlPages ? 'text.secondary' : 'text.primary'}
+                                                        opacity={wlPage >= wlPages ? 0.4 : 1}
+                                                        onClick={() => wlPage < wlPages && setWlPage(wlPage + 1)}
+                                                    >
+                                                        Next →
+                                                    </Box>
+                                                </HStack>
+                                            </Flex>
+                                        )}
+                                    </>
                                 )}
                             </Box>
 
@@ -1277,7 +1381,7 @@ export default function AdminStatsPage() {
                                             const result = await addToSBTWhitelist(addrs);
                                             if (result.success) {
                                                 setWlPasteText('');
-                                                await loadWhitelist();
+                                                await loadWhitelist(wlSearch, wlPage);
                                             }
                                         } finally {
                                             setWlAdding(false);

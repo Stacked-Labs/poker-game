@@ -3,18 +3,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Box,
+    Button,
     HStack,
     Text,
     VStack,
     Icon,
     IconButton,
+    Stack,
+    useColorModeValue,
     useDisclosure,
     Modal,
     ModalOverlay,
     ModalContent,
     ModalBody,
 } from '@chakra-ui/react';
-import { FaShare, FaDownload, FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
+import { FaShare, FaDownload, FaGem, FaCrown, FaAward, FaBolt, FaTimes, FaCheck } from 'react-icons/fa';
 import { FaXTwitter, FaTelegram, FaMedal } from 'react-icons/fa6';
 import { getTier, TIER_EMOJI } from './tierUtils';
 import type { IconType } from 'react-icons';
@@ -34,6 +37,101 @@ interface ShareRankCardProps {
     total: number;
 }
 
+// Solid tactile button tones for the share-action row.
+const X_TONE = { bg: '#0F1419', bgPress: '#000000', edge: '#000000' };
+const TG_TONE = { bg: '#0088CC', bgPress: '#0077B5', edge: '#006A9D' };
+
+interface SolidShareButtonProps {
+    onClick?: () => void;
+    leftIcon: React.ReactElement;
+    bg: string;
+    bgPress: string;
+    edge: string;
+    color: string;
+    children: React.ReactNode;
+    flex?: number | string;
+}
+
+const ShareActionButton: React.FC<SolidShareButtonProps> = ({
+    onClick,
+    leftIcon,
+    bg,
+    bgPress,
+    edge,
+    color,
+    children,
+    flex,
+}) => (
+    <Button
+        onClick={onClick}
+        leftIcon={leftIcon}
+        flex={flex}
+        height="44px"
+        borderRadius="10px"
+        fontWeight={700}
+        fontSize="sm"
+        letterSpacing="0.02em"
+        color={color}
+        bg={bg}
+        border="none"
+        boxShadow={`inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 ${edge}`}
+        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+        _hover={{ bg }}
+        _active={{
+            bg: bgPress,
+            transform: 'translateY(2px)',
+            boxShadow: `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${edge}`,
+        }}
+    >
+        {children}
+    </Button>
+);
+
+interface ChromeShareButtonProps {
+    onClick?: () => void;
+    leftIcon: React.ReactElement;
+    children: React.ReactNode;
+    flex?: number | string;
+}
+
+const ChromeShareButton: React.FC<ChromeShareButtonProps> = ({
+    onClick,
+    leftIcon,
+    children,
+    flex,
+}) => {
+    const bg = useColorModeValue('#F2F4FA', 'rgba(255,255,255,0.06)');
+    const bgHover = useColorModeValue('#E8EBF4', 'rgba(255,255,255,0.10)');
+    const bgPress = useColorModeValue('#DCE0EC', 'rgba(255,255,255,0.14)');
+    const edge = useColorModeValue('#C9CEDC', 'rgba(0,0,0,0.45)');
+    const fg = useColorModeValue('text.primary', 'whiteAlpha.900');
+    return (
+        <Button
+            onClick={onClick}
+            leftIcon={leftIcon}
+            flex={flex}
+            height="44px"
+            borderRadius="10px"
+            fontWeight={700}
+            fontSize="sm"
+            letterSpacing="0.02em"
+            color={fg}
+            bg={bg}
+            border="none"
+            boxShadow={`inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 ${edge}`}
+            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+            _hover={{ bg: bgHover }}
+            _active={{
+                bg: bgPress,
+                transform: 'translateY(2px)',
+                boxShadow: `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${edge}`,
+            }}
+        >
+            {children}
+        </Button>
+    );
+};
+
 // Rank suffix helper
 function ordinalSuffix(n: number) {
     const s = ['th', 'st', 'nd', 'rd'];
@@ -41,7 +139,7 @@ function ordinalSuffix(n: number) {
     return s[(v - 20) % 10] ?? s[v] ?? s[0];
 }
 
-const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, total }) => {
+const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address: _address, total }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const cardRef = useRef<HTMLDivElement>(null);
     const [sharing, setSharing] = useState(false);
@@ -71,7 +169,6 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
     }, [isOpen]);
 
     const tier = getTier(rank, total);
-    const truncated = `${address.slice(0, 6)}...${address.slice(-4)}`;
     const suffix = ordinalSuffix(rank);
     const shareText = `I'm ranked #${rank} on @stacked_poker with ${points.toLocaleString()} pts! ${TIER_EMOJI[tier.name]} ${tier.label} tier. Play on-chain poker on Base. 🃏`;
     const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
@@ -133,7 +230,7 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
         <>
             <IconButton
                 aria-label="Share rank"
-                icon={<Icon as={FaShare} boxSize="13px" />}
+                icon={<Icon as={FaShare} boxSize="14px" />}
                 size="xs"
                 variant="unstyled"
                 onClick={onOpen}
@@ -141,13 +238,23 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                 alignItems="center"
                 justifyContent="center"
                 color="text.secondary"
-                opacity={0.5}
+                opacity={0.6}
+                bg="transparent"
+                border="none"
+                borderRadius="full"
                 _hover={{ opacity: 1, color: 'brand.green' }}
-                _dark={{ color: 'whiteAlpha.500', _hover: { opacity: 1, color: 'brand.green' } }}
-                transition="all 0.2s ease"
+                _focus={{ boxShadow: 'none' }}
+                _focusVisible={{
+                    boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)',
+                }}
+                _dark={{
+                    color: 'whiteAlpha.600',
+                    _hover: { opacity: 1, color: 'brand.green' },
+                }}
+                transition="opacity 80ms ease, color 80ms ease"
                 minW="auto"
                 h="auto"
-                p={1}
+                p={1.5}
             />
 
             <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
@@ -161,8 +268,46 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                     mx={4}
                     overflow="hidden"
                 >
-                    <ModalBody p={2}>
-                        <VStack spacing={0} align="center">
+                    <ModalBody p={3}>
+                        <VStack spacing={3} align="stretch">
+
+                            {/* ── Title row ───────────────────────────────────── */}
+                            <HStack justify="space-between" align="center" w="full" px={1}>
+                                <Text
+                                    color="text.primary"
+                                    fontSize="md"
+                                    fontWeight={700}
+                                    letterSpacing="-0.01em"
+                                >
+                                    Share your rank
+                                </Text>
+                                <IconButton
+                                    aria-label="Close"
+                                    icon={<Icon as={FaTimes} boxSize="12px" />}
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={onClose}
+                                    bg="transparent"
+                                    border="none"
+                                    color="text.secondary"
+                                    borderRadius="full"
+                                    _focus={{ boxShadow: 'none' }}
+                                    _focusVisible={{
+                                        boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)',
+                                    }}
+                                    _hover={{
+                                        bg: 'card.lightGray',
+                                        color: 'text.primary',
+                                    }}
+                                    _dark={{
+                                        color: 'whiteAlpha.700',
+                                        _hover: {
+                                            bg: 'rgba(255,255,255,0.08)',
+                                            color: 'whiteAlpha.900',
+                                        },
+                                    }}
+                                />
+                            </HStack>
 
                             {/* ── Shareable card ─────────────────────────────── */}
                             <Box
@@ -229,14 +374,6 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                             PTS
                                         </span>
                                     </div>
-                                    <div style={{
-                                        color: 'rgba(255,255,255,0.6)',
-                                        fontSize: 10,
-                                        fontFamily: 'monospace',
-                                        letterSpacing: '0.04em',
-                                    }}>
-                                        ♠ {truncated}
-                                    </div>
                                 </div>
 
                                 {/* ── Tier chip — top-right ── */}
@@ -294,71 +431,63 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                 </div>
                             </Box>
 
-                            {/* ── Actions — icon row ─────────────────────────── */}
-                            <HStack spacing={0} w="full" pt={3} pb={1} justify="center">
-                                <VStack
-                                    as="button"
-                                    spacing={1}
-                                    flex={1}
-                                    py={2}
-                                    cursor="pointer"
-                                    boxShadow="0 2px 0 rgba(0,0,0,0.06)"
-                                    _dark={{ boxShadow: '0 2px 0 rgba(255,255,255,0.06)' }}
-                                    _active={{ transform: 'translateY(2px)', boxShadow: '0 0 0 transparent' }}
-                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease"
+                            {/* ── Actions — tactile chip row ──────────────────── */}
+                            <Stack
+                                direction={{ base: 'column', sm: 'row' }}
+                                spacing={2}
+                                w="full"
+                            >
+                                <ShareActionButton
                                     onClick={handleShareX}
-                                >
-                                    <Icon as={FaXTwitter} boxSize="20px" color="text.primary" />
-                                    <Text fontSize="2xs" color="text.secondary" fontWeight="medium">
-                                        {sharing ? 'Sharing…' : 'Post'}
-                                    </Text>
-                                </VStack>
-
-                                <Box w="1px" h="28px" bg="border.lightGray" opacity={0.5} _dark={{ opacity: 0.2 }} />
-
-                                <VStack
-                                    as="button"
-                                    spacing={1}
+                                    leftIcon={<Icon as={FaXTwitter} boxSize="14px" />}
+                                    bg={X_TONE.bg}
+                                    bgPress={X_TONE.bgPress}
+                                    edge={X_TONE.edge}
+                                    color="white"
                                     flex={1}
-                                    py={2}
-                                    cursor="pointer"
-                                    boxShadow="0 2px 0 rgba(0,0,0,0.06)"
-                                    _dark={{ boxShadow: '0 2px 0 rgba(255,255,255,0.06)' }}
-                                    _active={{ transform: 'translateY(2px)', boxShadow: '0 0 0 transparent' }}
-                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease"
+                                >
+                                    {sharing ? 'Sharing…' : 'Post on X'}
+                                </ShareActionButton>
+                                <ShareActionButton
                                     onClick={() => window.open(telegramUrl, '_blank', 'noopener,noreferrer')}
-                                >
-                                    <Icon as={FaTelegram} boxSize="20px" color="brand.telegram" />
-                                    <Text fontSize="2xs" color="text.secondary" fontWeight="medium">
-                                        Send
-                                    </Text>
-                                </VStack>
-
-                                <Box w="1px" h="28px" bg="border.lightGray" opacity={0.5} _dark={{ opacity: 0.2 }} />
-
-                                <VStack
-                                    as="button"
-                                    spacing={1}
+                                    leftIcon={<Icon as={FaTelegram} boxSize="14px" />}
+                                    bg={TG_TONE.bg}
+                                    bgPress={TG_TONE.bgPress}
+                                    edge={TG_TONE.edge}
+                                    color="white"
                                     flex={1}
-                                    py={2}
-                                    cursor="pointer"
-                                    boxShadow="0 2px 0 rgba(0,0,0,0.06)"
-                                    _dark={{ boxShadow: '0 2px 0 rgba(255,255,255,0.06)' }}
-                                    _active={{ transform: 'translateY(2px)', boxShadow: '0 0 0 transparent' }}
-                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease"
-                                    onClick={handleDownload}
                                 >
-                                    <Icon as={FaDownload} boxSize="18px" color="text.secondary" />
-                                    <Text fontSize="2xs" color="text.secondary" fontWeight="medium">
-                                        Save
-                                    </Text>
-                                </VStack>
-                            </HStack>
+                                    Send
+                                </ShareActionButton>
+                                <ChromeShareButton
+                                    onClick={handleDownload}
+                                    leftIcon={<Icon as={FaDownload} boxSize="13px" />}
+                                    flex={1}
+                                >
+                                    Save image
+                                </ChromeShareButton>
+                            </Stack>
 
                             {desktopHint && (
-                                <Text fontSize="xs" color="text.secondary" textAlign="center" pt={1}>
-                                    Image downloaded — attach it to your tweet! 🃏
-                                </Text>
+                                <HStack
+                                    spacing={1.5}
+                                    px={2.5}
+                                    py={1}
+                                    borderRadius="full"
+                                    bg="rgba(54, 163, 123, 0.10)"
+                                    _dark={{ bg: 'rgba(54, 163, 123, 0.18)' }}
+                                    alignSelf="center"
+                                >
+                                    <Icon as={FaCheck} boxSize="10px" color="brand.green" />
+                                    <Text
+                                        color="brand.green"
+                                        fontSize="2xs"
+                                        fontWeight={700}
+                                        letterSpacing="0.04em"
+                                    >
+                                        Saved — attach to your tweet
+                                    </Text>
+                                </HStack>
                             )}
 
                         </VStack>

@@ -1305,6 +1305,7 @@ const TakenSeatButton = ({
                                 />
                                 <Text
                                     as="span"
+                                    color="currentColor"
                                     display={{ base: 'none', md: 'inline' }}
                                 >
                                     Offline

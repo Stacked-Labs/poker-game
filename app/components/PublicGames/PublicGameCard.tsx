@@ -111,7 +111,7 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
                             flexShrink={0}
                         />
                     )}
-                    <Text as="span">
+                    <Text as="span" color="text.muted">
                         {chainName ?? 'Play money'}
                         {' · '}
                         {game.is_active ? 'Running' : 'Open'}
@@ -278,7 +278,11 @@ function SpectatorPip({ count }: { count: number }) {
         >
             <HStack spacing={1} color="text.muted" fontSize="xs">
                 <Icon as={FiEye} boxSize="11px" />
-                <Text fontWeight="semibold" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                <Text
+                    color="text.muted"
+                    fontWeight="semibold"
+                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                >
                     {count}
                 </Text>
             </HStack>

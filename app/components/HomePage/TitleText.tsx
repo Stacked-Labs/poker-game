@@ -4,6 +4,7 @@ import React from 'react';
 const TitleText = ({ text }: { text: string }) => {
     return (
         <Text
+            color="text.primary"
             fontSize={'4xl'}
             fontWeight={'bolder'}
             textTransform={'uppercase'}

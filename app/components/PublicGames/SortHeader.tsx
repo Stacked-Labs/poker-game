@@ -44,6 +44,7 @@ function SortHeaderButton({
         >
             <HStack spacing={1} align="center">
                 <Text
+                    color="currentColor"
                     fontSize="2xs"
                     fontWeight="bold"
                     letterSpacing="0.1em"

@@ -176,8 +176,8 @@ export default function SessionPointsBadge() {
                                 fontWeight={800}
                                 lineHeight={1}
                                 position="relative"
+                                color={palette.numColor}
                                 sx={{
-                                    color: palette.numColor,
                                     fontVariantNumeric: 'tabular-nums',
                                     fontFeatureSettings: '"tnum"',
                                     letterSpacing: '0.01em',
@@ -218,8 +218,8 @@ export default function SessionPointsBadge() {
                                 fontSize="11px"
                                 fontWeight={800}
                                 lineHeight={1}
+                                color={palette.deltaColor}
                                 sx={{
-                                    color: palette.deltaColor,
                                     fontVariantNumeric: 'tabular-nums',
                                     letterSpacing: '0.01em',
                                 }}

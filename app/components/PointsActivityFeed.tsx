@@ -34,11 +34,26 @@ const chipFlip = keyframes`
   to   { transform: rotateY(0); }
 `;
 
+type PointsEventKind = 'live' | 'standings';
+
 interface PointsEvent {
     id: string;
     address: string;
     points: number;
     delta?: number;
+    rank?: number;
+    kind: PointsEventKind;
+}
+
+const STANDINGS_POOL_SIZE = 10;
+
+function shuffle<T>(arr: T[]): T[] {
+    const out = arr.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
 }
 
 // Suits are decorative: drawn at random per event, pairing brand
@@ -68,6 +83,8 @@ export interface PointsPillProps {
     address: string;
     points: number;
     delta?: number;
+    rank?: number;
+    kind?: PointsEventKind;
     hiding?: boolean;
     reducedMotion?: boolean;
 }
@@ -133,6 +150,8 @@ export function PointsPill({
     address,
     points,
     delta,
+    rank,
+    kind = 'live',
     hiding,
     reducedMotion,
 }: PointsPillProps) {
@@ -150,6 +169,20 @@ export function PointsPill({
         'rgba(11, 20, 48, 0.06)',
         'rgba(255, 255, 255, 0.05)',
     );
+    const standingsChipBg = useColorModeValue('brand.darkNavy', 'rgba(255, 255, 255, 0.10)');
+
+    const isStandings = kind === 'standings';
+    const labelText = isStandings
+        ? rank
+            ? `Rank #${rank}`
+            : 'On the leaderboard'
+        : 'Stacked points';
+    const chipBg = isStandings ? standingsChipBg : 'brand.green';
+    const chipText = isStandings
+        ? `${points.toLocaleString()} PTS`
+        : delta != null
+            ? `+${delta.toLocaleString()}`
+            : points.toLocaleString();
 
     return (
         <PillFrame hiding={hiding} reducedMotion={reducedMotion}>
@@ -196,11 +229,11 @@ export function PointsPill({
                             lineHeight={1.2}
                             mt="2px"
                         >
-                            stacked points
+                            {labelText}
                         </Text>
                     </Box>
                     <Box
-                        bg="brand.green"
+                        bg={chipBg}
                         borderRadius="md"
                         px={2.5}
                         py={1}
@@ -214,9 +247,7 @@ export function PointsPill({
                             lineHeight={1}
                             sx={{ fontVariantNumeric: 'tabular-nums' }}
                         >
-                            {delta != null
-                                ? `+${delta.toLocaleString()}`
-                                : points.toLocaleString()}
+                            {chipText}
                         </Text>
                     </Box>
                 </HStack>
@@ -232,12 +263,23 @@ export default function PointsActivityFeed() {
     const [hiding, setHiding] = useState(false);
     const prevSnapshot = useRef<Map<string, number>>(new Map());
     const snapshotInitialized = useRef(false);
+    const standingsPool = useRef<PointsEvent[]>([]);
+    const standingsCursor = useRef(0);
     const displayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const gapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const backendUrl = process.env.NEXT_PUBLIC_API_URL;
     const reducedMotion = usePrefersReducedMotion();
 
     const visible = pathname === '/';
+
+    const drawStandings = useCallback((): PointsEvent | null => {
+        const pool = standingsPool.current;
+        if (pool.length === 0) return null;
+        const idx = standingsCursor.current % pool.length;
+        standingsCursor.current = (standingsCursor.current + 1) % pool.length;
+        const base = pool[idx];
+        return { ...base, id: `${base.address}-rotate-${Date.now()}` };
+    }, []);
 
     const fetchLeaderboard = useCallback(async () => {
         if (!backendUrl) return;
@@ -247,34 +289,53 @@ export default function PointsActivityFeed() {
             const data: { leaderboard: { address: string; points: number }[] } =
                 await res.json();
 
-            const events: PointsEvent[] = [];
+            const liveEvents: PointsEvent[] = [];
+            const standings: PointsEvent[] = [];
 
-            for (const entry of data.leaderboard) {
+            data.leaderboard.forEach((entry, i) => {
                 const prev = prevSnapshot.current.get(entry.address);
                 if (
                     snapshotInitialized.current &&
                     prev !== undefined &&
                     entry.points > prev
                 ) {
-                    events.push({
+                    liveEvents.push({
                         id: `${entry.address}-${Date.now()}`,
                         address: entry.address,
                         points: entry.points,
                         delta: entry.points - prev,
+                        kind: 'live',
+                    });
+                }
+                if (i < STANDINGS_POOL_SIZE && entry.points > 0) {
+                    standings.push({
+                        id: `${entry.address}-rank-${i + 1}`,
+                        address: entry.address,
+                        points: entry.points,
+                        rank: i + 1,
+                        kind: 'standings',
                     });
                 }
                 prevSnapshot.current.set(entry.address, entry.points);
-            }
+            });
 
+            const wasFirstFetch = !snapshotInitialized.current;
             snapshotInitialized.current = true;
+            standingsPool.current = shuffle(standings);
+            standingsCursor.current = 0;
 
-            if (events.length > 0) {
-                setQueue((q) => [...q, ...events]);
+            if (liveEvents.length > 0) {
+                // Live deltas jump the queue so real activity is seen first.
+                setQueue((q) => [...liveEvents, ...q]);
+            } else if (wasFirstFetch && standingsPool.current.length > 0) {
+                // Seed the very first pill on landing so the feed is never silent.
+                const first = drawStandings();
+                if (first) setQueue((q) => (q.length === 0 ? [first] : q));
             }
         } catch {
             // non-critical UI; ignore
         }
-    }, [backendUrl]);
+    }, [backendUrl, drawStandings]);
 
     useEffect(() => {
         if (!visible) return;
@@ -284,9 +345,17 @@ export default function PointsActivityFeed() {
     }, [visible, fetchLeaderboard]);
 
     const showNext = useCallback(() => {
+        gapTimer.current = null;
         setQueue((q) => {
-            if (q.length === 0) return q;
-            const [next, ...rest] = q;
+            let next: PointsEvent | null = null;
+            let rest: PointsEvent[] = q;
+            if (q.length > 0) {
+                [next, ...rest] = q;
+            } else {
+                next = drawStandings();
+            }
+            if (!next) return q;
+
             setCurrent(next);
             setHiding(false);
 
@@ -300,11 +369,13 @@ export default function PointsActivityFeed() {
 
             return rest;
         });
-    }, []);
+    }, [drawStandings]);
 
     useEffect(() => {
         if (!visible) return;
-        if (current === null && queue.length > 0 && !gapTimer.current) {
+        if (current !== null) return;
+        if (gapTimer.current) return;
+        if (queue.length > 0 || standingsPool.current.length > 0) {
             gapTimer.current = setTimeout(showNext, randomGap());
         }
     }, [visible, queue, current, showNext]);
@@ -329,6 +400,8 @@ export default function PointsActivityFeed() {
                 address={current.address}
                 points={current.points}
                 delta={current.delta}
+                rank={current.rank}
+                kind={current.kind}
                 hiding={hiding}
                 reducedMotion={!!reducedMotion}
             />

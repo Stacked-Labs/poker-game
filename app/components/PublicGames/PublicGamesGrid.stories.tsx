@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useMemo, useState } from 'react';
 import { Box, Container } from '@chakra-ui/react';
 import PublicGamesGrid from './PublicGamesGrid';
+import FilterRail from './FilterRail';
 import type {
     PublicGame,
     FilterValue,
@@ -68,13 +69,17 @@ function InteractiveGrid({ games, hasMore = false, isLoadingMore = false }: Inte
     return (
         <Box bg="card.lightGray" minH="100vh" py={{ base: 6, md: 10 }}>
             <Container maxW="container.xl" px={{ base: 3, md: 6, lg: 8 }}>
+                <Box mb={{ base: 5, md: 6 }}>
+                    <FilterRail
+                        totalCount={games.length}
+                        filter={filter}
+                        onFilterChange={setFilter}
+                        stake={stake}
+                        onStakeChange={setStake}
+                    />
+                </Box>
                 <PublicGamesGrid
                     games={filtered}
-                    totalCount={games.length}
-                    filter={filter}
-                    onFilterChange={setFilter}
-                    stake={stake}
-                    onStakeChange={setStake}
                     sortConfig={sortConfig}
                     onSortChange={handleSort}
                     hasMore={hasMore}

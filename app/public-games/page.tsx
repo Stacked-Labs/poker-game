@@ -6,6 +6,7 @@ import Footer from '../components/HomePage/Footer';
 import PublicGamesHero from '../components/PublicGames/PublicGamesHero';
 import PublicGamesGrid from '../components/PublicGames/PublicGamesGrid';
 import EmptyState from '../components/PublicGames/EmptyState';
+import FilterRail from '../components/PublicGames/FilterRail';
 import { getPublicGames } from '../hooks/server_actions';
 import type {
     PublicGame,
@@ -18,7 +19,8 @@ import { PAGE_SIZE, sortKeyToParam, stakeTier } from '../components/PublicGames/
 
 const PublicPage = () => {
     const [games, setGames] = useState<PublicGame[]>([]);
-    const [totalCount, setTotalCount] = useState(0);
+    const [totalCount, setTotalCount] = useState<number | null>(null);
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -52,7 +54,10 @@ const PublicPage = () => {
                 if (!cancelled) setError('Unable to load games. Please try again.');
             })
             .finally(() => {
-                if (!cancelled) setIsLoading(false);
+                if (!cancelled) {
+                    setIsLoading(false);
+                    setHasLoadedOnce(true);
+                }
             });
         return () => { cancelled = true; };
     }, [filter, sortByParam, sortConfig.direction]);
@@ -102,27 +107,32 @@ const PublicPage = () => {
                     <VStack spacing={{ base: 6, md: 8 }} w="full" align="stretch">
                         <PublicGamesHero />
 
-                        {isLoading ? (
-                            <EmptyState variant="loading" />
-                        ) : error ? (
-                            <EmptyState variant="error" onRetry={handleRetry} />
-                        ) : visibleGames.length === 0 ? (
-                            <EmptyState variant="empty" />
-                        ) : (
-                            <PublicGamesGrid
-                                games={visibleGames}
-                                totalCount={totalCount}
-                                filter={filter}
-                                onFilterChange={setFilter}
-                                stake={stake}
-                                onStakeChange={setStake}
-                                sortConfig={sortConfig}
-                                onSortChange={handleSortChange}
-                                hasMore={games.length < totalCount}
-                                isLoadingMore={isLoadingMore}
-                                onLoadMore={handleLoadMore}
-                            />
-                        )}
+                        <FilterRail
+                            totalCount={hasLoadedOnce ? totalCount ?? 0 : null}
+                            filter={filter}
+                            onFilterChange={setFilter}
+                            stake={stake}
+                            onStakeChange={setStake}
+                        />
+
+                        <Box minH={{ base: '420px', md: '520px' }}>
+                            {isLoading ? (
+                                <EmptyState variant="loading" />
+                            ) : error ? (
+                                <EmptyState variant="error" onRetry={handleRetry} />
+                            ) : visibleGames.length === 0 ? (
+                                <EmptyState variant="empty" />
+                            ) : (
+                                <PublicGamesGrid
+                                    games={visibleGames}
+                                    sortConfig={sortConfig}
+                                    onSortChange={handleSortChange}
+                                    hasMore={games.length < (totalCount ?? 0)}
+                                    isLoadingMore={isLoadingMore}
+                                    onLoadMore={handleLoadMore}
+                                />
+                            )}
+                        </Box>
                     </VStack>
                 </Container>
             </Box>

@@ -18,7 +18,7 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { FaCoins, FaCrown, FaInfoCircle } from 'react-icons/fa';
-import { FiChevronDown } from 'react-icons/fi';
+import { FiChevronDown, FiLogOut } from 'react-icons/fi';
 
 const CHIPS_PER_USDC = 100;
 const USDC_LOGO_URL = '/usdc-logo.png';
@@ -26,6 +26,8 @@ const USDC_LOGO_URL = '/usdc-logo.png';
 interface ShellProps {
     isOwner?: boolean;
     isUserSeated?: boolean;
+    leaveAfterHandRequested?: boolean;
+    settlementStuck?: boolean;
     isCheckingBalance?: boolean;
     isCheckingRake?: boolean;
     chipBalance?: number;
@@ -37,6 +39,8 @@ interface ShellProps {
 const WithdrawBalanceShell = ({
     isOwner = false,
     isUserSeated = false,
+    leaveAfterHandRequested = false,
+    settlementStuck = false,
     isCheckingBalance = false,
     isCheckingRake = false,
     chipBalance = 0,
@@ -117,18 +121,12 @@ const WithdrawBalanceShell = ({
                         </Text>
                     </HStack>
                 )}
-                <Tooltip
-                    label="Leave the table first to withdraw"
-                    isDisabled={!isUserSeated}
-                    placement="top"
-                    hasArrow
-                    fontSize="xs"
-                    bg="gray.800"
-                    color="white"
-                    borderRadius="md"
-                    px={2}
-                    py={1}
-                >
+                {isUserSeated ? (
+                    <LeaveSeatActionShell
+                        isLeaveRequested={leaveAfterHandRequested}
+                        settlementStuck={settlementStuck}
+                    />
+                ) : (
                     <Button
                         size={{ base: 'sm', md: 'md' }}
                         px={{ base: 4, md: 5 }}
@@ -153,7 +151,7 @@ const WithdrawBalanceShell = ({
                     >
                         Withdraw
                     </Button>
-                </Tooltip>
+                )}
             </Flex>
 
             {isUserSeated && (
@@ -170,8 +168,14 @@ const WithdrawBalanceShell = ({
                     fontWeight="medium"
                     w="fit-content"
                 >
-                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
-                    <Text color="inherit">Leave the table before withdrawing.</Text>
+                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} flexShrink={0} />
+                    <Text color="inherit">
+                        {settlementStuck
+                            ? 'Settlement in progress — leave temporarily unavailable.'
+                            : leaveAfterHandRequested
+                              ? 'Leaving after this hand. Withdraw unlocks once you stand up.'
+                              : 'Leave your seat to unlock withdraw.'}
+                    </Text>
                 </HStack>
             )}
 
@@ -312,7 +316,11 @@ const WithdrawBalanceShell = ({
                 <Collapse in={isAdvancedOpen} animateOpacity>
                     <Flex align="center" justify="space-between" w="100%" gap={3} pt={2}>
                         <Text fontSize="2xs" color="text.muted" lineHeight="1.4" opacity={0.85} flex={1} minW={0}>
-                            Emergency withdraw — last settled hand only. {CHIPS_PER_USDC}&nbsp;chips&nbsp;=&nbsp;1&nbsp;USDC.{' '}
+                            Escape hatch if normal withdraw is unavailable.
+                            Only enabled <strong>before the first hand</strong>{' '}
+                            or <strong>24 hours after the last settlement</strong>.
+                            Pulls your last-settled balance directly from the
+                            contract. {CHIPS_PER_USDC}&nbsp;chips&nbsp;=&nbsp;1&nbsp;USDC.{' '}
                             <Link
                                 href="https://sepolia.basescan.org/address/0x0"
                                 isExternal
@@ -355,6 +363,81 @@ const WithdrawBalanceShell = ({
                 </Collapse>
             </Box>
         </Flex>
+    );
+};
+
+interface LeaveSeatActionShellProps {
+    isLeaveRequested: boolean;
+    settlementStuck: boolean;
+}
+
+const LeaveSeatActionShell = ({
+    isLeaveRequested,
+    settlementStuck,
+}: LeaveSeatActionShellProps) => {
+    const tooltipLabel = settlementStuck
+        ? 'Settlement in progress — leave unavailable'
+        : isLeaveRequested
+          ? 'Cancel leave request'
+          : 'Leave after this hand';
+
+    return (
+        <Tooltip
+            label={tooltipLabel}
+            placement="top"
+            hasArrow
+            fontSize="xs"
+            bg="gray.800"
+            color="white"
+            borderRadius="md"
+            px={2}
+            py={1}
+        >
+            <Button
+                size={{ base: 'sm', md: 'md' }}
+                h={{ base: '34px', sm: '36px', md: '40px' }}
+                px={{ base: 3.5, md: 4 }}
+                borderRadius={{ base: '10px', md: '12px' }}
+                fontWeight="bold"
+                fontSize={{ base: 'xs', md: 'sm' }}
+                letterSpacing="0.02em"
+                flexShrink={0}
+                leftIcon={<Icon as={FiLogOut} boxSize={{ base: 3.5, md: 4 }} />}
+                iconSpacing={1.5}
+                isDisabled={settlementStuck}
+                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease"
+                {...(isLeaveRequested
+                    ? {
+                          bg: 'brand.pink',
+                          color: 'white',
+                          border: 'none',
+                          boxShadow:
+                              'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #950839',
+                          _hover: { bg: 'brand.pink' },
+                          _active: {
+                              bg: 'brand.pinkDark',
+                              transform: 'translateY(2px)',
+                              boxShadow:
+                                  'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                          },
+                      }
+                    : {
+                          bg: 'transparent',
+                          color: 'brand.pink',
+                          border: '2px solid',
+                          borderColor: 'brand.pink',
+                          boxShadow: 'none',
+                          _hover: { bg: 'brand.pink', color: 'white' },
+                          _active: {
+                              bg: 'brand.pinkDark',
+                              color: 'white',
+                              transform: 'translateY(1px)',
+                          },
+                      })}
+            >
+                {isLeaveRequested ? 'Cancel leave' : 'Leave seat'}
+            </Button>
+        </Tooltip>
     );
 };
 
@@ -425,12 +508,42 @@ export const Loading: Story = {
     },
 };
 
-export const SeatedWarning: Story = {
-    name: 'Seated · withdraw blocked',
+export const SeatedIdle: Story = {
+    name: 'Seated · Leave seat (idle)',
     args: {
         isOwner: false,
         isUserSeated: true,
         chipBalance: 1850,
+    },
+};
+
+export const SeatedLeaveQueued: Story = {
+    name: 'Seated · leave queued (Cancel)',
+    args: {
+        isOwner: false,
+        isUserSeated: true,
+        leaveAfterHandRequested: true,
+        chipBalance: 1850,
+    },
+};
+
+export const SeatedSettlementStuck: Story = {
+    name: 'Seated · settlement stuck (disabled)',
+    args: {
+        isOwner: false,
+        isUserSeated: true,
+        settlementStuck: true,
+        chipBalance: 1850,
+    },
+};
+
+export const SeatedOwnerIdle: Story = {
+    name: 'Seated owner · Leave + Collect',
+    args: {
+        isOwner: true,
+        isUserSeated: true,
+        chipBalance: 1850,
+        rakeUsdc: '4.20',
     },
 };
 

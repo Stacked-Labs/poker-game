@@ -138,9 +138,10 @@ const WithdrawButtonStory = ({
                     py={2}
                     width="auto"
                     height={{ base: '40px', sm: '40px', md: '48px' }}
-                    bg="brand.yellow"
-                    color="white"
-                    border="none"
+                    bg={isUserSeated ? 'transparent' : 'brand.yellow'}
+                    color={isUserSeated ? 'brand.yellow' : 'white'}
+                    border={isUserSeated ? '2px solid' : 'none'}
+                    borderColor={isUserSeated ? 'brand.yellow' : 'transparent'}
                     borderRadius="12px"
                     fontWeight={700}
                     fontSize={{ base: 'xs', md: 'sm' }}
@@ -149,17 +150,23 @@ const WithdrawButtonStory = ({
                         <Icon as={FaCoins} boxSize={{ base: 4, md: 5 }} />
                     }
                     iconSpacing={1.5}
-                    filter={isUserSeated ? 'blur(1px)' : 'none'}
-                    opacity={isUserSeated ? 0.6 : 1}
-                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900"
-                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, filter 200ms ease"
-                    _hover={{
-                        bg: 'brand.yellow',
-                        filter: isUserSeated ? 'blur(1px)' : 'none',
-                    }}
+                    boxShadow={
+                        isUserSeated
+                            ? 'none'
+                            : 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900'
+                    }
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease"
+                    _hover={
+                        isUserSeated
+                            ? { bg: 'rgba(232, 175, 25, 0.10)' }
+                            : { bg: 'brand.yellow' }
+                    }
                     _active={
                         isUserSeated
-                            ? undefined
+                            ? {
+                                  bg: 'rgba(232, 175, 25, 0.16)',
+                                  transform: 'translateY(1px)',
+                              }
                             : {
                                   bg: 'brand.yellowDark',
                                   transform: 'translateY(2px)',

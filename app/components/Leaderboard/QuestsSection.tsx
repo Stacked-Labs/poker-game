@@ -124,9 +124,6 @@ const QuestRow: React.FC<QuestRowProps> = ({
     const tilt = rowIndex % 2 === 0 ? -2 : 2;
 
     const handle = () => {
-        if (quest.actionUrl) {
-            window.open(quest.actionUrl, '_blank', 'noopener,noreferrer');
-        }
         onClaim(quest.id);
     };
 
@@ -246,6 +243,10 @@ const QuestRow: React.FC<QuestRowProps> = ({
                     ) : (
                         // Tactile-tone Claim — solid chip in the quest's brand color.
                         <Button
+                            as={quest.actionUrl ? 'a' : undefined}
+                            href={quest.actionUrl}
+                            target={quest.actionUrl ? '_blank' : undefined}
+                            rel={quest.actionUrl ? 'noopener noreferrer' : undefined}
                             size="sm"
                             h="30px"
                             px={3}
@@ -280,7 +281,12 @@ const QuestRow: React.FC<QuestRowProps> = ({
 
             {isVerifySbt && !quest.completed && !quest.hasNft && !isLocked && (
                 <Box mt={2} ml="46px">
-                    <Link href="/claim" style={{ textDecoration: 'none' }}>
+                    <Link
+                        href="/claim"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: 'none' }}
+                    >
                         <HStack spacing={1} display="inline-flex">
                             <Text fontSize="xs" color="brand.yellow" fontWeight={600}>
                                 Claim your NFT badge

@@ -32,7 +32,7 @@ const initialState: AppState = {
     chatSoundEnabled: true,
     chatOverlayEnabled: true,
     fourColorDeckEnabled: false,
-    cardBackDesign: 'classic',
+    cardBackDesign: 'classic-blue',
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,
@@ -309,9 +309,15 @@ export const AppStoreProvider = ({ children }: { children: ReactChild }) => {
         }
         const storedCardBackDesign = localStorage.getItem('cardBackDesign');
         if (storedCardBackDesign !== null) {
+            // Legacy 'classic' (the original dark-navy crosshatch) maps to
+            // the new card-room blue, which is the closest visual match.
+            const migrated: CardBackVariant =
+                storedCardBackDesign === 'classic'
+                    ? 'classic-blue'
+                    : (storedCardBackDesign as CardBackVariant);
             dispatch({
                 type: 'setCardBackDesign',
-                payload: storedCardBackDesign as CardBackVariant,
+                payload: migrated,
             });
         }
         const storedDisplayMode = localStorage.getItem('displayMode');

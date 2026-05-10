@@ -1,6 +1,23 @@
 export type DisplayMode = 'chips' | 'bb' | 'usdc';
 
-export type CardBackVariant = 'classic' | 'bitcoin' | 'ethereum' | 'base' | 'usdc';
+export type CardBackVariant =
+    // Classic poker-room decks: solid color + diamond/dot lattice + double hairline border
+    | 'classic-red'
+    | 'classic-blue'
+    | 'classic-green'
+    | 'classic-black'
+    | 'classic-burgundy'
+    | 'classic-teal'
+    | 'classic-purple'
+    // Crypto network decks: solid network color + centered logo + quiet texture
+    | 'bitcoin'
+    | 'ethereum'
+    | 'base'
+    | 'usdc'
+    // Crypto-culture decks: illustrated centerpieces
+    | 'pepe'
+    | 'moon'
+    | 'rekt';
 
 export type Card = string | number;
 

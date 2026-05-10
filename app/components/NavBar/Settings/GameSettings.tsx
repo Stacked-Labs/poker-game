@@ -41,14 +41,23 @@ const chipDisplayColors: Record<string, string> = {
     usdc: '#2775CA',
 };
 
-// Card-back colors are network-branded — these crypto hex codes
-// identify the network and are intentional. Classic uses brand.darkNavy.
+// Color shown as the background of the card-back select chip — matches
+// each deck's body color so the chip reads at a glance.
 const cardBackColors: Record<CardBackVariant, string> = {
-    classic: '#0B1430', // brand.darkNavy
+    'classic-red': '#8B1A2B',
+    'classic-blue': '#1B3A6B',
+    'classic-green': '#1F5C3F',
+    'classic-black': '#1A1A1F',
+    'classic-burgundy': '#5C1626',
+    'classic-teal': '#0E5E6B',
+    'classic-purple': '#3E1E6B',
     bitcoin: '#F7931A',
     ethereum: '#627EEA',
     base: '#1A6BFF',
     usdc: '#2775CA',
+    pepe: '#1F4019',
+    moon: '#0E1740',
+    rekt: '#0F0F14',
 };
 
 // ─── Section group header ────────────────────────────────────────────────
@@ -707,11 +716,26 @@ const GameSettings = () => {
                             }}
                             _hover={{ cursor: 'pointer' }}
                         >
-                            <option value="classic">Classic</option>
-<option value="bitcoin">Bitcoin</option>
-                            <option value="ethereum">Ethereum</option>
-                            <option value="base">Base</option>
-                            <option value="usdc">USDC</option>
+                            <optgroup label="Classic">
+                                <option value="classic-red">Red</option>
+                                <option value="classic-blue">Blue</option>
+                                <option value="classic-green">Green</option>
+                                <option value="classic-black">Black</option>
+                                <option value="classic-burgundy">Burgundy</option>
+                                <option value="classic-teal">Teal</option>
+                                <option value="classic-purple">Purple</option>
+                            </optgroup>
+                            <optgroup label="Crypto">
+                                <option value="bitcoin">Bitcoin</option>
+                                <option value="ethereum">Ethereum</option>
+                                <option value="base">Base</option>
+                                <option value="usdc">USDC</option>
+                            </optgroup>
+                            <optgroup label="Crypto culture">
+                                <option value="pepe">Pepe (gm)</option>
+                                <option value="moon">Moon-shot</option>
+                                <option value="rekt">Rekt</option>
+                            </optgroup>
                         </Select>
                     </HStack>
                 </Flex>

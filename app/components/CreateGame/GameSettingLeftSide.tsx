@@ -443,11 +443,18 @@ const GameSettingLeftSide: React.FC = () => {
                     );
                 }
             } else {
-                const errorData = await response.text();
-                toast.error(
-                    'Create Failed',
-                    `Failed to create game: ${response.statusText} - ${errorData}`
-                );
+                if (response.status === 403) {
+                    toast.error(
+                        'Security Check Failed',
+                        'Please wait a moment and try again.'
+                    );
+                } else {
+                    const errorData = await response.text();
+                    toast.error(
+                        'Create Failed',
+                        `Failed to create game: ${response.statusText} - ${errorData}`
+                    );
+                }
             }
         } catch (error) {
             console.error('Error creating game:', error);

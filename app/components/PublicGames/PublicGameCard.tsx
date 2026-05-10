@@ -49,7 +49,7 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
     const rowHover = useColorModeValue('rgba(11, 20, 48, 0.025)', 'rgba(255, 255, 255, 0.03)');
     const relTime = useRelativeTime(game.created_at);
     const hot = isHot(game);
-    const chainName = game.is_crypto ? 'Base' : null;
+    const chainName = game.is_crypto ? (game.chain ?? 'Base') : null;
     const chainLogo = chainName ? getChainLogo(chainName) : null;
 
     return (

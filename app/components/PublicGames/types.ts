@@ -3,6 +3,7 @@ export interface PublicGame {
     small_blind: number;
     big_blind: number;
     is_crypto: boolean;
+    chain?: string;
     player_count: number;
     spectator_count: number;
     max_players: number;

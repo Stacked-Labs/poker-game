@@ -12,16 +12,13 @@ import {
     Text,
     ResponsiveValue,
     HStack,
-    VStack,
     Tag,
     Icon,
     IconButton,
-    Button,
-    CloseButton,
 } from '@chakra-ui/react';
 import { MdWifiOff, MdLocalCafe, MdLogout, MdPerson } from 'react-icons/md';
 import { FiSmile } from 'react-icons/fi';
-import { FaXTwitter } from 'react-icons/fa6';
+import ConnectXPrompt from './ConnectXPrompt';
 import { keyframes } from '@emotion/react';
 import {
     motion,
@@ -1601,128 +1598,12 @@ const TakenSeatButton = ({
                                         </Text>
                                     </Flex>
                                 )}
-                                {/* Connect X hover card — glassmorphism popup for local user */}
-                                <AnimatePresence>
-                                    {showXHoverCard && (
-                                        <motion.div
-                                            key="x-connect-hover"
-                                            initial={{
-                                                opacity: 0,
-                                                y: 6,
-                                                scale: 0.92,
-                                            }}
-                                            animate={{
-                                                opacity: 1,
-                                                y: 0,
-                                                scale: 1,
-                                            }}
-                                            exit={{
-                                                opacity: 0,
-                                                y: 6,
-                                                scale: 0.92,
-                                            }}
-                                            transition={{
-                                                type: 'spring',
-                                                stiffness: 380,
-                                                damping: 24,
-                                            }}
-                                            style={{
-                                                position: 'absolute',
-                                                bottom: 'calc(100% + 10px)',
-                                                left: '50%',
-                                                transform:
-                                                    'translateX(-50%)',
-                                                zIndex: 30,
-                                                pointerEvents: 'auto',
-                                            }}
-                                        >
-                                            <Box
-                                                bg="rgba(11, 20, 48, 0.94)"
-                                                backdropFilter="blur(16px)"
-                                                borderRadius="12px"
-                                                border="1px solid"
-                                                borderColor="whiteAlpha.200"
-                                                boxShadow="glass-hover"
-                                                px={3}
-                                                py={2.5}
-                                                minW="180px"
-                                                position="relative"
-                                            >
-                                                <CloseButton
-                                                    size="sm"
-                                                    position="absolute"
-                                                    top={1}
-                                                    right={1}
-                                                    color="whiteAlpha.600"
-                                                    _hover={{
-                                                        color: 'white',
-                                                        bg: 'whiteAlpha.100',
-                                                    }}
-                                                    onClick={
-                                                        handleDismissXPrompt
-                                                    }
-                                                    aria-label="Dismiss X prompt"
-                                                />
-                                                <VStack
-                                                    spacing={2}
-                                                    align="stretch"
-                                                    pr={4}
-                                                >
-                                                    <Text
-                                                        fontSize="11px"
-                                                        color="whiteAlpha.700"
-                                                        fontWeight="medium"
-                                                        lineHeight="1.3"
-                                                    >
-                                                        Personalize your seat
-                                                    </Text>
-                                                    <Button
-                                                        size="xs"
-                                                        bg="black"
-                                                        color="white"
-                                                        borderRadius="8px"
-                                                        fontSize="xs"
-                                                        fontWeight="semibold"
-                                                        _hover={{
-                                                            bg: 'gray.800',
-                                                            transform:
-                                                                'translateY(-1px)',
-                                                        }}
-                                                        _active={{
-                                                            transform:
-                                                                'translateY(0)',
-                                                        }}
-                                                        leftIcon={
-                                                            <Icon
-                                                                as={FaXTwitter}
-                                                                boxSize={3}
-                                                            />
-                                                        }
-                                                        onClick={
-                                                            handleConnectX
-                                                        }
-                                                        h="28px"
-                                                    >
-                                                        Connect X
-                                                    </Button>
-                                                </VStack>
-                                                {/* Arrow pointing down to the avatar */}
-                                                <Box
-                                                    position="absolute"
-                                                    top="100%"
-                                                    left="50%"
-                                                    transform="translateX(-50%)"
-                                                    width={0}
-                                                    height={0}
-                                                    borderLeft="6px solid transparent"
-                                                    borderRight="6px solid transparent"
-                                                    borderTop="6px solid rgba(11, 20, 48, 0.94)"
-                                                    pointerEvents="none"
-                                                />
-                                            </Box>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                {/* Connect X prompt — see ConnectXPrompt.stories.tsx for variants */}
+                                <ConnectXPrompt
+                                    isOpen={showXHoverCard}
+                                    onConnect={handleConnectX}
+                                    onDismiss={handleDismissXPrompt}
+                                />
                                 {/* Timer seconds overlay on avatar */}
                                 {isCurrentTurn &&
                                     deadline > 0 &&

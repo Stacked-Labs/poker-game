@@ -4,12 +4,12 @@ import React from 'react';
 export const metadata: Metadata = {
     title: 'Claim Your NFT | Stacked Poker',
     description:
-        'Claim your exclusive Stacked Poker soulbound NFT. Whitelisted wallets only — holds unlock a points boost on the leaderboard.',
+        'A soulbound badge for partners and players who shape the Stacked Poker room. By invitation, on Base.',
     icons: { icon: '/favicon.ico' },
     openGraph: {
         title: 'Claim Your NFT | Stacked Poker',
         description:
-            'Claim your exclusive Stacked Poker soulbound NFT. Whitelisted wallets only.',
+            'A soulbound badge for partners and players who shape the Stacked Poker room. By invitation, on Base.',
         url: 'https://stackedpoker.io/claim',
         siteName: 'Stacked Poker',
         images: [
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         title: 'Claim Your NFT | Stacked Poker',
-        description: 'Claim your exclusive Stacked Poker soulbound NFT. Whitelisted wallets only.',
+        description: 'A soulbound badge for partners and players who shape the Stacked Poker room. By invitation, on Base.',
         images: ['https://stackedpoker.io/previews/home_preview.png'],
     },
     keywords: ['stacked poker NFT', 'soulbound NFT', 'poker NFT claim', 'Base NFT'],

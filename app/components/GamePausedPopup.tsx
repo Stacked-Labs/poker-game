@@ -6,7 +6,6 @@ import {
     Flex,
     Icon,
     Text,
-    useColorModeValue,
     usePrefersReducedMotion,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
@@ -21,11 +20,6 @@ import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 const fadeIn = keyframes`
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
-`;
-
-const breathe = keyframes`
-    0%, 100% { opacity: 0.6; }
-    50%      { opacity: 0.9; }
 `;
 
 const GamePausedPopup = () => {
@@ -53,17 +47,7 @@ const GamePausedPopup = () => {
         sendResumeGameCommand(socket);
     };
 
-    const pillBg = useColorModeValue(
-        'rgba(255, 255, 255, 0.7)',
-        'rgba(11, 20, 48, 0.55)'
-    );
-    const pillBorder = useColorModeValue('blackAlpha.100', 'whiteAlpha.100');
-
     if (!isOwner || !isActive || dismissed) return null;
-
-    const buttonTransition = prefersReducedMotion
-        ? 'none'
-        : 'background-color 120ms ease-out, box-shadow 120ms ease-out, transform 120ms cubic-bezier(0.19, 1, 0.22, 1)';
 
     return (
         <Box
@@ -78,15 +62,14 @@ const GamePausedPopup = () => {
                 data-testid="game-paused-banner"
                 align="center"
                 justifyContent="center"
-                gap={{ base: 1.5, md: 2 }}
+                gap={{ base: 2, md: 2.5 }}
                 whiteSpace="nowrap"
-                bg={pillBg}
-                backdropFilter="blur(16px) saturate(140%)"
+                bg="blackAlpha.300"
                 border="1px solid"
-                borderColor={pillBorder}
-                boxShadow="glass"
+                borderColor="whiteAlpha.100"
                 borderRadius="full"
-                px={{ base: 2.5, md: 3 }}
+                pl={{ base: 3, md: 3.5 }}
+                pr={{ base: 1, md: 1.5 }}
                 py={{ base: 1, md: 1.5 }}
                 animation={
                     prefersReducedMotion
@@ -98,73 +81,67 @@ const GamePausedPopup = () => {
                 <Icon
                     as={MdPause}
                     boxSize={{ base: 4, md: 5 }}
-                    color="text.secondary"
-                    animation={
-                        prefersReducedMotion
-                            ? undefined
-                            : `${breathe} 2.4s ease-in-out infinite`
-                    }
+                    color="whiteAlpha.700"
                     aria-hidden
                 />
                 <Text
                     fontSize={{ base: 'xs', md: 'sm' }}
-                    fontWeight="700"
+                    fontWeight={700}
                     lineHeight="1"
-                    color="text.secondary"
+                    color="whiteAlpha.800"
+                    letterSpacing="0.04em"
                 >
                     {isPaused ? 'Game Paused' : 'Pausing…'}
                 </Text>
 
                 {isPaused ? (
                     <Button
+                        variant="tactilePrimary"
                         data-testid="resume-game-btn"
                         size="xs"
-                        bg="brand.green"
-                        color="white"
-                        h={{ base: '24px', md: '28px' }}
-                        px={{ base: 2.5, md: 3 }}
+                        h={{ base: '26px', md: '30px' }}
+                        px={{ base: 3, md: 3.5 }}
                         borderRadius="full"
-                        fontWeight="bold"
-                        fontSize={{ base: '2xs', md: 'xs' }}
-                        leftIcon={<FaPlay size={8} />}
-                        transition={buttonTransition}
-                        _hover={{
-                            bg: 'brand.green',
-                            boxShadow: 'glow-green',
-                        }}
-                        _active={{ transform: 'scale(0.96)' }}
-                        _focusVisible={{
-                            boxShadow:
-                                '0 0 0 2px rgba(255, 255, 255, 0.6), 0 0 20px rgba(54, 163, 123, 0.4)',
-                        }}
+                        color="white"
+                        _hover={{ color: 'white' }}
+                        _active={{ color: 'white' }}
+                        _focus={{ color: 'white' }}
+                        leftIcon={
+                            <Icon as={FaPlay} boxSize="8px" color="white" />
+                        }
                         onClick={handleResume}
                     >
-                        Resume
+                        <Text
+                            as="span"
+                            fontWeight={800}
+                            color="white"
+                            fontSize={{ base: '2xs', md: 'xs' }}
+                        >
+                            Resume
+                        </Text>
                     </Button>
                 ) : (
                     <Button
+                        variant="tactileDestructive"
                         data-testid="cancel-pause-btn"
                         size="xs"
-                        bg="brand.pink"
-                        color="white"
-                        h={{ base: '24px', md: '28px' }}
-                        px={{ base: 2.5, md: 3 }}
+                        h={{ base: '26px', md: '30px' }}
+                        px={{ base: 3, md: 3.5 }}
                         borderRadius="full"
-                        fontWeight="bold"
-                        fontSize={{ base: '2xs', md: 'xs' }}
-                        transition={buttonTransition}
-                        _hover={{
-                            bg: 'brand.pink',
-                            boxShadow: 'glow-pink',
-                        }}
-                        _active={{ transform: 'scale(0.96)' }}
-                        _focusVisible={{
-                            boxShadow:
-                                '0 0 0 2px rgba(255, 255, 255, 0.6), 0 0 20px rgba(235, 11, 92, 0.4)',
-                        }}
+                        color="white"
+                        _hover={{ color: 'white' }}
+                        _active={{ color: 'white' }}
+                        _focus={{ color: 'white' }}
                         onClick={handleResume}
                     >
-                        Cancel
+                        <Text
+                            as="span"
+                            fontWeight={800}
+                            color="white"
+                            fontSize={{ base: '2xs', md: 'xs' }}
+                        >
+                            Cancel
+                        </Text>
                     </Button>
                 )}
             </Flex>

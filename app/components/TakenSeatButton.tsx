@@ -1573,11 +1573,12 @@ const TakenSeatButton = ({
                                     alignItems="center"
                                     gap={{ base: 1 }}
                                     minWidth={0}
+                                    width="100%"
                                 >
                                     <Box
                                         position="relative"
                                         minWidth={0}
-                                        flexShrink={1}
+                                        flex={1}
                                     >
                                         <AnimatePresence
                                             mode="wait"
@@ -1586,6 +1587,7 @@ const TakenSeatButton = ({
                                             {actionLabel ? (
                                                 <motion.div
                                                     key={`action-${actionLabel.nonce}`}
+                                                    style={{ width: '100%' }}
                                                     initial={{
                                                         opacity: 0,
                                                         y: prefersReducedMotion
@@ -1639,6 +1641,7 @@ const TakenSeatButton = ({
                                             ) : (
                                                 <motion.div
                                                     key="username"
+                                                    style={{ width: '100%' }}
                                                     initial={{
                                                         opacity: 0,
                                                         y: prefersReducedMotion
@@ -1697,56 +1700,43 @@ const TakenSeatButton = ({
                                             onSelectEmote={
                                                 handleSelectSeatEmote
                                             }
-                                            columns={5}
-                                            maxHeight="220px"
+                                            columns={6}
+                                            maxHeight="280px"
                                             width={{
-                                                base: '230px',
-                                                md: '260px',
+                                                base: '280px',
+                                                md: '340px',
                                             }}
-                                            showSearch={false}
+                                            showSearch={true}
                                             popoverContentProps={{
                                                 zIndex: 2000,
                                             }}
                                             trigger={
                                                 <IconButton
                                                     aria-label="Seat emotes"
-                                                    icon={
-                                                        <Icon
-                                                            as={FiSmile}
-                                                            boxSize={{
-                                                                base: 3.5,
-                                                                md: 5,
-                                                            }}
-                                                        />
-                                                    }
-                                                    size={{ base: 'xs' }}
-                                                    variant="ghost"
+                                                    icon={<FiSmile />}
+                                                    fontSize={{
+                                                        base: '18px',
+                                                        md: '20px',
+                                                    }}
+                                                    variant="tactileGhost"
                                                     color={emoteIconColor}
                                                     height={{
-                                                        base: '14px',
-                                                        md: '22px',
+                                                        base: '28px',
+                                                        md: '32px',
                                                     }}
                                                     width={{
-                                                        base: '14px',
-                                                        md: '22px',
+                                                        base: '28px',
+                                                        md: '32px',
                                                     }}
                                                     minW="unset"
                                                     borderRadius="full"
-                                                    bg="transparent"
-                                                    border="none"
-                                                    boxShadow="none"
-                                                    outline="none"
                                                     _hover={{
                                                         bg: emoteIconHoverBg,
+                                                        color: emoteIconColor,
                                                     }}
                                                     _active={{
                                                         bg: emoteIconActiveBg,
-                                                    }}
-                                                    _focus={{
-                                                        boxShadow: 'none',
-                                                    }}
-                                                    _focusVisible={{
-                                                        boxShadow: 'none',
+                                                        color: emoteIconColor,
                                                     }}
                                                 />
                                             }
@@ -1754,10 +1744,10 @@ const TakenSeatButton = ({
                                     ) : (
                                         <Box
                                             aria-hidden
-                                            width={{ base: '14px', md: '22px' }}
+                                            width={{ base: '28px', md: '32px' }}
                                             height={{
-                                                base: '14px',
-                                                md: '22px',
+                                                base: '28px',
+                                                md: '32px',
                                             }}
                                             flexShrink={0}
                                         />
@@ -1768,6 +1758,7 @@ const TakenSeatButton = ({
                                     className="player-stack-container"
                                     alignItems="center"
                                     gap={{ base: 1, md: 2 }}
+                                    width="100%"
                                     sx={{
                                         '@media (orientation: portrait)': {
                                             fontSize: 'sm',

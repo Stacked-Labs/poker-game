@@ -1524,7 +1524,7 @@ const TakenSeatButton = ({
                                     onConnect={handleConnectX}
                                     onDismiss={handleDismissXPrompt}
                                 />
-                                {/* Timer seconds overlay on avatar */}
+                                {/* Timer seconds overlay on avatar — shape adapts to avatar (circular for X, square for blockie/initials) */}
                                 {isCurrentTurn &&
                                     deadline > 0 &&
                                     remaining > 0 && (
@@ -1534,7 +1534,11 @@ const TakenSeatButton = ({
                                             left={0}
                                             right={0}
                                             bottom={0}
-                                            borderRadius="4px"
+                                            borderRadius={
+                                                player.profileImageUrl
+                                                    ? 'full'
+                                                    : '4px'
+                                            }
                                             bg="blackAlpha.600"
                                             alignItems="center"
                                             justifyContent="center"

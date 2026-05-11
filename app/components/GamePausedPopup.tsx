@@ -62,14 +62,14 @@ const GamePausedPopup = () => {
                 data-testid="game-paused-banner"
                 align="center"
                 justifyContent="center"
-                gap={{ base: 2, md: 2.5 }}
+                gap={1}
                 whiteSpace="nowrap"
                 bg="blackAlpha.300"
                 border="1px solid"
                 borderColor="whiteAlpha.100"
                 borderRadius="full"
-                pl={{ base: 3, md: 3.5 }}
-                pr={{ base: 1, md: 1.5 }}
+                pl={{ base: 2.5, md: 3 }}
+                pr={{ base: 1, md: 1 }}
                 py={{ base: 1, md: 1.5 }}
                 animation={
                     prefersReducedMotion
@@ -99,12 +99,18 @@ const GamePausedPopup = () => {
                         variant="tactilePrimary"
                         data-testid="resume-game-btn"
                         size="xs"
-                        h={{ base: '26px', md: '30px' }}
-                        px={{ base: 3, md: 3.5 }}
+                        h={{ base: '22px', md: '26px' }}
+                        px={{ base: 2.5, md: 3 }}
                         borderRadius="full"
                         color="white"
-                        _hover={{ color: 'white' }}
-                        _active={{ color: 'white' }}
+                        _hover={{ bg: 'brand.green', color: 'white' }}
+                        _active={{
+                            bg: 'brand.greenDark',
+                            color: 'white',
+                            transform: 'translateY(2px)',
+                            boxShadow:
+                                'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
+                        }}
                         _focus={{ color: 'white' }}
                         leftIcon={
                             <Icon as={FaPlay} boxSize="8px" color="white" />
@@ -125,12 +131,22 @@ const GamePausedPopup = () => {
                         variant="tactileDestructive"
                         data-testid="cancel-pause-btn"
                         size="xs"
-                        h={{ base: '26px', md: '30px' }}
-                        px={{ base: 3, md: 3.5 }}
+                        h={{ base: '22px', md: '26px' }}
+                        px={{ base: 2.5, md: 3 }}
                         borderRadius="full"
                         color="white"
-                        _hover={{ color: 'white' }}
-                        _active={{ color: 'white' }}
+                        _hover={{
+                            bg: 'rgba(235, 11, 92, 0.12)',
+                            borderColor: 'brand.pinkDark',
+                            color: 'white',
+                        }}
+                        _active={{
+                            bg: 'rgba(235, 11, 92, 0.18)',
+                            borderColor: 'brand.pinkDark',
+                            color: 'white',
+                            transform: 'translateY(2px)',
+                            boxShadow: '0 0 0 #950839',
+                        }}
                         _focus={{ color: 'white' }}
                         onClick={handleResume}
                     >

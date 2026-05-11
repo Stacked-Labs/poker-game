@@ -2,6 +2,7 @@ import { Box, Flex, VStack } from '@chakra-ui/react';
 import HomeSection from './components/HomePage/HomeSection';
 import CommunitySection from './components/HomePage/CommunitySection';
 import FeaturesSection from './components/HomePage/FeaturesSection';
+import HostToEarnSection from './components/HomePage/HostToEarnSection';
 import NewsletterSection from './components/HomePage/NewsletterSection';
 import YourTableVaultSection from './components/HomePage/YourTableVaultSection';
 import CustomChipValueSection from './components/HomePage/CustomChipValueSection';
@@ -77,6 +78,7 @@ const HomePage: React.FC = () => {
                             <CommunitySection />
                             <ComparisonSection />
                             <FeaturesSection />
+                            <HostToEarnSection />
                             <CustomChipValueSection />
                             <YourTableVaultSection />
                             <FAQSection />

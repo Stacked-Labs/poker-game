@@ -538,24 +538,22 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     </HStack>
                                 )}
                                 <Button
+                                    variant="tactilePrimary"
+                                    size="lg"
                                     w="100%"
-                                    h="52px"
-                                    borderRadius="bigButton"
-                                    bg="brand.pink"
                                     isLoading={isWithdrawing}
                                     loadingText="Withdrawing chips..."
-                                    _hover={{
-                                        bg: 'brand.pink',
-                                        transform: 'translateY(-2px)',
-                                        boxShadow:
-                                            '0 12px 24px rgba(235, 11, 92, 0.3)',
-                                    }}
-                                    transition="all 0.2s ease"
                                     onClick={handleWithdraw}
+                                    color="white"
+                                    _hover={{ color: 'white' }}
+                                    _active={{ color: 'white' }}
+                                    _focus={{ color: 'white' }}
+                                    _loading={{ color: 'white' }}
                                 >
                                     <Text
+                                        as="span"
                                         fontSize="md"
-                                        fontWeight="bold"
+                                        fontWeight={800}
                                         color="white"
                                     >
                                         Withdraw &amp; start fresh

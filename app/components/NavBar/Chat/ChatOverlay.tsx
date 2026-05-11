@@ -142,7 +142,7 @@ const ChatOverlay = () => {
                                 color={userColor}
                                 whiteSpace="break-spaces"
                                 fontWeight="medium"
-                                textShadow="0 1px 2px rgba(0,0,0,0.55), 0 0 1px rgba(0,0,0,0.45)"
+                                textShadow="0 1px 2px rgba(0,0,0,0.2)"
                             >
                                 <Text
                                     as="span"

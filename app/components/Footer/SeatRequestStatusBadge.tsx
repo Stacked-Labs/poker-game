@@ -9,7 +9,6 @@ import { useContext } from 'react';
 import { keyframes } from '@emotion/react';
 import { FaCheck } from 'react-icons/fa';
 
-const MotionButton = motion(Button);
 const MotionFlex = motion(Flex);
 
 const subtlePulse = keyframes`
@@ -156,28 +155,12 @@ const SeatRequestStatusBadge = () => {
     }
 
     return (
-        <MotionButton
+        <Button
+            variant="tactileDestructive"
             data-testid="cancel-seat-request"
-            bg="rgba(235, 11, 92, 0.1)"
-            color="rgba(235, 11, 92, 0.9)"
-            border="1.5px solid"
-            borderColor="rgba(235, 11, 92, 0.5)"
-            fontWeight="bold"
-            letterSpacing="0.04em"
-            textTransform="uppercase"
-            position="relative"
-            overflow="hidden"
-            cursor="pointer"
             onClick={() => cancelSeatRequest(socket)}
-            whileHover={hoverSpring}
-            whileTap={tapSpring}
-            _hover={{
-                bg: 'rgba(235, 11, 92, 0.18)',
-                borderColor: 'rgba(235, 11, 92, 0.75)',
-                boxShadow:
-                    '0 8px 24px rgba(235, 11, 92, 0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-            }}
-            transition="box-shadow 0.3s ease, background 0.3s ease"
+            textTransform="uppercase"
+            letterSpacing="0.04em"
             sx={{
                 '@media (orientation: portrait)': {
                     ...portraitButton,
@@ -188,11 +171,12 @@ const SeatRequestStatusBadge = () => {
                     minWidth: '7cqw',
                     maxWidth: '12cqw',
                 },
-                ...glassPseudos(shimmer),
             }}
         >
-            Cancel Request ({appState.seatRequested})
-        </MotionButton>
+            <Text as="span" fontSize="inherit" fontWeight="bold" color="inherit">
+                Cancel Request ({appState.seatRequested})
+            </Text>
+        </Button>
     );
 };
 

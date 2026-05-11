@@ -1734,6 +1734,15 @@ const TakenSeatButton = ({
                                                     }}
                                                     minW="unset"
                                                     borderRadius="full"
+                                                    sx={{
+                                                        '@media (orientation: portrait)':
+                                                            {
+                                                                height: '22px',
+                                                                width: '22px',
+                                                                fontSize:
+                                                                    '14px',
+                                                            },
+                                                    }}
                                                     _hover={{
                                                         bg: emoteIconHoverBg,
                                                         color: emoteIconColor,
@@ -1754,6 +1763,13 @@ const TakenSeatButton = ({
                                                 md: '32px',
                                             }}
                                             flexShrink={0}
+                                            sx={{
+                                                '@media (orientation: portrait)':
+                                                    {
+                                                        width: '22px',
+                                                        height: '22px',
+                                                    },
+                                            }}
                                         />
                                     )}
                                 </Flex>

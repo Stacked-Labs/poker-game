@@ -57,42 +57,6 @@ import {
 import { useAuth } from '@/app/contexts/AuthContext';
 import { refreshXIdentity } from '@/app/hooks/server_actions';
 
-const pulseBorderPink = keyframes`
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 45, 111, 0.55);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(255, 45, 111, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 45, 111, 0);
-  }
-`;
-
-const pulseBorderYellow = keyframes`
-  0% {
-    box-shadow: 0 0 0 0 rgba(253, 197, 29, 0.55);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(253, 197, 29, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(253, 197, 29, 0);
-  }
-`;
-
-const pulseBorderGreen = keyframes`
-  0% {
-    box-shadow: 0 0 0 0 rgba(63, 189, 138, 0.55);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(63, 189, 138, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(63, 189, 138, 0);
-  }
-`;
-
 const offlinePulse = keyframes`
   0%, 100% {
     opacity: 0.75;
@@ -572,34 +536,6 @@ const TakenSeatButton = ({
               : highlightVariant === 'selfAway'
                 ? 'brand.green'
                 : 'brand.darkNavy';
-    const highlightShadow =
-        highlightVariant === 'active'
-            ? barScheme === 'green'
-                ? '0 6px 18px rgba(63, 189, 138, 0.35)'
-                : barScheme === 'yellow'
-                  ? '0 6px 18px rgba(253, 197, 29, 0.3)'
-                  : '0 6px 18px rgba(255, 45, 111, 0.4)'
-            : highlightVariant === 'winner'
-              ? '0 6px 18px rgba(253, 197, 29, 0.3)'
-              : highlightVariant === 'selfAway'
-                ? '0 6px 18px rgba(63, 189, 138, 0.25)'
-                : '0 2px 8px rgba(11, 20, 48, 0.3)';
-    const highlightPulse =
-        highlightVariant && !prefersReducedMotion
-            ? `${
-                  highlightVariant === 'active'
-                      ? barScheme === 'green'
-                          ? pulseBorderGreen
-                          : barScheme === 'yellow'
-                            ? pulseBorderYellow
-                            : pulseBorderPink
-                      : highlightVariant === 'selfAway'
-                        ? player.readyNextHand
-                            ? 'none'
-                            : pulseBorderGreen
-                        : pulseBorderYellow
-              } 2s ease-out infinite`
-            : 'none';
     const emoteIconColor =
         isCurrentTurn || showWinnerHighlight ? 'gray.400' : 'whiteAlpha.600';
     const emoteIconHoverBg =
@@ -842,7 +778,7 @@ const TakenSeatButton = ({
                             height={dealerBadgeBoxSize}
                             variant={'seatText'}
                             zIndex={3}
-                            boxShadow="0 3px 0 #9ca3c2, 0 5px 14px rgba(51, 68, 121, 0.35)"
+                            boxShadow="0 3px 0 #9ca3c2"
                             flexShrink={0}
                         >
                             D
@@ -895,14 +831,9 @@ const TakenSeatButton = ({
                                 }
                                 boxShadow={
                                     showBetBubble
-                                        ? '0 3px 0 #c99500, 0 5px 14px rgba(253,197,29,0.4)'
+                                        ? '0 3px 0 #c99500'
                                         : 'none'
                                 }
-                                sx={{
-                                    backdropFilter: showBetBubble
-                                        ? undefined
-                                        : 'blur(4px)',
-                                }}
                                 animation={
                                     showActionBubble
                                         ? `${bubbleFadeIn} 0.25s ease-out`
@@ -935,7 +866,6 @@ const TakenSeatButton = ({
                         fontSize={{ base: '10px', sm: '10px', md: '14px' }}
                         zIndex={3}
                         border="1px solid rgba(255,255,255,0.3)"
-                        sx={{ backdropFilter: 'blur(4px)' }}
                         animation={`${bubbleFadeIn} 0.25s ease-out`}
                     >
                         Check
@@ -957,7 +887,7 @@ const TakenSeatButton = ({
                         variant={'seatText'}
                         fontSize={{ base: '10px', sm: '10px', md: '14px' }}
                         zIndex={3}
-                        boxShadow="0 3px 0 #c99500, 0 5px 14px rgba(253,197,29,0.4)"
+                        boxShadow="0 3px 0 #c99500"
                         animation={`${bubbleFadeIn} 0.25s ease-out`}
                     >
                         {format(player.bet)}
@@ -1214,7 +1144,6 @@ const TakenSeatButton = ({
                                     WebkitMaskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg)`,
                                 }}
                                 transition="border-color 0.5s ease-in-out"
-                                boxShadow={`0 0 12px ${timerColorHex}60, 0 0 6px ${timerColorHex}40`}
                             />
                         </>
                     )}
@@ -1224,12 +1153,7 @@ const TakenSeatButton = ({
                         bg={
                             isCurrentTurn || showWinnerHighlight
                                 ? 'white'
-                                : undefined
-                        }
-                        bgGradient={
-                            isCurrentTurn || showWinnerHighlight
-                                ? undefined
-                                : 'linear(to-r, #0B1430, rgba(51, 68, 121, 0.7))'
+                                : 'brand.darkNavy'
                         }
                         borderRadius={4}
                         width={'100%'}
@@ -1271,8 +1195,6 @@ const TakenSeatButton = ({
                                     ? 'brand.yellow'
                                     : 'brand.darkNavy'
                         }
-                        boxShadow={highlightShadow}
-                        animation={highlightPulse}
                     >
                         {/* Status badges rendered above the container without affecting layout */}
                         {/* Disconnected badge - shown when player loses connection */}
@@ -1406,7 +1328,6 @@ const TakenSeatButton = ({
                                     zIndex={4}
                                     fontWeight="bold"
                                     borderRadius="6px"
-                                    boxShadow="0 2px 8px rgba(235, 11, 92, 0.4)"
                                     display="flex"
                                     alignItems="center"
                                     gap={1}
@@ -1442,7 +1363,6 @@ const TakenSeatButton = ({
                                 zIndex={4}
                                 fontWeight="bold"
                                 borderRadius="6px"
-                                boxShadow="0 2px 8px rgba(54, 163, 123, 0.3)"
                             >
                                 {strengthLabel}
                             </Tag>

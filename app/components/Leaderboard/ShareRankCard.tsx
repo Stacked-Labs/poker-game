@@ -17,7 +17,7 @@ import {
     ModalContent,
     ModalBody,
 } from '@chakra-ui/react';
-import { FaShare, FaDownload, FaGem, FaCrown, FaAward, FaBolt, FaTimes, FaCheck } from 'react-icons/fa';
+import { FaShare, FaDownload, FaGem, FaCrown, FaAward, FaBolt, FaTimes } from 'react-icons/fa';
 import { FaXTwitter, FaTelegram, FaMedal } from 'react-icons/fa6';
 import { getTier, TIER_EMOJI } from './tierUtils';
 import type { IconType } from 'react-icons';
@@ -139,11 +139,10 @@ function ordinalSuffix(n: number) {
     return s[(v - 20) % 10] ?? s[v] ?? s[0];
 }
 
-const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address: _address, total }) => {
+const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, total }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const cardRef = useRef<HTMLDivElement>(null);
     const [sharing, setSharing] = useState(false);
-    const [desktopHint, setDesktopHint] = useState(false);
     const [bgSrc, setBgSrc] = useState('/video/bgplaceholder.webp');
     const [logoSrc, setLogoSrc] = useState('/IconLogo.png');
 
@@ -171,8 +170,14 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address: _a
     const tier = getTier(rank, total);
     const suffix = ordinalSuffix(rank);
     const shareText = `I'm ranked #${rank} on @stacked_poker with ${points.toLocaleString()} pts! ${TIER_EMOJI[tier.name]} ${tier.label} tier. Play on-chain poker on Base. 🃏`;
-    const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent('https://stackedpoker.io')}&text=${encodeURIComponent(shareText)}`;
+
+    // Per-rank share URL that unfurls into our preview image via Twitter Cards.
+    // X's intent/tweet has no media param, so we share an empty-text tweet whose
+    // URL the platform auto-expands to a summary_large_image card.
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://stackedpoker.io';
+    const shareUrl = `${origin}/rank/${address}?r=${rank}&p=${points}&t=${total}`;
+    const tweetUrl = `https://x.com/intent/tweet?text=&url=${encodeURIComponent(shareUrl)}`;
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
 
     const captureBlob = async (): Promise<Blob | null> => {
         if (!cardRef.current) return null;
@@ -192,23 +197,19 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address: _a
 
     const handleShareX = async () => {
         setSharing(true);
-        setDesktopHint(false);
         try {
             const blob = await captureBlob();
             if (!blob) return;
             const file = new File([blob], `stacked-rank-${rank}.png`, { type: 'image/png' });
 
-            // Mobile: native share sheet passes the image directly into X
+            // Mobile: native share sheet passes the image directly into X (no prefilled text)
             if (navigator.canShare?.({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    text: shareText,
-                });
+                await navigator.share({ files: [file] });
             } else {
-                // Desktop fallback: download image + open tweet composer
-                triggerDownload(blob);
+                // Desktop: X intent has no media param, so we open an empty
+                // composer pointed at /rank/<address>?... which unfurls into the
+                // same preview image via Twitter Cards.
                 window.open(tweetUrl, '_blank', 'noopener,noreferrer');
-                setDesktopHint(true);
             }
         } catch (err) {
             // User cancelled share — ignore
@@ -467,28 +468,6 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address: _a
                                     Save image
                                 </ChromeShareButton>
                             </Stack>
-
-                            {desktopHint && (
-                                <HStack
-                                    spacing={1.5}
-                                    px={2.5}
-                                    py={1}
-                                    borderRadius="full"
-                                    bg="rgba(54, 163, 123, 0.10)"
-                                    _dark={{ bg: 'rgba(54, 163, 123, 0.18)' }}
-                                    alignSelf="center"
-                                >
-                                    <Icon as={FaCheck} boxSize="10px" color="brand.green" />
-                                    <Text
-                                        color="brand.green"
-                                        fontSize="2xs"
-                                        fontWeight={700}
-                                        letterSpacing="0.04em"
-                                    >
-                                        Saved — attach to your tweet
-                                    </Text>
-                                </HStack>
-                            )}
 
                         </VStack>
                     </ModalBody>

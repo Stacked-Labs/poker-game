@@ -281,39 +281,29 @@ const SeatRequestPopup = () => {
                             flexShrink={0}
                         >
                             <Button
+                                variant="tactilePrimary"
                                 data-testid={`accept-player-${currentRequest.uuid}`}
+                                aria-label="Accept seat request"
                                 size="sm"
-                                bg="brand.green"
-                                color="white"
                                 minW="42px"
                                 h="42px"
-                                borderRadius="12px"
-                                _hover={{
-                                    bg: 'brand.green',
-                                    transform: 'translateY(-1px)',
-                                    boxShadow:
-                                        '0 6px 12px rgba(54, 163, 123, 0.26)',
-                                }}
-                                _active={{ transform: 'translateY(0)' }}
+                                p={0}
+                                color="white"
+                                _hover={{ color: 'white' }}
+                                _active={{ color: 'white' }}
+                                _focus={{ color: 'white' }}
                                 onClick={handleAccept}
                             >
-                                <FaCircleCheck size={18} />
+                                <FaCircleCheck size={18} color="white" />
                             </Button>
                             <Button
+                                variant="tactileDestructive"
                                 data-testid={`deny-player-${currentRequest.uuid}`}
+                                aria-label="Deny seat request"
                                 size="sm"
-                                bg="brand.pink"
-                                color="white"
                                 minW="42px"
                                 h="42px"
-                                borderRadius="12px"
-                                _hover={{
-                                    bg: 'brand.pink',
-                                    transform: 'translateY(-1px)',
-                                    boxShadow:
-                                        '0 6px 12px rgba(235, 11, 92, 0.26)',
-                                }}
-                                _active={{ transform: 'translateY(0)' }}
+                                p={0}
                                 onClick={handleDeny}
                             >
                                 <FaCircleXmark size={18} />

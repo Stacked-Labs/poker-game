@@ -281,15 +281,23 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                 {truncatedAddress ?? 'Sign In'}
                             </Button>
                             <Button
+                                variant="tactilePrimary"
+                                size="lg"
                                 w="100%"
-                                h="52px"
-                                fontSize="md"
-                                fontWeight="bold"
-                                borderRadius="bigButton"
-                                bg="brand.pink"
                                 color="white"
+                                _hover={{ color: 'white' }}
+                                _active={{ color: 'white' }}
+                                _focus={{ color: 'white' }}
+                                _loading={{ color: 'white' }}
                             >
-                                Withdraw &amp; start fresh
+                                <Text
+                                    as="span"
+                                    fontSize="md"
+                                    fontWeight={800}
+                                    color="white"
+                                >
+                                    Withdraw &amp; start fresh
+                                </Text>
                             </Button>
                         </VStack>
                     </Box>

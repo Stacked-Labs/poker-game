@@ -471,7 +471,8 @@ const CardBack = ({
                 ry="2.5"
                 fill={design.bg}
                 stroke={highlighted ? '#FDC51D' : design.border}
-                strokeWidth={highlighted ? '0.75' : '0.5'}
+                strokeWidth={highlighted ? '0.75' : '0.4'}
+                strokeOpacity={highlighted ? 1 : 0.65}
             />
 
             {/* Pattern fill across the body */}
@@ -498,8 +499,8 @@ const CardBack = ({
                 ry="1.7"
                 fill="none"
                 stroke={design.border}
-                strokeWidth="0.35"
-                opacity="0.85"
+                strokeWidth="0.3"
+                opacity="0.55"
             />
             <rect
                 x="2.4"
@@ -510,8 +511,8 @@ const CardBack = ({
                 ry="1.3"
                 fill="none"
                 stroke={design.border}
-                strokeWidth="0.18"
-                opacity="0.55"
+                strokeWidth="0.16"
+                opacity="0.35"
             />
         </svg>
     );

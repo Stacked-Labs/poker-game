@@ -221,7 +221,7 @@ const TableMenuBurger = ({
                                 <LeaveButton
                                     isUserSeated
                                     isLeaveRequested={leaveAfterHandRequested}
-                                    settlementStuck={Boolean(appState.game?.settlementStuck)}
+                                    settlementInProgress={Boolean(appState.game?.settlementInProgress)}
                                     handleLeaveTable={() =>
                                         handleLeaveTable(
                                             socket,

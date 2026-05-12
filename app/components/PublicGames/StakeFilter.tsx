@@ -27,6 +27,7 @@ export default function StakeFilter({ stake, onStakeChange, disabled = false }: 
             opacity={disabled ? 0.4 : 1}
             pointerEvents={disabled ? 'none' : 'auto'}
             aria-disabled={disabled}
+            flexShrink={0}
         >
             {stakeOptions.map((option) => {
                 const active = stake === option.value;
@@ -36,9 +37,9 @@ export default function StakeFilter({ stake, onStakeChange, disabled = false }: 
                         as="button"
                         onClick={() => onStakeChange(option.value)}
                         aria-pressed={active}
-                        px={{ base: 3.5, md: 4 }}
-                        h={{ base: '36px', md: '32px' }}
-                        minW={{ base: '52px', md: 'auto' }}
+                        px={{ base: 2.5, md: 4 }}
+                        h={{ base: '30px', md: '32px' }}
+                        minW={{ base: 'auto', md: 'auto' }}
                         borderRadius="full"
                         fontSize="xs"
                         fontWeight="bold"

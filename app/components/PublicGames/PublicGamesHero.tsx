@@ -39,9 +39,10 @@ export default function PublicGamesHero() {
                 href="/create-game"
                 leftIcon={<FiPlus />}
                 variant="tactilePrimary"
-                borderRadius="14px"
-                height={{ base: '44px', md: '44px' }}
-                px={6}
+                borderRadius={{ base: '12px', md: '14px' }}
+                height={{ base: '38px', md: '44px' }}
+                px={{ base: 4, md: 6 }}
+                fontSize={{ base: 'sm', md: 'md' }}
                 w={{ base: 'full', md: 'auto' }}
                 flexShrink={0}
             >

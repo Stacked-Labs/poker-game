@@ -31,7 +31,7 @@ export default function FilterRail({
     return (
         <Flex
             w="full"
-            gap={3}
+            gap={{ base: 2, md: 3 }}
             align={{ base: 'stretch', md: 'center' }}
             justify="space-between"
             wrap="wrap"
@@ -40,9 +40,20 @@ export default function FilterRail({
             <Text fontSize="sm" color="text.secondary">
                 {countLabel}
             </Text>
-            <HStack spacing={3} wrap="wrap" justify={{ base: 'center', md: 'flex-end' }}>
+            <HStack
+                spacing={{ base: 2, md: 3 }}
+                wrap={{ base: 'nowrap', md: 'wrap' }}
+                justify={{ base: 'flex-start', md: 'flex-end' }}
+                w={{ base: 'full', md: 'auto' }}
+                overflowX={{ base: 'auto', md: 'visible' }}
+                sx={{
+                    '::-webkit-scrollbar': { display: 'none' },
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none',
+                }}
+            >
                 <FilterBar filter={filter} onFilterChange={onFilterChange} />
-                <Box w="1px" h="20px" bg={dividerColor} display={{ base: 'none', md: 'block' }} />
+                <Box w="1px" h="20px" bg={dividerColor} flexShrink={0} />
                 <StakeFilter stake={stake} onStakeChange={onStakeChange} disabled={stakeDisabled} />
             </HStack>
         </Flex>

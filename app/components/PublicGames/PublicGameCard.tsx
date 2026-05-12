@@ -35,6 +35,15 @@ interface PublicGameCardProps {
     isLast: boolean;
 }
 
+function shortenName(name: string): string {
+    if (!name) return name;
+    if (name.startsWith('0x') && name.length > 14) {
+        return `${name.slice(0, 6)}…${name.slice(-4)}`;
+    }
+    if (name.length > 14) return `${name.slice(0, 10)}…`;
+    return name;
+}
+
 function getChainLogo(chain: string): string | null {
     const c = chain.toLowerCase();
     if (c === 'base' || c === 'base sepolia' || c === 'base-sepolia')
@@ -56,6 +65,8 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
         <HStack
             as={Link}
             href={`/table/${game.name}`}
+            target="_blank"
+            rel="noopener noreferrer"
             px={{ base: 3, md: 6 }}
             py={{ base: 3, md: 3.5 }}
             spacing={{ base: 3, md: 4 }}
@@ -86,8 +97,20 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
                         noOfLines={1}
                         fontSize={{ base: 'sm', md: 'md' }}
                         minW={0}
+                        display={{ base: 'none', md: 'block' }}
                     >
                         {game.name}
+                    </Text>
+                    <Text
+                        fontWeight="semibold"
+                        color="text.primary"
+                        noOfLines={1}
+                        fontSize="sm"
+                        minW={0}
+                        display={{ base: 'block', md: 'none' }}
+                        sx={{ fontVariantNumeric: 'tabular-nums' }}
+                    >
+                        {shortenName(game.name)}
                     </Text>
                     <MarketTag game={game} />
                     <ContractLink game={game} />
@@ -118,41 +141,25 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
                         {hot && ' · Hot'}
                     </Text>
                 </Flex>
-                {/* Mobile-only inline data */}
+                {/* Mobile-only: spectator + time meta (seats moved next to stakes) */}
                 <HStack
                     display={{ base: 'flex', md: 'none' }}
                     spacing={2}
-                    fontSize="xs"
-                    pt={1.5}
+                    fontSize="2xs"
+                    pt={1}
+                    color="text.muted"
                     flexWrap="wrap"
                 >
-                    <Text
-                        fontWeight="semibold"
-                        color={
-                            game.player_count >= game.max_players
-                                ? 'brand.pink'
-                                : 'text.secondary'
-                        }
-                        sx={{ fontVariantNumeric: 'tabular-nums' }}
-                    >
-                        {game.player_count}/{game.max_players}{' '}
-                        {game.player_count >= game.max_players
-                            ? 'full'
-                            : 'seats'}
-                    </Text>
                     {game.spectator_count > 0 && (
                         <>
-                            <Text color="text.muted">·</Text>
-                            <HStack spacing={1} color="text.muted">
-                                <Icon as={FiEye} boxSize="11px" />
-                                <Text color="text.muted">
-                                    {game.spectator_count}
-                                </Text>
+                            <HStack spacing={1}>
+                                <Icon as={FiEye} boxSize="10px" />
+                                <Text>{game.spectator_count}</Text>
                             </HStack>
+                            <Text>·</Text>
                         </>
                     )}
-                    <Text color="text.muted">·</Text>
-                    <Text color="text.muted">{relTime}</Text>
+                    <Text>{relTime}</Text>
                 </HStack>
             </VStack>
 
@@ -242,27 +249,60 @@ function ContractLink({ game }: { game: PublicGame }) {
 }
 
 function BlindsCell({ game }: { game: PublicGame }) {
+    const isFull = game.player_count >= game.max_players;
     return (
-        <HStack flex={{ base: '0 0 auto', md: '1' }} justify="flex-end" spacing={1.5} flexShrink={0}>
-            {game.is_crypto && (
-                <Image
-                    src={USDC_LOGO}
-                    alt="USDC"
-                    boxSize={{ base: '12px', md: '14px' }}
-                    flexShrink={0}
-                />
-            )}
-            <Text
-                fontWeight="bold"
-                fontSize={{ base: 'xs', md: 'sm' }}
-                letterSpacing="-0.01em"
-                color={game.is_crypto ? USDC_BLUE : 'text.primary'}
-                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                whiteSpace="nowrap"
+        <VStack
+            flex={{ base: '0 0 auto', md: '1' }}
+            align="flex-end"
+            spacing={1}
+            flexShrink={0}
+        >
+            <HStack spacing={1.5}>
+                {game.is_crypto && (
+                    <Image
+                        src={USDC_LOGO}
+                        alt="USDC"
+                        boxSize={{ base: '12px', md: '14px' }}
+                        flexShrink={0}
+                    />
+                )}
+                <Text
+                    fontWeight="bold"
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    letterSpacing="-0.01em"
+                    color={game.is_crypto ? USDC_BLUE : 'text.primary'}
+                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                    whiteSpace="nowrap"
+                >
+                    {blindsLabel(game)}
+                </Text>
+            </HStack>
+            <HStack
+                display={{ base: 'flex', md: 'none' }}
+                spacing={1}
+                align="baseline"
             >
-                {blindsLabel(game)}
-            </Text>
-        </HStack>
+                <Text
+                    fontWeight="bold"
+                    fontSize="2xs"
+                    color={isFull ? 'brand.pink' : 'text.secondary'}
+                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                    lineHeight="1"
+                >
+                    {game.player_count}/{game.max_players}
+                </Text>
+                <Text
+                    fontSize="2xs"
+                    color={isFull ? 'brand.pink' : 'text.muted'}
+                    textTransform="uppercase"
+                    letterSpacing="0.08em"
+                    fontWeight="semibold"
+                    lineHeight="1"
+                >
+                    {isFull ? 'full' : 'seats'}
+                </Text>
+            </HStack>
+        </VStack>
     );
 }
 

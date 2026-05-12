@@ -22,6 +22,7 @@ export default function FilterBar({ filter, onFilterChange }: FilterBarProps) {
             borderRadius="full"
             p={1}
             boxShadow="card.lift"
+            flexShrink={0}
         >
             {filterOptions.map((option) => {
                 const active = filter === option.value;
@@ -31,9 +32,9 @@ export default function FilterBar({ filter, onFilterChange }: FilterBarProps) {
                         as="button"
                         onClick={() => onFilterChange(option.value)}
                         aria-pressed={active}
-                        px={{ base: 3.5, md: 4 }}
-                        h={{ base: '36px', md: '32px' }}
-                        minW={{ base: '52px', md: 'auto' }}
+                        px={{ base: 2.5, md: 4 }}
+                        h={{ base: '30px', md: '32px' }}
+                        minW={{ base: 'auto', md: 'auto' }}
                         borderRadius="full"
                         fontSize="xs"
                         fontWeight="bold"

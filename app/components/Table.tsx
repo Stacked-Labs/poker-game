@@ -390,16 +390,16 @@ const Table = ({ tableId }: { tableId: string }) => {
                 mx="auto"
                 width="80%"
                 templateAreas={templateGridLandscape}
-                gridTemplateRows="repeat(4, 1fr)"
-                gridTemplateColumns="repeat(5, 1fr)"
+                gridTemplateRows="repeat(4, minmax(0, 1fr))"
+                gridTemplateColumns="repeat(5, minmax(0, 1fr))"
                 gap="3%"
                 sx={{
                     '@media (orientation: portrait)': {
                         width: '100%',
                         gap: '1%',
                         gridTemplateAreas: templateGridPortrait,
-                        gridTemplateRows: 'repeat(7, 1fr)',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gridTemplateRows: 'repeat(7, minmax(0, 1fr))',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
                     },
                 }}
                 placeItems="center"
@@ -429,6 +429,8 @@ const Table = ({ tableId }: { tableId: string }) => {
                                 }}
                                 width="100%"
                                 height="100%"
+                                minWidth={0}
+                                minHeight={0}
                             >
                                 {player && player !== null ? (
                                     <TakenSeatButton

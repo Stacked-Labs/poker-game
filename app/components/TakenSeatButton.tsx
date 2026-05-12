@@ -724,6 +724,7 @@ const TakenSeatButton = ({
             className={`taken-seat-button ${isOffline ? 'offline' : ''}`}
             width={'100%'}
             height={'100%'}
+            minWidth={0}
             sx={{
                 '@media (orientation: portrait)': {
                     width: '90%',

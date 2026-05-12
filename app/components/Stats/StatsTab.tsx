@@ -15,12 +15,14 @@ import {
     Th,
     Td,
     TableContainer,
+    Tooltip,
 } from '@chakra-ui/react';
 import { Card, ChainSelector, StatCard, fmt } from './Primitives';
 import type {
     AdminStatsResponse,
     AdminLiveStatsResponse,
     IndexerHealthData,
+    ActionDistributionResponse,
 } from '../../stats/types';
 
 interface StatsTabProps {
@@ -32,6 +34,7 @@ interface StatsTabProps {
     setActivityChain: (v: 'base' | 'base-sepolia') => void;
     handsChain: 'base-sepolia' | 'base';
     setHandsChain: (v: 'base' | 'base-sepolia') => void;
+    actionDist: ActionDistributionResponse | null;
 }
 
 const tabular = { fontVariantNumeric: 'tabular-nums' as const };
@@ -68,6 +71,17 @@ const rakeRowBg = {
     _dark: { bg: 'rgba(235,11,92,0.10)' },
 };
 
+function fmtPot(v: number | undefined): string {
+    if (v === undefined || v === null) return '—';
+    if (v === 0) return '—';
+    return v.toFixed(2);
+}
+
+function fmtPct(part: number, total: number): string {
+    if (!total) return '0%';
+    return `${((part / total) * 100).toFixed(1)}%`;
+}
+
 export const StatsTab = ({
     stats,
     totals,
@@ -77,6 +91,7 @@ export const StatsTab = ({
     setActivityChain,
     handsChain,
     setHandsChain,
+    actionDist,
 }: StatsTabProps) => {
     const d   = stats?.data;
     const dt  = totals?.data;
@@ -84,31 +99,102 @@ export const StatsTab = ({
 
     const chainLabel = (chain: 'base' | 'base-sepolia') => chain === 'base' ? 'Base' : 'Base Sepolia';
 
+    const totalActions = actionDist
+        ? Object.values(actionDist.distribution).reduce((a, b) => a + b, 0)
+        : 0;
+
+    const actionColors: Record<string, string> = {
+        fold: 'brand.pink',
+        check: 'brand.navy',
+        call: 'brand.green',
+        bet: 'brand.yellow',
+        raise: 'orange.400',
+        all_in: 'purple.400',
+    };
+
     return (
         <VStack align="stretch" gap={6}>
 
             {/* Live now */}
             <Box>
-                <Text {...eyebrowProps}>
-                    Live Now
-                </Text>
+                <Text {...eyebrowProps}>Live Now</Text>
                 <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }} gap={4}>
-                    <StatCard label="WS Connections"    value={lv?.active_connections}  accent="brand.green" />
-                    <StatCard label="Tables in Memory"  value={lv?.hub_tables_in_memory} />
+                    <StatCard label="WS Connections"      value={lv?.active_connections}  accent="brand.green" />
+                    <StatCard label="Tables in Memory"    value={lv?.hub_tables_in_memory} />
                     <StatCard label="Tables with Players" value={lv?.tables_with_players} />
-                    <StatCard label="Active Players"    value={d?.active_players_count} />
+                    <StatCard label="Active Players"      value={d?.active_players_count} />
                 </Grid>
             </Box>
 
             {/* Waitlist */}
             <Box>
-                <Text {...eyebrowProps}>
-                    Waitlist
-                </Text>
+                <Text {...eyebrowProps}>Waitlist</Text>
                 <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }} gap={4}>
                     <StatCard label="Email Subscribers" value={d?.waitlist_count} accent="brand.green" />
+                    <StatCard
+                        label="Dead Tables"
+                        value={d?.dead_tables}
+                        accent={d?.dead_tables ? 'brand.pink' : undefined}
+                        helpText="Created in last 7d, never played — create→abandon friction"
+                    />
                 </Grid>
             </Box>
+
+            {/* DAU / WAU / MAU — crypto only */}
+            <Card title="Player Activity" subtitle={<Text fontSize="xs" color="text.secondary" _dark={{ color: 'whiteAlpha.600' }}>Crypto hands only · unique wallets</Text>}>
+                <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }} gap={4} mb={4}>
+                    <StatCard label="DAU (24 h)"  value={d?.dau}  accent="brand.green" />
+                    <StatCard label="WAU (7 d)"   value={d?.wau} />
+                    <StatCard label="MAU (30 d)"  value={d?.mau} />
+                </Grid>
+                <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)' }} gap={4}>
+                    <Box
+                        bg="rgba(54,163,123,0.06)"
+                        borderRadius="10px"
+                        p={4}
+                        border="1px solid"
+                        borderColor="rgba(54,163,123,0.15)"
+                        _dark={{ bg: 'rgba(54,163,123,0.10)', borderColor: 'rgba(54,163,123,0.25)' }}
+                    >
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>New Players (24 h)</Text>
+                        <Text fontSize="2xl" fontWeight="extrabold" color="brand.green" sx={tabular}>{fmt(d?.new_players_24h)}</Text>
+                        <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>first-ever crypto hand</Text>
+                    </Box>
+                    <Box
+                        bg="rgba(235,11,92,0.04)"
+                        borderRadius="10px"
+                        p={4}
+                        border="1px solid"
+                        borderColor="rgba(235,11,92,0.12)"
+                        _dark={{ bg: 'rgba(235,11,92,0.08)', borderColor: 'rgba(235,11,92,0.20)' }}
+                    >
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Returning Players (24 h)</Text>
+                        <Text fontSize="2xl" fontWeight="extrabold" color="brand.pink" sx={tabular}>{fmt(d?.returning_players_24h)}</Text>
+                        <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>played before today</Text>
+                    </Box>
+                </Grid>
+            </Card>
+
+            {/* Game Quality */}
+            <Card title="Game Quality" subtitle={<Text fontSize="xs" color="text.secondary" _dark={{ color: 'whiteAlpha.600' }}>{chainLabel(activityChain)} · last 30 days</Text>}>
+                <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }} gap={4}>
+                    <Box>
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Avg Crypto Pot</Text>
+                        <Text fontSize="2xl" fontWeight="extrabold" color="brand.green" sx={tabular}>{fmtPot(d?.avg_crypto_pot_30d)}</Text>
+                        <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>chips · 30 d</Text>
+                    </Box>
+                    <Box>
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Avg Rake / Hand</Text>
+                        <Text fontSize="2xl" fontWeight="extrabold" color="brand.pink" sx={tabular}>{fmtPot(d?.avg_rake_per_hand_30d)}</Text>
+                        <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>chips · 30 d</Text>
+                    </Box>
+                    <Box>
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Median Rake / Hand</Text>
+                        <Text fontSize="2xl" fontWeight="extrabold" color="brand.pink" sx={tabular}>{fmtPot(d?.median_rake_30d)}</Text>
+                        <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>chips · 30 d</Text>
+                    </Box>
+                </Grid>
+            </Card>
 
             {/* Activity over time — chain-filtered */}
             <Card
@@ -199,6 +285,50 @@ export const StatsTab = ({
                 </TableContainer>
             </Card>
 
+            {/* Action Distribution */}
+            {actionDist && totalActions > 0 && (
+                <Card title="Action Distribution" subtitle={<Text fontSize="xs" color="text.secondary" _dark={{ color: 'whiteAlpha.600' }}>Player actions · last 7 days · {fmt(totalActions)} total</Text>}>
+                    <Text fontSize="xs" color="text.secondary" mb={3} _dark={{ color: 'whiteAlpha.600' }}>
+                        Game health signal — if fold % exceeds ~80%, stakes may be too high or players are mismatched.
+                    </Text>
+                    <VStack align="stretch" gap={2}>
+                        {(['fold', 'check', 'call', 'bet', 'raise', 'all_in'] as const).map((action) => {
+                            const count = actionDist.distribution[action] ?? 0;
+                            const pct = totalActions ? (count / totalActions) * 100 : 0;
+                            const color = actionColors[action] ?? 'brand.green';
+                            return (
+                                <Box key={action}>
+                                    <Flex justify="space-between" mb={1}>
+                                        <Text fontSize="xs" fontWeight="semibold" color="text.primary" textTransform="capitalize">{action.replace('_', ' ')}</Text>
+                                        <HStack gap={2}>
+                                            <Text fontSize="xs" color="text.secondary" sx={tabular}>{fmt(count)}</Text>
+                                            <Text fontSize="xs" fontWeight="bold" color={color} sx={tabular} w="38px" textAlign="right">{fmtPct(count, totalActions)}</Text>
+                                        </HStack>
+                                    </Flex>
+                                    <Tooltip label={`${fmtPct(count, totalActions)} of all actions`} hasArrow>
+                                        <Box
+                                            h="6px"
+                                            borderRadius="full"
+                                            bg="card.lightGray"
+                                            _dark={{ bg: 'whiteAlpha.100' }}
+                                            overflow="hidden"
+                                        >
+                                            <Box
+                                                h="full"
+                                                borderRadius="full"
+                                                bg={color}
+                                                w={`${pct}%`}
+                                                transition="width 0.4s ease"
+                                            />
+                                        </Box>
+                                    </Tooltip>
+                                </Box>
+                            );
+                        })}
+                    </VStack>
+                </Card>
+            )}
+
             {/* Unique Players + Total Hands — chain-filtered */}
             <Card
                 title="All-time Totals"
@@ -217,7 +347,6 @@ export const StatsTab = ({
                     </Box>
                 </Grid>
             </Card>
-
 
         </VStack>
     );

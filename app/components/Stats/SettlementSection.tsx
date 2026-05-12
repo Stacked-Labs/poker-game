@@ -6,11 +6,15 @@ import type { SettlementHealthResponse } from '../../stats/types';
 
 // ── Settlement Health ──────────────────────────────────────────────────────────
 
+const fmtMin = (v: number) => v < 1 ? `${Math.round(v * 60)}s` : `${v.toFixed(1)}m`;
+
 export const SettlementSection = ({ data }: { data: SettlementHealthResponse | null }) => {
     const ok = !data || data.pending_count === 0;
+    const lat = data?.latency;
+    const hasLatency = lat && (lat.avg_settle_minutes > 0 || lat.slow_settlements > 0);
     return (
         <>
-            <Flex align="center" gap={3} mb={data && data.pending_count > 0 ? 4 : 0}>
+            <Flex align="center" gap={3} mb={hasLatency || (data && data.pending_count > 0) ? 4 : 0}>
                 <StatusDot ok={ok} />
                 <Text
                     fontSize="2xl"
@@ -40,6 +44,33 @@ export const SettlementSection = ({ data }: { data: SettlementHealthResponse | n
                     <Text fontSize="xs" color="text.secondary" ml="auto" _dark={{ color: 'whiteAlpha.600' }} sx={{ fontVariantNumeric: 'tabular-nums' }}>{new Date(data.timestamp).toLocaleString()}</Text>
                 )}
             </Flex>
+
+            {hasLatency && (
+                <HStack
+                    gap={6}
+                    mb={data && data.pending_count > 0 ? 4 : 0}
+                    px={4}
+                    py={3}
+                    bg="card.lightGray"
+                    borderRadius="10px"
+                    _dark={{ bg: 'whiteAlpha.50' }}
+                    flexWrap="wrap"
+                >
+                    <Box>
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" _dark={{ color: 'whiteAlpha.600' }}>Avg settle time</Text>
+                        <Text fontSize="lg" fontWeight="extrabold" color="text.primary" sx={{ fontVariantNumeric: 'tabular-nums' }}>{fmtMin(lat!.avg_settle_minutes)}</Text>
+                    </Box>
+                    <Box>
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" _dark={{ color: 'whiteAlpha.600' }}>Max settle time</Text>
+                        <Text fontSize="lg" fontWeight="extrabold" color="text.primary" sx={{ fontVariantNumeric: 'tabular-nums' }}>{fmtMin(lat!.max_settle_minutes)}</Text>
+                    </Box>
+                    <Box>
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" _dark={{ color: 'whiteAlpha.600' }}>Slow (&gt;5 min)</Text>
+                        <Text fontSize="lg" fontWeight="extrabold" color={lat!.slow_settlements > 0 ? 'brand.pink' : 'text.primary'} sx={{ fontVariantNumeric: 'tabular-nums' }}>{lat!.slow_settlements}</Text>
+                    </Box>
+                    <Text fontSize="xs" color="text.secondary" ml="auto" alignSelf="center" _dark={{ color: 'whiteAlpha.500' }}>last 7 days</Text>
+                </HStack>
+            )}
 
             {data && data.pending_count > 0 && (
                 <VStack align="stretch" gap={3} mt={2}>

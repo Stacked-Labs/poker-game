@@ -24,6 +24,7 @@ import {
     getAdminSettlementHealth,
     getIndexerHealth,
     getAdminSBTWhitelist,
+    getAdminActionDistribution,
     type SBTWhitelistEntry,
 } from '../hooks/server_actions';
 import type {
@@ -33,6 +34,7 @@ import type {
     AdminHealthResponse,
     SettlementHealthResponse,
     IndexerHealthData,
+    ActionDistributionResponse,
 } from './types';
 import { RefreshIcon } from '../components/Stats/Primitives';
 import { StatsTab } from '../components/Stats/StatsTab';
@@ -51,8 +53,9 @@ export default function AdminStatsPage() {
     const [tables, setTables]     = useState<AdminTablesResponse | null>(null);
     const [health, setHealth]     = useState<AdminHealthResponse | null>(null);
     const [settle, setSettle]     = useState<SettlementHealthResponse | null>(null);
-    const [indexer, setIndexer]         = useState<IndexerHealthData | null>(null);
-    const [activityRake, setActivityRake] = useState<IndexerHealthData | null>(null);
+    const [indexer, setIndexer]             = useState<IndexerHealthData | null>(null);
+    const [activityRake, setActivityRake]   = useState<IndexerHealthData | null>(null);
+    const [actionDist, setActionDist]       = useState<ActionDistributionResponse | null>(null);
     const [refreshing, setRefreshing] = useState(false);
     const [search, setSearch]         = useState('');
     const [typeFilter, setTypeFilter] = useState<'all' | 'crypto' | 'free'>('all');
@@ -141,6 +144,7 @@ export default function AdminStatsPage() {
             loadTablesData(tablesChainRef.current),
             getAdminHealth().then((v) => setHealth(v)).catch(() => {}),
             getAdminLiveStats().then((v) => setLive(v)).catch(() => {}),
+            getAdminActionDistribution().then((v) => setActionDist(v)).catch(() => {}),
         ]);
         setRefreshing(false);
     }, [loadActivityData, loadHandsData, loadIndexerData, loadSettlementData, loadTablesData]);
@@ -364,6 +368,7 @@ export default function AdminStatsPage() {
                             setActivityChain={setActivityChain}
                             handsChain={handsChain}
                             setHandsChain={setHandsChain}
+                            actionDist={actionDist}
                         />
                     </TabPanel>
 

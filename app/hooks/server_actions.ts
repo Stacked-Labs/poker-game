@@ -739,18 +739,6 @@ export async function getAdminActionDistribution() {
     return await response.json();
 }
 
-export async function getAdminRakeLog() {
-    isBackendUrlValid();
-    const response = await fetch(`${backendUrl}/api/admin/rake-log`, {
-        method: 'GET',
-        credentials: 'include',
-    });
-    if (!response.ok) throw new Error(`Rake log fetch failed: ${response.statusText}`);
-    return await response.json();
-}
-
-
-
 export async function getIndexerHealth(chain: 'base-sepolia' | 'base' = 'base-sepolia'): Promise<{
     height: number | null;
     chainTip: number | null;

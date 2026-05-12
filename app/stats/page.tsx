@@ -25,7 +25,6 @@ import {
     getIndexerHealth,
     getAdminSBTWhitelist,
     getAdminActionDistribution,
-    getAdminRakeLog,
     type SBTWhitelistEntry,
 } from '../hooks/server_actions';
 import type {
@@ -36,14 +35,12 @@ import type {
     SettlementHealthResponse,
     IndexerHealthData,
     ActionDistributionResponse,
-    RakeLogResponse,
 } from './types';
 import { RefreshIcon } from '../components/Stats/Primitives';
 import { StatsTab } from '../components/Stats/StatsTab';
 import { TablesTab } from '../components/Stats/TablesTab';
 import { HealthTab } from '../components/Stats/HealthTab';
 import { WhitelistTab } from '../components/Stats/WhitelistTab';
-import { RakeLogTab } from '../components/Stats/RakeLogTab';
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 
@@ -59,8 +56,6 @@ export default function AdminStatsPage() {
     const [indexer, setIndexer]             = useState<IndexerHealthData | null>(null);
     const [activityRake, setActivityRake]   = useState<IndexerHealthData | null>(null);
     const [actionDist, setActionDist]       = useState<ActionDistributionResponse | null>(null);
-    const [rakeLog, setRakeLog]             = useState<RakeLogResponse | null>(null);
-    const [rakeLogLoading, setRakeLogLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [search, setSearch]         = useState('');
     const [typeFilter, setTypeFilter] = useState<'all' | 'crypto' | 'free'>('all');
@@ -154,25 +149,13 @@ export default function AdminStatsPage() {
         setRefreshing(false);
     }, [loadActivityData, loadHandsData, loadIndexerData, loadSettlementData, loadTablesData]);
 
-    const loadRakeLog = useCallback(async () => {
-        setRakeLogLoading(true);
-        try {
-            const data = await getAdminRakeLog();
-            setRakeLog(data);
-        } catch {
-            // non-fatal
-        } finally {
-            setRakeLogLoading(false);
-        }
-    }, []);
-
     // Auth check on mount only.
     useEffect(() => {
         verifyAdmin().then((r) => {
-            if (r.isAdmin) { setAuthState('authorized'); loadData(); loadWhitelist(); loadRakeLog(); }
+            if (r.isAdmin) { setAuthState('authorized'); loadData(); loadWhitelist(); }
             else setAuthState('unauthorized');
         });
-    }, [loadData, loadWhitelist, loadRakeLog]);
+    }, [loadData, loadWhitelist]);
 
     useEffect(() => { if (authState === 'authorized') loadActivityData(activityChain); // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activityChain, loadActivityData]);
@@ -346,7 +329,6 @@ export default function AdminStatsPage() {
                         { label: 'Tables',    accent: 'brand.pink',    edge: '#950839' },
                         { label: 'Health',    accent: 'brand.navy',    edge: '#1B2754' },
                         { label: 'Whitelist', accent: 'brand.yellow',  edge: '#B78900' },
-                        { label: 'Rake Log',  accent: 'brand.pink',    edge: '#950839' },
                     ].map(({ label, accent, edge }) => (
                         <Tab
                             key={label}
@@ -435,11 +417,6 @@ export default function AdminStatsPage() {
                             setWlAdding={setWlAdding}
                             loadWhitelist={loadWhitelist}
                         />
-                    </TabPanel>
-
-                    {/* ── Rake Log tab ── */}
-                    <TabPanel px={0} py={0}>
-                        <RakeLogTab rakeLog={rakeLog} loading={rakeLogLoading} />
                     </TabPanel>
 
                 </TabPanels>

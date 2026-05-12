@@ -57,15 +57,14 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const alreadyReferred = info.hasReferrer || submitted;
     const myCode = localCode ?? info.myCode ?? null;
 
+    const referralLink = myCode
+        ? `https://stackedpoker.io/leaderboard?referralCode=${myCode}`
+        : null;
+
     const handleCopy = async () => {
-        if (!myCode) return;
-        const origin =
-            typeof window !== 'undefined' && window.location?.origin
-                ? window.location.origin
-                : 'https://stackedpoker.io';
-        const referralUrl = `${origin}/leaderboard?referralCode=${encodeURIComponent(myCode)}`;
+        if (!referralLink) return;
         try {
-            await navigator.clipboard.writeText(referralUrl);
+            await navigator.clipboard.writeText(referralLink);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch {
@@ -162,10 +161,10 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                             {copied ? (
                                 <HStack spacing={1} as="span" display="inline-flex">
                                     <Icon as={FaCheck} boxSize="10px" />
-                                    <span>Copied</span>
+                                    <span>Copied!</span>
                                 </HStack>
                             ) : (
-                                'Copy'
+                                'Copy link'
                             )}
                         </Text>
                     </>

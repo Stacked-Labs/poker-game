@@ -18,13 +18,14 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useContext, useRef, useState, useEffect, useCallback } from 'react';
 import {
     FiUsers,
     FiSettings,
     FiFileText,
     FiDollarSign,
     FiHelpCircle,
+    FiLink,
     FiX,
     FiChevronLeft,
     FiChevronRight,
@@ -36,7 +37,9 @@ import GameLog from './GameLog';
 import Ledger from './Ledger';
 import HowTo from './HowTo';
 import Support from './Support';
+import OnchainTab from './OnchainTab/OnchainTab';
 import { GameEventsProvider } from '@/app/contexts/GameEventsProvider';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { IconType } from 'react-icons/lib/iconBase';
 
 // Animations
@@ -146,6 +149,12 @@ const SettingsModal = ({
     const roRef = useRef<ResizeObserver | null>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
+    const [tabIndex, setTabIndex] = useState(0);
+
+    const { appState } = useContext(AppContext);
+    const config = appState.game?.config;
+    const showOnchainTab = Boolean(config?.crypto && config?.contractAddress);
+    const onchainTabIndex = 6;
 
     // Resolve theme colors for CSS gradients (semantic tokens don't work in bgGradient)
     const tabBg = useColorModeValue('#ECEEF5', '#191414'); // card.lightGray
@@ -237,7 +246,8 @@ const SettingsModal = ({
                     <Tabs
                         size={{ base: 'sm', md: 'md' }}
                         variant="unstyled"
-                        defaultIndex={0}
+                        index={tabIndex}
+                        onChange={setTabIndex}
                         orientation="horizontal"
                         h="100%"
                         display="flex"
@@ -296,6 +306,13 @@ const SettingsModal = ({
                                         tone="navy"
                                         icon={FiHelpCircle}
                                     />
+                                    {showOnchainTab && (
+                                        <TabItem
+                                            text="Onchain"
+                                            tone="navy"
+                                            icon={FiLink}
+                                        />
+                                    )}
                                 </TabList>
 
                                 {/* Left gradient + arrow */}
@@ -466,6 +483,19 @@ const SettingsModal = ({
                             >
                                 <HowTo />
                             </TabPanel>
+                            {showOnchainTab && (
+                                <TabPanel
+                                    px={{ base: 0, sm: 1, md: 2 }}
+                                    py={{ base: 1, md: 2 }}
+                                >
+                                    <OnchainTab
+                                        isActive={
+                                            isOpen &&
+                                            tabIndex === onchainTabIndex
+                                        }
+                                    />
+                                </TabPanel>
+                            )}
                         </TabPanels>
                     </Tabs>
                 </ModalBody>

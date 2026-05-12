@@ -405,6 +405,7 @@ export function SocketProvider(props: SocketProviderProps) {
                                 0,
                             rabbitCards: eventData.game?.rabbitCards,
                             settlementStuck: eventData.game?.settlementStuck,
+                            settlementInProgress: eventData.game?.settlementInProgress,
                         };
 
                         const hasAnyCommunityCard = (

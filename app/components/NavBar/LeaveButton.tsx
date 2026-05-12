@@ -7,7 +7,7 @@ interface LeaveButtonProps {
     isUserSeated: boolean;
     isLeaveRequested: boolean;
     handleLeaveTable: () => void;
-    settlementStuck?: boolean;
+    settlementInProgress?: boolean;
 }
 
 const TACTILE_TRANSITION =
@@ -17,9 +17,9 @@ const LeaveButton = ({
     isUserSeated,
     isLeaveRequested,
     handleLeaveTable,
-    settlementStuck,
+    settlementInProgress,
 }: LeaveButtonProps) => {
-    const tooltipLabel = settlementStuck
+    const tooltipLabel = settlementInProgress
         ? 'Settlement in progress — leave unavailable'
         : isLeaveRequested
           ? 'Cancel leave request'
@@ -42,8 +42,8 @@ const LeaveButton = ({
                 py={2}
                 width={{ base: '40px', sm: '40px', md: '48px' }}
                 height={{ base: '40px', sm: '40px', md: '48px' }}
-                onClick={settlementStuck ? undefined : handleLeaveTable}
-                isDisabled={settlementStuck}
+                onClick={settlementInProgress ? undefined : handleLeaveTable}
+                isDisabled={settlementInProgress}
                 {...(isLeaveRequested
                     ? {
                           // Queued state: solid pink tactile chip — clearly

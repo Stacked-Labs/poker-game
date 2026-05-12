@@ -121,8 +121,10 @@ export type Game = {
     waitingForBB?: boolean[];
     /** Community cards that would have been dealt — populated after a concession when rabbit hunt is enabled. */
     rabbitCards?: Card[];
-    /** True while an on-chain settlement transaction is pending and unconfirmed. */
+    /** True while an on-chain settlement transaction timed out or failed and needs recovery. Used for admin alerts. */
     settlementStuck?: boolean;
+    /** True whenever any settlement is blocking — either actively in-flight or stuck pending recovery. Frontend should disable the leave button when true. */
+    settlementInProgress?: boolean;
 };
 
 export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';

@@ -5,7 +5,13 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Box, Flex } from '@chakra-ui/react';
 import GameStatusBanner from './GameStatusBanner';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import type { AppState, Game } from '@/app/interfaces';
+
+const mockSocket = {
+    readyState: 1,
+    send: () => {},
+} as unknown as WebSocket;
 
 // ─── Mock data ──────────────────────────────────────────────────────────────
 
@@ -74,6 +80,7 @@ const makeDecorator = ({
     };
     const Wrapper = (Story: React.FC) => (
         <AppContext.Provider value={{ appState, dispatch: () => null }}>
+            <SocketContext.Provider value={mockSocket}>
             <Box
                 bg="#0B1430"
                 borderRadius={16}
@@ -100,6 +107,7 @@ const makeDecorator = ({
                     <Story />
                 </Flex>
             </Box>
+            </SocketContext.Provider>
         </AppContext.Provider>
     );
     Wrapper.displayName = 'GameStatusBannerStoryWrapper';
@@ -158,7 +166,7 @@ export const SettlementFailed: Story = {
     decorators: [makeDecorator({ appStateOverride: { settlementStatus: 'failed' } })],
 };
 
-// ─── Pause states (non-owner only — owners see the popup instead) ──────────
+// ─── Pause states — non-owner ──────────────────────────────────────────────
 
 export const PausedNonOwner: Story = {
     name: 'Paused (non-owner)',
@@ -176,6 +184,28 @@ export const PendingPauseNonOwner: Story = {
         makeDecorator({
             gameOverride: { paused: false, pendingPause: true },
             appStateOverride: { isTableOwner: false },
+        }),
+    ],
+};
+
+// ─── Pause states — owner (inline Resume / Cancel chip) ───────────────────
+
+export const PausedOwner: Story = {
+    name: 'Paused — owner (Resume chip)',
+    decorators: [
+        makeDecorator({
+            gameOverride: { paused: true },
+            appStateOverride: { isTableOwner: true },
+        }),
+    ],
+};
+
+export const PendingPauseOwner: Story = {
+    name: 'Pending pause — owner (Cancel chip)',
+    decorators: [
+        makeDecorator({
+            gameOverride: { paused: false, pendingPause: true },
+            appStateOverride: { isTableOwner: true },
         }),
     ],
 };

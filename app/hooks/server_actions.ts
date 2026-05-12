@@ -729,6 +729,16 @@ export async function getAdminSettlementHealth(chain?: 'base-sepolia' | 'base') 
     return await response.json();
 }
 
+export async function getAdminActionDistribution() {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/stats/actions`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Action distribution fetch failed: ${response.statusText}`);
+    return await response.json();
+}
+
 // Chips → USDC display string (1 chip = 0.01 USDC; USDC_PER_CHIP = 10000, decimals = 6)
 function chipsToUsdc(chips: string | null | undefined): string {
     if (!chips || chips === '0' || chips === 'null') return '0.00';

@@ -133,6 +133,30 @@ export interface AdminStatsData {
     free_hands_7d: number;
     free_hands_30d: number;
     waitlist_count: number;
+    // Active player counts (crypto only — free tables excluded)
+    dau: number;
+    wau: number;
+    mau: number;
+    new_players_24h: number;
+    returning_players_24h: number;
+    // Game quality (mainnet values; defaults to base when no chain selected)
+    avg_crypto_pot_30d: number;
+    avg_rake_per_hand_30d: number;
+    median_rake_30d: number;
+    // Funnel health
+    dead_tables: number;
+}
+
+export interface ActionDistributionResponse {
+    success: boolean;
+    distribution: Record<string, number>;
+    timestamp: string;
+}
+
+export interface SettlementLatency {
+    avg_settle_minutes: number;
+    max_settle_minutes: number;
+    slow_settlements: number;
 }
 
 export interface AdminStatsResponse {
@@ -227,6 +251,7 @@ export interface PendingSettlement {
 export interface SettlementHealthResponse {
     pending_count: number;
     pending_settlements: PendingSettlement[];
+    latency: SettlementLatency;
     timestamp: string;
 }
 

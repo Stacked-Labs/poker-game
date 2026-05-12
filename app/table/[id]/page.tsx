@@ -11,7 +11,8 @@ export async function generateMetadata(
     _parent: ResolvingMetadata
 ): Promise<Metadata> {
     const { id } = await params;
-    const url = `https://stackedpoker.io/table/${id}`;
+    const tableId = id.toLowerCase();
+    const url = `https://stackedpoker.io/table/${tableId}`;
     return {
         title: 'Stacked Poker',
         description:
@@ -60,6 +61,7 @@ export async function generateMetadata(
 
 const TablePage = async ({ params }: Props) => {
     const { id } = await params;
+    const tableId = id.toLowerCase();
 
     return (
         <Flex
@@ -71,7 +73,7 @@ const TablePage = async ({ params }: Props) => {
             position={'relative'}
             bg={'transparent'}
         >
-            <Table tableId={id} />
+            <Table tableId={tableId} />
         </Flex>
     );
 };

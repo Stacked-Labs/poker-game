@@ -39,6 +39,8 @@ type PointsEventKind = 'live' | 'standings';
 interface PointsEvent {
     id: string;
     address: string;
+    xUsername?: string | null;
+    xProfileImageUrl?: string | null;
     points: number;
     delta?: number;
     rank?: number;
@@ -81,6 +83,8 @@ function randomGap() {
 
 export interface PointsPillProps {
     address: string;
+    xUsername?: string | null;
+    xProfileImageUrl?: string | null;
     points: number;
     delta?: number;
     rank?: number;
@@ -148,6 +152,8 @@ function PillFrame({
 
 export function PointsPill({
     address,
+    xUsername,
+    xProfileImageUrl,
     points,
     delta,
     rank,
@@ -207,18 +213,32 @@ export function PointsPill({
                 }}
             >
                 <HStack spacing={3} align="center" position="relative" zIndex={1}>
-                    <ChipAvatar seed={address} reducedMotion={reducedMotion} />
+                    {xProfileImageUrl ? (
+                        <Box
+                            as="img"
+                            src={xProfileImageUrl}
+                            alt=""
+                            w="34px"
+                            h="34px"
+                            borderRadius="full"
+                            flexShrink={0}
+                            objectFit="cover"
+                            boxShadow="0 1px 2px rgba(11, 20, 48, 0.18)"
+                        />
+                    ) : (
+                        <ChipAvatar seed={address} reducedMotion={reducedMotion} />
+                    )}
                     <Box flex={1} minW={0}>
                         <Text
                             fontSize="13px"
-                            fontFamily="mono"
+                            fontFamily={xUsername ? 'body' : 'mono'}
                             fontWeight={700}
                             color={addressColor}
-                            letterSpacing="0.02em"
+                            letterSpacing={xUsername ? '0' : '0.02em'}
                             lineHeight={1.2}
                             noOfLines={1}
                         >
-                            {truncate(address)}
+                            {xUsername ? `@${xUsername}` : truncate(address)}
                         </Text>
                         <Text
                             fontSize="11px"
@@ -286,7 +306,7 @@ export default function PointsActivityFeed() {
         try {
             const res = await fetch(`${backendUrl}/api/leaderboard`);
             if (!res.ok) return;
-            const data: { leaderboard: { address: string; points: number }[] } =
+            const data: { leaderboard: { address: string; points: number; xUsername?: string | null; xProfileImageUrl?: string | null }[] } =
                 await res.json();
 
             const liveEvents: PointsEvent[] = [];
@@ -302,6 +322,8 @@ export default function PointsActivityFeed() {
                     liveEvents.push({
                         id: `${entry.address}-${Date.now()}`,
                         address: entry.address,
+                        xUsername: entry.xUsername,
+                        xProfileImageUrl: entry.xProfileImageUrl,
                         points: entry.points,
                         delta: entry.points - prev,
                         kind: 'live',
@@ -311,6 +333,8 @@ export default function PointsActivityFeed() {
                     standings.push({
                         id: `${entry.address}-rank-${i + 1}`,
                         address: entry.address,
+                        xUsername: entry.xUsername,
+                        xProfileImageUrl: entry.xProfileImageUrl,
                         points: entry.points,
                         rank: i + 1,
                         kind: 'standings',
@@ -398,6 +422,8 @@ export default function PointsActivityFeed() {
         >
             <PointsPill
                 address={current.address}
+                xUsername={current.xUsername}
+                xProfileImageUrl={current.xProfileImageUrl}
                 points={current.points}
                 delta={current.delta}
                 rank={current.rank}

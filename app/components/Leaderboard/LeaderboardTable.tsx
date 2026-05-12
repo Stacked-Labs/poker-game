@@ -244,7 +244,7 @@ const LeaderboardTable = ({
                                         ) : (
                                             <Text
                                                 as="a"
-                                                href={`https://sepolia.basescan.org/address/${entry.address}`}
+                                                href={`https://basescan.org/address/${entry.address}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 color={isCurrentPlayer ? 'brand.green' : 'text.primary'}
@@ -493,7 +493,7 @@ const WalletPopoverContent = ({
                     </VStack>
 
                     <Link
-                        href={`https://sepolia.basescan.org/address/${address}`}
+                        href={`https://basescan.org/address/${address}`}
                         isExternal
                         onClick={(e) => e.stopPropagation()}
                         fontSize="xs"

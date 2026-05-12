@@ -58,7 +58,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const myCode = localCode ?? info.myCode ?? null;
 
     const handleCopy = async () => {
-        if (!myCode) return;
+         if (!myCode) return;
         const origin =
             typeof window !== 'undefined' && window.location?.origin
                 ? window.location.origin

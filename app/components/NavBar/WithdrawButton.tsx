@@ -30,6 +30,9 @@ import { useActiveWallet } from 'thirdweb/react';
 import { CHAIN_CONFIG, defaultChain } from '@/app/thirdwebclient';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import { handleLeaveTable } from '@/app/hooks/useTableOptions';
+import LeaveSeatAction from './Settings/LeaveSeatAction';
 
 const CHIPS_PER_USDC = 100;
 const USDC_LOGO_URL = '/usdc-logo.png';
@@ -63,12 +66,20 @@ const WithdrawButton = () => {
     const contractAddress = config?.contractAddress;
     const tableChain = (CHAIN_CONFIG[config?.chain ?? ''] ?? { chain: defaultChain }).chain;
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const { success, error: toastError } = useToastHelper();
+    const { success, error: toastError, info: infoToast } = useToastHelper();
+    const socket = useContext(SocketContext);
 
     // Check if user is seated at the table
     const isUserSeated = appStore.appState.game?.players?.some(
         (player) => player.uuid === appStore.appState.clientID
     );
+    const localPlayer = appStore.appState.game?.players?.find(
+        (p) => p.uuid === appStore.appState.clientID
+    );
+    const leaveAfterHandRequested = Boolean(localPlayer?.leaveAfterHand);
+    const settlementStuck = Boolean(appStore.appState.game?.settlementStuck);
+    const onLeaveSeat = () =>
+        handleLeaveTable(socket, infoToast, leaveAfterHandRequested);
 
     const {
         withdraw,
@@ -410,8 +421,11 @@ const WithdrawButton = () => {
                                                     color="inherit"
                                                     textAlign="left"
                                                 >
-                                                    You must leave the table
-                                                    before withdrawing.
+                                                    {settlementStuck
+                                                        ? 'Settlement in progress — leave temporarily unavailable.'
+                                                        : leaveAfterHandRequested
+                                                          ? 'Leaving after this hand. Withdraw unlocks once you stand up.'
+                                                          : 'Leave your seat to unlock withdraw.'}
                                                 </Text>
                                             </HStack>
                                         )}
@@ -490,6 +504,15 @@ const WithdrawButton = () => {
                         <ModalFooter px={8} pb={6} pt={1}>
                             <VStack w="100%" spacing={3}>
                             <Box position="relative" w="100%">
+                                {isUserSeated ? (
+                                    <LeaveSeatAction
+                                        onClick={onLeaveSeat}
+                                        isLeaveRequested={leaveAfterHandRequested}
+                                        settlementStuck={settlementStuck}
+                                        width="100%"
+                                        height="56px"
+                                    />
+                                ) : (
                                 <Button
                                     data-testid="withdraw-confirm-btn"
                                     w="100%"
@@ -568,6 +591,7 @@ const WithdrawButton = () => {
                                         />
                                     )}
                                 </Button>
+                                )}
                             </Box>
                             <Text
                                 fontSize="2xs"

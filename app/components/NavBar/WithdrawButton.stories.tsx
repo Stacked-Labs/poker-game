@@ -26,6 +26,7 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { FaCoins, FaInfoCircle } from 'react-icons/fa';
+import LeaveSeatAction from './Settings/LeaveSeatAction';
 
 // ─── Constants & animations (mirrored from WithdrawButton) ───────────────────
 const POLL_INTERVAL = 5;
@@ -49,6 +50,8 @@ interface WithdrawStoryProps {
     chipBalance: number;
     canWithdraw: boolean;
     isUserSeated: boolean;
+    leaveAfterHandRequested: boolean;
+    settlementStuck: boolean;
     isLoading: boolean;
     status: 'idle' | 'checking' | 'withdrawing';
     error: string | null;
@@ -66,6 +69,8 @@ const WithdrawButtonStory = ({
     chipBalance,
     canWithdraw,
     isUserSeated,
+    leaveAfterHandRequested,
+    settlementStuck,
     isLoading,
     status,
     error,
@@ -356,8 +361,11 @@ const WithdrawButtonStory = ({
                                                     color="inherit"
                                                     textAlign="left"
                                                 >
-                                                    You must leave the table
-                                                    before withdrawing.
+                                                    {settlementStuck
+                                                        ? 'Settlement in progress — leave temporarily unavailable.'
+                                                        : leaveAfterHandRequested
+                                                          ? 'Leaving after this hand. Withdraw unlocks once you stand up.'
+                                                          : 'Leave your seat to unlock withdraw.'}
                                                 </Text>
                                             </HStack>
                                         )}
@@ -433,6 +441,15 @@ const WithdrawButtonStory = ({
                         <ModalFooter px={8} pb={6} pt={1}>
                             <VStack w="100%" spacing={3}>
                             <Box position="relative" w="100%">
+                                {isUserSeated ? (
+                                    <LeaveSeatAction
+                                        onClick={() => {}}
+                                        isLeaveRequested={leaveAfterHandRequested}
+                                        settlementStuck={settlementStuck}
+                                        width="100%"
+                                        height="56px"
+                                    />
+                                ) : (
                                 <Button
                                     w="100%"
                                     h="56px"
@@ -508,6 +525,7 @@ const WithdrawButtonStory = ({
                                         />
                                     )}
                                 </Button>
+                                )}
                             </Box>
                                 <Text
                                     fontSize="2xs"
@@ -606,6 +624,14 @@ const meta = {
             control: 'boolean',
             description: 'Whether the user is currently seated at the table',
         },
+        leaveAfterHandRequested: {
+            control: 'boolean',
+            description: 'Whether the user has already queued a leave-after-hand request',
+        },
+        settlementStuck: {
+            control: 'boolean',
+            description: 'Whether on-chain settlement is currently blocking leave/withdraw',
+        },
         isLoading: {
             control: 'boolean',
             description: 'Whether a withdraw/check operation is in progress',
@@ -636,6 +662,8 @@ const meta = {
         chipBalance: 5000,
         canWithdraw: true,
         isUserSeated: false,
+        leaveAfterHandRequested: false,
+        settlementStuck: false,
         isLoading: false,
         status: 'idle',
         error: null,
@@ -668,9 +696,27 @@ export const ZeroBalance: Story = {
     args: { chipBalance: 0, canWithdraw: false, autoOpenModal: true },
 };
 
-/** User is seated — button blurred, orange warning in modal. */
+/** User is seated, no leave queued — modal shows pink outline "Leave seat" CTA. */
 export const UserSeated: Story = {
     args: { isUserSeated: true, autoOpenModal: true },
+};
+
+/** User is seated and has already queued a leave-after-hand — modal shows solid pink "Cancel leave" CTA. */
+export const UserSeatedLeaveRequested: Story = {
+    args: {
+        isUserSeated: true,
+        leaveAfterHandRequested: true,
+        autoOpenModal: true,
+    },
+};
+
+/** Settlement is stuck — leave button is disabled and hint explains the block. */
+export const UserSeatedSettlementStuck: Story = {
+    args: {
+        isUserSeated: true,
+        settlementStuck: true,
+        autoOpenModal: true,
+    },
 };
 
 /** Checking balance — spinner shown in modal body. */

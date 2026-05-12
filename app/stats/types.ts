@@ -255,6 +255,21 @@ export interface SettlementHealthResponse {
     timestamp: string;
 }
 
+export interface RakeLogEntry {
+    hand_id: string;
+    rake_chips: number;
+    platform_rake_usdc: number;
+    settled_at: string;
+    chain: string;
+}
+
+export interface RakeLogResponse {
+    success: boolean;
+    entries: RakeLogEntry[];
+    count: number;
+    timestamp: string;
+}
+
 export interface IndexerHealthData {
     height: number | null;
     chainTip: number | null;

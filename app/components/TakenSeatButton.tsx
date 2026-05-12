@@ -1737,10 +1737,10 @@ const TakenSeatButton = ({
                                                     sx={{
                                                         '@media (orientation: portrait)':
                                                             {
-                                                                height: '22px',
-                                                                width: '22px',
+                                                                height: '14px',
+                                                                width: '14px',
                                                                 fontSize:
-                                                                    '14px',
+                                                                    '11px',
                                                             },
                                                     }}
                                                     _hover={{
@@ -1766,8 +1766,8 @@ const TakenSeatButton = ({
                                             sx={{
                                                 '@media (orientation: portrait)':
                                                     {
-                                                        width: '22px',
-                                                        height: '22px',
+                                                        width: '14px',
+                                                        height: '14px',
                                                     },
                                             }}
                                         />

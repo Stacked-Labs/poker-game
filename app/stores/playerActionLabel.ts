@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 
-export type PlayerActionType = 'call' | 'bet' | 'raise' | 'all_in';
+export type PlayerActionType =
+    | 'call'
+    | 'bet'
+    | 'raise'
+    | 'all_in'
+    | 'check'
+    | 'fold';
 
 export type PlayerActionLabelEntry = {
     action: PlayerActionType;
@@ -45,6 +51,8 @@ export const PLAYER_ACTION_LABEL_TYPES: ReadonlyArray<PlayerActionType> = [
     'bet',
     'raise',
     'all_in',
+    'check',
+    'fold',
 ];
 
 export function isPlayerActionLabelType(
@@ -65,6 +73,10 @@ export function actionLabelText(action: PlayerActionType): string {
             return 'RAISE';
         case 'all_in':
             return 'ALL-IN';
+        case 'check':
+            return 'CHECK';
+        case 'fold':
+            return 'FOLD';
     }
 }
 
@@ -76,5 +88,9 @@ export function actionLabelColor(action: PlayerActionType): string {
             return 'brand.yellow';
         case 'all_in':
             return 'brand.pink';
+        case 'check':
+            return 'brand.green';
+        case 'fold':
+            return 'gray.500';
     }
 }

@@ -59,12 +59,17 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
 
     const handleCopy = async () => {
         if (!myCode) return;
+        const origin =
+            typeof window !== 'undefined' && window.location?.origin
+                ? window.location.origin
+                : 'https://stackedpoker.io';
+        const referralUrl = `${origin}/leaderboard?referralCode=${encodeURIComponent(myCode)}`;
         try {
-            await navigator.clipboard.writeText(myCode);
+            await navigator.clipboard.writeText(referralUrl);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch {
-            toast.error('Error', 'Failed to copy referral code', 2000);
+            toast.error('Error', 'Failed to copy referral link', 2000);
         }
     };
 

@@ -749,13 +749,7 @@ export async function getAdminRakeLog() {
     return await response.json();
 }
 
-// Chips → USDC display string (1 chip = 0.01 USDC; USDC_PER_CHIP = 10000, decimals = 6)
-function chipsToUsdc(chips: string | null | undefined): string {
-    if (!chips || chips === '0' || chips === 'null') return '0.00';
-    const n = parseFloat(chips);
-    if (isNaN(n)) return '0.00';
-    return (n / 100).toFixed(2);
-}
+
 
 export async function getIndexerHealth(chain: 'base-sepolia' | 'base' = 'base-sepolia'): Promise<{
     height: number | null;
@@ -783,10 +777,10 @@ export async function getIndexerHealth(chain: 'base-sepolia' | 'base' = 'base-se
         type StatsResp = {
             success?: boolean;
             data?: {
-                rake_all_time_chips?: number;
-                rake_24h_chips?: number;
-                rake_7d_chips?: number;
-                rake_30d_chips?: number;
+                rake_all_time_usdc?: number;
+                rake_24h_usdc?: number;
+                rake_7d_usdc?: number;
+                rake_30d_usdc?: number;
                 total_settled_hands?: number;
             };
         };
@@ -820,10 +814,10 @@ export async function getIndexerHealth(chain: 'base-sepolia' | 'base' = 'base-se
             chainTip,
             lag,
             healthy,
-            rakeAllTimeUsdc: chipsToUsdc(String(sd?.rake_all_time_chips ?? 0)),
-            rake24hUsdc:     chipsToUsdc(String(sd?.rake_24h_chips ?? 0)),
-            rake7dUsdc:      chipsToUsdc(String(sd?.rake_7d_chips ?? 0)),
-            rake30dUsdc:     chipsToUsdc(String(sd?.rake_30d_chips ?? 0)),
+            rakeAllTimeUsdc: (sd?.rake_all_time_usdc ?? 0).toFixed(2),
+            rake24hUsdc:     (sd?.rake_24h_usdc ?? 0).toFixed(2),
+            rake7dUsdc:      (sd?.rake_7d_usdc ?? 0).toFixed(2),
+            rake30dUsdc:     (sd?.rake_30d_usdc ?? 0).toFixed(2),
             totalHands:      sd?.total_settled_hands ?? 0,
         };
     } catch {

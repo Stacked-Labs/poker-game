@@ -53,6 +53,7 @@ const OnchainTab = ({ isActive }: OnchainTabProps) => {
         initialLoading: eventsInitialLoading,
         error: eventsError,
         hasMore,
+        scanLimitReached,
         loadMore,
     } = useOnchainTableEvents(contractAddress, chain, isActive);
 
@@ -100,6 +101,8 @@ const OnchainTab = ({ isActive }: OnchainTabProps) => {
                     initialLoading={eventsInitialLoading}
                     error={eventsError}
                     hasMore={hasMore}
+                    scanLimitReached={scanLimitReached}
+                    contractExplorerUrl={explorer.address(contractAddress)}
                     onLoadMore={loadMore}
                     explorerForTx={(hash) => explorer.tx(hash)}
                 />

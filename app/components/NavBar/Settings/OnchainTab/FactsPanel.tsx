@@ -141,12 +141,23 @@ const IdentitySection = ({
 
     return (
         <Box px={{ base: 3.5, md: 4 }} py={{ base: 3, md: 3.5 }}>
-            <SectionHeader icon={FiShield} label="Contract" accent="brand.navy" />
             <Flex direction="column" gap={2}>
-                <AddressChip
-                    address={contractAddress}
-                    explorerUrl={contractExplorerUrl}
-                />
+                <HStack spacing={2}>
+                    <Icon as={FiShield} boxSize={3} color="brand.navy" />
+                    <Text
+                        fontSize="2xs"
+                        color="text.muted"
+                        fontWeight="semibold"
+                        textTransform="uppercase"
+                        letterSpacing="0.04em"
+                    >
+                        Contract
+                    </Text>
+                    <AddressChip
+                        address={contractAddress}
+                        explorerUrl={contractExplorerUrl}
+                    />
+                </HStack>
                 {display && (
                     <HStack
                         spacing={1.5}

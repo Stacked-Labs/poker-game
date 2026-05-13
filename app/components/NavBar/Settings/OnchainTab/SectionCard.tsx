@@ -6,7 +6,7 @@ import type { IconType } from 'react-icons/lib/iconBase';
 interface SectionCardProps {
     icon?: IconType;
     title: string;
-    subtitle?: string;
+    subtitle?: React.ReactNode;
     accent?: 'green' | 'pink' | 'navy' | 'yellow';
     children: React.ReactNode;
     headerRight?: React.ReactNode;
@@ -14,6 +14,7 @@ interface SectionCardProps {
 
 interface AccentTokens {
     fg: string;
+    fgDark?: string;
     tile: string;
     tileDark: string;
 }
@@ -31,6 +32,7 @@ const ACCENT_TOKENS: Record<NonNullable<SectionCardProps['accent']>, AccentToken
     },
     navy: {
         fg: 'brand.navy',
+        fgDark: 'rgba(180, 197, 245, 1)',
         tile: 'rgba(51, 68, 121, 0.12)',
         tileDark: 'rgba(154, 173, 230, 0.18)',
     },
@@ -80,6 +82,11 @@ const SectionCard = ({
                             <Icon
                                 as={icon}
                                 color={tokens.fg}
+                                _dark={
+                                    tokens.fgDark
+                                        ? { color: tokens.fgDark }
+                                        : undefined
+                                }
                                 boxSize={{ base: 4, md: '18px' }}
                             />
                         </Flex>

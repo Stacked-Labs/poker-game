@@ -23,9 +23,10 @@ import type { IconType } from 'react-icons/lib/iconBase';
 import SectionCard from './SectionCard';
 import ExternalLink from '@/app/components/ExternalLink';
 import { formatUsdc, truncateAddress, truncateHash } from './formatters';
-import type {
-    OnchainEventName,
-    OnchainEventRow,
+import {
+    MAX_BLOCKS_BACK,
+    type OnchainEventName,
+    type OnchainEventRow,
 } from '@/app/hooks/useOnchainTableEvents';
 
 interface TransactionHistoryListProps {
@@ -34,8 +35,24 @@ interface TransactionHistoryListProps {
     initialLoading: boolean;
     error: string | null;
     hasMore: boolean;
+    scanLimitReached: boolean;
+    contractExplorerUrl: string | null;
     onLoadMore: () => void;
     explorerForTx: (hash: string) => string | null;
+}
+
+// Base block time is ~2s; format the scan window for the subtitle.
+function formatScanWindow(blocks: bigint): string {
+    const seconds = Number(blocks) * 2;
+    const hours = seconds / 3600;
+    if (hours < 1) {
+        const minutes = Math.round(seconds / 60);
+        return `~${minutes}m`;
+    }
+    if (hours < 48) {
+        return `~${Math.round(hours)}h`;
+    }
+    return `~${Math.round(hours / 24)}d`;
 }
 
 interface EventMeta {
@@ -163,14 +180,32 @@ const TransactionHistoryList = ({
     initialLoading,
     error,
     hasMore,
+    scanLimitReached,
+    contractExplorerUrl,
     onLoadMore,
     explorerForTx,
 }: TransactionHistoryListProps) => {
+    const scanWindow = formatScanWindow(MAX_BLOCKS_BACK);
     return (
         <SectionCard
             icon={FiActivity}
             title="Activity"
-            subtitle="Every deposit, settlement, and withdrawal — straight from the chain."
+            subtitle={
+                <>
+                    Showing the last {scanWindow} of activity.{' '}
+                    {contractExplorerUrl ? (
+                        <ExternalLink
+                            href={contractExplorerUrl}
+                            fontSize="2xs"
+                            iconSize="9px"
+                        >
+                            View full history
+                        </ExternalLink>
+                    ) : (
+                        'For full history, view the contract on the block explorer.'
+                    )}
+                </>
+            }
             accent="navy"
         >
             {initialLoading && events.length === 0 ? (
@@ -211,21 +246,28 @@ const TransactionHistoryList = ({
                         isDisabled={!hasMore || loading}
                     >
                         <Text fontSize="xs" fontWeight="semibold" color="text.secondary">
-                            {hasMore ? 'Load older' : 'Reached contract birth'}
+                            Load older
                         </Text>
                     </Button>
                 </Flex>
             )}
             {!hasMore && events.length > 0 && !loading && (
-                <Text
-                    fontSize="2xs"
-                    color="text.muted"
-                    textAlign="center"
-                    pt={3}
-                    opacity={0.7}
-                >
-                    You&apos;ve reached the contract&apos;s first block.
-                </Text>
+                <Flex justify="center" pt={3} gap={1.5} align="center" flexWrap="wrap">
+                    <Text fontSize="2xs" color="text.muted" opacity={0.7}>
+                        {scanLimitReached
+                            ? `Showing the last ${scanWindow} of activity.`
+                            : "You've reached the contract's first block."}
+                    </Text>
+                    {scanLimitReached && contractExplorerUrl && (
+                        <ExternalLink
+                            href={contractExplorerUrl}
+                            fontSize="2xs"
+                            iconSize="9px"
+                        >
+                            View older on block explorer
+                        </ExternalLink>
+                    )}
+                </Flex>
             )}
         </SectionCard>
     );

@@ -13,11 +13,12 @@ interface SeatedPlayersListProps {
 }
 
 const SeatedPlayersList = ({ players, explorerFor }: SeatedPlayersListProps) => {
+    const count = players?.length ?? null;
     return (
         <SectionCard
             icon={FiUsers}
-            title="Seated players (onchain)"
-            subtitle="Sourced from the contract's player list — not the game server."
+            title={count !== null ? `Seated · ${count}` : 'Seated'}
+            subtitle="From the contract — not the game server."
             accent="green"
         >
             {players === null ? (
@@ -26,10 +27,10 @@ const SeatedPlayersList = ({ players, explorerFor }: SeatedPlayersListProps) => 
                 </Text>
             ) : players.length === 0 ? (
                 <Text fontSize="xs" color="text.muted">
-                    No players seated onchain. Chips will appear here as soon as someone buys in.
+                    No players seated onchain yet.
                 </Text>
             ) : (
-                <Flex direction="column" gap={2}>
+                <Flex direction="column" gap={1.5}>
                     {players.map((player) => (
                         <PlayerRow
                             key={player.address}
@@ -55,15 +56,15 @@ const PlayerRow = ({
         <Flex
             align="center"
             justify="space-between"
-            gap={3}
+            gap={2}
             bg="card.lightGray"
             borderRadius="10px"
-            px={{ base: 2.5, md: 3 }}
-            py={{ base: 2, md: 2.5 }}
+            px={{ base: 2, md: 2.5 }}
+            py={2}
             border="1px solid transparent"
             _hover={{ borderColor: 'border.lightGray' }}
         >
-            <HStack spacing={2.5} minW={0} flex={1}>
+            <HStack spacing={1.5} minW={0} flex={1}>
                 <AddressChip
                     address={player.address}
                     explorerUrl={explorerUrl}
@@ -72,31 +73,27 @@ const PlayerRow = ({
                 {settling && (
                     <Text
                         fontSize="2xs"
-                        color="orange.500"
-                        _dark={{ color: 'orange.300' }}
-                        fontWeight="semibold"
+                        fontWeight="bold"
                         textTransform="uppercase"
                         letterSpacing="0.04em"
+                        color="orange.600"
+                        _dark={{ color: 'orange.300' }}
                     >
                         Settling
                     </Text>
                 )}
             </HStack>
-            <HStack
-                spacing={{ base: 3, md: 5 }}
-                align="baseline"
-                flexShrink={0}
-            >
+            <HStack spacing={{ base: 2.5, md: 3 }} align="baseline" flexShrink={0}>
                 <Stat label="Chips" value={formatChips(player.chips)} />
                 <Stat
-                    label="Deposited"
+                    label="In"
                     value={
                         <>
                             ${formatUsdc(player.usdcDeposited)}
                             <Image
                                 src="/usdc-logo.png"
                                 alt="USDC"
-                                boxSize="10px"
+                                boxSize="9px"
                                 display="inline-block"
                                 ml={1}
                                 mb="-1px"
@@ -126,12 +123,7 @@ const Stat = ({
         >
             {label}
         </Text>
-        <Text
-            fontSize={{ base: 'xs', md: 'sm' }}
-            fontWeight="bold"
-            color="text.secondary"
-            lineHeight="1.1"
-        >
+        <Text fontSize="xs" fontWeight="bold" color="text.secondary" lineHeight="1.1">
             {value}
         </Text>
     </Box>

@@ -12,9 +12,19 @@ import { client } from '@/app/thirdwebclient';
 
 const WINDOW_SIZE = BigInt(5_000);
 const MIN_PAGE_RESULTS = 20;
-const MAX_WINDOWS_PER_CALL = 12;
+const MAX_WINDOWS_PER_CALL = 2;
+export const MAX_BLOCKS_BACK = BigInt(10_000);
+const INTER_WINDOW_DELAY_MS = 150;
+const RATE_LIMIT_RETRY_MS = 1500;
 const ZERO = BigInt(0);
 const ONE = BigInt(1);
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+const isRateLimitError = (err: unknown): boolean => {
+    const msg = err instanceof Error ? err.message : String(err);
+    return /\b429\b|rate.?limit|too many requests/i.test(msg);
+};
 
 export type OnchainEventName =
     | 'PlayerDeposited'
@@ -88,6 +98,7 @@ interface UseOnchainTableEventsResult {
     initialLoading: boolean;
     error: string | null;
     hasMore: boolean;
+    scanLimitReached: boolean;
     loadMore: () => Promise<void>;
     reload: () => Promise<void>;
 }
@@ -111,8 +122,11 @@ export function useOnchainTableEvents(
     const [initialLoading, setInitialLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState(true);
+    const [scanLimitReached, setScanLimitReached] = useState(false);
     const cursorRef = useRef<bigint | null>(null);
+    const scanFloorRef = useRef<bigint | null>(null);
     const reachedGenesisRef = useRef(false);
+    const reachedScanFloorRef = useRef(false);
     const inFlight = useRef(false);
     const seenKeys = useRef<Set<string>>(new Set());
 
@@ -136,30 +150,50 @@ export function useOnchainTableEvents(
                     const rpc = getRpcClient({ client, chain });
                     const latest = await eth_blockNumber(rpc);
                     cursor = latest;
+                    scanFloorRef.current =
+                        latest > MAX_BLOCKS_BACK ? latest - MAX_BLOCKS_BACK : ZERO;
                 }
 
+                const floor = scanFloorRef.current ?? ZERO;
                 const collected: OnchainEventRow[] = [];
                 let windowsScanned = 0;
                 let reachedGenesis = false;
+                let reachedScanFloor = false;
 
                 while (
                     windowsScanned < MAX_WINDOWS_PER_CALL &&
                     cursor !== null &&
-                    cursor >= ZERO &&
+                    cursor >= floor &&
                     collected.length < MIN_PAGE_RESULTS
                 ) {
                     const toBlock: bigint = cursor;
-                    const fromBlock: bigint =
+                    const naturalFrom: bigint =
                         cursor >= WINDOW_SIZE - ONE
                             ? cursor - (WINDOW_SIZE - ONE)
                             : ZERO;
+                    const fromBlock: bigint =
+                        naturalFrom < floor ? floor : naturalFrom;
 
-                    const logs = await getContractEvents({
-                        contract,
-                        events: PREPARED_EVENTS,
-                        fromBlock,
-                        toBlock,
-                    });
+                    if (windowsScanned > 0) await sleep(INTER_WINDOW_DELAY_MS);
+
+                    let logs;
+                    try {
+                        logs = await getContractEvents({
+                            contract,
+                            events: PREPARED_EVENTS,
+                            fromBlock,
+                            toBlock,
+                        });
+                    } catch (err) {
+                        if (!isRateLimitError(err)) throw err;
+                        await sleep(RATE_LIMIT_RETRY_MS);
+                        logs = await getContractEvents({
+                            contract,
+                            events: PREPARED_EVENTS,
+                            fromBlock,
+                            toBlock,
+                        });
+                    }
 
                     for (const log of logs) {
                         const eventName = log.eventName as OnchainEventName;
@@ -181,12 +215,19 @@ export function useOnchainTableEvents(
                         reachedGenesis = true;
                         break;
                     }
+                    if (fromBlock === floor) {
+                        reachedScanFloor = true;
+                        break;
+                    }
                     cursor = fromBlock - ONE;
                 }
 
-                cursorRef.current = reachedGenesis ? null : cursor;
+                cursorRef.current =
+                    reachedGenesis || reachedScanFloor ? null : cursor;
                 reachedGenesisRef.current = reachedGenesis;
-                setHasMore(!reachedGenesis);
+                reachedScanFloorRef.current = reachedScanFloor;
+                setHasMore(!reachedGenesis && !reachedScanFloor);
+                setScanLimitReached(reachedScanFloor);
 
                 setEvents((prev) =>
                     sortDescending(isInitial ? collected : [...prev, ...collected])
@@ -210,25 +251,31 @@ export function useOnchainTableEvents(
 
     const reload = useCallback(async () => {
         cursorRef.current = null;
+        scanFloorRef.current = null;
         reachedGenesisRef.current = false;
+        reachedScanFloorRef.current = false;
         seenKeys.current = new Set();
         setEvents([]);
         setHasMore(true);
+        setScanLimitReached(false);
         await fetchWindow(true);
     }, [fetchWindow]);
 
     const loadMore = useCallback(async () => {
-        if (reachedGenesisRef.current) return;
+        if (reachedGenesisRef.current || reachedScanFloorRef.current) return;
         await fetchWindow(false);
     }, [fetchWindow]);
 
     useEffect(() => {
         if (!enabled || !contractAddress) return;
         cursorRef.current = null;
+        scanFloorRef.current = null;
         reachedGenesisRef.current = false;
+        reachedScanFloorRef.current = false;
         seenKeys.current = new Set();
         setEvents([]);
         setHasMore(true);
+        setScanLimitReached(false);
         fetchWindow(true);
     }, [enabled, contractAddress, fetchWindow]);
 
@@ -238,6 +285,7 @@ export function useOnchainTableEvents(
         initialLoading,
         error,
         hasMore,
+        scanLimitReached,
         loadMore,
         reload,
     };

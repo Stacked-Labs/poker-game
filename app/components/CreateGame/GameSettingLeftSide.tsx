@@ -36,6 +36,7 @@ import WalletButton from '@/app/components/WalletButton';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 import { useAuth } from '@/app/contexts/AuthContext';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { useRotatingMessages } from '@/app/hooks/useRotatingMessages';
 import { initSession } from '@/app/hooks/server_actions';
 import {
     useActiveAccount,
@@ -45,6 +46,12 @@ import {
 import { CHAIN_CONFIG } from '@/app/thirdwebclient';
 import Turnstile from 'react-turnstile';
 import { keyframes } from '@emotion/react';
+
+const CREATE_GAME_MESSAGES = [
+    'Deploying…',
+    'Verifying…',
+    'Decentralizing…',
+] as const;
 
 // Animations
 const fadeIn = keyframes`
@@ -136,6 +143,11 @@ const GameSettingLeftSide: React.FC = () => {
     const [selectedNetwork, setSelectedNetwork] =
         useState<string>(enabledChainIds[0] ?? 'base-sepolia');
     const [isLoading, setIsLoading] = useState(false);
+    const rotatingCreateLabel = useRotatingMessages(
+        CREATE_GAME_MESSAGES,
+        1600,
+        isLoading
+    );
     const address = useActiveAccount()?.address;
     const wallet = useActiveWallet();
     const { disconnect } = useDisconnect();
@@ -1374,7 +1386,7 @@ const GameSettingLeftSide: React.FC = () => {
                             fontSize="md"
                             borderRadius="16px"
                             isLoading={isLoading}
-                            loadingText="Creating..."
+                            loadingText={rotatingCreateLabel}
                             spinner={<Spinner size="md" color="white" />}
                             isDisabled={
                                 !isFormValid || !isCloudflareReady || isLoading

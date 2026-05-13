@@ -31,6 +31,7 @@ import WithdrawButton from './WithdrawButton';
 import { CHAIN_CONFIG, defaultChain } from '@/app/thirdwebclient';
 import {
     sendPauseGameCommand,
+    sendResumeGameCommand,
 } from '@/app/hooks/server_actions';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 
@@ -173,8 +174,8 @@ const TableMenuBurger = ({
                         <Item
                             button={
                                 <Tooltip
-                                    label="Pause Game"
-                                    aria-label="Pause game tooltip"
+                                    label={appState.game?.pendingPause ? 'Cancel Pause' : 'Pause Game'}
+                                    aria-label={appState.game?.pendingPause ? 'Cancel pause tooltip' : 'Pause game tooltip'}
                                 >
                                     <IconButton
                                         icon={
@@ -183,7 +184,7 @@ const TableMenuBurger = ({
                                                 boxSize={{ base: 4, md: 5 }}
                                             />
                                         }
-                                        aria-label="Pause Game"
+                                        aria-label={appState.game?.pendingPause ? 'Cancel Pause' : 'Pause Game'}
                                         size={{ base: 'md', md: 'md' }}
                                         px={2}
                                         py={2}
@@ -198,18 +199,32 @@ const TableMenuBurger = ({
                                             md: '48px',
                                         }}
                                         onClick={() => {
-                                            sendPauseGameCommand(socket);
+                                            if (appState.game?.pendingPause) {
+                                                sendResumeGameCommand(socket);
+                                            } else {
+                                                sendPauseGameCommand(socket);
+                                            }
                                         }}
-                                        bg="brand.yellow"
+                                        bg={appState.game?.pendingPause ? 'orange.400' : 'brand.yellow'}
                                         color="white"
                                         border="none"
                                         borderRadius="12px"
+                                        boxShadow={
+                                            appState.game?.pendingPause
+                                                ? 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B45A0B'
+                                                : 'inset 0 1px 0 rgba(255,255,255,0.30), 0 2px 0 #B78900'
+                                        }
+                                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                                         _hover={{
-                                            transform: 'translateY(-2px)',
-                                            boxShadow:
-                                                '0 4px 12px rgba(253, 197, 29, 0.4)',
+                                            bg: appState.game?.pendingPause ? 'orange.400' : 'brand.yellow',
                                         }}
-                                        transition="all 0.2s ease"
+                                        _active={{
+                                            bg: appState.game?.pendingPause ? 'orange.500' : 'brand.yellowDark',
+                                            transform: 'translateY(2px)',
+                                            boxShadow: appState.game?.pendingPause
+                                                ? 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B45A0B'
+                                                : 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
+                                        }}
                                     />
                                 </Tooltip>
                             }

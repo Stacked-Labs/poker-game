@@ -26,6 +26,7 @@ interface HealthTabProps {
     setSettlementChain: (v: 'base' | 'base-sepolia') => void;
     indexerChain: 'base-sepolia' | 'base';
     setIndexerChain: (v: 'base' | 'base-sepolia') => void;
+    onClearSettlement?: (tableName: string) => Promise<void>;
 }
 
 const tabular = { fontVariantNumeric: 'tabular-nums' as const };
@@ -79,6 +80,7 @@ export const HealthTab = ({
     setSettlementChain,
     indexerChain,
     setIndexerChain,
+    onClearSettlement,
 }: HealthTabProps) => {
     const pg  = health?.postgres;
     const rd  = health?.redis;
@@ -136,7 +138,7 @@ export const HealthTab = ({
                         </Flex>
                     }
                 >
-                    <SettlementSection data={settle} />
+                    <SettlementSection data={settle} onClear={onClearSettlement} />
                 </Card>
             </Box>
 

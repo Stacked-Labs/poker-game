@@ -22,6 +22,7 @@ import {
     getAdminTables,
     getAdminHealth,
     getAdminSettlementHealth,
+    clearAdminPendingSettlement,
     getIndexerHealth,
     getAdminSBTWhitelist,
     getAdminActionDistribution,
@@ -37,6 +38,7 @@ import type {
     ActionDistributionResponse,
 } from './types';
 import { RefreshIcon } from '../components/Stats/Primitives';
+import useToastHelper from '../hooks/useToastHelper';
 import { StatsTab } from '../components/Stats/StatsTab';
 import { TablesTab } from '../components/Stats/TablesTab';
 import { HealthTab } from '../components/Stats/HealthTab';
@@ -111,6 +113,18 @@ export default function AdminStatsPage() {
         const result = await Promise.allSettled([getAdminSettlementHealth(chain)]);
         if (result[0].status === 'fulfilled') setSettle(result[0].value);
     }, []);
+
+    const { success: toastSuccess, error: toastError } = useToastHelper();
+
+    const handleClearSettlement = useCallback(async (tableName: string) => {
+        try {
+            await clearAdminPendingSettlement(tableName);
+            toastSuccess('Settlement cleared', `Pending settlement for ${tableName} removed.`);
+            await loadSettlementData(settlementChainRef.current);
+        } catch (err) {
+            toastError('Clear failed', err instanceof Error ? err.message : 'Unknown error');
+        }
+    }, [loadSettlementData, toastSuccess, toastError]);
 
     const loadTablesData = useCallback(async (chain: 'base-sepolia' | 'base' | 'all') => {
         const result = await Promise.allSettled([getAdminTables({ chain })]);
@@ -397,6 +411,7 @@ export default function AdminStatsPage() {
                             setSettlementChain={setSettlementChain}
                             indexerChain={indexerChain}
                             setIndexerChain={setIndexerChain}
+                            onClearSettlement={handleClearSettlement}
                         />
                     </TabPanel>
 

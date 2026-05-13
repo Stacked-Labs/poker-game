@@ -153,12 +153,12 @@ const IdentitySection = ({
                         bg={
                             isTestnet
                                 ? 'rgba(237, 137, 54, 0.12)'
-                                : 'rgba(54, 163, 123, 0.10)'
+                                : 'rgba(0, 82, 255, 0.10)'
                         }
                         _dark={{
                             bg: isTestnet
                                 ? 'rgba(237, 137, 54, 0.18)'
-                                : 'rgba(54, 163, 123, 0.18)',
+                                : 'rgba(0, 82, 255, 0.22)',
                         }}
                         borderRadius="full"
                         px={2}
@@ -175,8 +175,10 @@ const IdentitySection = ({
                             fontWeight="bold"
                             letterSpacing="0.04em"
                             textTransform="uppercase"
-                            color={isTestnet ? 'orange.700' : 'brand.green'}
-                            _dark={{ color: isTestnet ? 'orange.200' : 'brand.green' }}
+                            color={isTestnet ? 'orange.700' : '#0052FF'}
+                            _dark={{
+                                color: isTestnet ? 'orange.200' : '#7AA2FF',
+                            }}
                         >
                             {display}
                         </Text>
@@ -231,7 +233,7 @@ const CustodySection = ({
 
     return (
         <Box px={{ base: 3.5, md: 4 }} py={{ base: 3, md: 3.5 }}>
-            <SectionHeader icon={FaCoins} label="Custody" accent="brand.green" />
+            <SectionHeader icon={FaCoins} label="Custody" accent="brand.yellow" />
             <Flex direction="column" gap={2}>
                 <Box>
                     <Text
@@ -440,7 +442,7 @@ const SettlementSection = ({
                                 textTransform="uppercase"
                                 letterSpacing="0.04em"
                             >
-                                Self-withdraw
+                                Emergency withdraw
                             </Text>
                         </HStack>
                         <Text
@@ -487,12 +489,12 @@ const SettlementSection = ({
                         }}
                     >
                         <Text fontSize="xs" fontWeight="bold" color="white">
-                            Pull from contract
+                            Emergency withdraw
                         </Text>
                     </Button>
                 )}
                 <Text fontSize="2xs" color="text.muted" lineHeight="1.5">
-                    If settlement stalls for 24 hours, you can pull your last-settled balance straight from the contract.
+                    Emergency withdraw unlocks 24 hours after the last settlement, letting you pull your last-settled balance straight from the contract.
                 </Text>
             </Flex>
         </Box>

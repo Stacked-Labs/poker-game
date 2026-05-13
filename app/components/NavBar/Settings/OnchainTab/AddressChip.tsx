@@ -69,11 +69,18 @@ const AddressChip = ({
                         }
                         onClick={handleCopy}
                         size="xs"
-                        variant="ghost"
+                        variant="unstyled"
                         color={copied ? 'brand.green' : 'text.muted'}
-                        minW="20px"
-                        h="20px"
-                        _hover={{ color: 'brand.green', bg: 'transparent' }}
+                        minW="18px"
+                        h="18px"
+                        display="inline-flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        border="none"
+                        outline="none"
+                        _hover={{ color: 'brand.green' }}
+                        _focus={{ boxShadow: 'none', outline: 'none' }}
+                        _focusVisible={{ boxShadow: 'none', outline: 'none' }}
                     />
                 </Tooltip>
             )}

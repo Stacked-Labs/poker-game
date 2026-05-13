@@ -12,11 +12,33 @@ interface SectionCardProps {
     headerRight?: React.ReactNode;
 }
 
-const ACCENT_COLOR: Record<NonNullable<SectionCardProps['accent']>, string> = {
-    green: 'brand.green',
-    pink: 'brand.pink',
-    navy: 'brand.navy',
-    yellow: 'brand.yellow',
+interface AccentTokens {
+    fg: string;
+    tile: string;
+    tileDark: string;
+}
+
+const ACCENT_TOKENS: Record<NonNullable<SectionCardProps['accent']>, AccentTokens> = {
+    green: {
+        fg: 'brand.green',
+        tile: 'rgba(54, 163, 123, 0.12)',
+        tileDark: 'rgba(54, 163, 123, 0.22)',
+    },
+    pink: {
+        fg: 'brand.pink',
+        tile: 'rgba(235, 11, 92, 0.12)',
+        tileDark: 'rgba(235, 11, 92, 0.22)',
+    },
+    navy: {
+        fg: 'brand.navy',
+        tile: 'rgba(51, 68, 121, 0.12)',
+        tileDark: 'rgba(154, 173, 230, 0.18)',
+    },
+    yellow: {
+        fg: 'brand.yellow',
+        tile: 'rgba(232, 168, 0, 0.14)',
+        tileDark: 'rgba(232, 168, 0, 0.22)',
+    },
 };
 
 const SectionCard = ({
@@ -27,6 +49,7 @@ const SectionCard = ({
     children,
     headerRight,
 }: SectionCardProps) => {
+    const tokens = ACCENT_TOKENS[accent];
     return (
         <Box
             bg="card.white"
@@ -38,29 +61,37 @@ const SectionCard = ({
             boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
         >
             <Flex
-                align={{ base: 'flex-start', md: 'center' }}
+                align="center"
                 justify="space-between"
                 gap={3}
                 mb={{ base: 2.5, md: 3 }}
-                direction={{ base: 'column', sm: 'row' }}
             >
-                <HStack spacing={2.5} align="center" minW={0}>
+                <HStack spacing={3} align="center" minW={0}>
                     {icon && (
-                        <Icon
-                            as={icon}
-                            color={ACCENT_COLOR[accent]}
-                            boxSize={{ base: 4, md: 4.5 }}
+                        <Flex
+                            align="center"
+                            justify="center"
+                            boxSize={{ base: '32px', md: '36px' }}
+                            borderRadius="10px"
+                            bg={tokens.tile}
+                            _dark={{ bg: tokens.tileDark }}
                             flexShrink={0}
-                        />
+                        >
+                            <Icon
+                                as={icon}
+                                color={tokens.fg}
+                                boxSize={{ base: 4, md: '18px' }}
+                            />
+                        </Flex>
                     )}
                     <Box minW={0}>
                         <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
+                            fontSize={{ base: 'sm', md: 'md' }}
                             fontWeight="bold"
                             color="text.primary"
                             textTransform="uppercase"
                             letterSpacing="0.06em"
-                            lineHeight="1.1"
+                            lineHeight="1.15"
                         >
                             {title}
                         </Text>

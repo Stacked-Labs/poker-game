@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext, useMemo } from 'react';
-import { Flex, Text } from '@chakra-ui/react';
+import { Flex, Grid, Text } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import {
     CHAIN_CONFIG,
@@ -11,11 +11,8 @@ import {
 import { useExplorerUrl } from '@/app/hooks/useExplorerUrl';
 import { useOnchainTableSnapshot } from '@/app/hooks/useOnchainTableSnapshot';
 import { useOnchainTableEvents } from '@/app/hooks/useOnchainTableEvents';
-import ContractIdentityCard from './ContractIdentityCard';
-import CustodySnapshotCard from './CustodySnapshotCard';
-import SettlementHealthCard from './SettlementHealthCard';
+import FactsPanel from './FactsPanel';
 import SeatedPlayersList from './SeatedPlayersList';
-import RakeSummaryCard from './RakeSummaryCard';
 import TransactionHistoryList from './TransactionHistoryList';
 
 interface OnchainTabProps {
@@ -40,9 +37,7 @@ const OnchainTab = ({ isActive }: OnchainTabProps) => {
     const explorer = useExplorerUrl(chainName);
 
     const isUserSeated = Boolean(
-        appState.game?.players?.some(
-            (p) => p.uuid === appState.clientID
-        )
+        appState.game?.players?.some((p) => p.uuid === appState.clientID)
     );
 
     const { snapshot, loading: snapshotLoading } = useOnchainTableSnapshot(
@@ -61,8 +56,6 @@ const OnchainTab = ({ isActive }: OnchainTabProps) => {
         loadMore,
     } = useOnchainTableEvents(contractAddress, chain, isActive);
 
-    const blockTimes = useMemo(() => new Map<string, number>(), []);
-
     if (!contractAddress || !config?.crypto) {
         return (
             <Flex justify="center" py={8}>
@@ -73,52 +66,45 @@ const OnchainTab = ({ isActive }: OnchainTabProps) => {
         );
     }
 
+    const creator = snapshot?.gameCreator ?? config.ownerAddress ?? null;
+
     return (
-        <Flex direction="column" gap={{ base: 3, md: 4 }}>
-            <ContractIdentityCard
-                contractAddress={contractAddress}
-                gameCreator={snapshot?.gameCreator ?? config.ownerAddress ?? null}
-                chain={chainName}
-                contractExplorerUrl={explorer.address(contractAddress)}
-                creatorExplorerUrl={
-                    (snapshot?.gameCreator ?? config.ownerAddress)
-                        ? explorer.address(
-                              snapshot?.gameCreator ?? (config.ownerAddress as string)
-                          )
-                        : null
-                }
-            />
-            <CustodySnapshotCard
-                contractUsdcBalance={snapshot?.contractUsdcBalance ?? null}
-                players={snapshot?.players ?? null}
-                loading={snapshotLoading}
-            />
-            <SettlementHealthCard
-                lastSettlement={snapshot?.lastSettlement ?? null}
+        <Grid
+            templateColumns={{ base: '1fr', lg: 'minmax(300px, 360px) 1fr' }}
+            gap={{ base: 3, md: 4 }}
+            alignItems="start"
+        >
+            <FactsPanel
                 contractAddress={contractAddress}
                 chain={chain}
+                chainName={chainName}
+                gameCreator={creator}
+                contractExplorerUrl={explorer.address(contractAddress)}
+                creatorExplorerUrl={
+                    creator ? explorer.address(creator) : null
+                }
+                contractUsdcBalance={snapshot?.contractUsdcBalance ?? null}
+                players={snapshot?.players ?? null}
+                lastSettlement={snapshot?.lastSettlement ?? null}
+                snapshotLoading={snapshotLoading}
                 isUserSeated={isUserSeated}
             />
-            <SeatedPlayersList
-                players={snapshot?.players ?? null}
-                explorerFor={(addr) => explorer.address(addr)}
-            />
-            <RakeSummaryCard
-                hostWithdrawable={snapshot?.hostWithdrawable ?? null}
-                events={events}
-                loading={snapshotLoading || eventsInitialLoading}
-            />
-            <TransactionHistoryList
-                events={events}
-                loading={eventsLoading}
-                initialLoading={eventsInitialLoading}
-                error={eventsError}
-                hasMore={hasMore}
-                onLoadMore={loadMore}
-                explorerForTx={(hash) => explorer.tx(hash)}
-                blockTimes={blockTimes}
-            />
-        </Flex>
+            <Flex direction="column" gap={{ base: 3, md: 4 }} minW={0}>
+                <SeatedPlayersList
+                    players={snapshot?.players ?? null}
+                    explorerFor={(addr) => explorer.address(addr)}
+                />
+                <TransactionHistoryList
+                    events={events}
+                    loading={eventsLoading}
+                    initialLoading={eventsInitialLoading}
+                    error={eventsError}
+                    hasMore={hasMore}
+                    onLoadMore={loadMore}
+                    explorerForTx={(hash) => explorer.tx(hash)}
+                />
+            </Flex>
+        </Grid>
     );
 };
 

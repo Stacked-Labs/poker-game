@@ -142,22 +142,6 @@ const IdentitySection = ({
     return (
         <Box px={{ base: 3.5, md: 4 }} py={{ base: 3, md: 3.5 }}>
             <Flex direction="column" gap={2}>
-                <HStack spacing={2}>
-                    <Icon as={FiShield} boxSize={3} color="brand.navy" />
-                    <Text
-                        fontSize="2xs"
-                        color="text.muted"
-                        fontWeight="semibold"
-                        textTransform="uppercase"
-                        letterSpacing="0.04em"
-                    >
-                        Contract
-                    </Text>
-                    <AddressChip
-                        address={contractAddress}
-                        explorerUrl={contractExplorerUrl}
-                    />
-                </HStack>
                 {display && (
                     <HStack
                         spacing={1.5}
@@ -195,12 +179,38 @@ const IdentitySection = ({
                         </Text>
                     </HStack>
                 )}
+                <HStack spacing={2}>
+                    <Icon
+                        as={FiShield}
+                        boxSize={3}
+                        color="brand.navy"
+                        _dark={{ color: 'rgba(180, 197, 245, 1)' }}
+                    />
+                    <Text
+                        fontSize="2xs"
+                        color="text.secondary"
+                        fontWeight="semibold"
+                        textTransform="uppercase"
+                        letterSpacing="0.04em"
+                    >
+                        Contract
+                    </Text>
+                    <AddressChip
+                        address={contractAddress}
+                        explorerUrl={contractExplorerUrl}
+                    />
+                </HStack>
                 {gameCreator && (
-                    <HStack spacing={2} pt={1}>
-                        <Icon as={FiUser} boxSize={3} color="text.muted" />
+                    <HStack spacing={2}>
+                        <Icon
+                            as={FiUser}
+                            boxSize={3}
+                            color="text.secondary"
+                            _dark={{ color: 'rgba(180, 197, 245, 1)' }}
+                        />
                         <Text
                             fontSize="2xs"
-                            color="text.muted"
+                            color="text.secondary"
                             fontWeight="semibold"
                             textTransform="uppercase"
                             letterSpacing="0.04em"

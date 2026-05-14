@@ -686,18 +686,26 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                     spacing={2}
                                     alignItems="flex-start"
                                     width="100%"
-                                    px={1}
+                                    bg="rgba(253, 197, 29, 0.12)"
+                                    _dark={{
+                                        bg: 'rgba(253, 197, 29, 0.10)',
+                                    }}
+                                    borderRadius="md"
+                                    px={3}
+                                    py={2}
                                 >
                                     <Icon
                                         as={FaInfoCircle}
                                         boxSize={3.5}
                                         mt={0.5}
-                                        color="brand.yellow"
+                                        color="brand.yellowDark"
+                                        _dark={{ color: 'brand.yellow' }}
                                     />
                                     <Text
                                         fontSize="xs"
                                         fontWeight="semibold"
-                                        color="text.muted"
+                                        color="brand.yellowDark"
+                                        _dark={{ color: 'brand.yellow' }}
                                         textAlign="left"
                                         lineHeight="short"
                                     >

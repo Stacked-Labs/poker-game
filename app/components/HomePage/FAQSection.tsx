@@ -63,7 +63,7 @@ const FAQSection = () => {
                     You can find our roadmap, game rules, and technical
                     architecture in the docs{' '}
                     <Link
-                        href="https://docs.stackedpoker.io"
+                        href="https://docs.stackedpoker.io/"
                         isExternal
                         textDecoration="none"
                         fontWeight="semibold"

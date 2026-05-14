@@ -154,7 +154,7 @@ const SettingsModal = ({
     const { appState } = useContext(AppContext);
     const config = appState.game?.config;
     const showOnchainTab = Boolean(config?.crypto && config?.contractAddress);
-    const onchainTabIndex = 6;
+    const onchainTabIndex = 3;
 
     // Resolve theme colors for CSS gradients (semantic tokens don't work in bgGradient)
     const tabBg = useColorModeValue('#ECEEF5', '#191414'); // card.lightGray
@@ -291,6 +291,13 @@ const SettingsModal = ({
                                         tone="green"
                                         icon={FiFileText}
                                     />
+                                    {showOnchainTab && (
+                                        <TabItem
+                                            text="Onchain"
+                                            tone="green"
+                                            icon={FiLink}
+                                        />
+                                    )}
                                     <TabItem
                                         text="Settings"
                                         tone="green"
@@ -306,13 +313,6 @@ const SettingsModal = ({
                                         tone="navy"
                                         icon={FiHelpCircle}
                                     />
-                                    {showOnchainTab && (
-                                        <TabItem
-                                            text="Onchain"
-                                            tone="navy"
-                                            icon={FiLink}
-                                        />
-                                    )}
                                 </TabList>
 
                                 {/* Left gradient + arrow */}
@@ -465,6 +465,19 @@ const SettingsModal = ({
                                     <GameLog />
                                 </GameEventsProvider>
                             </TabPanel>
+                            {showOnchainTab && (
+                                <TabPanel
+                                    px={{ base: 0, sm: 1, md: 2 }}
+                                    py={{ base: 1, md: 2 }}
+                                >
+                                    <OnchainTab
+                                        isActive={
+                                            isOpen &&
+                                            tabIndex === onchainTabIndex
+                                        }
+                                    />
+                                </TabPanel>
+                            )}
                             <TabPanel
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}
@@ -483,19 +496,6 @@ const SettingsModal = ({
                             >
                                 <HowTo />
                             </TabPanel>
-                            {showOnchainTab && (
-                                <TabPanel
-                                    px={{ base: 0, sm: 1, md: 2 }}
-                                    py={{ base: 1, md: 2 }}
-                                >
-                                    <OnchainTab
-                                        isActive={
-                                            isOpen &&
-                                            tabIndex === onchainTabIndex
-                                        }
-                                    />
-                                </TabPanel>
-                            )}
                         </TabPanels>
                     </Tabs>
                 </ModalBody>

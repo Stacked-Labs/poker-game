@@ -13,12 +13,12 @@ import {
     ResponsiveValue,
     HStack,
     Tag,
-    Icon,
     IconButton,
 } from '@chakra-ui/react';
-import { MdWifiOff, MdLocalCafe, MdLogout, MdPerson } from 'react-icons/md';
 import { FiSmile } from 'react-icons/fi';
 import ConnectXPrompt from './ConnectXPrompt';
+import SeatStatusChip from './SeatStatusChip';
+import { getSeatStatus } from '@/app/lib/seatStatus';
 import { keyframes } from '@emotion/react';
 import {
     motion,
@@ -370,6 +370,7 @@ const TakenSeatButton = ({
 
     // Offline status - default to true if undefined (backwards compatibility)
     const isOffline = player.isOnline === false;
+    const seatStatus = getSeatStatus(player, isSelf);
     const seatId = visualSeatId ?? player?.seatID ?? 4;
 
     const chipPositionSx = chipPositionStyles[seatId] || defaultPositionStyles;
@@ -1202,155 +1203,7 @@ const TakenSeatButton = ({
                                     : 'brand.darkNavy'
                         }
                     >
-                        {/* Status badges rendered above the container without affecting layout */}
-                        {/* Disconnected badge - shown when player loses connection */}
-                        {isOffline && (
-                            <Tag
-                                position="absolute"
-                                top={{ base: -2, md: -3 }}
-                                left={0}
-                                bg="gray.600"
-                                color="gray.100"
-                                variant="solid"
-                                size={{ base: 'xs', md: 'sm' }}
-                                fontSize={{ base: '8px', md: 'sm' }}
-                                px={{ base: 1, md: 2 }}
-                                py={{ base: 0.1, md: 0.2 }}
-                                zIndex={5}
-                                fontWeight="bold"
-                                borderRadius="6px"
-                                boxShadow="0 2px 8px rgba(0, 0, 0, 0.3)"
-                                display="flex"
-                                alignItems="center"
-                                gap={1}
-                            >
-                                <Icon
-                                    as={MdWifiOff}
-                                    boxSize={{ base: 2.5, md: 3 }}
-                                />
-                                <Text
-                                    as="span"
-                                    color="currentColor"
-                                    display={{ base: 'none', md: 'inline' }}
-                                >
-                                    Offline
-                                </Text>
-                            </Tag>
-                        )}
-                        {player.stack > 0 &&
-                            !player.ready &&
-                            (!isSelf || !player.in) &&
-                            !isOffline &&
-                            !player.leaveAfterHand && (
-                                <Tag
-                                    position="absolute"
-                                    top={{ base: -2, md: -3 }}
-                                    right={0}
-                                    bg={
-                                        player.readyNextHand
-                                            ? 'brand.lightGray'
-                                            : 'brand.yellow'
-                                    }
-                                    color="brand.lightGray"
-                                    variant="solid"
-                                    size={{ base: 'xs', md: 'sm' }}
-                                    fontSize={{ base: '8px', md: 'sm' }}
-                                    px={{ base: 1, md: 2 }}
-                                    py={{ base: 0.1, md: 0.2 }}
-                                    zIndex={3}
-                                    fontWeight="bold"
-                                    borderRadius="6px"
-                                    display="flex"
-                                    alignItems="center"
-                                    gap={1}
-                                >
-                                    <Icon
-                                        as={MdPerson}
-                                        color="brand.darkNavy"
-                                        boxSize={{ base: 2.5, md: 3 }}
-                                    />
-                                    <Text
-                                        as="span"
-                                        display={{ base: 'none', md: 'inline' }}
-                                        color="brand.darkNavy"
-                                    >
-                                        {player.readyNextHand
-                                            ? 'Joining...'
-                                            : 'Away'}
-                                    </Text>
-                                </Tag>
-                            )}
-                        {player.sitOutNextHand &&
-                            player.ready &&
-                            (!isSelf || !player.in) &&
-                            !isOffline &&
-                            !player.leaveAfterHand && (
-                                <Tag
-                                    position="absolute"
-                                    top={{ base: -2, md: -3 }}
-                                    right={0}
-                                    bg="brand.yellow"
-                                    color="brand.lightNavy"
-                                    variant="solid"
-                                    size={{ base: 'xs', md: 'sm' }}
-                                    fontSize={{ base: '8px', md: 'sm' }}
-                                    px={{ base: 1, md: 2 }}
-                                    py={{ base: 0.1, md: 0.2 }}
-                                    zIndex={3}
-                                    fontWeight="bold"
-                                    borderRadius="6px"
-                                    display="flex"
-                                    alignItems="center"
-                                    gap={1}
-                                >
-                                    <Icon
-                                        as={MdLocalCafe}
-                                        color="brand.lightNavy"
-                                        boxSize={{ base: 2.5, md: 3 }}
-                                    />
-                                    <Text
-                                        as="span"
-                                        color="brand.lightNavy"
-                                        display={{ base: 'none', md: 'inline' }}
-                                    >
-                                        Away..
-                                    </Text>
-                                </Tag>
-                            )}
-                        {player.leaveAfterHand &&
-                            (!isSelf || !player.in) &&
-                            !isOffline && (
-                                <Tag
-                                    position="absolute"
-                                    top={{ base: -2, md: -3 }}
-                                    left={0}
-                                    bg="brand.pink"
-                                    color="brand.lightGray"
-                                    variant="solid"
-                                    size={{ base: 'xs', md: 'sm' }}
-                                    fontSize={{ base: '8px', md: 'sm' }}
-                                    px={{ base: 1, md: 2 }}
-                                    py={{ base: 0.1, md: 0.2 }}
-                                    zIndex={4}
-                                    fontWeight="bold"
-                                    borderRadius="6px"
-                                    display="flex"
-                                    alignItems="center"
-                                    gap={1}
-                                >
-                                    <Icon
-                                        as={MdLogout}
-                                        boxSize={{ base: 2.5, md: 3 }}
-                                    />
-                                    <Text
-                                        as="span"
-                                        color="brand.lightGray"
-                                        display={{ base: 'none', md: 'inline' }}
-                                    >
-                                        Leaving..
-                                    </Text>
-                                </Tag>
-                            )}
+                        <SeatStatusChip kind={seatStatus.kind} />
                         {strengthLabel && (
                             <Tag
                                 position="absolute"

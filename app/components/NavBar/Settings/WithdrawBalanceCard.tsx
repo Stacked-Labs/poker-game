@@ -210,7 +210,7 @@ const WithdrawBalanceCard = () => {
                         </Text>
                     </HStack>
                 ) : (
-                    <HStack spacing={1.5} align="baseline" flex={1} minW={0}>
+                    <HStack spacing={1.5} align="center" flex={1} minW={0}>
                         <Text
                             fontSize={{ base: 'md', md: 'lg' }}
                             fontWeight="bold"
@@ -424,7 +424,7 @@ const WithdrawBalanceCard = () => {
                                 </Text>
                             </HStack>
                         ) : (
-                            <HStack spacing={1.5} align="baseline" flex={1} minW={0}>
+                            <HStack spacing={1.5} align="center" flex={1} minW={0}>
                                 <Text
                                     fontSize={{ base: 'md', md: 'lg' }}
                                     fontWeight="bold"

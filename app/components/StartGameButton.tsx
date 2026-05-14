@@ -5,11 +5,18 @@ import { AppContext } from '../contexts/AppStoreProvider';
 import { Button, Tooltip, IconButton, Icon } from '@chakra-ui/react';
 import useIsTableOwner from '../hooks/useIsTableOwner';
 import useToastHelper from '../hooks/useToastHelper';
+import { useRotatingMessages } from '../hooks/useRotatingMessages';
 import { FaPlay } from 'react-icons/fa';
 
 // Exceeds the server's 30s on-chain timeout in StartHandCommand.PreValidate so
 // the spinner only resets after the backend has truly given up.
 const START_TIMEOUT_MS = 35000;
+
+const STARTING_MESSAGES = [
+    'Shuffling…',
+    'Dealing in…',
+    'Verifying…',
+] as const;
 
 const StartGameButton = () => {
     const socket = useContext(SocketContext);
@@ -22,6 +29,11 @@ const StartGameButton = () => {
     const isOwner = useIsTableOwner();
     const toast = useToastHelper();
     const [isStarting, setIsStarting] = useState(false);
+    const rotatingStartLabel = useRotatingMessages(
+        STARTING_MESSAGES,
+        1600,
+        isStarting
+    );
 
     // First start of a crypto table blocks on an on-chain heartbeat tx, so the
     // update-game broadcast lags ~1–2s. Clear the spinner once the game flips
@@ -91,11 +103,11 @@ const StartGameButton = () => {
                     data-testid="start-game-btn-desktop"
                     variant="tactilePrimary"
                     size="md"
-                    paddingX={{ md: 12 }}
+                    paddingX={{ md: 6 }}
                     onClick={() => onClickStartGame(socket)}
                     isDisabled={isDisabled}
                     isLoading={isStarting}
-                    loadingText="Starting…"
+                    loadingText={rotatingStartLabel}
                     display={{ base: 'none', md: 'inline-flex' }}
                 >
                     Start

@@ -48,6 +48,13 @@ interface TakeSeatPreviewProps {
     showWithdrawFirst?: boolean;
     existingChipBalance?: string | null;
     isBalanceInsufficient?: boolean;
+    /**
+     * When true, simulates the BridgeWidget being available (mainnet, not in
+     * Mini App). The CTA flips to "Top up X USDC" and the deficit copy
+     * promises a top-up. When false, the CTA stays as "Sit down · $X" and
+     * the copy tells the user to fund externally.
+     */
+    canBridgeTopUp?: boolean;
     sb: number;
     bb: number;
     maxBuyIn: number;
@@ -77,6 +84,7 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
     showWithdrawFirst = false,
     existingChipBalance = null,
     isBalanceInsufficient = false,
+    canBridgeTopUp = true,
     sb,
     bb,
     maxBuyIn,
@@ -117,6 +125,18 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
 
     const formattedChips = buyIn.toLocaleString('en-US');
     const formattedUsdcEst = formatUsdc(buyIn);
+    // Deficit math mirrors production. Story passes usdcBalance as a decimal
+    // string; we compare it against the buy-in's USDC equivalent.
+    const buyInUsdc = buyIn / CHIPS_PER_USDC;
+    const balanceNum = usdcBalance ? Number(usdcBalance) : null;
+    const deficitUsdc =
+        isBalanceInsufficient && balanceNum !== null
+            ? Math.max(0, buyInUsdc - balanceNum).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+              })
+            : null;
+    const isTopUpMode = isCryptoGame && isBalanceInsufficient && canBridgeTopUp;
 
     const handleBuyInChange = (value: string) => {
         if (isCryptoGame) {
@@ -661,30 +681,30 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                 </HStack>
                             )}
 
-                            {isBalanceInsufficient && (
+                            {isBalanceInsufficient && deficitUsdc && usdcBalance && (
                                 <HStack
                                     spacing={2}
                                     alignItems="flex-start"
-                                    bg="red.50"
-                                    borderRadius="md"
-                                    px={3}
-                                    py={2}
                                     width="100%"
+                                    px={1}
                                 >
                                     <Icon
                                         as={FaInfoCircle}
                                         boxSize={3.5}
                                         mt={0.5}
-                                        color="red.700"
+                                        color="brand.yellow"
                                     />
                                     <Text
                                         fontSize="xs"
                                         fontWeight="semibold"
-                                        color="red.700"
+                                        color="text.muted"
                                         textAlign="left"
+                                        lineHeight="short"
                                     >
-                                        Insufficient USDC balance
-                                        {usdcBalance ? ` (you have ${usdcBalance} USDC)` : ''}.
+                                        You have {usdcBalance} USDC.{' '}
+                                        {canBridgeTopUp
+                                            ? `Top up ${deficitUsdc} to sit at this buy-in.`
+                                            : `Add ${deficitUsdc} USDC from your wallet to sit at this buy-in.`}
                                     </Text>
                                 </HStack>
                             )}
@@ -694,7 +714,11 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                 w="100%"
                                 h="56px"
                                 borderRadius="bigButton"
-                                isDisabled={isJoinDisabled && !isDepositing}
+                                isDisabled={
+                                    isTopUpMode
+                                        ? false
+                                        : isJoinDisabled && !isDepositing
+                                }
                                 isLoading={isDepositing}
                                 loadingText={
                                     depositStatusMessage || 'Processing...'
@@ -707,9 +731,11 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                     letterSpacing="0.02em"
                                     color="white"
                                 >
-                                    {isCryptoGame
-                                        ? `Sit down · $${formattedUsdcEst}`
-                                        : 'Join game'}
+                                    {!isCryptoGame
+                                        ? 'Join game'
+                                        : isTopUpMode && deficitUsdc
+                                          ? `Top up ${deficitUsdc} USDC`
+                                          : `Sit down · $${formattedUsdcEst}`}
                                 </Text>
                             </Button>
 
@@ -959,9 +985,13 @@ export const CryptoNotConnected: Story = {
     },
 };
 
-/** Insufficient balance — red warning banner + greyed chip stack. */
-export const InsufficientBalance: Story = {
-    name: 'Crypto · insufficient balance',
+/**
+ * Insufficient balance, Bridge available — CTA flips to "Top up X USDC"
+ * (single primary action). Slim chip-yellow deficit line above the CTA;
+ * no red banner. Tapping the CTA opens TopUpModal in production.
+ */
+export const CryptoInsufficientBalanceTopUp: Story = {
+    name: 'Crypto · insufficient balance (Top Up CTA)',
     args: {
         isCryptoGame: true,
         xUsername: '0xVoxin',
@@ -971,6 +1001,50 @@ export const InsufficientBalance: Story = {
         walletAddress: '0xFA0412345678901234567890123456789012445b',
         isConnected: true,
         isBalanceInsufficient: true,
+        canBridgeTopUp: true,
+        defaultBuyInChips: 1000,
+    },
+};
+
+/**
+ * Insufficient balance, Bridge unavailable (testnet or Mini App host) — CTA
+ * stays as "Sit down · $X" but the deficit hint tells the user to fund
+ * externally. State-aware slot, no double CTA.
+ */
+export const CryptoInsufficientBalanceNoBridge: Story = {
+    name: 'Crypto · insufficient balance (no Bridge — testnet/MiniApp)',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '2.50',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        isBalanceInsufficient: true,
+        canBridgeTopUp: false,
+        defaultBuyInChips: 1000,
+    },
+};
+
+/**
+ * Just topped up — balance refresh fired after BridgeWidget succeeded.
+ * Same modal, CTA reverted to "Sit down · $X" so the user can confirm
+ * with one final tap. (The visual continuity is what makes the state-aware
+ * pattern feel correct.)
+ */
+export const CryptoJustToppedUp: Story = {
+    name: 'Crypto · just topped up (CTA reverted to Sit down)',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '14.20',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        isBalanceInsufficient: false,
+        canBridgeTopUp: true,
         defaultBuyInChips: 1000,
     },
 };

@@ -45,7 +45,9 @@ import { useConnectX } from '@/app/hooks/useConnectX';
 import BuyInPresets from './TakeSeat/BuyInPresets';
 import StakesChip from './TakeSeat/StakesChip';
 import { readLastBuyIn, writeLastBuyIn } from '@/app/lib/takeSeat/lastBuyIn';
-import TopUpButton from './TopUp/TopUpButton';
+import TopUpModal from './TopUp/TopUpModal';
+import { useIsMiniApp } from '@/app/hooks/useIsMiniApp';
+import { isTestnetOnly } from '@/app/thirdwebclient';
 
 interface TakeSeatModalProps {
     isOpen: boolean;
@@ -215,6 +217,33 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         usdcBalance !== null &&
         buyInUsdc !== null &&
         buyInUsdc > Number(usdcBalance) / 1_000_000;
+
+    // Deficit math — how much USDC the user still needs to sit at this buy-in.
+    const deficitUsdc = useMemo(() => {
+        if (!isBalanceInsufficient || usdcBalance === null || buyInUsdc === null) {
+            return null;
+        }
+        return Math.max(0, buyInUsdc - Number(usdcBalance) / 1_000_000);
+    }, [isBalanceInsufficient, usdcBalance, buyInUsdc]);
+
+    const formattedDeficitUsdc = useMemo(() => {
+        if (deficitUsdc === null) return null;
+        return deficitUsdc.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    }, [deficitUsdc]);
+
+    // Bridge widget can only run on mainnet outside a Mini App host. When
+    // unavailable, we still surface the deficit hint but the CTA stays in
+    // "Sit down" mode (existing behavior — user tops up externally).
+    const isMiniApp = useIsMiniApp();
+    const canBridgeTopUp = !isTestnetOnly && !isMiniApp;
+    const isTopUpMode = Boolean(
+        isCryptoGame && isBalanceInsufficient && canBridgeTopUp
+    );
+
+    const topUp = useDisclosure();
 
     const formatUsdcInput = (value: number) => {
         if (!Number.isFinite(value)) return '';
@@ -874,8 +903,10 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             {isCryptoGame ? inputUnit : 'chips'}
                                         </Text>
                                     </Flex>
-                                    {/* Conversion line: show only the *other* unit */}
-                                    {isCryptoGame && formattedChipsEstimate && (
+                                    {/* Conversion line: show only the *other* unit.
+                                        Always rendered (visibility-hidden when empty)
+                                        so the modal height doesn't jump on input. */}
+                                    {isCryptoGame && (
                                         <Text
                                             mt={1.5}
                                             textAlign="right"
@@ -884,11 +915,17 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             fontWeight="bold"
                                             textTransform="uppercase"
                                             letterSpacing="0.06em"
+                                            visibility={
+                                                formattedChipsEstimate
+                                                    ? 'visible'
+                                                    : 'hidden'
+                                            }
+                                            aria-hidden={!formattedChipsEstimate}
                                         >
                                             ≈{' '}
                                             {inputUnit === 'usdc'
-                                                ? `${formattedChipsEstimate} chips`
-                                                : `$${formattedUsdcEstimate}`}
+                                                ? `${formattedChipsEstimate ?? '0'} chips`
+                                                : `$${formattedUsdcEstimate ?? '0.00'}`}
                                         </Text>
                                     )}
                                 </FormControl>
@@ -938,61 +975,36 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         </Text>
                                     </HStack>
                                 )}
-                                {isBalanceInsufficient && (
-                                    <VStack
-                                        spacing={2}
-                                        alignItems="stretch"
-                                        bg="red.50"
-                                        borderRadius="md"
-                                        px={3}
-                                        py={2}
-                                        width="100%"
-                                    >
+                                {isBalanceInsufficient &&
+                                    formattedDeficitUsdc &&
+                                    formattedUsdcBalance && (
                                         <HStack
                                             spacing={2}
                                             alignItems="flex-start"
+                                            width="100%"
+                                            px={1}
                                         >
                                             <Icon
                                                 as={FaInfoCircle}
                                                 boxSize={3.5}
                                                 mt={0.5}
-                                                color="red.700"
+                                                color="brand.yellow"
                                             />
                                             <Text
                                                 fontSize="xs"
                                                 fontWeight="semibold"
-                                                color="red.700"
+                                                color="text.muted"
                                                 textAlign="left"
+                                                lineHeight="short"
                                             >
-                                                Insufficient USDC balance
-                                                {formattedUsdcBalance
-                                                    ? ` (you have ${formattedUsdcBalance} USDC)`
-                                                    : ''}
-                                                .
+                                                You have {formattedUsdcBalance}{' '}
+                                                USDC.{' '}
+                                                {canBridgeTopUp
+                                                    ? `Top up ${formattedDeficitUsdc} to sit at this buy-in.`
+                                                    : `Add ${formattedDeficitUsdc} USDC from your wallet to sit at this buy-in.`}
                                             </Text>
                                         </HStack>
-                                        <TopUpButton
-                                            size="sm"
-                                            label="Top up with card or crypto"
-                                            amountUsdc={
-                                                buyInUsdc !== null &&
-                                                usdcBalance !== null
-                                                    ? Math.max(
-                                                          0,
-                                                          buyInUsdc -
-                                                              Number(
-                                                                  usdcBalance
-                                                              ) /
-                                                                  1_000_000
-                                                      ).toFixed(2)
-                                                    : undefined
-                                            }
-                                            onSuccess={() => {
-                                                refreshBalance();
-                                            }}
-                                        />
-                                    </VStack>
-                                )}
+                                    )}
                                 {depositStatus === 'error' && depositError && (
                                     <HStack
                                         spacing={2}
@@ -1041,14 +1053,20 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         cursor={
                                             isDepositing
                                                 ? 'wait'
-                                                : isJoinVisuallyDisabled
-                                                  ? 'not-allowed'
-                                                  : 'pointer'
+                                                : isTopUpMode
+                                                  ? 'pointer'
+                                                  : isJoinVisuallyDisabled
+                                                    ? 'not-allowed'
+                                                    : 'pointer'
                                         }
                                         aria-disabled={
-                                            isJoinVisuallyDisabled || undefined
+                                            isTopUpMode
+                                                ? undefined
+                                                : isJoinVisuallyDisabled || undefined
                                         }
-                                        isDisabled={isJoinDisabled}
+                                        isDisabled={
+                                            isTopUpMode ? false : isJoinDisabled
+                                        }
                                         isLoading={isDepositing}
                                         loadingText={
                                             getDepositStatusMessage() ||
@@ -1057,8 +1075,12 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         spinner={
                                             <Spinner size="sm" color="white" />
                                         }
-                                        onClick={handleJoin}
-                                        type="submit"
+                                        onClick={
+                                            isTopUpMode
+                                                ? topUp.onOpen
+                                                : handleJoin
+                                        }
+                                        type={isTopUpMode ? 'button' : 'submit'}
                                         data-testid="join-table-btn"
                                     >
                                         <Text
@@ -1067,11 +1089,14 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             letterSpacing="-0.01em"
                                             color="white"
                                         >
-                                            {isCryptoGame
-                                                ? formattedUsdcEstimate
+                                            {!isCryptoGame
+                                                ? 'Join game'
+                                                : isTopUpMode &&
+                                                    formattedDeficitUsdc
+                                                  ? `Top up ${formattedDeficitUsdc} USDC`
+                                                  : formattedUsdcEstimate
                                                     ? `Sit down · $${formattedUsdcEstimate}`
-                                                    : 'Sit down'
-                                                : 'Join game'}
+                                                    : 'Sit down'}
                                         </Text>
                                     </Button>
                                 </Tooltip>
@@ -1160,6 +1185,18 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                     </>
                 )}
             </ModalContent>
+            <TopUpModal
+                isOpen={topUp.isOpen}
+                onClose={topUp.onClose}
+                amountUsdc={formattedDeficitUsdc ?? undefined}
+                onSuccess={() => {
+                    // Settlement on Base takes ~30s; balance check on close is
+                    // optimistic. TakeSeatModal stays open so the user sees the
+                    // CTA flip from "Top up X" back to "Sit down".
+                    refreshBalance();
+                    topUp.onClose();
+                }}
+            />
         </Modal>
     );
 };

@@ -1,54 +1,65 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import {
     Box,
+    Button,
     DarkMode,
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalCloseButton,
-    ModalHeader,
-    ModalBody,
     HStack,
     Icon,
     Image,
+    Input,
+    InputGroup,
+    InputLeftAddon,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalHeader,
+    ModalOverlay,
+    Select,
     Spinner,
     Text,
     VStack,
-    Button,
     useDisclosure,
 } from '@chakra-ui/react';
-import { FaApple, FaInfoCircle, FaGoogle } from 'react-icons/fa';
+import { FaApple, FaGoogle, FaInfoCircle, FaArrowDown } from 'react-icons/fa';
 import { SiVisa } from 'react-icons/si';
 
 /**
  * Presentational replica of `TopUpModal` for visual review.
  *
- * The real modal renders thirdweb's `<BuyWidget>` which is a third-party
- * iframe whose internals we don't own. Storybook can't pre-fund a wallet
- * or hit a live onramp, so this replica reproduces the *modal chrome and
- * empty/loading/success/error states* we control — title, footer copy,
- * the inline amount the caller passes in. The widget body is represented
- * as a tabbed mock so you can review layout decisions without needing a
- * real BuyWidget render.
+ * The real modal renders thirdweb's `<BridgeWidget>`, a third-party iframe
+ * with two tabs: **Swap** (cross-chain crypto-to-USDC) and **Buy** (fiat
+ * onramp). Storybook can't run that widget against a live wallet or
+ * onramp, so this replica mirrors the *chrome and tab structure* we
+ * actually control — tab switcher, prefilled buy target, source/sell
+ * picker, and the four lifecycle states.
  */
 
 type ReplicaState = 'idle' | 'loading' | 'success' | 'error';
+type ReplicaTab = 'swap' | 'buy';
 
 interface TopUpModalStoryProps {
     amountUsdc?: string;
     state: ReplicaState;
+    defaultTab: ReplicaTab;
     autoOpenModal: boolean;
 }
 
 const TopUpModalReplica: React.FC<TopUpModalStoryProps> = ({
     amountUsdc = '10.00',
     state,
+    defaultTab,
     autoOpenModal,
 }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const [tab, setTab] = useState<ReplicaTab>(defaultTab);
+
+    useEffect(() => {
+        setTab(defaultTab);
+    }, [defaultTab]);
 
     useEffect(() => {
         if (autoOpenModal) onOpen();
@@ -79,41 +90,13 @@ const TopUpModalReplica: React.FC<TopUpModalStoryProps> = ({
                             fontWeight="medium"
                             mt={1}
                         >
-                            Pay with card or any crypto on any chain
+                            Swap any crypto or pay by card — settles on Base
                         </Text>
                     </ModalHeader>
 
                     <ModalBody pb={8}>
-                        <VStack spacing={4}>
-                            <HStack
-                                w="100%"
-                                p={3}
-                                bg="card.lightGray"
-                                borderRadius="12px"
-                                justify="space-between"
-                            >
-                                <Text
-                                    fontSize="xs"
-                                    color="text.muted"
-                                    textTransform="uppercase"
-                                    fontWeight={700}
-                                    letterSpacing="0.04em"
-                                >
-                                    Buying
-                                </Text>
-                                <HStack spacing={1}>
-                                    <Image
-                                        src="/usdc-logo.png"
-                                        alt="USDC"
-                                        boxSize="14px"
-                                    />
-                                    <Text fontWeight={700}>
-                                        {amountUsdc} USDC
-                                    </Text>
-                                </HStack>
-                            </HStack>
-
-                            {/* Mock tabs */}
+                        <VStack spacing={4} align="stretch">
+                            {/* Tab switcher — the BridgeWidget's defining feature */}
                             <HStack
                                 w="100%"
                                 bg="card.lightGray"
@@ -124,61 +107,219 @@ const TopUpModalReplica: React.FC<TopUpModalStoryProps> = ({
                                 <Button
                                     flex={1}
                                     size="sm"
-                                    bg="white"
-                                    color="text.secondary"
-                                    fontWeight={700}
+                                    bg={tab === 'swap' ? 'white' : 'transparent'}
+                                    color={
+                                        tab === 'swap'
+                                            ? 'text.secondary'
+                                            : 'text.muted'
+                                    }
+                                    fontWeight={tab === 'swap' ? 700 : 600}
                                     borderRadius="8px"
-                                    leftIcon={<Icon as={SiVisa} boxSize={4} />}
+                                    boxShadow={
+                                        tab === 'swap'
+                                            ? '0 1px 2px rgba(0,0,0,0.06)'
+                                            : 'none'
+                                    }
+                                    onClick={() => setTab('swap')}
+                                    leftIcon={<Icon as={FaArrowDown} boxSize={3} />}
                                 >
-                                    Card
+                                    Swap
                                 </Button>
                                 <Button
                                     flex={1}
                                     size="sm"
-                                    bg="transparent"
-                                    color="text.muted"
-                                    fontWeight={600}
+                                    bg={tab === 'buy' ? 'white' : 'transparent'}
+                                    color={
+                                        tab === 'buy'
+                                            ? 'text.secondary'
+                                            : 'text.muted'
+                                    }
+                                    fontWeight={tab === 'buy' ? 700 : 600}
                                     borderRadius="8px"
+                                    boxShadow={
+                                        tab === 'buy'
+                                            ? '0 1px 2px rgba(0,0,0,0.06)'
+                                            : 'none'
+                                    }
+                                    onClick={() => setTab('buy')}
+                                    leftIcon={<Icon as={SiVisa} boxSize={4} />}
                                 >
-                                    Crypto
+                                    Buy
                                 </Button>
                             </HStack>
 
-                            {/* Body — varies by state */}
-                            {state === 'idle' && (
-                                <VStack
-                                    w="100%"
-                                    spacing={2}
-                                    align="stretch"
-                                    py={2}
-                                >
+                            {/* Tab body */}
+                            {tab === 'swap' && state === 'idle' && (
+                                <VStack spacing={3} align="stretch">
+                                    <Text
+                                        fontSize="2xs"
+                                        color="text.muted"
+                                        textTransform="uppercase"
+                                        fontWeight={700}
+                                        letterSpacing="0.04em"
+                                    >
+                                        You pay
+                                    </Text>
+                                    <HStack
+                                        w="100%"
+                                        p={3}
+                                        bg="card.lightGray"
+                                        borderRadius="12px"
+                                        spacing={2}
+                                    >
+                                        <Select
+                                            size="sm"
+                                            variant="filled"
+                                            bg="white"
+                                            defaultValue="eth-arb"
+                                        >
+                                            <option value="eth-arb">
+                                                ETH · Arbitrum
+                                            </option>
+                                            <option value="usdc-eth">
+                                                USDC · Ethereum
+                                            </option>
+                                            <option value="usdc-poly">
+                                                USDC · Polygon
+                                            </option>
+                                        </Select>
+                                        <Input
+                                            size="sm"
+                                            bg="white"
+                                            placeholder="0.0"
+                                            textAlign="right"
+                                            fontWeight={700}
+                                        />
+                                    </HStack>
+
+                                    <HStack
+                                        justify="center"
+                                        py={1}
+                                        color="text.muted"
+                                    >
+                                        <Icon as={FaArrowDown} boxSize={3} />
+                                    </HStack>
+
+                                    <Text
+                                        fontSize="2xs"
+                                        color="text.muted"
+                                        textTransform="uppercase"
+                                        fontWeight={700}
+                                        letterSpacing="0.04em"
+                                    >
+                                        You receive
+                                    </Text>
+                                    <HStack
+                                        w="100%"
+                                        p={3}
+                                        bg="card.lightGray"
+                                        borderRadius="12px"
+                                        spacing={2}
+                                    >
+                                        <HStack flex={1}>
+                                            <Image
+                                                src="/usdc-logo.png"
+                                                alt="USDC"
+                                                boxSize="16px"
+                                            />
+                                            <Text fontWeight={700} fontSize="sm">
+                                                USDC · Base
+                                            </Text>
+                                        </HStack>
+                                        <Text fontWeight={700} color="text.muted">
+                                            ~{amountUsdc}
+                                        </Text>
+                                    </HStack>
+
                                     <Button
                                         size="md"
-                                        variant="outline"
-                                        leftIcon={
-                                            <Icon as={FaApple} boxSize={4} />
-                                        }
+                                        colorScheme="green"
+                                        mt={1}
                                     >
-                                        Pay with Apple Pay
+                                        Swap to USDC
                                     </Button>
-                                    <Button
-                                        size="md"
-                                        variant="outline"
-                                        leftIcon={
-                                            <Icon as={FaGoogle} boxSize={3.5} />
-                                        }
+                                </VStack>
+                            )}
+
+                            {tab === 'buy' && state === 'idle' && (
+                                <VStack spacing={3} align="stretch">
+                                    <Text
+                                        fontSize="2xs"
+                                        color="text.muted"
+                                        textTransform="uppercase"
+                                        fontWeight={700}
+                                        letterSpacing="0.04em"
                                     >
-                                        Pay with Google Pay
-                                    </Button>
-                                    <Button
-                                        size="md"
-                                        variant="outline"
-                                        leftIcon={
-                                            <Icon as={SiVisa} boxSize={4} />
-                                        }
+                                        Buying
+                                    </Text>
+                                    <HStack
+                                        w="100%"
+                                        p={3}
+                                        bg="card.lightGray"
+                                        borderRadius="12px"
+                                        spacing={2}
                                     >
-                                        Pay with credit card
-                                    </Button>
+                                        <HStack flex={1}>
+                                            <Image
+                                                src="/usdc-logo.png"
+                                                alt="USDC"
+                                                boxSize="16px"
+                                            />
+                                            <Text fontWeight={700} fontSize="sm">
+                                                USDC · Base
+                                            </Text>
+                                        </HStack>
+                                        <InputGroup size="sm" maxW="140px">
+                                            <InputLeftAddon
+                                                bg="white"
+                                                borderColor="transparent"
+                                                fontSize="sm"
+                                                fontWeight={700}
+                                            >
+                                                $
+                                            </InputLeftAddon>
+                                            <Input
+                                                bg="white"
+                                                defaultValue={amountUsdc}
+                                                textAlign="right"
+                                                fontWeight={700}
+                                            />
+                                        </InputGroup>
+                                    </HStack>
+
+                                    <VStack
+                                        w="100%"
+                                        spacing={2}
+                                        align="stretch"
+                                    >
+                                        <Button
+                                            size="md"
+                                            variant="outline"
+                                            leftIcon={
+                                                <Icon as={FaApple} boxSize={4} />
+                                            }
+                                        >
+                                            Pay with Apple Pay
+                                        </Button>
+                                        <Button
+                                            size="md"
+                                            variant="outline"
+                                            leftIcon={
+                                                <Icon as={FaGoogle} boxSize={3.5} />
+                                            }
+                                        >
+                                            Pay with Google Pay
+                                        </Button>
+                                        <Button
+                                            size="md"
+                                            variant="outline"
+                                            leftIcon={
+                                                <Icon as={SiVisa} boxSize={4} />
+                                            }
+                                        >
+                                            Pay with credit card
+                                        </Button>
+                                    </VStack>
                                 </VStack>
                             )}
 
@@ -191,7 +332,9 @@ const TopUpModalReplica: React.FC<TopUpModalStoryProps> = ({
                                 >
                                     <Spinner size="sm" color="brand.green" />
                                     <Text fontSize="sm" color="text.muted">
-                                        Processing payment…
+                                        {tab === 'swap'
+                                            ? 'Routing your swap…'
+                                            : 'Processing payment…'}
                                     </Text>
                                 </HStack>
                             )}
@@ -206,9 +349,13 @@ const TopUpModalReplica: React.FC<TopUpModalStoryProps> = ({
                                     spacing={2}
                                     align="flex-start"
                                 >
-                                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
+                                    <Icon
+                                        as={FaInfoCircle}
+                                        boxSize={3.5}
+                                        mt={0.5}
+                                    />
                                     <Text fontSize="xs" fontWeight={600}>
-                                        Payment complete — USDC arrived on Base.
+                                        Done — USDC arrived on Base.
                                     </Text>
                                 </HStack>
                             )}
@@ -229,8 +376,9 @@ const TopUpModalReplica: React.FC<TopUpModalStoryProps> = ({
                                         mt={0.5}
                                     />
                                     <Text fontSize="xs" fontWeight={600}>
-                                        Payment failed. Try a different card or
-                                        switch to the Crypto tab.
+                                        {tab === 'swap'
+                                            ? 'No route found for that token pair. Try a different source.'
+                                            : 'Payment failed. Try a different card or switch to Swap.'}
                                     </Text>
                                 </HStack>
                             )}
@@ -260,11 +408,18 @@ const meta = {
             control: { type: 'select' },
             options: ['idle', 'loading', 'success', 'error'],
         },
+        defaultTab: {
+            control: { type: 'select' },
+            options: ['swap', 'buy'],
+            description:
+                'Which BridgeWidget tab is active. Real widget defaults to Swap.',
+        },
         autoOpenModal: { control: 'boolean' },
     },
     args: {
         amountUsdc: '10.00',
         state: 'idle',
+        defaultTab: 'swap',
         autoOpenModal: false,
     },
 } satisfies Meta<typeof TopUpModalReplica>;
@@ -274,22 +429,32 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const ModalOpen: Story = {
-    args: { autoOpenModal: true },
+/** Modal open — Swap tab (the BridgeWidget default). */
+export const ModalOpenSwap: Story = {
+    args: { autoOpenModal: true, defaultTab: 'swap' },
 };
 
+/** Modal open — Buy tab (fiat onramp options). */
+export const ModalOpenBuy: Story = {
+    args: { autoOpenModal: true, defaultTab: 'buy' },
+};
+
+/** Loading — routing a swap or processing a card payment. */
 export const Loading: Story = {
     args: { autoOpenModal: true, state: 'loading' },
 };
 
+/** Success — USDC arrived on Base. */
 export const Success: Story = {
     args: { autoOpenModal: true, state: 'success' },
 };
 
-export const Error: Story = {
+/** Error — swap-no-route or card-failed copy depending on the active tab. */
+export const ErrorState: Story = {
     args: { autoOpenModal: true, state: 'error' },
 };
 
+/** Large amount pre-fill — e.g. a $250 buy-in. */
 export const LargeAmount: Story = {
     args: { autoOpenModal: true, amountUsdc: '250.00' },
 };

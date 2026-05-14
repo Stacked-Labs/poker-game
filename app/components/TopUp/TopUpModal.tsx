@@ -9,19 +9,32 @@ import {
     Box,
     useColorMode,
 } from '@chakra-ui/react';
-import { BuyWidget, darkTheme, lightTheme } from 'thirdweb/react';
+import { BridgeWidget, darkTheme, lightTheme } from 'thirdweb/react';
 import { client, MAINNET_CHAIN, MAINNET_USDC_ADDRESS } from '@/app/thirdwebclient';
 
 interface TopUpModalProps {
     isOpen: boolean;
     onClose: () => void;
-    /** Pre-fill amount in USDC, e.g. "12.50". User can edit. */
+    /** Pre-fill amount in USDC for the Buy tab, e.g. "12.50". User can edit. */
     amountUsdc?: string;
-    /** Fires after a successful purchase. */
+    /** Fires after a successful purchase or swap. */
     onSuccess?: () => void;
 }
 
-const TopUpModal: React.FC<TopUpModalProps> = ({ isOpen, onClose, amountUsdc, onSuccess }) => {
+// BridgeWidget gives users a tabbed surface: "Swap" lets them route any
+// token on any chain into USDC on Base; "Buy" runs the fiat onramp
+// (card / Apple Pay / Google Pay). One entry, both options.
+//
+// Both tabs target USDC on Base mainnet — thirdweb Bridge only routes
+// through mainnets (testnet token lists come back empty and crash the
+// widget), so this surface is hard-pinned regardless of which chain the
+// rest of the app is on.
+const TopUpModal: React.FC<TopUpModalProps> = ({
+    isOpen,
+    onClose,
+    amountUsdc,
+    onSuccess,
+}) => {
     const { colorMode } = useColorMode();
     const theme = colorMode === 'light' ? lightTheme() : darkTheme();
 
@@ -31,13 +44,28 @@ const TopUpModal: React.FC<TopUpModalProps> = ({ isOpen, onClose, amountUsdc, on
             <ModalContent bg="transparent" boxShadow="none" maxW="fit-content">
                 <ModalCloseButton zIndex={2} />
                 <Box display="flex" justifyContent="center">
-                    <BuyWidget
+                    <BridgeWidget
                         client={client}
-                        chain={MAINNET_CHAIN}
-                        tokenAddress={MAINNET_USDC_ADDRESS as `0x${string}`}
-                        amount={amountUsdc ?? '10'}
                         theme={theme}
-                        onSuccess={onSuccess}
+                        currency="USD"
+                        buy={{
+                            chainId: MAINNET_CHAIN.id,
+                            tokenAddress: MAINNET_USDC_ADDRESS,
+                            amount: amountUsdc ?? '10',
+                            buttonLabel: 'Buy USDC',
+                            onSuccess: () => onSuccess?.(),
+                        }}
+                        swap={{
+                            prefill: {
+                                // Lock the buy side to USDC on Base; let the
+                                // user pick whatever source token they hold.
+                                buyToken: {
+                                    chainId: MAINNET_CHAIN.id,
+                                    tokenAddress: MAINNET_USDC_ADDRESS,
+                                },
+                            },
+                            onSuccess: () => onSuccess?.(),
+                        }}
                     />
                 </Box>
             </ModalContent>

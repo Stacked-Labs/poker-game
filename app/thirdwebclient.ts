@@ -77,6 +77,14 @@ export const BASE_PAYMASTER_URL: string =
 // Wallet providers - Including social login options
 export const wallets = [
     inAppWallet({
+        // smartAccount turns social-login users into ERC-4337 smart accounts so
+        // thirdweb can sponsor gas for them (configured in the dashboard under
+        // Sponsored Transactions). Without this they're plain EOAs with no way
+        // to pay gas until they've already onboarded USDC.
+        smartAccount: {
+            chain: defaultChain,
+            sponsorGas: true,
+        },
         auth: {
             options: [
                 'google',

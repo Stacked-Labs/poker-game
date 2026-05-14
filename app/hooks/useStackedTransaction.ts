@@ -32,11 +32,12 @@ export interface UseStackedTransactionOptions {
  * 1. **Mini App host** (Coinbase Wallet, Farcaster) — host wallet handles gas.
  *    We submit each call serially via `sendAndConfirmTransaction` and skip our
  *    paymaster so we don't conflict with the host's own onramp/sponsorship.
- * 2. **Everyone else** (inApp 7702 smart account or external EOA with EIP-5792
- *    support) — `sendAndConfirmCalls` with `paymasterService.url` so gas is
- *    paid in USDC via the Base USDC ERC-20 paymaster. Calls in the array are
- *    bundled atomically when the wallet supports it (kills the need for
- *    approve-then-poll-allowance loops).
+ * 2. **In-app wallet** (social/email login) — ERC-4337 smart account with
+ *    thirdweb-sponsored gas. No USDC needed; sponsorship is configured in the
+ *    thirdweb dashboard under Sponsored Transactions.
+ * 3. **External EOA** (MetaMask, Coinbase, WalletConnect) — `sendAndConfirmCalls`
+ *    with `paymasterService.url` so gas is paid in USDC via the Base ERC-20
+ *    paymaster. Calls are bundled atomically when the wallet supports EIP-5792.
  *
  * Callers pass an array of prepared txs so they can batch (e.g. `[approveTx,
  * depositTx]`).
@@ -75,13 +76,18 @@ export function useStackedTransaction(
 
             // Default path: EIP-5792 sendCalls with USDC paymaster.
             try {
+                // In-app wallet users are ERC-4337 smart accounts with sponsorGas:true —
+                // thirdweb sponsors their gas for free (no USDC needed). Passing
+                // paymasterService would override that and charge them USDC, which new
+                // social-login users won't have yet.
+                const isInAppWallet = wallet.id === 'inApp';
                 const result = await sendAndConfirmCalls({
                     wallet,
                     // Cast: thirdweb's PreparedSendCall has a stricter abi
                     // generic than PreparedTransaction, but the runtime
                     // accepts any abi shape. See thirdweb#... type variance.
                     calls: calls as Parameters<typeof sendAndConfirmCalls>[0]['calls'],
-                    capabilities: BASE_PAYMASTER_URL
+                    capabilities: !isInAppWallet && BASE_PAYMASTER_URL
                         ? {
                               paymasterService: {
                                   url: BASE_PAYMASTER_URL,

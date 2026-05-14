@@ -13,7 +13,7 @@ import {
 } from '@chakra-ui/react';
 import VolumeButton from '../VolumeButton';
 import WalletButton from '../WalletButton';
-import { ReactElement, useContext } from 'react';
+import { ReactElement, useContext, useEffect, useState } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { FaPause } from 'react-icons/fa';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -31,6 +31,7 @@ import WithdrawButton from './WithdrawButton';
 import { CHAIN_CONFIG, defaultChain } from '@/app/thirdwebclient';
 import {
     sendPauseGameCommand,
+    sendResumeGameCommand,
 } from '@/app/hooks/server_actions';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 
@@ -70,6 +71,19 @@ const TableMenuBurger = ({
         (p) => p.uuid === appState.clientID
     );
     const leaveAfterHandRequested = Boolean(localPlayer?.leaveAfterHand);
+    const [optimisticPendingPause, setOptimisticPendingPause] = useState(false);
+
+    useEffect(() => {
+        setOptimisticPendingPause(false);
+    }, [appState.game?.pendingPause, appState.game?.paused]);
+
+    useEffect(() => {
+        if (!optimisticPendingPause) return;
+        const t = setTimeout(() => setOptimisticPendingPause(false), 15_000);
+        return () => clearTimeout(t);
+    }, [optimisticPendingPause]);
+
+    const effectivePendingPause = optimisticPendingPause || Boolean(appState.game?.pendingPause);
 
     // Don't render if no socket connection
     if (!socket) return null;
@@ -173,8 +187,8 @@ const TableMenuBurger = ({
                         <Item
                             button={
                                 <Tooltip
-                                    label="Pause Game"
-                                    aria-label="Pause game tooltip"
+                                    label={effectivePendingPause ? 'Cancel Pause' : 'Pause Game'}
+                                    aria-label={effectivePendingPause ? 'Cancel pause tooltip' : 'Pause game tooltip'}
                                 >
                                     <IconButton
                                         icon={
@@ -183,7 +197,7 @@ const TableMenuBurger = ({
                                                 boxSize={{ base: 4, md: 5 }}
                                             />
                                         }
-                                        aria-label="Pause Game"
+                                        aria-label={effectivePendingPause ? 'Cancel Pause' : 'Pause Game'}
                                         size={{ base: 'md', md: 'md' }}
                                         px={2}
                                         py={2}
@@ -198,18 +212,34 @@ const TableMenuBurger = ({
                                             md: '48px',
                                         }}
                                         onClick={() => {
-                                            sendPauseGameCommand(socket);
+                                            if (effectivePendingPause) {
+                                                setOptimisticPendingPause(false);
+                                                sendResumeGameCommand(socket);
+                                            } else {
+                                                setOptimisticPendingPause(true);
+                                                sendPauseGameCommand(socket);
+                                            }
                                         }}
-                                        bg="brand.yellow"
+                                        bg={effectivePendingPause ? 'orange.400' : 'brand.yellow'}
                                         color="white"
                                         border="none"
                                         borderRadius="12px"
+                                        boxShadow={
+                                            effectivePendingPause
+                                                ? 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B45A0B'
+                                                : 'inset 0 1px 0 rgba(255,255,255,0.30), 0 2px 0 #B78900'
+                                        }
+                                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                                         _hover={{
-                                            transform: 'translateY(-2px)',
-                                            boxShadow:
-                                                '0 4px 12px rgba(253, 197, 29, 0.4)',
+                                            bg: effectivePendingPause ? 'orange.400' : 'brand.yellow',
                                         }}
-                                        transition="all 0.2s ease"
+                                        _active={{
+                                            bg: effectivePendingPause ? 'orange.500' : 'brand.yellowDark',
+                                            transform: 'translateY(2px)',
+                                            boxShadow: effectivePendingPause
+                                                ? 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B45A0B'
+                                                : 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
+                                        }}
                                     />
                                 </Tooltip>
                             }

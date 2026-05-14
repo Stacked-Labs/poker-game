@@ -729,6 +729,19 @@ export async function getAdminSettlementHealth(chain?: 'base-sepolia' | 'base') 
     return await response.json();
 }
 
+export async function clearAdminPendingSettlement(tableName: string) {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/settlement-health/${encodeURIComponent(tableName)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+    });
+    if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error ?? `Clear failed: ${response.statusText}`);
+    }
+    return await response.json();
+}
+
 export async function getAdminActionDistribution() {
     isBackendUrlValid();
     const response = await fetch(`${backendUrl}/api/admin/stats/actions`, {

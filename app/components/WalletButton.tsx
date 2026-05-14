@@ -152,6 +152,10 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             chains={enabledChains}
             wallets={wallets}
             supportedTokens={supportedTokens}
+            accountAbstraction={{
+                chain: displayChain,
+                sponsorGas: false,
+            }}
             detailsButton={{
                 style: heroDetailsStyle ?? {
                     ...defaultButtonStyle,

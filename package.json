@@ -45,7 +45,7 @@
         "react-icons": "^5.5.0",
         "react-turnstile": "^1.1.4",
         "react-virtuoso": "^4.7.2",
-        "thirdweb": "^5.73.0",
+        "thirdweb": "^5.120.0",
         "three": "^0.168.0",
         "zustand": "^4.5.2"
     },

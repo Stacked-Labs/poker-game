@@ -249,3 +249,16 @@ Why each piece matters:
 - `type="text" inputMode="numeric"` — keeps the numeric keypad on mobile without `type="number"`'s DOM reconciliation quirk.
 - String state — `String(Number(digits))` strips leading zeros at write time, and the displayed string always matches state.
 - The decimal-detection branch fires a transient toast with a fixed `id` so spam keypresses don't stack notifications.
+
+
+## Theming thirdweb embedded widgets
+
+`BuyWidget`, `SwapWidget`, `ConnectButton`, and `PayEmbed` accept a `theme` prop that takes a thirdweb `lightTheme()` / `darkTheme()` object. Bridge Chakra → thirdweb at the call site:
+
+```tsx
+const { colorMode } = useColorMode();
+const theme = colorMode === 'light' ? lightTheme() : darkTheme();
+return <BuyWidget client={client} theme={theme} ... />;
+```
+
+Never modify the global Chakra `colorMode` to satisfy a widget — use the per-widget `theme` prop. See `app/components/TopUp/TopUpModal.tsx` for the canonical pattern.

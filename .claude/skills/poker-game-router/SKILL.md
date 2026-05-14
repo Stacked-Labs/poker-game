@@ -37,6 +37,9 @@ Use `web3-thirdweb-siwe` when:
 - Working with `thirdweb/react` hooks (`useActiveAccount`, `useActiveWallet`, etc)
 - Debugging auth loops, signature issues, disconnect behavior, or CSP issues
 - Updating `next.config.js` CSP headers related to thirdweb embedded wallet
+- Sending on-chain transactions (always via `useStackedTransaction` — never `useSendAndConfirmTransaction` directly)
+- Adding onramp / top-up / "buy USDC" UI (BuyWidget, TopUpModal/TopUpButton)
+- ERC-1271 / smart account signature verification questions
 
 ### Storybook / component visualization
 

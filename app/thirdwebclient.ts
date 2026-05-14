@@ -59,9 +59,20 @@ export const supportedTokens = Object.fromEntries(
         })
 );
 
+// Bundler / paymaster endpoint for EIP-5792 sendCalls. Format:
+//   https://{chainId}.bundler.thirdweb.com/{clientId}
+// We pass this as `capabilities.paymasterService.url` so the user's USDC pays
+// gas via the Base USDC ERC-20 paymaster. Users never need ETH.
+export const BASE_PAYMASTER_URL: string =
+    process.env.NEXT_PUBLIC_THIRDWEB_BUNDLER_URL ?? '';
+
 // Wallet providers - Including social login options
 export const wallets = [
-    // In-App Wallet with social login options
+    // In-App Wallet with social login options.
+    // executionMode EIP7702 upgrades the user's EOA to a smart account at the
+    // same address. sponsorGas:false means we don't blanket-sponsor — gas is
+    // paid in USDC via the paymaster attached to each sendCalls (see
+    // useStackedTransaction).
     inAppWallet({
         auth: {
             options: [
@@ -75,8 +86,13 @@ export const wallets = [
                 'phone',
             ],
         },
+        executionMode: {
+            mode: 'EIP7702',
+            sponsorGas: false,
+        },
     }),
-    // Traditional crypto wallets
+    // Traditional crypto wallets. 7702 upgrade for these happens at
+    // sendCalls-time via EIP-5792 (no wallet-level config needed here).
     createWallet('io.metamask'),
     createWallet('com.coinbase.wallet'),
     createWallet('walletConnect'),

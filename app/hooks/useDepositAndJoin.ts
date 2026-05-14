@@ -3,18 +3,15 @@
 import { useState, useCallback } from 'react';
 import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
+import { useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { approve, allowance, balanceOf } from 'thirdweb/extensions/erc20';
 import { client } from '../thirdwebclient';
-
-const ALLOWANCE_POLL_INTERVAL_MS = 1500;
-const ALLOWANCE_POLL_MAX_ATTEMPTS = 10;
+import { useStackedTransaction } from './useStackedTransaction';
 
 export type DepositStatus =
     | 'idle'
-    | 'checking_allowance'
-    | 'approving'
-    | 'depositing'
+    | 'checking_balance'
+    | 'submitting'
     | 'success'
     | 'error';
 
@@ -41,7 +38,7 @@ export function useDepositAndJoin(
     const [error, setError] = useState<string | null>(null);
     const [usdcBalance, setUsdcBalance] = useState<bigint | null>(null);
 
-    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
+    const sendStackedTx = useStackedTransaction();
     const switchChain = useSwitchActiveWalletChain();
 
     const reset = useCallback(() => {
@@ -99,8 +96,8 @@ export function useDepositAndJoin(
 
                 await switchChain(chain);
 
-                // Step 1: Check USDC balance
-                setStatus('checking_allowance');
+                // Balance check (UX gate — the smart-account validates onchain too).
+                setStatus('checking_balance');
                 const userBalance = await balanceOf({
                     contract: usdcContract,
                     address: account.address,
@@ -120,56 +117,37 @@ export function useDepositAndJoin(
                     return false;
                 }
 
-                // Step 2: Check allowance
+                // Build approve + depositAndJoin as a batched bundle. With
+                // EIP-5792 these submit atomically — no allowance polling
+                // needed because the deposit can't observe a stale allowance.
+                // Skip the approve call if allowance is already sufficient
+                // (saves the user a paymaster fee on subsequent buy-ins).
                 const currentAllowance = await allowance({
                     contract: usdcContract,
                     owner: account.address,
                     spender: contractAddress,
                 });
 
+                const calls = [] as ReturnType<typeof prepareContractCall>[];
                 if (currentAllowance < usdcAmount) {
-                    setStatus('approving');
-
-                    const approveTx = approve({
-                        contract: usdcContract,
-                        spender: contractAddress,
-                        amountWei: usdcAmount,
-                    });
-
-                    await sendAndConfirm(approveTx);
-
-                    // Wait for allowance to propagate — RPC nodes can lag behind
-                    let confirmed = false;
-                    for (let i = 0; i < ALLOWANCE_POLL_MAX_ATTEMPTS; i++) {
-                        const updatedAllowance = await allowance({
+                    calls.push(
+                        approve({
                             contract: usdcContract,
-                            owner: account.address,
                             spender: contractAddress,
-                        });
-                        if (updatedAllowance >= usdcAmount) {
-                            confirmed = true;
-                            break;
-                        }
-                        await new Promise((r) => setTimeout(r, ALLOWANCE_POLL_INTERVAL_MS));
-                    }
-
-                    if (!confirmed) {
-                        setError('USDC approval confirmed on-chain but not yet visible. Please try again.');
-                        setStatus('error');
-                        return false;
-                    }
+                            amountWei: usdcAmount,
+                        })
+                    );
                 }
+                calls.push(
+                    prepareContractCall({
+                        contract: pokerContract,
+                        method: 'function depositAndJoin(uint256 chipAmount)',
+                        params: [BigInt(chipAmount)],
+                    })
+                );
 
-                // Step 4: Deposit and join
-                setStatus('depositing');
-
-                const depositTx = prepareContractCall({
-                    contract: pokerContract,
-                    method: 'function depositAndJoin(uint256 chipAmount)',
-                    params: [BigInt(chipAmount)],
-                });
-
-                await sendAndConfirm(depositTx);
+                setStatus('submitting');
+                await sendStackedTx(calls);
 
                 setStatus('success');
                 return true;
@@ -180,7 +158,7 @@ export function useDepositAndJoin(
                 return false;
             }
         },
-        [account?.address, contractAddress, chain, usdcAddress, sendAndConfirm, switchChain]
+        [account?.address, contractAddress, chain, usdcAddress, sendStackedTx, switchChain]
     );
 
     return {

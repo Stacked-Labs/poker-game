@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Button, type ButtonProps, useDisclosure } from '@chakra-ui/react';
 import TopUpModal from './TopUpModal';
 import { useIsMiniApp } from '@/app/hooks/useIsMiniApp';
+import { isTestnetOnly } from '@/app/thirdwebclient';
 
 interface TopUpButtonProps extends Omit<ButtonProps, 'onClick'> {
     /** Optional pre-fill (USDC decimal string). Caller can omit to let user pick. */
@@ -22,6 +23,9 @@ const TopUpButton: React.FC<TopUpButtonProps> = ({
     const { isOpen, onOpen, onClose } = useDisclosure();
     const isMiniApp = useIsMiniApp();
     const [refreshKey, setRefreshKey] = useState(0);
+
+    // thirdweb Bridge only works on mainnet — hide on testnet-only deployments.
+    if (isTestnetOnly) return null;
 
     // Inside a Mini App host (Coinbase Wallet, Farcaster), the host has its
     // own onramp. We hide ours so we don't nest a webview onramp inside one.

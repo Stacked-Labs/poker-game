@@ -10,30 +10,18 @@ import {
     useColorMode,
 } from '@chakra-ui/react';
 import { BuyWidget, darkTheme, lightTheme } from 'thirdweb/react';
-import type { Chain } from 'thirdweb';
-import { client, defaultChain, defaultUsdcAddress } from '@/app/thirdwebclient';
+import { client, MAINNET_CHAIN, MAINNET_USDC_ADDRESS } from '@/app/thirdwebclient';
 
 interface TopUpModalProps {
     isOpen: boolean;
     onClose: () => void;
     /** Pre-fill amount in USDC, e.g. "12.50". User can edit. */
     amountUsdc?: string;
-    /** Override chain (defaults to defaultChain from thirdwebclient). */
-    chain?: Chain;
-    /** Override token (defaults to USDC on the chain). */
-    tokenAddress?: string;
-    /** Fires after a successful purchase. Caller typically refreshes balance. */
+    /** Fires after a successful purchase. */
     onSuccess?: () => void;
 }
 
-const TopUpModal: React.FC<TopUpModalProps> = ({
-    isOpen,
-    onClose,
-    amountUsdc,
-    chain,
-    tokenAddress,
-    onSuccess,
-}) => {
+const TopUpModal: React.FC<TopUpModalProps> = ({ isOpen, onClose, amountUsdc, onSuccess }) => {
     const { colorMode } = useColorMode();
     const theme = colorMode === 'light' ? lightTheme() : darkTheme();
 
@@ -45,18 +33,11 @@ const TopUpModal: React.FC<TopUpModalProps> = ({
                 <Box display="flex" justifyContent="center">
                     <BuyWidget
                         client={client}
-                        chain={chain ?? defaultChain}
-                        tokenAddress={
-                            (tokenAddress ?? defaultUsdcAddress) as `0x${string}`
-                        }
-                        amount={amountUsdc}
-                        paymentMethods={['crypto', 'card']}
-                        currency="USD"
+                        chain={MAINNET_CHAIN}
+                        tokenAddress={MAINNET_USDC_ADDRESS as `0x${string}`}
+                        amount={amountUsdc ?? '10'}
                         theme={theme}
-                        showThirdwebBranding={false}
-                        onSuccess={() => {
-                            onSuccess?.();
-                        }}
+                        onSuccess={onSuccess}
                     />
                 </Box>
             </ModalContent>

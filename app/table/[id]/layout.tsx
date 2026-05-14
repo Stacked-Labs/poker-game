@@ -53,7 +53,8 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
         </>
     );
 
-    const isUITest = IS_DEV && params.id === 'ui-test';
+    const tableId = params.id.toLowerCase();
+    const isUITest = IS_DEV && tableId === 'ui-test';
 
     return (
         <GameViewport>
@@ -69,7 +70,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
                 {isUITest ? (
                     <MockSocketProvider>{content}</MockSocketProvider>
                 ) : (
-                    <SocketProvider tableId={params.id}>{content}</SocketProvider>
+                    <SocketProvider tableId={tableId}>{content}</SocketProvider>
                 )}
             </Flex>
         </GameViewport>

@@ -1,6 +1,7 @@
 import Table from '@/app/components/Table';
 import { Flex } from '@chakra-ui/react';
 import { Metadata, ResolvingMetadata } from 'next';
+import { redirect } from 'next/navigation';
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -61,6 +62,9 @@ export async function generateMetadata(
 
 const TablePage = async ({ params }: Props) => {
     const { id } = await params;
+    if (id !== id.toLowerCase()) {
+        redirect(`/table/${id.toLowerCase()}`);
+    }
     const tableId = id.toLowerCase();
 
     return (

@@ -11,7 +11,7 @@ export const FAQs: FAQ[] = [
     },
     {
         question: 'Where can I learn more?',
-        answer: 'You can find our roadmap, game rules, and technical architecture in the docs: https://docs.stackedpoker.io',
+        answer: 'You can find our roadmap, game rules, and technical architecture in the docs: https://docs.stackedpoker.io/',
     },
     {
         question: 'Do I need to download an app or create an account to play?',

@@ -7,7 +7,6 @@ import { useSendAndConfirmTransaction, useActiveAccount, useSwitchActiveWalletCh
 import { approve, allowance, balanceOf } from 'thirdweb/extensions/erc20';
 import { client } from '../thirdwebclient';
 
-const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 const ALLOWANCE_POLL_INTERVAL_MS = 1500;
 const ALLOWANCE_POLL_MAX_ATTEMPTS = 10;
 
@@ -128,14 +127,13 @@ export function useDepositAndJoin(
                     spender: contractAddress,
                 });
 
-                // Step 3: Approve max if needed (standard DeFi pattern — one-time approval)
                 if (currentAllowance < usdcAmount) {
                     setStatus('approving');
 
                     const approveTx = approve({
                         contract: usdcContract,
                         spender: contractAddress,
-                        amountWei: MAX_UINT256,
+                        amountWei: usdcAmount,
                     });
 
                     await sendAndConfirm(approveTx);

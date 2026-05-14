@@ -139,7 +139,7 @@ const Footer = () => {
                             Resources
                         </Text>
                         <Link
-                            href="https://docs.stackedpoker.io/docs/introduction"
+                            href="https://docs.stackedpoker.io/"
                             isExternal
                             color="text.secondary"
                             fontSize="sm"

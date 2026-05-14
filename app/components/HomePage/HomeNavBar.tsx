@@ -73,7 +73,7 @@ const HomeNavBar: React.FC = () => {
             </Button>
             <Button
                 as="a"
-                href="https://docs.stackedpoker.io/docs/introduction"
+                href="https://docs.stackedpoker.io/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Documentation"
@@ -436,7 +436,7 @@ const HomeNavBar: React.FC = () => {
                             <VStack spacing={1} align="stretch">
                                 <Button
                                     as="a"
-                                    href="https://docs.stackedpoker.io/docs/introduction"
+                                    href="https://docs.stackedpoker.io/"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={onClose}

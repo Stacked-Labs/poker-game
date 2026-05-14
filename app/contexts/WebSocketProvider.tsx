@@ -49,10 +49,12 @@ type SocketProviderProps = {
     tableId: string;
 };
 
-const TOAST_ID_RECONNECTING = 'attemptReconnection';
 const TOAST_ID_RECONNECTED = 'isReconnected';
 const SETTLEMENT_PENDING_SPINNER_DELAY_MS = 3000;
 const SETTLEMENT_SUCCESS_DISPLAY_MS = 2500;
+// Suppress the "Reconnected" toast for blips shorter than this — tab-switch
+// reconnects and sub-3s network hiccups would otherwise spam users.
+const RECONNECT_TOAST_GRACE_MS = 3000;
 
 export function SocketProvider(props: SocketProviderProps) {
     const { tableId } = props;
@@ -70,6 +72,8 @@ export function SocketProvider(props: SocketProviderProps) {
     const appStateRef = useRef(appState);
     const isReconnectingRef = useRef(false);
     const manualCloseRef = useRef(false);
+    const disconnectedAtRef = useRef<number | null>(null);
+    const connectionLostShownRef = useRef(false);
     const winSoundPlayedRef = useRef(false);
     const { isAuthenticated, userAddress } = useAuth();
     const authRef = useRef({ isAuthenticated, address: userAddress });
@@ -196,15 +200,23 @@ export function SocketProvider(props: SocketProviderProps) {
                     address: authRef.current.address,
                 };
                 const wasReconnecting = isReconnectingRef.current;
+                const disconnectedAt = disconnectedAtRef.current;
+                const connectionLostShown = connectionLostShownRef.current;
                 isReconnectingRef.current = false;
-                reconnectionAttemptsRef.current = 0; // Reset attempts on successful open
+                reconnectionAttemptsRef.current = 0;
+                disconnectedAtRef.current = null;
+                connectionLostShownRef.current = false;
 
-                // Close any connection lost toasts
-                toastCloseRef.current(TOAST_ID_RECONNECTING);
                 toastCloseRef.current('connectionFailed');
 
-                if (wasReconnecting) {
-                    // This flag might still be true if this open is from a reconnect attempt
+                const outageMs = disconnectedAt
+                    ? Date.now() - disconnectedAt
+                    : 0;
+                const shouldNotifyReconnect =
+                    connectionLostShown ||
+                    (wasReconnecting && outageMs >= RECONNECT_TOAST_GRACE_MS);
+
+                if (shouldNotifyReconnect) {
                     toastSuccessRef.current(
                         'Reconnected',
                         'Connection restored',
@@ -229,7 +241,10 @@ export function SocketProvider(props: SocketProviderProps) {
                     return;
                 }
 
-                attemptReconnection(); // Attempt to reconnect even if close was clean
+                if (disconnectedAtRef.current === null) {
+                    disconnectedAtRef.current = Date.now();
+                }
+                attemptReconnection();
             };
 
             _socket.onerror = (err) => {
@@ -811,7 +826,7 @@ export function SocketProvider(props: SocketProviderProps) {
         if (!WS_BASE_URL || reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
             if (reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
                 isReconnectingRef.current = false;
-                toastCloseRef.current(TOAST_ID_RECONNECTING); // dismiss retry toast
+                connectionLostShownRef.current = true;
                 toastConnectionLostRef.current(
                     null, // persist until closed or user refreshes
                     'connectionFailed'

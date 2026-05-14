@@ -2,9 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { getContract, prepareContractCall, type Chain } from 'thirdweb';
-import { useSwitchActiveWalletChain } from 'thirdweb/react';
+import { useSendAndConfirmTransaction, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { client } from '../thirdwebclient';
-import { useStackedTransaction } from './useStackedTransaction';
 
 export type EmergencyWithdrawAllStatus = 'idle' | 'pending' | 'success' | 'error';
 
@@ -22,7 +21,7 @@ export function useEmergencyWithdrawAll(
     const [status, setStatus] = useState<EmergencyWithdrawAllStatus>('idle');
     const [error, setError] = useState<string | null>(null);
 
-    const sendStackedTx = useStackedTransaction({ emergencyFallback: true });
+    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
     const switchChain = useSwitchActiveWalletChain();
 
     const reset = useCallback(() => {
@@ -53,7 +52,7 @@ export function useEmergencyWithdrawAll(
                 params: [],
             });
 
-            await sendStackedTx([tx]);
+            await sendAndConfirm(tx);
             setStatus('success');
             return true;
         } catch (err) {
@@ -62,7 +61,7 @@ export function useEmergencyWithdrawAll(
             setStatus('error');
             return false;
         }
-    }, [contractAddress, chain, sendStackedTx, switchChain]);
+    }, [contractAddress, chain, sendAndConfirm, switchChain]);
 
     return { trigger, status, error, reset };
 }

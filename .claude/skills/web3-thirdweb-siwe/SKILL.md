@@ -43,28 +43,24 @@ description: Implement and debug wallet connection and authentication in this re
 - The Connect UI can optionally include Auth (SIWE-style), which can be wired to your existing server endpoints.
 - Inference: WebViews typically don’t have browser extensions, so don’t rely on auto-detected EIP-6963 extensions; prefer explicit wallet configuration.
 
-## Smart accounts + USDC paymaster (added)
+## Smart accounts (in-app social-login users)
 
-- `inAppWallet` is configured with `executionMode: { mode: 'EIP7702', sponsorGas: false }`. ConnectButton also receives `accountAbstraction={{ chain, sponsorGas: false }}`. Users sign in via Google/email/passkey and get a smart-account address at their EOA — no ETH ever required.
-- **Every on-chain transaction MUST go through `app/hooks/useStackedTransaction.ts`.** Don't reach for `useSendAndConfirmTransaction` directly. The hook routes:
-  1. **Mini App host** (Coinbase Wallet, Farcaster) → serial submit; host handles gas.
-  2. **Everyone else** → `sendAndConfirmCalls` (EIP-5792) with `paymasterService.url` pointed at `BASE_PAYMASTER_URL` (Base USDC ERC-20 paymaster). Gas is deducted in USDC.
-- Pass `{ emergencyFallback: true }` on emergency-exit hooks — paymaster outages must not lock users out of evacuating funds. Already wired in `useEmergencyWithdraw{,All}.ts`.
-- Batch related calls (e.g. `[approveTx, depositTx]`) into a single `sendStackedTx([...])` — the bundle is atomic so allowance polling is unnecessary. See `useDepositAndJoin.ts` for the canonical pattern.
-- Backend ERC-1271 fallback lives in `poker-server/transport/http/auth/siwe.go`. Gated on `SIWE_SMART_ACCOUNT_RPC_URL`. If you remove it, smart-account users stop being able to authenticate.
+- `inAppWallet` is wrapped with `smartAccount: { chain: defaultChain, sponsorGas: true }` in `app/thirdwebclient.ts`. Social-login users (Google/email/passkey) get an ERC-4337 smart account whose gas is sponsored by thirdweb (configured in the dashboard under Sponsored Transactions).
+- External wallets (MetaMask, Coinbase, WalletConnect) remain plain EOAs — they pay their own gas in the chain's native token.
+- All transaction hooks (`useDepositAndJoin`, `useWithdraw`, `useEmergencyWithdraw{,All}`, `useHostRake`) use `useSendAndConfirmTransaction` directly. There is no shared routing wrapper — that abstraction (`useStackedTransaction`) was tried and pulled because EIP-5792 paymaster support varies by wallet/version and made deposits fail.
+- If you re-introduce paymaster routing or EIP-7702 in the future, gate it behind a feature flag and test against every supported wallet first.
 
-## Universal Bridge (onramp + swap)
+## Universal Bridge (BuyWidget)
 
-- `BuyWidget` (fiat onramp + cross-chain swap) is mounted via:
-  - `app/components/TopUp/TopUpButton.tsx` — drop-in global button. Hides itself inside Mini App contexts.
-  - `app/components/TopUp/TopUpModal.tsx` — themed Chakra modal wrapper.
+- `BuyWidget` is mounted via:
+  - `app/components/TopUp/TopUpModal.tsx` — themed Chakra modal hosting the widget. Hard-pinned to Base mainnet via `MAINNET_CHAIN` / `MAINNET_USDC_ADDRESS` because thirdweb Bridge only routes through mainnets (testnet token lists come back empty and crash the widget).
+  - `app/components/TopUp/TopUpButton.tsx` — drop-in button. Returns `null` when `isTestnetOnly` (the app is configured for Sepolia only) or `useIsMiniApp()` is true.
   - Inline fallback inside `TakeSeatModal.tsx` when balance < buy-in.
-- The existing `ConnectButton.detailsModal.payOptions.prefillBuy` already exposes Buy from the wallet menu — that's the global post-connect entry.
-- Hosted onramp providers load through `frame-src https://*.thirdweb.com`. If you add an upstream provider that frames a different host (Stripe/Coinbase/Transak/Kado), add it to `next.config.js`.
+- The existing `ConnectButton.detailsModal.payOptions.prefillBuy` exposes Buy from the wallet menu — the global post-connect entry.
+- Hosted onramp providers load through `frame-src https://*.thirdweb.com` in `next.config.js`. If thirdweb starts framing a third-party host directly (Stripe/Coinbase/Transak/Kado), discover it in DevTools and add it explicitly.
 
 ## What to load next
 
 - For the repo’s exact auth sequence and edge cases: read `references/auth-flow.md`.
 - For CSP gotchas (embedded wallet / Turnstile / Tenor): read `references/csp-and-headers.md`.
-- For smart-account internals (paymaster routing, EIP-1271 fallback, Mini App detection): read `references/smart-accounts-and-paymaster.md`.
 - To quickly sanity-check env vars: run `scripts/check-web3-env.sh`.

@@ -364,9 +364,11 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
     const getDepositStatusMessage = () => {
         switch (depositStatus) {
-            case 'checking_balance':
+            case 'checking_allowance':
                 return 'Checking USDC balance...';
-            case 'submitting':
+            case 'approving':
+                return 'Approving USDC transfer...';
+            case 'depositing':
                 return 'Depositing to table...';
             default:
                 return null;

@@ -3,9 +3,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
-import { useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
+import {
+    useSendAndConfirmTransaction,
+    useActiveAccount,
+    useSwitchActiveWalletChain,
+} from 'thirdweb/react';
 import { client } from '../thirdwebclient';
-import { useStackedTransaction } from './useStackedTransaction';
 
 /** USDC uses 6 decimals on Base */
 const USDC_DECIMALS = 6;
@@ -36,7 +39,7 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
     const [error, setError] = useState<string | null>(null);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const sendStackedTx = useStackedTransaction();
+    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
     const switchChain = useSwitchActiveWalletChain();
 
     const refresh = useCallback(async () => {
@@ -92,7 +95,7 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
                 params: [],
             });
 
-            await sendStackedTx([tx]);
+            await sendAndConfirm(tx);
             setRakeBalance(BigInt(0));
             setStatus('success');
             setError(null);
@@ -103,7 +106,7 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
             setStatus('error');
             return false;
         }
-    }, [account?.address, contractAddress, chain, sendStackedTx, switchChain]);
+    }, [account?.address, contractAddress, chain, sendAndConfirm, switchChain]);
 
     // Poll every 30 seconds to pick up new rake from settlements
     useEffect(() => {

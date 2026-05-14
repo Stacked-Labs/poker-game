@@ -2,9 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { getContract, prepareContractCall, type Chain } from 'thirdweb';
-import { useSwitchActiveWalletChain } from 'thirdweb/react';
+import { useSendAndConfirmTransaction, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { client } from '../thirdwebclient';
-import { useStackedTransaction } from './useStackedTransaction';
 
 export type EmergencyWithdrawStatus = 'idle' | 'pending' | 'success' | 'error';
 
@@ -22,9 +21,7 @@ export function useEmergencyWithdraw(
     const [status, setStatus] = useState<EmergencyWithdrawStatus>('idle');
     const [error, setError] = useState<string | null>(null);
 
-    // emergencyFallback=true: if the paymaster/bundler is down, fall back to
-    // serial submit so users can always evacuate their stake.
-    const sendStackedTx = useStackedTransaction({ emergencyFallback: true });
+    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
     const switchChain = useSwitchActiveWalletChain();
 
     const reset = useCallback(() => {
@@ -55,7 +52,7 @@ export function useEmergencyWithdraw(
                 params: [],
             });
 
-            await sendStackedTx([tx]);
+            await sendAndConfirm(tx);
             setStatus('success');
             return true;
         } catch (err) {
@@ -64,7 +61,7 @@ export function useEmergencyWithdraw(
             setStatus('error');
             return false;
         }
-    }, [contractAddress, chain, sendStackedTx, switchChain]);
+    }, [contractAddress, chain, sendAndConfirm, switchChain]);
 
     return { trigger, status, error, reset };
 }

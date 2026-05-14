@@ -3,15 +3,22 @@
 import { useState, useCallback } from 'react';
 import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall } from 'thirdweb';
-import { useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
+import {
+    useSendAndConfirmTransaction,
+    useActiveAccount,
+    useSwitchActiveWalletChain,
+} from 'thirdweb/react';
 import { approve, allowance, balanceOf } from 'thirdweb/extensions/erc20';
 import { client } from '../thirdwebclient';
-import { useStackedTransaction } from './useStackedTransaction';
+
+const ALLOWANCE_POLL_INTERVAL_MS = 1500;
+const ALLOWANCE_POLL_MAX_ATTEMPTS = 10;
 
 export type DepositStatus =
     | 'idle'
-    | 'checking_balance'
-    | 'submitting'
+    | 'checking_allowance'
+    | 'approving'
+    | 'depositing'
     | 'success'
     | 'error';
 
@@ -31,14 +38,14 @@ interface UseDepositAndJoinResult {
 export function useDepositAndJoin(
     contractAddress: string | undefined,
     chain: Chain,
-    usdcAddress: string,
+    usdcAddress: string
 ): UseDepositAndJoinResult {
     const account = useActiveAccount();
     const [status, setStatus] = useState<DepositStatus>('idle');
     const [error, setError] = useState<string | null>(null);
     const [usdcBalance, setUsdcBalance] = useState<bigint | null>(null);
 
-    const sendStackedTx = useStackedTransaction();
+    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
     const switchChain = useSwitchActiveWalletChain();
 
     const reset = useCallback(() => {
@@ -96,8 +103,8 @@ export function useDepositAndJoin(
 
                 await switchChain(chain);
 
-                // Balance check (UX gate — the smart-account validates onchain too).
-                setStatus('checking_balance');
+                // Step 1: Check USDC balance
+                setStatus('checking_allowance');
                 const userBalance = await balanceOf({
                     contract: usdcContract,
                     address: account.address,
@@ -117,48 +124,80 @@ export function useDepositAndJoin(
                     return false;
                 }
 
-                // Build approve + depositAndJoin as a batched bundle. With
-                // EIP-5792 these submit atomically — no allowance polling
-                // needed because the deposit can't observe a stale allowance.
-                // Skip the approve call if allowance is already sufficient
-                // (saves the user a paymaster fee on subsequent buy-ins).
+                // Step 2: Check allowance
                 const currentAllowance = await allowance({
                     contract: usdcContract,
                     owner: account.address,
                     spender: contractAddress,
                 });
 
-                const calls = [] as ReturnType<typeof prepareContractCall>[];
                 if (currentAllowance < usdcAmount) {
-                    calls.push(
-                        approve({
-                            contract: usdcContract,
-                            spender: contractAddress,
-                            amountWei: usdcAmount,
-                        })
-                    );
-                }
-                calls.push(
-                    prepareContractCall({
-                        contract: pokerContract,
-                        method: 'function depositAndJoin(uint256 chipAmount)',
-                        params: [BigInt(chipAmount)],
-                    })
-                );
+                    setStatus('approving');
 
-                setStatus('submitting');
-                await sendStackedTx(calls);
+                    const approveTx = approve({
+                        contract: usdcContract,
+                        spender: contractAddress,
+                        amountWei: usdcAmount,
+                    });
+
+                    await sendAndConfirm(approveTx);
+
+                    // Wait for allowance to propagate — RPC nodes can lag behind
+                    let confirmed = false;
+                    for (let i = 0; i < ALLOWANCE_POLL_MAX_ATTEMPTS; i++) {
+                        const updatedAllowance = await allowance({
+                            contract: usdcContract,
+                            owner: account.address,
+                            spender: contractAddress,
+                        });
+                        if (updatedAllowance >= usdcAmount) {
+                            confirmed = true;
+                            break;
+                        }
+                        await new Promise((r) =>
+                            setTimeout(r, ALLOWANCE_POLL_INTERVAL_MS)
+                        );
+                    }
+
+                    if (!confirmed) {
+                        setError(
+                            'USDC approval confirmed on-chain but not yet visible. Please try again.'
+                        );
+                        setStatus('error');
+                        return false;
+                    }
+                }
+
+                // Step 3: Deposit and join
+                setStatus('depositing');
+
+                const depositTx = prepareContractCall({
+                    contract: pokerContract,
+                    method: 'function depositAndJoin(uint256 chipAmount)',
+                    params: [BigInt(chipAmount)],
+                });
+
+                await sendAndConfirm(depositTx);
 
                 setStatus('success');
                 return true;
             } catch (err) {
                 console.error('Deposit and join failed:', err);
-                setError(err instanceof Error ? err.message : 'Transaction failed');
+                setError(
+                    err instanceof Error ? err.message : 'Transaction failed'
+                );
                 setStatus('error');
                 return false;
             }
         },
-        [account?.address, contractAddress, chain, usdcAddress, sendStackedTx, switchChain]
+        [
+            account?.address,
+            contractAddress,
+            chain,
+            usdcAddress,
+            sendAndConfirm,
+            switchChain,
+        ]
     );
 
     return {
@@ -166,7 +205,8 @@ export function useDepositAndJoin(
         status,
         error,
         usdcBalance,
-        isLoading: status !== 'idle' && status !== 'success' && status !== 'error',
+        isLoading:
+            status !== 'idle' && status !== 'success' && status !== 'error',
         reset,
         refreshBalance: fetchUsdcBalance,
     };

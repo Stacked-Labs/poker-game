@@ -59,9 +59,23 @@ export const supportedTokens = Object.fromEntries(
         })
 );
 
+// thirdweb Bridge only supports mainnet chains — testnets return empty token
+// lists which crash BuyWidget. Always use these for the TopUp/Bridge UI.
+export const MAINNET_CHAIN = base;
+export const MAINNET_USDC_ADDRESS = CHAIN_CONFIG['base'].usdc;
+
+// True when the app is configured for testnet only (no mainnet chain enabled).
+export const isTestnetOnly = !enabledChainNames.includes('base');
+
+// Bundler / paymaster endpoint for EIP-5792 sendCalls. Format:
+//   https://{chainId}.bundler.thirdweb.com/{clientId}
+// We pass this as `capabilities.paymasterService.url` so the user's USDC pays
+// gas via the Base USDC ERC-20 paymaster. Users never need ETH.
+export const BASE_PAYMASTER_URL: string =
+    process.env.NEXT_PUBLIC_THIRDWEB_BUNDLER_URL ?? '';
+
 // Wallet providers - Including social login options
 export const wallets = [
-    // In-App Wallet with social login options
     inAppWallet({
         auth: {
             options: [
@@ -76,7 +90,8 @@ export const wallets = [
             ],
         },
     }),
-    // Traditional crypto wallets
+    // Traditional crypto wallets. 7702 upgrade for these happens at
+    // sendCalls-time via EIP-5792 (no wallet-level config needed here).
     createWallet('io.metamask'),
     createWallet('com.coinbase.wallet'),
     createWallet('walletConnect'),

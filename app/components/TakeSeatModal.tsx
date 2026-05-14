@@ -45,6 +45,7 @@ import { useConnectX } from '@/app/hooks/useConnectX';
 import BuyInPresets from './TakeSeat/BuyInPresets';
 import StakesChip from './TakeSeat/StakesChip';
 import { readLastBuyIn, writeLastBuyIn } from '@/app/lib/takeSeat/lastBuyIn';
+import TopUpButton from './TopUp/TopUpButton';
 
 interface TakeSeatModalProps {
     isOpen: boolean;
@@ -363,11 +364,9 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
 
     const getDepositStatusMessage = () => {
         switch (depositStatus) {
-            case 'checking_allowance':
+            case 'checking_balance':
                 return 'Checking USDC balance...';
-            case 'approving':
-                return 'Approving USDC transfer...';
-            case 'depositing':
+            case 'submitting':
                 return 'Depositing to table...';
             default:
                 return null;
@@ -938,34 +937,59 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     </HStack>
                                 )}
                                 {isBalanceInsufficient && (
-                                    <HStack
+                                    <VStack
                                         spacing={2}
-                                        alignItems="flex-start"
+                                        alignItems="stretch"
                                         bg="red.50"
                                         borderRadius="md"
                                         px={3}
                                         py={2}
                                         width="100%"
                                     >
-                                        <Icon
-                                            as={FaInfoCircle}
-                                            boxSize={3.5}
-                                            mt={0.5}
-                                            color="red.700"
-                                        />
-                                        <Text
-                                            fontSize="xs"
-                                            fontWeight="semibold"
-                                            color="red.700"
-                                            textAlign="left"
+                                        <HStack
+                                            spacing={2}
+                                            alignItems="flex-start"
                                         >
-                                            Insufficient USDC balance
-                                            {formattedUsdcBalance
-                                                ? ` (you have ${formattedUsdcBalance} USDC)`
-                                                : ''}
-                                            .
-                                        </Text>
-                                    </HStack>
+                                            <Icon
+                                                as={FaInfoCircle}
+                                                boxSize={3.5}
+                                                mt={0.5}
+                                                color="red.700"
+                                            />
+                                            <Text
+                                                fontSize="xs"
+                                                fontWeight="semibold"
+                                                color="red.700"
+                                                textAlign="left"
+                                            >
+                                                Insufficient USDC balance
+                                                {formattedUsdcBalance
+                                                    ? ` (you have ${formattedUsdcBalance} USDC)`
+                                                    : ''}
+                                                .
+                                            </Text>
+                                        </HStack>
+                                        <TopUpButton
+                                            size="sm"
+                                            label="Top up with card or crypto"
+                                            amountUsdc={
+                                                buyInUsdc !== null &&
+                                                usdcBalance !== null
+                                                    ? Math.max(
+                                                          0,
+                                                          buyInUsdc -
+                                                              Number(
+                                                                  usdcBalance
+                                                              ) /
+                                                                  1_000_000
+                                                      ).toFixed(2)
+                                                    : undefined
+                                            }
+                                            onSuccess={() => {
+                                                refreshBalance();
+                                            }}
+                                        />
+                                    </VStack>
                                 )}
                                 {depositStatus === 'error' && depositError && (
                                     <HStack

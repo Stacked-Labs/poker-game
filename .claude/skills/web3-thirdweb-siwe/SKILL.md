@@ -43,8 +43,28 @@ description: Implement and debug wallet connection and authentication in this re
 - The Connect UI can optionally include Auth (SIWE-style), which can be wired to your existing server endpoints.
 - Inference: WebViews typically don’t have browser extensions, so don’t rely on auto-detected EIP-6963 extensions; prefer explicit wallet configuration.
 
+## Smart accounts + USDC paymaster (added)
+
+- `inAppWallet` is configured with `executionMode: { mode: 'EIP7702', sponsorGas: false }`. ConnectButton also receives `accountAbstraction={{ chain, sponsorGas: false }}`. Users sign in via Google/email/passkey and get a smart-account address at their EOA — no ETH ever required.
+- **Every on-chain transaction MUST go through `app/hooks/useStackedTransaction.ts`.** Don't reach for `useSendAndConfirmTransaction` directly. The hook routes:
+  1. **Mini App host** (Coinbase Wallet, Farcaster) → serial submit; host handles gas.
+  2. **Everyone else** → `sendAndConfirmCalls` (EIP-5792) with `paymasterService.url` pointed at `BASE_PAYMASTER_URL` (Base USDC ERC-20 paymaster). Gas is deducted in USDC.
+- Pass `{ emergencyFallback: true }` on emergency-exit hooks — paymaster outages must not lock users out of evacuating funds. Already wired in `useEmergencyWithdraw{,All}.ts`.
+- Batch related calls (e.g. `[approveTx, depositTx]`) into a single `sendStackedTx([...])` — the bundle is atomic so allowance polling is unnecessary. See `useDepositAndJoin.ts` for the canonical pattern.
+- Backend ERC-1271 fallback lives in `poker-server/transport/http/auth/siwe.go`. Gated on `SIWE_SMART_ACCOUNT_RPC_URL`. If you remove it, smart-account users stop being able to authenticate.
+
+## Universal Bridge (onramp + swap)
+
+- `BuyWidget` (fiat onramp + cross-chain swap) is mounted via:
+  - `app/components/TopUp/TopUpButton.tsx` — drop-in global button. Hides itself inside Mini App contexts.
+  - `app/components/TopUp/TopUpModal.tsx` — themed Chakra modal wrapper.
+  - Inline fallback inside `TakeSeatModal.tsx` when balance < buy-in.
+- The existing `ConnectButton.detailsModal.payOptions.prefillBuy` already exposes Buy from the wallet menu — that's the global post-connect entry.
+- Hosted onramp providers load through `frame-src https://*.thirdweb.com`. If you add an upstream provider that frames a different host (Stripe/Coinbase/Transak/Kado), add it to `next.config.js`.
+
 ## What to load next
 
 - For the repo’s exact auth sequence and edge cases: read `references/auth-flow.md`.
 - For CSP gotchas (embedded wallet / Turnstile / Tenor): read `references/csp-and-headers.md`.
+- For smart-account internals (paymaster routing, EIP-1271 fallback, Mini App detection): read `references/smart-accounts-and-paymaster.md`.
 - To quickly sanity-check env vars: run `scripts/check-web3-env.sh`.

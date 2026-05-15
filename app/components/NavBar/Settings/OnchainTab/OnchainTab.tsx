@@ -85,6 +85,7 @@ const OnchainTab = ({ isActive }: OnchainTabProps) => {
                     creator ? explorer.address(creator) : null
                 }
                 contractUsdcBalance={snapshot?.contractUsdcBalance ?? null}
+                hostWithdrawable={snapshot?.hostWithdrawable ?? null}
                 players={snapshot?.players ?? null}
                 lastSettlement={snapshot?.lastSettlement ?? null}
                 snapshotLoading={snapshotLoading}

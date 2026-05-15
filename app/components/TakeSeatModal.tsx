@@ -146,6 +146,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         isLoading: isDepositing,
         reset: resetDeposit,
         usdcBalance,
+        isGasInsufficient,
         refreshBalance,
     } = useDepositAndJoin(contractAddress, tableChain, tableUsdcAddress);
 
@@ -1010,6 +1011,48 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                 {canBridgeTopUp
                                                     ? `Top up ${formattedDeficitUsdc} to sit at this buy-in.`
                                                     : `Add ${formattedDeficitUsdc} USDC from your wallet to sit at this buy-in.`}
+                                            </Text>
+                                        </HStack>
+                                    )}
+                                {/* Gas warning — only when USDC is fine but
+                                    the wallet has no ETH on Base. Suppressed
+                                    while the USDC deficit chip is on screen
+                                    (USDC top-up has to happen first anyway). */}
+                                {!isBalanceInsufficient &&
+                                    isGasInsufficient &&
+                                    isCryptoGame && (
+                                        <HStack
+                                            spacing={2}
+                                            alignItems="flex-start"
+                                            width="100%"
+                                            bg="rgba(253, 197, 29, 0.12)"
+                                            _dark={{
+                                                bg: 'rgba(253, 197, 29, 0.10)',
+                                            }}
+                                            borderRadius="md"
+                                            px={3}
+                                            py={2}
+                                        >
+                                            <Icon
+                                                as={FaInfoCircle}
+                                                boxSize={3.5}
+                                                mt={0.5}
+                                                color="brand.yellowDark"
+                                                _dark={{ color: 'brand.yellow' }}
+                                            />
+                                            <Text
+                                                fontSize="xs"
+                                                fontWeight="semibold"
+                                                color="brand.yellowDark"
+                                                _dark={{ color: 'brand.yellow' }}
+                                                textAlign="left"
+                                                lineHeight="short"
+                                            >
+                                                Your wallet needs a small
+                                                amount of ETH on Base to pay
+                                                gas. Buy ETH inside your
+                                                wallet or send a few cents to
+                                                this address, then try again.
                                             </Text>
                                         </HStack>
                                     )}

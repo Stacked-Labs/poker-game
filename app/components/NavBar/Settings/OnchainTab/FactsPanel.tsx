@@ -48,6 +48,7 @@ interface FactsPanelProps {
     contractExplorerUrl: string | null;
     creatorExplorerUrl: string | null;
     contractUsdcBalance: bigint | null;
+    hostWithdrawable: bigint | null;
     players: OnchainPlayer[] | null;
     lastSettlement: bigint | null;
     snapshotLoading: boolean;
@@ -62,6 +63,7 @@ const FactsPanel = ({
     contractExplorerUrl,
     creatorExplorerUrl,
     contractUsdcBalance,
+    hostWithdrawable,
     players,
     lastSettlement,
     snapshotLoading,
@@ -86,6 +88,7 @@ const FactsPanel = ({
             <Divider borderColor="border.lightGray" />
             <CustodySection
                 contractUsdcBalance={contractUsdcBalance}
+                hostWithdrawable={hostWithdrawable}
                 players={players}
                 loading={snapshotLoading}
             />
@@ -234,10 +237,12 @@ const IdentitySection = ({
 
 const CustodySection = ({
     contractUsdcBalance,
+    hostWithdrawable,
     players,
     loading,
 }: {
     contractUsdcBalance: bigint | null;
+    hostWithdrawable: bigint | null;
     players: OnchainPlayer[] | null;
     loading: boolean;
 }) => {
@@ -245,12 +250,16 @@ const CustodySection = ({
         players?.reduce((acc, p) => acc + p.chips, BigInt(0)) ?? null;
     const chipsAsMicroUsdc =
         chipsOnTable !== null ? chipsToUsdc(chipsOnTable) : null;
+    const accountedMicroUsdc =
+        chipsAsMicroUsdc !== null
+            ? chipsAsMicroUsdc + (hostWithdrawable ?? BigInt(0))
+            : null;
     const reconciled =
         contractUsdcBalance !== null &&
-        chipsAsMicroUsdc !== null &&
-        (contractUsdcBalance >= chipsAsMicroUsdc
-            ? contractUsdcBalance - chipsAsMicroUsdc <= RECONCILE_TOLERANCE_MICRO
-            : chipsAsMicroUsdc - contractUsdcBalance <= RECONCILE_TOLERANCE_MICRO);
+        accountedMicroUsdc !== null &&
+        (contractUsdcBalance >= accountedMicroUsdc
+            ? contractUsdcBalance - accountedMicroUsdc <= RECONCILE_TOLERANCE_MICRO
+            : accountedMicroUsdc - contractUsdcBalance <= RECONCILE_TOLERANCE_MICRO);
 
     return (
         <Box px={{ base: 3.5, md: 4 }} py={{ base: 3, md: 3.5 }}>
@@ -322,7 +331,33 @@ const CustodySection = ({
                         </Text>
                     )}
                 </Box>
-                {contractUsdcBalance !== null && chipsAsMicroUsdc !== null && (
+                <Box>
+                    <Text
+                        fontSize="2xs"
+                        color="text.muted"
+                        fontWeight="semibold"
+                        textTransform="uppercase"
+                        letterSpacing="0.04em"
+                    >
+                        Host rewards
+                    </Text>
+                    {hostWithdrawable === null ? (
+                        <Skeleton height="18px" maxW="120px" mt={0.5} borderRadius="md" />
+                    ) : (
+                        <Text
+                            fontSize="sm"
+                            fontWeight="semibold"
+                            color="text.secondary"
+                            mt={0.5}
+                        >
+                            ${formatUsdc(hostWithdrawable)}
+                            <Text as="span" fontSize="2xs" color="text.muted" ml={1.5}>
+                                claimable by host
+                            </Text>
+                        </Text>
+                    )}
+                </Box>
+                {contractUsdcBalance !== null && accountedMicroUsdc !== null && (
                     <HStack
                         spacing={1.5}
                         bg={

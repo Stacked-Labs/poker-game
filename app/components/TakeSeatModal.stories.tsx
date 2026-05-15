@@ -55,6 +55,12 @@ interface TakeSeatPreviewProps {
      * the copy tells the user to fund externally.
      */
     canBridgeTopUp?: boolean;
+    /**
+     * When true, simulates an external EOA with USDC but no ETH on Base.
+     * Renders the gas-warning chip. Suppressed when isBalanceInsufficient
+     * is true (USDC deficit takes priority).
+     */
+    isGasInsufficient?: boolean;
     sb: number;
     bb: number;
     maxBuyIn: number;
@@ -85,6 +91,7 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
     existingChipBalance = null,
     isBalanceInsufficient = false,
     canBridgeTopUp = true,
+    isGasInsufficient = false,
     sb,
     bb,
     maxBuyIn,
@@ -716,6 +723,44 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                     </Text>
                                 </HStack>
                             )}
+                            {!isBalanceInsufficient &&
+                                isGasInsufficient &&
+                                isCryptoGame && (
+                                    <HStack
+                                        spacing={2}
+                                        alignItems="flex-start"
+                                        width="100%"
+                                        bg="rgba(253, 197, 29, 0.12)"
+                                        _dark={{
+                                            bg: 'rgba(253, 197, 29, 0.10)',
+                                        }}
+                                        borderRadius="md"
+                                        px={3}
+                                        py={2}
+                                    >
+                                        <Icon
+                                            as={FaInfoCircle}
+                                            boxSize={3.5}
+                                            mt={0.5}
+                                            color="brand.yellowDark"
+                                            _dark={{ color: 'brand.yellow' }}
+                                        />
+                                        <Text
+                                            fontSize="xs"
+                                            fontWeight="semibold"
+                                            color="brand.yellowDark"
+                                            _dark={{ color: 'brand.yellow' }}
+                                            textAlign="left"
+                                            lineHeight="short"
+                                        >
+                                            Your wallet needs a small amount of
+                                            ETH on Base to pay gas. Buy ETH
+                                            inside your wallet or send a few
+                                            cents to this address, then try
+                                            again.
+                                        </Text>
+                                    </HStack>
+                                )}
 
                             <Button
                                 variant="tactilePrimary"
@@ -1031,6 +1076,28 @@ export const CryptoInsufficientBalanceNoBridge: Story = {
         isConnected: true,
         isBalanceInsufficient: true,
         canBridgeTopUp: false,
+        defaultBuyInChips: 1000,
+    },
+};
+
+/**
+ * USDC is fine, ETH for gas is not — external EOA (MetaMask, Coinbase
+ * Wallet) sent USDC from a CEX directly to its address and never had any
+ * native ETH. Chip-yellow warning tells the user what to do; CTA stays
+ * "Sit down · $X" so they can retry once they've topped up ETH.
+ */
+export const CryptoGasInsufficient: Story = {
+    name: 'Crypto · gas (ETH) insufficient',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '50.00',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        isBalanceInsufficient: false,
+        isGasInsufficient: true,
         defaultBuyInChips: 1000,
     },
 };

@@ -144,6 +144,11 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
               })
             : null;
     const isTopUpMode = isCryptoGame && isBalanceInsufficient && canBridgeTopUp;
+    const isGasTopUpMode =
+        isCryptoGame &&
+        !isBalanceInsufficient &&
+        isGasInsufficient &&
+        canBridgeTopUp;
 
     const handleBuyInChange = (value: string) => {
         if (isCryptoGame) {
@@ -753,11 +758,9 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                             textAlign="left"
                                             lineHeight="short"
                                         >
-                                            Your wallet needs a small amount of
-                                            ETH on Base to pay gas. Buy ETH
-                                            inside your wallet or send a few
-                                            cents to this address, then try
-                                            again.
+                                            {canBridgeTopUp
+                                                ? 'Your wallet has no ETH on Base for gas. Swap a tiny bit of USDC for ETH below — $0.25 is more than enough.'
+                                                : 'Your wallet needs a small amount of ETH on Base to pay gas. Buy ETH inside your wallet or send a few cents to this address, then try again.'}
                                         </Text>
                                     </HStack>
                                 )}
@@ -767,8 +770,15 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                 w="100%"
                                 h="56px"
                                 borderRadius="bigButton"
+                                {...(isGasTopUpMode
+                                    ? {
+                                          bg: '#0052FF',
+                                          _hover: { bg: '#0052FF' },
+                                          _active: { bg: '#0040CC' },
+                                      }
+                                    : {})}
                                 isDisabled={
-                                    isTopUpMode
+                                    isTopUpMode || isGasTopUpMode
                                         ? false
                                         : isJoinDisabled && !isDepositing
                                 }
@@ -778,6 +788,31 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                 }
                                 spinner={<Spinner size="sm" color="white" />}
                             >
+                                {isGasTopUpMode && (
+                                    <Box
+                                        position="relative"
+                                        boxSize="24px"
+                                        mr={2}
+                                        flexShrink={0}
+                                    >
+                                        <Image
+                                            src="/networkLogos/eth-logo.png"
+                                            alt="ETH"
+                                            boxSize="24px"
+                                            objectFit="contain"
+                                        />
+                                        <Image
+                                            src="/networkLogos/base-logo.png"
+                                            alt="on Base"
+                                            position="absolute"
+                                            bottom="-3px"
+                                            right="-3px"
+                                            boxSize="13px"
+                                            borderRadius="full"
+                                            border="1.5px solid white"
+                                        />
+                                    </Box>
+                                )}
                                 <Text
                                     fontSize="md"
                                     fontWeight={700}
@@ -788,7 +823,9 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                         ? 'Join game'
                                         : isTopUpMode && deficitUsdc
                                           ? `Top up ${deficitUsdc} USDC`
-                                          : `Sit down · $${formattedUsdcEst}`}
+                                          : isGasTopUpMode
+                                            ? 'Swap $0.25 → ETH'
+                                            : `Sit down · $${formattedUsdcEst}`}
                                 </Text>
                             </Button>
 
@@ -1083,11 +1120,11 @@ export const CryptoInsufficientBalanceNoBridge: Story = {
 /**
  * USDC is fine, ETH for gas is not — external EOA (MetaMask, Coinbase
  * Wallet) sent USDC from a CEX directly to its address and never had any
- * native ETH. Chip-yellow warning tells the user what to do; CTA stays
- * "Sit down · $X" so they can retry once they've topped up ETH.
+ * native ETH. Bridge is unavailable here (testnet / Mini App), so the chip
+ * tells the user to fund externally and the CTA stays "Sit down · $X".
  */
 export const CryptoGasInsufficient: Story = {
-    name: 'Crypto · gas (ETH) insufficient',
+    name: 'Crypto · gas (ETH) insufficient (no Bridge)',
     args: {
         isCryptoGame: true,
         xUsername: '0xVoxin',
@@ -1098,6 +1135,29 @@ export const CryptoGasInsufficient: Story = {
         isConnected: true,
         isBalanceInsufficient: false,
         isGasInsufficient: true,
+        canBridgeTopUp: false,
+        defaultBuyInChips: 1000,
+    },
+};
+
+/**
+ * USDC is fine, ETH for gas is not, Bridge available — state-aware CTA
+ * flips to Base-blue with the Base logo and "Buy ETH for gas". Clicking
+ * opens TopUpModal in gas mode (native ETH on Base prefill, ~$0.50).
+ */
+export const CryptoGasInsufficientWithBridge: Story = {
+    name: 'Crypto · gas (ETH) insufficient (Base-blue CTA)',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '50.00',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        isBalanceInsufficient: false,
+        isGasInsufficient: true,
+        canBridgeTopUp: true,
         defaultBuyInChips: 1000,
     },
 };

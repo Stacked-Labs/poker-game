@@ -243,8 +243,18 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const isTopUpMode = Boolean(
         isCryptoGame && isBalanceInsufficient && canBridgeTopUp
     );
+    // Gas top-up mode: USDC is fine but the external EOA has no ETH on Base.
+    // Suppressed when isBalanceInsufficient is true — USDC has to be topped
+    // up first, otherwise the deposit can't succeed even with gas in hand.
+    const isGasTopUpMode = Boolean(
+        isCryptoGame &&
+            !isBalanceInsufficient &&
+            isGasInsufficient &&
+            canBridgeTopUp
+    );
 
-    const topUp = useDisclosure();
+    const topUpUsdc = useDisclosure();
+    const topUpGas = useDisclosure();
 
     const formatUsdcInput = (value: number) => {
         if (!Number.isFinite(value)) return '';
@@ -1048,11 +1058,9 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                 textAlign="left"
                                                 lineHeight="short"
                                             >
-                                                Your wallet needs a small
-                                                amount of ETH on Base to pay
-                                                gas. Buy ETH inside your
-                                                wallet or send a few cents to
-                                                this address, then try again.
+                                                {canBridgeTopUp
+                                                    ? 'Your wallet has no ETH on Base for gas. Swap a tiny bit of USDC for ETH below — $0.25 is more than enough.'
+                                                    : 'Your wallet needs a small amount of ETH on Base to pay gas. Buy ETH inside your wallet or send a few cents to this address, then try again.'}
                                             </Text>
                                         </HStack>
                                     )}
@@ -1101,22 +1109,37 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         w="100%"
                                         h="56px"
                                         borderRadius="bigButton"
+                                        // Base-blue override in gas-top-up
+                                        // mode. Keeps the tactilePrimary
+                                        // recipe shape (press, radius, white
+                                        // text); swaps only the colors so
+                                        // the user reads "different action"
+                                        // at a glance.
+                                        {...(isGasTopUpMode
+                                            ? {
+                                                  bg: '#0052FF',
+                                                  _hover: { bg: '#0052FF' },
+                                                  _active: { bg: '#0040CC' },
+                                              }
+                                            : {})}
                                         cursor={
                                             isDepositing
                                                 ? 'wait'
-                                                : isTopUpMode
+                                                : isTopUpMode || isGasTopUpMode
                                                   ? 'pointer'
                                                   : isJoinVisuallyDisabled
                                                     ? 'not-allowed'
                                                     : 'pointer'
                                         }
                                         aria-disabled={
-                                            isTopUpMode
+                                            isTopUpMode || isGasTopUpMode
                                                 ? undefined
                                                 : isJoinVisuallyDisabled || undefined
                                         }
                                         isDisabled={
-                                            isTopUpMode ? false : isJoinDisabled
+                                            isTopUpMode || isGasTopUpMode
+                                                ? false
+                                                : isJoinDisabled
                                         }
                                         isLoading={isDepositing}
                                         loadingText={
@@ -1128,12 +1151,43 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         }
                                         onClick={
                                             isTopUpMode
-                                                ? topUp.onOpen
-                                                : handleJoin
+                                                ? topUpUsdc.onOpen
+                                                : isGasTopUpMode
+                                                  ? topUpGas.onOpen
+                                                  : handleJoin
                                         }
-                                        type={isTopUpMode ? 'button' : 'submit'}
+                                        type={
+                                            isTopUpMode || isGasTopUpMode
+                                                ? 'button'
+                                                : 'submit'
+                                        }
                                         data-testid="join-table-btn"
                                     >
+                                        {isGasTopUpMode && (
+                                            <Box
+                                                position="relative"
+                                                boxSize="24px"
+                                                mr={2}
+                                                flexShrink={0}
+                                            >
+                                                <Image
+                                                    src="/networkLogos/eth-logo.png"
+                                                    alt="ETH"
+                                                    boxSize="24px"
+                                                    objectFit="contain"
+                                                />
+                                                <Image
+                                                    src="/networkLogos/base-logo.png"
+                                                    alt="on Base"
+                                                    position="absolute"
+                                                    bottom="-3px"
+                                                    right="-3px"
+                                                    boxSize="13px"
+                                                    borderRadius="full"
+                                                    border="1.5px solid white"
+                                                />
+                                            </Box>
+                                        )}
                                         <Text
                                             fontSize="md"
                                             fontWeight="bold"
@@ -1145,9 +1199,11 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                 : isTopUpMode &&
                                                     formattedDeficitUsdc
                                                   ? `Top up ${formattedDeficitUsdc} USDC`
-                                                  : formattedUsdcEstimate
-                                                    ? `Sit down · $${formattedUsdcEstimate}`
-                                                    : 'Sit down'}
+                                                  : isGasTopUpMode
+                                                    ? 'Swap $0.25 → ETH'
+                                                    : formattedUsdcEstimate
+                                                      ? `Sit down · $${formattedUsdcEstimate}`
+                                                      : 'Sit down'}
                                         </Text>
                                     </Button>
                                 </Tooltip>
@@ -1237,15 +1293,28 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                 )}
             </ModalContent>
             <TopUpModal
-                isOpen={topUp.isOpen}
-                onClose={topUp.onClose}
+                isOpen={topUpUsdc.isOpen}
+                onClose={topUpUsdc.onClose}
+                mode="usdc"
                 amountUsdc={formattedDeficitUsdc ?? undefined}
                 onSuccess={() => {
                     // Settlement on Base takes ~30s; balance check on close is
                     // optimistic. TakeSeatModal stays open so the user sees the
                     // CTA flip from "Top up X" back to "Sit down".
                     refreshBalance();
-                    topUp.onClose();
+                    topUpUsdc.onClose();
+                }}
+            />
+            <TopUpModal
+                isOpen={topUpGas.isOpen}
+                onClose={topUpGas.onClose}
+                mode="gas"
+                onSuccess={() => {
+                    // Same balance-refresh contract as the USDC modal. After
+                    // ETH lands, isGasInsufficient flips false and the CTA
+                    // reverts to "Sit down · $X".
+                    refreshBalance();
+                    topUpGas.onClose();
                 }}
             />
         </Modal>

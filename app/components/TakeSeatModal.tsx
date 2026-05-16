@@ -39,7 +39,7 @@ import { useDepositAndJoin } from '../hooks/useDepositAndJoin';
 import { useWithdraw } from '../hooks/useWithdraw';
 import { useActiveWallet } from 'thirdweb/react';
 import { CHAIN_CONFIG, defaultChain, defaultUsdcAddress } from '../thirdwebclient';
-import { FaInfoCircle, FaChevronDown } from 'react-icons/fa';
+import { FaInfoCircle, FaChevronDown, FaCheck } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useConnectX } from '@/app/hooks/useConnectX';
 import BuyInPresets from './TakeSeat/BuyInPresets';
@@ -153,7 +153,9 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const {
         withdraw,
         checkCanWithdraw,
+        canWithdraw: withdrawCanWithdraw,
         chipBalance: existingChipBalance,
+        isGasInsufficient: withdrawGasInsufficient,
         status: withdrawStatus,
         error: withdrawError,
         isLoading: isWithdrawing,
@@ -163,13 +165,69 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const seatRequested = appStore.appState.seatRequested;
     const hasExistingChips =
         existingChipBalance !== null && existingChipBalance > BigInt(0);
+
+    // Success flash: keeps the withdraw-first body mounted for 2s after a
+    // successful withdraw so the user sees the celebration chip before the
+    // modal snaps into the normal join-flow body.
+    const [withdrawSuccessFlash, setWithdrawSuccessFlash] = useState(false);
+    useEffect(() => {
+        if (withdrawStatus !== 'success') return;
+        setWithdrawSuccessFlash(true);
+        const t = setTimeout(() => {
+            setWithdrawSuccessFlash(false);
+            resetWithdraw();
+        }, 2000);
+        return () => clearTimeout(t);
+    }, [withdrawStatus, resetWithdraw]);
+
     const showWithdrawFirst =
-        isCryptoGame && hasExistingChips && seatRequested === null;
+        isCryptoGame &&
+        (hasExistingChips || withdrawSuccessFlash) &&
+        seatRequested === null;
 
     const formattedExistingChips = useMemo(() => {
         if (existingChipBalance === null) return null;
         return Number(existingChipBalance).toLocaleString('en-US');
     }, [existingChipBalance]);
+
+    // USDC equivalent of the existing chip stack (1 USDC = 100 chips).
+    // Leads the value display on the withdraw-first body — players think in
+    // real money, not chips.
+    const formattedExistingUsdc = useMemo(() => {
+        if (existingChipBalance === null) return null;
+        const usdc = Number(existingChipBalance) / CHIPS_PER_USDC;
+        return usdc.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    }, [existingChipBalance]);
+
+    // Settlement-pending countdown: when chips exist but canWithdraw is
+    // false, the last hand is still settling on-chain. Auto-poll every 5s
+    // and surface a live countdown. Mirrors NavBar WithdrawButton.tsx.
+    const WITHDRAW_POLL_INTERVAL = 5; // seconds
+    const isWithdrawSettlementPending =
+        showWithdrawFirst &&
+        hasExistingChips &&
+        withdrawCanWithdraw === false &&
+        !isWithdrawing;
+    const [withdrawCountdown, setWithdrawCountdown] =
+        useState(WITHDRAW_POLL_INTERVAL);
+    useEffect(() => {
+        if (!isWithdrawSettlementPending) return;
+        setWithdrawCountdown(WITHDRAW_POLL_INTERVAL);
+        const id = setInterval(() => {
+            setWithdrawCountdown((prev) => {
+                if (prev <= 1) {
+                    checkCanWithdraw();
+                    return WITHDRAW_POLL_INTERVAL;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(id);
+    }, [isWithdrawSettlementPending, checkCanWithdraw]);
+
 
     const effectiveName = !isCryptoGame && xUsername ? `@${xUsername}` : name;
     const isNameInvalid =
@@ -250,6 +308,18 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         isCryptoGame &&
             !isBalanceInsufficient &&
             isGasInsufficient &&
+            canBridgeTopUp
+    );
+
+    // Gas-shortage mode for the withdraw CTA. Mirrors the deposit gas
+    // pattern but only applies when withdrawal is currently possible —
+    // settlement-pending takes precedence (the chips can't move yet
+    // regardless of how much gas the wallet has).
+    const isWithdrawGasMode = Boolean(
+        showWithdrawFirst &&
+            hasExistingChips &&
+            withdrawCanWithdraw !== false &&
+            withdrawGasInsufficient &&
             canBridgeTopUp
     );
 
@@ -494,7 +564,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     color="text.secondary"
                                     letterSpacing="-0.02em"
                                 >
-                                    Chips still on this table
+                                    Stack still on the table
                                 </Heading>
                                 <StakesChip
                                     sb={sb}
@@ -507,35 +577,73 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                         </ModalHeader>
                         <ModalBody px={{ base: 5, sm: 7 }} pb={2} pt={2}>
                             <VStack spacing={4} w="100%">
-                                <Box
+                                {/* USDC-leading value block. Real money first;
+                                    chips secondary. */}
+                                <VStack
+                                    spacing={1}
                                     w="100%"
-                                    bg="card.lightGray"
-                                    borderRadius="xl"
-                                    px={5}
-                                    py={5}
+                                    py={4}
                                     textAlign="center"
                                 >
-                                    <VStack spacing={2}>
-                                        <Text
-                                            fontSize="3xl"
-                                            fontWeight="bold"
-                                            color="text.secondary"
-                                            letterSpacing="-0.02em"
-                                            lineHeight={1}
-                                        >
-                                            {formattedExistingChips ?? '—'}
-                                        </Text>
-                                        <Text
-                                            fontSize="xs"
-                                            color="text.muted"
-                                            fontWeight="medium"
-                                            textTransform="uppercase"
-                                            letterSpacing="0.05em"
-                                        >
-                                            chips in contract
-                                        </Text>
-                                    </VStack>
-                                </Box>
+                                    {formattedExistingUsdc === null ? (
+                                        <HStack spacing={2}>
+                                            <Spinner
+                                                size="sm"
+                                                color="text.muted"
+                                                thickness="2px"
+                                            />
+                                            <Text
+                                                fontSize="sm"
+                                                color="text.muted"
+                                                fontWeight="medium"
+                                            >
+                                                Checking your stack…
+                                            </Text>
+                                        </HStack>
+                                    ) : (
+                                        <>
+                                            <HStack
+                                                spacing={1.5}
+                                                align="baseline"
+                                                justify="center"
+                                            >
+                                                <Text
+                                                    fontSize="4xl"
+                                                    fontWeight="bold"
+                                                    color="text.secondary"
+                                                    letterSpacing="-0.02em"
+                                                    lineHeight={1}
+                                                >
+                                                    ${formattedExistingUsdc}
+                                                </Text>
+                                                <Text
+                                                    fontSize="xs"
+                                                    color="text.muted"
+                                                    fontWeight={700}
+                                                    textTransform="uppercase"
+                                                    letterSpacing="0.06em"
+                                                >
+                                                    USDC
+                                                </Text>
+                                            </HStack>
+                                            <Text
+                                                fontSize="sm"
+                                                color="text.muted"
+                                                fontWeight="medium"
+                                            >
+                                                {formattedExistingChips} chips
+                                            </Text>
+                                            <Text
+                                                fontSize="2xs"
+                                                color="text.muted"
+                                                fontWeight="medium"
+                                                opacity={0.75}
+                                            >
+                                                in this table&rsquo;s contract
+                                            </Text>
+                                        </>
+                                    )}
+                                </VStack>
                                 <Text
                                     fontSize="sm"
                                     color="text.secondary"
@@ -543,63 +651,273 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                     lineHeight="short"
                                     px={2}
                                 >
-                                    Withdraw these to your wallet first, then you can
-                                    deposit a new amount and take your seat.
+                                    Cash these out first, then sit down with a
+                                    fresh stack.
                                 </Text>
                             </VStack>
                         </ModalBody>
                         <ModalFooter px={{ base: 5, sm: 7 }} pb={7} pt={4}>
                             <VStack w="100%" spacing={3}>
-                                <WalletButton width="100%" height="52px" chain={isCryptoGame ? tableChain : undefined} />
-                                {withdrawStatus === 'error' && withdrawError && (
-                                    <HStack
-                                        spacing={2}
-                                        alignItems="flex-start"
-                                        bg="red.50"
-                                        borderRadius="md"
-                                        px={3}
-                                        py={2}
-                                        width="100%"
-                                    >
-                                        <Icon
-                                            as={FaInfoCircle}
-                                            boxSize={3.5}
-                                            mt={0.5}
-                                            color="red.700"
-                                        />
-                                        <Text
-                                            fontSize="xs"
-                                            fontWeight="semibold"
-                                            color="red.700"
-                                            textAlign="left"
-                                            wordBreak="break-word"
+                                <WalletButton
+                                    width="100%"
+                                    height="52px"
+                                    chain={isCryptoGame ? tableChain : undefined}
+                                />
+
+                                {/* One warning chip at a time — priority:
+                                    settlement-pending > gas > error. The
+                                    success state replaces the CTA below
+                                    rather than rendering a chip up here. */}
+                                {!withdrawSuccessFlash &&
+                                    isWithdrawSettlementPending && (
+                                        <HStack
+                                            spacing={2}
+                                            alignItems="flex-start"
+                                            width="100%"
+                                            bg="rgba(253, 197, 29, 0.12)"
+                                            _dark={{
+                                                bg: 'rgba(253, 197, 29, 0.10)',
+                                            }}
+                                            borderRadius="md"
+                                            px={3}
+                                            py={2}
                                         >
-                                            {withdrawError}
+                                            <Icon
+                                                as={FaInfoCircle}
+                                                boxSize={3.5}
+                                                mt={0.5}
+                                                color="brand.yellowDark"
+                                                _dark={{ color: 'brand.yellow' }}
+                                            />
+                                            <Text
+                                                fontSize="xs"
+                                                fontWeight="semibold"
+                                                color="brand.yellowDark"
+                                                _dark={{ color: 'brand.yellow' }}
+                                                textAlign="left"
+                                                lineHeight="short"
+                                            >
+                                                Last hand still settling.
+                                                Withdraw unlocks in{' '}
+                                                {withdrawCountdown}s.
+                                            </Text>
+                                        </HStack>
+                                    )}
+                                {!withdrawSuccessFlash &&
+                                    !isWithdrawSettlementPending &&
+                                    isWithdrawGasMode && (
+                                        <HStack
+                                            spacing={2}
+                                            alignItems="flex-start"
+                                            width="100%"
+                                            bg="rgba(253, 197, 29, 0.12)"
+                                            _dark={{
+                                                bg: 'rgba(253, 197, 29, 0.10)',
+                                            }}
+                                            borderRadius="md"
+                                            px={3}
+                                            py={2}
+                                        >
+                                            <Icon
+                                                as={FaInfoCircle}
+                                                boxSize={3.5}
+                                                mt={0.5}
+                                                color="brand.yellowDark"
+                                                _dark={{ color: 'brand.yellow' }}
+                                            />
+                                            <Text
+                                                fontSize="xs"
+                                                fontWeight="semibold"
+                                                color="brand.yellowDark"
+                                                _dark={{ color: 'brand.yellow' }}
+                                                textAlign="left"
+                                                lineHeight="short"
+                                            >
+                                                Your wallet has no ETH on Base
+                                                for gas. Swap a tiny bit of
+                                                USDC for ETH below, $0.25 is
+                                                more than enough.
+                                            </Text>
+                                        </HStack>
+                                    )}
+                                {!withdrawSuccessFlash &&
+                                    !isWithdrawSettlementPending &&
+                                    !isWithdrawGasMode &&
+                                    withdrawStatus === 'error' &&
+                                    withdrawError && (
+                                        <HStack
+                                            spacing={2}
+                                            alignItems="flex-start"
+                                            bg="red.50"
+                                            _dark={{
+                                                bg: 'rgba(254, 178, 178, 0.12)',
+                                            }}
+                                            borderRadius="md"
+                                            px={3}
+                                            py={2}
+                                            width="100%"
+                                        >
+                                            <Icon
+                                                as={FaInfoCircle}
+                                                boxSize={3.5}
+                                                mt={0.5}
+                                                color="red.700"
+                                                _dark={{ color: 'red.300' }}
+                                            />
+                                            <Text
+                                                fontSize="xs"
+                                                fontWeight="semibold"
+                                                color="red.700"
+                                                _dark={{ color: 'red.300' }}
+                                                textAlign="left"
+                                                wordBreak="break-word"
+                                            >
+                                                {withdrawError}
+                                            </Text>
+                                        </HStack>
+                                    )}
+
+                                {/* State-aware CTA. Five visual variants:
+                                    success-flash, settlement-pending,
+                                    gas-mode, withdrawing, and idle. */}
+                                {withdrawSuccessFlash ? (
+                                    <HStack
+                                        w="100%"
+                                        h="56px"
+                                        bg="brand.green"
+                                        borderRadius="bigButton"
+                                        justify="center"
+                                        spacing={2}
+                                        boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 3px 0 #1F7A56"
+                                    >
+                                        <Icon as={FaCheck} color="white" boxSize={4} />
+                                        <Text
+                                            fontSize="md"
+                                            fontWeight={800}
+                                            color="white"
+                                            letterSpacing="-0.01em"
+                                        >
+                                            ${formattedExistingUsdc} sent to
+                                            your wallet
                                         </Text>
                                     </HStack>
-                                )}
-                                <Button
-                                    variant="tactilePrimary"
-                                    size="lg"
-                                    w="100%"
-                                    isLoading={isWithdrawing}
-                                    loadingText="Withdrawing chips..."
-                                    onClick={handleWithdraw}
-                                    color="white"
-                                    _hover={{ color: 'white' }}
-                                    _active={{ color: 'white' }}
-                                    _focus={{ color: 'white' }}
-                                    _loading={{ color: 'white' }}
-                                >
-                                    <Text
-                                        as="span"
-                                        fontSize="md"
-                                        fontWeight={800}
-                                        color="white"
+                                ) : isWithdrawSettlementPending ? (
+                                    // Not `isDisabled` — the theme's
+                                    // _disabled filter (saturate 0.45 +
+                                    // brightness 0.92) would dim the yellow
+                                    // text and spinner into mud. The outline
+                                    // + transparent bg + bare onClick=undefined
+                                    // carries the "waiting" affordance with
+                                    // no interaction surface. Mirrors
+                                    // NavBar/WithdrawButton's pending state.
+                                    <Button
+                                        w="100%"
+                                        h="56px"
+                                        borderRadius="bigButton"
+                                        bg="transparent"
+                                        border="2px solid"
+                                        borderColor="brand.yellow"
+                                        cursor="default"
+                                        _hover={{ bg: 'transparent' }}
+                                        _active={{ bg: 'transparent' }}
                                     >
-                                        Withdraw &amp; start fresh
-                                    </Text>
-                                </Button>
+                                        <HStack spacing={2}>
+                                            <Spinner
+                                                size="xs"
+                                                color="brand.yellowDark"
+                                                _dark={{ color: 'brand.yellow' }}
+                                                thickness="2px"
+                                            />
+                                            <Text
+                                                fontSize="md"
+                                                fontWeight={700}
+                                                letterSpacing="-0.01em"
+                                                color="brand.yellowDark"
+                                                _dark={{ color: 'brand.yellow' }}
+                                            >
+                                                Checking in {withdrawCountdown}s…
+                                            </Text>
+                                        </HStack>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="tactilePrimary"
+                                        w="100%"
+                                        h="56px"
+                                        borderRadius="bigButton"
+                                        {...(isWithdrawGasMode
+                                            ? {
+                                                  bg: '#0052FF',
+                                                  _hover: { bg: '#0052FF' },
+                                                  _active: { bg: '#0040CC' },
+                                              }
+                                            : {})}
+                                        isLoading={isWithdrawing}
+                                        loadingText="Cashing out…"
+                                        spinner={
+                                            <Spinner size="sm" color="white" />
+                                        }
+                                        onClick={
+                                            isWithdrawGasMode
+                                                ? topUpGas.onOpen
+                                                : handleWithdraw
+                                        }
+                                        color="white"
+                                        _hover={{ color: 'white' }}
+                                        _active={{ color: 'white' }}
+                                        _focus={{ color: 'white' }}
+                                        _loading={{ color: 'white' }}
+                                    >
+                                        {isWithdrawGasMode && (
+                                            <Box
+                                                position="relative"
+                                                boxSize="26px"
+                                                mr={2}
+                                                flexShrink={0}
+                                            >
+                                                <Box
+                                                    boxSize="26px"
+                                                    borderRadius="full"
+                                                    bg="white"
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                    boxShadow="0 0 0 1px rgba(0,0,0,0.06)"
+                                                >
+                                                    <Image
+                                                        src="/networkLogos/eth-logo.png"
+                                                        alt="ETH"
+                                                        boxSize="20px"
+                                                        objectFit="contain"
+                                                    />
+                                                </Box>
+                                                <Image
+                                                    src="/networkLogos/base-logo.png"
+                                                    alt="on Base"
+                                                    position="absolute"
+                                                    bottom="-2px"
+                                                    right="-2px"
+                                                    boxSize="13px"
+                                                    borderRadius="full"
+                                                    border="1.5px solid white"
+                                                />
+                                            </Box>
+                                        )}
+                                        <Text
+                                            as="span"
+                                            fontSize="md"
+                                            fontWeight={800}
+                                            color="white"
+                                            letterSpacing="-0.01em"
+                                        >
+                                            {isWithdrawGasMode
+                                                ? 'Swap $0.25 → ETH'
+                                                : formattedExistingUsdc
+                                                  ? `Cash out · $${formattedExistingUsdc}`
+                                                  : 'Cash out'}
+                                        </Text>
+                                    </Button>
+                                )}
                             </VStack>
                         </ModalFooter>
                     </>
@@ -1166,22 +1484,32 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                         {isGasTopUpMode && (
                                             <Box
                                                 position="relative"
-                                                boxSize="24px"
+                                                boxSize="26px"
                                                 mr={2}
                                                 flexShrink={0}
                                             >
-                                                <Image
-                                                    src="/networkLogos/eth-logo.png"
-                                                    alt="ETH"
-                                                    boxSize="24px"
-                                                    objectFit="contain"
-                                                />
+                                                <Box
+                                                    boxSize="26px"
+                                                    borderRadius="full"
+                                                    bg="white"
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                    boxShadow="0 0 0 1px rgba(0,0,0,0.06)"
+                                                >
+                                                    <Image
+                                                        src="/networkLogos/eth-logo.png"
+                                                        alt="ETH"
+                                                        boxSize="20px"
+                                                        objectFit="contain"
+                                                    />
+                                                </Box>
                                                 <Image
                                                     src="/networkLogos/base-logo.png"
                                                     alt="on Base"
                                                     position="absolute"
-                                                    bottom="-3px"
-                                                    right="-3px"
+                                                    bottom="-2px"
+                                                    right="-2px"
                                                     boxSize="13px"
                                                     borderRadius="full"
                                                     border="1.5px solid white"
@@ -1310,10 +1638,11 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                 onClose={topUpGas.onClose}
                 mode="gas"
                 onSuccess={() => {
-                    // Same balance-refresh contract as the USDC modal. After
-                    // ETH lands, isGasInsufficient flips false and the CTA
-                    // reverts to "Sit down · $X".
+                    // Refresh both pre-flights — the gas chip is used by
+                    // both the deposit CTA and the withdraw-first CTA, and
+                    // each hook reads native balance independently.
                     refreshBalance();
+                    checkCanWithdraw();
                     topUpGas.onClose();
                 }}
             />

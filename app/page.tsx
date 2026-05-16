@@ -11,13 +11,8 @@ import ComparisonSection from './components/HomePage/ComparisonSection';
 import Footer from './components/HomePage/Footer';
 import FloatingDecor from './components/HomePage/FloatingDecor';
 import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
 import BackToTopButton from './components/HomePage/BackToTopButton';
-
-const CoinGecko = dynamic(
-    () => import('./components/HomePage/CoinGecko'),
-    { ssr: false }
-);
+import CoinGecko from './components/HomePage/CoinGeckoClient';
 
 export const metadata: Metadata = {
     title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',

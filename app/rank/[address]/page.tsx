@@ -6,8 +6,8 @@ const SITE = 'https://stackedpoker.io';
 type SearchParams = { r?: string; p?: string; t?: string };
 
 interface PageProps {
-    params: { address: string };
-    searchParams: SearchParams;
+    params: Promise<{ address: string }>;
+    searchParams: Promise<SearchParams>;
 }
 
 function buildOgUrl({ r, p, t }: SearchParams) {
@@ -19,9 +19,10 @@ function buildOgUrl({ r, p, t }: SearchParams) {
 }
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
-    const ogUrl = buildOgUrl(searchParams);
-    const title = searchParams.r
-        ? `Ranked #${searchParams.r} on Stacked Poker`
+    const sp = await searchParams;
+    const ogUrl = buildOgUrl(sp);
+    const title = sp.r
+        ? `Ranked #${sp.r} on Stacked Poker`
         : 'My rank on Stacked Poker';
     const description = 'On-chain poker on Base. Stablecoin buy-ins, smart-contract custody.';
 

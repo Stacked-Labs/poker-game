@@ -13,6 +13,8 @@ import { useActiveAccount } from 'thirdweb/react';
 import { isAuth } from '../hooks/server_actions';
 import { useWalletAuth } from '../hooks/useWalletAuth';
 
+const DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
+
 interface XAccountStatus {
     linked: boolean;
     x_username?: string;
@@ -77,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (authenticated) {
                 setLastAuthenticatedAddress(account.address);
             }
-            console.log('Auth status:', authenticated, 'Address:', account.address);
+            if (DEBUG) console.log('Auth status:', authenticated, 'Address:', account.address);
         } catch (error) {
             console.error('Error checking authentication:', error);
             setIsAuthenticated(false);
@@ -117,7 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Case 2: This is called by useWalletAuth after successful SIWE to trigger immediate
     // auth state update, which causes WebSocketProvider to reconnect
     const refreshAuthStatus = useCallback(async () => {
-        console.log('[AuthContext] refreshAuthStatus called - checking auth immediately');
+        if (DEBUG) console.log('[AuthContext] refreshAuthStatus called - checking auth immediately');
         await checkAuthentication();
     }, [checkAuthentication]);
 
@@ -165,7 +167,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Wallet disconnected (had an address, now has none)
         if (prevAddress && !currentAddress && lastAuthenticatedAddress) {
-            console.log('[AuthContext] Wallet disconnected - logging out session for', lastAuthenticatedAddress);
+            if (DEBUG) console.log('[AuthContext] Wallet disconnected - logging out session for', lastAuthenticatedAddress);
             logoutUser().then(() => {
                 setIsAuthenticated(false);
                 setLastAuthenticatedAddress(null);
@@ -178,12 +180,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Wallet changed
         if (prevAddress && currentAddress && prevAddress !== currentAddress) {
-            console.log('[AuthContext] Wallet changed from', prevAddress, 'to', currentAddress);
+            if (DEBUG) console.log('[AuthContext] Wallet changed from', prevAddress, 'to', currentAddress);
 
             // If we were authenticated with the old wallet, we need to logout
             // because the JWT is still bound to the old wallet address
             if (lastAuthenticatedAddress && lastAuthenticatedAddress !== currentAddress) {
-                console.log('[AuthContext] Wallet swap detected - logging out old session');
+                if (DEBUG) console.log('[AuthContext] Wallet swap detected - logging out old session');
                 logoutUser().then(() => {
                     setIsAuthenticated(false);
                     setLastAuthenticatedAddress(null);
@@ -216,33 +218,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
 };
 
-export const getCookie = (key: string): string | undefined => {
-    return document.cookie
-        .split('; ')
-        .find((row) => row.startsWith(`${key}=`))
-        ?.split('=')[1];
-};
-
-// Set nonsensitive Cookies such as address
-// NOT SECURE AND SHOULD NOT BE USED FOR SENSITIVE DATA
-// POTENTIALLY DEPRICATE IN THE FUTURE
-export const setCookie = (key: string, value: string, toDelete: boolean) => {
-    const date = new Date();
-    if (toDelete) {
-        date.setTime(date.getTime() - 1); // Set to a time in the past to delete the cookie
-    } else {
-        date.setTime(date.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
-    }
-    const expires = `expires=${date.toUTCString()}`;
-    document.cookie = key + '=' + value + ';' + expires + ';path=/';
-};
-
 export async function logoutUser() {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL;
     await fetch(`${backendUrl}/logout`, {
         method: 'POST',
         credentials: 'include', // ensure cookies are sent
     });
-    // Optionally clear local non-sensitive cookies like "address"
-    setCookie('address', '', true);
+    // Clear the non-sensitive client-set `address` cookie. The auth JWT itself
+    // is HttpOnly and was cleared by the backend's /logout above.
+    document.cookie = 'address=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax';
 }

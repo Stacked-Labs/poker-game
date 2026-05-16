@@ -13,10 +13,11 @@ import WalletChangeReloader from '@/app/components/WalletChangeReloader';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
-const TableLayout: React.FC<{ params: { id: string } }> = ({
+const TableLayout = async ({
     children,
     params,
-}: React.PropsWithChildren<{ params: { id: string } }>) => {
+}: React.PropsWithChildren<{ params: Promise<{ id: string }> }>) => {
+    const { id } = await params;
     // Shared inner content — identical for real and test modes
     const content = (
         <>
@@ -53,7 +54,7 @@ const TableLayout: React.FC<{ params: { id: string } }> = ({
         </>
     );
 
-    const tableId = params.id.toLowerCase();
+    const tableId = id.toLowerCase();
     const isUITest = IS_DEV && tableId === 'ui-test';
 
     return (

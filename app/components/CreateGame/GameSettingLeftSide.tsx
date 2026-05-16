@@ -172,7 +172,14 @@ const GameSettingLeftSide: React.FC = () => {
     const isCreatingRef = useRef(false);
     const blindsHydratedRef = useRef(false);
     const [isPublicGame, setIsPublicGame] = useState(true);
-    const isE2E = process.env.NEXT_PUBLIC_E2E === 'true';
+    // NODE_ENV is statically replaced at build time, so in a production bundle
+    // this collapses to `false` and every `isE2E ?` branch — including the
+    // Turnstile bypass and the dummy-token send — gets dead-code-eliminated.
+    // Prevents an accidental NEXT_PUBLIC_E2E=true in CI from shipping a
+    // bypassable build.
+    const isE2E =
+        process.env.NODE_ENV !== 'production' &&
+        process.env.NEXT_PUBLIC_E2E === 'true';
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
     const isTurnstileConfigured = !isE2E && Boolean(turnstileSiteKey);
 

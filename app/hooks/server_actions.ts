@@ -1,5 +1,10 @@
 const backendUrl = process.env.NEXT_PUBLIC_API_URL;
 
+// Gates console output that would otherwise leak wallet addresses, SIWE
+// payloads/signatures, and full WS message bodies into every user's browser
+// console in production. Match the existing flag used in WebSocketProvider.
+const DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
+
 function isBackendUrlValid() {
     if (!backendUrl) {
         throw new Error('Backend API URL is not defined');
@@ -10,12 +15,13 @@ function isBackendUrlValid() {
 function sendWebSocketMessage(socket: WebSocket, message: object) {
     const stringifiedMessage = JSON.stringify(message);
 
-    // Log outgoing WebSocket message for debugging
-    console.log('🔼 WebSocket Message Sent:', {
-        timestamp: new Date().toISOString(),
-        message: message,
-        stringified: stringifiedMessage,
-    });
+    if (DEBUG) {
+        console.log('🔼 WebSocket Message Sent:', {
+            timestamp: new Date().toISOString(),
+            message: message,
+            stringified: stringifiedMessage,
+        });
+    }
 
     socket.send(stringifiedMessage);
 }
@@ -229,7 +235,7 @@ export async function initSession() {
 
 // SIWE Authentication - Step 1: Get authentication payload
 export async function getAuthPayload(address: string) {
-    console.log('Getting auth payload for address:', address);
+    if (DEBUG) console.log('Getting auth payload for address:', address);
 
     isBackendUrlValid();
 
@@ -247,13 +253,13 @@ export async function getAuthPayload(address: string) {
     }
 
     const data = await response.json();
-    console.log('Received auth payload:', data);
+    if (DEBUG) console.log('Received auth payload:', data);
     return data; // Returns { payload, message }
 }
 
 // SIWE Authentication - Step 3: Verify signed payload
 export async function verifySignedPayload(signedPayload: object) {
-    console.log('Verifying signed payload:', signedPayload);
+    if (DEBUG) console.log('Verifying signed payload:', signedPayload);
 
     isBackendUrlValid();
 
@@ -271,7 +277,7 @@ export async function verifySignedPayload(signedPayload: object) {
     }
 
     const data = await response.json();
-    console.log('Verification result:', data);
+    if (DEBUG) console.log('Verification result:', data);
     return data; // Returns { success: true, address: "0x..." }
 }
 
@@ -281,9 +287,11 @@ export async function authenticateUser(
     signature: string,
     message: string
 ) {
-    console.log('Authenticating user with address:', address);
-    console.log('Signature:', signature);
-    console.log('Message:', message);
+    if (DEBUG) {
+        console.log('Authenticating user with address:', address);
+        console.log('Signature:', signature);
+        console.log('Message:', message);
+    }
 
     isBackendUrlValid();
 
@@ -616,7 +624,7 @@ export async function fetchTableEvents(
         }
 
         const response = await fetch(
-            `${backendUrl}/api/tables/${tableName}/events?${searchParams.toString()}`,
+            `${backendUrl}/api/tables/${encodeURIComponent(tableName)}/events?${searchParams.toString()}`,
             {
                 method: 'GET',
                 credentials: 'include',
@@ -1076,7 +1084,7 @@ export async function fetchTableLedger(tableName: string) {
 
     try {
         const response = await fetch(
-            `${backendUrl}/api/tables/${tableName}/ledger`,
+            `${backendUrl}/api/tables/${encodeURIComponent(tableName)}/ledger`,
             {
                 method: 'GET',
                 credentials: 'include',

@@ -9,6 +9,8 @@ import {
 import { getAuthPayload, verifySignedPayload, isAuth } from './server_actions';
 import useToastHelper from './useToastHelper';
 
+const DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
+
 // Callback type for notifying auth completion
 type OnAuthCompleteCallback = () => Promise<void>;
 
@@ -84,7 +86,7 @@ export const useWalletAuth = (onAuthComplete?: OnAuthCompleteCallback) => {
                     );
                     // Case 2: Immediately refresh auth status after successful SIWE
                     // This triggers WS reconnect so ownership is recognized without page refresh
-                    console.log('[useWalletAuth] SIWE successful, refreshing auth status');
+                    if (DEBUG) console.log('[useWalletAuth] SIWE successful, refreshing auth status');
                     if (onAuthCompleteRef.current) {
                         await onAuthCompleteRef.current();
                     }

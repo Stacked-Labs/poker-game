@@ -35,10 +35,21 @@ import {
 } from '@/app/utils/seatReaction';
 import { useAuth } from '@/app/contexts/AuthContext';
 
-/*  
-WebSocket context creates a single connection to the server per client. 
+/*
+WebSocket context creates a single connection to the server per client.
 It handles opening, closing, and error handling of the websocket. It also
-dispatches websocket messages to update the central state store. 
+dispatches websocket messages to update the central state store.
+
+Trust boundary: the WS may open before SIWE auth has completed. The backend
+treats unauthenticated connections as spectators — hole cards are stripped
+via GenerateSpectatorView, ledger/pending-player data is owner-gated, and all
+write actions (take-seat, accept-player, kick-player, start-game, blinds, …)
+are refused without an authenticated session. After SIWE the connection
+force-reconnects and the backend upgrades the session via TryReclaimSeat,
+so no privileged data ever flows over the unauthenticated phase.
+
+If you add a new server → client message, confirm the spectator path doesn't
+leak anything that wasn't already public.
 */
 
 export const SocketContext: Context<WebSocket | null> =

@@ -362,7 +362,7 @@ export function SocketProvider(props: SocketProviderProps) {
                         dispatch({ type: 'addLog', payload: newLog });
 
                         if (
-                            eventData.message === 'Seat request cancelled successfully.' &&
+                            eventData.message.startsWith('Seat request cancelled successfully.') &&
                             appStateRef.current.seatRequested !== null
                         ) {
                             dispatch({ type: 'setSeatRequested', payload: null });

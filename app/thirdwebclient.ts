@@ -81,9 +81,19 @@ export const wallets = [
         // thirdweb can sponsor gas for them (configured in the dashboard under
         // Sponsored Transactions). Without this they're plain EOAs with no way
         // to pay gas until they've already onboarded USDC.
+        //
+        // factoryAddress is pinned so the smart-account address a user
+        // gets is stable across sessions and matches what was used at
+        // create-table / SIWE time. Without pinning, thirdweb can resolve
+        // to a different default factory and the predicted address drifts
+        // — which breaks owner-match (table.ownerAddress vs the new
+        // useActiveAccount().address) and orphans funds sent to the old
+        // counterfactual address. Must stay in sync with the backend's
+        // SIWE_ALLOWED_FACTORIES.
         smartAccount: {
             chain: defaultChain,
             sponsorGas: true,
+            factoryAddress: '0x85e23b94e7F5E9cC1fF78BCe78cfb15B81f0DF00',
         },
         auth: {
             options: [

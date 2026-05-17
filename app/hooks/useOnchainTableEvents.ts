@@ -10,7 +10,7 @@ import {
 import { eth_blockNumber, getRpcClient } from 'thirdweb/rpc';
 import { client } from '@/app/thirdwebclient';
 
-const WINDOW_SIZE = BigInt(5_000);
+const WINDOW_SIZE = BigInt(1_000);
 const MIN_PAGE_RESULTS = 20;
 const MAX_WINDOWS_PER_CALL = 2;
 export const MAX_BLOCKS_BACK = BigInt(10_000);

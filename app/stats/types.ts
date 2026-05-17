@@ -244,6 +244,7 @@ export interface PendingSettlement {
     hand_id: number;
     queue_id: string;
     player_count: number;
+    chain?: string;
     thirdweb_status?: string;
     thirdweb_error?: string;
 }

@@ -51,7 +51,7 @@ const PlayerRow = ({
     player: OnchainPlayer;
     explorerUrl: string | null;
 }) => {
-    const settling = !player.withdrawable && player.seated;
+    const settling = player.withdrawable;
     return (
         <Flex
             align="center"
@@ -76,10 +76,10 @@ const PlayerRow = ({
                         fontWeight="bold"
                         textTransform="uppercase"
                         letterSpacing="0.04em"
-                        color="orange.600"
-                        _dark={{ color: 'orange.300' }}
+                        color="brand.green"
+                        _dark={{ color: 'brand.green' }}
                     >
-                        Settling
+                        Withdrawable
                     </Text>
                 )}
             </HStack>

@@ -9,7 +9,7 @@ import { UserProvider } from '@/app/contexts/CurrentUserProvider';
 import { SoundProvider } from '@/app/contexts/SoundProvider';
 import { AuthProvider } from '@/app/contexts/AuthContext';
 import { AutoConnect, ThirdwebProvider } from 'thirdweb/react';
-import { client } from './thirdwebclient';
+import { client, wallets } from './thirdwebclient';
 import {
     TOAST_BANNER_CONTAINER_STYLE,
     TOAST_BANNER_DURATION_MS,
@@ -38,7 +38,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 }}
             >
                 <ThirdwebProvider>
-                    <AutoConnect client={client} />
+                    <AutoConnect client={client} wallets={wallets} />
                     <E2EAutoConnect />
                     <AuthProvider>
                         <AppStoreProvider>

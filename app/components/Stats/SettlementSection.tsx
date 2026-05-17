@@ -152,25 +152,43 @@ export const SettlementSection = ({ data, onClear }: SettlementSectionProps) => 
                                 >
                                     {ps.table}
                                 </Text>
-                                <Badge
-                                    bg={
-                                        ps.thirdweb_status === 'mined'
-                                            ? 'brand.green'
-                                            : ps.thirdweb_status === 'errored'
-                                                ? 'brand.pink'
-                                                : 'brand.yellow'
-                                    }
-                                    color={ps.thirdweb_status === 'errored' || ps.thirdweb_status === 'mined' ? 'white' : 'brand.darkNavy'}
-                                    fontSize="xs"
-                                    px={2}
-                                    py={0.5}
-                                    borderRadius="full"
-                                    textTransform="uppercase"
-                                    letterSpacing="0.05em"
-                                    fontWeight={700}
-                                >
-                                    {ps.thirdweb_status ?? 'unknown'}
-                                </Badge>
+                                <HStack gap={2}>
+                                    {ps.chain && (
+                                        <Badge
+                                            bg="whiteAlpha.200"
+                                            color="text.secondary"
+                                            _dark={{ bg: 'whiteAlpha.100', color: 'whiteAlpha.600' }}
+                                            fontSize="xs"
+                                            px={2}
+                                            py={0.5}
+                                            borderRadius="full"
+                                            textTransform="uppercase"
+                                            letterSpacing="0.05em"
+                                            fontWeight={600}
+                                        >
+                                            {ps.chain}
+                                        </Badge>
+                                    )}
+                                    <Badge
+                                        bg={
+                                            ps.thirdweb_status === 'mined'
+                                                ? 'brand.green'
+                                                : ps.thirdweb_status === 'errored'
+                                                    ? 'brand.pink'
+                                                    : 'brand.yellow'
+                                        }
+                                        color={ps.thirdweb_status === 'errored' || ps.thirdweb_status === 'mined' ? 'white' : 'brand.darkNavy'}
+                                        fontSize="xs"
+                                        px={2}
+                                        py={0.5}
+                                        borderRadius="full"
+                                        textTransform="uppercase"
+                                        letterSpacing="0.05em"
+                                        fontWeight={700}
+                                    >
+                                        {ps.thirdweb_status ?? 'unknown'}
+                                    </Badge>
+                                </HStack>
                             </Flex>
                             <Flex justify="space-between" align="center">
                                 <HStack gap={4} fontSize="sm">

@@ -221,7 +221,9 @@ const TransactionHistoryList = ({
                 </Text>
             ) : events.length === 0 ? (
                 <Text fontSize="xs" color="text.muted">
-                    No onchain activity yet. The first deposit will appear here.
+                    {hasMore
+                        ? 'No recent activity found. Load older blocks to scan further back.'
+                        : 'No onchain activity yet. The first deposit will appear here.'}
                 </Text>
             ) : (
                 <Flex direction="column" gap={0.5}>
@@ -234,7 +236,7 @@ const TransactionHistoryList = ({
                     ))}
                 </Flex>
             )}
-            {(hasMore || loading) && events.length > 0 && (
+            {hasMore && (
                 <Flex justify="center" pt={3}>
                     <Button
                         size="xs"
@@ -243,7 +245,7 @@ const TransactionHistoryList = ({
                         isLoading={loading}
                         loadingText="Scanning…"
                         onClick={onLoadMore}
-                        isDisabled={!hasMore || loading}
+                        isDisabled={loading}
                     >
                         <Text fontSize="xs" fontWeight="semibold" color="text.secondary">
                             Load older

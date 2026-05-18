@@ -41,6 +41,7 @@ const connectSrc = [
     'wss://*.coinbase.com',
     'https://*.farcaster.xyz',
     'https://warpcast.com',
+    'https://api.coingecko.com',
     ...(isDev ? ['http://localhost:8080', 'ws://localhost:8080'] : []),
 ];
 
@@ -59,8 +60,8 @@ const nextConfig = {
                             "frame-src 'self' https://challenges.cloudflare.com https://embedded-wallet.thirdweb.com https://pay.thirdweb.com https://*.thirdweb.com",
                             `connect-src ${connectSrc.join(' ')}`,
                             "img-src 'self' data: https: blob:",
-                            "style-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-                            "font-src 'self' data:",
+                            "style-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://fonts.googleapis.com",
+                            "font-src 'self' data: https://fonts.gstatic.com",
                             "worker-src 'self' blob:",
                         ].join('; '),
                     },

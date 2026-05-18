@@ -64,11 +64,11 @@ const PREPARED_EVENTS = [
     }),
     prepareEvent({
         signature:
-            'event ChipsSettled(uint256 handId, address[] players, uint256[] newChips, uint256 rakeCollected)',
+            'event ChipsSettled(uint256 indexed handId, address[] players, uint256[] newChips, uint256 rakeCollected)',
     }),
     prepareEvent({
         signature:
-            'event RakeDistributed(uint256 handId, uint256 platformRake, uint256 hostRake, uint256 totalRake)',
+            'event RakeDistributed(uint256 indexed handId, uint256 platformRake, uint256 hostRake, uint256 totalRake)',
     }),
     prepareEvent({
         signature:

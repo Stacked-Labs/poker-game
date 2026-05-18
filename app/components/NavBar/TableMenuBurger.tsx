@@ -106,6 +106,8 @@ const TableMenuBurger = ({
                 onClose={onClose}
                 onOpen={onOpen}
                 closeOnSelect={false}
+                isLazy
+                lazyBehavior="unmount"
             >
                 <MenuButton
                     as={IconButton}

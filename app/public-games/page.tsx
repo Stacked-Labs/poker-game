@@ -26,7 +26,7 @@ const PublicPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<FilterValue>('all');
     const [stake, setStake] = useState<StakeFilterValue>('all');
-    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'seats', direction: 'desc' });
 
     const sortByParam = sortKeyToParam(sortConfig.key);
 
@@ -95,7 +95,7 @@ const PublicPage = () => {
     };
 
     const handleRetry = () => {
-        setSortConfig({ key: null, direction: 'asc' });
+        setSortConfig({ key: 'seats', direction: 'desc' });
         setFilter('all');
         setStake('all');
     };

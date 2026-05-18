@@ -134,14 +134,17 @@ function evaluate5(cards: EvalCard[]): {
         });
     const [r1, c1] = groups[0];
     const [r2, c2] = groups[1] || [0, 0];
-    const kickers = uniqueRanks
+    const singleKickers = uniqueRanks
+        .filter((r) => r !== r1)
+        .sort(byRankDesc);
+    const pairKickers = uniqueRanks
         .filter((r) => r !== r1 && r !== r2)
         .sort(byRankDesc);
 
     if (c1 === 4)
         return {
             cat: 'Four of a Kind',
-            tuple: [categoryScore('Four of a Kind'), r1, kickers[0] || 0],
+            tuple: [categoryScore('Four of a Kind'), r1, singleKickers[0] || 0],
         };
     if (c1 === 3 && c2 >= 2)
         return {
@@ -164,7 +167,7 @@ function evaluate5(cards: EvalCard[]): {
             tuple: [
                 categoryScore('Three of a Kind'),
                 r1,
-                ...kickers.slice(0, 2),
+                ...singleKickers.slice(0, 2),
             ],
         };
     if (c1 === 2 && c2 === 2) {
@@ -172,13 +175,13 @@ function evaluate5(cards: EvalCard[]): {
             pl = Math.min(r1, r2);
         return {
             cat: 'Two Pair',
-            tuple: [categoryScore('Two Pair'), ph, pl, kickers[0] || 0],
+            tuple: [categoryScore('Two Pair'), ph, pl, pairKickers[0] || 0],
         };
     }
     if (c1 === 2)
         return {
             cat: 'One Pair',
-            tuple: [categoryScore('One Pair'), r1, ...kickers.slice(0, 3)],
+            tuple: [categoryScore('One Pair'), r1, ...singleKickers.slice(0, 3)],
         };
     return {
         cat: 'High Card',

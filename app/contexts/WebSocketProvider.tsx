@@ -313,6 +313,10 @@ export function SocketProvider(props: SocketProviderProps) {
                     } else {
                         // false / null / undefined / anything else => not pending
                         dispatch({ type: 'setSeatRequested', payload: null });
+                        // Also clear any stale accepted state from a previous request cycle.
+                        if (appStateRef.current.seatAccepted) {
+                            dispatch({ type: 'setSeatAccepted', payload: null });
+                        }
                     }
                     return; // Message handled
                 }
@@ -701,18 +705,25 @@ export function SocketProvider(props: SocketProviderProps) {
                         return;
                     }
                     case 'seat-request-accepted': {
-                        // Player's seat request was accepted — single dispatch to set accepted + clear requested
-                        dispatch({
-                            type: 'seatRequestAcceptedBundle',
-                            payload: {
-                                seatAccepted: {
-                                    seatId: eventData.seatId,
-                                    buyIn: eventData.buyIn,
-                                    queued: eventData.queued,
-                                    message: eventData.message,
+                        // Only keep "accepted" UI state when the player is actually queued.
+                        // For immediate seating (queued=false), clear request state and let
+                        // update-game drive the visible seated/cards state.
+                        if (eventData.queued) {
+                            dispatch({
+                                type: 'seatRequestAcceptedBundle',
+                                payload: {
+                                    seatAccepted: {
+                                        seatId: eventData.seatId,
+                                        buyIn: eventData.buyIn,
+                                        queued: eventData.queued,
+                                        message: eventData.message,
+                                    },
                                 },
-                            },
-                        });
+                            });
+                        } else {
+                            dispatch({ type: 'setSeatRequested', payload: null });
+                            dispatch({ type: 'setSeatAccepted', payload: null });
+                        }
                         // Show success toast
                         toastSuccessRef.current(
                             'Seat Accepted',

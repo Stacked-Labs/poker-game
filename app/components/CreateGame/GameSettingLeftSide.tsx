@@ -18,6 +18,7 @@ import {
     Image,
     Link,
     Switch,
+    useDisclosure,
 } from '@chakra-ui/react';
 import {
     FaInfoCircle,
@@ -100,6 +101,7 @@ function readStoredBlinds(): { sb: number; bb: number } | null {
 }
 
 function InfoDot({ label }: { label: string }) {
+    const { isOpen, onOpen, onClose, onToggle } = useDisclosure();
     return (
         <Tooltip
             label={label}
@@ -109,13 +111,24 @@ function InfoDot({ label }: { label: string }) {
             px={3}
             py={2}
             hasArrow
+            isOpen={isOpen}
         >
             <Box
-                as="span"
+                as="button"
+                type="button"
+                aria-label="More info"
                 display="inline-flex"
                 alignItems="center"
                 color="gray.400"
                 cursor="help"
+                onMouseEnter={onOpen}
+                onMouseLeave={onClose}
+                onFocus={onOpen}
+                onBlur={onClose}
+                onClick={(e: React.MouseEvent) => {
+                    e.preventDefault();
+                    onToggle();
+                }}
             >
                 <FaInfoCircle size={14} />
             </Box>

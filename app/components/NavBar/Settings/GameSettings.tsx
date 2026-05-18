@@ -705,13 +705,22 @@ const GameSettings = () => {
                             color="white"
                             fontWeight="bold"
                             sx={{
-                                '& > option:checked': {
-                                    color: 'text.primary',
-                                    fontWeight: 'bold',
+                                // Native <option> popups (esp. on Windows Chrome) don't
+                                // resolve CSS variables, so semantic tokens render as
+                                // unset/white. Use literal hex values per color mode.
+                                '& > option, & > optgroup': {
+                                    backgroundColor:
+                                        colorMode === 'light'
+                                            ? '#FFFFFF'
+                                            : '#212121',
+                                    color:
+                                        colorMode === 'light'
+                                            ? '#0B1430'
+                                            : '#FFFFFF',
+                                    fontWeight: 'normal',
                                 },
-                                '& > option': {
-                                    bg: 'card.white',
-                                    color: 'text.primary',
+                                '& > option:checked': {
+                                    fontWeight: 'bold',
                                 },
                             }}
                             _hover={{ cursor: 'pointer' }}

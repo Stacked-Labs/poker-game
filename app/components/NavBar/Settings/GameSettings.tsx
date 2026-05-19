@@ -366,6 +366,7 @@ const GameSettings = () => {
                     borderColor="border.lightGray"
                     p={{ base: 2.5, md: 3 }}
                     boxShadow="card.lift"
+                    opacity={isOwner ? 1 : 0.6}
                 >
                     <Flex
                         direction="row"

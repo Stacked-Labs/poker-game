@@ -41,7 +41,7 @@ const EMOTE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const SEVEN_TV_GLOBAL_SET_PROXY_URL = '/api/7tv/emote-sets/global';
 const SEVEN_TV_SET_PROXY_URL = (setId: string) =>
     `/api/7tv/emote-sets/${setId}`;
-const RECENT_EMOTES_MAX = 10;
+const RECENT_EMOTES_MAX = 18;
 
 function buildMaps(emotes: Emote[]) {
     const byName: Record<string, Emote> = {};

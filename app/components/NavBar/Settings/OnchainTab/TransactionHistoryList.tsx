@@ -14,6 +14,7 @@ import {
     FiArrowDownLeft,
     FiArrowUpRight,
     FiCheckCircle,
+    FiChevronDown,
     FiFlag,
     FiLogIn,
     FiLogOut,
@@ -237,21 +238,73 @@ const TransactionHistoryList = ({
                 </Flex>
             )}
             {hasMore && (
-                <Flex justify="center" pt={3}>
-                    <Button
-                        size="xs"
-                        variant="ghost"
-                        fontWeight="semibold"
-                        isLoading={loading}
-                        loadingText="Scanning…"
-                        onClick={onLoadMore}
-                        isDisabled={loading}
-                    >
-                        <Text fontSize="xs" fontWeight="semibold" color="text.secondary">
-                            Load older
-                        </Text>
-                    </Button>
-                </Flex>
+                <Box pt={3} mt={1}>
+                    <Box
+                        h="1px"
+                        bg="border.lightGray"
+                        opacity={0.6}
+                        mb={3}
+                    />
+                    <Flex justify="center">
+                        <Button
+                            size="sm"
+                            onClick={onLoadMore}
+                            isDisabled={loading}
+                            h="32px"
+                            px={3.5}
+                            borderRadius="full"
+                            bg="rgba(51, 68, 121, 0.08)"
+                            border="1px solid"
+                            borderColor="rgba(51, 68, 121, 0.18)"
+                            _dark={{
+                                bg: 'rgba(154, 173, 230, 0.12)',
+                                borderColor: 'rgba(154, 173, 230, 0.28)',
+                            }}
+                            transition="background-color 120ms ease, border-color 120ms ease, transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1)"
+                            _hover={{
+                                bg: 'rgba(51, 68, 121, 0.14)',
+                                borderColor: 'rgba(51, 68, 121, 0.32)',
+                                _dark: {
+                                    bg: 'rgba(154, 173, 230, 0.20)',
+                                    borderColor: 'rgba(154, 173, 230, 0.42)',
+                                },
+                            }}
+                            _active={{
+                                bg: 'rgba(51, 68, 121, 0.20)',
+                                transform: 'translateY(1px)',
+                            }}
+                        >
+                            <HStack spacing={1.5}>
+                                {loading ? (
+                                    <Spinner
+                                        size="xs"
+                                        thickness="2px"
+                                        color="brand.navy"
+                                        _dark={{ color: 'rgba(180, 197, 245, 1)' }}
+                                    />
+                                ) : (
+                                    <Icon
+                                        as={FiChevronDown}
+                                        boxSize={3.5}
+                                        color="brand.navy"
+                                        _dark={{ color: 'rgba(180, 197, 245, 1)' }}
+                                    />
+                                )}
+                                <Text
+                                    fontSize="xs"
+                                    fontWeight="semibold"
+                                    letterSpacing="0.02em"
+                                    color="brand.navy"
+                                    _dark={{ color: 'rgba(180, 197, 245, 1)' }}
+                                >
+                                    {loading
+                                        ? 'Scanning older blocks…'
+                                        : 'Load older activity'}
+                                </Text>
+                            </HStack>
+                        </Button>
+                    </Flex>
+                </Box>
             )}
             {!hasMore && events.length > 0 && !loading && (
                 <Flex justify="center" pt={3} gap={1.5} align="center" flexWrap="wrap">

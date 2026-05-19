@@ -27,6 +27,7 @@ import {
 import { keyframes } from '@emotion/react';
 import { FaCoins, FaInfoCircle } from 'react-icons/fa';
 import LeaveSeatAction from './Settings/LeaveSeatAction';
+import CancelSeatRequestAction from './Settings/CancelSeatRequestAction';
 
 // ─── Constants & animations (mirrored from WithdrawButton) ───────────────────
 const POLL_INTERVAL = 5;
@@ -57,6 +58,7 @@ interface WithdrawStoryProps {
     error: string | null;
     isAuthenticated: boolean;
     isAuthenticating: boolean;
+    pendingSeatRequest: boolean;
     /** When true, the modal opens automatically on mount. */
     autoOpenModal: boolean;
 }
@@ -76,6 +78,7 @@ const WithdrawButtonStory = ({
     error,
     isAuthenticated,
     isAuthenticating,
+    pendingSeatRequest,
     autoOpenModal,
 }: WithdrawStoryProps) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -91,10 +94,18 @@ const WithdrawButtonStory = ({
     );
 
     const isButtonDisabled =
-        isUserSeated || isLoading || !canWithdraw || chipBalance === 0;
+        isUserSeated ||
+        pendingSeatRequest ||
+        isLoading ||
+        !canWithdraw ||
+        chipBalance === 0;
 
     const isPendingWithdraw =
-        !canWithdraw && !isUserSeated && !isLoading && chipBalance > 0;
+        !canWithdraw &&
+        !isUserSeated &&
+        !pendingSeatRequest &&
+        !isLoading &&
+        chipBalance > 0;
 
     // Live countdown for the pending-withdraw state
     const [countdown, setCountdown] = useState(POLL_INTERVAL);
@@ -126,7 +137,9 @@ const WithdrawButtonStory = ({
                 label={
                     isUserSeated
                         ? 'Leave the table first to withdraw'
-                        : 'Withdraw your chips'
+                        : pendingSeatRequest
+                          ? 'Cancel your pending seat request to withdraw'
+                          : 'Withdraw your chips'
                 }
                 placement="bottom"
                 fontSize="xs"
@@ -370,6 +383,39 @@ const WithdrawButtonStory = ({
                                             </HStack>
                                         )}
 
+                                        {pendingSeatRequest && (
+                                            <HStack
+                                                spacing={2}
+                                                alignItems="flex-start"
+                                                bg="rgba(237, 137, 54, 0.12)"
+                                                color="orange.600"
+                                                _dark={{
+                                                    bg: 'rgba(237, 137, 54, 0.15)',
+                                                    color: 'orange.300',
+                                                }}
+                                                borderRadius="md"
+                                                px={3}
+                                                py={2}
+                                                fontSize="xs"
+                                                fontWeight="medium"
+                                                width="100%"
+                                            >
+                                                <Icon
+                                                    as={FaInfoCircle}
+                                                    boxSize={3.5}
+                                                    mt={0.5}
+                                                />
+                                                <Text
+                                                    color="inherit"
+                                                    textAlign="left"
+                                                >
+                                                    You have a pending seat
+                                                    request. Cancel it to
+                                                    unlock withdraw.
+                                                </Text>
+                                            </HStack>
+                                        )}
+
                                         {isPendingWithdraw && (
                                                 <HStack
                                                     spacing={2}
@@ -446,6 +492,12 @@ const WithdrawButtonStory = ({
                                         onClick={() => {}}
                                         isLeaveRequested={leaveAfterHandRequested}
                                         settlementStuck={settlementStuck}
+                                        width="100%"
+                                        height="56px"
+                                    />
+                                ) : pendingSeatRequest ? (
+                                    <CancelSeatRequestAction
+                                        onClick={() => {}}
                                         width="100%"
                                         height="56px"
                                     />
@@ -537,7 +589,9 @@ const WithdrawButtonStory = ({
                                 >
                                     {isUserSeated
                                         ? 'Leave the table before withdrawing. Your on-chain chip balance reflects the last settled hand.'
-                                        : 'Your on-chain chip balance reflects the last settled hand. Chips are held by the table contract and returned as USDC upon withdrawal.'}
+                                        : pendingSeatRequest
+                                          ? 'Cancel your pending seat request before withdrawing. Your buy-in is reserved while a request is open.'
+                                          : 'Your on-chain chip balance reflects the last settled hand. Chips are held by the table contract and returned as USDC upon withdrawal.'}
                                     {' '}
                                     {CHIPS_PER_USDC}{' '}
                                     chips&nbsp;=&nbsp;1&nbsp;USDC.
@@ -653,6 +707,11 @@ const meta = {
             control: 'boolean',
             description: 'Whether auth signature is pending in wallet',
         },
+        pendingSeatRequest: {
+            control: 'boolean',
+            description:
+                'Whether the user has a pending (not-yet-accepted) seat request awaiting host approval',
+        },
         autoOpenModal: {
             control: 'boolean',
             description: 'Automatically open the modal on render',
@@ -669,6 +728,7 @@ const meta = {
         error: null,
         isAuthenticated: true,
         isAuthenticating: false,
+        pendingSeatRequest: false,
         autoOpenModal: false,
     },
 } satisfies Meta<typeof WithdrawButtonStory>;
@@ -762,6 +822,33 @@ export const Authenticating: Story = {
         isAuthenticating: true,
         autoOpenModal: true,
     },
+};
+
+/**
+ * User has a pending seat request (awaiting host approval) — modal shows the
+ * orange warning explaining the block, and the footer swaps the Withdraw CTA
+ * for a solid-pink "Cancel seat request" action.
+ */
+export const PendingSeatRequest: Story = {
+    args: {
+        pendingSeatRequest: true,
+        autoOpenModal: true,
+    },
+};
+
+/** PendingSeatRequest in dark mode. */
+export const PendingSeatRequestDark: Story = {
+    args: {
+        pendingSeatRequest: true,
+        autoOpenModal: true,
+    },
+    decorators: [
+        (Story) => (
+            <DarkMode>
+                <Story />
+            </DarkMode>
+        ),
+    ],
 };
 
 /** Dark mode variant with modal open. */

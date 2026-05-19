@@ -207,8 +207,8 @@ const EmotePicker = ({
             recentEmoteIds
                 .map((id) => emotesById[id])
                 .filter(Boolean)
-                .slice(0, 10),
-        [recentEmoteIds, emotesById]
+                .slice(0, columns * 3),
+        [recentEmoteIds, emotesById, columns]
     );
 
     useEffect(() => {

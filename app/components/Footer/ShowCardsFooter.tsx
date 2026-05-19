@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Flex } from '@chakra-ui/react';
 import ActionButton from './ActionButton';
 import SeatRequestStatusBadge from './SeatRequestStatusBadge';
+import { HOTKEY_SHOW_CARDS } from './constants';
 
 type ShowCardsFooterProps = {
     onShowCards: () => void;
@@ -10,6 +12,23 @@ type ShowCardsFooterProps = {
 };
 
 const ShowCardsFooter = ({ onShowCards, isDisabled }: ShowCardsFooterProps) => {
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() !== HOTKEY_SHOW_CARDS) return;
+            const active = document.activeElement as HTMLElement | null;
+            const isEditableElement =
+                active &&
+                (active.tagName === 'INPUT' ||
+                    active.tagName === 'TEXTAREA' ||
+                    active.isContentEditable);
+            if (isEditableElement || isDisabled) return;
+            onShowCards();
+            e.preventDefault();
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [onShowCards, isDisabled]);
+
     return (
         <Flex
             className="footer-show-cards"
@@ -39,7 +58,7 @@ const ShowCardsFooter = ({ onShowCards, isDisabled }: ShowCardsFooterProps) => {
                 color="green"
                 clickHandler={onShowCards}
                 isDisabled={isDisabled}
-                hotkey=""
+                hotkey={HOTKEY_SHOW_CARDS}
             />
             <SeatRequestStatusBadge />
         </Flex>

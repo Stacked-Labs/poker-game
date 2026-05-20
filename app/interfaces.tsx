@@ -147,6 +147,7 @@ export type Config = {
     ownerAddress?: string;
     ownerSessionUUID?: string;
     rabbitHuntEnabled?: boolean;
+    autoAccept?: boolean;
 };
 
 export type Pot = {

@@ -128,16 +128,8 @@ export async function setupFreeGameTwoPlayers(browser: import('@playwright/test'
     await player.getByTestId('buy-in-input').fill('500');
     await player.getByTestId('join-table-btn').click();
 
-    // Owner accepts
-    await owner
-        .locator('[data-testid="seat-request-popup"]')
-        .waitFor({ timeout: 20_000 });
-    await owner.locator('[data-testid^="accept-player-"]').first().click();
     await owner.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
     await player.getByTestId('taken-seat-1').waitFor({ timeout: 30_000 });
-    await owner
-        .locator('[data-testid="seat-request-popup"]')
-        .waitFor({ state: 'hidden', timeout: 10_000 });
 
     return { owner, player, ctxOwner, ctxPlayer };
 }
@@ -251,12 +243,7 @@ export async function setupFreeGameThreePlayers(browser: import('@playwright/tes
     await player2.getByTestId('buy-in-input').fill('500');
     await player2.getByTestId('join-table-btn').click();
 
-    // Owner accepts player 2
-    await owner.locator('[data-testid="seat-request-popup"]').waitFor({ timeout: 20_000 });
-    await owner.locator('[data-testid^="accept-player-"]').first().click();
     await owner.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
-    await owner.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'hidden', timeout: 10_000 });
-    // Ensure player2 also observes seat acceptance before continuing.
     await player2.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
 
     // Player3 joins and requests seat 3
@@ -271,11 +258,7 @@ export async function setupFreeGameThreePlayers(browser: import('@playwright/tes
     await player3.getByTestId('buy-in-input').fill('500');
     await player3.getByTestId('join-table-btn').click();
 
-    // Owner accepts player 3
-    await owner.locator('[data-testid="seat-request-popup"]').waitFor({ timeout: 20_000 });
-    await owner.locator('[data-testid^="accept-player-"]').first().click();
     await owner.getByTestId('taken-seat-3').waitFor({ timeout: 30_000 });
-    await owner.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'hidden', timeout: 10_000 });
 
     return { owner, player2, player3, ctxOwner, ctxPlayer2, ctxPlayer3 };
 }
@@ -428,6 +411,22 @@ export async function playHandToCompletion3Players(
             if (!acted) break;
         }
     }
+}
+
+/**
+ * Turn off auto-accept for seat requests via owner's Settings panel.
+ * Call this after the owner creates a game and dismisses the lobby banner,
+ * before any other player requests a seat.
+ */
+export async function disableAutoAccept(owner: Page) {
+    await openSettingsTab(owner, 'Settings');
+    const toggle = owner.getByTestId('auto-accept-toggle');
+    await toggle.waitFor({ timeout: 5_000 });
+    const checked = await toggle.isChecked();
+    if (checked) {
+        await toggle.click();
+    }
+    await owner.getByTestId('settings-close-btn').click();
 }
 
 /**

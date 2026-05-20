@@ -40,16 +40,8 @@ test('Player raises — pot increases, opponent sees call button', async ({
     await player.getByTestId('buy-in-input').fill('500');
     await player.getByTestId('join-table-btn').click();
 
-    // ── Owner accepts ──
-    await owner
-        .locator('[data-testid="seat-request-popup"]')
-        .waitFor({ timeout: 20_000 });
-    await owner.locator('[data-testid^="accept-player-"]').first().click();
     await owner.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
     await player.getByTestId('taken-seat-1').waitFor({ timeout: 30_000 });
-    await owner
-        .locator('[data-testid="seat-request-popup"]')
-        .waitFor({ state: 'hidden', timeout: 10_000 });
 
     // ── Start game ──
     await startGame(owner);

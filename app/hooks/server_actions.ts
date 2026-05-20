@@ -218,6 +218,17 @@ export function sendToggleRabbitHunt(socket: WebSocket, enabled: boolean) {
     }
 }
 
+export function sendToggleAutoAccept(socket: WebSocket, enabled: boolean) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        sendWebSocketMessage(socket, {
+            action: 'toggle-auto-accept',
+            enabled,
+        });
+    } else {
+        console.error('Cannot send toggle-auto-accept: WebSocket is not open.');
+    }
+}
+
 // Initialize/confirm an HTTP session so cookies are set before subsequent requests
 export async function initSession() {
     isBackendUrlValid();

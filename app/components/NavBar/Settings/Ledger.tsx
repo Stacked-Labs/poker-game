@@ -7,7 +7,6 @@ import {
     Grid,
     HStack,
     Icon,
-    Image,
     Stack,
     Table,
     Tbody,
@@ -17,7 +16,7 @@ import {
     Thead,
     Tr,
 } from '@chakra-ui/react';
-import { getColorForUsername } from '@/app/utils/chatColors';
+import PlayerAvatar from '@/app/components/PlayerAvatar';
 import { keyframes } from '@emotion/react';
 import {
     FiArrowDownRight,
@@ -35,6 +34,7 @@ interface PlayerSession {
     uuid: string;
     username: string;
     profileImageUrl?: string;
+    address?: string;
     totalBuyIns: number;
     totalBuyOuts: number;
     currentStack: number;
@@ -63,82 +63,43 @@ const skeletonShimmer = keyframes`
     100% { opacity: 0.5; }
 `;
 
-// ─── Player avatar — image with initials fallback + active corner badge ──
 const LedgerAvatar = ({
     username,
     profileImageUrl,
+    address,
     isActive,
     size = '32px',
 }: {
     username: string;
     profileImageUrl?: string;
+    address?: string;
     isActive: boolean;
     size?: string;
-}) => {
-    const [imgFailed, setImgFailed] = useState(false);
-    const showImg = Boolean(profileImageUrl) && !imgFailed;
-    const displayName = username || '';
-    const color = getColorForUsername(displayName);
-    const initials =
-        displayName
-            .replace(/^@/, '')
-            .split(/[\s._-]+/)
-            .slice(0, 2)
-            .map((w) => w[0]?.toUpperCase() ?? '')
-            .join('') ||
-        displayName.replace(/^@/, '').slice(0, 2).toUpperCase() ||
-        '?';
-
-    return (
-        <Box position="relative" flexShrink={0} w={size} h={size}>
-            {showImg ? (
-                <Image
-                    src={profileImageUrl}
-                    alt=""
-                    w="100%"
-                    h="100%"
-                    borderRadius="full"
-                    objectFit="cover"
-                    onError={() => setImgFailed(true)}
-                />
-            ) : (
-                <Flex
-                    w="100%"
-                    h="100%"
-                    borderRadius="full"
-                    bg={{ base: `${color}24`, _dark: `${color}3A` }}
-                    alignItems="center"
-                    justifyContent="center"
-                >
-                    <Text
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        color={color}
-                        lineHeight="1"
-                        userSelect="none"
-                    >
-                        {initials}
-                    </Text>
-                </Flex>
-            )}
-            {isActive && (
-                <Box
-                    position="absolute"
-                    bottom="-1px"
-                    right="-1px"
-                    w="10px"
-                    h="10px"
-                    borderRadius="full"
-                    bg="brand.green"
-                    border="2px solid"
-                    borderColor="card.white"
-                    animation={`${pulseDot} 2s ease-in-out infinite`}
-                    aria-label="Active player"
-                />
-            )}
-        </Box>
-    );
-};
+}) => (
+    <Box position="relative" flexShrink={0} w={size} h={size}>
+        <PlayerAvatar
+            profileImageUrl={profileImageUrl}
+            address={address}
+            username={username || '?'}
+            initialsFontSize="11px"
+        />
+        {isActive && (
+            <Box
+                position="absolute"
+                bottom="-1px"
+                right="-1px"
+                w="10px"
+                h="10px"
+                borderRadius="full"
+                bg="brand.green"
+                border="2px solid"
+                borderColor="card.white"
+                animation={`${pulseDot} 2s ease-in-out infinite`}
+                aria-label="Active player"
+            />
+        )}
+    </Box>
+);
 
 // ─── Smart NET cell — value + trend arrow + sign ─────────────────────────
 const NetCell = ({
@@ -375,6 +336,7 @@ const MobileSessionCard = ({
                         <LedgerAvatar
                             username={session.username}
                             profileImageUrl={session.profileImageUrl}
+                            address={session.address}
                             isActive={session.isActive}
                             size="32px"
                         />
@@ -629,12 +591,14 @@ const Ledger = () => {
                     session.username = player.username || session.username;
                     session.profileImageUrl =
                         player.profileImageUrl ?? session.profileImageUrl;
+                    session.address = player.address ?? session.address;
                 } else {
                     // Player is active but no ledger entries yet
                     playerMap.set(player.uuid, {
                         uuid: player.uuid,
                         username: player.username,
                         profileImageUrl: player.profileImageUrl,
+                        address: player.address,
                         totalBuyIns: player.totalBuyIn || 0,
                         totalBuyOuts: 0,
                         currentStack: player.stack,
@@ -950,6 +914,7 @@ const Ledger = () => {
                                                         profileImageUrl={
                                                             session.profileImageUrl
                                                         }
+                                                        address={session.address}
                                                         isActive={session.isActive}
                                                         size="32px"
                                                     />

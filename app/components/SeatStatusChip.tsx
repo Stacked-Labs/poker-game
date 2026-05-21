@@ -5,7 +5,8 @@ import {
     MdWifiOff,
     MdLogout,
     MdLocalCafe,
-    MdPerson,
+    MdSnooze,
+    MdPersonAdd,
 } from 'react-icons/md';
 import type { IconType } from 'react-icons';
 import type { SeatStatusKind } from '../lib/seatStatus';
@@ -15,42 +16,61 @@ type StatusConfig = {
     icon: IconType;
     bg: string;
     fg: string;
+    borderColor: string;
+    boxShadow: string;
 };
 
 const STATUS_CONFIG: Record<Exclude<SeatStatusKind, 'none'>, StatusConfig> = {
     offline: {
         label: 'Offline',
         icon: MdWifiOff,
-        bg: 'gray.600',
-        fg: 'gray.100',
+        bg: 'brand.pink',
+        fg: 'white',
+        borderColor: 'brand.pinkDark',
+        boxShadow:
+            '0 0 16px rgba(235, 11, 92, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)',
     },
     leaving: {
         label: 'Leaving',
         icon: MdLogout,
         bg: 'brand.pink',
-        fg: 'brand.lightGray',
+        fg: 'white',
+        borderColor: 'brand.pinkDark',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
     },
     sittingOut: {
         label: 'Sitting out',
         icon: MdLocalCafe,
         bg: 'brand.yellow',
-        fg: 'brand.lightNavy',
+        fg: 'brand.darkNavy',
+        borderColor: 'rgba(120, 90, 0, 0.45)',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.25)',
     },
     away: {
         label: 'Away',
-        icon: MdPerson,
+        icon: MdSnooze,
         bg: 'brand.yellow',
         fg: 'brand.darkNavy',
+        borderColor: 'rgba(120, 90, 0, 0.45)',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.25)',
     },
     joining: {
         label: 'Joining',
-        icon: MdPerson,
-        bg: 'brand.lightGray',
-        fg: 'brand.darkNavy',
+        icon: MdPersonAdd,
+        bg: 'brand.green',
+        fg: 'white',
+        borderColor: 'brand.greenDark',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
     },
 };
 
-const SeatStatusChip = ({ kind }: { kind: SeatStatusKind }) => {
+const SeatStatusChip = ({
+    kind,
+    iconOnly = false,
+}: {
+    kind: SeatStatusKind;
+    iconOnly?: boolean;
+}) => {
     return (
         <Box
             position="absolute"
@@ -68,7 +88,7 @@ const SeatStatusChip = ({ kind }: { kind: SeatStatusKind }) => {
                         exit={{ opacity: 0, y: -4, scale: 0.9 }}
                         transition={{ duration: 0.18, ease: 'easeOut' }}
                     >
-                        <StatusTag kind={kind} />
+                        <StatusTag kind={kind} iconOnly={iconOnly} />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -76,7 +96,13 @@ const SeatStatusChip = ({ kind }: { kind: SeatStatusKind }) => {
     );
 };
 
-const StatusTag = ({ kind }: { kind: Exclude<SeatStatusKind, 'none'> }) => {
+const StatusTag = ({
+    kind,
+    iconOnly,
+}: {
+    kind: Exclude<SeatStatusKind, 'none'>;
+    iconOnly: boolean;
+}) => {
     const config = STATUS_CONFIG[kind];
     return (
         <Tag
@@ -85,30 +111,32 @@ const StatusTag = ({ kind }: { kind: Exclude<SeatStatusKind, 'none'> }) => {
             variant="solid"
             size={{ base: 'xs', md: 'sm' }}
             fontSize={{ base: '8px', md: 'sm' }}
-            px={{ base: 1, md: 2 }}
-            py={{ base: 0.1, md: 0.2 }}
+            px={iconOnly ? 1 : { base: 1, md: 2 }}
+            py={iconOnly ? 0.5 : { base: 0.5, md: 1 }}
             fontWeight="bold"
             borderRadius="6px"
+            border="1px solid"
+            borderColor={config.borderColor}
             display="flex"
             alignItems="center"
-            gap={1}
+            gap={iconOnly ? 0 : 1}
             aria-label={config.label}
-            boxShadow={
-                kind === 'offline' ? '0 2px 8px rgba(0, 0, 0, 0.3)' : undefined
-            }
+            boxShadow={config.boxShadow}
         >
             <Icon
                 as={config.icon}
                 color={config.fg}
-                boxSize={{ base: 2.5, md: 3 }}
+                boxSize={{ base: 3, md: 3 }}
             />
-            <Text
-                as="span"
-                color={config.fg}
-                display={{ base: 'none', md: 'inline' }}
-            >
-                {config.label}
-            </Text>
+            {!iconOnly && (
+                <Text
+                    as="span"
+                    color={config.fg}
+                    display={{ base: 'none', md: 'inline' }}
+                >
+                    {config.label}
+                </Text>
+            )}
         </Tag>
     );
 };

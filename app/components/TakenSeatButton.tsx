@@ -13,6 +13,7 @@ import {
     ResponsiveValue,
     HStack,
     Tag,
+    IconButton,
 } from '@chakra-ui/react';
 import { FiSmile } from 'react-icons/fi';
 import ConnectXPrompt from './ConnectXPrompt';
@@ -532,6 +533,16 @@ const TakenSeatButton = ({
               : highlightVariant === 'selfAway'
                 ? 'brand.green'
                 : 'brand.darkNavy';
+    const emoteIconColor =
+        isCurrentTurn || showWinnerHighlight ? 'gray.400' : 'whiteAlpha.600';
+    const emoteIconHoverBg =
+        isCurrentTurn || showWinnerHighlight
+            ? 'blackAlpha.50'
+            : 'whiteAlpha.100';
+    const emoteIconActiveBg =
+        isCurrentTurn || showWinnerHighlight
+            ? 'blackAlpha.100'
+            : 'whiteAlpha.200';
     const canSendSeatReaction =
         Boolean(socket) &&
         socket?.readyState === WebSocket.OPEN &&
@@ -1318,76 +1329,6 @@ const TakenSeatButton = ({
                                     onConnect={handleConnectX}
                                     onDismiss={handleDismissXPrompt}
                                 />
-                                {canSendSeatReaction && isSelf && (
-                                    <Box
-                                        position="absolute"
-                                        bottom="-4px"
-                                        right="-4px"
-                                        zIndex={3}
-                                    >
-                                        <EmotePicker
-                                            onSelectEmote={
-                                                handleSelectSeatEmote
-                                            }
-                                            columns={6}
-                                            maxHeight="280px"
-                                            width={{
-                                                base: '280px',
-                                                md: '340px',
-                                            }}
-                                            showSearch={true}
-                                            popoverContentProps={{
-                                                zIndex: 2000,
-                                            }}
-                                            trigger={
-                                                <Box
-                                                    as="button"
-                                                    aria-label="Add seat reaction"
-                                                    type="button"
-                                                    position="relative"
-                                                    width={{
-                                                        base: '20px',
-                                                        md: '24px',
-                                                    }}
-                                                    height={{
-                                                        base: '20px',
-                                                        md: '24px',
-                                                    }}
-                                                    borderRadius="5px"
-                                                    bg="rgba(0,0,0,0.45)"
-                                                    color="white"
-                                                    boxShadow="0 1px 3px rgba(0,0,0,0.35)"
-                                                    display="flex"
-                                                    alignItems="center"
-                                                    justifyContent="center"
-                                                    cursor="pointer"
-                                                    transition="transform 120ms ease, background-color 120ms ease"
-                                                    _hover={{
-                                                        transform: 'scale(1.08)',
-                                                        bg: 'rgba(0,0,0,0.6)',
-                                                    }}
-                                                    _active={{
-                                                        transform: 'scale(0.96)',
-                                                    }}
-                                                    _focusVisible={{
-                                                        outline: '2px solid',
-                                                        outlineColor: 'whiteAlpha.700',
-                                                        outlineOffset: '2px',
-                                                    }}
-                                                >
-                                                    <Box
-                                                        as={FiSmile}
-                                                        fontSize={{
-                                                            base: '12px',
-                                                            md: '14px',
-                                                        }}
-                                                        strokeWidth={2.5}
-                                                    />
-                                                </Box>
-                                            }
-                                        />
-                                    </Box>
-                                )}
                                 {/* Timer seconds overlay on avatar — shape adapts to avatar (circular for X, square for blockie/initials) */}
                                 {isCurrentTurn &&
                                     deadline > 0 &&
@@ -1563,6 +1504,79 @@ const TakenSeatButton = ({
                                             )}
                                         </AnimatePresence>
                                     </Box>
+                                    {canSendSeatReaction && isSelf ? (
+                                        <EmotePicker
+                                            onSelectEmote={
+                                                handleSelectSeatEmote
+                                            }
+                                            columns={6}
+                                            maxHeight="280px"
+                                            width={{
+                                                base: '280px',
+                                                md: '340px',
+                                            }}
+                                            showSearch={true}
+                                            popoverContentProps={{
+                                                zIndex: 2000,
+                                            }}
+                                            trigger={
+                                                <IconButton
+                                                    aria-label="Seat emotes"
+                                                    icon={<FiSmile />}
+                                                    fontSize={{
+                                                        base: '18px',
+                                                        md: '20px',
+                                                    }}
+                                                    variant="tactileGhost"
+                                                    color={emoteIconColor}
+                                                    height={{
+                                                        base: '28px',
+                                                        md: '32px',
+                                                    }}
+                                                    width={{
+                                                        base: '28px',
+                                                        md: '32px',
+                                                    }}
+                                                    minW="unset"
+                                                    borderRadius="full"
+                                                    sx={{
+                                                        '@media (orientation: portrait)':
+                                                            {
+                                                                height: '14px',
+                                                                width: '14px',
+                                                                fontSize:
+                                                                    '11px',
+                                                            },
+                                                    }}
+                                                    _hover={{
+                                                        bg: emoteIconHoverBg,
+                                                        color: emoteIconColor,
+                                                    }}
+                                                    _active={{
+                                                        bg: emoteIconActiveBg,
+                                                        color: emoteIconColor,
+                                                    }}
+                                                />
+                                            }
+                                        />
+                                    ) : (
+                                        <Box
+                                            aria-hidden
+                                            width={{ base: '28px', md: '32px' }}
+                                            height={{
+                                                base: '28px',
+                                                md: '32px',
+                                            }}
+                                            flexShrink={0}
+                                            sx={{
+                                                '@media (orientation: portrait)':
+                                                    {
+                                                        width: '14px',
+                                                        height: '14px',
+                                                    },
+                                            }}
+                                        />
+                                    )}
                                 </Flex>
                                 <Flex
                                     data-testid={`player-stack-${player.seatID}`}

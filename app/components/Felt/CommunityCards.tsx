@@ -8,6 +8,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } 
 import { LuRabbit } from 'react-icons/lu';
 import CardComponent from '../Card';
 import type { Card } from '@/app/interfaces';
+import { useRabbitHuntStore } from '@/app/stores/rabbitHunt';
 
 const RABBIT_SLOT_OPACITY = 0.85;
 
@@ -137,7 +138,8 @@ const CommunityCards = ({
 
     const hasRabbitCards = (rabbitCards?.length ?? 0) > 0;
 
-    const [rabbitRevealed, setRabbitRevealed] = useState(false);
+    const rabbitRevealed = useRabbitHuntStore((s) => s.revealed);
+    const setRabbitRevealed = useRabbitHuntStore((s) => s.setRevealed);
     const [hoveredRabbitIdx, setHoveredRabbitIdx] = useState<number | null>(null);
     // Delay the persistent rabbit marker on the front face until the flip
     // animation completes (~600 ms: 300 ms pre-flip + 300 ms transform), so the
@@ -159,7 +161,7 @@ const CommunityCards = ({
                 }
             }
         }
-    }, [rabbitCards]);
+    }, [rabbitCards, setRabbitRevealed]);
 
     useEffect(() => {
         return () => {
@@ -180,7 +182,7 @@ const CommunityCards = ({
                 650
             );
         }
-    }, [playCardFlip, prefersReducedMotion]);
+    }, [playCardFlip, prefersReducedMotion, setRabbitRevealed]);
 
     const cards = [0, 1, 2, 3, 4];
 

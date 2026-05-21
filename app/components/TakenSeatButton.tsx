@@ -13,7 +13,6 @@ import {
     ResponsiveValue,
     HStack,
     Tag,
-    IconButton,
 } from '@chakra-ui/react';
 import { FiSmile } from 'react-icons/fi';
 import ConnectXPrompt from './ConnectXPrompt';
@@ -43,11 +42,10 @@ import {
 import useToastHelper from '@/app/hooks/useToastHelper';
 import type { Emote } from '@/app/stores/emotes';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
+import { useRabbitHuntStore } from '@/app/stores/rabbitHunt';
 import { buildSeatReactionMessage } from '@/app/utils/seatReaction';
 import EmotePicker from './NavBar/Chat/EmotePicker';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
-import FloatingPointsText from './Animations/FloatingPointsText';
-import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
 import {
     ACTION_LABEL_DURATION_MS,
     actionLabelColor,
@@ -370,7 +368,7 @@ const TakenSeatButton = ({
 
     // Offline status - default to true if undefined (backwards compatibility)
     const isOffline = player.isOnline === false;
-    const seatStatus = getSeatStatus(player, isSelf);
+    const seatStatus = getSeatStatus(player);
     const seatId = visualSeatId ?? player?.seatID ?? 4;
 
     const chipPositionSx = chipPositionStyles[seatId] || defaultPositionStyles;
@@ -387,8 +385,6 @@ const TakenSeatButton = ({
 
     const actionIndex = appState.game?.action;
 
-    // Floating points: read from store (only relevant for isSelf)
-    const showPointsAnimation = usePointsAnimationStore((s) => s.showAnimation);
 
     // Transient action label that briefly replaces the username (e.g. RAISE).
     const actionLabel = usePlayerActionLabelStore(
@@ -537,16 +533,6 @@ const TakenSeatButton = ({
               : highlightVariant === 'selfAway'
                 ? 'brand.green'
                 : 'brand.darkNavy';
-    const emoteIconColor =
-        isCurrentTurn || showWinnerHighlight ? 'gray.400' : 'whiteAlpha.600';
-    const emoteIconHoverBg =
-        isCurrentTurn || showWinnerHighlight
-            ? 'blackAlpha.50'
-            : 'whiteAlpha.100';
-    const emoteIconActiveBg =
-        isCurrentTurn || showWinnerHighlight
-            ? 'blackAlpha.100'
-            : 'whiteAlpha.200';
     const canSendSeatReaction =
         Boolean(socket) &&
         socket?.readyState === WebSocket.OPEN &&
@@ -663,39 +649,39 @@ const TakenSeatButton = ({
               ? 'brand.darkNavy'
               : 'white';
 
-    // Compute hand strength label per display rules
+    const rabbitRevealed = useRabbitHuntStore((s) => s.revealed);
+
+    // When rabbit cards exist, the label is suppressed for every seat until
+    // the local user reveals them — then the rabbit cards augment the board.
     const strengthLabel: string | null = useMemo(() => {
         const game = appState.game;
         if (!game) return null;
-        const board = (game.communityCards || [])
+
+        const hasRabbit = (game.rabbitCards || []).length > 0;
+        if (hasRabbit && !rabbitRevealed) return null;
+
+        const community = (game.communityCards || [])
             .map((c) => Number(c))
-            .filter((c) => c > 0); // Filter out 0 and negative values
+            .filter((c) => c > 0);
+        const rabbit = hasRabbit
+            ? (game.rabbitCards || [])
+                  .map((c) => Number(c))
+                  .filter((c) => c > 0)
+            : [];
+        const board = [...community, ...rabbit];
         const hole = (player.cards || [])
             .map((c) => Number(c))
-            .filter((c) => c > 0); // Filter out 0 and negative values (e.g., -1 for away players)
+            .filter((c) => c > 0);
 
-        // Visibility rules:
-        // - Self or any player: only show once board has at least the flop (3 cards)
-        // - Others: additionally require both hole cards to be valid positive numbers (visible)
         const boardHasFlop = board.length >= 3;
         if (!boardHasFlop) return null;
 
-        // Check if both hole cards are valid (positive numbers, not -1 or 0)
         const bothHoleVisible = hole.length >= 2 && hole[0] > 0 && hole[1] > 0;
-
-        // Determine if this seat is "self" by matching uuid against clientID when available
-        const isSelf = appState.clientID
-            ? player.uuid === appState.clientID
-            : false;
-
-        if (!isSelf && !bothHoleVisible) return null;
-
-        // Only evaluate hand if we have valid hole cards
         if (!bothHoleVisible) return null;
 
         const label = currentHandLabel(hole as number[], board as number[]);
         return label ?? null;
-    }, [appState.clientID, appState.game, player.cards, player.uuid]);
+    }, [appState.game, player.cards, rabbitRevealed]);
 
     if (!appState.game) {
         return null;
@@ -735,9 +721,6 @@ const TakenSeatButton = ({
             alignItems={'center'}
             justifyContent={'center'}
         >
-            {/* Floating points text for self (crypto games) */}
-            {isSelf && showPointsAnimation && <FloatingPointsText />}
-
             {/* Away badge moved into player info container below */}
             <Flex
                 className="chip-position-container"
@@ -1203,11 +1186,14 @@ const TakenSeatButton = ({
                                     : 'brand.darkNavy'
                         }
                     >
-                        <SeatStatusChip kind={seatStatus.kind} />
+                        <SeatStatusChip
+                            kind={seatStatus.kind}
+                            iconOnly={isSelf || !!strengthLabel}
+                        />
                         {strengthLabel && (
                             <Tag
                                 position="absolute"
-                                top={{ base: -1, md: -3 }}
+                                top={{ base: -2, md: -3 }}
                                 left={'50%'}
                                 transform={'translateX(-50%)'}
                                 bg="brand.green"
@@ -1215,13 +1201,16 @@ const TakenSeatButton = ({
                                 variant="solid"
                                 size={{ base: 'xs', md: 'sm' }}
                                 fontSize={{ base: '8px', md: 'sm' }}
-                                px={{ base: 1, md: 2 }}
+                                px={{ base: 1.5, md: 2 }}
                                 py={{ base: 0, md: 0.5 }}
                                 whiteSpace="nowrap"
                                 pointerEvents="none"
                                 zIndex={4}
                                 fontWeight="bold"
                                 borderRadius="6px"
+                                border="1px solid"
+                                borderColor="brand.greenDark"
+                                boxShadow="0 0 16px rgba(54, 163, 123, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)"
                             >
                                 {strengthLabel}
                             </Tag>
@@ -1384,6 +1373,80 @@ const TakenSeatButton = ({
                                     onConnect={handleConnectX}
                                     onDismiss={handleDismissXPrompt}
                                 />
+                                {canSendSeatReaction && isSelf && (
+                                    <Box
+                                        position="absolute"
+                                        bottom="-4px"
+                                        right="-4px"
+                                        zIndex={3}
+                                    >
+                                        <EmotePicker
+                                            onSelectEmote={
+                                                handleSelectSeatEmote
+                                            }
+                                            columns={6}
+                                            maxHeight="280px"
+                                            width={{
+                                                base: '280px',
+                                                md: '340px',
+                                            }}
+                                            showSearch={true}
+                                            popoverContentProps={{
+                                                zIndex: 2000,
+                                            }}
+                                            trigger={
+                                                <Box
+                                                    as="button"
+                                                    aria-label="Add seat reaction"
+                                                    type="button"
+                                                    position="relative"
+                                                    width={{
+                                                        base: '20px',
+                                                        md: '24px',
+                                                    }}
+                                                    height={{
+                                                        base: '20px',
+                                                        md: '24px',
+                                                    }}
+                                                    borderRadius="5px"
+                                                    bg="brand.darkNavy"
+                                                    color="brand.green"
+                                                    border="1.5px solid"
+                                                    borderColor="brand.green"
+                                                    boxShadow="0 2px 6px rgba(0,0,0,0.45)"
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                    cursor="pointer"
+                                                    transition="transform 120ms ease, background-color 120ms ease, border-color 120ms ease"
+                                                    _hover={{
+                                                        transform: 'scale(1.08)',
+                                                        bg: 'brand.darkNavy',
+                                                        borderColor: 'brand.greenLight',
+                                                        color: 'brand.greenLight',
+                                                    }}
+                                                    _active={{
+                                                        transform: 'scale(0.96)',
+                                                    }}
+                                                    _focusVisible={{
+                                                        outline: '2px solid',
+                                                        outlineColor: 'brand.green',
+                                                        outlineOffset: '2px',
+                                                    }}
+                                                >
+                                                    <Box
+                                                        as={FiSmile}
+                                                        fontSize={{
+                                                            base: '12px',
+                                                            md: '14px',
+                                                        }}
+                                                        strokeWidth={2.5}
+                                                    />
+                                                </Box>
+                                            }
+                                        />
+                                    </Box>
+                                )}
                                 {/* Timer seconds overlay on avatar — shape adapts to avatar (circular for X, square for blockie/initials) */}
                                 {isCurrentTurn &&
                                     deadline > 0 &&
@@ -1559,79 +1622,6 @@ const TakenSeatButton = ({
                                             )}
                                         </AnimatePresence>
                                     </Box>
-                                    {canSendSeatReaction && isSelf ? (
-                                        <EmotePicker
-                                            onSelectEmote={
-                                                handleSelectSeatEmote
-                                            }
-                                            columns={6}
-                                            maxHeight="280px"
-                                            width={{
-                                                base: '280px',
-                                                md: '340px',
-                                            }}
-                                            showSearch={true}
-                                            popoverContentProps={{
-                                                zIndex: 2000,
-                                            }}
-                                            trigger={
-                                                <IconButton
-                                                    aria-label="Seat emotes"
-                                                    icon={<FiSmile />}
-                                                    fontSize={{
-                                                        base: '18px',
-                                                        md: '20px',
-                                                    }}
-                                                    variant="tactileGhost"
-                                                    color={emoteIconColor}
-                                                    height={{
-                                                        base: '28px',
-                                                        md: '32px',
-                                                    }}
-                                                    width={{
-                                                        base: '28px',
-                                                        md: '32px',
-                                                    }}
-                                                    minW="unset"
-                                                    borderRadius="full"
-                                                    sx={{
-                                                        '@media (orientation: portrait)':
-                                                            {
-                                                                height: '14px',
-                                                                width: '14px',
-                                                                fontSize:
-                                                                    '11px',
-                                                            },
-                                                    }}
-                                                    _hover={{
-                                                        bg: emoteIconHoverBg,
-                                                        color: emoteIconColor,
-                                                    }}
-                                                    _active={{
-                                                        bg: emoteIconActiveBg,
-                                                        color: emoteIconColor,
-                                                    }}
-                                                />
-                                            }
-                                        />
-                                    ) : (
-                                        <Box
-                                            aria-hidden
-                                            width={{ base: '28px', md: '32px' }}
-                                            height={{
-                                                base: '28px',
-                                                md: '32px',
-                                            }}
-                                            flexShrink={0}
-                                            sx={{
-                                                '@media (orientation: portrait)':
-                                                    {
-                                                        width: '14px',
-                                                        height: '14px',
-                                                    },
-                                            }}
-                                        />
-                                    )}
                                 </Flex>
                                 <Flex
                                     data-testid={`player-stack-${player.seatID}`}

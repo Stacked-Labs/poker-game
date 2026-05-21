@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, HStack, Text, Tooltip, useColorModeValue, useToken } from '@chakra-ui/react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { usePointsAnimationStore } from '@/app/stores/pointsAnimation';
+import FloatingPointsText from '../Animations/FloatingPointsText';
 
 const MotionBox = motion(Box);
 
@@ -104,6 +105,7 @@ export default function SessionPointsBadge() {
             textAlign="center"
         >
             <Box position="relative" display="inline-flex">
+                <FloatingPointsText />
                 <Box
                     position="relative"
                     bg={bg}

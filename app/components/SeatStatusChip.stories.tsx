@@ -93,7 +93,7 @@ type PrecedenceArgs = {
     ready: boolean;
     readyNextHand: boolean;
     stack: number;
-    isSelf: boolean;
+    iconOnly: boolean;
     inHand: boolean;
 };
 
@@ -105,7 +105,7 @@ export const Precedence: StoryObj<PrecedenceArgs> = {
         ready: { control: 'boolean' },
         readyNextHand: { control: 'boolean' },
         stack: { control: { type: 'number', min: 0 } },
-        isSelf: { control: 'boolean' },
+        iconOnly: { control: 'boolean' },
         inHand: { control: 'boolean' },
     },
     args: {
@@ -115,7 +115,7 @@ export const Precedence: StoryObj<PrecedenceArgs> = {
         ready: true,
         readyNextHand: false,
         stack: 500,
-        isSelf: false,
+        iconOnly: false,
         inHand: false,
     },
     render: (args) => {
@@ -139,11 +139,11 @@ export const Precedence: StoryObj<PrecedenceArgs> = {
             leaveAfterHand: args.leaveAfterHand,
             isOnline: args.isOnline,
         } satisfies Player;
-        const status = getSeatStatus(player, args.isSelf);
+        const status = getSeatStatus(player);
         return (
             <Flex direction="column" gap={3} align="center">
                 <SeatStandIn>
-                    <SeatStatusChip kind={status.kind} />
+                    <SeatStatusChip kind={status.kind} iconOnly={args.iconOnly} />
                 </SeatStandIn>
                 <Text color="gray.400" fontSize="sm">
                     resolved: <b>{status.kind}</b>

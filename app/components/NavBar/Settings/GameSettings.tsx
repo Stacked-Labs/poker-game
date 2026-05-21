@@ -440,6 +440,8 @@ const GameSettings = () => {
                                         px={1}
                                         h={{ base: '32px', md: '36px' }}
                                         fontSize={{ base: 'sm', md: 'md' }}
+                                        inputMode={blindsMode === 'usdc' ? 'decimal' : 'numeric'}
+                                        pattern={blindsMode === 'usdc' ? '[0-9]*\\.?[0-9]*' : '[0-9]*'}
                                         data-testid="sb-input"
                                     />
                                 </NumberInput>
@@ -469,6 +471,8 @@ const GameSettings = () => {
                                         px={1}
                                         h={{ base: '32px', md: '36px' }}
                                         fontSize={{ base: 'sm', md: 'md' }}
+                                        inputMode={blindsMode === 'usdc' ? 'decimal' : 'numeric'}
+                                        pattern={blindsMode === 'usdc' ? '[0-9]*\\.?[0-9]*' : '[0-9]*'}
                                         data-testid="bb-input"
                                     />
                                 </NumberInput>

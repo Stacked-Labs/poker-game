@@ -370,8 +370,8 @@ const RaiseInputBox = ({
                     rounded={'lg'}
                     position="absolute"
                     left={'0.5cqw'}
-                    bottom={'56px'}
-                    maxW={'58cqw'}
+                    bottom={'70px'}
+                    maxW={'29cqw'}
                     width={'auto'}
                     p="0.5cqh"
                     textAlign="center"
@@ -383,6 +383,15 @@ const RaiseInputBox = ({
                     borderColor="rgba(54, 163, 123, 0.3)"
                     backdropFilter="blur(12px)"
                     boxShadow="0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                    filter={
+                        !isCurrentTurn || gameIsPaused
+                            ? 'saturate(0.45) brightness(0.92)'
+                            : undefined
+                    }
+                    pointerEvents={
+                        !isCurrentTurn || gameIsPaused ? 'none' : 'auto'
+                    }
+                    transition="filter 160ms ease"
                 >
                     <Flex
                         direction="column"
@@ -562,24 +571,32 @@ const RaiseInputBox = ({
                 {/* Vertical slider overlay – absolute positioned */}
                 <Box
                     position="absolute"
-                    bottom="56px"
+                    bottom="70px"
                     right={0}
                     height={{ base: '400px', sm: '350px' }}
                     width={{ base: '48px', sm: '48px' }}
                     flexDirection="column"
                     bg="rgba(11, 20, 48, 0.85)"
-                    rounded={'xl'}
+                    rounded={'md'}
                     overflow={'hidden'}
                     zIndex={10000}
                     border="1.5px solid"
                     borderColor="rgba(54, 163, 123, 0.18)"
                     className="raise-portrait-vertical-slider"
-                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                    transition="filter 160ms ease, border-color 160ms ease"
                     backdropFilter="blur(16px)"
                     boxShadow="0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06)"
                     _hover={{
                         borderColor: 'rgba(54, 163, 123, 0.32)',
                     }}
+                    filter={
+                        !isCurrentTurn || gameIsPaused
+                            ? 'saturate(0.45) brightness(0.92)'
+                            : undefined
+                    }
+                    pointerEvents={
+                        !isCurrentTurn || gameIsPaused ? 'none' : 'auto'
+                    }
                     sx={{
                         '@media (orientation: portrait)': {
                             display: 'flex',

@@ -1409,28 +1409,24 @@ const TakenSeatButton = ({
                                                         md: '24px',
                                                     }}
                                                     borderRadius="5px"
-                                                    bg="brand.darkNavy"
-                                                    color="brand.green"
-                                                    border="1.5px solid"
-                                                    borderColor="brand.green"
-                                                    boxShadow="0 2px 6px rgba(0,0,0,0.45)"
+                                                    bg="rgba(0,0,0,0.45)"
+                                                    color="white"
+                                                    boxShadow="0 1px 3px rgba(0,0,0,0.35)"
                                                     display="flex"
                                                     alignItems="center"
                                                     justifyContent="center"
                                                     cursor="pointer"
-                                                    transition="transform 120ms ease, background-color 120ms ease, border-color 120ms ease"
+                                                    transition="transform 120ms ease, background-color 120ms ease"
                                                     _hover={{
                                                         transform: 'scale(1.08)',
-                                                        bg: 'brand.darkNavy',
-                                                        borderColor: 'brand.greenLight',
-                                                        color: 'brand.greenLight',
+                                                        bg: 'rgba(0,0,0,0.6)',
                                                     }}
                                                     _active={{
                                                         transform: 'scale(0.96)',
                                                     }}
                                                     _focusVisible={{
                                                         outline: '2px solid',
-                                                        outlineColor: 'brand.green',
+                                                        outlineColor: 'whiteAlpha.700',
                                                         outlineOffset: '2px',
                                                     }}
                                                 >

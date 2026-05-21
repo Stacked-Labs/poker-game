@@ -408,9 +408,9 @@ const RaiseInputBox = ({
                             fontSize="8cqw"
                             size={'sm'}
                             width={'100%'}
-                            type="number"
+                            type="text"
                             inputMode={displayMode === 'chips' ? 'numeric' : 'decimal'}
-                            step={displayMode === 'chips' ? undefined : 'any'}
+                            pattern={displayMode === 'chips' ? '[0-9]*' : '[0-9]*\\.?[0-9]*'}
                             value={betInput}
                             min={sliderMinValue}
                             max={maxTotalBet}
@@ -673,43 +673,47 @@ const RaiseInputBox = ({
                     className="raise-landscape-bet-row"
                     gap="0.3cqw"
                     justifyContent="flex-end"
+                    alignItems="stretch"
                 >
                     <Box
                         bg={'rgba(11, 20, 48, 0.9)'}
-                        width={'fit-content'}
                         textAlign={'center'}
                         rounded={'lg'}
                         px="0.5cqw"
-                        py="0.5cqh"
-                        flex={1}
+                        py="0.25cqh"
                         height={'100%'}
+                        minW="8cqw"
+                        maxW="11cqw"
                         display="flex"
                         flexDirection="column"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        border="1.5px solid"
+                        justifyContent="center"
+                        alignItems="stretch"
+                        border="1px solid"
                         borderColor="rgba(54, 163, 123, 0.25)"
                         className="raise-landscape-bet-container"
                         backdropFilter="blur(12px)"
                         boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                        gap="0.2cqh"
                     >
                         <Text
                             whiteSpace={'nowrap'}
-                            fontSize="1cqw"
-                            color="white"
+                            fontSize="0.7cqw"
+                            color="rgba(255,255,255,0.6)"
                             fontWeight="bold"
+                            lineHeight={1}
+                            letterSpacing="0.04em"
+                            textTransform="uppercase"
                         >
                             {unitLabel}
                         </Text>
                         <Input
                             bg={'brand.navy'}
-                            border={'2px solid'}
+                            border={'1px solid'}
                             borderColor="brand.green"
-                            fontSize={{ base: 'xs', sm: 'sm', md: 'lg' }}
-                            size={{ base: 'xs', md: 'md' }}
-                            type="number"
+                            fontSize="1.2cqw"
+                            type="text"
                             inputMode={displayMode === 'chips' ? 'numeric' : 'decimal'}
-                            step={displayMode === 'chips' ? undefined : 'any'}
+                            pattern={displayMode === 'chips' ? '[0-9]*' : '[0-9]*\\.?[0-9]*'}
                             value={betInput}
                             min={sliderMinValue}
                             max={maxTotalBet}
@@ -725,9 +729,13 @@ const RaiseInputBox = ({
                             className="raise-landscape-bet-input"
                             data-testid="raise-input"
                             ref={desktopInputRef}
-                            mt={'auto'}
                             width="100%"
-                            height="100%"
+                            height="auto"
+                            minH="0"
+                            py="0.3cqh"
+                            px="0.4cqw"
+                            borderRadius="6px"
+                            lineHeight={1.1}
                         />
                     </Box>
                 </Flex>

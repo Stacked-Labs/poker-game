@@ -350,7 +350,7 @@ const CustodySection = ({
                             color="text.secondary"
                             mt={0.5}
                         >
-                            ${formatUsdc(hostWithdrawable)}
+                            ${formatUsdc(hostWithdrawable, 4)}
                             <Text as="span" fontSize="2xs" color="text.muted" ml={1.5}>
                                 claimable by host
                             </Text>

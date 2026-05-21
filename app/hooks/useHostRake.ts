@@ -124,10 +124,10 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
     const rakeUsdcFormatted =
         rakeBalance !== null
             ? (Number(rakeBalance) / 10 ** USDC_DECIMALS).toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 4,
+                  maximumFractionDigits: 4,
               })
-            : '0.00';
+            : '0.0000';
 
     return {
         rakeBalance,

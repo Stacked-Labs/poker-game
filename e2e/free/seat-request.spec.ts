@@ -11,7 +11,7 @@ async function dismissLobbyBanner(page: import('@playwright/test').Page) {
     }
 }
 
-test('Seat request shows on both screens, owner accepts, game starts, each player sees only their own cards', async ({ browser }) => {
+test('Seat request auto-accepted, game starts, each player sees only their own cards', async ({ browser }) => {
     const ctxOwner = await browser.newContext();
     const ctxRequester = await browser.newContext();
     const owner = await ctxOwner.newPage();
@@ -51,23 +51,10 @@ test('Seat request shows on both screens, owner accepts, game starts, each playe
     await requester.getByTestId('buy-in-input').fill(String(chips));
     await requester.getByTestId('join-table-btn').click();
 
-    // ── Owner sees seat request popup ──
-    await expect(owner.locator('[data-testid="seat-request-popup"]')).toBeVisible({ timeout: 20_000 });
-    await expect(owner.locator('[data-testid^="accept-player-"]').first()).toBeVisible();
-
-    // ── Requester sees cancel request button ──
-    await expect(requester.getByTestId('cancel-seat-request')).toBeVisible({ timeout: 10_000 });
-
-    // ── Owner accepts the seat request ──
-    await owner.locator('[data-testid^="accept-player-"]').first().click();
-
     // ── Both screens see both players seated ──
     await owner.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
     await requester.getByTestId('taken-seat-1').waitFor({ timeout: 30_000 });
     await requester.getByTestId('taken-seat-2').waitFor({ timeout: 10_000 });
-
-    // ── Wait for seat request popup to fully close before clicking Start ──
-    await owner.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'hidden', timeout: 10_000 });
 
     // ── Owner starts the game ──
     // Use evaluate() to click directly — force:true via Playwright's CDP dispatch

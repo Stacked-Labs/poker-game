@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { dismissLobbyBanner } from '../helpers/common';
+import { dismissLobbyBanner, disableAutoAccept } from '../helpers/common';
 
 test('Owner denies seat request — requester can re-request', async ({
     browser,
@@ -15,6 +15,7 @@ test('Owner denies seat request — requester can re-request', async ({
     await owner.waitForURL(/\/table\/.+/, { timeout: 30_000 });
     const tableUrl = owner.url();
     await dismissLobbyBanner(owner);
+    await disableAutoAccept(owner);
 
     await owner.getByTestId('empty-seat-1').waitFor({ timeout: 10_000 });
     await owner.getByTestId('empty-seat-1').click();

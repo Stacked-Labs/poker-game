@@ -1,13 +1,13 @@
 import { PendingPlayer } from '@/app/interfaces';
-import { Box, Flex, Button, Icon, Image, Link, Text, Tooltip, VStack, Badge } from '@chakra-ui/react';
+import { Box, Flex, Button, Icon, Link, Text, Tooltip, VStack, Badge } from '@chakra-ui/react';
 import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
 import { GiBootKick } from 'react-icons/gi';
 import { FiExternalLink } from 'react-icons/fi';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { getColorForUsername } from '@/app/utils/chatColors';
 import ExternalLink from '@/app/components/ExternalLink';
+import PlayerAvatar from '@/app/components/PlayerAvatar';
 
 const PlayerCard = ({
     index,
@@ -41,15 +41,6 @@ const PlayerCard = ({
         : format(player.buyIn);
 
     const displayName = player.username || player.uuid.substring(0, 8);
-    const avatarColor = getColorForUsername(displayName);
-    const avatarInitials =
-        displayName
-            .replace(/^@/, '')
-            .split(/[\s._-]+/)
-            .slice(0, 2)
-            .map((w) => w[0]?.toUpperCase() ?? '')
-            .join('') ||
-        displayName.replace(/^@/, '').slice(0, 2).toUpperCase();
 
     const truncatedAddress = player.address
         ? `${player.address.substring(0, 6)}...${player.address.substring(player.address.length - 4)}`
@@ -60,10 +51,6 @@ const PlayerCard = ({
     const xProfileUrl = isXVerified
         ? `https://x.com/${player.username?.replace(/^@/, '')}`
         : null;
-
-    // Avatar-image error → fall back to initials variant.
-    const [avatarImgFailed, setAvatarImgFailed] = useState(false);
-    const showAvatarImage = Boolean(player.profileImageUrl) && !avatarImgFailed;
 
     return (
         <Flex
@@ -97,36 +84,12 @@ const PlayerCard = ({
                 w={{ base: '36px', md: '42px' }}
                 h={{ base: '36px', md: '42px' }}
             >
-                {showAvatarImage ? (
-                    <Image
-                        src={player.profileImageUrl}
-                        alt=""
-                        w="100%"
-                        h="100%"
-                        borderRadius="full"
-                        objectFit="cover"
-                        onError={() => setAvatarImgFailed(true)}
-                    />
-                ) : (
-                    <Flex
-                        w="100%"
-                        h="100%"
-                        borderRadius="full"
-                        bg={{ base: `${avatarColor}24`, _dark: `${avatarColor}3A` }}
-                        alignItems="center"
-                        justifyContent="center"
-                    >
-                        <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            fontWeight="bold"
-                            color={avatarColor}
-                            lineHeight="1"
-                            userSelect="none"
-                        >
-                            {avatarInitials}
-                        </Text>
-                    </Flex>
-                )}
+                <PlayerAvatar
+                    profileImageUrl={player.profileImageUrl}
+                    address={player.address}
+                    username={displayName}
+                    initialsFontSize={{ base: '13px', md: '15px' }}
+                />
             </Box>
 
             {/* Info */}

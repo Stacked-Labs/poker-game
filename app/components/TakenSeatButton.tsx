@@ -26,8 +26,7 @@ import {
     useReducedMotion,
     AnimatePresence,
 } from 'framer-motion';
-import { blo } from 'blo';
-import { getColorForUsername } from '../utils/chatColors';
+import PlayerAvatar from './PlayerAvatar';
 import { Card, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import { SocketContext } from '../contexts/WebSocketProvider';
@@ -1299,74 +1298,20 @@ const TakenSeatButton = ({
                                 }
                                 onMouseLeave={() => setIsAvatarHovered(false)}
                             >
-                                {player.profileImageUrl ? (
-                                    <Box
-                                        as="img"
-                                        src={player.profileImageUrl}
-                                        alt=""
-                                        width="100%"
-                                        height="100%"
-                                        borderRadius="full"
-                                        objectFit="cover"
-                                        onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                                            // Fallback to blockie or initials if X avatar fails
-                                            (e.target as HTMLImageElement).style.display = 'none';
-                                            (e.target as HTMLImageElement).nextElementSibling?.removeAttribute('style');
-                                        }}
-                                    />
-                                ) : player.address ? (
-                                    <Box
-                                        as="img"
-                                        src={blo(
-                                            player.address as `0x${string}`
-                                        )}
-                                        alt=""
-                                        width="100%"
-                                        height="100%"
-                                        borderRadius="4px"
-                                    />
-                                ) : (
-                                    <Flex
-                                        width="100%"
-                                        height="100%"
-                                        borderRadius="4px"
-                                        bg={`${getColorForUsername(player.username)}40`}
-                                        alignItems="center"
-                                        justifyContent="center"
-                                    >
-                                        <Text
-                                            fontSize={{
-                                                base: '14px',
-                                                md: '18px',
-                                            }}
-                                            sx={{
-                                                '@media (orientation: portrait)':
-                                                    {
-                                                        fontSize: '11px',
-                                                    },
-                                            }}
-                                            fontWeight="bold"
-                                            color={getColorForUsername(
-                                                player.username
-                                            )}
-                                            lineHeight="1"
-                                            userSelect="none"
-                                        >
-                                            {player.username
-                                                .split(/[\s._-]+/)
-                                                .slice(0, 2)
-                                                .map(
-                                                    (w) =>
-                                                        w[0]?.toUpperCase() ??
-                                                        ''
-                                                )
-                                                .join('') ||
-                                                player.username
-                                                    .slice(0, 2)
-                                                    .toUpperCase()}
-                                        </Text>
-                                    </Flex>
-                                )}
+                                <PlayerAvatar
+                                    profileImageUrl={player.profileImageUrl}
+                                    address={player.address}
+                                    username={player.username}
+                                    initialsFontSize={{
+                                        base: '14px',
+                                        md: '18px',
+                                    }}
+                                    initialsSx={{
+                                        '@media (orientation: portrait)': {
+                                            fontSize: '11px',
+                                        },
+                                    }}
+                                />
                                 {/* Connect X prompt — see ConnectXPrompt.stories.tsx for variants */}
                                 <ConnectXPrompt
                                     isOpen={showXHoverCard}

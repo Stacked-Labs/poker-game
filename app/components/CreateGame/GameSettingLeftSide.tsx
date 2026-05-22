@@ -11,13 +11,16 @@ import {
     Spinner,
     Box,
     Heading,
-    Select,
     Icon,
-    Divider,
     HStack,
     Image,
     Link,
     Switch,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+    useColorModeValue,
     useDisclosure,
 } from '@chakra-ui/react';
 import {
@@ -27,8 +30,8 @@ import {
     FaCheckCircle,
     FaExternalLinkAlt,
 } from 'react-icons/fa';
-import { FiGift } from 'react-icons/fi';
-import PlayTypeToggle from './PlayTypeToggle';
+import { FiGift, FiChevronDown } from 'react-icons/fi';
+import ModeChooser, { CreateGameMode } from './ModeChooser';
 import NetworkCard from './NetworkCard';
 import gameData from '../../create-game/gameOptions.json';
 import { useRouter } from 'next/navigation';
@@ -79,6 +82,7 @@ const STAKE_PRESETS: StakePreset[] = [
 ];
 
 const BLINDS_STORAGE_KEY = 'stacked:create-game:blinds';
+const MODE_STORAGE_KEY = 'stacked:create-game:mode';
 
 function readStoredBlinds(): { sb: number; bb: number } | null {
     if (typeof window === 'undefined') return null;
@@ -136,10 +140,50 @@ function InfoDot({ label }: { label: string }) {
     );
 }
 
+function SectionCard({ children }: { children: React.ReactNode }) {
+    const bg = useColorModeValue('card.white', 'card.darkNavy');
+    const borderColor = useColorModeValue(
+        'border.lightGray',
+        'whiteAlpha.200'
+    );
+    const edge = useColorModeValue(
+        '0 2px 0 rgba(0,0,0,0.06)',
+        '0 2px 0 rgba(0,0,0,0.35)'
+    );
+    return (
+        <Box
+            width="100%"
+            bg={bg}
+            borderWidth="1px"
+            borderColor={borderColor}
+            borderRadius="16px"
+            boxShadow={edge}
+            px={{ base: 4, md: 5 }}
+            py={{ base: 3, md: 4 }}
+        >
+            {children}
+        </Box>
+    );
+}
+
+const USDC_BLUE = '#2775CA';
+const USDC_BLUE_EDGE = '#1F5FA3';
+const GREEN_HEX = '#36A37B';
+const GREEN_EDGE = '#1F7A5C';
+
 // why is this called left side... no idea
 const GameSettingLeftSide: React.FC = () => {
     const isCryptoEnabled = true; //process.env.NODE_ENV === 'development';
-    const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
+    const [mode, setMode] = useState<CreateGameMode | null>(null);
+    const modeHydratedRef = useRef(false);
+    const handleModeSelect = (next: CreateGameMode) => {
+        setMode(next);
+        try {
+            window.localStorage.setItem(MODE_STORAGE_KEY, next);
+        } catch {
+            // localStorage unavailable; ignore.
+        }
+    };
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
     // Enabled chains come from env var (e.g. "base-sepolia,base"); fall back to sepolia.
@@ -208,6 +252,32 @@ const GameSettingLeftSide: React.FC = () => {
 
     const { gameModes } = gameData;
 
+    const menuListBg = useColorModeValue('card.white', 'card.darkNavy');
+    const menuListBorder = useColorModeValue(
+        'border.lightGray',
+        'whiteAlpha.200'
+    );
+
+    // Mode-aware accent: threads green (free) or USDC blue (real) into the
+    // downstream form so the mode choice tints the workspace, not just the card.
+    const accent = useMemo(() => {
+        if (mode === 'real') {
+            return {
+                color: USDC_BLUE,
+                edge: USDC_BLUE_EDGE,
+                ring: 'rgba(39,117,202,0.20)',
+                soft: 'rgba(39,117,202,0.10)',
+            };
+        }
+        // Free Play (and the brief null window before hydration) → green
+        return {
+            color: GREEN_HEX,
+            edge: GREEN_EDGE,
+            ring: 'rgba(54,163,123,0.20)',
+            soft: 'rgba(54,163,123,0.10)',
+        };
+    }, [mode]);
+
     // Get the description for the selected game mode
     const selectedGameModeDescription = useMemo(() => {
         const mode = gameModes.find((m) => m.name === selectedGameMode);
@@ -219,11 +289,11 @@ const GameSettingLeftSide: React.FC = () => {
     const chipsPerUsdc = 100;
     const usdcPerChip = 1 / chipsPerUsdc;
     const blindsMinChips = useMemo(() => {
-        if (playType === 'Crypto') {
+        if (mode === 'real') {
             return { small: 5, big: 10 };
         }
         return { small: 1, big: 1 };
-    }, [playType]);
+    }, [mode]);
 
     const formatUsdc = (value: number) => {
         const safeValue = Number.isFinite(value) ? value : 0;
@@ -252,7 +322,7 @@ const GameSettingLeftSide: React.FC = () => {
             smallBlind < blindsMinChips.small ||
             bigBlind < blindsMinChips.big
         ) {
-            return playType === 'Crypto'
+            return mode === 'real'
                 ? 'Minimum stakes for crypto games are 5/10 chips.'
                 : 'Blinds must be positive values.';
         }
@@ -268,7 +338,7 @@ const GameSettingLeftSide: React.FC = () => {
         bigBlind,
         blindsMinChips.big,
         blindsMinChips.small,
-        playType,
+        mode,
     ]);
 
     useEffect(() => {
@@ -283,11 +353,11 @@ const GameSettingLeftSide: React.FC = () => {
                 Number.isInteger(bigBlind);
             const isGameModeSelected = selectedGameMode !== '';
             const isNetworkSelected =
-                playType === 'Free' ||
-                (playType === 'Crypto' && selectedNetwork !== '');
+                mode === 'free' ||
+                (mode === 'real' && selectedNetwork !== '');
             const isWalletConnected =
-                playType === 'Free' ||
-                (playType === 'Crypto' &&
+                mode === 'free' ||
+                (mode === 'real' &&
                     isCryptoEnabled &&
                     !!address &&
                     isAuthenticated);
@@ -306,7 +376,7 @@ const GameSettingLeftSide: React.FC = () => {
         smallBlind,
         bigBlind,
         selectedGameMode,
-        playType,
+        mode,
         selectedNetwork,
         address,
         isAuthenticated,
@@ -316,10 +386,10 @@ const GameSettingLeftSide: React.FC = () => {
     ]);
 
     useEffect(() => {
-        if (playType !== 'Crypto') return;
+        if (mode !== 'real') return;
         if (!Number.isFinite(smallBlind) || smallBlind < 5) setSmallBlindStr('5');
         if (!Number.isFinite(bigBlind) || bigBlind < 10) setBigBlindStr('10');
-    }, [playType, smallBlind, bigBlind]);
+    }, [mode, smallBlind, bigBlind]);
 
     // Hydrate blinds from localStorage on mount.
     useEffect(() => {
@@ -329,6 +399,21 @@ const GameSettingLeftSide: React.FC = () => {
             setBigBlind(stored.bb);
         }
         blindsHydratedRef.current = true;
+    }, []);
+
+    // Hydrate previously chosen mode from localStorage so returning Hosts
+    // don't get the empty-state. First-time visitors stay at `null`.
+    useEffect(() => {
+        if (modeHydratedRef.current) return;
+        modeHydratedRef.current = true;
+        try {
+            const stored = window.localStorage.getItem(MODE_STORAGE_KEY);
+            if (stored === 'free' || stored === 'real') {
+                setMode(stored);
+            }
+        } catch {
+            // localStorage unavailable; ignore.
+        }
     }, []);
 
     // Persist blinds to localStorage after hydration completes.
@@ -350,7 +435,7 @@ const GameSettingLeftSide: React.FC = () => {
             return;
         }
 
-        if (playType === 'Crypto' && !isCryptoEnabled) {
+        if (mode === 'real' && !isCryptoEnabled) {
             toast.info(
                 'Coming Soon',
                 'Crypto games are coming soon. Follow us on social media for updates.'
@@ -373,7 +458,7 @@ const GameSettingLeftSide: React.FC = () => {
 
         if (!isFormValid) {
             if (
-                playType === 'Crypto' &&
+                mode === 'real' &&
                 (!isCryptoEnabled || !address || !isAuthenticated)
             ) {
                 toast.warning(
@@ -386,10 +471,10 @@ const GameSettingLeftSide: React.FC = () => {
                 );
                 return;
             }
-            if (!address && playType === 'Free') {
+            if (!address && mode === 'free') {
                 toast.info(
-                    'Creating as Guest',
-                    'You are creating a free game without connecting a wallet.'
+                    'Hosting as guest',
+                    'You are hosting a free game without connecting a wallet.'
                 );
             }
             if (
@@ -401,7 +486,7 @@ const GameSettingLeftSide: React.FC = () => {
             ) {
                 toast.warning(
                     'Invalid Blinds',
-                    playType === 'Crypto'
+                    mode === 'real'
                         ? 'Minimum stakes are 5/10 chips. Whole chips only, big ≥ small.'
                         : 'Whole chips only, big blind ≥ small blind.'
                 );
@@ -414,7 +499,7 @@ const GameSettingLeftSide: React.FC = () => {
                 );
                 return;
             }
-            if (playType === 'Crypto' && selectedNetwork === '') {
+            if (mode === 'real' && selectedNetwork === '') {
                 toast.warning(
                     'Network Not Selected',
                     'Please select a network for crypto play.'
@@ -448,8 +533,8 @@ const GameSettingLeftSide: React.FC = () => {
                     body: JSON.stringify({
                         smallBlind: smallBlind,
                         bigBlind: bigBlind,
-                        isCrypto: playType === 'Crypto',
-                        chain: playType === 'Crypto' ? selectedNetwork : '',
+                        isCrypto: mode === 'real',
+                        chain: mode === 'real' ? selectedNetwork : '',
                         isPublic: isPublicGame,
                         cfTurnstileToken:
                             turnstileToken ||
@@ -538,10 +623,10 @@ const GameSettingLeftSide: React.FC = () => {
                         fontWeight="extrabold"
                         color="text.primary"
                     >
-                        Game Settings
+                        Host a Table
                     </Heading>
                     <Text fontSize="sm" color="gray.500" mt={1}>
-                        Configure your table parameters
+                        Set the stakes. Invite your friends.
                     </Text>
                 </Box>
                 <Button
@@ -561,119 +646,134 @@ const GameSettingLeftSide: React.FC = () => {
                 </Button>
             </Flex>
 
-            {/* Main Settings Card */}
-            <Box
-                width="100%"
-                bg="card.white"
-                borderRadius="24px"
-                boxShadow="0 4px 24px rgba(0, 0, 0, 0.08)"
-                overflow="hidden"
-            >
-                {/* Play Mode Section */}
-                <Flex
-                    px={{ base: 5, md: 8 }}
-                    py={3}
-                    justifyContent="space-between"
-                    alignItems="center"
-                >
-                    <Text
-                        fontWeight="bold"
-                        fontSize="md"
-                        color="text.primary"
+            {/* Mode Chooser — always visible; the page's primary decision. */}
+            <Box width="100%" mb={4}>
+                <ModeChooser
+                    selectedMode={mode}
+                    onSelect={handleModeSelect}
+                />
+            </Box>
+
+            {mode !== null && (
+                <>
+            {/* Modular settings — each row is its own micro-card */}
+            <VStack spacing={3} align="stretch" width="100%">
+                <SectionCard>
+                    <Flex
+                        justifyContent="space-between"
+                        alignItems="center"
                     >
-                        Play Mode
-                    </Text>
-                    <PlayTypeToggle
-                        playType={playType}
-                        setPlayType={setPlayType}
-                        isCryptoEnabled={isCryptoEnabled}
-                    />
-                </Flex>
+                        <VStack spacing={0.5} align="flex-start" pr={3}>
+                            <Text
+                                fontWeight="bold"
+                                fontSize="md"
+                                color="text.primary"
+                            >
+                                List publicly
+                            </Text>
+                            <Text fontSize="xs" color="gray.500">
+                                Public tables appear in the lobby. Off keeps it invite-only.
+                            </Text>
+                        </VStack>
+                        <Switch
+                            isChecked={isPublicGame}
+                            onChange={(e) => setIsPublicGame(e.target.checked)}
+                            colorScheme="green"
+                            size="lg"
+                            flexShrink={0}
+                        />
+                    </Flex>
+                </SectionCard>
 
-                <Divider borderColor="gray.100" />
-
-                {/* Public Game Section */}
-                <Flex
-                    px={{ base: 5, md: 8 }}
-                    py={3}
-                    justifyContent="space-between"
-                    alignItems="center"
-                >
-                    <HStack spacing={2} align="center">
-                        <Text
-                            fontWeight="bold"
-                            fontSize="md"
-                            color="text.primary"
-                        >
-                            List publicly
-                        </Text>
-                        <InfoDot label="Public games appear in the lobby. Off keeps it invite-only." />
-                    </HStack>
-                    <Switch
-                        isChecked={isPublicGame}
-                        onChange={(e) => setIsPublicGame(e.target.checked)}
-                        colorScheme="green"
-                        size="lg"
-                        flexShrink={0}
-                    />
-                </Flex>
-
-                <Divider borderColor="gray.100" />
-
-                {/* Game Mode Section */}
-                <Flex
-                    px={{ base: 5, md: 8 }}
-                    py={3}
-                    justifyContent="space-between"
-                    alignItems={{ base: 'flex-start', sm: 'center' }}
-                    flexDirection={{ base: 'column', sm: 'row' }}
-                    gap={4}
-                >
-                    <HStack spacing={2} align="center">
-                        <Text
-                            fontWeight="bold"
-                            fontSize="md"
-                            color="text.primary"
-                        >
-                            Variant
-                        </Text>
-                        <InfoDot label="Choose the poker variant you want to play." />
-                    </HStack>
-                    <Box
-                        width={{ base: '100%', sm: '200px' }}
-                        mt={{ base: 3, sm: 0 }}
+                <SectionCard>
+                    <Flex
+                        justifyContent="space-between"
+                        alignItems="center"
+                        gap={3}
                     >
-                        <Select
-                            value={selectedGameMode}
-                            onChange={(e) =>
-                                setSelectedGameMode(e.target.value)
-                            }
-                            bg="card.lightGray"
-                            borderColor="transparent"
-                            borderRadius="12px"
-                            fontWeight="semibold"
-                            fontSize="sm"
-                            color="text.primary"
-                            height="44px"
-                            _hover={{
-                                borderColor: 'brand.green',
-                            }}
-                            _focus={{
-                                borderColor: 'brand.pink',
-                                boxShadow: '0 0 0 1px #EB0B5C',
-                            }}
-                            iconColor="gray.500"
-                        >
-                            {gameModes.map((mode) => (
-                                <option
-                                    key={mode.name}
-                                    value={mode.name}
-                                    disabled={mode.disabled}
-                                >
-                                    {mode.name}
-                                </option>
-                            ))}
-                        </Select>
+                        <HStack spacing={2} align="center" minW={0}>
+                            <Text
+                                fontWeight="bold"
+                                fontSize="md"
+                                color="text.primary"
+                                whiteSpace="nowrap"
+                            >
+                                Variant
+                            </Text>
+                            <InfoDot label="Texas Hold'em is the default. Tap to change." />
+                        </HStack>
+                        <Menu placement="bottom-end" autoSelect={false}>
+                            <MenuButton
+                                as={Button}
+                                variant="unstyled"
+                                rightIcon={
+                                    <Icon
+                                        as={FiChevronDown}
+                                        color="gray.500"
+                                        _dark={{ color: 'gray.400' }}
+                                        boxSize="14px"
+                                    />
+                                }
+                                height="36px"
+                                px={3}
+                                borderRadius="full"
+                                borderWidth="1px"
+                                borderColor="border.lightGray"
+                                _dark={{ borderColor: 'whiteAlpha.200' }}
+                                bg="transparent"
+                                fontSize="sm"
+                                fontWeight="semibold"
+                                color="text.primary"
+                                display="inline-flex"
+                                alignItems="center"
+                                transition="border-color 80ms ease, background-color 80ms ease"
+                                _hover={{ borderColor: accent.color }}
+                                _active={{
+                                    bg: accent.soft,
+                                    borderColor: accent.color,
+                                }}
+                            >
+                                {selectedGameMode}
+                            </MenuButton>
+                            <MenuList
+                                minW="180px"
+                                py={1}
+                                borderRadius="12px"
+                                boxShadow="0 8px 24px rgba(0,0,0,0.12)"
+                                bg={menuListBg}
+                                borderColor={menuListBorder}
+                            >
+                                {gameModes.map((m) => (
+                                    <MenuItem
+                                        key={m.name}
+                                        onClick={() =>
+                                            !m.disabled &&
+                                            setSelectedGameMode(m.name)
+                                        }
+                                        isDisabled={m.disabled}
+                                        fontSize="sm"
+                                        fontWeight={
+                                            selectedGameMode === m.name
+                                                ? 'bold'
+                                                : 'medium'
+                                        }
+                                        color={
+                                            selectedGameMode === m.name
+                                                ? accent.color
+                                                : 'text.primary'
+                                        }
+                                        bg="transparent"
+                                        _hover={{ bg: accent.soft }}
+                                        _focus={{ bg: accent.soft }}
+                                        _active={{ bg: accent.soft }}
+                                    >
+                                        {m.name}
+                                    </MenuItem>
+                                ))}
+                            </MenuList>
+                        </Menu>
+                    </Flex>
+                    {selectedGameModeDescription && (
                         <Text
                             fontSize="xs"
                             color="gray.500"
@@ -682,15 +782,11 @@ const GameSettingLeftSide: React.FC = () => {
                         >
                             {selectedGameModeDescription}
                         </Text>
-                    </Box>
-                </Flex>
+                    )}
+                </SectionCard>
 
-                <Divider borderColor="gray.100" />
-
-                {/* Blinds Section */}
+                <SectionCard>
                 <Flex
-                    px={{ base: 5, md: 8 }}
-                    py={3}
                     justifyContent="space-between"
                     alignItems={{ base: 'flex-start', sm: 'center' }}
                     flexDirection={{ base: 'column', sm: 'row' }}
@@ -706,8 +802,8 @@ const GameSettingLeftSide: React.FC = () => {
                         </Text>
                         <InfoDot
                             label={
-                                playType === 'Crypto'
-                                    ? 'Crypto blinds are in chips. Amounts shown in USDC. Min 5/10 • 1 chip = $0.01 USDC.'
+                                mode === 'real'
+                                    ? 'Blinds are in chips. Amounts shown in USDC. Min 5/10 • 1 chip = $0.01 USDC.'
                                     : 'Blinds must be whole-chip amounts.'
                             }
                         />
@@ -718,7 +814,7 @@ const GameSettingLeftSide: React.FC = () => {
                         alignItems="flex-end"
                     >
                         {/* Stake presets — Crypto only; Free Play uses raw chip values */}
-                        {playType === 'Crypto' && (
+                        {mode === 'real' && (
                         <HStack
                             spacing={2}
                             mb={2}
@@ -740,61 +836,33 @@ const GameSettingLeftSide: React.FC = () => {
                                         height="32px"
                                         px={4}
                                         borderRadius="full"
-                                        bg={
-                                            isActive
-                                                ? 'brand.green'
-                                                : 'transparent'
-                                        }
+                                        bg={isActive ? accent.color : 'transparent'}
                                         border="1.5px solid"
-                                        borderColor={
-                                            isActive
-                                                ? 'brand.green'
-                                                : 'border.greenStrong'
-                                        }
+                                        borderColor={accent.color}
                                         boxShadow={
                                             isActive
-                                                ? 'inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #22674E'
-                                                : '0 1.5px 0 #22674E'
+                                                ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 ${accent.edge}`
+                                                : `0 1.5px 0 ${accent.edge}`
                                         }
                                         transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease"
                                         _hover={
                                             isActive
-                                                ? { bg: 'brand.green' }
-                                                : {
-                                                      bg: 'rgba(54, 163, 123, 0.10)',
-                                                      borderColor:
-                                                          'brand.greenDark',
-                                                  }
+                                                ? { bg: accent.color }
+                                                : { bg: accent.soft }
                                         }
-                                        _active={
-                                            isActive
-                                                ? {
-                                                      bg: 'brand.greenDark',
-                                                      transform:
-                                                          'translateY(1.5px)',
-                                                      boxShadow:
-                                                          'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
-                                                  }
-                                                : {
-                                                      bg: 'rgba(54, 163, 123, 0.16)',
-                                                      borderColor:
-                                                          'brand.greenDark',
-                                                      transform:
-                                                          'translateY(1.5px)',
-                                                      boxShadow: '0 0 0 #22674E',
-                                                  }
-                                        }
+                                        _active={{
+                                            transform: 'translateY(1.5px)',
+                                            boxShadow: isActive
+                                                ? `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${accent.edge}`
+                                                : `0 0 0 ${accent.edge}`,
+                                        }}
                                     >
                                         <HStack spacing={1.5} align="baseline">
                                             <Text
                                                 fontSize="xs"
                                                 fontWeight="semibold"
                                                 lineHeight={1}
-                                                color={
-                                                    isActive
-                                                        ? 'white'
-                                                        : 'brand.green'
-                                                }
+                                                color={isActive ? 'white' : accent.color}
                                             >
                                                 {preset.name}
                                             </Text>
@@ -805,7 +873,7 @@ const GameSettingLeftSide: React.FC = () => {
                                                 color={
                                                     isActive
                                                         ? 'whiteAlpha.800'
-                                                        : 'brand.green'
+                                                        : accent.color
                                                 }
                                                 sx={{
                                                     fontVariantNumeric:
@@ -831,7 +899,7 @@ const GameSettingLeftSide: React.FC = () => {
                                 <Text
                                     fontSize="11px"
                                     fontWeight="bold"
-                                    color="brand.pink"
+                                    color={accent.color}
                                     letterSpacing="wide"
                                     position="absolute"
                                     top="-2"
@@ -878,12 +946,11 @@ const GameSettingLeftSide: React.FC = () => {
                                         borderColor: 'gray.300',
                                     }}
                                     _focus={{
-                                        borderColor: 'brand.pink',
-                                        boxShadow:
-                                            '0 0 0 2px rgba(235, 11, 92, 0.2)',
+                                        borderColor: accent.color,
+                                        boxShadow: `0 0 0 2px ${accent.ring}`,
                                     }}
                                 />
-                                {playType === 'Crypto' && (
+                                {mode === 'real' && (
                                     <Tooltip
                                         label={`${formatUsdc(smallBlindUsdc)} USDC`}
                                         isDisabled={
@@ -928,6 +995,7 @@ const GameSettingLeftSide: React.FC = () => {
                             </Box>
                             <Text
                                 color="gray.400"
+                                _dark={{ color: 'gray.500' }}
                                 fontSize="xl"
                                 fontWeight="light"
                                 pt={2}
@@ -939,7 +1007,7 @@ const GameSettingLeftSide: React.FC = () => {
                                 <Text
                                     fontSize="11px"
                                     fontWeight="bold"
-                                    color="brand.pink"
+                                    color={accent.color}
                                     letterSpacing="wide"
                                     position="absolute"
                                     top="-2"
@@ -986,12 +1054,11 @@ const GameSettingLeftSide: React.FC = () => {
                                         borderColor: 'gray.300',
                                     }}
                                     _focus={{
-                                        borderColor: 'brand.pink',
-                                        boxShadow:
-                                            '0 0 0 2px rgba(235, 11, 92, 0.2)',
+                                        borderColor: accent.color,
+                                        boxShadow: `0 0 0 2px ${accent.ring}`,
                                     }}
                                 />
-                                {playType === 'Crypto' && (
+                                {mode === 'real' && (
                                     <Tooltip
                                         label={`${formatUsdc(bigBlindUsdc)} USDC`}
                                         isDisabled={
@@ -1051,7 +1118,7 @@ const GameSettingLeftSide: React.FC = () => {
                                 </Text>
                             </Flex>
                         )}
-                        {playType === 'Crypto' && (
+                        {mode === 'real' && (
                             <Flex
                                 mt={2}
                                 width="100%"
@@ -1075,12 +1142,12 @@ const GameSettingLeftSide: React.FC = () => {
                         )}
                     </Flex>
                 </Flex>
+                </SectionCard>
 
                 {/* Network Section - Only for Crypto */}
-                {playType === 'Crypto' && (
-                    <>
-                        <Divider borderColor="gray.100" />
-                        <Box px={{ base: 5, md: 8 }} py={3}>
+                {mode === 'real' && (
+                    <SectionCard>
+                        <Box>
                             <Flex
                                 alignItems="center"
                                 justifyContent="space-between"
@@ -1196,9 +1263,9 @@ const GameSettingLeftSide: React.FC = () => {
                             </Flex>
 
                         </Box>
-                    </>
+                    </SectionCard>
                 )}
-            </Box>
+            </VStack>
 
             {/* Cloudflare Verification */}
             <Flex
@@ -1267,7 +1334,11 @@ const GameSettingLeftSide: React.FC = () => {
                         {isCloudflareVerifying ? (
                             <>
                                 <Spinner size="sm" color="brand.green" />
-                                <Text fontSize="sm" color="gray.600">
+                                <Text
+                                    fontSize="sm"
+                                    color="gray.600"
+                                    _dark={{ color: 'gray.300' }}
+                                >
                                     Verifying with Cloudflare…
                                 </Text>
                             </>
@@ -1289,6 +1360,11 @@ const GameSettingLeftSide: React.FC = () => {
                                             ? 'brand.yellow'
                                             : 'gray.500'
                                     }
+                                    _dark={
+                                        turnstileError
+                                            ? undefined
+                                            : { color: 'gray.300' }
+                                    }
                                 >
                                     {turnstileError
                                         ? 'Verification unavailable — you can still create'
@@ -1303,7 +1379,7 @@ const GameSettingLeftSide: React.FC = () => {
             </Flex>
 
             {/* Create Game CTA */}
-            {playType === 'Crypto' && !isCryptoEnabled ? (
+            {mode === 'real' && !isCryptoEnabled ? (
                 <Box width="100%" maxW="480px">
                     <Flex direction="column" align="center" gap={3} py={2}>
                         <Text
@@ -1338,7 +1414,7 @@ const GameSettingLeftSide: React.FC = () => {
                         </HStack>
                     </Flex>
                 </Box>
-            ) : playType === 'Crypto' && (!address || !isAuthenticated) ? (
+            ) : mode === 'real' && (!address || !isAuthenticated) ? (
                 <Box width="100%" maxW="480px">
                     <Flex direction="column" align="center" gap={3} py={2}>
                         <Text
@@ -1416,6 +1492,8 @@ const GameSettingLeftSide: React.FC = () => {
                         </Button>
                     </Box>
                 </Tooltip>
+            )}
+                </>
             )}
         </VStack>
     );

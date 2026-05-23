@@ -11,6 +11,7 @@ import {
     Tooltip,
     VStack,
     useColorModeValue,
+    usePrefersReducedMotion,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { FiExternalLink, FiEye } from 'react-icons/fi';
@@ -25,8 +26,8 @@ import type { PublicGame } from './types';
 import { useRelativeTime } from './useRelativeTime';
 
 const dotPulse = keyframes`
-    0%, 100% { box-shadow: 0 0 6px rgba(54, 163, 123, 0.4); }
-    50% { box-shadow: 0 0 12px rgba(54, 163, 123, 0.8); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.55); }
+    50%     { box-shadow: 0 0 0 5px rgba(54, 163, 123, 0); }
 `;
 
 interface PublicGameCardProps {
@@ -47,7 +48,7 @@ function shortenName(name: string): string {
 function getChainLogo(chain: string): string | null {
     const c = chain.toLowerCase();
     if (c === 'base' || c === 'base sepolia' || c === 'base-sepolia')
-        return '/networkLogos/base-logo.png';
+        return '/networkLogos/base-square.svg';
     if (c === 'arbitrum') return '/networkLogos/arbitrum-logo.png';
     if (c === 'optimism') return '/networkLogos/optimism-logo.png';
     if (c === 'solana') return '/networkLogos/solana-logo.png';
@@ -55,7 +56,14 @@ function getChainLogo(chain: string): string | null {
 }
 
 export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCardProps) {
-    const rowHover = useColorModeValue('rgba(11, 20, 48, 0.025)', 'rgba(255, 255, 255, 0.03)');
+    const rowHover = useColorModeValue(
+        'rgba(39, 117, 202, 0.04)',
+        'rgba(39, 117, 202, 0.06)'
+    );
+    const freeRowHover = useColorModeValue(
+        'rgba(11, 20, 48, 0.025)',
+        'rgba(255, 255, 255, 0.03)'
+    );
     const relTime = useRelativeTime(game.created_at);
     const hot = isHot(game);
     const chainName = game.is_crypto ? (game.chain ?? 'Base') : null;
@@ -74,22 +82,18 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
             borderColor={ruleColor}
             cursor="pointer"
             textDecoration="none"
-            _hover={{ bg: rowHover, textDecoration: 'none' }}
-            transition="background 0.12s ease"
+            _hover={{
+                bg: game.is_crypto ? rowHover : freeRowHover,
+                textDecoration: 'none',
+            }}
+            transition="background 120ms ease"
             role="group"
-            minH={{ base: '64px', md: 'auto' }}
+            minH={{ base: '68px', md: 'auto' }}
             align="center"
         >
-            <Box
-                w={{ base: '8px', md: '10px' }}
-                h={{ base: '8px', md: '10px' }}
-                borderRadius="full"
-                bg={game.is_active ? 'brand.green' : 'brand.yellow'}
-                animation={game.is_active ? `${dotPulse} 2s ease-in-out infinite` : undefined}
-                flexShrink={0}
-            />
+            <StatusDot game={game} />
 
-            <VStack align="start" spacing={0} flex="2.2" minW={0}>
+            <VStack align="start" spacing={0.5} flex="2.2" minW={0}>
                 <HStack spacing={2} maxW="100%" minW={0}>
                     <Text
                         fontWeight="semibold"
@@ -98,6 +102,7 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
                         fontSize={{ base: 'sm', md: 'md' }}
                         minW={0}
                         display={{ base: 'none', md: 'block' }}
+                        letterSpacing="-0.01em"
                     >
                         {game.name}
                     </Text>
@@ -109,10 +114,12 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
                         minW={0}
                         display={{ base: 'block', md: 'none' }}
                         sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        letterSpacing="-0.01em"
                     >
                         {shortenName(game.name)}
                     </Text>
                     <MarketTag game={game} />
+                    {hot && <HotPill />}
                     <ContractLink game={game} />
                 </HStack>
                 <Flex
@@ -126,22 +133,22 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
                     {chainLogo && chainName && (
                         <Image
                             src={chainLogo}
-                            alt={`${chainName} logo`}
-                            w={{ base: '14px', md: '16px' }}
-                            h={{ base: '14px', md: '16px' }}
+                            alt=""
+                            w={{ base: '12px', md: '14px' }}
+                            h={{ base: '12px', md: '14px' }}
                             objectFit="contain"
                             loading="lazy"
                             flexShrink={0}
+                            borderRadius="3px"
                         />
                     )}
                     <Text as="span" color="text.muted">
                         {chainName ?? 'Play money'}
                         {' · '}
                         {game.is_active ? 'Running' : 'Open'}
-                        {hot && ' · Hot'}
                     </Text>
                 </Flex>
-                {/* Mobile-only: spectator + time meta (seats moved next to stakes) */}
+                {/* Mobile-only meta */}
                 <HStack
                     display={{ base: 'flex', md: 'none' }}
                     spacing={2}
@@ -169,6 +176,7 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
                 <SeatProgress
                     taken={game.player_count}
                     total={game.max_players}
+                    isCrypto={game.is_crypto}
                 />
                 <SpectatorPip count={game.spectator_count} />
             </HStack>
@@ -187,29 +195,100 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
     );
 }
 
+function StatusDot({ game }: { game: PublicGame }) {
+    const prefersReducedMotion = usePrefersReducedMotion();
+    return (
+        <Box
+            w={{ base: '8px', md: '10px' }}
+            h={{ base: '8px', md: '10px' }}
+            borderRadius="full"
+            bg={game.is_active ? 'brand.green' : 'brand.yellow'}
+            animation={
+                game.is_active && !prefersReducedMotion
+                    ? `${dotPulse} 2.2s ease-in-out infinite`
+                    : undefined
+            }
+            flexShrink={0}
+            aria-hidden
+        />
+    );
+}
+
 function MarketTag({ game }: { game: PublicGame }) {
+    const freeBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.06)',
+        'rgba(255, 255, 255, 0.08)'
+    );
     if (game.is_crypto) {
         return (
-            <Text
-                fontSize="2xs"
-                fontWeight="bold"
-                letterSpacing="0.08em"
-                color={USDC_BLUE}
+            <HStack
+                spacing={1}
+                px={1.5}
+                py="2px"
+                borderRadius="full"
+                bg="rgba(39, 117, 202, 0.10)"
                 flexShrink={0}
             >
-                USDC
-            </Text>
+                <Image
+                    src={USDC_LOGO}
+                    alt=""
+                    boxSize="10px"
+                    loading="lazy"
+                />
+                <Text
+                    fontSize="2xs"
+                    fontWeight="bold"
+                    letterSpacing="0.06em"
+                    color={USDC_BLUE}
+                    lineHeight="1"
+                >
+                    USDC
+                </Text>
+            </HStack>
         );
     }
     return (
         <Text
+            px={1.5}
+            py="2px"
+            borderRadius="full"
+            bg={freeBg}
             fontSize="2xs"
             fontWeight="bold"
-            letterSpacing="0.08em"
+            letterSpacing="0.06em"
             color="text.muted"
             flexShrink={0}
+            lineHeight="1"
         >
             FREE
+        </Text>
+    );
+}
+
+// One-off warm-orange for the HOT pill. No `brand.orange` token in theme
+// and adding one for a single use is overkill (per CHAKRA.md §rules).
+const HOT_ORANGE = '#E55A1E';
+const HOT_ORANGE_LIGHT = '#FFB48A';
+
+function HotPill() {
+    return (
+        <Text
+            px={1.5}
+            py="2px"
+            borderRadius="full"
+            bg="rgba(229, 90, 30, 0.12)"
+            fontSize="2xs"
+            fontWeight="bold"
+            letterSpacing="0.06em"
+            color={HOT_ORANGE}
+            flexShrink={0}
+            lineHeight="1"
+            _dark={{
+                bg: 'rgba(229, 90, 30, 0.22)',
+                color: HOT_ORANGE_LIGHT,
+            }}
+        >
+            HOT
         </Text>
     );
 }
@@ -239,7 +318,7 @@ function ContractLink({ game }: { game: PublicGame }) {
                 borderRadius="6px"
                 color="text.muted"
                 flexShrink={0}
-                _hover={{ color: USDC_BLUE, bg: 'rgba(39, 117, 202, 0.1)' }}
+                _hover={{ color: USDC_BLUE, bg: 'rgba(39, 117, 202, 0.10)' }}
                 transition="all 0.15s ease"
             >
                 <Icon as={FiExternalLink} boxSize="11px" />
@@ -261,7 +340,7 @@ function BlindsCell({ game }: { game: PublicGame }) {
                 {game.is_crypto && (
                     <Image
                         src={USDC_LOGO}
-                        alt="USDC"
+                        alt=""
                         boxSize={{ base: '12px', md: '14px' }}
                         flexShrink={0}
                     />
@@ -285,7 +364,7 @@ function BlindsCell({ game }: { game: PublicGame }) {
                 <Text
                     fontWeight="bold"
                     fontSize="2xs"
-                    color={isFull ? 'brand.pink' : 'text.secondary'}
+                    color={isFull ? 'text.muted' : 'text.secondary'}
                     sx={{ fontVariantNumeric: 'tabular-nums' }}
                     lineHeight="1"
                 >
@@ -293,7 +372,7 @@ function BlindsCell({ game }: { game: PublicGame }) {
                 </Text>
                 <Text
                     fontSize="2xs"
-                    color={isFull ? 'brand.pink' : 'text.muted'}
+                    color="text.muted"
                     textTransform="uppercase"
                     letterSpacing="0.08em"
                     fontWeight="semibold"
@@ -330,14 +409,28 @@ function SpectatorPip({ count }: { count: number }) {
     );
 }
 
-function SeatProgress({ taken, total }: { taken: number; total: number }) {
+function SeatProgress({
+    taken,
+    total,
+    isCrypto,
+}: {
+    taken: number;
+    total: number;
+    isCrypto: boolean;
+}) {
     const ratio = total === 0 ? 0 : Math.min(1, taken / total);
     const isFull = taken >= total;
     const trackBg = useColorModeValue(
         'rgba(11, 20, 48, 0.10)',
         'rgba(255, 255, 255, 0.10)'
     );
-    const fillFg = isFull ? 'brand.pink' : 'text.secondary';
+    // Full = neutral muted (no alarming pink). Otherwise: crypto rows get
+    // USDC blue, free-play rows get the resting text-secondary tone.
+    const fillFg = isFull
+        ? 'text.muted'
+        : isCrypto
+          ? USDC_BLUE
+          : 'text.secondary';
 
     return (
         <VStack spacing={1.5} align="flex-start" minW="78px">
@@ -353,7 +446,7 @@ function SeatProgress({ taken, total }: { taken: number; total: number }) {
                 </Text>
                 <Text
                     fontSize="2xs"
-                    color={isFull ? 'brand.pink' : 'text.muted'}
+                    color="text.muted"
                     textTransform="uppercase"
                     letterSpacing="0.10em"
                     fontWeight="semibold"
@@ -365,7 +458,7 @@ function SeatProgress({ taken, total }: { taken: number; total: number }) {
             <Box
                 position="relative"
                 w="78px"
-                h="2px"
+                h="3px"
                 borderRadius="full"
                 bg={trackBg}
             >
@@ -373,11 +466,11 @@ function SeatProgress({ taken, total }: { taken: number; total: number }) {
                     position="absolute"
                     top={0}
                     left={0}
-                    h="2px"
+                    h="3px"
                     w={`${ratio * 100}%`}
                     borderRadius="full"
                     bg={fillFg}
-                    opacity={0.85}
+                    opacity={0.9}
                     transition="width 0.2s ease"
                 />
             </Box>

@@ -921,6 +921,37 @@ const components = {
             },
         },
     },
+
+    // MENU COMPONENT
+    // Chakra v2's default MenuItem _focus/_hover uses a dark fill that's
+    // correct in dark mode but breaks in light mode (auto-focus on open
+    // makes it visible immediately). This baseline gives every Menu in
+    // the app a sane mode-aware default; specific menus can still
+    // override _focus/_hover per use case.
+    Menu: {
+        baseStyle: {
+            list: {
+                bg: 'card.white',
+                borderColor: 'border.lightGray',
+                _dark: {
+                    bg: 'card.darkNavy',
+                    borderColor: 'whiteAlpha.200',
+                },
+            },
+            item: {
+                bg: 'transparent',
+                color: 'text.primary',
+                _hover: { bg: 'card.lightGray' },
+                _focus: { bg: 'card.lightGray' },
+                _active: { bg: 'card.lightGray' },
+                _dark: {
+                    _hover: { bg: 'whiteAlpha.100' },
+                    _focus: { bg: 'whiteAlpha.100' },
+                    _active: { bg: 'whiteAlpha.100' },
+                },
+            },
+        },
+    },
 };
 
 // ============================================

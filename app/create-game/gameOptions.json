@@ -15,14 +15,14 @@
         {
             "name": "Base Sepolia",
             "chainId": "base-sepolia",
-            "image": "/networkLogos/base-logo.png",
+            "image": "/networkLogos/base-square.svg",
             "badge": "Testnet",
             "disabled": false
         },
         {
             "name": "Base",
             "chainId": "base",
-            "image": "/networkLogos/base-logo.png",
+            "image": "/networkLogos/base-square.svg",
             "disabled": false
         }
     ]

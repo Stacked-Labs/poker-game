@@ -461,6 +461,19 @@ const Chatbox = ({
                                     width="100%"
                                     color="text.primary"
                                 >
+                                    {msg.timestamp && (
+                                        <Text
+                                            as="span"
+                                            color="text.muted"
+                                            fontSize="xs"
+                                            fontWeight="normal"
+                                            mr={2}
+                                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                                            aria-label={`sent at ${msg.timestamp}`}
+                                        >
+                                            {msg.timestamp}
+                                        </Text>
+                                    )}
                                     <Text
                                         as="span"
                                         color={getColorForUsername(msg.name)}

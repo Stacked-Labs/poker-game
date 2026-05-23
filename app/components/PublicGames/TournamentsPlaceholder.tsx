@@ -2,25 +2,23 @@
 
 import {
     Box,
-    Button,
     Flex,
     HStack,
     Heading,
+    Link,
     SimpleGrid,
     Text,
     VStack,
     useColorModeValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { FaXTwitter } from 'react-icons/fa6';
-import { FaDiscord } from 'react-icons/fa';
+import { SocialIconButton } from '../SocialIconButton';
 
 const X_URL = 'https://x.com/stacked_poker';
 const DISCORD_URL = 'https://discord.gg/347RBVcvpn';
 
-// A reserved-but-empty section. The ghost cards intentionally use the same
-// row shape as PublicGameCard so the eye reads "this is where tournaments
-// will live" — not "here's a marketing pitch."
+// Ghost cards mirror the eventual PublicGameCard shape so the eye reads
+// "this is where tournaments will live" — not "marketing pitch."
 
 interface GhostTournament {
     title: string;
@@ -52,10 +50,16 @@ const GHOSTS: GhostTournament[] = [
 
 export default function TournamentsPlaceholder() {
     return (
-        <VStack align="stretch" spacing={{ base: 5, md: 6 }} w="full">
+        <VStack
+            as="section"
+            align="stretch"
+            spacing={{ base: 5, md: 6 }}
+            w="full"
+            aria-labelledby="tournaments-placeholder-heading"
+        >
             <Header />
             <SimpleGrid
-                columns={{ base: 1, md: 3 }}
+                columns={{ base: 1, sm: 2, lg: 3 }}
                 spacing={{ base: 3, md: 4 }}
             >
                 {GHOSTS.map((g) => (
@@ -74,16 +78,20 @@ function Header() {
     );
     return (
         <VStack align="start" spacing={2} maxW="640px">
-            <HStack spacing={2}>
+            <HStack spacing={2} align="center">
                 <Heading
+                    id="tournaments-placeholder-heading"
+                    as="h2"
                     fontSize={{ base: 'lg', md: 'xl' }}
                     fontWeight="extrabold"
                     letterSpacing="-0.01em"
                     color="text.primary"
+                    lineHeight={1.1}
                 >
                     Tournaments
                 </Heading>
                 <Box
+                    as="span"
                     bg={badgeBg}
                     color="brand.green"
                     fontSize="2xs"
@@ -93,14 +101,15 @@ function Header() {
                     px={2}
                     py="2px"
                     borderRadius="full"
+                    lineHeight={1.4}
                 >
                     Coming soon
                 </Box>
             </HStack>
-            <Text color="text.secondary" fontSize="sm" lineHeight={1.5}>
-                Scheduled MTTs and bounties, settled on-chain in USDC.
-                Designs below are placeholders — we&apos;ll announce dates
-                and structures soon.
+            <Text color="text.secondary" fontSize="sm" lineHeight={1.55}>
+                Scheduled MTTs and bounties, settled on-chain in USDC. The
+                cards below are placeholders — we&apos;ll announce dates and
+                structures soon.
             </Text>
         </VStack>
     );
@@ -118,10 +127,9 @@ function GhostCard({ title, format, buyIn, when }: GhostTournament) {
         'rgba(255, 255, 255, 0.08)'
     );
     const shimmerStripe = useColorModeValue(
-        'linear-gradient(90deg, rgba(11,20,48,0.03) 0%, rgba(11,20,48,0.07) 50%, rgba(11,20,48,0.03) 100%)',
-        'linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 100%)'
+        'linear-gradient(90deg, rgba(11,20,48,0.03) 0%, rgba(11,20,48,0.08) 50%, rgba(11,20,48,0.03) 100%)',
+        'linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 100%)'
     );
-    const labelColor = useColorModeValue('text.muted', 'whiteAlpha.600');
 
     return (
         <Box
@@ -136,22 +144,25 @@ function GhostCard({ title, format, buyIn, when }: GhostTournament) {
             aria-hidden
         >
             <VStack align="stretch" spacing={3}>
-                <HStack justify="space-between" align="flex-start">
-                    <VStack align="start" spacing={0.5} minW={0}>
+                <HStack justify="space-between" align="flex-start" spacing={3}>
+                    <VStack align="start" spacing={1} minW={0}>
                         <Text
                             fontWeight="bold"
                             color="text.primary"
                             fontSize="md"
+                            lineHeight={1.2}
                             noOfLines={1}
                         >
                             {title}
                         </Text>
                         <Text
                             fontSize="2xs"
-                            color={labelColor}
+                            color="text.muted"
                             textTransform="uppercase"
                             letterSpacing="0.08em"
                             fontWeight="semibold"
+                            lineHeight={1.3}
+                            noOfLines={1}
                         >
                             {format}
                         </Text>
@@ -160,6 +171,7 @@ function GhostCard({ title, format, buyIn, when }: GhostTournament) {
                         fontSize="md"
                         fontWeight="bold"
                         color="text.primary"
+                        lineHeight={1.2}
                         sx={{ fontVariantNumeric: 'tabular-nums' }}
                     >
                         {buyIn}
@@ -171,11 +183,16 @@ function GhostCard({ title, format, buyIn, when }: GhostTournament) {
                     bg={shimmerStripe}
                     backgroundSize="200% 100%"
                     animation={`${shimmer} 2.4s ease-in-out infinite`}
+                    sx={{
+                        '@media (prefers-reduced-motion: reduce)': {
+                            animation: 'none',
+                        },
+                    }}
                 />
                 <Flex justify="space-between" align="center">
                     <Text
                         fontSize="2xs"
-                        color={labelColor}
+                        color="text.muted"
                         textTransform="uppercase"
                         letterSpacing="0.08em"
                         fontWeight="semibold"
@@ -186,6 +203,7 @@ function GhostCard({ title, format, buyIn, when }: GhostTournament) {
                         fontSize="xs"
                         color="text.secondary"
                         fontWeight="semibold"
+                        sx={{ fontVariantNumeric: 'tabular-nums' }}
                     >
                         {when}
                     </Text>
@@ -217,38 +235,43 @@ function NotifyHook() {
             border="1px solid"
             borderColor={border}
         >
-            <Text color="text.secondary" fontSize="sm" maxW="560px">
+            <Text color="text.secondary" fontSize="sm" maxW="560px" lineHeight={1.55}>
                 Want a heads-up when the first tournament hits the lobby?
                 Follow along — we&apos;ll post dates and structures there
                 first.
             </Text>
-            <HStack spacing={2} flexShrink={0}>
-                <Button
-                    as="a"
+            <HStack
+                spacing={2}
+                flexShrink={0}
+                w={{ base: 'full', md: 'auto' }}
+                justify={{ base: 'stretch', md: 'flex-end' }}
+            >
+                <Link
                     href={X_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    variant="outline"
-                    leftIcon={<FaXTwitter />}
-                    size="sm"
-                    borderRadius="full"
-                    fontWeight="semibold"
+                    isExternal
+                    flex={{ base: 1, md: 'initial' }}
+                    _hover={{ textDecoration: 'none' }}
                 >
-                    Follow on X
-                </Button>
-                <Button
-                    as="a"
+                    <SocialIconButton
+                        tone="x"
+                        chipSize="md"
+                        label="Follow on X"
+                        w="full"
+                    />
+                </Link>
+                <Link
                     href={DISCORD_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    variant="outline"
-                    leftIcon={<FaDiscord />}
-                    size="sm"
-                    borderRadius="full"
-                    fontWeight="semibold"
+                    isExternal
+                    flex={{ base: 1, md: 'initial' }}
+                    _hover={{ textDecoration: 'none' }}
                 >
-                    Join Discord
-                </Button>
+                    <SocialIconButton
+                        tone="discord"
+                        chipSize="md"
+                        label="Join Discord"
+                        w="full"
+                    />
+                </Link>
             </HStack>
         </Flex>
     );

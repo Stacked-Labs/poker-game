@@ -1,7 +1,6 @@
-// Local-only fixtures so /public-games can render a realistic lobby without
-// the backend. Activate via `?mock=1` (or `?mock=empty` / `?mock=loading` /
-// `?mock=error`) on the public-games route. Safe to delete once the redesign
-// has shipped and we no longer need backend-free previews.
+// Fixture data for the PublicGames Storybook stories. Spans every state
+// (hot full table, empty, just-opened, free play, varied stakes) so each
+// component renders against a realistic lobby in isolation.
 
 import type { PublicGame } from './types';
 
@@ -119,14 +118,3 @@ export const MOCK_GAMES: PublicGame[] = [
         created_at: minutesAgo(200),
     }),
 ];
-
-export type MockMode = 'on' | 'empty' | 'loading' | 'error' | 'off';
-
-export function resolveMockMode(param: string | null | undefined): MockMode {
-    if (!param) return 'off';
-    if (param === '1' || param === 'true' || param === 'on') return 'on';
-    if (param === 'empty' || param === 'loading' || param === 'error') {
-        return param;
-    }
-    return 'off';
-}

@@ -19,7 +19,6 @@ import type {
     SortConfig,
 } from '../components/PublicGames/types';
 import { PAGE_SIZE, sortKeyToParam, stakeTier } from '../components/PublicGames/types';
-import { MOCK_GAMES, resolveMockMode } from '../components/PublicGames/mockGames';
 
 const PublicPageInner = () => {
     const [games, setGames] = useState<PublicGame[]>([]);
@@ -35,7 +34,6 @@ const PublicPageInner = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-    const mockMode = resolveMockMode(searchParams?.get('mock'));
 
     const formatParam = searchParams?.get('format');
     const format: GameFormat = isGameFormat(formatParam) ? formatParam : 'cash';
@@ -54,37 +52,6 @@ const PublicPageInner = () => {
     const sortByParam = sortKeyToParam(sortConfig.key);
 
     useEffect(() => {
-        if (mockMode === 'off') return;
-        // ?mock=on  → render MOCK_GAMES locally, no network call
-        // ?mock=empty → render empty-state
-        // ?mock=loading → freeze the loading state
-        // ?mock=error → render error state
-        setError(null);
-        if (mockMode === 'loading') {
-            setIsLoading(true);
-            return;
-        }
-        if (mockMode === 'error') {
-            setIsLoading(false);
-            setHasLoadedOnce(true);
-            setError('Mock error state');
-            return;
-        }
-        if (mockMode === 'empty') {
-            setGames([]);
-            setTotalCount(0);
-            setIsLoading(false);
-            setHasLoadedOnce(true);
-            return;
-        }
-        setGames(MOCK_GAMES);
-        setTotalCount(MOCK_GAMES.length);
-        setIsLoading(false);
-        setHasLoadedOnce(true);
-    }, [mockMode]);
-
-    useEffect(() => {
-        if (mockMode !== 'off') return;
         let cancelled = false;
         setIsLoading(true);
         setError(null);
@@ -114,7 +81,7 @@ const PublicPageInner = () => {
                 }
             });
         return () => { cancelled = true; };
-    }, [filter, sortByParam, sortConfig.direction, mockMode]);
+    }, [filter, sortByParam, sortConfig.direction]);
 
     const visibleGames = useMemo(() => {
         if (stake === 'all' || filter === 'free') return games;
@@ -129,7 +96,6 @@ const PublicPageInner = () => {
     };
 
     const handleLoadMore = async () => {
-        if (mockMode !== 'off') return;
         setIsLoadingMore(true);
         try {
             const data = await getPublicGames({

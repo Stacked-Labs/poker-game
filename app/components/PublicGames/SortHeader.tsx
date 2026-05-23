@@ -29,15 +29,20 @@ function SortHeaderButton({
         <Button
             variant="unstyled"
             onClick={() => onSortChange(sortKey)}
+            aria-label={`Sort by ${label}`}
+            aria-pressed={active}
             h="20px"
             px={0}
             border="none"
-            color={active ? 'brand.green' : 'text.secondary'}
-            _hover={{ color: 'brand.green' }}
-            _active={{ color: 'brand.greenDark' }}
+            color={active ? 'text.primary' : 'text.muted'}
+            _hover={{ color: 'text.primary' }}
+            _active={{ color: 'text.primary' }}
             _focus={{ boxShadow: 'none' }}
-            _focusVisible={{ boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)', borderRadius: '4px' }}
-            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), color 80ms ease"
+            _focusVisible={{
+                boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)',
+                borderRadius: '4px',
+            }}
+            transition="color 120ms ease"
             display="inline-flex"
             justifyContent={align === 'right' ? 'flex-end' : 'flex-start'}
             w="full"
@@ -47,7 +52,7 @@ function SortHeaderButton({
                     color="currentColor"
                     fontSize="2xs"
                     fontWeight="bold"
-                    letterSpacing="0.1em"
+                    letterSpacing="0.12em"
                     textTransform="uppercase"
                 >
                     {label}
@@ -55,7 +60,8 @@ function SortHeaderButton({
                 <Icon
                     as={icon}
                     boxSize="11px"
-                    opacity={active ? 1 : 0.35}
+                    opacity={active ? 1 : 0.3}
+                    color={active ? 'brand.green' : 'currentColor'}
                 />
             </HStack>
         </Button>
@@ -86,9 +92,9 @@ export default function SortHeader({ sortConfig, onSortChange, ruleColor }: Sort
                 <Text
                     fontSize="2xs"
                     fontWeight="bold"
-                    letterSpacing="0.1em"
+                    letterSpacing="0.12em"
                     textTransform="uppercase"
-                    color="text.secondary"
+                    color="text.muted"
                     textAlign="right"
                 >
                     Age

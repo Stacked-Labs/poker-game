@@ -9,6 +9,7 @@ import Footer from '@/app/components/HomePage/Footer';
 import { checkSBTEligibility, claimSBT, getSBTInfo, type SBTInfo } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import ClaimCard from './components/ClaimCard';
+import { track } from '@/app/utils/analytics';
 
 const fireConfetti = () => {
     const reduced =
@@ -48,10 +49,12 @@ export default function ClaimPage() {
     }, [account?.address]);
 
     const handleClaim = async () => {
+        track('free_tokens_claim_started');
         setClaiming(true);
         try {
             const result = await claimSBT();
             if (result.success) {
+                track('free_tokens_claimed');
                 setJustClaimed(true);
                 fireConfetti();
                 if (account?.address) {

@@ -1,5 +1,6 @@
 import { PendingPlayer, Player } from '@/app/interfaces';
 import {
+    Flex,
     Text,
     useDisclosure,
     Modal,
@@ -58,6 +59,39 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
         }
     };
 
+    // Hint to invite friends — shown only when there are 0 other players.
+    // Sits *below* the host's own card so the seated player leads the list.
+    const otherPlayerCount =
+        acceptedPlayers?.filter((p) => p.uuid !== currentUserUuid).length ?? 0;
+    const showInviteHint = otherPlayerCount === 0;
+
+    const EmptyHint = ({ aloneAtTable = false }: { aloneAtTable?: boolean }) => (
+        <Flex
+            direction="column"
+            alignItems="center"
+            justifyContent="center"
+            py={6}
+            px={4}
+            bg="card.lightGray"
+            borderRadius="16px"
+            border="1px dashed"
+            borderColor="border.lightGray"
+            gap={1.5}
+        >
+            <Text fontWeight="bold" fontSize="sm" color="text.secondary">
+                {aloneAtTable ? 'Invite friends' : 'Waiting for players'}
+            </Text>
+            <Text fontSize="xs" color="text.muted" textAlign="center">
+                Share the table link from the lobby banner to invite friends.
+            </Text>
+        </Flex>
+    );
+
+    // Fully empty (no host card to render either) → just the hint.
+    if (!acceptedPlayers || acceptedPlayers.length === 0) {
+        return <EmptyHint />;
+    }
+
     if (acceptedPlayers && acceptedPlayers.length > 0) {
         // Sort so current user is always first
         const sortedPlayers = [...acceptedPlayers].sort((a, b) => {
@@ -99,6 +133,7 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
                             );
                         }
                     })}
+                    {showInviteHint && <EmptyHint aloneAtTable />}
                 </VStack>
 
                 {/* Confirmation Modal */}
@@ -135,9 +170,11 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
                             borderRadius="full"
                             _hover={{
                                 bg: 'brand.lightGray',
-                                transform: 'rotate(90deg)',
                             }}
-                            transition="all 0.3s ease"
+                            _active={{
+                                transform: 'translateY(1px)',
+                            }}
+                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 80ms ease"
                         />
                         <ModalBody py={6}>
                             <Text
@@ -172,16 +209,22 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
                                 size="md"
                                 height="52px"
                                 flex={1}
-                                bg="brand.lightGray"
-                                color="brand.navy"
+                                bg="card.lightGray"
+                                color="text.secondary"
                                 border="none"
                                 borderRadius="12px"
                                 fontWeight="bold"
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.50), 0 2px 0 rgba(0,0,0,0.10)"
                                 _hover={{
-                                    bg: 'gray.300',
-                                    transform: 'translateY(-2px)',
+                                    bg: 'border.lightGray',
                                 }}
-                                transition="all 0.2s ease"
+                                _active={{
+                                    bg: 'border.lightGray',
+                                    transform: 'translateY(2px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 rgba(0,0,0,0.10)',
+                                }}
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                             >
                                 Cancel
                             </Button>
@@ -197,14 +240,17 @@ const AcceptedPlayers = ({ acceptedPlayers, handleKickPlayer, currentUserUuid, s
                                 borderRadius="12px"
                                 border="none"
                                 fontWeight="bold"
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #950839"
                                 _hover={{
                                     bg: 'brand.pink',
-                                    transform: 'translateY(-2px)',
-                                    boxShadow:
-                                        '0 12px 24px rgba(235, 11, 92, 0.3)',
                                 }}
-                                _active={{ transform: 'translateY(0)' }}
-                                transition="all 0.2s ease"
+                                _active={{
+                                    bg: 'brand.pinkDark',
+                                    transform: 'translateY(2px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                                }}
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                             >
                                 Confirm
                             </Button>

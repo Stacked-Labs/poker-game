@@ -1,21 +1,24 @@
 'use client';
 
 import React, { useContext, useEffect, useCallback } from 'react';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
+import { handleLeaveTable } from '@/app/hooks/useTableOptions';
 import {
     Box,
     Button,
+    Collapse,
     Flex,
     Text,
     HStack,
-    VStack,
     Icon,
     Spinner,
     Image,
-    Link,
     Divider,
     Tooltip,
+    useDisclosure,
 } from '@chakra-ui/react';
 import { FaCoins, FaCrown, FaInfoCircle } from 'react-icons/fa';
+import { FiChevronDown } from 'react-icons/fi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useWithdraw } from '@/app/hooks/useWithdraw';
 import { useHostRake } from '@/app/hooks/useHostRake';
@@ -25,9 +28,12 @@ import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { useActiveWallet } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useAuth } from '@/app/contexts/AuthContext';
+import ExternalLink from '@/app/components/ExternalLink';
+import LeaveSeatAction from './LeaveSeatAction';
 
 const CHIPS_PER_USDC = 100;
 const USDC_LOGO_URL = '/usdc-logo.png';
+const WITHDRAW_POLL_INTERVAL_MS = 5000;
 
 const WithdrawBalanceCard = () => {
     const wallet = useActiveWallet();
@@ -41,6 +47,16 @@ const WithdrawBalanceCard = () => {
     const { success, error: toastError } = useToastHelper();
     const isOwner = useIsTableOwner();
     const settlementStatus = appStore.appState.settlementStatus;
+    const { isOpen: isAdvancedOpen, onToggle: onAdvancedToggle } = useDisclosure();
+    const socket = useContext(SocketContext);
+    const { info: infoToast } = useToastHelper();
+    const localPlayer = appStore.appState.game?.players?.find(
+        (p) => p.uuid === appStore.appState.clientID
+    );
+    const leaveAfterHandRequested = Boolean(localPlayer?.leaveAfterHand);
+    const settlementStuck = Boolean(appStore.appState.game?.settlementStuck);
+    const onLeaveSeat = () =>
+        handleLeaveTable(socket, infoToast, leaveAfterHandRequested);
 
     const isUserSeated = appStore.appState.game?.players?.some(
         (player) => player.uuid === appStore.appState.clientID
@@ -92,7 +108,18 @@ const WithdrawBalanceCard = () => {
 
     useEffect(() => {
         refreshWithdrawStatus();
-    }, [refreshWithdrawStatus]);
+    }, [refreshWithdrawStatus, isUserSeated]);
+
+    useEffect(() => {
+        if (isUserSeated) return;
+        if (canWithdraw !== false) return;
+        if (chipBalance === null || chipBalance === BigInt(0)) return;
+        const id = setInterval(
+            refreshWithdrawStatus,
+            WITHDRAW_POLL_INTERVAL_MS
+        );
+        return () => clearInterval(id);
+    }, [isUserSeated, canWithdraw, chipBalance, refreshWithdrawStatus]);
 
     if (!isCryptoGame || !address) return null;
 
@@ -157,131 +184,99 @@ const WithdrawBalanceCard = () => {
             py={{ base: 2.5, sm: 3, md: 4 }}
             boxShadow="0 2px 8px rgba(0, 0, 0, 0.05)"
         >
-            {/* Header + Balance */}
-            <Flex
-                justify="space-between"
-                align="center"
-                w="100%"
-                gap={3}
-            >
-                <VStack spacing={0} align="flex-start">
-                    <HStack spacing={1.5}>
-                        <Icon
-                            as={FaCoins}
-                            color="brand.yellow"
-                            boxSize={{ base: 3.5, md: 4 }}
-                        />
-                        <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            fontWeight="semibold"
-                            color="text.muted"
-                            textTransform="uppercase"
-                            letterSpacing="0.04em"
-                        >
-                            Withdrawable Balance
+            {/* Withdrawable Balance row */}
+            <Flex align="center" w="100%" gap={{ base: 2, md: 3 }}>
+                <Icon
+                    as={FaCoins}
+                    color="brand.yellow"
+                    boxSize={{ base: 3.5, md: 4 }}
+                    flexShrink={0}
+                />
+                <Text
+                    fontSize={{ base: '2xs', md: 'xs' }}
+                    fontWeight="semibold"
+                    color="text.muted"
+                    textTransform="uppercase"
+                    letterSpacing="0.04em"
+                    flexShrink={0}
+                >
+                    Withdrawable
+                </Text>
+                {isLoading && status === 'checking' ? (
+                    <HStack spacing={2} flex={1} minW={0}>
+                        <Spinner size="xs" color="brand.yellow" thickness="2px" />
+                        <Text fontSize="xs" color="text.muted" fontWeight="medium">
+                            Checking…
                         </Text>
                     </HStack>
-                    {isLoading && status === 'checking' ? (
-                        <HStack spacing={2} mt={1}>
-                            <Spinner
-                                size="xs"
-                                color="brand.yellow"
-                                thickness="2px"
+                ) : (
+                    <HStack spacing={1.5} align="center" flex={1} minW={0}>
+                        <Text
+                            fontSize={{ base: 'md', md: 'lg' }}
+                            fontWeight="bold"
+                            color="text.secondary"
+                            lineHeight="1"
+                        >
+                            ${formattedUsdcValue}
+                        </Text>
+                        <HStack spacing={1} opacity={0.7}>
+                            <Image
+                                src={USDC_LOGO_URL}
+                                alt="USDC"
+                                boxSize="11px"
+                                loading="lazy"
                             />
-                            <Text
-                                fontSize="xs"
-                                color="text.muted"
-                                fontWeight="medium"
-                            >
-                                Checking...
+                            <Text fontSize="2xs" color="text.muted" fontWeight="medium">
+                                USDC
                             </Text>
                         </HStack>
-                    ) : (
-                        <HStack spacing={2} align="baseline" mt={0.5}>
-                            <Text
-                                fontSize={{ base: 'lg', md: 'xl' }}
-                                fontWeight="bold"
-                                color="text.secondary"
-                                lineHeight="1"
-                            >
-                                ${formattedUsdcValue}
-                            </Text>
-                            <HStack spacing={1} opacity={0.7}>
-                                <Image
-                                    src={USDC_LOGO_URL}
-                                    alt="USDC"
-                                    boxSize="12px"
-                                    loading="lazy"
-                                />
-                                <Text
-                                    fontSize="xs"
-                                    color="text.muted"
-                                    fontWeight="medium"
-                                >
-                                    USDC
-                                </Text>
-                            </HStack>
-                            <Text
-                                fontSize="xs"
-                                color="text.muted"
-                                fontWeight="medium"
-                                opacity={0.5}
-                            >
-                                {formattedChipBalance} chips
-                            </Text>
-                        </HStack>
-                    )}
-                </VStack>
+                        <Text
+                            fontSize="2xs"
+                            color="text.muted"
+                            opacity={0.5}
+                            display={{ base: 'none', sm: 'inline' }}
+                        >
+                            · {formattedChipBalance} chips
+                        </Text>
+                    </HStack>
+                )}
 
-                {/* Withdraw button */}
-                <Tooltip
-                    label="Leave the table first to withdraw"
-                    isDisabled={!isUserSeated}
-                    placement="top"
-                    hasArrow
-                    fontSize="xs"
-                    bg="gray.800"
-                    color="white"
-                    borderRadius="md"
-                    px={2}
-                    py={1}
-                >
+                {/* Action slot — Leave seat when seated, Withdraw otherwise */}
+                {isUserSeated ? (
+                    <LeaveSeatAction
+                        onClick={onLeaveSeat}
+                        isLeaveRequested={leaveAfterHandRequested}
+                        settlementStuck={settlementStuck}
+                    />
+                ) : (
                     <Button
                         size={{ base: 'sm', md: 'md' }}
                         px={{ base: 4, md: 5 }}
                         h={{ base: '34px', sm: '36px', md: '40px' }}
-                        bg={isButtonDisabled ? 'gray.300' : 'brand.yellow'}
-                        color={isButtonDisabled ? 'gray.500' : 'white'}
+                        bg="brand.yellow"
+                        color="white"
                         border="none"
                         borderRadius={{ base: '10px', md: '12px' }}
                         fontWeight="bold"
                         fontSize={{ base: 'xs', md: 'sm' }}
+                        letterSpacing="0.02em"
                         isDisabled={isButtonDisabled}
                         isLoading={isLoading && status === 'withdrawing'}
                         loadingText={getStatusMessage()}
                         onClick={handleWithdraw}
                         flexShrink={0}
-                        _disabled={{
-                            bg: 'gray.300',
-                            color: 'gray.500',
-                            cursor: 'not-allowed',
-                            opacity: 0.6,
+                        boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900"
+                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                        _hover={{ bg: 'brand.yellow' }}
+                        _active={{
+                            bg: 'brand.yellowDark',
+                            transform: 'translateY(2px)',
+                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
                         }}
-                        _hover={
-                            isButtonDisabled
-                                ? {}
-                                : { opacity: 0.85 }
-                        }
-                        _active={
-                            isButtonDisabled
-                                ? {}
-                                : { opacity: 0.7 }
-                        }
-                        transition="opacity 0.15s ease"
                     >
                         Withdraw
                     </Button>
-                </Tooltip>
+                )}
             </Flex>
 
             {!isAuthenticated && (
@@ -305,7 +300,7 @@ const WithdrawBalanceCard = () => {
                     </Text>
                 </HStack>
             )}
-            {/* Seated warning — scoped to withdrawals */}
+            {/* Seated hint — slim, the action lives in the row above */}
             {isUserSeated && (
                 <HStack
                     spacing={2}
@@ -323,9 +318,13 @@ const WithdrawBalanceCard = () => {
                     fontWeight="medium"
                     w="fit-content"
                 >
-                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} />
+                    <Icon as={FaInfoCircle} boxSize={3.5} mt={0.5} flexShrink={0} />
                     <Text color="inherit">
-                        Leave the table before withdrawing.
+                        {settlementStuck
+                            ? 'Settlement in progress — leave temporarily unavailable.'
+                            : leaveAfterHandRequested
+                              ? 'Leaving after this hand. Withdraw unlocks once you stand up.'
+                              : 'Leave your seat to unlock withdraw.'}
                     </Text>
                 </HStack>
             )}
@@ -385,121 +384,94 @@ const WithdrawBalanceCard = () => {
             {isOwner && (
                 <>
                     <Divider borderColor="border.lightGray" />
-                    <Flex
-                        justify="space-between"
-                        align="center"
-                        w="100%"
-                        gap={3}
-                    >
-                        <VStack spacing={0} align="flex-start">
-                            <HStack spacing={1.5}>
-                                <Icon
-                                    as={FaCrown}
-                                    color="brand.yellow"
-                                    boxSize={{ base: 3.5, md: 4 }}
-                                />
-                                <Tooltip
-                                    label="Earned from table fees on each settled hand"
-                                    placement="top"
-                                    hasArrow
-                                    fontSize="xs"
-                                    bg="gray.800"
-                                    color="white"
-                                    borderRadius="md"
-                                    px={3}
-                                    py={1.5}
-                                >
-                                    <Text
-                                        fontSize={{ base: 'xs', md: 'sm' }}
-                                        fontWeight="semibold"
-                                        color="text.muted"
-                                        textTransform="uppercase"
-                                        letterSpacing="0.04em"
-                                        cursor="help"
-                                        borderBottom="1px dashed"
-                                        borderColor="text.muted"
-                                    >
-                                        Host Rewards
-                                    </Text>
-                                </Tooltip>
+                    <Flex align="center" w="100%" gap={{ base: 2, md: 3 }}>
+                        <Icon
+                            as={FaCrown}
+                            color="brand.yellow"
+                            boxSize={{ base: 3.5, md: 4 }}
+                            flexShrink={0}
+                        />
+                        <Tooltip
+                            label="Earned from table fees on each settled hand"
+                            placement="top"
+                            hasArrow
+                            fontSize="xs"
+                            bg="gray.800"
+                            color="white"
+                            borderRadius="md"
+                            px={3}
+                            py={1.5}
+                        >
+                            <Text
+                                fontSize={{ base: '2xs', md: 'xs' }}
+                                fontWeight="semibold"
+                                color="text.muted"
+                                textTransform="uppercase"
+                                letterSpacing="0.04em"
+                                cursor="help"
+                                borderBottom="1px dashed"
+                                borderColor="text.muted"
+                                flexShrink={0}
+                            >
+                                Host Rewards
+                            </Text>
+                        </Tooltip>
+                        {rakeLoading && rakeStatus === 'loading' ? (
+                            <HStack spacing={2} flex={1} minW={0}>
+                                <Spinner size="xs" color="brand.yellow" thickness="2px" />
+                                <Text fontSize="xs" color="text.muted" fontWeight="medium">
+                                    Checking…
+                                </Text>
                             </HStack>
-                            {rakeLoading && rakeStatus === 'loading' ? (
-                                <HStack spacing={2} mt={1}>
-                                    <Spinner
-                                        size="xs"
-                                        color="brand.yellow"
-                                        thickness="2px"
+                        ) : (
+                            <HStack spacing={1.5} align="center" flex={1} minW={0}>
+                                <Text
+                                    fontSize={{ base: 'md', md: 'lg' }}
+                                    fontWeight="bold"
+                                    color="text.secondary"
+                                    lineHeight="1"
+                                >
+                                    ${rakeUsdcFormatted}
+                                </Text>
+                                <HStack spacing={1} opacity={0.7}>
+                                    <Image
+                                        src={USDC_LOGO_URL}
+                                        alt="USDC"
+                                        boxSize="11px"
+                                        loading="lazy"
                                     />
-                                    <Text
-                                        fontSize="xs"
-                                        color="text.muted"
-                                        fontWeight="medium"
-                                    >
-                                        Checking...
+                                    <Text fontSize="2xs" color="text.muted" fontWeight="medium">
+                                        USDC
                                     </Text>
                                 </HStack>
-                            ) : (
-                                <HStack spacing={2} align="baseline" mt={0.5}>
-                                    <Text
-                                        fontSize={{ base: 'lg', md: 'xl' }}
-                                        fontWeight="bold"
-                                        color="text.secondary"
-                                        lineHeight="1"
-                                    >
-                                        ${rakeUsdcFormatted}
-                                    </Text>
-                                    <HStack spacing={1} opacity={0.7}>
-                                        <Image
-                                            src={USDC_LOGO_URL}
-                                            alt="USDC"
-                                            boxSize="12px"
-                                            loading="lazy"
-                                        />
-                                        <Text
-                                            fontSize="xs"
-                                            color="text.muted"
-                                            fontWeight="medium"
-                                        >
-                                            USDC
-                                        </Text>
-                                    </HStack>
-                                </HStack>
-                            )}
-                        </VStack>
+                            </HStack>
+                        )}
 
                         <Button
                             data-testid="host-rake-collect-btn"
                             size={{ base: 'sm', md: 'md' }}
                             px={{ base: 4, md: 5 }}
                             h={{ base: '34px', sm: '36px', md: '40px' }}
-                            bg={!hasRakeBalance || rakeLoading ? 'gray.300' : 'brand.yellow'}
-                            color={!hasRakeBalance || rakeLoading ? 'gray.500' : 'white'}
+                            bg="brand.yellow"
+                            color="white"
                             border="none"
                             borderRadius={{ base: '10px', md: '12px' }}
                             fontWeight="bold"
                             fontSize={{ base: 'xs', md: 'sm' }}
+                            letterSpacing="0.02em"
                             isDisabled={!hasRakeBalance || rakeLoading}
                             isLoading={rakeStatus === 'withdrawing'}
                             loadingText="Collecting..."
                             onClick={handleCollectRake}
                             flexShrink={0}
-                            _disabled={{
-                                bg: 'gray.300',
-                                color: 'gray.500',
-                                cursor: 'not-allowed',
-                                opacity: 0.6,
+                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900"
+                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                            _hover={{ bg: 'brand.yellow' }}
+                            _active={{
+                                bg: 'brand.yellowDark',
+                                transform: 'translateY(2px)',
+                                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
                             }}
-                            _hover={
-                                !hasRakeBalance || rakeLoading
-                                    ? {}
-                                    : { opacity: 0.85 }
-                            }
-                            _active={
-                                !hasRakeBalance || rakeLoading
-                                    ? {}
-                                    : { opacity: 0.7 }
-                            }
-                            transition="opacity 0.15s ease"
                         >
                             Collect
                         </Button>
@@ -507,43 +479,125 @@ const WithdrawBalanceCard = () => {
                 </>
             )}
 
-            {/* Emergency Withdraw (testing) */}
+            {/* Advanced disclosure → Emergency Withdraw */}
             <Divider borderColor="border.lightGray" />
-            <Flex justify="space-between" align="center" w="100%" gap={3}>
-                <Text fontSize="xs" color="text.muted" fontWeight="medium">
-                    Emergency Withdraw
-                </Text>
-                <Box
-                    data-testid="emergency-withdraw-btn"
+            <Box>
+                <Flex
                     as="button"
-                    px={2.5}
+                    type="button"
+                    onClick={onAdvancedToggle}
+                    align="center"
+                    justify="space-between"
+                    w="100%"
                     py={1}
-                    borderRadius="full"
-                    fontSize="xs"
-                    fontWeight="bold"
-                    cursor={emergencyStatus === 'pending' ? 'not-allowed' : 'pointer'}
+                    aria-expanded={isAdvancedOpen}
+                    _hover={{ '& .advanced-label': { color: 'text.secondary' } }}
+                >
+                    <Text
+                        className="advanced-label"
+                        fontSize="2xs"
+                        fontWeight="semibold"
+                        color="text.muted"
+                        textTransform="uppercase"
+                        letterSpacing="0.06em"
+                        transition="color 80ms ease"
+                    >
+                        Advanced
+                    </Text>
+                    <Icon
+                        as={FiChevronDown}
+                        boxSize={3.5}
+                        color="text.muted"
+                        transform={isAdvancedOpen ? 'rotate(180deg)' : 'rotate(0deg)'}
+                        transition="transform 160ms ease"
+                    />
+                </Flex>
+                <Collapse in={isAdvancedOpen} animateOpacity>
+                    <Flex
+                        align="center"
+                        justify="space-between"
+                        w="100%"
+                        gap={3}
+                        pt={2}
+                    >
+                        <Text
+                            fontSize="2xs"
+                            color="text.muted"
+                            lineHeight="1.4"
+                            opacity={0.85}
+                            flex={1}
+                            minW={0}
+                        >
+                            Escape hatch if normal withdraw is unavailable.
+                            Only enabled <strong>before the first hand</strong>{' '}
+                            or <strong>24 hours after the last settlement</strong>.
+                            Pulls your last-settled balance directly from the
+                            contract. {CHIPS_PER_USDC}&nbsp;chips&nbsp;=&nbsp;1&nbsp;USDC.
+                            {contractAddress && (
+                                <>
+                                    {' '}
+                                    <ExternalLink
+                                        href={`https://sepolia.basescan.org/address/${contractAddress}`}
+                                        fontWeight="semibold"
+                                    >
+                                        View contract
+                                    </ExternalLink>
+                                </>
+                            )}
+                        </Text>
+                <Button
+                    data-testid="emergency-withdraw-btn"
+                    px={2.5}
+                    py={1.5}
+                    h="auto"
+                    minH={0}
+                    borderRadius="8px"
+                    fontSize="2xs"
+                    fontWeight={700}
+                    lineHeight="1.05"
+                    whiteSpace="pre-line"
+                    letterSpacing="0.02em"
                     bg={emergencyStatus === 'success' ? 'brand.green' : 'brand.pink'}
                     color="white"
-                    opacity={emergencyStatus === 'pending' ? 0.6 : 1}
-                    transition="opacity 0.15s"
-                    _hover={{ opacity: emergencyStatus === 'pending' ? 0.6 : 0.85 }}
+                    border="none"
+                    flexShrink={0}
+                    isLoading={emergencyStatus === 'pending'}
+                    loadingText="Processing"
+                    boxShadow={
+                        emergencyStatus === 'success'
+                            ? 'inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #22674E'
+                            : 'inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #950839'
+                    }
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                    _hover={{
+                        bg: emergencyStatus === 'success' ? 'brand.green' : 'brand.pink',
+                    }}
+                    _active={{
+                        bg:
+                            emergencyStatus === 'success'
+                                ? 'brand.greenDark'
+                                : 'brand.pinkDark',
+                        transform: 'translateY(1.5px)',
+                        boxShadow:
+                            emergencyStatus === 'success'
+                                ? 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E'
+                                : 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                    }}
                     onClick={() => {
                         if (emergencyStatus === 'pending') return;
                         if (emergencyStatus === 'error') emergencyReset();
                         emergencyWithdraw();
                     }}
-                    display="inline-flex"
-                    alignItems="center"
-                    gap={1.5}
                 >
-                    {emergencyStatus === 'pending' && <Spinner size="xs" />}
                     {emergencyStatus === 'success'
                         ? 'Done'
                         : emergencyStatus === 'error'
                         ? 'Retry'
-                        : 'Emergency Withdraw'}
-                </Box>
-            </Flex>
+                        : 'Emergency\nWithdraw'}
+                </Button>
+                    </Flex>
+                </Collapse>
+            </Box>
 
             {emergencyError && (
                 <HStack
@@ -565,33 +619,6 @@ const WithdrawBalanceCard = () => {
                     </Text>
                 </HStack>
             )}
-
-            {/* Disclaimer */}
-            <Text
-                fontSize="2xs"
-                color="text.muted"
-                lineHeight="short"
-                opacity={0.7}
-            >
-                Balance reflects the last settled hand. {CHIPS_PER_USDC}{' '}
-                chips&nbsp;=&nbsp;1&nbsp;USDC.
-                {contractAddress && (
-                    <>
-                        {' '}
-                        <Link
-                            href={`https://sepolia.basescan.org/address/${contractAddress}`}
-                            isExternal
-                            color="brand.navy"
-                            _dark={{ color: 'brand.lightGray' }}
-                            fontWeight="semibold"
-                            textDecoration="underline"
-                            textUnderlineOffset="2px"
-                        >
-                            View contract
-                        </Link>
-                    </>
-                )}
-            </Text>
         </Flex>
     );
 };

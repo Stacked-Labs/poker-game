@@ -1,12 +1,13 @@
 import { PendingPlayer } from '@/app/interfaces';
-import { Box, Flex, Button, Icon, Image, Link, Text, Tooltip, VStack, Badge, useColorModeValue } from '@chakra-ui/react';
+import { Box, Flex, Button, Icon, Link, Text, Tooltip, VStack, Badge } from '@chakra-ui/react';
 import { FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
 import { GiBootKick } from 'react-icons/gi';
 import { FiExternalLink } from 'react-icons/fi';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { useContext } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
-import { getColorForUsername } from '@/app/utils/chatColors';
+import ExternalLink from '@/app/components/ExternalLink';
+import PlayerAvatar from '@/app/components/PlayerAvatar';
 
 const PlayerCard = ({
     index,
@@ -40,15 +41,6 @@ const PlayerCard = ({
         : format(player.buyIn);
 
     const displayName = player.username || player.uuid.substring(0, 8);
-    const avatarColor = getColorForUsername(displayName);
-    const avatarInitials =
-        displayName
-            .replace(/^@/, '')
-            .split(/[\s._-]+/)
-            .slice(0, 2)
-            .map((w) => w[0]?.toUpperCase() ?? '')
-            .join('') ||
-        displayName.replace(/^@/, '').slice(0, 2).toUpperCase();
 
     const truncatedAddress = player.address
         ? `${player.address.substring(0, 6)}...${player.address.substring(player.address.length - 4)}`
@@ -60,42 +52,28 @@ const PlayerCard = ({
         ? `https://x.com/${player.username?.replace(/^@/, '')}`
         : null;
 
-    // Dark-mode-adaptive values
-    const cardBg = useColorModeValue('white', '#212121');
-    const selfBg = useColorModeValue('#EEF8F3', '#1E2A25');
-    const selfBorder = useColorModeValue('rgba(54, 163, 123, 0.35)', 'rgba(54, 163, 123, 0.45)');
-    const borderColor = useColorModeValue('#ECEEF5', 'rgba(255, 255, 255, 0.1)');
-    const shadowRest = useColorModeValue(
-        '0 1px 4px rgba(0, 0, 0, 0.04)',
-        '0 1px 4px rgba(0, 0, 0, 0.2)'
-    );
-    const shadowHover = useColorModeValue(
-        '0 4px 12px rgba(0, 0, 0, 0.08)',
-        '0 4px 12px rgba(0, 0, 0, 0.35)'
-    );
-    const avatarBgOpacity = useColorModeValue('18', '30');
-    const badgeBg = useColorModeValue('#ECEEF5', '#191414');
-    const badgeColor = useColorModeValue('#334479', '#ECEEF5');
-    const metaColor = useColorModeValue('rgba(11, 20, 48, 0.5)', 'rgba(255, 255, 255, 0.45)');
-
     return (
         <Flex
             key={index}
             alignItems="center"
             justifyContent="space-between"
             width="100%"
-            bg={isCurrentUser ? selfBg : cardBg}
+            bg="card.white"
             borderRadius={{ base: '12px', md: '16px' }}
             border="1px solid"
-            borderColor={isCurrentUser ? selfBorder : borderColor}
+            borderColor={
+                isCurrentUser ? 'border.greenStrong' : 'border.lightGray'
+            }
             paddingX={{ base: 3, sm: 4, md: 5 }}
             paddingY={{ base: 2.5, sm: 3, md: 4 }}
-            boxShadow={shadowRest}
-            _hover={{
-                boxShadow: shadowHover,
-                transform: 'translateY(-1px)',
+            boxShadow={{
+                base: isCurrentUser
+                    ? 'inset 0 0 0 9999px rgba(54, 163, 123, 0.07), 0 1px 4px rgba(0, 0, 0, 0.04)'
+                    : '0 1px 4px rgba(0, 0, 0, 0.04)',
+                _dark: isCurrentUser
+                    ? 'inset 0 0 0 9999px rgba(54, 163, 123, 0.10), 0 1px 4px rgba(0, 0, 0, 0.2)'
+                    : '0 1px 4px rgba(0, 0, 0, 0.2)',
             }}
-            transition="all 0.2s ease"
             flexDirection="row"
             gap={{ base: 3, md: 3 }}
         >
@@ -106,35 +84,12 @@ const PlayerCard = ({
                 w={{ base: '36px', md: '42px' }}
                 h={{ base: '36px', md: '42px' }}
             >
-                {player.profileImageUrl ? (
-                    <Image
-                        src={player.profileImageUrl}
-                        alt=""
-                        w="100%"
-                        h="100%"
-                        borderRadius="full"
-                        objectFit="cover"
-                    />
-                ) : (
-                    <Flex
-                        w="100%"
-                        h="100%"
-                        borderRadius="full"
-                        bg={`${avatarColor}${avatarBgOpacity}`}
-                        alignItems="center"
-                        justifyContent="center"
-                    >
-                        <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            fontWeight="bold"
-                            color={avatarColor}
-                            lineHeight="1"
-                            userSelect="none"
-                        >
-                            {avatarInitials}
-                        </Text>
-                    </Flex>
-                )}
+                <PlayerAvatar
+                    profileImageUrl={player.profileImageUrl}
+                    address={player.address}
+                    username={displayName}
+                    initialsFontSize={{ base: '13px', md: '15px' }}
+                />
             </Box>
 
             {/* Info */}
@@ -150,17 +105,38 @@ const PlayerCard = ({
                         <Link
                             href={xProfileUrl}
                             isExternal
-                            _hover={{ textDecoration: 'none' }}
+                            display="inline-flex"
+                            alignItems="center"
+                            gap="3px"
+                            color="text.secondary"
+                            transition="color 80ms ease"
+                            _hover={{
+                                textDecoration: 'underline',
+                                textDecorationThickness: '1.5px',
+                                textUnderlineOffset: '3px',
+                                '& .x-handle-icon': { opacity: 0.7 },
+                            }}
+                            sx={{
+                                '& .x-handle-icon': {
+                                    opacity: 0.4,
+                                    transition: 'opacity 80ms ease',
+                                },
+                            }}
                         >
                             <Text
                                 color="text.secondary"
                                 fontWeight="bold"
                                 fontSize={{ base: 'sm', md: 'md' }}
-                                _hover={{ color: 'brand.green' }}
-                                transition="color 0.15s ease"
                             >
                                 {displayName}
                             </Text>
+                            <Icon
+                                as={FiExternalLink}
+                                className="x-handle-icon"
+                                boxSize="10px"
+                                color="text.muted"
+                                aria-hidden
+                            />
                         </Link>
                     ) : (
                         <Text
@@ -187,8 +163,8 @@ const PlayerCard = ({
                     )}
                     {type === 'pending' && (
                         <Badge
-                            color="white"
-                            bg="brand.pink"
+                            bg="rgba(235, 11, 92, 0.10)"
+                            color="brand.pink"
                             fontWeight="semibold"
                             fontSize="2xs"
                             borderRadius="full"
@@ -210,34 +186,22 @@ const PlayerCard = ({
                 >
                     {/* ID / address */}
                     {isCrypto && truncatedAddress && baseScanUrl ? (
-                        <Link
+                        <ExternalLink
                             href={baseScanUrl}
-                            isExternal
-                            _hover={{ textDecoration: 'none' }}
+                            iconSize="9px"
+                            bg="card.lightGray"
+                            px={2}
+                            py={0.5}
+                            borderRadius="6px"
+                            fontSize="2xs"
+                            fontWeight="medium"
                         >
-                            <Badge
-                                bg={badgeBg}
-                                color={badgeColor}
-                                px={2}
-                                py={0.5}
-                                borderRadius="6px"
-                                fontSize="2xs"
-                                fontWeight="medium"
-                                cursor="pointer"
-                                display="flex"
-                                alignItems="center"
-                                gap={1}
-                                _hover={{ color: 'brand.green' }}
-                                transition="color 0.15s ease"
-                            >
-                                {truncatedAddress}
-                                <Icon as={FiExternalLink} boxSize="9px" />
-                            </Badge>
-                        </Link>
+                            {truncatedAddress}
+                        </ExternalLink>
                     ) : (
                         <Badge
-                            bg={badgeBg}
-                            color={badgeColor}
+                            bg="card.lightGray"
+                            color="text.secondary"
                             px={2}
                             py={0.5}
                             borderRadius="6px"
@@ -248,11 +212,7 @@ const PlayerCard = ({
                         </Badge>
                     )}
 
-                    <Text
-                        color={metaColor}
-                        fontSize="2xs"
-                        fontWeight="medium"
-                    >
+                    <Text color="text.muted" fontSize="2xs" fontWeight="medium">
                         Buy-in{' '}
                         <Text as="span" fontWeight="bold" color="brand.green">
                             {formattedBuyIn}
@@ -261,7 +221,7 @@ const PlayerCard = ({
 
                     {!isCrypto && (
                         <Text
-                            color={metaColor}
+                            color="text.muted"
                             fontSize="2xs"
                             fontWeight="medium"
                         >
@@ -292,18 +252,22 @@ const PlayerCard = ({
                                 size="sm"
                                 bg="brand.green"
                                 color="white"
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #22674E"
                                 _hover={{
                                     bg: 'brand.green',
-                                    transform: 'translateY(-1px)',
-                                    boxShadow: '0 4px 12px rgba(54, 163, 123, 0.3)',
                                 }}
-                                _active={{ transform: 'translateY(0)' }}
+                                _active={{
+                                    bg: 'brand.greenDark',
+                                    transform: 'translateY(1.5px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
+                                }}
                                 onClick={() => handleAcceptPlayer(player.uuid)}
                                 minW={{ base: '34px', md: '38px' }}
                                 h={{ base: '34px', md: '38px' }}
                                 borderRadius="10px"
                                 border="none"
-                                transition="all 0.2s ease"
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                             >
                                 <FaCircleCheck size={15} />
                             </Button>
@@ -320,18 +284,22 @@ const PlayerCard = ({
                                 size="sm"
                                 bg="brand.pink"
                                 color="white"
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #950839"
                                 _hover={{
                                     bg: 'brand.pink',
-                                    transform: 'translateY(-1px)',
-                                    boxShadow: '0 4px 12px rgba(235, 11, 92, 0.3)',
                                 }}
-                                _active={{ transform: 'translateY(0)' }}
+                                _active={{
+                                    bg: 'brand.pinkDark',
+                                    transform: 'translateY(1.5px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                                }}
                                 onClick={() => handleDenyPlayer(player.uuid)}
                                 minW={{ base: '34px', md: '38px' }}
                                 h={{ base: '34px', md: '38px' }}
                                 borderRadius="10px"
                                 border="none"
-                                transition="all 0.2s ease"
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                             >
                                 <FaCircleXmark size={15} />
                             </Button>
@@ -342,7 +310,6 @@ const PlayerCard = ({
             {isOwner &&
                 !isCurrentUser &&
                 type === 'accepted' &&
-                isKicking !== null &&
                 confirmKick && (
                     <Tooltip
                         label={settlementStuck ? 'Settlement in progress — kick unavailable' : 'Kick'}
@@ -355,24 +322,27 @@ const PlayerCard = ({
                         <Button
                             data-testid={`kick-player-${player.uuid}`}
                             size="sm"
-                            bg={settlementStuck ? 'gray.300' : 'brand.pink'}
-                            color={settlementStuck ? 'gray.500' : 'white'}
-                            _hover={settlementStuck ? {} : {
+                            bg="brand.pink"
+                            color="white"
+                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #950839"
+                            _hover={{
                                 bg: 'brand.pink',
-                                transform: 'translateY(-1px)',
-                                boxShadow: '0 4px 12px rgba(235, 11, 92, 0.3)',
                             }}
-                            _active={{ transform: settlementStuck ? 'none' : 'translateY(0)' }}
-                            onClick={settlementStuck ? undefined : () => confirmKick(player)}
+                            _active={{
+                                bg: 'brand.pinkDark',
+                                transform: 'translateY(1.5px)',
+                                boxShadow:
+                                    'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                            }}
+                            onClick={() => confirmKick(player)}
                             isDisabled={Boolean(settlementStuck)}
-                            isLoading={isKicking}
+                            isLoading={Boolean(isKicking)}
                             loadingText="Kicking..."
                             minW={{ base: '34px', md: '38px' }}
                             h={{ base: '34px', md: '38px' }}
                             borderRadius="10px"
                             border="none"
-                            transition="all 0.2s ease"
-                            cursor={settlementStuck ? 'not-allowed' : 'pointer'}
+                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                         >
                             <GiBootKick size={15} />
                         </Button>

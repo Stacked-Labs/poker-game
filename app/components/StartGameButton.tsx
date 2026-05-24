@@ -1,11 +1,22 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import { startGame } from '../hooks/server_actions';
 import { AppContext } from '../contexts/AppStoreProvider';
 import { Button, Tooltip, IconButton, Icon } from '@chakra-ui/react';
-import { keyframes } from '@emotion/react';
 import useIsTableOwner from '../hooks/useIsTableOwner';
+import useToastHelper from '../hooks/useToastHelper';
+import { useRotatingMessages } from '../hooks/useRotatingMessages';
 import { FaPlay } from 'react-icons/fa';
+
+// Exceeds the server's 30s on-chain timeout in StartHandCommand.PreValidate so
+// the spinner only resets after the backend has truly given up.
+const START_TIMEOUT_MS = 35000;
+
+const STARTING_MESSAGES = [
+    'Shuffling…',
+    'Dealing in…',
+    'Verifying…',
+] as const;
 
 const StartGameButton = () => {
     const socket = useContext(SocketContext);
@@ -16,40 +27,66 @@ const StartGameButton = () => {
     const readyPlayersCount =
         game?.readyCount ?? players.filter((p) => p && p.ready).length;
     const isOwner = useIsTableOwner();
+    const toast = useToastHelper();
+    const [isStarting, setIsStarting] = useState(false);
+    const rotatingStartLabel = useRotatingMessages(
+        STARTING_MESSAGES,
+        1600,
+        isStarting
+    );
+
+    // First start of a crypto table blocks on an on-chain heartbeat tx, so the
+    // update-game broadcast lags ~1–2s. Clear the spinner once the game flips
+    // to running.
+    useEffect(() => {
+        if (isStarting && game?.running) {
+            setIsStarting(false);
+        }
+    }, [isStarting, game?.running]);
+
+    useEffect(() => {
+        if (!isStarting) return;
+        const timer = setTimeout(() => {
+            setIsStarting(false);
+            toast.error("Couldn't start the table. Try again.");
+        }, START_TIMEOUT_MS);
+        return () => clearTimeout(timer);
+    }, [isStarting, toast]);
 
     const onClickStartGame = (socket: WebSocket) => {
         if (socket) {
             startGame(socket);
+            setIsStarting(true);
         }
     };
-
-    // Pulse animation keyframes
-    const pulseKeyframes = keyframes`
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    `;
-
-    const pulseAnimation = `${pulseKeyframes} 1.8s ease-in-out infinite`;
 
     if (!socket || !game || !isOwner) {
         return null;
     }
 
     if (isOwner && !game.running) {
-        const isDisabled = !game.running && readyPlayersCount < 2;
+        const isDisabled =
+            isStarting || (!game.running && readyPlayersCount < 2);
         return (
             <Tooltip
-                bg="red.600"
-                label={'Needs 2 or more ready players to start a game.'}
+                label="Need 2+ ready players"
                 isDisabled={game.running || readyPlayersCount >= 2}
+                placement="top"
                 hasArrow
+                bg="brand.navy"
+                color="white"
+                borderRadius="md"
+                fontSize="xs"
+                fontWeight="semibold"
+                px={2.5}
+                py={1.5}
             >
                 {/* Icon button for mobile */}
                 <IconButton
                     data-testid="start-game-btn"
                     aria-label="Start Game"
                     icon={<Icon as={FaPlay} boxSize={{ base: 4, md: 5 }} />}
+                    variant="tactilePrimary"
                     px={2}
                     py={2}
                     width={{ base: '40px', sm: '40px', md: '48px' }}
@@ -57,52 +94,21 @@ const StartGameButton = () => {
                     size={{ base: 'md', md: 'md' }}
                     onClick={() => onClickStartGame(socket)}
                     isDisabled={isDisabled}
+                    isLoading={isStarting}
                     display={{ base: 'inline-flex', md: 'none' }}
-                    role="button"
-                    tabIndex={0}
-                    bg="brand.green"
-                    color="white"
-                    border="none"
-                    borderRadius="12px"
-                    _hover={{
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(54, 163, 123, 0.4)',
-                    }}
-                    _disabled={{
-                        bg: 'gray.300',
-                        color: 'gray.500',
-                        cursor: 'not-allowed',
-                        opacity: 0.6,
-                    }}
-                    transition="all 0.2s ease"
-                    animation={!isDisabled ? pulseAnimation : undefined}
                 />
 
                 {/* Full button for tablet/desktop */}
                 <Button
                     data-testid="start-game-btn-desktop"
+                    variant="tactilePrimary"
                     size="md"
-                    paddingX={{ md: 12 }}
+                    paddingX={{ md: 6 }}
                     onClick={() => onClickStartGame(socket)}
                     isDisabled={isDisabled}
+                    isLoading={isStarting}
+                    loadingText={rotatingStartLabel}
                     display={{ base: 'none', md: 'inline-flex' }}
-                    bg="brand.green"
-                    color="white"
-                    border="none"
-                    borderRadius="12px"
-                    fontWeight="bold"
-                    _hover={{
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(54, 163, 123, 0.4)',
-                    }}
-                    _disabled={{
-                        bg: 'gray.300',
-                        color: 'gray.500',
-                        cursor: 'not-allowed',
-                        opacity: 0.6,
-                    }}
-                    transition="all 0.2s ease"
-                    animation={!isDisabled ? pulseAnimation : undefined}
                 >
                     Start
                 </Button>

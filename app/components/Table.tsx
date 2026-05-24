@@ -390,16 +390,16 @@ const Table = ({ tableId }: { tableId: string }) => {
                 mx="auto"
                 width="80%"
                 templateAreas={templateGridLandscape}
-                gridTemplateRows="repeat(4, 1fr)"
-                gridTemplateColumns="repeat(5, 1fr)"
+                gridTemplateRows="repeat(4, minmax(0, 1fr))"
+                gridTemplateColumns="repeat(5, minmax(0, 1fr))"
                 gap="3%"
                 sx={{
                     '@media (orientation: portrait)': {
                         width: '100%',
                         gap: '1%',
                         gridTemplateAreas: templateGridPortrait,
-                        gridTemplateRows: 'repeat(7, 1fr)',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gridTemplateRows: 'repeat(7, minmax(0, 1fr))',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
                     },
                 }}
                 placeItems="center"
@@ -429,6 +429,8 @@ const Table = ({ tableId }: { tableId: string }) => {
                                 }}
                                 width="100%"
                                 height="100%"
+                                minWidth={0}
+                                minHeight={0}
                             >
                                 {player && player !== null ? (
                                     <TakenSeatButton
@@ -477,8 +479,8 @@ const Table = ({ tableId }: { tableId: string }) => {
                 </GridItem>
             </Grid>
 
-            {/* Session points HUD — top-right corner, crypto games only */}
-            {appState.game?.config?.crypto && (
+            {/* Session points HUD — top-right corner, Base mainnet crypto games only */}
+            {appState.game?.config?.crypto && appState.game?.config?.chain === 'base' && (
                 <Box
                     position="absolute"
                     top={{ base: '52px', md: '60px' }}
@@ -490,7 +492,17 @@ const Table = ({ tableId }: { tableId: string }) => {
                         '@media (orientation: landscape)': { display: 'block' },
                     }}
                 >
-                    <SessionPointsBadge />
+                    <Box
+                        as="a"
+                        href="/leaderboard"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        display="block"
+                        _hover={{ opacity: 0.85 }}
+                        transition="opacity 0.15s"
+                    >
+                        <SessionPointsBadge />
+                    </Box>
                 </Box>
             )}
         </Flex>

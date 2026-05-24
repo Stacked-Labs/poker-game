@@ -18,13 +18,14 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useContext, useRef, useState, useEffect, useCallback } from 'react';
 import {
     FiUsers,
     FiSettings,
     FiFileText,
     FiDollarSign,
     FiHelpCircle,
+    FiLink,
     FiX,
     FiChevronLeft,
     FiChevronRight,
@@ -36,7 +37,9 @@ import GameLog from './GameLog';
 import Ledger from './Ledger';
 import HowTo from './HowTo';
 import Support from './Support';
+import OnchainTab from './OnchainTab/OnchainTab';
 import { GameEventsProvider } from '@/app/contexts/GameEventsProvider';
+import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { IconType } from 'react-icons/lib/iconBase';
 
 // Animations
@@ -56,45 +59,76 @@ const slideDown = keyframes`
     }
 `;
 
+type TabTone = 'green' | 'pink' | 'navy';
+
+const TAB_PALETTE: Record<
+    TabTone,
+    { bg: string; edge: string; dark: string; tint: string }
+> = {
+    green: {
+        bg: 'brand.green',
+        edge: '#22674E',
+        dark: 'brand.greenDark',
+        tint: 'rgba(54, 163, 123, 0.10)',
+    },
+    pink: {
+        bg: 'brand.pink',
+        edge: '#950839',
+        dark: 'brand.pinkDark',
+        tint: 'rgba(235, 11, 92, 0.10)',
+    },
+    navy: {
+        bg: 'brand.navy',
+        edge: '#1B2754',
+        dark: 'brand.darkNavy',
+        tint: 'rgba(51, 68, 121, 0.10)',
+    },
+};
+
 const TabItem = ({
     text,
-    color,
+    tone,
     icon,
 }: {
     text: string;
-    color: string;
+    tone: TabTone;
     icon: IconType;
 }) => {
+    const p = TAB_PALETTE[tone];
     return (
         <Tab
             minW="fit-content"
             px={{ base: '2px', md: 4 }}
             py={{ base: 1, md: 2 }}
+            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 120ms ease, color 120ms ease"
             _hover={{
-                bg: 'input.white',
-                color: color,
-                boxShadow: '0 4px 8px rgba(54, 163, 123, 0.2)',
+                bg: p.tint,
+                color: p.bg,
+                '& *': { color: p.bg },
             }}
             _selected={{
-                bg: color,
-                color: 'text.white !important',
-                boxShadow: '0 4px 12px rgba(54, 163, 123, 0.3)',
-                '& *': {
-                    color: 'text.white !important',
-                },
+                bg: p.bg,
+                color: 'white',
+                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 ${p.edge}`,
+                '& *': { color: 'white' },
             }}
-            borderRadius="6px"
+            _active={{
+                bg: p.dark,
+                transform: 'translateY(1px)',
+                boxShadow: `inset 0 1px 2px rgba(0,0,0,0.20), 0 0 0 ${p.edge}`,
+                '& *': { color: 'white' },
+            }}
+            borderRadius="8px"
             fontWeight="bold"
             fontSize={{ base: '2xs', sm: 'xs', md: 'md' }}
-            transition="all 0.2s ease"
         >
             <HStack spacing={{ base: 0.5, md: 2 }}>
                 <Icon
                     as={icon}
                     boxSize={{ base: 3.5, md: 5 }}
-                    color={'text.primary'}
+                    color="text.primary"
                 />
-                <Text textTransform={'capitalize'} color={'text.primary'}>
+                <Text textTransform="capitalize" color="text.primary">
                     {text}
                 </Text>
             </HStack>
@@ -115,6 +149,12 @@ const SettingsModal = ({
     const roRef = useRef<ResizeObserver | null>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
+    const [tabIndex, setTabIndex] = useState(0);
+
+    const { appState } = useContext(AppContext);
+    const config = appState.game?.config;
+    const showOnchainTab = Boolean(config?.crypto && config?.contractAddress);
+    const onchainTabIndex = 3;
 
     // Resolve theme colors for CSS gradients (semantic tokens don't work in bgGradient)
     const tabBg = useColorModeValue('#ECEEF5', '#191414'); // card.lightGray
@@ -188,7 +228,7 @@ const SettingsModal = ({
     return (
         <Modal isOpen={isOpen} onClose={onClose} size={'full'}>
             <ModalOverlay
-                bg="rgba(11, 20, 48, 0.0.5)"
+                bg="rgba(11, 20, 48, 0.5)"
                 backdropFilter="blur(6px)"
             />
             <ModalContent
@@ -206,7 +246,8 @@ const SettingsModal = ({
                     <Tabs
                         size={{ base: 'sm', md: 'md' }}
                         variant="unstyled"
-                        defaultIndex={0}
+                        index={tabIndex}
+                        onChange={setTabIndex}
                         orientation="horizontal"
                         h="100%"
                         display="flex"
@@ -237,32 +278,39 @@ const SettingsModal = ({
                                 >
                                     <TabItem
                                         text="Players"
-                                        color="brand.green"
+                                        tone="green"
                                         icon={FiUsers}
                                     />
                                     <TabItem
                                         text="Ledger"
-                                        color="brand.green"
+                                        tone="green"
                                         icon={FiDollarSign}
                                     />
                                     <TabItem
                                         text="Log"
-                                        color="brand.green"
+                                        tone="green"
                                         icon={FiFileText}
                                     />
+                                    {showOnchainTab && (
+                                        <TabItem
+                                            text="Onchain"
+                                            tone="green"
+                                            icon={FiLink}
+                                        />
+                                    )}
                                     <TabItem
                                         text="Settings"
-                                        color="brand.green"
+                                        tone="green"
                                         icon={FiSettings}
                                     />
                                     <TabItem
                                         text="Support"
-                                        color="brand.pink"
+                                        tone="pink"
                                         icon={BiSupport}
                                     />
                                     <TabItem
                                         text="How To"
-                                        color="brand.navy"
+                                        tone="navy"
                                         icon={FiHelpCircle}
                                     />
                                 </TabList>
@@ -295,18 +343,16 @@ const SettingsModal = ({
                                             borderRadius="full"
                                             bg={arrowBg}
                                             color={arrowColor}
-                                            boxShadow="0 1px 4px rgba(0,0,0,0.15)"
-                                            _hover={{
-                                                bg: arrowHoverBg,
-                                                boxShadow:
-                                                    '0 2px 8px rgba(0,0,0,0.2)',
-                                            }}
+                                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.50), 0 1px 2px rgba(0,0,0,0.10)"
+                                            _hover={{ bg: arrowHoverBg }}
                                             _active={{
-                                                transform: 'scale(0.9)',
+                                                transform: 'translateY(1px)',
+                                                boxShadow:
+                                                    'inset 0 1px 2px rgba(0,0,0,0.15), 0 0 0 transparent',
                                             }}
                                             minW="26px"
                                             h="26px"
-                                            transition="all 0.15s ease"
+                                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                                         />
                                     </Box>
                                 )}
@@ -339,18 +385,16 @@ const SettingsModal = ({
                                             borderRadius="full"
                                             bg={arrowBg}
                                             color={arrowColor}
-                                            boxShadow="0 1px 4px rgba(0,0,0,0.15)"
-                                            _hover={{
-                                                bg: arrowHoverBg,
-                                                boxShadow:
-                                                    '0 2px 8px rgba(0,0,0,0.2)',
-                                            }}
+                                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.50), 0 1px 2px rgba(0,0,0,0.10)"
+                                            _hover={{ bg: arrowHoverBg }}
                                             _active={{
-                                                transform: 'scale(0.9)',
+                                                transform: 'translateY(1px)',
+                                                boxShadow:
+                                                    'inset 0 1px 2px rgba(0,0,0,0.15), 0 0 0 transparent',
                                             }}
                                             minW="26px"
                                             h="26px"
-                                            transition="all 0.15s ease"
+                                            transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                                         />
                                     </Box>
                                 )}
@@ -361,19 +405,19 @@ const SettingsModal = ({
                                 icon={<FiX size={20} />}
                                 onClick={onClose}
                                 bg="brand.pink"
-                                color="text.white"
+                                color="white"
+                                border="none"
                                 borderRadius="12px"
                                 size="lg"
-                                _hover={{
-                                    bg: 'brand.pink',
-                                    transform: 'scale(1.05)',
-                                    boxShadow:
-                                        '0 4px 12px rgba(235, 11, 92, 0.4)',
-                                }}
+                                boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #950839"
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                                _hover={{ bg: 'brand.pink' }}
                                 _active={{
-                                    transform: 'scale(0.95)',
+                                    bg: 'brand.pinkDark',
+                                    transform: 'translateY(2px)',
+                                    boxShadow:
+                                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
                                 }}
-                                transition="all 0.2s ease"
                                 flexShrink={0}
                             />
                         </HStack>
@@ -421,6 +465,19 @@ const SettingsModal = ({
                                     <GameLog />
                                 </GameEventsProvider>
                             </TabPanel>
+                            {showOnchainTab && (
+                                <TabPanel
+                                    px={{ base: 0, sm: 1, md: 2 }}
+                                    py={{ base: 1, md: 2 }}
+                                >
+                                    <OnchainTab
+                                        isActive={
+                                            isOpen &&
+                                            tabIndex === onchainTabIndex
+                                        }
+                                    />
+                                </TabPanel>
+                            )}
                             <TabPanel
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}

@@ -5,6 +5,7 @@ import { Flex, Stack, Box } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import LeaderboardTable, { LeaderboardEntry } from '@/app/components/Leaderboard/LeaderboardTable';
 import PlayerCard from '@/app/components/Leaderboard/PlayerCard';
+import QuestsSection from '@/app/components/Leaderboard/QuestsSection';
 import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
 import { getLeaderboard, getPlayerStats, getReferralInfo } from '@/app/hooks/server_actions';
@@ -32,8 +33,16 @@ const LeaderboardPage: React.FC = () => {
         multiplier: number;
         nextTier: { required: number; multiplier: number } | null;
         hasReferrer: boolean;
+        myCode: string | null;
     } | undefined>(undefined);
+    const [initialReferralCode, setInitialReferralCode] = useState<string | undefined>(undefined);
     const account = useActiveAccount();
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const code = new URLSearchParams(window.location.search).get('referralCode');
+        if (code) setInitialReferralCode(code);
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -131,6 +140,7 @@ const LeaderboardPage: React.FC = () => {
                             points={playerEntry?.points}
                             stats={{ ...stats, handsPlayed: playerEntry?.handsPlayed }}
                             referralInfo={referralInfo}
+                            initialReferralCode={initialReferralCode}
                             pointsToNext={pointsToNext}
                             nextRank={nextRank}
                             nextPoints={nextPoints}
@@ -138,6 +148,7 @@ const LeaderboardPage: React.FC = () => {
                             xUsername={playerEntry?.xUsername}
                             xProfileImageUrl={playerEntry?.xProfileImageUrl}
                         />
+                        <QuestsSection tablesCreated={stats.gamesCreated} />
                     </Box>
                     <Box flex="1" w="full">
                         <LeaderboardTable

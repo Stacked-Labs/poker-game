@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { dismissLobbyBanner } from '../helpers/common';
 
-test('Owner accepts multiple seat requests — all players seated', async ({
+test('Multiple seat requests auto-accepted — all players seated', async ({
     browser,
 }) => {
     const ctxOwner = await browser.newContext();
@@ -36,11 +36,7 @@ test('Owner accepts multiple seat requests — all players seated', async ({
     await player2.getByTestId('buy-in-input').fill('500');
     await player2.getByTestId('join-table-btn').click();
 
-    // Owner accepts player 2
-    await owner.locator('[data-testid="seat-request-popup"]').waitFor({ timeout: 20_000 });
-    await owner.locator('[data-testid^="accept-player-"]').first().click();
     await owner.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
-    await owner.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'hidden', timeout: 10_000 });
 
     // Player3 context created here (deferred) to avoid idle-page closure during player1/player2 setup
     const ctxPlayer3 = await browser.newContext();
@@ -56,9 +52,6 @@ test('Owner accepts multiple seat requests — all players seated', async ({
     await player3.getByTestId('buy-in-input').fill('500');
     await player3.getByTestId('join-table-btn').click();
 
-    // Owner accepts player 3
-    await owner.locator('[data-testid="seat-request-popup"]').waitFor({ timeout: 20_000 });
-    await owner.locator('[data-testid^="accept-player-"]').first().click();
     await owner.getByTestId('taken-seat-3').waitFor({ timeout: 30_000 });
 
     // Verify all three seats taken on owner's screen

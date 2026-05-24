@@ -39,7 +39,7 @@ const VolumeButtonComponent = () => {
                 zIndex={3}
                 role="button"
                 tabIndex={0}
-                variant={'gameSettingsButton'}
+                variant={'tactileChrome'}
                 size={{ base: 'md', md: 'md' }}
                 px={2}
                 py={2}

@@ -16,10 +16,15 @@ const MessageRenderer = ({
                 if (token.type === 'emote') {
                     return (
                         <Tooltip
-                            key={`${token.id}-${index}`}
+                            key={`emote-${index}`}
                             label={`:${token.name}:`}
                             placement="top"
                             hasArrow
+                            fontSize="xs"
+                            px={2}
+                            py={1}
+                            borderRadius="md"
+                            openDelay={150}
                         >
                             <Box
                                 as="img"
@@ -41,7 +46,7 @@ const MessageRenderer = ({
                     return (
                         <Text
                             as="span"
-                            key={`${token.username}-${index}`}
+                            key={`mention-${index}`}
                             color={mentionColor ?? 'brand.green'}
                             fontWeight="semibold"
                         >
@@ -53,7 +58,7 @@ const MessageRenderer = ({
                 return (
                     <Text
                         as="span"
-                        key={`${token.content}-${index}`}
+                        key={`text-${index}`}
                         color={textColor ?? 'text.primary'}
                     >
                         {token.content}

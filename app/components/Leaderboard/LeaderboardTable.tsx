@@ -17,10 +17,12 @@ import {
     PopoverArrow,
     PopoverBody,
     Link,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
 import { FaMedal, FaXTwitter } from 'react-icons/fa6';
-import { FiExternalLink } from 'react-icons/fi';
+import { FiExternalLink, FiCopy, FiCheck } from 'react-icons/fi';
+import useToastHelper from '@/app/hooks/useToastHelper';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
 import { getTier } from './tierUtils';
@@ -81,6 +83,10 @@ const LeaderboardTable = ({
                 <Text fontSize="xs" color="text.secondary">
                     {data.length} players
                 </Text>
+                <Spacer />
+                <Text fontSize="2xs" color="text.secondary" opacity={0.6}>
+                    Updates every minute
+                </Text>
             </HStack>
 
             <Box
@@ -95,7 +101,7 @@ const LeaderboardTable = ({
                 {data.length === 0 ? (
                     <Flex justify="center" align="center" py={10}>
                         <Text color="text.secondary" fontSize="sm">
-                            No points earned yet. Play hands on Base Testnet to appear here.
+                            No points earned yet. Play hands on Base Mainnet to appear here.
                         </Text>
                     </Flex>
                 ) : (
@@ -229,79 +235,16 @@ const LeaderboardTable = ({
                                                         @{entry.xUsername}
                                                     </Text>
                                                 </PopoverTrigger>
-                                                <PopoverContent
-                                                    bg="brand.darkNavy"
-                                                    border="1px solid"
-                                                    borderColor="whiteAlpha.200"
-                                                    boxShadow="0 10px 30px rgba(0, 0, 0, 0.35)"
-                                                    color="white"
-                                                    width="auto"
-                                                    maxW="260px"
-                                                    _focus={{ outline: 'none', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)' }}
-                                                >
-                                                    <PopoverArrow bg="brand.darkNavy" />
-                                                    <PopoverBody p={3}>
-                                                        <VStack spacing={2} align="stretch">
-                                                            <HStack spacing={2}>
-                                                                <Icon
-                                                                    as={FaXTwitter}
-                                                                    boxSize={3}
-                                                                    color="whiteAlpha.700"
-                                                                />
-                                                                <Text
-                                                                    fontSize="xs"
-                                                                    color="whiteAlpha.800"
-                                                                    fontWeight="semibold"
-                                                                >
-                                                                    @{entry.xUsername}
-                                                                </Text>
-                                                            </HStack>
-                                                            <Box h="1px" bg="whiteAlpha.200" />
-                                                            <VStack spacing={1} align="stretch">
-                                                                <Text
-                                                                    fontSize="2xs"
-                                                                    color="whiteAlpha.600"
-                                                                    textTransform="uppercase"
-                                                                    letterSpacing="0.08em"
-                                                                    fontWeight="semibold"
-                                                                >
-                                                                    Wallet
-                                                                </Text>
-                                                                <Text
-                                                                    fontSize="xs"
-                                                                    fontFamily="mono"
-                                                                    color="whiteAlpha.900"
-                                                                >
-                                                                    {truncateAddress(entry.address)}
-                                                                </Text>
-                                                            </VStack>
-                                                            <Link
-                                                                href={`https://sepolia.basescan.org/address/${entry.address}`}
-                                                                isExternal
-                                                                fontSize="xs"
-                                                                color="brand.green"
-                                                                fontWeight="semibold"
-                                                                _hover={{
-                                                                    color: '#4ade80',
-                                                                    textDecoration: 'none',
-                                                                }}
-                                                            >
-                                                                <HStack spacing={1}>
-                                                                    <Text>View on BaseScan</Text>
-                                                                    <Icon
-                                                                        as={FiExternalLink}
-                                                                        boxSize={3}
-                                                                    />
-                                                                </HStack>
-                                                            </Link>
-                                                        </VStack>
-                                                    </PopoverBody>
-                                                </PopoverContent>
+                                                <WalletPopoverContent
+                                                    address={entry.address}
+                                                    xUsername={entry.xUsername!}
+                                                    truncateAddress={truncateAddress}
+                                                />
                                             </Popover>
                                         ) : (
                                             <Text
                                                 as="a"
-                                                href={`https://sepolia.basescan.org/address/${entry.address}`}
+                                                href={`https://basescan.org/address/${entry.address}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 color={isCurrentPlayer ? 'brand.green' : 'text.primary'}
@@ -384,7 +327,7 @@ const LeaderboardTable = ({
                         pb={1}
                         opacity={0.6}
                     >
-                        Points are awarded for playing on Base Testnet.
+                        Points are awarded for playing on Base Mainnet.
                     </Text>
                 )}
             </Box>
@@ -393,3 +336,181 @@ const LeaderboardTable = ({
 };
 
 export default LeaderboardTable;
+
+interface WalletPopoverContentProps {
+    address: string;
+    xUsername: string;
+    truncateAddress: (addr: string) => string;
+}
+
+const WalletPopoverContent = ({
+    address,
+    xUsername,
+    truncateAddress,
+}: WalletPopoverContentProps) => {
+    const toast = useToastHelper();
+    const [copied, setCopied] = React.useState(false);
+
+    const bg = useColorModeValue('white', '#171717');
+    const borderColor = useColorModeValue(
+        'rgba(11, 20, 48, 0.10)',
+        'rgba(255, 255, 255, 0.10)'
+    );
+    const dividerBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.08)',
+        'rgba(255, 255, 255, 0.10)'
+    );
+    const addressBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.04)',
+        'rgba(255, 255, 255, 0.05)'
+    );
+    const copyHoverBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.06)',
+        'rgba(255, 255, 255, 0.08)'
+    );
+    const shadow = useColorModeValue(
+        '0 10px 30px rgba(11, 20, 48, 0.18)',
+        '0 10px 30px rgba(0, 0, 0, 0.45)'
+    );
+
+    const handleCopy = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            await navigator.clipboard.writeText(address);
+            setCopied(true);
+            toast.success('Address copied', '', 1500);
+            setTimeout(() => setCopied(false), 1500);
+        } catch {
+            toast.error('Could not copy', '', 2000);
+        }
+    };
+
+    return (
+        <PopoverContent
+            bg={bg}
+            border="1px solid"
+            borderColor={borderColor}
+            boxShadow={shadow}
+            width="auto"
+            maxW="260px"
+            _focus={{ outline: 'none', boxShadow: shadow }}
+        >
+            <PopoverArrow bg={bg} />
+            <PopoverBody p={3}>
+                <VStack spacing={2.5} align="stretch">
+                    <Link
+                        href={`https://x.com/${xUsername}`}
+                        isExternal
+                        onClick={(e) => e.stopPropagation()}
+                        _hover={{ textDecoration: 'none' }}
+                    >
+                        <HStack spacing={2} role="group">
+                            <Icon
+                                as={FaXTwitter}
+                                boxSize={3}
+                                color="text.muted"
+                                _groupHover={{ color: 'text.primary' }}
+                            />
+                            <Text
+                                fontSize="xs"
+                                fontWeight="semibold"
+                                color="text.primary"
+                                _groupHover={{ textDecoration: 'underline' }}
+                            >
+                                @{xUsername}
+                            </Text>
+                            <Icon
+                                as={FiExternalLink}
+                                boxSize="10px"
+                                color="text.muted"
+                                _groupHover={{ color: 'text.primary' }}
+                            />
+                        </HStack>
+                    </Link>
+
+                    <Box h="1px" bg={dividerBg} />
+
+                    <VStack spacing={1} align="stretch">
+                        <Text
+                            fontSize="2xs"
+                            color="text.muted"
+                            textTransform="uppercase"
+                            letterSpacing="0.08em"
+                            fontWeight="semibold"
+                        >
+                            Wallet
+                        </Text>
+                        <HStack
+                            spacing={1.5}
+                            bg={addressBg}
+                            borderRadius="6px"
+                            px={2}
+                            py={1.5}
+                            justify="space-between"
+                        >
+                            <Text
+                                fontSize="xs"
+                                fontFamily="mono"
+                                color="text.primary"
+                                sx={{ fontVariantNumeric: 'tabular-nums' }}
+                            >
+                                {truncateAddress(address)}
+                            </Text>
+                            <Tooltip
+                                label={copied ? 'Copied' : 'Copy address'}
+                                hasArrow
+                                placement="top"
+                                openDelay={300}
+                                fontSize="xs"
+                            >
+                                <Box
+                                    as="button"
+                                    type="button"
+                                    onClick={handleCopy}
+                                    aria-label="Copy wallet address"
+                                    display="inline-flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    w="22px"
+                                    h="22px"
+                                    borderRadius="4px"
+                                    color="text.muted"
+                                    _hover={{
+                                        bg: copyHoverBg,
+                                        color: 'text.primary',
+                                    }}
+                                    transition="all 0.12s ease"
+                                >
+                                    <Icon
+                                        as={copied ? FiCheck : FiCopy}
+                                        boxSize="12px"
+                                        color={copied ? 'brand.green' : 'inherit'}
+                                    />
+                                </Box>
+                            </Tooltip>
+                        </HStack>
+                    </VStack>
+
+                    <Link
+                        href={`https://basescan.org/address/${address}`}
+                        isExternal
+                        onClick={(e) => e.stopPropagation()}
+                        fontSize="xs"
+                        fontWeight="semibold"
+                        color="#2775CA"
+                        _hover={{
+                            textDecoration: 'none',
+                            opacity: 0.85,
+                        }}
+                    >
+                        <HStack spacing={1}>
+                            <Text color="#2775CA">View on BaseScan</Text>
+                            <Icon as={FiExternalLink} boxSize={3} color="#2775CA" />
+                        </HStack>
+                    </Link>
+                </VStack>
+            </PopoverBody>
+        </PopoverContent>
+    );
+};

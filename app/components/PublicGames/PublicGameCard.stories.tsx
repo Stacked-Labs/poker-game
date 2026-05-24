@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { Box } from '@chakra-ui/react';
 import PublicGameCard from './PublicGameCard';
 import type { PublicGame } from './types';
 
-const makePublicGame = (overrides?: Partial<PublicGame>): PublicGame => ({
+const makeGame = (overrides?: Partial<PublicGame>): PublicGame => ({
     name: 'friday-night-poker',
     small_blind: 10,
     big_blind: 20,
@@ -22,113 +23,121 @@ const meta = {
     parameters: {
         nextjs: { appDirectory: true },
     },
-    argTypes: {
-        variant: {
-            control: 'radio',
-            options: ['compact', 'featured'],
-        },
+    decorators: [
+        (Story) => (
+            <Box bg="card.white" borderRadius="20px" boxShadow="card.lift" maxW="900px">
+                <Story />
+            </Box>
+        ),
+    ],
+    args: {
+        ruleColor: 'rgba(11, 20, 48, 0.06)',
+        isLast: true,
     },
 } satisfies Meta<typeof PublicGameCard>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-    args: { game: makePublicGame(), variant: 'compact' },
+export const FreePlay: Story = {
+    args: { game: makeGame() },
 };
 
-export const FeaturedVariant: Story = {
+export const CryptoMicro: Story = {
     args: {
-        game: makePublicGame({ player_count: 8, spectator_count: 5 }),
-        variant: 'featured',
-    },
-};
-
-export const CryptoGame: Story = {
-    args: {
-        game: makePublicGame({
-            name: 'base-high-rollers',
+        game: makeGame({
+            name: 'penny-pushers',
             is_crypto: true,
-            small_blind: 25,
-            big_blind: 50,
-            player_count: 6,
-            spectator_count: 4,
+            small_blind: 10,
+            big_blind: 25,
+            player_count: 3,
+            max_players: 6,
+            spectator_count: 1,
+            contract_address: '0x1234567890abcdef1234567890abcdef12345678',
         }),
-        variant: 'compact',
     },
 };
 
-export const CryptoFeatured: Story = {
+export const CryptoMid: Story = {
     args: {
-        game: makePublicGame({
-            name: 'base-high-rollers',
+        game: makeGame({
+            name: 'sunday-grinders',
             is_crypto: true,
-            small_blind: 25,
-            big_blind: 50,
-            player_count: 7,
-            spectator_count: 8,
+            small_blind: 100,
+            big_blind: 200,
+            player_count: 5,
+            max_players: 9,
+            spectator_count: 12,
+            contract_address: '0x9f8e7d6c5b4a3210fedcba9876543210fedcba98',
         }),
-        variant: 'featured',
     },
 };
 
-export const NearlyFull: Story = {
+export const CryptoHigh: Story = {
     args: {
-        game: makePublicGame({
+        game: makeGame({
+            name: 'whales-only',
+            is_crypto: true,
+            small_blind: 500,
+            big_blind: 1000,
+            player_count: 4,
+            max_players: 6,
+            spectator_count: 22,
+            contract_address: '0xdeadbeef00112233445566778899aabbccddeeff',
+        }),
+    },
+};
+
+export const HotNearlyFull: Story = {
+    args: {
+        game: makeGame({
             name: 'last-seat-saloon',
+            is_crypto: true,
+            small_blind: 50,
+            big_blind: 100,
             player_count: 8,
             max_players: 9,
-            spectator_count: 6,
+            spectator_count: 7,
+            contract_address: '0xabc123def456789012345678901234567890abcd',
         }),
-        variant: 'compact',
     },
 };
 
-export const HotTable: Story = {
+export const FullTable: Story = {
     args: {
-        game: makePublicGame({
-            name: 'whale-watch',
-            player_count: 5,
-            spectator_count: 12,
+        game: makeGame({
+            name: 'no-room-inn',
+            is_crypto: true,
+            small_blind: 200,
+            big_blind: 500,
+            player_count: 6,
+            max_players: 6,
+            spectator_count: 4,
+            contract_address: '0xfa04e1d9c8b3f1b0b8e01a25c9d4568b0c2c445b',
         }),
-        variant: 'compact',
     },
 };
 
-export const NewTable: Story = {
+export const WaitingForPlayers: Story = {
     args: {
-        game: makePublicGame({
+        game: makeGame({
+            name: 'waiting-for-players',
+            player_count: 2,
+            spectator_count: 0,
+            is_active: false,
+            created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        }),
+    },
+};
+
+export const JustOpened: Story = {
+    args: {
+        game: makeGame({
             name: 'just-opened',
             player_count: 1,
             spectator_count: 0,
             is_active: false,
             created_at: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
         }),
-        variant: 'compact',
-    },
-};
-
-export const WaitingTable: Story = {
-    args: {
-        game: makePublicGame({
-            name: 'waiting-for-players',
-            player_count: 2,
-            is_active: false,
-            spectator_count: 0,
-            created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        }),
-        variant: 'compact',
-    },
-};
-
-export const FullTable: Story = {
-    args: {
-        game: makePublicGame({
-            name: 'no-room-inn',
-            player_count: 9,
-            max_players: 9,
-            spectator_count: 3,
-        }),
-        variant: 'compact',
     },
 };

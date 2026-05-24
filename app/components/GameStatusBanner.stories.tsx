@@ -5,7 +5,13 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Box, Flex } from '@chakra-ui/react';
 import GameStatusBanner from './GameStatusBanner';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import type { AppState, Game } from '@/app/interfaces';
+
+const mockSocket = {
+    readyState: 1,
+    send: () => {},
+} as unknown as WebSocket;
 
 // ─── Mock data ──────────────────────────────────────────────────────────────
 
@@ -40,7 +46,7 @@ const baseAppState: AppState = {
     chatSoundEnabled: false,
     chatOverlayEnabled: false,
     fourColorDeckEnabled: false,
-    cardBackDesign: 'classic',
+    cardBackDesign: 'classic-blue',
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,
@@ -74,6 +80,7 @@ const makeDecorator = ({
     };
     const Wrapper = (Story: React.FC) => (
         <AppContext.Provider value={{ appState, dispatch: () => null }}>
+            <SocketContext.Provider value={mockSocket}>
             <Box
                 bg="#0B1430"
                 borderRadius={16}
@@ -100,6 +107,7 @@ const makeDecorator = ({
                     <Story />
                 </Flex>
             </Box>
+            </SocketContext.Provider>
         </AppContext.Provider>
     );
     Wrapper.displayName = 'GameStatusBannerStoryWrapper';
@@ -121,18 +129,28 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// ─── Settlement: pending ───────────────────────────────────────────────────
-//
-// The slow-settlement copy switches by elapsed time measured from when the
-// banner first sees `settlementStatus === 'pending'`. Open this story and
-// watch it age through all three buckets: rotating phrases (<5s), counter
-// appended (5–14s), softened "Taking longer than usual…" copy (≥15s).
-// Reload the story to restart the timer.
+// ─── Settlement: pending (fast path) ──────────────────────────────────────
 
 export const Settling: Story = {
-    name: 'Settling — live (watch it age past 5s and 15s)',
+    name: 'Settling — live (rotating copy)',
     decorators: [
         makeDecorator({ appStateOverride: { settlementStatus: 'pending' } }),
+    ],
+};
+
+// ─── Settlement: recovery (slow path) ─────────────────────────────────────
+//
+// Tx timed out but is still in flight — table is paused, background watcher
+// polling. Banner shows amber spinner + elapsed counter that ticks every second.
+// Reload the story to reset the counter.
+
+export const SettlementRecovery: Story = {
+    name: 'Settlement Recovery — auto-paused (watch elapsed counter tick)',
+    decorators: [
+        makeDecorator({
+            gameOverride: { paused: true },
+            appStateOverride: { settlementStatus: 'pending', isTableOwner: false },
+        }),
     ],
 };
 
@@ -148,7 +166,7 @@ export const SettlementFailed: Story = {
     decorators: [makeDecorator({ appStateOverride: { settlementStatus: 'failed' } })],
 };
 
-// ─── Pause states (non-owner only — owners see the popup instead) ──────────
+// ─── Pause states — non-owner ──────────────────────────────────────────────
 
 export const PausedNonOwner: Story = {
     name: 'Paused (non-owner)',
@@ -166,6 +184,28 @@ export const PendingPauseNonOwner: Story = {
         makeDecorator({
             gameOverride: { paused: false, pendingPause: true },
             appStateOverride: { isTableOwner: false },
+        }),
+    ],
+};
+
+// ─── Pause states — owner (inline Resume / Cancel chip) ───────────────────
+
+export const PausedOwner: Story = {
+    name: 'Paused — owner (Resume chip)',
+    decorators: [
+        makeDecorator({
+            gameOverride: { paused: true },
+            appStateOverride: { isTableOwner: true },
+        }),
+    ],
+};
+
+export const PendingPauseOwner: Story = {
+    name: 'Pending pause — owner (Cancel chip)',
+    decorators: [
+        makeDecorator({
+            gameOverride: { paused: false, pendingPause: true },
+            appStateOverride: { isTableOwner: true },
         }),
     ],
 };

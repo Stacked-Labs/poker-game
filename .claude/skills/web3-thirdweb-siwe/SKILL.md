@@ -43,6 +43,23 @@ description: Implement and debug wallet connection and authentication in this re
 - The Connect UI can optionally include Auth (SIWE-style), which can be wired to your existing server endpoints.
 - Inference: WebViews typically don’t have browser extensions, so don’t rely on auto-detected EIP-6963 extensions; prefer explicit wallet configuration.
 
+## Smart accounts (in-app social-login users)
+
+- `inAppWallet` is wrapped with `smartAccount: { chain: defaultChain, sponsorGas: true }` in `app/thirdwebclient.ts`. Social-login users (Google/email/passkey) get an ERC-4337 smart account whose gas is sponsored by thirdweb (configured in the dashboard under Sponsored Transactions).
+- External wallets (MetaMask, Coinbase, WalletConnect) remain plain EOAs — they pay their own gas in the chain's native token.
+- All transaction hooks (`useDepositAndJoin`, `useWithdraw`, `useEmergencyWithdraw{,All}`, `useHostRake`) use `useSendAndConfirmTransaction` directly. There is no shared routing wrapper — that abstraction (`useStackedTransaction`) was tried and pulled because EIP-5792 paymaster support varies by wallet/version and made deposits fail.
+- If you re-introduce paymaster routing or EIP-7702 in the future, gate it behind a feature flag and test against every supported wallet first.
+
+## Universal Bridge (BridgeWidget)
+
+- `BridgeWidget` (tabbed Swap | Buy) is mounted via:
+  - `app/components/TopUp/TopUpModal.tsx` — themed Chakra modal hosting the widget. Hard-pinned to Base mainnet via `MAINNET_CHAIN` / `MAINNET_USDC_ADDRESS` because thirdweb Bridge only routes through mainnets (testnet token lists come back empty and crash the widget). Buy tab pre-fills the USDC target + amount; Swap tab pre-fills the buy-side token (USDC on Base) and leaves the sell source open.
+  - `app/components/TopUp/TopUpButton.tsx` — drop-in button. Returns `null` when `isTestnetOnly` (the app is configured for Sepolia only) or `useIsMiniApp()` is true.
+  - Inline fallback inside `TakeSeatModal.tsx` when balance < buy-in.
+- The existing `ConnectButton.detailsModal.payOptions.prefillBuy` exposes Buy from the wallet menu — the global post-connect entry.
+- Hosted onramp providers load through `frame-src https://*.thirdweb.com` in `next.config.js`. If thirdweb starts framing a third-party host directly (Stripe/Coinbase/Transak/Kado), discover it in DevTools and add it explicitly.
+- Decision: `BridgeWidget` over `BuyWidget` so power users can swap from any chain in one click without needing fiat. The card flow is still available on the Buy tab.
+
 ## What to load next
 
 - For the repo’s exact auth sequence and edge cases: read `references/auth-flow.md`.

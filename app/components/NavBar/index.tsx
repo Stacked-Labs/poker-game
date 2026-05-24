@@ -62,6 +62,22 @@ const Navbar = () => {
     const { info } = useToastHelper();
     const isOwner = useIsTableOwner();
     const [isLoading, setLoading] = useState(true);
+    const [optimisticPendingPause, setOptimisticPendingPause] = useState(false);
+
+    // Optimistic pause state: show orange "Cancel Pause" immediately on click so
+    // the owner gets feedback even when the server readPump is blocked on settlement.
+    // Cleared as soon as the server sends a real pause/paused state, or after 15 s.
+    useEffect(() => {
+        setOptimisticPendingPause(false);
+    }, [appState.game?.pendingPause, appState.game?.paused]);
+
+    useEffect(() => {
+        if (!optimisticPendingPause) return;
+        const t = setTimeout(() => setOptimisticPendingPause(false), 15_000);
+        return () => clearTimeout(t);
+    }, [optimisticPendingPause]);
+
+    const effectivePendingPause = optimisticPendingPause || Boolean(appState.game?.pendingPause);
 
     // Check if the current user is seated at the table
     const isUserSeated = appState.game?.players?.some(
@@ -176,7 +192,7 @@ const Navbar = () => {
                             py={2}
                             width={{ base: '40px', sm: '40px', md: '48px' }}
                             height={{ base: '40px', sm: '40px', md: '48px' }}
-                            variant={'gameSettingsButton'}
+                            variant={'tactileChrome'}
                             size={{ base: 'md', md: 'md' }}
                         />
                         {pendingCount > 0 && (
@@ -311,12 +327,15 @@ const Navbar = () => {
                                         color="white"
                                         border="none"
                                         borderRadius="12px"
-                                        _hover={{
-                                            transform: 'translateY(-2px)',
+                                        boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #22674E"
+                                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
+                                        _hover={{ bg: 'brand.green' }}
+                                        _active={{
+                                            bg: 'brand.greenDark',
+                                            transform: 'translateY(2px)',
                                             boxShadow:
-                                                '0 4px 12px rgba(54, 163, 123, 0.4)',
+                                                'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E',
                                         }}
-                                        transition="all 0.2s ease"
                                     />
                                 </Tooltip>
                             </Box>
@@ -337,14 +356,14 @@ const Navbar = () => {
                                 label={
                                     appState.game?.paused
                                         ? 'Resume Game'
-                                        : appState.game?.pendingPause
+                                        : effectivePendingPause
                                           ? 'Cancel Pause'
                                           : 'Pause Game'
                                 }
                                 aria-label={
                                     appState.game?.paused
                                         ? 'Resume game tooltip'
-                                        : appState.game?.pendingPause
+                                        : effectivePendingPause
                                           ? 'Cancel pause tooltip'
                                           : 'Pause game tooltip'
                                 }
@@ -366,7 +385,7 @@ const Navbar = () => {
                                     aria-label={
                                         appState.game?.paused
                                             ? 'Resume Game'
-                                            : appState.game?.pendingPause
+                                            : effectivePendingPause
                                               ? 'Cancel Pause'
                                               : 'Pause Game'
                                     }
@@ -386,31 +405,52 @@ const Navbar = () => {
                                     onClick={() => {
                                         if (appState.game?.paused) {
                                             sendResumeGameCommand(socket);
-                                        } else if (appState.game?.pendingPause) {
+                                        } else if (effectivePendingPause) {
+                                            setOptimisticPendingPause(false);
                                             sendResumeGameCommand(socket);
                                         } else {
+                                            setOptimisticPendingPause(true);
                                             sendPauseGameCommand(socket);
                                         }
                                     }}
                                     bg={
                                         appState.game?.paused
                                             ? 'brand.green'
-                                            : appState.game?.pendingPause
+                                            : effectivePendingPause
                                               ? 'orange.400'
                                               : 'brand.yellow'
                                     }
                                     color="white"
                                     border="none"
                                     borderRadius="12px"
+                                    boxShadow={
+                                        appState.game?.paused
+                                            ? 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #22674E'
+                                            : effectivePendingPause
+                                              ? 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B45A0B'
+                                              : 'inset 0 1px 0 rgba(255,255,255,0.30), 0 2px 0 #B78900'
+                                    }
+                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                                     _hover={{
-                                        transform: 'translateY(-2px)',
-                                        boxShadow: appState.game?.paused
-                                            ? '0 4px 12px rgba(54, 163, 123, 0.4)'
-                                            : appState.game?.pendingPause
-                                              ? '0 4px 12px rgba(237, 137, 54, 0.4)'
-                                              : '0 4px 12px rgba(253, 197, 29, 0.4)',
+                                        bg: appState.game?.paused
+                                            ? 'brand.green'
+                                            : effectivePendingPause
+                                              ? 'orange.400'
+                                              : 'brand.yellow',
                                     }}
-                                    transition="all 0.2s ease"
+                                    _active={{
+                                        bg: appState.game?.paused
+                                            ? 'brand.greenDark'
+                                            : effectivePendingPause
+                                              ? 'orange.500'
+                                              : 'brand.yellowDark',
+                                        transform: 'translateY(2px)',
+                                        boxShadow: appState.game?.paused
+                                            ? 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #22674E'
+                                            : effectivePendingPause
+                                              ? 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B45A0B'
+                                              : 'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
+                                    }}
                                     data-testid="pause-btn"
                                 />
                             </Tooltip>
@@ -452,7 +492,7 @@ const Navbar = () => {
                             <LeaveButton
                                 isUserSeated
                                 isLeaveRequested={leaveAfterHandRequested}
-                                settlementStuck={Boolean(appState.game?.settlementStuck)}
+                                settlementInProgress={Boolean(appState.game?.settlementInProgress)}
                                 handleLeaveTable={() =>
                                     handleLeaveTable(
                                         socket,
@@ -474,7 +514,7 @@ const Navbar = () => {
                             }
                             aria-label="Chat"
                             onClick={handleChatToggle}
-                            variant={'gameSettingsButton'}
+                            variant={'tactileChrome'}
                             size={{ base: 'md', md: 'md' }}
                             px={2}
                             py={2}

@@ -3,13 +3,28 @@
 import { useState, useCallback } from 'react';
 import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
+import {
+    useSendAndConfirmTransaction,
+    useActiveAccount,
+    useActiveWallet,
+    useSwitchActiveWalletChain,
+} from 'thirdweb/react';
 import { approve, allowance, balanceOf } from 'thirdweb/extensions/erc20';
+import { getWalletBalance } from 'thirdweb/wallets';
 import { client } from '../thirdwebclient';
 
-const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
 const ALLOWANCE_POLL_INTERVAL_MS = 1500;
 const ALLOWANCE_POLL_MAX_ATTEMPTS = 10;
+
+// Minimum native (ETH) balance we want an external EOA to have before they
+// can deposit. Approve + depositAndJoin together cost ~150–250k gas on Base;
+// at typical base fees that's well under $0.01. 0.00005 ETH (~5×10¹³ wei) is
+// a ~50× safety margin over the floor, comfortably covers a spike, and is
+// cheap to suggest a user top up.
+//
+// inApp wallets sponsor gas via the thirdweb dashboard, so this check is
+// skipped for them.
+const MIN_NATIVE_BALANCE_WEI = BigInt(50_000_000_000_000);
 
 export type DepositStatus =
     | 'idle'
@@ -27,6 +42,13 @@ interface UseDepositAndJoinResult {
     status: DepositStatus;
     error: string | null;
     usdcBalance: bigint | null;
+    /**
+     * True when the active wallet is an external EOA (MetaMask, Coinbase
+     * Wallet, etc.) and its native ETH balance on the table's chain is below
+     * `MIN_NATIVE_BALANCE_WEI`. Always false for inApp wallets (sponsored
+     * gas). Null when we haven't been able to read the balance yet.
+     */
+    isGasInsufficient: boolean | null;
     isLoading: boolean;
     reset: () => void;
     refreshBalance: () => Promise<bigint | null>;
@@ -35,12 +57,16 @@ interface UseDepositAndJoinResult {
 export function useDepositAndJoin(
     contractAddress: string | undefined,
     chain: Chain,
-    usdcAddress: string,
+    usdcAddress: string
 ): UseDepositAndJoinResult {
     const account = useActiveAccount();
+    const wallet = useActiveWallet();
     const [status, setStatus] = useState<DepositStatus>('idle');
     const [error, setError] = useState<string | null>(null);
     const [usdcBalance, setUsdcBalance] = useState<bigint | null>(null);
+    const [isGasInsufficient, setIsGasInsufficient] = useState<boolean | null>(
+        null
+    );
 
     const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
     const switchChain = useSwitchActiveWalletChain();
@@ -59,14 +85,32 @@ export function useDepositAndJoin(
             address: usdcAddress,
         });
 
-        const balance = await balanceOf({
-            contract: usdcContract,
-            address: account.address,
-        });
+        // Fetch USDC and native (ETH) balances in parallel. The native
+        // balance is only relevant for external EOAs — inApp wallets have
+        // sponsored gas via the thirdweb dashboard, so they always pass.
+        const isInAppWallet = wallet?.id === 'inApp';
+        const [usdcBal, nativeBal] = await Promise.all([
+            balanceOf({
+                contract: usdcContract,
+                address: account.address,
+            }),
+            isInAppWallet
+                ? Promise.resolve(null)
+                : getWalletBalance({
+                      address: account.address,
+                      client,
+                      chain,
+                  }).catch(() => null),
+        ]);
 
-        setUsdcBalance(balance);
-        return balance;
-    }, [account?.address, chain, usdcAddress]);
+        setUsdcBalance(usdcBal);
+        if (isInAppWallet) {
+            setIsGasInsufficient(false);
+        } else if (nativeBal) {
+            setIsGasInsufficient(nativeBal.value < MIN_NATIVE_BALANCE_WEI);
+        }
+        return usdcBal;
+    }, [account?.address, chain, usdcAddress, wallet?.id]);
 
     const depositAndJoin = useCallback(
         async (chipAmount: number): Promise<boolean> => {
@@ -128,14 +172,13 @@ export function useDepositAndJoin(
                     spender: contractAddress,
                 });
 
-                // Step 3: Approve max if needed (standard DeFi pattern — one-time approval)
                 if (currentAllowance < usdcAmount) {
                     setStatus('approving');
 
                     const approveTx = approve({
                         contract: usdcContract,
                         spender: contractAddress,
-                        amountWei: MAX_UINT256,
+                        amountWei: usdcAmount,
                     });
 
                     await sendAndConfirm(approveTx);
@@ -152,17 +195,21 @@ export function useDepositAndJoin(
                             confirmed = true;
                             break;
                         }
-                        await new Promise((r) => setTimeout(r, ALLOWANCE_POLL_INTERVAL_MS));
+                        await new Promise((r) =>
+                            setTimeout(r, ALLOWANCE_POLL_INTERVAL_MS)
+                        );
                     }
 
                     if (!confirmed) {
-                        setError('USDC approval confirmed on-chain but not yet visible. Please try again.');
+                        setError(
+                            'USDC approval confirmed on-chain but not yet visible. Please try again.'
+                        );
                         setStatus('error');
                         return false;
                     }
                 }
 
-                // Step 4: Deposit and join
+                // Step 3: Deposit and join
                 setStatus('depositing');
 
                 const depositTx = prepareContractCall({
@@ -177,12 +224,33 @@ export function useDepositAndJoin(
                 return true;
             } catch (err) {
                 console.error('Deposit and join failed:', err);
-                setError(err instanceof Error ? err.message : 'Transaction failed');
+                const rawMessage =
+                    err instanceof Error ? err.message : 'Transaction failed';
+                // Wallets surface gas-shortage failures with a few different
+                // strings ("insufficient funds for gas * price + value",
+                // "insufficient funds", "exceeds balance"). Map any of them
+                // to actionable copy so the user knows what to do.
+                const looksLikeGasShortage =
+                    /insufficient funds|exceeds balance|gas required exceeds/i.test(
+                        rawMessage
+                    );
+                setError(
+                    looksLikeGasShortage
+                        ? `Not enough ETH on Base for gas. Add a small amount of ETH to your wallet (most wallets let you buy ETH directly) and try again.`
+                        : rawMessage
+                );
                 setStatus('error');
                 return false;
             }
         },
-        [account?.address, contractAddress, chain, usdcAddress, sendAndConfirm, switchChain]
+        [
+            account?.address,
+            contractAddress,
+            chain,
+            usdcAddress,
+            sendAndConfirm,
+            switchChain,
+        ]
     );
 
     return {
@@ -190,7 +258,9 @@ export function useDepositAndJoin(
         status,
         error,
         usdcBalance,
-        isLoading: status !== 'idle' && status !== 'success' && status !== 'error',
+        isGasInsufficient,
+        isLoading:
+            status !== 'idle' && status !== 'success' && status !== 'error',
         reset,
         refreshBalance: fetchUsdcBalance,
     };

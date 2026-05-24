@@ -368,9 +368,11 @@ const RaiseInputBox = ({
                     className="raise-portrait-amount-box"
                     bg={'rgba(11, 20, 48, 0.9)'}
                     rounded={'lg'}
-                    flex={1}
                     position="absolute"
+                    left={'0.5cqw'}
                     bottom={'70px'}
+                    maxW={'29cqw'}
+                    width={'auto'}
                     p="0.5cqh"
                     textAlign="center"
                     overflow={'hidden'}
@@ -381,6 +383,15 @@ const RaiseInputBox = ({
                     borderColor="rgba(54, 163, 123, 0.3)"
                     backdropFilter="blur(12px)"
                     boxShadow="0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                    filter={
+                        !isCurrentTurn || gameIsPaused
+                            ? 'saturate(0.45) brightness(0.92)'
+                            : undefined
+                    }
+                    pointerEvents={
+                        !isCurrentTurn || gameIsPaused ? 'none' : 'auto'
+                    }
+                    transition="filter 160ms ease"
                 >
                     <Flex
                         direction="column"
@@ -408,9 +419,9 @@ const RaiseInputBox = ({
                             fontSize="8cqw"
                             size={'sm'}
                             width={'100%'}
-                            type="number"
+                            type="text"
                             inputMode={displayMode === 'chips' ? 'numeric' : 'decimal'}
-                            step={displayMode === 'chips' ? undefined : 'any'}
+                            pattern={displayMode === 'chips' ? '[0-9]*' : '[0-9]*\\.?[0-9]*'}
                             value={betInput}
                             min={sliderMinValue}
                             max={maxTotalBet}
@@ -563,22 +574,29 @@ const RaiseInputBox = ({
                     bottom="70px"
                     right={0}
                     height={{ base: '400px', sm: '350px' }}
-                    width={{ base: '60px', sm: '60px' }}
+                    width={{ base: '48px', sm: '48px' }}
                     flexDirection="column"
-                    bg="rgba(51, 68, 121, 0.7)"
-                    rounded={'xl'}
+                    bg="rgba(11, 20, 48, 0.85)"
+                    rounded={'md'}
                     overflow={'hidden'}
                     zIndex={10000}
                     border="1.5px solid"
-                    borderColor="rgba(255, 255, 255, 0.08)"
+                    borderColor="rgba(54, 163, 123, 0.18)"
                     className="raise-portrait-vertical-slider"
-                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                    transition="filter 160ms ease, border-color 160ms ease"
                     backdropFilter="blur(16px)"
-                    boxShadow="0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                    boxShadow="0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06)"
                     _hover={{
-                        bg: 'rgba(51, 68, 121, 0.85)',
-                        borderColor: 'rgba(255, 255, 255, 0.12)',
+                        borderColor: 'rgba(54, 163, 123, 0.32)',
                     }}
+                    filter={
+                        !isCurrentTurn || gameIsPaused
+                            ? 'saturate(0.45) brightness(0.92)'
+                            : undefined
+                    }
+                    pointerEvents={
+                        !isCurrentTurn || gameIsPaused ? 'none' : 'auto'
+                    }
                     sx={{
                         '@media (orientation: portrait)': {
                             display: 'flex',
@@ -590,26 +608,26 @@ const RaiseInputBox = ({
                 >
                     <Button
                         bg="transparent"
-                        height={'auto'}
-                        minH={'auto'}
-                        p={1}
+                        height="32px"
+                        minH={0}
+                        py={1}
                         alignItems="center"
                         justifyContent="center"
                         color="white"
                         onClick={handleIncreaseRaise}
                         isDisabled={!isCurrentTurn || gameIsPaused}
                         borderRadius={0}
-                        opacity={0.7}
-                        transition="all 0.2s ease-in-out"
+                        opacity={0.8}
+                        transition="background-color 120ms ease, opacity 120ms ease"
                         _hover={{
-                            bg: 'rgba(51, 68, 121, 0.8)',
+                            bg: 'rgba(54, 163, 123, 0.12)',
                             opacity: 1,
                         }}
                         _active={{
-                            bg: 'rgba(51, 68, 121, 0.9)',
+                            bg: 'rgba(54, 163, 123, 0.22)',
                         }}
                     >
-                        <LuPlus />
+                        <LuPlus size={18} strokeWidth={2.5} />
                     </Button>
                     <Slider
                         orientation="vertical"
@@ -622,34 +640,46 @@ const RaiseInputBox = ({
                         onChange={handleSliderChange}
                         isDisabled={!isCurrentTurn || gameIsPaused}
                         colorScheme="green"
+                        focusThumbOnChange={false}
                     >
-                        <SliderTrack bg="rgb(24, 31, 56, 0.8)">
+                        <SliderTrack
+                            bg="rgba(255,255,255,0.08)"
+                            width="4px"
+                            borderRadius="full"
+                        >
                             <SliderFilledTrack bg="brand.green" />
                         </SliderTrack>
-                        <SliderThumb borderColor="brand.green" />
+                        <SliderThumb
+                            boxSize="20px"
+                            bg="brand.green"
+                            border="2px solid"
+                            borderColor="rgba(255,255,255,0.85)"
+                            boxShadow="0 2px 6px rgba(0,0,0,0.45), 0 0 12px rgba(54,163,123,0.45)"
+                            _focus={{ boxShadow: '0 2px 6px rgba(0,0,0,0.45), 0 0 0 4px rgba(54,163,123,0.35)' }}
+                        />
                     </Slider>
                     <Button
                         bg="transparent"
-                        height={'auto'}
-                        minH={'auto'}
-                        p={1}
+                        height="32px"
+                        minH={0}
+                        py={1}
                         alignItems="center"
                         justifyContent="center"
                         color="white"
                         onClick={handleDecreaseRaise}
                         isDisabled={!isCurrentTurn || gameIsPaused}
                         borderRadius={0}
-                        opacity={0.7}
-                        transition="all 0.2s ease-in-out"
+                        opacity={0.8}
+                        transition="background-color 120ms ease, opacity 120ms ease"
                         _hover={{
-                            bg: 'rgba(51, 68, 121, 0.8)',
+                            bg: 'rgba(54, 163, 123, 0.12)',
                             opacity: 1,
                         }}
                         _active={{
-                            bg: 'rgba(51, 68, 121, 0.9)',
+                            bg: 'rgba(54, 163, 123, 0.22)',
                         }}
                     >
-                        <LuMinus />
+                        <LuMinus size={18} strokeWidth={2.5} />
                     </Button>
                 </Box>
             </Flex>
@@ -673,43 +703,47 @@ const RaiseInputBox = ({
                     className="raise-landscape-bet-row"
                     gap="0.3cqw"
                     justifyContent="flex-end"
+                    alignItems="stretch"
                 >
                     <Box
                         bg={'rgba(11, 20, 48, 0.9)'}
-                        width={'fit-content'}
                         textAlign={'center'}
                         rounded={'lg'}
-                        px="0.5cqw"
-                        py="0.5cqh"
-                        flex={1}
+                        px="0.7cqw"
+                        py="0.6cqh"
                         height={'100%'}
+                        minW="8cqw"
+                        maxW="11cqw"
                         display="flex"
                         flexDirection="column"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        border="1.5px solid"
+                        justifyContent="center"
+                        alignItems="stretch"
+                        border="1px solid"
                         borderColor="rgba(54, 163, 123, 0.25)"
                         className="raise-landscape-bet-container"
                         backdropFilter="blur(12px)"
                         boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                        gap="0.5cqh"
                     >
                         <Text
                             whiteSpace={'nowrap'}
-                            fontSize="1cqw"
-                            color="white"
+                            fontSize="0.9cqw"
+                            color="rgba(255,255,255,0.65)"
                             fontWeight="bold"
+                            lineHeight={1}
+                            letterSpacing="0.08em"
+                            textTransform="uppercase"
                         >
                             {unitLabel}
                         </Text>
                         <Input
                             bg={'brand.navy'}
-                            border={'2px solid'}
+                            border={'1px solid'}
                             borderColor="brand.green"
-                            fontSize={{ base: 'xs', sm: 'sm', md: 'lg' }}
-                            size={{ base: 'xs', md: 'md' }}
-                            type="number"
+                            fontSize="1.7cqw"
+                            type="text"
                             inputMode={displayMode === 'chips' ? 'numeric' : 'decimal'}
-                            step={displayMode === 'chips' ? undefined : 'any'}
+                            pattern={displayMode === 'chips' ? '[0-9]*' : '[0-9]*\\.?[0-9]*'}
                             value={betInput}
                             min={sliderMinValue}
                             max={maxTotalBet}
@@ -725,9 +759,13 @@ const RaiseInputBox = ({
                             className="raise-landscape-bet-input"
                             data-testid="raise-input"
                             ref={desktopInputRef}
-                            mt={'auto'}
                             width="100%"
-                            height="100%"
+                            height="auto"
+                            minH="0"
+                            py="0.7cqh"
+                            px="0.4cqw"
+                            borderRadius="6px"
+                            lineHeight={1.1}
                         />
                     </Box>
                 </Flex>

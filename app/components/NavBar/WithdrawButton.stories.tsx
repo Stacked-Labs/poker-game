@@ -26,6 +26,8 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { FaCoins, FaInfoCircle } from 'react-icons/fa';
+import LeaveSeatAction from './Settings/LeaveSeatAction';
+import CancelSeatRequestAction from './Settings/CancelSeatRequestAction';
 
 // ─── Constants & animations (mirrored from WithdrawButton) ───────────────────
 const POLL_INTERVAL = 5;
@@ -49,11 +51,14 @@ interface WithdrawStoryProps {
     chipBalance: number;
     canWithdraw: boolean;
     isUserSeated: boolean;
+    leaveAfterHandRequested: boolean;
+    settlementStuck: boolean;
     isLoading: boolean;
     status: 'idle' | 'checking' | 'withdrawing';
     error: string | null;
     isAuthenticated: boolean;
     isAuthenticating: boolean;
+    pendingSeatRequest: boolean;
     /** When true, the modal opens automatically on mount. */
     autoOpenModal: boolean;
 }
@@ -66,11 +71,14 @@ const WithdrawButtonStory = ({
     chipBalance,
     canWithdraw,
     isUserSeated,
+    leaveAfterHandRequested,
+    settlementStuck,
     isLoading,
     status,
     error,
     isAuthenticated,
     isAuthenticating,
+    pendingSeatRequest,
     autoOpenModal,
 }: WithdrawStoryProps) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -86,10 +94,18 @@ const WithdrawButtonStory = ({
     );
 
     const isButtonDisabled =
-        isUserSeated || isLoading || !canWithdraw || chipBalance === 0;
+        isUserSeated ||
+        pendingSeatRequest ||
+        isLoading ||
+        !canWithdraw ||
+        chipBalance === 0;
 
     const isPendingWithdraw =
-        !canWithdraw && !isUserSeated && !isLoading && chipBalance > 0;
+        !canWithdraw &&
+        !isUserSeated &&
+        !pendingSeatRequest &&
+        !isLoading &&
+        chipBalance > 0;
 
     // Live countdown for the pending-withdraw state
     const [countdown, setCountdown] = useState(POLL_INTERVAL);
@@ -121,7 +137,9 @@ const WithdrawButtonStory = ({
                 label={
                     isUserSeated
                         ? 'Leave the table first to withdraw'
-                        : 'Withdraw your chips'
+                        : pendingSeatRequest
+                          ? 'Cancel your pending seat request to withdraw'
+                          : 'Withdraw your chips'
                 }
                 placement="bottom"
                 fontSize="xs"
@@ -142,22 +160,23 @@ const WithdrawButtonStory = ({
                     color="white"
                     border="none"
                     borderRadius="12px"
-                    fontWeight="semibold"
+                    fontWeight={700}
                     fontSize={{ base: 'xs', md: 'sm' }}
+                    letterSpacing="0.02em"
                     leftIcon={
                         <Icon as={FaCoins} boxSize={{ base: 4, md: 5 }} />
                     }
                     iconSpacing={1.5}
-                    filter={isUserSeated ? 'blur(1px)' : 'none'}
-                    opacity={isUserSeated ? 0.6 : 1}
-                    _hover={{
-                        transform: isUserSeated ? 'none' : 'translateY(-2px)',
-                        boxShadow: isUserSeated
-                            ? 'none'
-                            : '0 4px 12px rgba(253, 197, 29, 0.4)',
-                        filter: isUserSeated ? 'blur(1px)' : 'none',
+                    opacity={isUserSeated ? 0.85 : 1}
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #B78900"
+                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, opacity 120ms ease"
+                    _hover={{ bg: 'brand.yellow', opacity: 1 }}
+                    _active={{
+                        bg: 'brand.yellowDark',
+                        transform: 'translateY(2px)',
+                        boxShadow:
+                            'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
                     }}
-                    transition="all 0.2s ease"
                 >
                     Withdraw
                 </Button>
@@ -211,11 +230,8 @@ const WithdrawButtonStory = ({
                             top={4}
                             right={4}
                             borderRadius="full"
-                            _hover={{
-                                bg: 'brand.lightGray',
-                                transform: 'rotate(90deg)',
-                            }}
-                            transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                            _hover={{ bg: 'card.lightGray' }}
+                            transition="background-color 80ms ease, color 80ms ease"
                         />
 
                         <ModalHeader textAlign="center" pt={10} pb={2}>
@@ -358,8 +374,44 @@ const WithdrawButtonStory = ({
                                                     color="inherit"
                                                     textAlign="left"
                                                 >
-                                                    You must leave the table
-                                                    before withdrawing.
+                                                    {settlementStuck
+                                                        ? 'Settlement in progress — leave temporarily unavailable.'
+                                                        : leaveAfterHandRequested
+                                                          ? 'Leaving after this hand. Withdraw unlocks once you stand up.'
+                                                          : 'Leave your seat to unlock withdraw.'}
+                                                </Text>
+                                            </HStack>
+                                        )}
+
+                                        {pendingSeatRequest && (
+                                            <HStack
+                                                spacing={2}
+                                                alignItems="flex-start"
+                                                bg="rgba(237, 137, 54, 0.12)"
+                                                color="orange.600"
+                                                _dark={{
+                                                    bg: 'rgba(237, 137, 54, 0.15)',
+                                                    color: 'orange.300',
+                                                }}
+                                                borderRadius="md"
+                                                px={3}
+                                                py={2}
+                                                fontSize="xs"
+                                                fontWeight="medium"
+                                                width="100%"
+                                            >
+                                                <Icon
+                                                    as={FaInfoCircle}
+                                                    boxSize={3.5}
+                                                    mt={0.5}
+                                                />
+                                                <Text
+                                                    color="inherit"
+                                                    textAlign="left"
+                                                >
+                                                    You have a pending seat
+                                                    request. Cancel it to
+                                                    unlock withdraw.
                                                 </Text>
                                             </HStack>
                                         )}
@@ -435,88 +487,78 @@ const WithdrawButtonStory = ({
                         <ModalFooter px={8} pb={6} pt={1}>
                             <VStack w="100%" spacing={3}>
                             <Box position="relative" w="100%">
+                                {isUserSeated ? (
+                                    <LeaveSeatAction
+                                        onClick={() => {}}
+                                        isLeaveRequested={leaveAfterHandRequested}
+                                        settlementStuck={settlementStuck}
+                                        width="100%"
+                                        height="56px"
+                                    />
+                                ) : pendingSeatRequest ? (
+                                    <CancelSeatRequestAction
+                                        onClick={() => {}}
+                                        width="100%"
+                                        height="56px"
+                                    />
+                                ) : (
                                 <Button
                                     w="100%"
                                     h="56px"
                                     fontSize="md"
-                                    fontWeight="bold"
+                                    fontWeight={700}
+                                    letterSpacing="0.02em"
                                     borderRadius="bigButton"
                                     bg={
-                                        isPendingWithdraw || isButtonDisabled
-                                            ? 'gray.300'
+                                        isPendingWithdraw
+                                            ? 'transparent'
                                             : 'brand.yellow'
                                     }
                                     color={
                                         isPendingWithdraw
-                                            ? 'brand.yellow'
-                                            : isButtonDisabled
-                                              ? 'gray.500'
-                                              : 'white'
+                                            ? 'brand.yellowDark'
+                                            : 'white'
                                     }
                                     border={isPendingWithdraw ? '2px solid' : 'none'}
                                     borderColor={isPendingWithdraw ? 'brand.yellow' : 'transparent'}
-                                    opacity={isButtonDisabled || isPendingWithdraw ? 0.6 : 1}
                                     isDisabled={isButtonDisabled && !isPendingWithdraw}
                                     isLoading={
                                         isLoading && status === 'withdrawing'
                                     }
                                     loadingText={getStatusMessage()}
                                     cursor={isPendingWithdraw ? 'default' : undefined}
-                                    _disabled={{
-                                        bg: 'gray.300',
-                                        color: 'gray.500',
-                                        cursor: 'not-allowed',
-                                        opacity: 0.6,
-                                    }}
                                     position="relative"
                                     overflow="hidden"
-                                    _before={{
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        bg: isPendingWithdraw
+                                    boxShadow={
+                                        isPendingWithdraw
                                             ? 'none'
-                                            : 'linear-gradient(135deg, transparent, rgba(255,255,255,0.3), transparent)',
-                                        transform: 'translateX(-100%)',
-                                        transition: 'transform 0.6s',
-                                        opacity: isButtonDisabled ? 0 : 1,
-                                    }}
+                                            : 'inset 0 1px 0 rgba(255,255,255,0.18), 0 3px 0 #B78900'
+                                    }
+                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                                     _hover={
                                         isPendingWithdraw
-                                            ? { bg: 'gray.300' }
-                                            : isButtonDisabled
-                                              ? {}
-                                              : {
-                                                    bg: 'brand.yellow',
-                                                    transform:
-                                                        'translateY(-2px)',
-                                                    boxShadow:
-                                                        '0 12px 24px rgba(253, 197, 29, 0.35)',
-                                                    _before: {
-                                                        transform:
-                                                            'translateX(100%)',
-                                                    },
-                                                }
+                                            ? { bg: 'transparent' }
+                                            : { bg: 'brand.yellow' }
                                     }
-                                    _active={{
-                                        transform:
-                                            isButtonDisabled || isPendingWithdraw
-                                                ? 'none'
-                                                : 'translateY(0)',
-                                    }}
-                                    transition="all 0.2s ease"
+                                    _active={
+                                        isPendingWithdraw
+                                            ? {}
+                                            : {
+                                                  bg: 'brand.yellowDark',
+                                                  transform: 'translateY(2px)',
+                                                  boxShadow:
+                                                      'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #B78900',
+                                              }
+                                    }
                                 >
                                     {isPendingWithdraw ? (
                                         <HStack spacing={2} zIndex={1}>
                                             <Spinner
                                                 size="xs"
-                                                color="gray.500"
+                                                color="brand.yellowDark"
                                                 thickness="2px"
                                             />
-                                            <Text color="gray.500">
+                                            <Text color="brand.yellowDark" fontWeight={600}>
                                                 Checking in {countdown}s...
                                             </Text>
                                         </HStack>
@@ -535,6 +577,7 @@ const WithdrawButtonStory = ({
                                         />
                                     )}
                                 </Button>
+                                )}
                             </Box>
                                 <Text
                                     fontSize="2xs"
@@ -546,7 +589,9 @@ const WithdrawButtonStory = ({
                                 >
                                     {isUserSeated
                                         ? 'Leave the table before withdrawing. Your on-chain chip balance reflects the last settled hand.'
-                                        : 'Your on-chain chip balance reflects the last settled hand. Chips are held by the table contract and returned as USDC upon withdrawal.'}
+                                        : pendingSeatRequest
+                                          ? 'Cancel your pending seat request before withdrawing. Your buy-in is reserved while a request is open.'
+                                          : 'Your on-chain chip balance reflects the last settled hand. Chips are held by the table contract and returned as USDC upon withdrawal.'}
                                     {' '}
                                     {CHIPS_PER_USDC}{' '}
                                     chips&nbsp;=&nbsp;1&nbsp;USDC.
@@ -633,6 +678,14 @@ const meta = {
             control: 'boolean',
             description: 'Whether the user is currently seated at the table',
         },
+        leaveAfterHandRequested: {
+            control: 'boolean',
+            description: 'Whether the user has already queued a leave-after-hand request',
+        },
+        settlementStuck: {
+            control: 'boolean',
+            description: 'Whether on-chain settlement is currently blocking leave/withdraw',
+        },
         isLoading: {
             control: 'boolean',
             description: 'Whether a withdraw/check operation is in progress',
@@ -654,6 +707,11 @@ const meta = {
             control: 'boolean',
             description: 'Whether auth signature is pending in wallet',
         },
+        pendingSeatRequest: {
+            control: 'boolean',
+            description:
+                'Whether the user has a pending (not-yet-accepted) seat request awaiting host approval',
+        },
         autoOpenModal: {
             control: 'boolean',
             description: 'Automatically open the modal on render',
@@ -663,11 +721,14 @@ const meta = {
         chipBalance: 5000,
         canWithdraw: true,
         isUserSeated: false,
+        leaveAfterHandRequested: false,
+        settlementStuck: false,
         isLoading: false,
         status: 'idle',
         error: null,
         isAuthenticated: true,
         isAuthenticating: false,
+        pendingSeatRequest: false,
         autoOpenModal: false,
     },
 } satisfies Meta<typeof WithdrawButtonStory>;
@@ -695,9 +756,27 @@ export const ZeroBalance: Story = {
     args: { chipBalance: 0, canWithdraw: false, autoOpenModal: true },
 };
 
-/** User is seated — button blurred, orange warning in modal. */
+/** User is seated, no leave queued — modal shows pink outline "Leave seat" CTA. */
 export const UserSeated: Story = {
     args: { isUserSeated: true, autoOpenModal: true },
+};
+
+/** User is seated and has already queued a leave-after-hand — modal shows solid pink "Cancel leave" CTA. */
+export const UserSeatedLeaveRequested: Story = {
+    args: {
+        isUserSeated: true,
+        leaveAfterHandRequested: true,
+        autoOpenModal: true,
+    },
+};
+
+/** Settlement is stuck — leave button is disabled and hint explains the block. */
+export const UserSeatedSettlementStuck: Story = {
+    args: {
+        isUserSeated: true,
+        settlementStuck: true,
+        autoOpenModal: true,
+    },
 };
 
 /** Checking balance — spinner shown in modal body. */
@@ -743,6 +822,33 @@ export const Authenticating: Story = {
         isAuthenticating: true,
         autoOpenModal: true,
     },
+};
+
+/**
+ * User has a pending seat request (awaiting host approval) — modal shows the
+ * orange warning explaining the block, and the footer swaps the Withdraw CTA
+ * for a solid-pink "Cancel seat request" action.
+ */
+export const PendingSeatRequest: Story = {
+    args: {
+        pendingSeatRequest: true,
+        autoOpenModal: true,
+    },
+};
+
+/** PendingSeatRequest in dark mode. */
+export const PendingSeatRequestDark: Story = {
+    args: {
+        pendingSeatRequest: true,
+        autoOpenModal: true,
+    },
+    decorators: [
+        (Story) => (
+            <DarkMode>
+                <Story />
+            </DarkMode>
+        ),
+    ],
 };
 
 /** Dark mode variant with modal open. */

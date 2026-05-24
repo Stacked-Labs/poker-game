@@ -9,7 +9,7 @@ import React, { useContext } from 'react';
 import PendingPlayers from './PendingPlayers';
 import AcceptedPlayers from './AcceptedPlayers';
 import WithdrawBalanceCard from './WithdrawBalanceCard';
-import { Checkbox, Flex, VStack, useColorModeValue } from '@chakra-ui/react';
+import { Checkbox, Flex, VStack } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -21,15 +21,6 @@ const PlayerList = () => {
     const socket = useContext(SocketContext);
     const isOwner = useIsTableOwner();
     const toast = useToastHelper();
-    const popupSettingBg = useColorModeValue(
-        'card.lightGray',
-        'legacy.grayDarkest'
-    );
-    const popupSettingBorder = useColorModeValue(
-        'rgba(51, 68, 121, 0.12)',
-        'rgba(255, 255, 255, 0.12)'
-    );
-    const checkboxBorder = useColorModeValue('brand.navy', 'brand.lightGray');
 
     const handleAcceptPlayer = async (uuid: string) => {
         if (socket && uuid) {
@@ -98,12 +89,12 @@ const PlayerList = () => {
             <WithdrawBalanceCard />
             {isOwner && <Flex
                 alignItems="center"
-                bg={popupSettingBg}
+                bg="card.lightGray"
                 borderRadius={{ base: '10px', md: '12px' }}
                 px={{ base: 2, md: 3 }}
                 py={{ base: 1.5, md: 2 }}
                 border="1px solid"
-                borderColor={popupSettingBorder}
+                borderColor="border.lightGray"
                 alignSelf="flex-end"
                 width="fit-content"
                 sx={{
@@ -135,7 +126,7 @@ const PlayerList = () => {
                             height: '18px',
                             borderRadius: '5px',
                             border: '2px solid',
-                            borderColor: checkboxBorder,
+                            borderColor: 'text.secondary',
                             bg: 'transparent',
                         },
                         '.chakra-checkbox__control[data-checked]': {

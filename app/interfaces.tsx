@@ -1,6 +1,23 @@
 export type DisplayMode = 'chips' | 'bb' | 'usdc';
 
-export type CardBackVariant = 'classic' | 'bitcoin' | 'ethereum' | 'base' | 'usdc';
+export type CardBackVariant =
+    // Classic poker-room decks: solid color + diamond/dot lattice + double hairline border
+    | 'classic-red'
+    | 'classic-blue'
+    | 'classic-green'
+    | 'classic-black'
+    | 'classic-burgundy'
+    | 'classic-teal'
+    | 'classic-purple'
+    // Crypto network decks: solid network color + centered logo + quiet texture
+    | 'bitcoin'
+    | 'ethereum'
+    | 'base'
+    | 'usdc'
+    // Crypto-culture decks: illustrated centerpieces
+    | 'pepe'
+    | 'moon'
+    | 'rekt';
 
 export type Card = string | number;
 
@@ -104,8 +121,10 @@ export type Game = {
     waitingForBB?: boolean[];
     /** Community cards that would have been dealt — populated after a concession when rabbit hunt is enabled. */
     rabbitCards?: Card[];
-    /** True while an on-chain settlement transaction is pending and unconfirmed. */
+    /** True while an on-chain settlement transaction timed out or failed and needs recovery. Used for admin alerts. */
     settlementStuck?: boolean;
+    /** True whenever any settlement is blocking — either actively in-flight or stuck pending recovery. Frontend should disable the leave button when true. */
+    settlementInProgress?: boolean;
 };
 
 export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';
@@ -128,6 +147,7 @@ export type Config = {
     ownerAddress?: string;
     ownerSessionUUID?: string;
     rabbitHuntEnabled?: boolean;
+    autoAccept?: boolean;
 };
 
 export type Pot = {

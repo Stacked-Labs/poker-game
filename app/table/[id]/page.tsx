@@ -1,6 +1,7 @@
 import Table from '@/app/components/Table';
 import { Flex } from '@chakra-ui/react';
 import { Metadata, ResolvingMetadata } from 'next';
+import { redirect } from 'next/navigation';
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -11,7 +12,8 @@ export async function generateMetadata(
     _parent: ResolvingMetadata
 ): Promise<Metadata> {
     const { id } = await params;
-    const url = `https://stackedpoker.io/table/${id}`;
+    const tableId = id.toLowerCase();
+    const url = `https://stackedpoker.io/table/${tableId}`;
     return {
         title: 'Stacked Poker',
         description:
@@ -60,6 +62,10 @@ export async function generateMetadata(
 
 const TablePage = async ({ params }: Props) => {
     const { id } = await params;
+    if (id !== id.toLowerCase()) {
+        redirect(`/table/${id.toLowerCase()}`);
+    }
+    const tableId = id.toLowerCase();
 
     return (
         <Flex
@@ -71,7 +77,7 @@ const TablePage = async ({ params }: Props) => {
             position={'relative'}
             bg={'transparent'}
         >
-            <Table tableId={id} />
+            <Table tableId={tableId} />
         </Flex>
     );
 };

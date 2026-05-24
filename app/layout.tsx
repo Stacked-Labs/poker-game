@@ -28,6 +28,11 @@ const libreBarcode = Libre_Barcode_39_Text({
     variable: '--font-barcode',
 });
 
+// Next 15 changed the default to uncached. Restore Next 14 behavior app-wide so
+// SSR fetches don't hammer the backend on every request. Per-route overrides as
+// needed.
+export const fetchCache = 'default-cache';
+
 export const metadata: Metadata = {
     other: {
         'base:app_id': '697e0df32aafa0bc9ad8a2b7',

@@ -1,5 +1,10 @@
 const backendUrl = process.env.NEXT_PUBLIC_API_URL;
 
+// Gates console output that would otherwise leak wallet addresses, SIWE
+// payloads/signatures, and full WS message bodies into every user's browser
+// console in production. Match the existing flag used in WebSocketProvider.
+const DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
+
 function isBackendUrlValid() {
     if (!backendUrl) {
         throw new Error('Backend API URL is not defined');
@@ -10,12 +15,13 @@ function isBackendUrlValid() {
 function sendWebSocketMessage(socket: WebSocket, message: object) {
     const stringifiedMessage = JSON.stringify(message);
 
-    // Log outgoing WebSocket message for debugging
-    console.log('🔼 WebSocket Message Sent:', {
-        timestamp: new Date().toISOString(),
-        message: message,
-        stringified: stringifiedMessage,
-    });
+    if (DEBUG) {
+        console.log('🔼 WebSocket Message Sent:', {
+            timestamp: new Date().toISOString(),
+            message: message,
+            stringified: stringifiedMessage,
+        });
+    }
 
     socket.send(stringifiedMessage);
 }
@@ -212,6 +218,17 @@ export function sendToggleRabbitHunt(socket: WebSocket, enabled: boolean) {
     }
 }
 
+export function sendToggleAutoAccept(socket: WebSocket, enabled: boolean) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        sendWebSocketMessage(socket, {
+            action: 'toggle-auto-accept',
+            enabled,
+        });
+    } else {
+        console.error('Cannot send toggle-auto-accept: WebSocket is not open.');
+    }
+}
+
 // Initialize/confirm an HTTP session so cookies are set before subsequent requests
 export async function initSession() {
     isBackendUrlValid();
@@ -229,7 +246,7 @@ export async function initSession() {
 
 // SIWE Authentication - Step 1: Get authentication payload
 export async function getAuthPayload(address: string) {
-    console.log('Getting auth payload for address:', address);
+    if (DEBUG) console.log('Getting auth payload for address:', address);
 
     isBackendUrlValid();
 
@@ -247,13 +264,13 @@ export async function getAuthPayload(address: string) {
     }
 
     const data = await response.json();
-    console.log('Received auth payload:', data);
+    if (DEBUG) console.log('Received auth payload:', data);
     return data; // Returns { payload, message }
 }
 
 // SIWE Authentication - Step 3: Verify signed payload
 export async function verifySignedPayload(signedPayload: object) {
-    console.log('Verifying signed payload:', signedPayload);
+    if (DEBUG) console.log('Verifying signed payload:', signedPayload);
 
     isBackendUrlValid();
 
@@ -271,7 +288,7 @@ export async function verifySignedPayload(signedPayload: object) {
     }
 
     const data = await response.json();
-    console.log('Verification result:', data);
+    if (DEBUG) console.log('Verification result:', data);
     return data; // Returns { success: true, address: "0x..." }
 }
 
@@ -281,9 +298,11 @@ export async function authenticateUser(
     signature: string,
     message: string
 ) {
-    console.log('Authenticating user with address:', address);
-    console.log('Signature:', signature);
-    console.log('Message:', message);
+    if (DEBUG) {
+        console.log('Authenticating user with address:', address);
+        console.log('Signature:', signature);
+        console.log('Message:', message);
+    }
 
     isBackendUrlValid();
 
@@ -616,7 +635,7 @@ export async function fetchTableEvents(
         }
 
         const response = await fetch(
-            `${backendUrl}/api/tables/${tableName}/events?${searchParams.toString()}`,
+            `${backendUrl}/api/tables/${encodeURIComponent(tableName)}/events?${searchParams.toString()}`,
             {
                 method: 'GET',
                 credentials: 'include',
@@ -729,12 +748,27 @@ export async function getAdminSettlementHealth(chain?: 'base-sepolia' | 'base') 
     return await response.json();
 }
 
-// Chips → USDC display string (1 chip = 0.01 USDC; USDC_PER_CHIP = 10000, decimals = 6)
-function chipsToUsdc(chips: string | null | undefined): string {
-    if (!chips || chips === '0' || chips === 'null') return '0.00';
-    const n = parseFloat(chips);
-    if (isNaN(n)) return '0.00';
-    return (n / 100).toFixed(2);
+export async function clearAdminPendingSettlement(tableName: string) {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/settlement-health/${encodeURIComponent(tableName)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+    });
+    if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error ?? `Clear failed: ${response.statusText}`);
+    }
+    return await response.json();
+}
+
+export async function getAdminActionDistribution() {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/stats/actions`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Action distribution fetch failed: ${response.statusText}`);
+    return await response.json();
 }
 
 export async function getIndexerHealth(chain: 'base-sepolia' | 'base' = 'base-sepolia'): Promise<{
@@ -763,10 +797,10 @@ export async function getIndexerHealth(chain: 'base-sepolia' | 'base' = 'base-se
         type StatsResp = {
             success?: boolean;
             data?: {
-                rake_all_time_chips?: number;
-                rake_24h_chips?: number;
-                rake_7d_chips?: number;
-                rake_30d_chips?: number;
+                rake_all_time_usdc?: number;
+                rake_24h_usdc?: number;
+                rake_7d_usdc?: number;
+                rake_30d_usdc?: number;
                 total_settled_hands?: number;
             };
         };
@@ -800,10 +834,10 @@ export async function getIndexerHealth(chain: 'base-sepolia' | 'base' = 'base-se
             chainTip,
             lag,
             healthy,
-            rakeAllTimeUsdc: chipsToUsdc(String(sd?.rake_all_time_chips ?? 0)),
-            rake24hUsdc:     chipsToUsdc(String(sd?.rake_24h_chips ?? 0)),
-            rake7dUsdc:      chipsToUsdc(String(sd?.rake_7d_chips ?? 0)),
-            rake30dUsdc:     chipsToUsdc(String(sd?.rake_30d_chips ?? 0)),
+            rakeAllTimeUsdc: (sd?.rake_all_time_usdc ?? 0).toFixed(2),
+            rake24hUsdc:     (sd?.rake_24h_usdc ?? 0).toFixed(2),
+            rake7dUsdc:      (sd?.rake_7d_usdc ?? 0).toFixed(2),
+            rake30dUsdc:     (sd?.rake_30d_usdc ?? 0).toFixed(2),
             totalHands:      sd?.total_settled_hands ?? 0,
         };
     } catch {
@@ -840,6 +874,7 @@ export async function getReferralInfo(address: string): Promise<{
     multiplier: number;
     nextTier: { required: number; multiplier: number } | null;
     hasReferrer: boolean;
+    myCode: string | null;
 }> {
     isBackendUrlValid();
     try {
@@ -853,25 +888,201 @@ export async function getReferralInfo(address: string): Promise<{
         return await response.json();
     } catch (error) {
         console.error('Unable to fetch referral info.', error);
-        return { count: 0, multiplier: 1.0, nextTier: { required: 5, multiplier: 1.1 }, hasReferrer: false };
+        return { count: 0, multiplier: 1.0, nextTier: { required: 5, multiplier: 1.1 }, hasReferrer: false, myCode: null };
     }
 }
 
 export async function registerReferral(
-    refereeAddress: string,
-    referrerAddress: string
+    referrerCode: string
 ): Promise<{ success: boolean; message: string }> {
     isBackendUrlValid();
     try {
         const response = await fetch(`${backendUrl}/api/referral`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refereeAddress, referrerAddress }),
+            credentials: 'include',
+            body: JSON.stringify({ referrerCode }),
         });
         return await response.json();
     } catch (error) {
         console.error('Unable to register referral.', error);
         return { success: false, message: 'Network error' };
+    }
+}
+
+export async function setMyReferralCode(
+    code: string
+): Promise<{ success: boolean; message: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/referral/code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ code }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to set referral code.', error);
+        return { success: false, message: 'Network error' };
+    }
+}
+
+// ============================================================
+// Quest API
+// ============================================================
+
+export interface QuestItem {
+    id: string;
+    title: string;
+    points: number;
+    completed: boolean;
+    prerequisite?: string;
+    actionUrl?: string;
+    hasNft?: boolean;
+}
+
+export async function getQuests(address: string): Promise<{
+    quests: QuestItem[];
+    totalQuestPoints: number;
+}> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/quests?address=${encodeURIComponent(address)}`,
+            { method: 'GET', credentials: 'include' }
+        );
+        if (!response.ok) throw new Error(`Quests fetch failed: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch quests.', error);
+        return { quests: [], totalQuestPoints: 0 };
+    }
+}
+
+export async function completeQuest(
+    questId: string,
+    communityCode?: string
+): Promise<{ success: boolean; alreadyCompleted?: boolean; message?: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/quests/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ questId, communityCode }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to complete quest.', error);
+        return { success: false, message: 'Network error' };
+    }
+}
+
+// ============================================================
+// SBT (Soulbound NFT) API
+// ============================================================
+
+export interface SBTInfo {
+    contractAddress: string;
+    chainName: string;
+    explorerURL: string;
+    tokenURI: string;
+    name: string;
+    image: string;
+    description: string;
+}
+
+export async function getSBTInfo(): Promise<SBTInfo | null> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/sbt/info`);
+        if (!response.ok) return null;
+        return await response.json();
+    } catch {
+        return null;
+    }
+}
+
+export async function checkSBTEligibility(
+    address: string
+): Promise<{ eligible: boolean; claimed: boolean }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/sbt/eligibility?address=${encodeURIComponent(address)}`,
+            { method: 'GET', credentials: 'include' }
+        );
+        if (!response.ok) throw new Error(`SBT eligibility fetch failed: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch SBT eligibility.', error);
+        return { eligible: false, claimed: false };
+    }
+}
+
+export async function claimSBT(): Promise<{ success: boolean; txHash?: string; message?: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/sbt/claim`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to claim SBT.', error);
+        return { success: false, message: 'Network error' };
+    }
+}
+
+export interface SBTWhitelistEntry {
+    address: string;
+    addedAt: string;
+    claimed: boolean;
+}
+
+export interface SBTWhitelistResponse {
+    entries: SBTWhitelistEntry[];
+    total: number;
+    claimed: number;
+}
+
+export async function getAdminSBTWhitelist(params?: {
+    search?: string;
+}): Promise<SBTWhitelistResponse> {
+    isBackendUrlValid();
+    const empty: SBTWhitelistResponse = { entries: [], total: 0, claimed: 0 };
+    try {
+        const qs = new URLSearchParams();
+        if (params?.search) qs.set('search', params.search);
+        const response = await fetch(`${backendUrl}/api/admin/sbt/whitelist?${qs}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        if (!response.ok) throw new Error(`SBT whitelist fetch failed: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch SBT whitelist.', error);
+        return empty;
+    }
+}
+
+export async function addToSBTWhitelist(
+    addresses: string[]
+): Promise<{ success: boolean; added: number; message?: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/admin/sbt/whitelist`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ addresses }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to add to SBT whitelist.', error);
+        return { success: false, added: 0, message: 'Network error' };
     }
 }
 
@@ -884,7 +1095,7 @@ export async function fetchTableLedger(tableName: string) {
 
     try {
         const response = await fetch(
-            `${backendUrl}/api/tables/${tableName}/ledger`,
+            `${backendUrl}/api/tables/${encodeURIComponent(tableName)}/ledger`,
             {
                 method: 'GET',
                 credentials: 'include',

@@ -2,21 +2,17 @@ import { Box, Flex, VStack } from '@chakra-ui/react';
 import HomeSection from './components/HomePage/HomeSection';
 import CommunitySection from './components/HomePage/CommunitySection';
 import FeaturesSection from './components/HomePage/FeaturesSection';
+import HostToEarnSection from './components/HomePage/HostToEarnSection';
 import NewsletterSection from './components/HomePage/NewsletterSection';
 import YourTableVaultSection from './components/HomePage/YourTableVaultSection';
-import OddsAndRandomnessSection from './components/HomePage/OddsAndRandomnessSection';
 import CustomChipValueSection from './components/HomePage/CustomChipValueSection';
 import FAQSection from './components/HomePage/FAQSection';
 import ComparisonSection from './components/HomePage/ComparisonSection';
 import Footer from './components/HomePage/Footer';
+import FloatingDecor from './components/HomePage/FloatingDecor';
 import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
 import BackToTopButton from './components/HomePage/BackToTopButton';
-
-const CoinGecko = dynamic(
-    () => import('./components/HomePage/CoinGecko'),
-    { ssr: false }
-);
+import CoinGecko from './components/HomePage/CoinGeckoClient';
 
 export const metadata: Metadata = {
     title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',
@@ -67,15 +63,24 @@ const HomePage: React.FC = () => {
                     >
                         <HomeSection />
                     </Flex>
-                    <CommunitySection />
-                    <NewsletterSection />
-                    <FeaturesSection />
-                    <CustomChipValueSection />
-                    <YourTableVaultSection />
-                    <OddsAndRandomnessSection />
-                    <FAQSection />
-                    <ComparisonSection />
-                    <Footer />
+                    <Box
+                        position="relative"
+                        bg="bg.default"
+                        overflow="hidden"
+                    >
+                        <FloatingDecor scale="page" />
+                        <Box position="relative" zIndex={1}>
+                            <CommunitySection />
+                            <ComparisonSection />
+                            <FeaturesSection />
+                            <HostToEarnSection />
+                            <CustomChipValueSection />
+                            <YourTableVaultSection />
+                            <FAQSection />
+                            <NewsletterSection />
+                            <Footer />
+                        </Box>
+                    </Box>
                 </VStack>
             </Box>
             <BackToTopButton />

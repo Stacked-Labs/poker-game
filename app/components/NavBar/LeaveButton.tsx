@@ -7,16 +7,19 @@ interface LeaveButtonProps {
     isUserSeated: boolean;
     isLeaveRequested: boolean;
     handleLeaveTable: () => void;
-    settlementStuck?: boolean;
+    settlementInProgress?: boolean;
 }
+
+const TACTILE_TRANSITION =
+    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease';
 
 const LeaveButton = ({
     isUserSeated,
     isLeaveRequested,
     handleLeaveTable,
-    settlementStuck,
+    settlementInProgress,
 }: LeaveButtonProps) => {
-    const tooltipLabel = settlementStuck
+    const tooltipLabel = settlementInProgress
         ? 'Settlement in progress — leave unavailable'
         : isLeaveRequested
           ? 'Cancel leave request'
@@ -24,11 +27,6 @@ const LeaveButton = ({
     const buttonLabel = isLeaveRequested
         ? 'Cancel leave request'
         : 'Leave Table';
-    const bgColor = isLeaveRequested ? 'brand.pink' : 'btn.lightGray';
-    const iconColor = isLeaveRequested ? 'white' : 'brand.pink';
-    const hoverShadow = isLeaveRequested
-        ? '0 4px 12px rgba(235, 11, 92, 0.4)'
-        : '0 4px 12px rgba(235, 11, 92, 0.4)';
 
     if (!isUserSeated) return null;
 
@@ -44,30 +42,44 @@ const LeaveButton = ({
                 py={2}
                 width={{ base: '40px', sm: '40px', md: '48px' }}
                 height={{ base: '40px', sm: '40px', md: '48px' }}
-                onClick={settlementStuck ? undefined : handleLeaveTable}
-                isDisabled={settlementStuck}
-                bg={settlementStuck ? 'gray.300' : bgColor}
-                border="none"
-                borderRadius="12px"
-                _hover={settlementStuck ? {} : {
-                    transform: 'translateY(-2px)',
-                    boxShadow: hoverShadow,
-                    bg: 'brand.pink',
-                }}
-                _disabled={{
-                    cursor: 'not-allowed',
-                    opacity: 0.5,
-                }}
-                sx={{
-                    svg: {
-                        color: iconColor,
-                        transition: 'color 0.2s ease',
-                    },
-                    '&:hover svg': {
-                        color: 'white',
-                    },
-                }}
-                transition="all 0.2s ease"
+                onClick={settlementInProgress ? undefined : handleLeaveTable}
+                isDisabled={settlementInProgress}
+                {...(isLeaveRequested
+                    ? {
+                          // Queued state: solid pink tactile chip — clearly
+                          // signals "leave is queued, click to cancel."
+                          bg: 'brand.pink',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '12px',
+                          boxShadow:
+                              'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #950839',
+                          transition: TACTILE_TRANSITION,
+                          _hover: { bg: 'brand.pink' },
+                          _active: {
+                              bg: 'brand.pinkDark',
+                              transform: 'translateY(2px)',
+                              boxShadow:
+                                  'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #950839',
+                          },
+                      }
+                    : {
+                          // Idle: tactileChrome variant — mode-aware.
+                          // Pink-icon hint signals it's a destructive action.
+                          variant: 'tactileChrome',
+                          color: 'brand.pink',
+                          _hover: {
+                              bg: 'brand.pink',
+                              color: 'white',
+                              borderColor: 'brand.pink',
+                          },
+                          _active: {
+                              bg: 'brand.pinkDark',
+                              transform: 'translateY(1px)',
+                              boxShadow:
+                                  'inset 0 1px 2px rgba(0,0,0,0.30), 0 0 0 transparent',
+                          },
+                      })}
             />
         </Tooltip>
     );

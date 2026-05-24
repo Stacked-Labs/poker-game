@@ -35,7 +35,7 @@ const makeGame = (): Game => ({
 });
 
 const makeAppState = (
-    cardBackDesign: CardBackVariant = 'classic'
+    cardBackDesign: CardBackVariant = 'classic-blue'
 ): AppState => ({
     messages: [],
     logs: [],
@@ -68,7 +68,7 @@ const silentSound = { play: () => {}, stop: () => {}, isReady: () => true };
 const Providers: React.FC<{
     children: React.ReactNode;
     cardBack?: CardBackVariant;
-}> = ({ children, cardBack = 'classic' }) => (
+}> = ({ children, cardBack = 'classic-blue' }) => (
     <AppContext.Provider
         value={{ appState: makeAppState(cardBack), dispatch: () => null }}
     >
@@ -236,7 +236,7 @@ const VARIANTS: Array<{
 ];
 
 const CARD_BACKS: CardBackVariant[] = [
-    'classic',
+    'classic-blue',
     'bitcoin',
     'ethereum',
     'base',

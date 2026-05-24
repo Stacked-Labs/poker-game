@@ -61,7 +61,7 @@ const makeAppState = (gameOverrides: Partial<Game> = {}): AppState => ({
     chatSoundEnabled: false,
     chatOverlayEnabled: false,
     fourColorDeckEnabled: false,
-    cardBackDesign: 'classic',
+    cardBackDesign: 'classic-blue',
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,

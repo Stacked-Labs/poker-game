@@ -20,7 +20,7 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { FaInfoCircle, FaChevronDown } from 'react-icons/fa';
+import { FaInfoCircle, FaChevronDown, FaCheck } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import BuyInPresets from './TakeSeat/BuyInPresets';
 import StakesChip from './TakeSeat/StakesChip';
@@ -48,6 +48,28 @@ interface TakeSeatPreviewProps {
     showWithdrawFirst?: boolean;
     existingChipBalance?: string | null;
     isBalanceInsufficient?: boolean;
+    /**
+     * When true, simulates the BridgeWidget being available (mainnet, not in
+     * Mini App). The CTA flips to "Top up X USDC" and the deficit copy
+     * promises a top-up. When false, the CTA stays as "Sit down · $X" and
+     * the copy tells the user to fund externally.
+     */
+    canBridgeTopUp?: boolean;
+    /**
+     * When true, simulates an external EOA with USDC but no ETH on Base.
+     * Renders the gas-warning chip. Suppressed when isBalanceInsufficient
+     * is true (USDC deficit takes priority).
+     */
+    isGasInsufficient?: boolean;
+    /** Withdraw-first preview controls. Only relevant when showWithdrawFirst=true. */
+    withdrawCanWithdraw?: boolean | null;
+    withdrawGasInsufficient?: boolean;
+    withdrawStatus?: 'idle' | 'withdrawing' | 'error';
+    withdrawError?: string | null;
+    /** Seconds left in the settlement-pending countdown shown on the CTA. */
+    withdrawCountdownSeconds?: number;
+    /** When true, renders the 2s post-success celebration in place of the CTA. */
+    withdrawSuccessFlash?: boolean;
     sb: number;
     bb: number;
     maxBuyIn: number;
@@ -77,6 +99,14 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
     showWithdrawFirst = false,
     existingChipBalance = null,
     isBalanceInsufficient = false,
+    canBridgeTopUp = true,
+    isGasInsufficient = false,
+    withdrawCanWithdraw = true,
+    withdrawGasInsufficient = false,
+    withdrawStatus = 'idle',
+    withdrawError = null,
+    withdrawCountdownSeconds = 5,
+    withdrawSuccessFlash = false,
     sb,
     bb,
     maxBuyIn,
@@ -117,6 +147,23 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
 
     const formattedChips = buyIn.toLocaleString('en-US');
     const formattedUsdcEst = formatUsdc(buyIn);
+    // Deficit math mirrors production. Story passes usdcBalance as a decimal
+    // string; we compare it against the buy-in's USDC equivalent.
+    const buyInUsdc = buyIn / CHIPS_PER_USDC;
+    const balanceNum = usdcBalance ? Number(usdcBalance) : null;
+    const deficitUsdc =
+        isBalanceInsufficient && balanceNum !== null
+            ? Math.max(0, buyInUsdc - balanceNum).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+              })
+            : null;
+    const isTopUpMode = isCryptoGame && isBalanceInsufficient && canBridgeTopUp;
+    const isGasTopUpMode =
+        isCryptoGame &&
+        !isBalanceInsufficient &&
+        isGasInsufficient &&
+        canBridgeTopUp;
 
     const handleBuyInChange = (value: string) => {
         if (isCryptoGame) {
@@ -203,97 +250,413 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
             </Box>
 
             {showWithdrawFirst ? (
-                <>
-                    <Box textAlign="center" pt={10} pb={2} px={6}>
-                        <VStack spacing={2}>
-                            <Heading
-                                as="h2"
-                                fontSize="xl"
-                                fontWeight="bold"
-                                color="text.secondary"
-                                letterSpacing="-0.02em"
-                            >
-                                Chips still on this table
-                            </Heading>
-                            <StakesChip
-                                sb={sb}
-                                bb={bb}
-                                seatId={seatId}
-                                isCrypto={isCryptoGame}
-                                chain={chain}
-                            />
-                        </VStack>
-                    </Box>
-                    <Box px={{ base: 5, sm: 7 }} pb={2} pt={2}>
-                        <VStack spacing={4} w="100%">
+                (() => {
+                    // Derive USDC from chips for the value display. Strip any
+                    // commas the caller may pass in `existingChipBalance`.
+                    const chipsNumber = existingChipBalance
+                        ? Number(
+                              String(existingChipBalance).replace(/,/g, '')
+                          )
+                        : null;
+                    const existingUsdc =
+                        chipsNumber !== null
+                            ? (chipsNumber / CHIPS_PER_USDC).toLocaleString(
+                                  'en-US',
+                                  {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                  }
+                              )
+                            : null;
+                    const isLoading = chipsNumber === null;
+                    const isSettlementPending = withdrawCanWithdraw === false;
+                    const isGasMode =
+                        !isSettlementPending && withdrawGasInsufficient;
+                    return (
+                        <>
                             <Box
-                                w="100%"
-                                bg="card.lightGray"
-                                borderRadius="xl"
-                                px={5}
-                                py={5}
                                 textAlign="center"
+                                pt={10}
+                                pb={2}
+                                px={6}
                             >
                                 <VStack spacing={2}>
-                                    <Text
-                                        fontSize="3xl"
+                                    <Heading
+                                        as="h2"
+                                        fontSize="xl"
                                         fontWeight="bold"
                                         color="text.secondary"
                                         letterSpacing="-0.02em"
-                                        lineHeight={1}
                                     >
-                                        {existingChipBalance ?? '—'}
-                                    </Text>
+                                        Stack still on the table
+                                    </Heading>
+                                    <StakesChip
+                                        sb={sb}
+                                        bb={bb}
+                                        seatId={seatId}
+                                        isCrypto={isCryptoGame}
+                                        chain={chain}
+                                    />
+                                </VStack>
+                            </Box>
+                            <Box px={{ base: 5, sm: 7 }} pb={2} pt={2}>
+                                <VStack spacing={4} w="100%">
+                                    <VStack
+                                        spacing={1}
+                                        w="100%"
+                                        py={4}
+                                        textAlign="center"
+                                    >
+                                        {isLoading ? (
+                                            <HStack spacing={2}>
+                                                <Spinner
+                                                    size="sm"
+                                                    color="text.muted"
+                                                    thickness="2px"
+                                                />
+                                                <Text
+                                                    fontSize="sm"
+                                                    color="text.muted"
+                                                    fontWeight="medium"
+                                                >
+                                                    Checking your stack…
+                                                </Text>
+                                            </HStack>
+                                        ) : (
+                                            <>
+                                                <HStack
+                                                    spacing={1.5}
+                                                    align="baseline"
+                                                    justify="center"
+                                                >
+                                                    <Text
+                                                        fontSize="4xl"
+                                                        fontWeight="bold"
+                                                        color="text.secondary"
+                                                        letterSpacing="-0.02em"
+                                                        lineHeight={1}
+                                                    >
+                                                        ${existingUsdc}
+                                                    </Text>
+                                                    <Text
+                                                        fontSize="xs"
+                                                        color="text.muted"
+                                                        fontWeight={700}
+                                                        textTransform="uppercase"
+                                                        letterSpacing="0.06em"
+                                                    >
+                                                        USDC
+                                                    </Text>
+                                                </HStack>
+                                                <Text
+                                                    fontSize="sm"
+                                                    color="text.muted"
+                                                    fontWeight="medium"
+                                                >
+                                                    {existingChipBalance} chips
+                                                </Text>
+                                                <Text
+                                                    fontSize="2xs"
+                                                    color="text.muted"
+                                                    fontWeight="medium"
+                                                    opacity={0.75}
+                                                >
+                                                    in this table&rsquo;s
+                                                    contract
+                                                </Text>
+                                            </>
+                                        )}
+                                    </VStack>
                                     <Text
-                                        fontSize="xs"
-                                        color="text.muted"
-                                        fontWeight="medium"
-                                        textTransform="uppercase"
-                                        letterSpacing="0.05em"
+                                        fontSize="sm"
+                                        color="text.secondary"
+                                        textAlign="center"
+                                        lineHeight="short"
+                                        px={2}
                                     >
-                                        chips in contract
+                                        Cash these out first, then sit down
+                                        with a fresh stack.
                                     </Text>
                                 </VStack>
                             </Box>
-                            <Text
-                                fontSize="sm"
-                                color="text.secondary"
-                                textAlign="center"
-                                lineHeight="short"
-                                px={2}
-                            >
-                                Withdraw these to your wallet first, then you can
-                                deposit a new amount and take your seat.
-                            </Text>
-                        </VStack>
-                    </Box>
-                    <Box px={{ base: 5, sm: 7 }} pb={7} pt={4}>
-                        <VStack w="100%" spacing={3}>
-                            <Button
-                                w="100%"
-                                h="52px"
-                                borderRadius="bigButton"
-                                bg="brand.navy"
-                                color="white"
-                                fontWeight="bold"
-                                fontSize="sm"
-                            >
-                                {truncatedAddress ?? 'Sign In'}
-                            </Button>
-                            <Button
-                                w="100%"
-                                h="52px"
-                                fontSize="md"
-                                fontWeight="bold"
-                                borderRadius="bigButton"
-                                bg="brand.pink"
-                                color="white"
-                            >
-                                Withdraw &amp; start fresh
-                            </Button>
-                        </VStack>
-                    </Box>
-                </>
+                            <Box px={{ base: 5, sm: 7 }} pb={7} pt={4}>
+                                <VStack w="100%" spacing={3}>
+                                    <Button
+                                        w="100%"
+                                        h="52px"
+                                        borderRadius="bigButton"
+                                        bg="brand.navy"
+                                        color="white"
+                                        fontWeight="bold"
+                                        fontSize="sm"
+                                    >
+                                        {truncatedAddress ?? 'Sign In'}
+                                    </Button>
+
+                                    {!withdrawSuccessFlash &&
+                                        isSettlementPending && (
+                                            <HStack
+                                                spacing={2}
+                                                alignItems="flex-start"
+                                                width="100%"
+                                                bg="rgba(253, 197, 29, 0.12)"
+                                                _dark={{
+                                                    bg: 'rgba(253, 197, 29, 0.10)',
+                                                }}
+                                                borderRadius="md"
+                                                px={3}
+                                                py={2}
+                                            >
+                                                <Icon
+                                                    as={FaInfoCircle}
+                                                    boxSize={3.5}
+                                                    mt={0.5}
+                                                    color="brand.yellowDark"
+                                                    _dark={{
+                                                        color: 'brand.yellow',
+                                                    }}
+                                                />
+                                                <Text
+                                                    fontSize="xs"
+                                                    fontWeight="semibold"
+                                                    color="brand.yellowDark"
+                                                    _dark={{
+                                                        color: 'brand.yellow',
+                                                    }}
+                                                    textAlign="left"
+                                                    lineHeight="short"
+                                                >
+                                                    Last hand still settling.
+                                                    Withdraw unlocks in{' '}
+                                                    {withdrawCountdownSeconds}s.
+                                                </Text>
+                                            </HStack>
+                                        )}
+                                    {!withdrawSuccessFlash &&
+                                        !isSettlementPending &&
+                                        isGasMode && (
+                                            <HStack
+                                                spacing={2}
+                                                alignItems="flex-start"
+                                                width="100%"
+                                                bg="rgba(253, 197, 29, 0.12)"
+                                                _dark={{
+                                                    bg: 'rgba(253, 197, 29, 0.10)',
+                                                }}
+                                                borderRadius="md"
+                                                px={3}
+                                                py={2}
+                                            >
+                                                <Icon
+                                                    as={FaInfoCircle}
+                                                    boxSize={3.5}
+                                                    mt={0.5}
+                                                    color="brand.yellowDark"
+                                                    _dark={{
+                                                        color: 'brand.yellow',
+                                                    }}
+                                                />
+                                                <Text
+                                                    fontSize="xs"
+                                                    fontWeight="semibold"
+                                                    color="brand.yellowDark"
+                                                    _dark={{
+                                                        color: 'brand.yellow',
+                                                    }}
+                                                    textAlign="left"
+                                                    lineHeight="short"
+                                                >
+                                                    Your wallet has no ETH on
+                                                    Base for gas. Swap a tiny
+                                                    bit of USDC for ETH below,
+                                                    $0.25 is more than enough.
+                                                </Text>
+                                            </HStack>
+                                        )}
+                                    {!withdrawSuccessFlash &&
+                                        !isSettlementPending &&
+                                        !isGasMode &&
+                                        withdrawStatus === 'error' &&
+                                        withdrawError && (
+                                            <HStack
+                                                spacing={2}
+                                                alignItems="flex-start"
+                                                bg="red.50"
+                                                _dark={{
+                                                    bg: 'rgba(254, 178, 178, 0.12)',
+                                                }}
+                                                borderRadius="md"
+                                                px={3}
+                                                py={2}
+                                                width="100%"
+                                            >
+                                                <Icon
+                                                    as={FaInfoCircle}
+                                                    boxSize={3.5}
+                                                    mt={0.5}
+                                                    color="red.700"
+                                                    _dark={{ color: 'red.300' }}
+                                                />
+                                                <Text
+                                                    fontSize="xs"
+                                                    fontWeight="semibold"
+                                                    color="red.700"
+                                                    _dark={{ color: 'red.300' }}
+                                                    textAlign="left"
+                                                    wordBreak="break-word"
+                                                >
+                                                    {withdrawError}
+                                                </Text>
+                                            </HStack>
+                                        )}
+
+                                    {withdrawSuccessFlash ? (
+                                        <HStack
+                                            w="100%"
+                                            h="56px"
+                                            bg="brand.green"
+                                            borderRadius="bigButton"
+                                            justify="center"
+                                            spacing={2}
+                                            boxShadow="inset 0 1px 0 rgba(255,255,255,0.18), 0 3px 0 #1F7A56"
+                                        >
+                                            <Icon
+                                                as={FaCheck}
+                                                color="white"
+                                                boxSize={4}
+                                            />
+                                            <Text
+                                                fontSize="md"
+                                                fontWeight={800}
+                                                color="white"
+                                                letterSpacing="-0.01em"
+                                            >
+                                                ${existingUsdc} sent to your
+                                                wallet
+                                            </Text>
+                                        </HStack>
+                                    ) : isSettlementPending ? (
+                                        <Button
+                                            w="100%"
+                                            h="56px"
+                                            borderRadius="bigButton"
+                                            bg="transparent"
+                                            border="2px solid"
+                                            borderColor="brand.yellow"
+                                            cursor="default"
+                                            _hover={{ bg: 'transparent' }}
+                                            _active={{ bg: 'transparent' }}
+                                        >
+                                            <HStack spacing={2}>
+                                                <Spinner
+                                                    size="xs"
+                                                    color="brand.yellowDark"
+                                                    _dark={{
+                                                        color: 'brand.yellow',
+                                                    }}
+                                                    thickness="2px"
+                                                />
+                                                <Text
+                                                    fontSize="md"
+                                                    fontWeight={700}
+                                                    letterSpacing="-0.01em"
+                                                    color="brand.yellowDark"
+                                                    _dark={{
+                                                        color: 'brand.yellow',
+                                                    }}
+                                                >
+                                                    Checking in{' '}
+                                                    {withdrawCountdownSeconds}s…
+                                                </Text>
+                                            </HStack>
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="tactilePrimary"
+                                            size="lg"
+                                            w="100%"
+                                            h="56px"
+                                            {...(isGasMode
+                                                ? {
+                                                      bg: '#0052FF',
+                                                      _hover: { bg: '#0052FF' },
+                                                      _active: {
+                                                          bg: '#0040CC',
+                                                      },
+                                                  }
+                                                : {})}
+                                            isLoading={
+                                                withdrawStatus ===
+                                                'withdrawing'
+                                            }
+                                            loadingText="Cashing out…"
+                                            spinner={
+                                                <Spinner
+                                                    size="sm"
+                                                    color="white"
+                                                />
+                                            }
+                                            color="white"
+                                            _hover={{ color: 'white' }}
+                                            _active={{ color: 'white' }}
+                                            _focus={{ color: 'white' }}
+                                            _loading={{ color: 'white' }}
+                                        >
+                                            {isGasMode && (
+                                                <Box
+                                                    position="relative"
+                                                    boxSize="26px"
+                                                    mr={2}
+                                                    flexShrink={0}
+                                                >
+                                                    <Box
+                                                        boxSize="26px"
+                                                        borderRadius="full"
+                                                        bg="white"
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                        boxShadow="0 0 0 1px rgba(0,0,0,0.06)"
+                                                    >
+                                                        <Image
+                                                            src="/networkLogos/eth-logo.png"
+                                                            alt="ETH"
+                                                            boxSize="20px"
+                                                            objectFit="contain"
+                                                        />
+                                                    </Box>
+                                                    <Image
+                                                        src="/networkLogos/base-logo.png"
+                                                        alt="on Base"
+                                                        position="absolute"
+                                                        bottom="-2px"
+                                                        right="-2px"
+                                                        boxSize="13px"
+                                                        borderRadius="full"
+                                                        border="1.5px solid white"
+                                                    />
+                                                </Box>
+                                            )}
+                                            <Text
+                                                as="span"
+                                                fontSize="md"
+                                                fontWeight={800}
+                                                color="white"
+                                                letterSpacing="-0.01em"
+                                            >
+                                                {isGasMode
+                                                    ? 'Swap $0.25 → ETH'
+                                                    : existingUsdc
+                                                      ? `Cash out · $${existingUsdc}`
+                                                      : 'Cash out'}
+                                            </Text>
+                                        </Button>
+                                    )}
+                                </VStack>
+                            </Box>
+                        </>
+                    );
+                })()
             ) : (
                 <>
                     <Box textAlign="center" pt={10} pb={2} px={6}>
@@ -653,101 +1016,149 @@ const TakeSeatPreview: React.FC<TakeSeatPreviewProps> = ({
                                 </HStack>
                             )}
 
-                            {isBalanceInsufficient && (
+                            {isBalanceInsufficient && deficitUsdc && usdcBalance && (
                                 <HStack
                                     spacing={2}
                                     alignItems="flex-start"
-                                    bg="red.50"
+                                    width="100%"
+                                    bg="rgba(253, 197, 29, 0.12)"
+                                    _dark={{
+                                        bg: 'rgba(253, 197, 29, 0.10)',
+                                    }}
                                     borderRadius="md"
                                     px={3}
                                     py={2}
-                                    width="100%"
                                 >
                                     <Icon
                                         as={FaInfoCircle}
                                         boxSize={3.5}
                                         mt={0.5}
-                                        color="red.700"
+                                        color="brand.yellowDark"
+                                        _dark={{ color: 'brand.yellow' }}
                                     />
                                     <Text
                                         fontSize="xs"
                                         fontWeight="semibold"
-                                        color="red.700"
+                                        color="brand.yellowDark"
+                                        _dark={{ color: 'brand.yellow' }}
                                         textAlign="left"
+                                        lineHeight="short"
                                     >
-                                        Insufficient USDC balance
-                                        {usdcBalance ? ` (you have ${usdcBalance} USDC)` : ''}.
+                                        You have {usdcBalance} USDC.{' '}
+                                        {canBridgeTopUp
+                                            ? `Top up ${deficitUsdc} to sit at this buy-in.`
+                                            : `Add ${deficitUsdc} USDC from your wallet to sit at this buy-in.`}
                                     </Text>
                                 </HStack>
                             )}
+                            {!isBalanceInsufficient &&
+                                isGasInsufficient &&
+                                isCryptoGame && (
+                                    <HStack
+                                        spacing={2}
+                                        alignItems="flex-start"
+                                        width="100%"
+                                        bg="rgba(253, 197, 29, 0.12)"
+                                        _dark={{
+                                            bg: 'rgba(253, 197, 29, 0.10)',
+                                        }}
+                                        borderRadius="md"
+                                        px={3}
+                                        py={2}
+                                    >
+                                        <Icon
+                                            as={FaInfoCircle}
+                                            boxSize={3.5}
+                                            mt={0.5}
+                                            color="brand.yellowDark"
+                                            _dark={{ color: 'brand.yellow' }}
+                                        />
+                                        <Text
+                                            fontSize="xs"
+                                            fontWeight="semibold"
+                                            color="brand.yellowDark"
+                                            _dark={{ color: 'brand.yellow' }}
+                                            textAlign="left"
+                                            lineHeight="short"
+                                        >
+                                            {canBridgeTopUp
+                                                ? 'Your wallet has no ETH on Base for gas. Swap a tiny bit of USDC for ETH below — $0.25 is more than enough.'
+                                                : 'Your wallet needs a small amount of ETH on Base to pay gas. Buy ETH inside your wallet or send a few cents to this address, then try again.'}
+                                        </Text>
+                                    </HStack>
+                                )}
 
                             <Button
+                                variant="tactilePrimary"
                                 w="100%"
                                 h="56px"
                                 borderRadius="bigButton"
-                                bg={
-                                    isDepositing
-                                        ? 'brand.green'
-                                        : isJoinDisabled
-                                          ? 'btn.lightGray'
-                                          : 'brand.green'
+                                {...(isGasTopUpMode
+                                    ? {
+                                          bg: '#0052FF',
+                                          _hover: { bg: '#0052FF' },
+                                          _active: { bg: '#0040CC' },
+                                      }
+                                    : {})}
+                                isDisabled={
+                                    isTopUpMode || isGasTopUpMode
+                                        ? false
+                                        : isJoinDisabled && !isDepositing
                                 }
-                                color={isDepositing ? 'white' : undefined}
-                                border="none"
-                                cursor={isDepositing ? 'wait' : undefined}
                                 isLoading={isDepositing}
                                 loadingText={
                                     depositStatusMessage || 'Processing...'
                                 }
                                 spinner={<Spinner size="sm" color="white" />}
-                                boxShadow={
-                                    isDepositing
-                                        ? '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                                        : isJoinDisabled
-                                          ? 'none'
-                                          : '0 6px 18px rgba(54, 163, 123, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                                }
-                                _disabled={
-                                    isDepositing
-                                        ? {
-                                              bg: 'brand.green',
-                                              color: 'white',
-                                              cursor: 'wait',
-                                              opacity: 1,
-                                              boxShadow:
-                                                  '0 6px 18px rgba(54, 163, 123, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                                          }
-                                        : undefined
-                                }
-                                _hover={
-                                    isJoinDisabled || isDepositing
-                                        ? {}
-                                        : {
-                                              bg: '#2E8A66',
-                                              transform: 'translateY(-2px)',
-                                              boxShadow:
-                                                  '0 14px 28px rgba(54, 163, 123, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.22)',
-                                          }
-                                }
-                                _active={{
-                                    bg: isJoinDisabled
-                                        ? 'btn.lightGray'
-                                        : '#287859',
-                                    transform: isJoinDisabled
-                                        ? 'none'
-                                        : 'translateY(0) scale(0.99)',
-                                }}
-                                transition="all 0.2s ease"
                             >
+                                {isGasTopUpMode && (
+                                    <Box
+                                        position="relative"
+                                        boxSize="26px"
+                                        mr={2}
+                                        flexShrink={0}
+                                    >
+                                        <Box
+                                            boxSize="26px"
+                                            borderRadius="full"
+                                            bg="white"
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            boxShadow="0 0 0 1px rgba(0,0,0,0.06)"
+                                        >
+                                            <Image
+                                                src="/networkLogos/eth-logo.png"
+                                                alt="ETH"
+                                                boxSize="20px"
+                                                objectFit="contain"
+                                            />
+                                        </Box>
+                                        <Image
+                                            src="/networkLogos/base-logo.png"
+                                            alt="on Base"
+                                            position="absolute"
+                                            bottom="-2px"
+                                            right="-2px"
+                                            boxSize="13px"
+                                            borderRadius="full"
+                                            border="1.5px solid white"
+                                        />
+                                    </Box>
+                                )}
                                 <Text
                                     fontSize="md"
-                                    fontWeight="bold"
-                                    letterSpacing="-0.01em"
-                                    color={isJoinDisabled ? 'text.muted' : 'white'}
+                                    fontWeight={700}
+                                    letterSpacing="0.02em"
+                                    color="white"
                                 >
-                                    {isCryptoGame
-                                        ? `Sit down · $${formattedUsdcEst}`
-                                        : 'Join game'}
+                                    {!isCryptoGame
+                                        ? 'Join game'
+                                        : isTopUpMode && deficitUsdc
+                                          ? `Top up ${deficitUsdc} USDC`
+                                          : isGasTopUpMode
+                                            ? 'Swap $0.25 → ETH'
+                                            : `Sit down · $${formattedUsdcEst}`}
                                 </Text>
                             </Button>
 
@@ -997,9 +1408,13 @@ export const CryptoNotConnected: Story = {
     },
 };
 
-/** Insufficient balance — red warning banner + greyed chip stack. */
-export const InsufficientBalance: Story = {
-    name: 'Crypto · insufficient balance',
+/**
+ * Insufficient balance, Bridge available — CTA flips to "Top up X USDC"
+ * (single primary action). Slim chip-yellow deficit line above the CTA;
+ * no red banner. Tapping the CTA opens TopUpModal in production.
+ */
+export const CryptoInsufficientBalanceTopUp: Story = {
+    name: 'Crypto · insufficient balance (Top Up CTA)',
     args: {
         isCryptoGame: true,
         xUsername: '0xVoxin',
@@ -1009,6 +1424,95 @@ export const InsufficientBalance: Story = {
         walletAddress: '0xFA0412345678901234567890123456789012445b',
         isConnected: true,
         isBalanceInsufficient: true,
+        canBridgeTopUp: true,
+        defaultBuyInChips: 1000,
+    },
+};
+
+/**
+ * Insufficient balance, Bridge unavailable (testnet or Mini App host) — CTA
+ * stays as "Sit down · $X" but the deficit hint tells the user to fund
+ * externally. State-aware slot, no double CTA.
+ */
+export const CryptoInsufficientBalanceNoBridge: Story = {
+    name: 'Crypto · insufficient balance (no Bridge — testnet/MiniApp)',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '2.50',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        isBalanceInsufficient: true,
+        canBridgeTopUp: false,
+        defaultBuyInChips: 1000,
+    },
+};
+
+/**
+ * USDC is fine, ETH for gas is not — external EOA (MetaMask, Coinbase
+ * Wallet) sent USDC from a CEX directly to its address and never had any
+ * native ETH. Bridge is unavailable here (testnet / Mini App), so the chip
+ * tells the user to fund externally and the CTA stays "Sit down · $X".
+ */
+export const CryptoGasInsufficient: Story = {
+    name: 'Crypto · gas (ETH) insufficient (no Bridge)',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '50.00',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        isBalanceInsufficient: false,
+        isGasInsufficient: true,
+        canBridgeTopUp: false,
+        defaultBuyInChips: 1000,
+    },
+};
+
+/**
+ * USDC is fine, ETH for gas is not, Bridge available — state-aware CTA
+ * flips to Base-blue with the Base logo and "Buy ETH for gas". Clicking
+ * opens TopUpModal in gas mode (native ETH on Base prefill, ~$0.50).
+ */
+export const CryptoGasInsufficientWithBridge: Story = {
+    name: 'Crypto · gas (ETH) insufficient (Base-blue CTA)',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '50.00',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        isBalanceInsufficient: false,
+        isGasInsufficient: true,
+        canBridgeTopUp: true,
+        defaultBuyInChips: 1000,
+    },
+};
+
+/**
+ * Just topped up — balance refresh fired after BridgeWidget succeeded.
+ * Same modal, CTA reverted to "Sit down · $X" so the user can confirm
+ * with one final tap. (The visual continuity is what makes the state-aware
+ * pattern feel correct.)
+ */
+export const CryptoJustToppedUp: Story = {
+    name: 'Crypto · just topped up (CTA reverted to Sit down)',
+    args: {
+        isCryptoGame: true,
+        xUsername: '0xVoxin',
+        xProfileImageUrl:
+            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        usdcBalance: '14.20',
+        walletAddress: '0xFA0412345678901234567890123456789012445b',
+        isConnected: true,
+        isBalanceInsufficient: false,
+        canBridgeTopUp: true,
         defaultBuyInChips: 1000,
     },
 };
@@ -1045,18 +1549,101 @@ export const Approving: Story = {
     },
 };
 
-/** Existing chips on contract — full-face takeover, withdraw first. */
-export const WithdrawFirst: Story = {
-    name: 'Crypto · withdraw first (takeover)',
+// ── Withdraw-first states ───────────────────────────────────────────────
+// The withdraw-first body takes over the modal when a player has leftover
+// chips on a crypto table from a prior session. Five visual states:
+// Idle / Loading / SettlementPending / Gas / Withdrawing / SuccessFlash /
+// Error. The CTA is state-aware — one primary action per screen.
+
+const WITHDRAW_FIRST_BASE = {
+    isCryptoGame: true,
+    xUsername: '0xVoxin',
+    xProfileImageUrl:
+        'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+    usdcBalance: '82.41',
+    walletAddress: '0xFA0412345678901234567890123456789012445b',
+    isConnected: true,
+    showWithdrawFirst: true,
+    existingChipBalance: '395',
+    canBridgeTopUp: true,
+} as const;
+
+/** Idle — chips on contract, ready to withdraw. Green "Cash out · $3.95". */
+export const WithdrawFirstIdle: Story = {
+    name: 'Crypto · withdraw first · idle',
+    args: { ...WITHDRAW_FIRST_BASE },
+};
+
+/** Loading — initial balance read in flight. "Checking your stack…" with spinner. */
+export const WithdrawFirstLoading: Story = {
+    name: 'Crypto · withdraw first · loading',
+    args: { ...WITHDRAW_FIRST_BASE, existingChipBalance: null },
+};
+
+/** Settlement pending — last hand still settling. Outlined yellow CTA + countdown. */
+export const WithdrawFirstSettlementPending: Story = {
+    name: 'Crypto · withdraw first · settlement pending',
     args: {
-        isCryptoGame: true,
-        xUsername: '0xVoxin',
-        xProfileImageUrl:
-            'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
-        usdcBalance: '82.41',
-        walletAddress: '0xFA0412345678901234567890123456789012445b',
-        isConnected: true,
-        showWithdrawFirst: true,
-        existingChipBalance: '5,000',
+        ...WITHDRAW_FIRST_BASE,
+        withdrawCanWithdraw: false,
+        withdrawCountdownSeconds: 4,
+    },
+};
+
+/** Gas insufficient — Base-blue "Swap $0.25 → ETH" CTA reuses the deposit gas pattern. */
+export const WithdrawFirstGas: Story = {
+    name: 'Crypto · withdraw first · gas insufficient',
+    args: {
+        ...WITHDRAW_FIRST_BASE,
+        withdrawGasInsufficient: true,
+    },
+};
+
+/** Withdrawing — CTA in loading state, "Cashing out…". */
+export const WithdrawFirstWithdrawing: Story = {
+    name: 'Crypto · withdraw first · withdrawing',
+    args: {
+        ...WITHDRAW_FIRST_BASE,
+        withdrawStatus: 'withdrawing',
+    },
+};
+
+/**
+ * Success flash (~2s) — Felt-green chip replaces the CTA with a check icon
+ * and "$3.95 sent to your wallet". After 2s in production this collapses
+ * into the normal join flow body; here it's frozen for inspection.
+ */
+export const WithdrawFirstSuccessFlash: Story = {
+    name: 'Crypto · withdraw first · success flash',
+    args: {
+        ...WITHDRAW_FIRST_BASE,
+        withdrawSuccessFlash: true,
+    },
+};
+
+/**
+ * Error — red chip with the actionable message (mapped from raw wallet
+ * errors via useWithdraw's insufficient-funds catch). CTA stays enabled
+ * so the user can retry.
+ */
+export const WithdrawFirstError: Story = {
+    name: 'Crypto · withdraw first · error',
+    args: {
+        ...WITHDRAW_FIRST_BASE,
+        withdrawStatus: 'error',
+        withdrawError:
+            'Not enough ETH on Base for gas. Swap a tiny bit of USDC for ETH and try again.',
+    },
+};
+
+/**
+ * Large stack — 25,000 chips ($250). Validates 6-figure USDC formatting
+ * and that the value display doesn't overflow on mobile widths.
+ */
+export const WithdrawFirstLargeStack: Story = {
+    name: 'Crypto · withdraw first · large stack',
+    args: {
+        ...WITHDRAW_FIRST_BASE,
+        existingChipBalance: '25,000',
     },
 };

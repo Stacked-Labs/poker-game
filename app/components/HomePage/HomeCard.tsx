@@ -12,16 +12,13 @@ import {
     Box,
     Heading,
     Text,
-    Badge,
     Input,
     Icon,
     useMediaQuery,
 } from '@chakra-ui/react';
-import { RiTwitterXLine } from 'react-icons/ri';
 import { MdArrowForward, MdCheck } from 'react-icons/md';
-import { FaDiscord } from 'react-icons/fa';
-import { FaTelegram } from 'react-icons/fa6';
 import WalletButton from '@/app/components/WalletButton';
+import { SocialIconButton } from '@/app/components/SocialIconButton';
 import NewsletterSuccessModal from './NewsletterSuccessModal';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useRouter } from 'next/navigation';
@@ -30,18 +27,11 @@ import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { useActiveAccount } from 'thirdweb/react';
 import { useDisclosure } from '@chakra-ui/react';
 
-const MotionButton = motion(Button);
 const MotionBox = motion(Box);
 const MotionStack = motion(Stack);
 const MotionFlex = motion(Flex);
 
 // Animations
-const gradientShift = keyframes`
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-`;
-
 const pulse = keyframes`
     0%, 100% {
         opacity: 0.15;
@@ -65,19 +55,13 @@ const swapSecondary = keyframes`
     100% { opacity: 0; transform: translateY(4px); }
 `;
 
-// Premium shine sweep animation
-const shineSweep = keyframes`
-    0% { transform: translateX(-100%) rotate(25deg); }
-    100% { transform: translateX(200%) rotate(25deg); }
-`;
-
 const slideUp = keyframes`
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
 `;
 
 // Flip to true to restore the Play Now / Create / Join buttons
-const SHOW_PLAY_BUTTONS = false;
+const SHOW_PLAY_BUTTONS = true;
 
 const HomeCard = () => {
     const [isCreating, setIsCreating] = useState(false);
@@ -168,7 +152,7 @@ const HomeCard = () => {
             pb={{ base: '40px', lg: 0 }}
             px={{ base: 3, md: 4 }}
         >
-            {/* Animated Background Glow - More diffuse and elegant */}
+            {/* Ambient brand glow — quiet, single-color emphasis on Neon Stake */}
             <Box
                 position="absolute"
                 width={{ base: '300px', md: '400px', lg: '500px' }}
@@ -180,11 +164,14 @@ const HomeCard = () => {
                     md: 'blur(120px)',
                     lg: 'blur(140px)',
                 }}
-                animation={`${pulse} 5s ease-in-out infinite`}
+                opacity={0.5}
+                animation={
+                    allowMotion ? `${pulse} 5s ease-in-out infinite` : 'none'
+                }
                 zIndex={0}
             />
 
-            {/* Secondary glow */}
+            {/* Secondary felt-green wash, low opacity */}
             <Box
                 position="absolute"
                 width={{ base: '200px', md: '280px', lg: '350px' }}
@@ -196,13 +183,17 @@ const HomeCard = () => {
                     md: 'blur(100px)',
                     lg: 'blur(120px)',
                 }}
-                opacity={0.12}
+                opacity={0.06}
                 transform="translate(30%, 20%)"
-                animation={`${pulse} 6s ease-in-out 1.5s infinite`}
+                animation={
+                    allowMotion
+                        ? `${pulse} 6s ease-in-out 1.5s infinite`
+                        : 'none'
+                }
                 zIndex={0}
             />
 
-            {/* Tertiary yellow glow for depth */}
+            {/* Tertiary chip-yellow wash for depth */}
             <Box
                 position="absolute"
                 width={{ base: '120px', md: '180px', lg: '220px' }}
@@ -214,13 +205,17 @@ const HomeCard = () => {
                     md: 'blur(100px)',
                     lg: 'blur(120px)',
                 }}
-                opacity={0.08}
+                opacity={0.04}
                 transform="translate(-40%, 30%)"
-                animation={`${pulse} 7s ease-in-out 2s infinite`}
+                animation={
+                    allowMotion
+                        ? `${pulse} 7s ease-in-out 2s infinite`
+                        : 'none'
+                }
                 zIndex={0}
             />
 
-            {/* Main Card Container - Premium Glass */}
+            {/* Main Card Container */}
             <MotionFlex
                 position="relative"
                 borderRadius={{ base: '24px', md: '28px', lg: '32px' }}
@@ -232,7 +227,8 @@ const HomeCard = () => {
                 bg="card.heroBg"
                 boxShadow="card.hero"
                 overflow="hidden"
-                backdropFilter="blur(32px) saturate(1.2)"
+                border="1px solid"
+                borderColor="border.lightGray"
                 initial={{ opacity: 0, y: 30, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{
@@ -242,102 +238,19 @@ const HomeCard = () => {
                     mass: 1,
                 }}
             >
-                {/* Animated Gradient Border */}
-                <Box
-                    position="absolute"
-                    top={0}
-                    left={0}
-                    right={0}
-                    bottom={0}
-                    borderRadius={{ base: '24px', md: '28px', lg: '32px' }}
-                    padding="1.5px"
-                    bgGradient="linear(to-r, brand.pink, brand.green, brand.yellow, brand.pink)"
-                    backgroundSize="300% 300%"
-                    animation={`${gradientShift} 8s ease infinite`}
-                    opacity={0.6}
-                    pointerEvents="none"
-                >
-                    <Box
-                        width="100%"
-                        height="100%"
-                        bg="card.heroInnerBg"
-                        borderRadius={{ base: '22.5px', md: '26.5px', lg: '30.5px' }}
-                    />
-                </Box>
-
-                {/* Shine sweep effect */}
-                <Box
-                    position="absolute"
-                    top={0}
-                    left={0}
-                    right={0}
-                    bottom={0}
-                    overflow="hidden"
-                    borderRadius={{ base: '24px', md: '28px', lg: '32px' }}
-                    pointerEvents="none"
-                    zIndex={2}
-                    sx={{
-                        '&::after': {
-                            content: '""',
-                            position: 'absolute',
-                            top: '-50%',
-                            left: '-50%',
-                            width: '50%',
-                            height: '200%',
-                            background:
-                                'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent)',
-                            animation: allowMotion
-                                ? `${shineSweep} 6s ease-in-out 2s infinite`
-                                : 'none',
-                        },
-                    }}
-                />
-
                 {/* Content */}
                 <Stack
-                    gap={{ base: 3, md: 5 }}
+                    gap={{ base: 2.5, md: 3 }}
                     flex={1}
                     justifyContent="center"
                     width="100%"
                     className="home-card-content"
                     alignItems="center"
-                    py={{ base: 6, md: 8, lg: 10 }}
+                    py={{ base: 5, md: 7, lg: 8 }}
                     px={{ base: 5, sm: 8, md: 10, lg: 12 }}
                     position="relative"
                     zIndex={1}
                 >
-                    {/* Pill Badge */}
-                    <MotionBox
-                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{
-                            ...springTransition,
-                            delay: 0.2,
-                        }}
-                    >
-                        <Badge
-                            bg="rgba(54, 163, 123, 0.08)"
-                            color="brand.green"
-                            px={4}
-                            py={1.5}
-                            borderRadius="full"
-                            fontSize="2xs"
-                            fontWeight="bold"
-                            letterSpacing="0.1em"
-                            textTransform="uppercase"
-                            border="1px solid"
-                            borderColor="rgba(54, 163, 123, 0.15)"
-                            backdropFilter="blur(12px)"
-                            transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                            _hover={{
-                                bg: 'rgba(54, 163, 123, 0.14)',
-                                borderColor: 'rgba(54, 163, 123, 0.3)',
-                            }}
-                        >
-                            ⚡ PRE-LAUNCH · CLOSED BETA
-                        </Badge>
-                    </MotionBox>
-
                     {/* Logo/Title Section */}
                     <MotionBox
                         textAlign="center"
@@ -360,30 +273,76 @@ const HomeCard = () => {
                             lineHeight={1.05}
                             letterSpacing="-0.04em"
                             color="text.primary"
-                            textAlign="center"
+                            whiteSpace="nowrap"
                         >
-                            Poker without the{' '}
                             <Box
                                 as="span"
-                                color="brand.pink"
-                                position="relative"
-                                display="inline-block"
+                                display="inline-flex"
+                                alignItems="center"
+                                gap="0.25ch"
                             >
-                                paperwork
+                                <Box as="span">Your&nbsp;</Box>
                                 <Box
                                     as="span"
-                                    position="absolute"
-                                    left="-3px"
-                                    right="-3px"
-                                    bottom="6px"
-                                    height="8px"
-                                    bg="brand.pink"
-                                    opacity={0.12}
-                                    borderRadius="full"
-                                    zIndex={-1}
-                                />
+                                    position="relative"
+                                    display="inline-flex"
+                                    alignItems="center"
+                                    minW={{ base: '4.5ch', md: '4.5ch' }}
+                                    height="1em"
+                                >
+                                    <Box
+                                        position="absolute"
+                                        inset={0}
+                                        display="inline-flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        animation={swapHeadingPrimaryMotion}
+                                    >
+                                        <Box
+                                            as="span"
+                                            color="brand.green"
+                                            position="relative"
+                                            display="inline-block"
+                                        >
+                                            Table
+                                            <Box
+                                                as="span"
+                                                position="absolute"
+                                                left="-3px"
+                                                right="-3px"
+                                                bottom="6px"
+                                                height="8px"
+                                                bg="brand.green"
+                                                opacity={0.12}
+                                                borderRadius="full"
+                                                zIndex={-1}
+                                            />
+                                        </Box>
+                                    </Box>
+                                    <Box
+                                        position="absolute"
+                                        inset={0}
+                                        display="inline-flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        opacity={allowMotion ? undefined : 0}
+                                        animation={swapHeadingSecondaryMotion}
+                                    >
+                                        <Box
+                                            as="span"
+                                            bg="brand.pink"
+                                            color="white"
+                                            px={2}
+                                            borderRadius="md"
+                                            display="inline-block"
+                                            transform="rotate(-1deg)"
+                                        >
+                                            Rules
+                                        </Box>
+                                    </Box>
+                                </Box>
+                                <Box as="span">.</Box>
                             </Box>
-                            .
                         </Heading>
                     </MotionBox>
 
@@ -405,9 +364,8 @@ const HomeCard = () => {
                                 color="text.gray600"
                                 lineHeight={1.6}
                                 fontWeight="medium"
-                                textAlign="center"
                             >
-                                Browser-based Texas Hold&apos;em with friends. Free play, or real stakes in USDC on Base. Closed beta opening soon — claim your seat.
+                                Host a game. Invite the crew.
                             </Text>
 
                             <HStack spacing={2} flexWrap="wrap" justify="center">
@@ -427,7 +385,6 @@ const HomeCard = () => {
                                             h="5px"
                                             bg="brand.green"
                                             borderRadius="full"
-                                            boxShadow="0 0 6px rgba(54, 163, 123, 0.5)"
                                         />
                                         <Text
                                             fontSize="2xs"
@@ -447,7 +404,7 @@ const HomeCard = () => {
                     {/* Buttons Section */}
                     {SHOW_PLAY_BUTTONS && (
                         <MotionStack
-                            gap={{ base: 3, md: 3 }}
+                            gap={{ base: 2, md: 2.5 }}
                             width="100%"
                             maxW={{ base: '100%', sm: '320px' }}
                             initial={{ opacity: 0, y: 15 }}
@@ -468,62 +425,15 @@ const HomeCard = () => {
                                             transition: { duration: 0.2 },
                                         }}
                                     >
-                                        <MotionButton
-                                            height={{
-                                                base: '64px',
-                                                md: '64px',
-                                            }}
-                                            fontSize={{
-                                                base: 'lg',
-                                                md: 'xl',
-                                            }}
-                                            fontWeight="900"
-                                            borderRadius="18px"
-                                            bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.85))"
-                                            color="white"
-                                            border="none"
-                                            onClick={handlePlayNow}
+                                        <Button
+                                            variant="tactilePrimary"
+                                            height="48px"
                                             width="100%"
-                                            position="relative"
-                                            overflow="hidden"
-                                            letterSpacing="0.05em"
-                                            boxShadow="0 12px 26px rgba(54, 163, 123, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.25)"
-                                            whileHover={{
-                                                y: -3,
-                                                scale: 1.02,
-                                                transition: {
-                                                    type: 'spring',
-                                                    stiffness: 400,
-                                                    damping: 17,
-                                                },
-                                            }}
-                                            whileTap={{
-                                                scale: 0.97,
-                                                y: 0,
-                                            }}
-                                            _hover={{
-                                                bgGradient:
-                                                    'linear(to-r, rgba(54, 163, 123, 0.95), rgba(54, 163, 123, 0.8))',
-                                                boxShadow:
-                                                    '0 16px 36px rgba(54, 163, 123, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.3)',
-                                            }}
-                                            sx={{
-                                                '&::before': {
-                                                    content: '""',
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    right: 0,
-                                                    height: '50%',
-                                                    background:
-                                                        'linear-gradient(to bottom, rgba(255, 255, 255, 0.15), transparent)',
-                                                    borderRadius: 'inherit',
-                                                    pointerEvents: 'none',
-                                                },
-                                            }}
+                                            fontSize={{ base: 'md', md: 'lg' }}
+                                            onClick={handlePlayNow}
                                         >
-                                            [ PLAY NOW ]
-                                        </MotionButton>
+                                            PLAY NOW
+                                        </Button>
                                     </MotionBox>
                                 ) : (
                                     <MotionBox
@@ -540,137 +450,48 @@ const HomeCard = () => {
                                             damping: 22,
                                         }}
                                     >
-                                        <Stack
-                                            spacing={{ base: 2.5, md: 3 }}
-                                            width="100%"
-                                        >
-                                            <MotionButton
-                                                height={{
-                                                    base: '52px',
-                                                    md: '56px',
-                                                }}
+                                        <HStack spacing={2.5} width="100%">
+                                            <Button
+                                                variant="tactilePrimary"
+                                                flex={1}
+                                                height="48px"
                                                 fontSize={{
-                                                    base: 'md',
-                                                    md: 'lg',
+                                                    base: 'sm',
+                                                    md: 'md',
                                                 }}
-                                                fontWeight="900"
-                                                borderRadius="16px"
-                                                bgGradient="linear(to-r, brand.green, rgba(54, 163, 123, 0.9))"
-                                                color="white"
-                                                border="none"
                                                 onClick={handleCreateGame}
                                                 isLoading={isCreating}
                                                 loadingText="Creating"
-                                                letterSpacing="0.04em"
                                                 spinner={
                                                     <Spinner
                                                         size="sm"
                                                         color="white"
                                                     />
                                                 }
-                                                position="relative"
-                                                overflow="hidden"
-                                                boxShadow="0 10px 22px rgba(54, 163, 123, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.2)"
-                                                whileHover={{
-                                                    y: -2,
-                                                    scale: 1.02,
-                                                    transition: {
-                                                        type: 'spring',
-                                                        stiffness: 400,
-                                                        damping: 17,
-                                                    },
-                                                }}
-                                                whileTap={{
-                                                    scale: 0.97,
-                                                    y: 0,
-                                                }}
-                                                _hover={{
-                                                    bgGradient:
-                                                        'linear(to-r, rgba(54, 163, 123, 0.98), rgba(54, 163, 123, 0.85))',
-                                                    boxShadow:
-                                                        '0 14px 30px rgba(54, 163, 123, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.25)',
-                                                }}
-                                                sx={{
-                                                    '&::before': {
-                                                        content: '""',
-                                                        position: 'absolute',
-                                                        top: 0,
-                                                        left: 0,
-                                                        right: 0,
-                                                        height: '50%',
-                                                        background:
-                                                            'linear-gradient(to bottom, rgba(255, 255, 255, 0.12), transparent)',
-                                                        borderRadius: 'inherit',
-                                                        pointerEvents: 'none',
-                                                    },
-                                                }}
                                             >
                                                 CREATE
-                                            </MotionButton>
-                                            <MotionButton
-                                                height={{
-                                                    base: '52px',
-                                                    md: '56px',
-                                                }}
+                                            </Button>
+                                            <Button
+                                                variant="tactileOutline"
+                                                flex={1}
+                                                height="48px"
                                                 fontSize={{
-                                                    base: 'md',
-                                                    md: 'lg',
+                                                    base: 'sm',
+                                                    md: 'md',
                                                 }}
-                                                fontWeight="900"
-                                                borderRadius="16px"
-                                                bg="white"
-                                                color="brand.green"
-                                                border="1.5px solid"
-                                                borderColor="rgba(54, 163, 123, 0.25)"
                                                 onClick={handleJoinGame}
                                                 isLoading={isJoining}
                                                 loadingText="Joining"
-                                                letterSpacing="0.04em"
                                                 spinner={
                                                     <Spinner
                                                         size="sm"
                                                         color="brand.green"
                                                     />
                                                 }
-                                                boxShadow="0 10px 22px rgba(17, 24, 39, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
-                                                whileHover={{
-                                                    y: -2,
-                                                    scale: 1.02,
-                                                    transition: {
-                                                        type: 'spring',
-                                                        stiffness: 400,
-                                                        damping: 17,
-                                                    },
-                                                }}
-                                                whileTap={{
-                                                    scale: 0.97,
-                                                    y: 0,
-                                                }}
-                                                _hover={{
-                                                    bg: 'rgba(54, 163, 123, 0.06)',
-                                                    borderColor:
-                                                        'rgba(54, 163, 123, 0.4)',
-                                                    boxShadow:
-                                                        '0 14px 30px rgba(17, 24, 39, 0.1)',
-                                                }}
-                                                _dark={{
-                                                    bg: 'rgba(255, 255, 255, 0.06)',
-                                                    color: 'brand.green',
-                                                    borderColor:
-                                                        'rgba(255, 255, 255, 0.1)',
-                                                    boxShadow: 'none',
-                                                    _hover: {
-                                                        bg: 'rgba(255, 255, 255, 0.12)',
-                                                        borderColor:
-                                                            'rgba(255, 255, 255, 0.2)',
-                                                        boxShadow:
-                                                            '0 14px 26px rgba(0, 0, 0, 0.2)',
-                                                    },
-                                                }}
                                             >
                                                 JOIN
-                                            </MotionButton>
-                                        </Stack>
+                                            </Button>
+                                        </HStack>
                                     </MotionBox>
                                 )}
                             </AnimatePresence>
@@ -769,9 +590,9 @@ const HomeCard = () => {
                                     align="center"
                                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.04)"
                                     _focusWithin={{
-                                        borderColor: 'brand.green',
+                                        borderColor: 'brand.pink',
                                         boxShadow:
-                                            '0 2px 12px rgba(54, 163, 123, 0.12)',
+                                            '0 0 0 3px rgba(235, 11, 92, 0.1)',
                                     }}
                                 >
                                     <Input
@@ -795,6 +616,7 @@ const HomeCard = () => {
                                     />
                                     <IconButton
                                         type="submit"
+                                        variant="tactilePrimary"
                                         aria-label="Subscribe"
                                         icon={
                                             <Icon
@@ -802,25 +624,12 @@ const HomeCard = () => {
                                                 boxSize={4}
                                             />
                                         }
-                                        bg="brand.green"
-                                        color="white"
                                         size="sm"
                                         borderRadius="full"
-                                        minW="34px"
-                                        h="34px"
+                                        minW={{ base: '40px', md: '36px' }}
+                                        h={{ base: '40px', md: '36px' }}
                                         flexShrink={0}
                                         isLoading={isSubscribing}
-                                        disabled={isSubscribing}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                        _hover={{
-                                            bg: 'rgba(54, 163, 123, 0.85)',
-                                            transform: 'scale(1.05)',
-                                            boxShadow:
-                                                '0 4px 12px rgba(54, 163, 123, 0.3)',
-                                        }}
-                                        _active={{
-                                            transform: 'scale(0.95)',
-                                        }}
                                     />
                                 </HStack>
                                 <Text
@@ -829,7 +638,7 @@ const HomeCard = () => {
                                     textAlign="center"
                                     opacity={0.7}
                                 >
-                                    Get first access + invites to free-entry tournaments with USDC prizes.
+                                    Game updates. Bonus drops. Special deals.
                                 </Text>
                             </>
                         )}
@@ -844,106 +653,33 @@ const HomeCard = () => {
                             delay: 0.65,
                         }}
                     >
-                        <VStack spacing={2} pt={{ base: 1, md: 2 }}>
-                            <Text
-                                fontSize="2xs"
-                                color="text.muted"
-                                letterSpacing="0.2em"
-                                textTransform="uppercase"
-                                fontWeight="bold"
-                            >
-                                Follow the action
-                            </Text>
-                            <Flex
-                                direction="row"
-                                justify="center"
-                                align="center"
-                                gap={{ base: 4, md: 5 }}
-                                width="100%"
-                            >
+                        <Flex
+                            direction="row"
+                            justify="center"
+                            align="center"
+                            gap={{ base: 2, md: 3 }}
+                            width="100%"
+                            pt={{ base: 0, md: 1 }}
+                        >
                                 <Link
                                     href="https://x.com/stacked_poker"
                                     isExternal
                                 >
-                                    <IconButton
-                                        aria-label="X"
-                                        icon={<RiTwitterXLine size={18} />}
-                                        size="lg"
-                                        variant="social"
-                                        color="text.primary"
-                                        borderRadius="12px"
-                                        w={{ base: '40px', md: '44px' }}
-                                        h={{ base: '40px', md: '44px' }}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                        _hover={{
-                                            bg: '#000000',
-                                            color: 'white',
-                                            transform:
-                                                'translateY(-2px) scale(1.05)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(0, 0, 0, 0.3)',
-                                        }}
-                                        _active={{
-                                            transform: 'scale(0.95)',
-                                        }}
-                                    />
+                                    <SocialIconButton tone="x" chipSize="lg" />
                                 </Link>
                                 <Link
                                     href="https://discord.gg/347RBVcvpn"
                                     isExternal
                                 >
-                                    <IconButton
-                                        aria-label="Discord"
-                                        icon={<FaDiscord size={18} />}
-                                        size="lg"
-                                        variant="social"
-                                        color="#5865F2"
-                                        borderRadius="12px"
-                                        w={{ base: '40px', md: '44px' }}
-                                        h={{ base: '40px', md: '44px' }}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                        _hover={{
-                                            bg: '#5865F2',
-                                            color: 'white',
-                                            transform:
-                                                'translateY(-2px) scale(1.05)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(88, 101, 242, 0.4)',
-                                        }}
-                                        _active={{
-                                            transform: 'scale(0.95)',
-                                        }}
-                                    />
+                                    <SocialIconButton tone="discord" chipSize="lg" />
                                 </Link>
                                 <Link
                                     href="https://t.me/stackedpoker"
                                     isExternal
                                 >
-                                    <IconButton
-                                        aria-label="Telegram"
-                                        icon={<FaTelegram size={18} />}
-                                        size="lg"
-                                        variant="social"
-                                        color="#0088cc"
-                                        borderRadius="12px"
-                                        w={{ base: '40px', md: '44px' }}
-                                        h={{ base: '40px', md: '44px' }}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                                        _hover={{
-                                            bg: '#0088cc',
-                                            color: 'white',
-                                            transform:
-                                                'translateY(-2px) scale(1.05)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(0, 136, 204, 0.4)',
-                                        }}
-                                        _active={{
-                                            transform: 'scale(0.95)',
-                                        }}
-                                    />
+                                    <SocialIconButton tone="telegram" chipSize="lg" />
                                 </Link>
-                            </Flex>
-                        </VStack>
+                        </Flex>
                     </MotionBox>
                 </Stack>
             </MotionFlex>

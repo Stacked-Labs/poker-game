@@ -35,10 +35,21 @@ import {
 } from '@/app/utils/seatReaction';
 import { useAuth } from '@/app/contexts/AuthContext';
 
-/*  
-WebSocket context creates a single connection to the server per client. 
+/*
+WebSocket context creates a single connection to the server per client.
 It handles opening, closing, and error handling of the websocket. It also
-dispatches websocket messages to update the central state store. 
+dispatches websocket messages to update the central state store.
+
+Trust boundary: the WS may open before SIWE auth has completed. The backend
+treats unauthenticated connections as spectators — hole cards are stripped
+via GenerateSpectatorView, ledger/pending-player data is owner-gated, and all
+write actions (take-seat, accept-player, kick-player, start-game, blinds, …)
+are refused without an authenticated session. After SIWE the connection
+force-reconnects and the backend upgrades the session via TryReclaimSeat,
+so no privileged data ever flows over the unauthenticated phase.
+
+If you add a new server → client message, confirm the spectator path doesn't
+leak anything that wasn't already public.
 */
 
 export const SocketContext: Context<WebSocket | null> =
@@ -49,10 +60,12 @@ type SocketProviderProps = {
     tableId: string;
 };
 
-const TOAST_ID_RECONNECTING = 'attemptReconnection';
 const TOAST_ID_RECONNECTED = 'isReconnected';
 const SETTLEMENT_PENDING_SPINNER_DELAY_MS = 3000;
 const SETTLEMENT_SUCCESS_DISPLAY_MS = 2500;
+// Suppress the "Reconnected" toast for blips shorter than this — tab-switch
+// reconnects and sub-3s network hiccups would otherwise spam users.
+const RECONNECT_TOAST_GRACE_MS = 3000;
 
 export function SocketProvider(props: SocketProviderProps) {
     const { tableId } = props;
@@ -70,6 +83,8 @@ export function SocketProvider(props: SocketProviderProps) {
     const appStateRef = useRef(appState);
     const isReconnectingRef = useRef(false);
     const manualCloseRef = useRef(false);
+    const disconnectedAtRef = useRef<number | null>(null);
+    const connectionLostShownRef = useRef(false);
     const winSoundPlayedRef = useRef(false);
     const { isAuthenticated, userAddress } = useAuth();
     const authRef = useRef({ isAuthenticated, address: userAddress });
@@ -196,15 +211,23 @@ export function SocketProvider(props: SocketProviderProps) {
                     address: authRef.current.address,
                 };
                 const wasReconnecting = isReconnectingRef.current;
+                const disconnectedAt = disconnectedAtRef.current;
+                const connectionLostShown = connectionLostShownRef.current;
                 isReconnectingRef.current = false;
-                reconnectionAttemptsRef.current = 0; // Reset attempts on successful open
+                reconnectionAttemptsRef.current = 0;
+                disconnectedAtRef.current = null;
+                connectionLostShownRef.current = false;
 
-                // Close any connection lost toasts
-                toastCloseRef.current(TOAST_ID_RECONNECTING);
                 toastCloseRef.current('connectionFailed');
 
-                if (wasReconnecting) {
-                    // This flag might still be true if this open is from a reconnect attempt
+                const outageMs = disconnectedAt
+                    ? Date.now() - disconnectedAt
+                    : 0;
+                const shouldNotifyReconnect =
+                    connectionLostShown ||
+                    (wasReconnecting && outageMs >= RECONNECT_TOAST_GRACE_MS);
+
+                if (shouldNotifyReconnect) {
                     toastSuccessRef.current(
                         'Reconnected',
                         'Connection restored',
@@ -229,7 +252,10 @@ export function SocketProvider(props: SocketProviderProps) {
                     return;
                 }
 
-                attemptReconnection(); // Attempt to reconnect even if close was clean
+                if (disconnectedAtRef.current === null) {
+                    disconnectedAtRef.current = Date.now();
+                }
+                attemptReconnection();
             };
 
             _socket.onerror = (err) => {
@@ -287,6 +313,10 @@ export function SocketProvider(props: SocketProviderProps) {
                     } else {
                         // false / null / undefined / anything else => not pending
                         dispatch({ type: 'setSeatRequested', payload: null });
+                        // Also clear any stale accepted state from a previous request cycle.
+                        if (appStateRef.current.seatAccepted) {
+                            dispatch({ type: 'setSeatAccepted', payload: null });
+                        }
                     }
                     return; // Message handled
                 }
@@ -336,7 +366,7 @@ export function SocketProvider(props: SocketProviderProps) {
                         dispatch({ type: 'addLog', payload: newLog });
 
                         if (
-                            eventData.message === 'Seat request cancelled successfully.' &&
+                            eventData.message.startsWith('Seat request cancelled successfully.') &&
                             appStateRef.current.seatRequested !== null
                         ) {
                             dispatch({ type: 'setSeatRequested', payload: null });
@@ -405,6 +435,7 @@ export function SocketProvider(props: SocketProviderProps) {
                                 0,
                             rabbitCards: eventData.game?.rabbitCards,
                             settlementStuck: eventData.game?.settlementStuck,
+                            settlementInProgress: eventData.game?.settlementInProgress,
                         };
 
                         const hasAnyCommunityCard = (
@@ -674,18 +705,25 @@ export function SocketProvider(props: SocketProviderProps) {
                         return;
                     }
                     case 'seat-request-accepted': {
-                        // Player's seat request was accepted — single dispatch to set accepted + clear requested
-                        dispatch({
-                            type: 'seatRequestAcceptedBundle',
-                            payload: {
-                                seatAccepted: {
-                                    seatId: eventData.seatId,
-                                    buyIn: eventData.buyIn,
-                                    queued: eventData.queued,
-                                    message: eventData.message,
+                        // Only keep "accepted" UI state when the player is actually queued.
+                        // For immediate seating (queued=false), clear request state and let
+                        // update-game drive the visible seated/cards state.
+                        if (eventData.queued) {
+                            dispatch({
+                                type: 'seatRequestAcceptedBundle',
+                                payload: {
+                                    seatAccepted: {
+                                        seatId: eventData.seatId,
+                                        buyIn: eventData.buyIn,
+                                        queued: eventData.queued,
+                                        message: eventData.message,
+                                    },
                                 },
-                            },
-                        });
+                            });
+                        } else {
+                            dispatch({ type: 'setSeatRequested', payload: null });
+                            dispatch({ type: 'setSeatAccepted', payload: null });
+                        }
                         // Show success toast
                         toastSuccessRef.current(
                             'Seat Accepted',
@@ -810,7 +848,7 @@ export function SocketProvider(props: SocketProviderProps) {
         if (!WS_BASE_URL || reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
             if (reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
                 isReconnectingRef.current = false;
-                toastCloseRef.current(TOAST_ID_RECONNECTING); // dismiss retry toast
+                connectionLostShownRef.current = true;
                 toastConnectionLostRef.current(
                     null, // persist until closed or user refreshes
                     'connectionFailed'

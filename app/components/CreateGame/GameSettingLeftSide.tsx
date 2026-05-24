@@ -11,32 +11,36 @@ import {
     Spinner,
     Box,
     Heading,
-    Select,
     Icon,
-    Divider,
     HStack,
     Image,
     Link,
     Switch,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+    useColorModeValue,
+    useDisclosure,
 } from '@chakra-ui/react';
 import {
     FaInfoCircle,
     FaUsers,
     FaArrowRight,
     FaCheckCircle,
-    FaDiscord,
     FaExternalLinkAlt,
 } from 'react-icons/fa';
-import { FiGift } from 'react-icons/fi';
-import { RiTwitterXLine } from 'react-icons/ri';
-import PlayTypeToggle from './PlayTypeToggle';
+import { FiGift, FiChevronDown } from 'react-icons/fi';
+import ModeChooser, { CreateGameMode } from './ModeChooser';
 import NetworkCard from './NetworkCard';
 import gameData from '../../create-game/gameOptions.json';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import WalletButton from '@/app/components/WalletButton';
+import { SocialIconButton } from '@/app/components/SocialIconButton';
 import { useAuth } from '@/app/contexts/AuthContext';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { useRotatingMessages } from '@/app/hooks/useRotatingMessages';
 import { initSession } from '@/app/hooks/server_actions';
 import {
     useActiveAccount,
@@ -47,22 +51,139 @@ import { CHAIN_CONFIG } from '@/app/thirdwebclient';
 import Turnstile from 'react-turnstile';
 import { keyframes } from '@emotion/react';
 
+const CREATE_GAME_MESSAGES = [
+    'Deploying…',
+    'Verifying…',
+    'Decentralizing…',
+] as const;
+
 // Animations
 const fadeIn = keyframes`
-    from { 
-        opacity: 0; 
-        transform: translateY(20px); 
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 `;
+
+interface StakePreset {
+    name: string;
+    sb: number;
+    bb: number;
+}
+
+const STAKE_PRESETS: StakePreset[] = [
+    { name: 'Micro', sb: 5, bb: 10 },
+    { name: 'Casual', sb: 25, bb: 50 },
+    { name: 'Serious', sb: 100, bb: 200 },
+];
+
+const BLINDS_STORAGE_KEY = 'stacked:create-game:blinds';
+const MODE_STORAGE_KEY = 'stacked:create-game:mode';
+
+function readStoredBlinds(): { sb: number; bb: number } | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = window.localStorage.getItem(BLINDS_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (
+            Number.isInteger(parsed?.sb) &&
+            Number.isInteger(parsed?.bb) &&
+            parsed.sb > 0 &&
+            parsed.bb > 0
+        ) {
+            return { sb: parsed.sb, bb: parsed.bb };
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function InfoDot({ label }: { label: string }) {
+    const { isOpen, onOpen, onClose, onToggle } = useDisclosure();
+    return (
+        <Tooltip
+            label={label}
+            bg="brand.darkNavy"
+            color="white"
+            borderRadius="8px"
+            px={3}
+            py={2}
+            hasArrow
+            isOpen={isOpen}
+        >
+            <Box
+                as="button"
+                type="button"
+                aria-label="More info"
+                display="inline-flex"
+                alignItems="center"
+                color="gray.400"
+                cursor="help"
+                onMouseEnter={onOpen}
+                onMouseLeave={onClose}
+                onFocus={onOpen}
+                onBlur={onClose}
+                onClick={(e: React.MouseEvent) => {
+                    e.preventDefault();
+                    onToggle();
+                }}
+            >
+                <FaInfoCircle size={14} />
+            </Box>
+        </Tooltip>
+    );
+}
+
+function SectionCard({ children }: { children: React.ReactNode }) {
+    const bg = useColorModeValue('card.white', 'card.darkNavy');
+    const borderColor = useColorModeValue(
+        'border.lightGray',
+        'whiteAlpha.200'
+    );
+    const edge = useColorModeValue(
+        '0 2px 0 rgba(0,0,0,0.06)',
+        '0 2px 0 rgba(0,0,0,0.35)'
+    );
+    return (
+        <Box
+            width="100%"
+            bg={bg}
+            borderWidth="1px"
+            borderColor={borderColor}
+            borderRadius="16px"
+            boxShadow={edge}
+            px={{ base: 4, md: 5 }}
+            py={{ base: 3, md: 4 }}
+        >
+            {children}
+        </Box>
+    );
+}
+
+const USDC_BLUE = '#2775CA';
+const USDC_BLUE_EDGE = '#1F5FA3';
+const GREEN_HEX = '#36A37B';
+const GREEN_EDGE = '#1F7A5C';
 
 // why is this called left side... no idea
 const GameSettingLeftSide: React.FC = () => {
     const isCryptoEnabled = true; //process.env.NODE_ENV === 'development';
-    const [playType, setPlayType] = useState<'Free' | 'Crypto'>('Free');
+    const [mode, setMode] = useState<CreateGameMode | null>(null);
+    const modeHydratedRef = useRef(false);
+    const handleModeSelect = (next: CreateGameMode) => {
+        setMode(next);
+        try {
+            window.localStorage.setItem(MODE_STORAGE_KEY, next);
+        } catch {
+            // localStorage unavailable; ignore.
+        }
+    };
     const [selectedGameMode, setSelectedGameMode] =
         useState<string>('Texas Holdem');
     // Enabled chains come from env var (e.g. "base-sepolia,base"); fall back to sepolia.
@@ -79,6 +200,11 @@ const GameSettingLeftSide: React.FC = () => {
     const [selectedNetwork, setSelectedNetwork] =
         useState<string>(enabledChainIds[0] ?? 'base-sepolia');
     const [isLoading, setIsLoading] = useState(false);
+    const rotatingCreateLabel = useRotatingMessages(
+        CREATE_GAME_MESSAGES,
+        1600,
+        isLoading
+    );
     const address = useActiveAccount()?.address;
     const wallet = useActiveWallet();
     const { disconnect } = useDisconnect();
@@ -87,14 +213,30 @@ const GameSettingLeftSide: React.FC = () => {
     const router = useRouter();
     const { dispatch } = useContext(AppContext);
     const toast = useToastHelper();
-    const [smallBlind, setSmallBlind] = useState<number>(5);
-    const [bigBlind, setBigBlind] = useState<number>(10);
+    // Blinds are stored as display strings so the field renders without
+    // leading-zero artifacts ("05" vs "5") when the user pastes or retypes.
+    const [smallBlindStr, setSmallBlindStr] = useState<string>('5');
+    const [bigBlindStr, setBigBlindStr] = useState<string>('10');
+    const smallBlind = smallBlindStr === '' ? NaN : Number(smallBlindStr);
+    const bigBlind = bigBlindStr === '' ? NaN : Number(bigBlindStr);
+    const setSmallBlind = (n: number) =>
+        setSmallBlindStr(Number.isFinite(n) ? String(n) : '');
+    const setBigBlind = (n: number) =>
+        setBigBlindStr(Number.isFinite(n) ? String(n) : '');
     const [isFormValid, setIsFormValid] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileError, setTurnstileError] = useState(false);
     const isCreatingRef = useRef(false);
+    const blindsHydratedRef = useRef(false);
     const [isPublicGame, setIsPublicGame] = useState(true);
-    const isE2E = process.env.NEXT_PUBLIC_E2E === 'true';
+    // NODE_ENV is statically replaced at build time, so in a production bundle
+    // this collapses to `false` and every `isE2E ?` branch — including the
+    // Turnstile bypass and the dummy-token send — gets dead-code-eliminated.
+    // Prevents an accidental NEXT_PUBLIC_E2E=true in CI from shipping a
+    // bypassable build.
+    const isE2E =
+        process.env.NODE_ENV !== 'production' &&
+        process.env.NEXT_PUBLIC_E2E === 'true';
     const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
     const isTurnstileConfigured = !isE2E && Boolean(turnstileSiteKey);
 
@@ -110,6 +252,32 @@ const GameSettingLeftSide: React.FC = () => {
 
     const { gameModes } = gameData;
 
+    const menuListBg = useColorModeValue('card.white', 'card.darkNavy');
+    const menuListBorder = useColorModeValue(
+        'border.lightGray',
+        'whiteAlpha.200'
+    );
+
+    // Mode-aware accent: threads green (free) or USDC blue (real) into the
+    // downstream form so the mode choice tints the workspace, not just the card.
+    const accent = useMemo(() => {
+        if (mode === 'real') {
+            return {
+                color: USDC_BLUE,
+                edge: USDC_BLUE_EDGE,
+                ring: 'rgba(39,117,202,0.20)',
+                soft: 'rgba(39,117,202,0.10)',
+            };
+        }
+        // Free Play (and the brief null window before hydration) → green
+        return {
+            color: GREEN_HEX,
+            edge: GREEN_EDGE,
+            ring: 'rgba(54,163,123,0.20)',
+            soft: 'rgba(54,163,123,0.10)',
+        };
+    }, [mode]);
+
     // Get the description for the selected game mode
     const selectedGameModeDescription = useMemo(() => {
         const mode = gameModes.find((m) => m.name === selectedGameMode);
@@ -121,11 +289,11 @@ const GameSettingLeftSide: React.FC = () => {
     const chipsPerUsdc = 100;
     const usdcPerChip = 1 / chipsPerUsdc;
     const blindsMinChips = useMemo(() => {
-        if (playType === 'Crypto') {
+        if (mode === 'real') {
             return { small: 5, big: 10 };
         }
         return { small: 1, big: 1 };
-    }, [playType]);
+    }, [mode]);
 
     const formatUsdc = (value: number) => {
         const safeValue = Number.isFinite(value) ? value : 0;
@@ -154,15 +322,15 @@ const GameSettingLeftSide: React.FC = () => {
             smallBlind < blindsMinChips.small ||
             bigBlind < blindsMinChips.big
         ) {
-            return playType === 'Crypto'
+            return mode === 'real'
                 ? 'Minimum stakes for crypto games are 5/10 chips.'
                 : 'Blinds must be positive values.';
         }
         if (!Number.isInteger(smallBlind) || !Number.isInteger(bigBlind)) {
-            return 'Blinds must be whole-chip amounts.';
+            return 'Whole chips only — no decimals.';
         }
         if (bigBlind < smallBlind) {
-            return 'Big blind must be greater than or equal to small blind.';
+            return 'Big blind must be at least the small blind.';
         }
         return '';
     }, [
@@ -170,7 +338,7 @@ const GameSettingLeftSide: React.FC = () => {
         bigBlind,
         blindsMinChips.big,
         blindsMinChips.small,
-        playType,
+        mode,
     ]);
 
     useEffect(() => {
@@ -185,11 +353,11 @@ const GameSettingLeftSide: React.FC = () => {
                 Number.isInteger(bigBlind);
             const isGameModeSelected = selectedGameMode !== '';
             const isNetworkSelected =
-                playType === 'Free' ||
-                (playType === 'Crypto' && selectedNetwork !== '');
+                mode === 'free' ||
+                (mode === 'real' && selectedNetwork !== '');
             const isWalletConnected =
-                playType === 'Free' ||
-                (playType === 'Crypto' &&
+                mode === 'free' ||
+                (mode === 'real' &&
                     isCryptoEnabled &&
                     !!address &&
                     isAuthenticated);
@@ -208,7 +376,7 @@ const GameSettingLeftSide: React.FC = () => {
         smallBlind,
         bigBlind,
         selectedGameMode,
-        playType,
+        mode,
         selectedNetwork,
         address,
         isAuthenticated,
@@ -218,17 +386,56 @@ const GameSettingLeftSide: React.FC = () => {
     ]);
 
     useEffect(() => {
-        if (playType !== 'Crypto') return;
-        setSmallBlind((prev) => (prev < 5 ? 5 : prev));
-        setBigBlind((prev) => (prev < 10 ? 10 : prev));
-    }, [playType]);
+        if (mode !== 'real') return;
+        if (!Number.isFinite(smallBlind) || smallBlind < 5) setSmallBlindStr('5');
+        if (!Number.isFinite(bigBlind) || bigBlind < 10) setBigBlindStr('10');
+    }, [mode, smallBlind, bigBlind]);
+
+    // Hydrate blinds from localStorage on mount.
+    useEffect(() => {
+        const stored = readStoredBlinds();
+        if (stored) {
+            setSmallBlind(stored.sb);
+            setBigBlind(stored.bb);
+        }
+        blindsHydratedRef.current = true;
+    }, []);
+
+    // Hydrate previously chosen mode from localStorage so returning Hosts
+    // don't get the empty-state. First-time visitors stay at `null`.
+    useEffect(() => {
+        if (modeHydratedRef.current) return;
+        modeHydratedRef.current = true;
+        try {
+            const stored = window.localStorage.getItem(MODE_STORAGE_KEY);
+            if (stored === 'free' || stored === 'real') {
+                setMode(stored);
+            }
+        } catch {
+            // localStorage unavailable; ignore.
+        }
+    }, []);
+
+    // Persist blinds to localStorage after hydration completes.
+    useEffect(() => {
+        if (!blindsHydratedRef.current) return;
+        if (!Number.isInteger(smallBlind) || !Number.isInteger(bigBlind)) return;
+        try {
+            window.localStorage.setItem(
+                BLINDS_STORAGE_KEY,
+                JSON.stringify({ sb: smallBlind, bb: bigBlind })
+            );
+        } catch {
+            // localStorage unavailable (private mode, quota); ignore.
+        }
+    }, [smallBlind, bigBlind]);
 
     const handleCreateGame = async () => {
         if (isCreatingRef.current) {
             return;
         }
 
-        if (playType === 'Crypto' && !isCryptoEnabled) {
+        if (mode === 'real' && !isCryptoEnabled) {
             toast.info(
                 'Coming Soon',
                 'Crypto games are coming soon. Follow us on social media for updates.'
@@ -251,7 +458,7 @@ const GameSettingLeftSide: React.FC = () => {
 
         if (!isFormValid) {
             if (
-                playType === 'Crypto' &&
+                mode === 'real' &&
                 (!isCryptoEnabled || !address || !isAuthenticated)
             ) {
                 toast.warning(
@@ -264,10 +471,10 @@ const GameSettingLeftSide: React.FC = () => {
                 );
                 return;
             }
-            if (!address && playType === 'Free') {
+            if (!address && mode === 'free') {
                 toast.info(
-                    'Creating as Guest',
-                    'You are creating a free game without connecting a wallet.'
+                    'Hosting as guest',
+                    'You are hosting a free game without connecting a wallet.'
                 );
             }
             if (
@@ -279,9 +486,9 @@ const GameSettingLeftSide: React.FC = () => {
             ) {
                 toast.warning(
                     'Invalid Blinds',
-                    playType === 'Crypto'
-                        ? 'Minimum stakes are 5/10 chips. Blinds must be whole-chip amounts (big ≥ small).'
-                        : 'Please enter valid blinds (big ≥ small).'
+                    mode === 'real'
+                        ? 'Minimum stakes are 5/10 chips. Whole chips only, big ≥ small.'
+                        : 'Whole chips only, big blind ≥ small blind.'
                 );
                 return;
             }
@@ -292,7 +499,7 @@ const GameSettingLeftSide: React.FC = () => {
                 );
                 return;
             }
-            if (playType === 'Crypto' && selectedNetwork === '') {
+            if (mode === 'real' && selectedNetwork === '') {
                 toast.warning(
                     'Network Not Selected',
                     'Please select a network for crypto play.'
@@ -326,8 +533,8 @@ const GameSettingLeftSide: React.FC = () => {
                     body: JSON.stringify({
                         smallBlind: smallBlind,
                         bigBlind: bigBlind,
-                        isCrypto: playType === 'Crypto',
-                        chain: playType === 'Crypto' ? selectedNetwork : '',
+                        isCrypto: mode === 'real',
+                        chain: mode === 'real' ? selectedNetwork : '',
                         isPublic: isPublicGame,
                         cfTurnstileToken:
                             turnstileToken ||
@@ -353,11 +560,18 @@ const GameSettingLeftSide: React.FC = () => {
                     );
                 }
             } else {
-                const errorData = await response.text();
-                toast.error(
-                    'Create Failed',
-                    `Failed to create game: ${response.statusText} - ${errorData}`
-                );
+                if (response.status === 403) {
+                    toast.error(
+                        'Security Check Failed',
+                        'Please wait a moment and try again.'
+                    );
+                } else {
+                    const errorData = await response.text();
+                    toast.error(
+                        'Create Failed',
+                        `Failed to create game: ${response.statusText} - ${errorData}`
+                    );
+                }
             }
         } catch (error) {
             console.error('Error creating game:', error);
@@ -409,26 +623,21 @@ const GameSettingLeftSide: React.FC = () => {
                         fontWeight="extrabold"
                         color="text.primary"
                     >
-                        Game Settings
+                        Host a Table
                     </Heading>
                     <Text fontSize="sm" color="gray.500" mt={1}>
-                        Configure your table parameters
+                        Set the stakes. Invite your friends.
                     </Text>
                 </Box>
                 <Button
+                    variant="tactilePrimary"
                     size={{ base: 'sm', md: 'md' }}
-                    bg="brand.green"
-                    color="white"
                     borderRadius={{ base: '10px', md: '12px' }}
                     px={{ base: 4, md: 6 }}
                     height={{ base: '36px', md: '44px' }}
                     fontWeight={{ base: 'semibold', md: 'bold' }}
                     fontSize={{ base: 'xs', md: 'sm' }}
                     onClick={handleJoinPublicGame}
-                    _hover={{
-                        bg: '#2e8d6a',
-                    }}
-                    transition="all 0.2s"
                     leftIcon={<Icon as={FaUsers} boxSize={{ base: 3.5, md: 4 }} />}
                     rightIcon={<Icon as={FaArrowRight} boxSize={{ base: 2.5, md: 3 }} />}
                     flexShrink={0}
@@ -437,147 +646,134 @@ const GameSettingLeftSide: React.FC = () => {
                 </Button>
             </Flex>
 
-            {/* Main Settings Card */}
-            <Box
-                width="100%"
-                bg="card.white"
-                borderRadius="24px"
-                boxShadow="0 4px 24px rgba(0, 0, 0, 0.08)"
-                overflow="hidden"
-            >
-                {/* Play Mode Section */}
-                <Flex
-                    px={{ base: 5, md: 8 }}
-                    py={3}
-                    justifyContent="space-between"
-                    alignItems="flex-start"
-                >
-                    <Box>
-                        <Text
-                            fontWeight="bold"
-                            fontSize="md"
-                            color="text.primary"
-                        >
-                            Play Mode
-                        </Text>
-                        <Text fontSize="sm" color="gray.500">
-                            Select currency type
-                        </Text>
-                    </Box>
-                    <PlayTypeToggle
-                        playType={playType}
-                        setPlayType={setPlayType}
-                        isCryptoEnabled={isCryptoEnabled}
-                    />
-                </Flex>
+            {/* Mode Chooser — always visible; the page's primary decision. */}
+            <Box width="100%" mb={4}>
+                <ModeChooser
+                    selectedMode={mode}
+                    onSelect={handleModeSelect}
+                />
+            </Box>
 
-                <Divider borderColor="gray.100" />
-
-                {/* Public Game Section */}
-                <Flex
-                    px={{ base: 5, md: 8 }}
-                    py={3}
-                    justifyContent="space-between"
-                    alignItems="center"
-                >
-                    <Box>
-                        <Text
-                            fontWeight="bold"
-                            fontSize="md"
-                            color="text.primary"
-                        >
-                            Public
-                        </Text>
-                        <Text fontSize="sm" color="gray.500">
-                            Show this game in the lobby
-                        </Text>
-                    </Box>
-                    <Switch
-                        isChecked={isPublicGame}
-                        onChange={(e) => setIsPublicGame(e.target.checked)}
-                        colorScheme="green"
-                        size="lg"
-                        flexShrink={0}
-                    />
-                </Flex>
-
-                <Divider borderColor="gray.100" />
-
-                {/* Game Mode Section */}
-                <Flex
-                    px={{ base: 5, md: 8 }}
-                    py={3}
-                    justifyContent="space-between"
-                    alignItems={{ base: 'flex-start', sm: 'center' }}
-                    flexDirection={{ base: 'column', sm: 'row' }}
-                    gap={4}
-                >
-                    <Box
-                        display="flex"
-                        flexDirection="column"
-                        justifyContent="center"
-                        alignItems="flex-start"
+            {mode !== null && (
+                <>
+            {/* Modular settings — each row is its own micro-card */}
+            <VStack spacing={3} align="stretch" width="100%">
+                <SectionCard>
+                    <Flex
+                        justifyContent="space-between"
+                        alignItems="center"
                     >
-                        <Flex alignItems="center" gap={2}>
+                        <VStack spacing={0.5} align="flex-start" pr={3}>
                             <Text
                                 fontWeight="bold"
                                 fontSize="md"
                                 color="text.primary"
                             >
-                                Game Mode
+                                List publicly
                             </Text>
-                            <Tooltip
-                                label="Choose the poker variant you want to play"
-                                bg="brand.darkNavy"
-                                color="white"
-                                borderRadius="8px"
-                                px={3}
-                                py={2}
-                            >
-                                <Box display="flex" alignItems="center">
-                                    <FaInfoCircle color="#EB0B5C" size={14} />
-                                </Box>
-                            </Tooltip>
-                        </Flex>
-                        <Text fontSize="sm" color="gray.500">
-                            Choose the poker variant
-                        </Text>
-                    </Box>
-                    <Box
-                        width={{ base: '100%', sm: '200px' }}
-                        mt={{ base: 3, sm: 0 }}
+                            <Text fontSize="xs" color="gray.500">
+                                Public tables appear in the lobby. Off keeps it invite-only.
+                            </Text>
+                        </VStack>
+                        <Switch
+                            isChecked={isPublicGame}
+                            onChange={(e) => setIsPublicGame(e.target.checked)}
+                            colorScheme="green"
+                            size="lg"
+                            flexShrink={0}
+                        />
+                    </Flex>
+                </SectionCard>
+
+                <SectionCard>
+                    <Flex
+                        justifyContent="space-between"
+                        alignItems="center"
+                        gap={3}
                     >
-                        <Select
-                            value={selectedGameMode}
-                            onChange={(e) =>
-                                setSelectedGameMode(e.target.value)
-                            }
-                            bg="card.lightGray"
-                            borderColor="transparent"
-                            borderRadius="12px"
-                            fontWeight="semibold"
-                            fontSize="sm"
-                            color="text.primary"
-                            height="44px"
-                            _hover={{
-                                borderColor: 'brand.green',
-                            }}
-                            _focus={{
-                                borderColor: 'brand.pink',
-                                boxShadow: '0 0 0 1px #EB0B5C',
-                            }}
-                            iconColor="gray.500"
-                        >
-                            {gameModes.map((mode) => (
-                                <option
-                                    key={mode.name}
-                                    value={mode.name}
-                                    disabled={mode.disabled}
-                                >
-                                    {mode.name}
-                                </option>
-                            ))}
-                        </Select>
+                        <HStack spacing={2} align="center" minW={0}>
+                            <Text
+                                fontWeight="bold"
+                                fontSize="md"
+                                color="text.primary"
+                                whiteSpace="nowrap"
+                            >
+                                Variant
+                            </Text>
+                            <InfoDot label="Texas Hold'em is the default. Tap to change." />
+                        </HStack>
+                        <Menu placement="bottom-end" autoSelect={false}>
+                            <MenuButton
+                                as={Button}
+                                variant="unstyled"
+                                rightIcon={
+                                    <Icon
+                                        as={FiChevronDown}
+                                        color="gray.500"
+                                        _dark={{ color: 'gray.400' }}
+                                        boxSize="14px"
+                                    />
+                                }
+                                height="36px"
+                                px={3}
+                                borderRadius="full"
+                                borderWidth="1px"
+                                borderColor="border.lightGray"
+                                _dark={{ borderColor: 'whiteAlpha.200' }}
+                                bg="transparent"
+                                fontSize="sm"
+                                fontWeight="semibold"
+                                color="text.primary"
+                                display="inline-flex"
+                                alignItems="center"
+                                transition="border-color 80ms ease, background-color 80ms ease"
+                                _hover={{ borderColor: accent.color }}
+                                _active={{
+                                    bg: accent.soft,
+                                    borderColor: accent.color,
+                                }}
+                            >
+                                {selectedGameMode}
+                            </MenuButton>
+                            <MenuList
+                                minW="180px"
+                                py={1}
+                                borderRadius="12px"
+                                boxShadow="0 8px 24px rgba(0,0,0,0.12)"
+                                bg={menuListBg}
+                                borderColor={menuListBorder}
+                            >
+                                {gameModes.map((m) => (
+                                    <MenuItem
+                                        key={m.name}
+                                        onClick={() =>
+                                            !m.disabled &&
+                                            setSelectedGameMode(m.name)
+                                        }
+                                        isDisabled={m.disabled}
+                                        fontSize="sm"
+                                        fontWeight={
+                                            selectedGameMode === m.name
+                                                ? 'bold'
+                                                : 'medium'
+                                        }
+                                        color={
+                                            selectedGameMode === m.name
+                                                ? accent.color
+                                                : 'text.primary'
+                                        }
+                                        bg="transparent"
+                                        _hover={{ bg: accent.soft }}
+                                        _focus={{ bg: accent.soft }}
+                                        _active={{ bg: accent.soft }}
+                                    >
+                                        {m.name}
+                                    </MenuItem>
+                                ))}
+                            </MenuList>
+                        </Menu>
+                    </Flex>
+                    {selectedGameModeDescription && (
                         <Text
                             fontSize="xs"
                             color="gray.500"
@@ -586,57 +782,112 @@ const GameSettingLeftSide: React.FC = () => {
                         >
                             {selectedGameModeDescription}
                         </Text>
-                    </Box>
-                </Flex>
+                    )}
+                </SectionCard>
 
-                <Divider borderColor="gray.100" />
-
-                {/* Blinds Section */}
+                <SectionCard>
                 <Flex
-                    px={{ base: 5, md: 8 }}
-                    py={3}
                     justifyContent="space-between"
                     alignItems={{ base: 'flex-start', sm: 'center' }}
                     flexDirection={{ base: 'column', sm: 'row' }}
                     gap={4}
                 >
-                    <Box mt={{ base: 3, sm: 0 }}>
-                        <Flex alignItems="center" gap={2}>
-                            <Text
-                                fontWeight="bold"
-                                fontSize="md"
-                                color="text.primary"
-                                zIndex={1}
-                            >
-                                Blinds
-                            </Text>
-                            <Tooltip
-                                label={
-                                    playType === 'Crypto'
-                                        ? 'Crypto blinds are in chips. Amounts shown in USDC. Min 5/10 • 1 chip = $0.01 USDC.'
-                                        : 'Blinds must be whole-chip amounts.'
-                                }
-                                bg="brand.darkNavy"
-                                color="white"
-                                borderRadius="8px"
-                                px={3}
-                                py={2}
-                                zIndex={1}
-                            >
-                                <Box display="flex" alignItems="center">
-                                    <FaInfoCircle color="#EB0B5C" size={14} />
-                                </Box>
-                            </Tooltip>
-                        </Flex>
-                        <Text fontSize="sm" color="gray.500">
-                            Set the table stakes
+                    <HStack spacing={2} align="center" mt={{ base: 3, sm: 0 }}>
+                        <Text
+                            fontWeight="bold"
+                            fontSize="md"
+                            color="text.primary"
+                        >
+                            Blinds
                         </Text>
-                    </Box>
+                        <InfoDot
+                            label={
+                                mode === 'real'
+                                    ? 'Blinds are in chips. Amounts shown in USDC. Min 5/10 • 1 chip = $0.01 USDC.'
+                                    : 'Blinds must be whole-chip amounts.'
+                            }
+                        />
+                    </HStack>
                     <Flex
                         width="100%"
                         flexDirection="column"
                         alignItems="flex-end"
                     >
+                        {/* Stake presets — Crypto only; Free Play uses raw chip values */}
+                        {mode === 'real' && (
+                        <HStack
+                            spacing={2}
+                            mb={2}
+                            justifyContent="flex-end"
+                            flexWrap="wrap"
+                        >
+                            {STAKE_PRESETS.map((preset) => {
+                                const isActive =
+                                    smallBlind === preset.sb &&
+                                    bigBlind === preset.bb;
+                                return (
+                                    <Button
+                                        key={preset.name}
+                                        onClick={() => {
+                                            setSmallBlind(preset.sb);
+                                            setBigBlind(preset.bb);
+                                        }}
+                                        variant="unstyled"
+                                        height="32px"
+                                        px={4}
+                                        borderRadius="full"
+                                        bg={isActive ? accent.color : 'transparent'}
+                                        border="1.5px solid"
+                                        borderColor={accent.color}
+                                        boxShadow={
+                                            isActive
+                                                ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 ${accent.edge}`
+                                                : `0 1.5px 0 ${accent.edge}`
+                                        }
+                                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease"
+                                        _hover={
+                                            isActive
+                                                ? { bg: accent.color }
+                                                : { bg: accent.soft }
+                                        }
+                                        _active={{
+                                            transform: 'translateY(1.5px)',
+                                            boxShadow: isActive
+                                                ? `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${accent.edge}`
+                                                : `0 0 0 ${accent.edge}`,
+                                        }}
+                                    >
+                                        <HStack spacing={1.5} align="baseline">
+                                            <Text
+                                                fontSize="xs"
+                                                fontWeight="semibold"
+                                                lineHeight={1}
+                                                color={isActive ? 'white' : accent.color}
+                                            >
+                                                {preset.name}
+                                            </Text>
+                                            <Text
+                                                fontSize="11px"
+                                                fontWeight="medium"
+                                                lineHeight={1}
+                                                color={
+                                                    isActive
+                                                        ? 'whiteAlpha.800'
+                                                        : accent.color
+                                                }
+                                                sx={{
+                                                    fontVariantNumeric:
+                                                        'tabular-nums',
+                                                }}
+                                            >
+                                                {preset.sb}/{preset.bb}
+                                            </Text>
+                                        </HStack>
+                                    </Button>
+                                );
+                            })}
+                        </HStack>
+                        )}
                         <HStack
                             spacing={{ base: 3, md: 4 }}
                             alignItems="flex-start"
@@ -648,7 +899,7 @@ const GameSettingLeftSide: React.FC = () => {
                                 <Text
                                     fontSize="11px"
                                     fontWeight="bold"
-                                    color="brand.pink"
+                                    color={accent.color}
                                     letterSpacing="wide"
                                     position="absolute"
                                     top="-2"
@@ -661,13 +912,25 @@ const GameSettingLeftSide: React.FC = () => {
                                     SB
                                 </Text>
                                 <Input
-                                    type="number"
-                                    step="1"
-                                    min={blindsMinChips.small}
-                                    value={smallBlind}
-                                    onChange={(e) =>
-                                        setSmallBlind(Number(e.target.value))
-                                    }
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={smallBlindStr}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        if (/[.,]/.test(raw)) {
+                                            toast.warning(
+                                                'Whole chips only',
+                                                "Blinds can't be split into decimals.",
+                                                3000,
+                                                'blinds-no-decimal'
+                                            );
+                                        }
+                                        const digits = raw.replace(/\D/g, '');
+                                        setSmallBlindStr(
+                                            digits === '' ? '' : String(Number(digits))
+                                        );
+                                    }}
                                     bg="input.white"
                                     borderWidth="1px"
                                     borderColor="border.lightGray"
@@ -683,12 +946,11 @@ const GameSettingLeftSide: React.FC = () => {
                                         borderColor: 'gray.300',
                                     }}
                                     _focus={{
-                                        borderColor: 'brand.pink',
-                                        boxShadow:
-                                            '0 0 0 2px rgba(235, 11, 92, 0.2)',
+                                        borderColor: accent.color,
+                                        boxShadow: `0 0 0 2px ${accent.ring}`,
                                     }}
                                 />
-                                {playType === 'Crypto' && (
+                                {mode === 'real' && (
                                     <Tooltip
                                         label={`${formatUsdc(smallBlindUsdc)} USDC`}
                                         isDisabled={
@@ -733,6 +995,7 @@ const GameSettingLeftSide: React.FC = () => {
                             </Box>
                             <Text
                                 color="gray.400"
+                                _dark={{ color: 'gray.500' }}
                                 fontSize="xl"
                                 fontWeight="light"
                                 pt={2}
@@ -744,7 +1007,7 @@ const GameSettingLeftSide: React.FC = () => {
                                 <Text
                                     fontSize="11px"
                                     fontWeight="bold"
-                                    color="brand.pink"
+                                    color={accent.color}
                                     letterSpacing="wide"
                                     position="absolute"
                                     top="-2"
@@ -757,13 +1020,25 @@ const GameSettingLeftSide: React.FC = () => {
                                     BB
                                 </Text>
                                 <Input
-                                    type="number"
-                                    step="1"
-                                    min={blindsMinChips.big}
-                                    value={bigBlind}
-                                    onChange={(e) =>
-                                        setBigBlind(Number(e.target.value))
-                                    }
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={bigBlindStr}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        if (/[.,]/.test(raw)) {
+                                            toast.warning(
+                                                'Whole chips only',
+                                                "Blinds can't be split into decimals.",
+                                                3000,
+                                                'blinds-no-decimal'
+                                            );
+                                        }
+                                        const digits = raw.replace(/\D/g, '');
+                                        setBigBlindStr(
+                                            digits === '' ? '' : String(Number(digits))
+                                        );
+                                    }}
                                     bg="input.white"
                                     borderWidth="1px"
                                     borderColor="border.lightGray"
@@ -779,12 +1054,11 @@ const GameSettingLeftSide: React.FC = () => {
                                         borderColor: 'gray.300',
                                     }}
                                     _focus={{
-                                        borderColor: 'brand.pink',
-                                        boxShadow:
-                                            '0 0 0 2px rgba(235, 11, 92, 0.2)',
+                                        borderColor: accent.color,
+                                        boxShadow: `0 0 0 2px ${accent.ring}`,
                                     }}
                                 />
-                                {playType === 'Crypto' && (
+                                {mode === 'real' && (
                                     <Tooltip
                                         label={`${formatUsdc(bigBlindUsdc)} USDC`}
                                         isDisabled={
@@ -828,18 +1102,23 @@ const GameSettingLeftSide: React.FC = () => {
                             </Box>
                         </HStack>
                         {blindsErrorMessage && (
-                            <Box mt={1} maxW="220px">
+                            <Flex mt={2} align="center" gap={1.5}>
+                                <Icon
+                                    as={FaInfoCircle}
+                                    color="brand.pink"
+                                    boxSize={3.5}
+                                />
                                 <Text
-                                    fontSize="10px"
-                                    color="red.100"
+                                    fontSize="sm"
+                                    color="brand.pink"
                                     fontWeight="medium"
-                                    lineHeight="shorter"
+                                    lineHeight="short"
                                 >
                                     {blindsErrorMessage}
                                 </Text>
-                            </Box>
+                            </Flex>
                         )}
-                        {playType === 'Crypto' && (
+                        {mode === 'real' && (
                             <Flex
                                 mt={2}
                                 width="100%"
@@ -863,53 +1142,27 @@ const GameSettingLeftSide: React.FC = () => {
                         )}
                     </Flex>
                 </Flex>
+                </SectionCard>
 
                 {/* Network Section - Only for Crypto */}
-                {playType === 'Crypto' && (
-                    <>
-                        <Divider borderColor="gray.100" />
-                        <Box px={{ base: 5, md: 8 }} py={3}>
+                {mode === 'real' && (
+                    <SectionCard>
+                        <Box>
                             <Flex
                                 alignItems="center"
                                 justifyContent="space-between"
                                 mb={4}
                             >
-                                <Box>
-                                    <Flex alignItems="center" gap={2}>
-                                        <Text
-                                            fontWeight="bold"
-                                            fontSize="md"
-                                            color="text.primary"
-                                        >
-                                            Network
-                                        </Text>
-                                        <Tooltip
-                                            label="Select the blockchain network for your crypto game"
-                                            bg="brand.darkNavy"
-                                            color="white"
-                                            borderRadius="8px"
-                                            px={3}
-                                            py={2}
-                                        >
-                                            <Box
-                                                display="flex"
-                                                alignItems="center"
-                                            >
-                                                <FaInfoCircle
-                                                    color="#EB0B5C"
-                                                    size={14}
-                                                />
-                                            </Box>
-                                        </Tooltip>
-                                    </Flex>
+                                <HStack spacing={2} align="center">
                                     <Text
-                                        fontSize="sm"
-                                        color="gray.500"
-                                        mt={1}
+                                        fontWeight="bold"
+                                        fontSize="md"
+                                        color="text.primary"
                                     >
-                                        Select blockchain to play on
+                                        Network
                                     </Text>
-                                </Box>
+                                    <InfoDot label="Select the blockchain network for your crypto game." />
+                                </HStack>
                                 {selectedNetwork === 'base-sepolia' && (
                                     <Link
                                         href="/free-tokens"
@@ -1010,9 +1263,9 @@ const GameSettingLeftSide: React.FC = () => {
                             </Flex>
 
                         </Box>
-                    </>
+                    </SectionCard>
                 )}
-            </Box>
+            </VStack>
 
             {/* Cloudflare Verification */}
             <Flex
@@ -1081,7 +1334,11 @@ const GameSettingLeftSide: React.FC = () => {
                         {isCloudflareVerifying ? (
                             <>
                                 <Spinner size="sm" color="brand.green" />
-                                <Text fontSize="sm" color="gray.600">
+                                <Text
+                                    fontSize="sm"
+                                    color="gray.600"
+                                    _dark={{ color: 'gray.300' }}
+                                >
                                     Verifying with Cloudflare…
                                 </Text>
                             </>
@@ -1103,6 +1360,11 @@ const GameSettingLeftSide: React.FC = () => {
                                             ? 'brand.yellow'
                                             : 'gray.500'
                                     }
+                                    _dark={
+                                        turnstileError
+                                            ? undefined
+                                            : { color: 'gray.300' }
+                                    }
                                 >
                                     {turnstileError
                                         ? 'Verification unavailable — you can still create'
@@ -1117,7 +1379,7 @@ const GameSettingLeftSide: React.FC = () => {
             </Flex>
 
             {/* Create Game CTA */}
-            {playType === 'Crypto' && !isCryptoEnabled ? (
+            {mode === 'real' && !isCryptoEnabled ? (
                 <Box width="100%" maxW="480px">
                     <Flex direction="column" align="center" gap={3} py={2}>
                         <Text
@@ -1129,38 +1391,30 @@ const GameSettingLeftSide: React.FC = () => {
                             tirelessly. Follow us for updates.
                         </Text>
                         <HStack spacing={3}>
-                            <Button
-                                as={Link}
+                            <Link
                                 href="https://x.com/stacked_poker"
                                 isExternal
-                                variant="outline"
-                                bg="card.white"
-                                borderColor="border.lightGray"
-                                borderWidth="2px"
-                                borderRadius="14px"
-                                size="sm"
-                                leftIcon={<Icon as={RiTwitterXLine} />}
                             >
-                                X
-                            </Button>
-                            <Button
-                                as={Link}
+                                <SocialIconButton
+                                    tone="x"
+                                    label="X"
+                                    chipSize="sm"
+                                />
+                            </Link>
+                            <Link
                                 href="https://discord.gg/347RBVcvpn"
                                 isExternal
-                                variant="outline"
-                                bg="card.white"
-                                borderColor="border.lightGray"
-                                borderWidth="2px"
-                                borderRadius="14px"
-                                size="sm"
-                                leftIcon={<Icon as={FaDiscord} />}
                             >
-                                Discord
-                            </Button>
+                                <SocialIconButton
+                                    tone="discord"
+                                    label="Discord"
+                                    chipSize="sm"
+                                />
+                            </Link>
                         </HStack>
                     </Flex>
                 </Box>
-            ) : playType === 'Crypto' && (!address || !isAuthenticated) ? (
+            ) : mode === 'real' && (!address || !isAuthenticated) ? (
                 <Box width="100%" maxW="480px">
                     <Flex direction="column" align="center" gap={3} py={2}>
                         <Text
@@ -1185,46 +1439,23 @@ const GameSettingLeftSide: React.FC = () => {
                             ) : (
                                 <>
                                     <Button
+                                        variant="tactilePrimary"
                                         flex="1"
                                         height="56px"
-                                        bg="brand.green"
-                                        color="white"
                                         fontWeight="bold"
                                         borderRadius="16px"
                                         onClick={requestAuthentication}
                                         isLoading={isAuthenticating}
                                         loadingText="Waiting…"
-                                        _hover={{
-                                            bg: '#2d9268',
-                                            transform: 'translateY(-2px)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(54, 163, 123, 0.35)',
-                                        }}
-                                        _active={{
-                                            transform: 'translateY(0)',
-                                        }}
-                                        transition="all 0.2s ease"
                                     >
                                         Finish Sign-In
                                     </Button>
                                     <Button
+                                        variant="tactileDestructive"
                                         flex="1"
                                         height="56px"
-                                        bg="brand.pink"
-                                        color="white"
-                                        fontWeight="bold"
                                         borderRadius="16px"
                                         onClick={handleDisconnectWallet}
-                                        _hover={{
-                                            bg: '#d50a52',
-                                            transform: 'translateY(-2px)',
-                                            boxShadow:
-                                                '0 8px 20px rgba(235, 11, 92, 0.25)',
-                                        }}
-                                        _active={{
-                                            transform: 'translateY(0)',
-                                        }}
-                                        transition="all 0.2s ease"
                                     >
                                         Disconnect
                                     </Button>
@@ -1242,48 +1473,27 @@ const GameSettingLeftSide: React.FC = () => {
                 >
                     <Box width="100%" maxW="480px">
                         <Button
+                            variant="tactilePrimary"
                             data-testid="create-game-btn"
-                            bg="brand.green"
-                            color="white"
                             onClick={handleCreateGame}
                             size="lg"
                             height="56px"
                             width="100%"
                             fontSize="md"
-                            fontWeight="bold"
                             borderRadius="16px"
-                            border="none"
                             isLoading={isLoading}
-                            loadingText="Creating..."
+                            loadingText={rotatingCreateLabel}
                             spinner={<Spinner size="md" color="white" />}
-                            opacity={
-                                isFormValid && isCloudflareReady && !isLoading
-                                    ? 1
-                                    : 0.6
-                            }
-                            cursor={
-                                isFormValid && isCloudflareReady && !isLoading
-                                    ? 'pointer'
-                                    : 'not-allowed'
-                            }
-                            disabled={
+                            isDisabled={
                                 !isFormValid || !isCloudflareReady || isLoading
                             }
-                            _hover={{
-                                bg: '#2d9268',
-                                transform: 'translateY(-2px)',
-                                boxShadow:
-                                    '0 8px 20px rgba(54, 163, 123, 0.35)',
-                            }}
-                            _active={{
-                                transform: 'translateY(0)',
-                            }}
-                            transition="all 0.2s ease"
                         >
                             Create Game
                         </Button>
                     </Box>
                 </Tooltip>
+            )}
+                </>
             )}
         </VStack>
     );

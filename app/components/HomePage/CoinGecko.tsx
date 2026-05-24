@@ -4,6 +4,27 @@ import { Box, useColorMode } from '@chakra-ui/react';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
+// Tell TSX about the CoinGecko web-component registered by the lazy-loaded
+// script so we can render it as JSX (React text-escapes attributes) instead of
+// building an HTML string for dangerouslySetInnerHTML.
+declare module 'react' {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace JSX {
+        interface IntrinsicElements {
+            'gecko-coin-price-marquee-widget': React.DetailedHTMLProps<
+                React.HTMLAttributes<HTMLElement>,
+                HTMLElement
+            > & {
+                'dark-mode'?: string;
+                locale?: string;
+                'transparent-background'?: string;
+                'coin-ids'?: string;
+                'initial-currency'?: string;
+            };
+        }
+    }
+}
+
 const CoinGecko = () => {
     const { colorMode } = useColorMode();
     const [shouldLoad, setShouldLoad] = useState(false);
@@ -76,16 +97,17 @@ const CoinGecko = () => {
                 boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
                 minHeight={{ base: '32px', md: '40px' }}
                 visibility={shouldLoad ? 'visible' : 'hidden'}
-                dangerouslySetInnerHTML={
-                    shouldLoad
-                        ? {
-                              __html: `<gecko-coin-price-marquee-widget dark-mode="${
-                                  colorMode === 'dark'
-                              }" locale="en" transparent-background="true" coin-ids="${coinIds}" initial-currency="usd"></gecko-coin-price-marquee-widget>`,
-                          }
-                        : undefined
-                }
-            />
+            >
+                {shouldLoad && (
+                    <gecko-coin-price-marquee-widget
+                        dark-mode={String(colorMode === 'dark')}
+                        locale="en"
+                        transparent-background="true"
+                        coin-ids={coinIds}
+                        initial-currency="usd"
+                    />
+                )}
+            </Box>
         </>
     );
 }

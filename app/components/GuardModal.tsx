@@ -53,22 +53,12 @@ const GuardModal = ({
 
             <Flex gap={3} px={4} pb={5} pt={1}>
                 <Button
+                    variant="tactilePrimary"
                     flex={1}
-                    bg="brand.green"
-                    color="white"
-                    border="none"
                     borderRadius="12px"
                     height="44px"
-                    fontWeight="bold"
                     textTransform="uppercase"
                     fontSize={{ base: 'xs', sm: 'sm' }}
-                    _hover={{
-                        transform: 'translateY(-1px)',
-                        boxShadow:
-                            '0 10px 18px rgba(54, 163, 123, 0.22)',
-                    }}
-                    _active={{ transform: 'translateY(0)' }}
-                    transition="all 0.2s ease"
                     onClick={() => {
                         handleCheck();
                         onClose();
@@ -77,22 +67,12 @@ const GuardModal = ({
                     Check
                 </Button>
                 <Button
+                    variant="tactileDestructive"
                     flex={1}
-                    bg="brand.pink"
-                    color="white"
-                    border="none"
                     borderRadius="12px"
                     height="44px"
-                    fontWeight="bold"
                     textTransform="uppercase"
                     fontSize={{ base: 'xs', sm: 'sm' }}
-                    _hover={{
-                        transform: 'translateY(-1px)',
-                        boxShadow:
-                            '0 10px 18px rgba(235, 11, 92, 0.22)',
-                    }}
-                    _active={{ transform: 'translateY(0)' }}
-                    transition="all 0.2s ease"
                     data-testid="fold-anyway-btn"
                     onClick={() => {
                         handleFold();

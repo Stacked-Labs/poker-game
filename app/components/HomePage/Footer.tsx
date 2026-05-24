@@ -9,30 +9,23 @@ import {
     Text,
     Flex,
     Link,
-    Icon,
     HStack,
     VStack,
     Divider,
 } from '@chakra-ui/react';
 import { Image } from '@chakra-ui/next-js';
-import { FaDiscord } from 'react-icons/fa';
-import { FaTelegram } from 'react-icons/fa6';
-import { RiTwitterXLine } from 'react-icons/ri';
-import FloatingDecor from './FloatingDecor';
+import { SocialIconButton } from '@/app/components/SocialIconButton';
 
 const Footer = () => {
     return (
         <Box
-            bg="bg.default"
             color="text.primary"
-            pt={16}
+            pt={12}
             pb={8}
             position="relative"
-            overflow="hidden"
             borderTop="1px solid"
             borderColor="border.lightGray"
         >
-            <FloatingDecor density="minimal" />
             <Container maxW="container.xl" position="relative" zIndex={1}>
                 <SimpleGrid
                     columns={{ base: 1, md: 2, lg: 4 }}
@@ -78,65 +71,20 @@ const Footer = () => {
                             <Link
                                 href="https://x.com/stacked_poker"
                                 isExternal
-                                boxSize="38px"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                bg="card.lightGray"
-                                color="text.secondary"
-                                borderRadius="lg"
-                                _hover={{
-                                    bg: 'brand.pink',
-                                    color: 'white',
-                                    transform:
-                                        'translateY(-2px) scale(1.05)',
-                                    boxShadow: 'glow-pink',
-                                }}
-                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             >
-                                <Icon as={RiTwitterXLine} boxSize={4} />
+                                <SocialIconButton tone="x" />
                             </Link>
                             <Link
                                 href="https://discord.gg/347RBVcvpn"
                                 isExternal
-                                boxSize="38px"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                bg="card.lightGray"
-                                color="text.secondary"
-                                borderRadius="lg"
-                                _hover={{
-                                    bg: 'brand.pink',
-                                    color: 'white',
-                                    transform:
-                                        'translateY(-2px) scale(1.05)',
-                                    boxShadow: 'glow-pink',
-                                }}
-                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             >
-                                <Icon as={FaDiscord} boxSize={4} />
+                                <SocialIconButton tone="discord" />
                             </Link>
                             <Link
                                 href="https://t.me/stackedpoker"
                                 isExternal
-                                boxSize="38px"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                bg="card.lightGray"
-                                color="text.secondary"
-                                borderRadius="lg"
-                                _hover={{
-                                    bg: 'brand.pink',
-                                    color: 'white',
-                                    transform:
-                                        'translateY(-2px) scale(1.05)',
-                                    boxShadow: 'glow-pink',
-                                }}
-                                transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             >
-                                <Icon as={FaTelegram} boxSize={4} />
+                                <SocialIconButton tone="telegram" />
                             </Link>
                         </HStack>
                     </Stack>
@@ -191,7 +139,7 @@ const Footer = () => {
                             Resources
                         </Text>
                         <Link
-                            href="https://docs.stackedpoker.io/docs/introduction"
+                            href="https://docs.stackedpoker.io/"
                             isExternal
                             color="text.secondary"
                             fontSize="sm"

@@ -291,6 +291,7 @@ const Chatbox = ({
                         placement="top"
                     >
                         <IconButton
+                            variant="tactileGhost"
                             icon={
                                 <Icon
                                     as={
@@ -307,13 +308,8 @@ const Chatbox = ({
                                     : 'Chat overlay off'
                             }
                             size="sm"
-                            bg="transparent"
-                            color="text.secondary"
-                            border="none"
-                            borderRadius="8px"
-                            _hover={{ bg: 'card.lightGray' }}
-                            _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
-                            _focus={{ outline: 'none', boxShadow: 'none' }}
+                            height="36px"
+                            minW="36px"
                             onClick={() => {
                                 const nextState = !appState.chatOverlayEnabled;
                                 dispatch({
@@ -337,6 +333,7 @@ const Chatbox = ({
                         placement="top"
                     >
                         <IconButton
+                            variant="tactileGhost"
                             icon={
                                 <Icon
                                     as={
@@ -353,13 +350,8 @@ const Chatbox = ({
                                     : 'Chat sound muted'
                             }
                             size="sm"
-                            bg="transparent"
-                            color="text.secondary"
-                            border="none"
-                            borderRadius="8px"
-                            _hover={{ bg: 'card.lightGray' }}
-                            _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
-                            _focus={{ outline: 'none', boxShadow: 'none' }}
+                            height="36px"
+                            minW="36px"
                             onClick={() =>
                                 dispatch({
                                     type: 'setChatSoundEnabled',
@@ -369,25 +361,61 @@ const Chatbox = ({
                         />
                     </Tooltip>
                     <IconButton
+                        variant="tactileGhost"
                         onClick={onToggle}
                         icon={<IoClose size={20} />}
                         aria-label="Close Chat Box"
-                        size="md"
-                        bg="transparent"
+                        size="sm"
+                        height="36px"
+                        minW="36px"
                         color="brand.pink"
-                        border="none"
-                        borderRadius="8px"
                         _hover={{
                             bg: 'card.lightGray',
+                            color: 'brand.pinkDark',
                         }}
-                        _active={{ bg: 'rgba(51, 68, 121, 0.1)' }}
-                        _focus={{ outline: 'none', boxShadow: 'none' }}
+                        _active={{
+                            bg: 'border.lightGray',
+                            color: 'brand.pinkDark',
+                            transform: 'translateY(1px)',
+                        }}
                     />
                 </Flex>
             </Flex>
 
             {/* Messages Area */}
             <Box flex={1} overflow="hidden" bg="transparent">
+                {appState.messages.length === 0 ? (
+                    <Flex height="100%" align="center" justify="center" p={4}>
+                        <Flex
+                            direction="column"
+                            alignItems="center"
+                            justifyContent="center"
+                            py={6}
+                            px={4}
+                            bg="card.lightGray"
+                            borderRadius="16px"
+                            border="1px dashed"
+                            borderColor="border.lightGray"
+                            gap={1.5}
+                            width="100%"
+                        >
+                            <Text
+                                fontWeight="bold"
+                                fontSize="sm"
+                                color="text.secondary"
+                            >
+                                dead chat 💀
+                            </Text>
+                            <Text
+                                fontSize="xs"
+                                color="text.muted"
+                                textAlign="center"
+                            >
+                                be the first to say something
+                            </Text>
+                        </Flex>
+                    </Flex>
+                ) : (
                 <Virtuoso
                     ref={virtuosoRef}
                     data={appState.messages}
@@ -417,7 +445,7 @@ const Chatbox = ({
                                         ? 'chat.rowEven'
                                         : 'chat.rowOdd'
                                 }
-                                transition="all 0.2s ease"
+                                transition="background-color 80ms ease"
                                 _hover={{
                                     bg:
                                         index % 2 === 0
@@ -426,22 +454,36 @@ const Chatbox = ({
                                 }}
                             >
                                 <Text
-                                    fontSize={{ base: 'md', md: 'lg' }}
+                                    fontSize={{ base: 'sm', md: 'sm' }}
                                     whiteSpace="break-spaces"
-                                    lineHeight={{ base: '1.5', md: '1.6' }}
+                                    lineHeight={{ base: '1.5', md: '1.55' }}
                                     display="block"
                                     width="100%"
+                                    color="text.primary"
                                 >
+                                    {msg.timestamp && (
+                                        <Text
+                                            as="span"
+                                            color="text.muted"
+                                            fontSize="xs"
+                                            fontWeight="normal"
+                                            mr={2}
+                                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                                            aria-label={`sent at ${msg.timestamp}`}
+                                        >
+                                            {msg.timestamp}
+                                        </Text>
+                                    )}
                                     <Text
                                         as="span"
                                         color={getColorForUsername(msg.name)}
                                         fontWeight="bold"
-                                        mr={{ base: 2, md: 3 }}
+                                        mr={2}
                                     >
                                         {msg.isSeated && (
                                             <Icon
                                                 as={MdEventSeat}
-                                                boxSize={4}
+                                                boxSize={3.5}
                                                 mr={1}
                                                 verticalAlign="middle"
                                                 display="inline"
@@ -455,6 +497,7 @@ const Chatbox = ({
                         );
                     }}
                 />
+                )}
             </Box>
 
             {/* Input Area */}
@@ -514,7 +557,7 @@ const Chatbox = ({
                             opacity: 0.6,
                             cursor: 'not-allowed',
                         }}
-                        transition="all 0.2s ease"
+                        transition="background-color 80ms ease, box-shadow 80ms ease"
                     />
                     <EmotePicker
                         onSelectEmote={(emote) =>
@@ -524,30 +567,15 @@ const Chatbox = ({
                     />
                     <IconButton
                         data-testid="chat-send-btn"
+                        variant="tactilePrimary"
                         icon={<IoIosSend size={28} />}
                         onClick={handleSendMessage}
                         aria-label="Send Message"
-                        disabled={!username && !clientID}
+                        isDisabled={!username && !clientID}
                         size="lg"
                         height="48px"
                         width="48px"
-                        bg="brand.green"
-                        color="white"
-                        border="none"
-                        borderRadius="12px"
-                        _hover={{
-                            bg: 'brand.green',
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 4px 12px rgba(54, 163, 123, 0.4)',
-                        }}
-                        _active={{
-                            transform: 'translateY(0)',
-                        }}
-                        _disabled={{
-                            opacity: 0.5,
-                            cursor: 'not-allowed',
-                        }}
-                        transition="all 0.2s ease"
+                        minW="48px"
                     />
                 </Flex>
                 {autocompleteOpen && (
@@ -557,7 +585,7 @@ const Chatbox = ({
                         border="1px solid"
                         borderColor="chat.border"
                         borderRadius="12px"
-                        boxShadow="lg"
+                        boxShadow="card.lift"
                         maxH={{ base: '180px', md: '200px' }}
                         overflowY="scroll"
                         sx={{

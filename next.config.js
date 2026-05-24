@@ -17,6 +17,34 @@ if (fs.existsSync(envPath)) {
     );
 }
 
+const isDev = process.env.NODE_ENV !== 'production';
+
+// Explicit allowlist replaces the previous `https://* wss://* ws://*` wildcard
+// in connect-src. Vendor wildcards (e.g. *.thirdweb.com) are kept because each
+// SDK uses many subdomains; enumerating them is brittle. The catch-all wildcard
+// is gone — XSS exfiltration no longer reaches arbitrary attacker hosts.
+const connectSrc = [
+    "'self'",
+    'https://api.stackedpoker.io',
+    'wss://api.stackedpoker.io',
+    'https://challenges.cloudflare.com',
+    'https://*.cloudflare.com',
+    'https://mainnet.base.org',
+    'https://sepolia.base.org',
+    'https://*.thirdweb.com',
+    'wss://*.thirdweb.com',
+    'https://*.walletconnect.com',
+    'wss://*.walletconnect.com',
+    'https://*.walletconnect.org',
+    'wss://*.walletconnect.org',
+    'https://*.coinbase.com',
+    'wss://*.coinbase.com',
+    'https://*.farcaster.xyz',
+    'https://warpcast.com',
+    'https://api.coingecko.com',
+    ...(isDev ? ['http://localhost:8080', 'ws://localhost:8080'] : []),
+];
+
 const nextConfig = {
     async headers() {
         return [
@@ -29,11 +57,11 @@ const nextConfig = {
                         value: [
                             "default-src 'self'",
                             "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://widgets.coingecko.com",
-                            "frame-src 'self' https://challenges.cloudflare.com https://embedded-wallet.thirdweb.com",
-                            "connect-src 'self' http://localhost:8080 ws://localhost:8080 https://api.stackedpoker.io wss://api.stackedpoker.io https://challenges.cloudflare.com https://*.cloudflare.com wss://* ws://* https://*",
+                            "frame-src 'self' https://challenges.cloudflare.com https://embedded-wallet.thirdweb.com https://pay.thirdweb.com https://*.thirdweb.com",
+                            `connect-src ${connectSrc.join(' ')}`,
                             "img-src 'self' data: https: blob:",
-                            "style-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-                            "font-src 'self' data:",
+                            "style-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://fonts.googleapis.com",
+                            "font-src 'self' data: https://fonts.gstatic.com",
                             "worker-src 'self' blob:",
                         ].join('; '),
                     },
@@ -74,6 +102,8 @@ const nextConfig = {
         NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
         NEXT_PUBLIC_THIRDWEB_CLIENT_ID:
             process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+        NEXT_PUBLIC_THIRDWEB_BUNDLER_URL:
+            process.env.NEXT_PUBLIC_THIRDWEB_BUNDLER_URL,
     },
     images: {
         remotePatterns: [

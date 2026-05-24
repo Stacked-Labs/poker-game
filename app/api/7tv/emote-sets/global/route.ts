@@ -1,28 +1,24 @@
 import { NextResponse } from 'next/server';
 
-const SEVEN_TV_GLOBAL_SET_URLS = [
-    'https://7tv.io/v3/emote-sets/global',
-];
+const CACHE_HEADER = 'public, s-maxage=3600, stale-while-revalidate=86400';
 
 export async function GET() {
-    for (const url of SEVEN_TV_GLOBAL_SET_URLS) {
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+    try {
+        const response = await fetch('https://7tv.io/v3/emote-sets/global', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-            if (!response.ok) {
-                continue;
-            }
-
+        if (response.ok) {
             const data = await response.json();
-            return NextResponse.json(data);
-        } catch (error) {
-            console.warn('7TV proxy fetch failed:', error);
+            return NextResponse.json(data, {
+                headers: { 'Cache-Control': CACHE_HEADER },
+            });
         }
+    } catch (error) {
+        console.warn('7TV proxy fetch failed:', error);
     }
 
     return NextResponse.json(

@@ -42,6 +42,8 @@ const connectSrc = [
     'https://*.farcaster.xyz',
     'https://warpcast.com',
     'https://api.coingecko.com',
+    'https://eu.i.posthog.com',
+    'https://eu-assets.i.posthog.com',
     ...(isDev ? ['http://localhost:8080', 'ws://localhost:8080'] : []),
 ];
 
@@ -56,7 +58,7 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: [
                             "default-src 'self'",
-                            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://widgets.coingecko.com",
+                            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://widgets.coingecko.com https://eu-assets.i.posthog.com https://eu.i.posthog.com",
                             "frame-src 'self' https://challenges.cloudflare.com https://embedded-wallet.thirdweb.com https://pay.thirdweb.com https://*.thirdweb.com",
                             `connect-src ${connectSrc.join(' ')}`,
                             "img-src 'self' data: https: blob:",
@@ -104,6 +106,8 @@ const nextConfig = {
             process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
         NEXT_PUBLIC_THIRDWEB_BUNDLER_URL:
             process.env.NEXT_PUBLIC_THIRDWEB_BUNDLER_URL,
+        NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+        NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     },
     images: {
         remotePatterns: [

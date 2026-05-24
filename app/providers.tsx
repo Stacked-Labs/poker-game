@@ -18,6 +18,7 @@ import {
 import { sdk } from '@farcaster/miniapp-sdk';
 import { useEffect } from 'react';
 import E2EAutoConnect from './components/E2EAutoConnect';
+import { PostHogProvider } from './components/analytics/PostHogProvider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     useEffect(() => {
@@ -43,7 +44,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     <AuthProvider>
                         <AppStoreProvider>
                             <UserProvider>
-                                <SoundProvider>{children}</SoundProvider>
+                                <SoundProvider>
+                                    <PostHogProvider>
+                                        {children}
+                                    </PostHogProvider>
+                                </SoundProvider>
                             </UserProvider>
                         </AppStoreProvider>
                     </AuthProvider>

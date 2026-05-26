@@ -23,13 +23,10 @@ const isDev = process.env.NODE_ENV !== 'production';
 // in connect-src. Vendor wildcards (e.g. *.thirdweb.com) are kept because each
 // SDK uses many subdomains; enumerating them is brittle. The catch-all wildcard
 // is gone — XSS exfiltration no longer reaches arbitrary attacker hosts.
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.stackedpoker.io';
-const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'wss://api.stackedpoker.io';
-
 const connectSrc = [
     "'self'",
-    apiUrl,
-    wsUrl,
+    'https://api.stackedpoker.io',
+    'wss://api.stackedpoker.io',
     'https://challenges.cloudflare.com',
     'https://*.cloudflare.com',
     'https://mainnet.base.org',

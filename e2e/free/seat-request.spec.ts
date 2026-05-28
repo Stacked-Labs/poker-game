@@ -19,6 +19,7 @@ test('Seat request auto-accepted, game starts, each player sees only their own c
 
     // ── Owner creates free game ──
     await owner.goto('/create-game');
+    await owner.getByRole('radio', { name: 'Free Play' }).click();
     await owner.getByTestId('create-game-btn').click();
     await owner.waitForURL(/\/table\/.+/, { timeout: 30_000 });
     const tableUrl = owner.url();

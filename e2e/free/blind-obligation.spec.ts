@@ -11,10 +11,11 @@
  * While hand 2 is ongoing, owner must see BlindObligationControls in the
  * footer. player2 and player3 must not.
  *
- * Per Robert's Rules:
- *   - Missing BB only     → post live BB to re-enter immediately.
- *   - Missing SB + BB     → post dead SB + live BB, or wait for natural BB.
- *   - "Wait for BB"       → skip until the blind reaches your seat naturally.
+ * House rule (issue #380): missing any blind costs exactly one BB on return.
+ * No dead SB, no SB-only obligation, no compounding across multiple missed
+ * hands. Choices on return:
+ *   - "Post now"    → post one BB at the next hand start, then play normally.
+ *   - "Wait for BB" → skip until the blind reaches your seat naturally.
  */
 
 import { test, expect, type Locator } from '@playwright/test';
@@ -212,7 +213,15 @@ test('Non-owner player3 (BB) queues sit-out mid-hand → sees blind obligation c
     ).toHaveAttribute('aria-label', "I'm back", { timeout: 30_000 });
 
     // ── Wait for hand 2 to be running (owner vs player2) ──────────────────
-    await player3
+    await owner
+        .locator('[data-testid="game-stage"][data-stage="preflop"]')
+        .waitFor({ timeout: 30_000 });
+
+    // End hand 2 immediately so player3 misses their BB → oweBB obligation set
+    await endHandByFolding([owner, player2], 1);
+
+    // ── Wait for hand 3 to be running ─────────────────────────────────────
+    await owner
         .locator('[data-testid="game-stage"][data-stage="preflop"]')
         .waitFor({ timeout: 30_000 });
 
@@ -259,15 +268,24 @@ test('Non-owner player3 (BB) with blind obligation can post now and clear the ob
     await expect(
         player3.locator('.navbar-away-wrapper [data-testid="away-btn"]')
     ).toHaveAttribute('aria-label', "I'm back", { timeout: 30_000 });
-    await player3
+    await owner
         .locator('[data-testid="game-stage"][data-stage="preflop"]')
         .waitFor({ timeout: 30_000 });
-    const hand2Pot = await parseNumericText(player3.getByTestId('pot-amount'));
+
+    // End hand 2 immediately so player3 misses their BB → oweBB obligation set
+    await endHandByFolding([owner, player2], 1);
+
+    // ── Wait for hand 3 to be running (owner vs player2) ──────────────────
+    await owner
+        .locator('[data-testid="game-stage"][data-stage="preflop"]')
+        .waitFor({ timeout: 30_000 });
+
+    const hand3Pot = await parseNumericText(player3.getByTestId('pot-amount'));
     const player3StackBeforePost = await parseNumericText(
         player3.getByTestId('player-stack-3')
     );
 
-    // Blind obligation controls appear for player3 while hand 2 is running
+    // Blind obligation controls appear for player3 while hand 3 is running
     await expect(
         player3.getByTestId('blind-obligation-controls')
     ).toBeVisible({ timeout: 15_000 });
@@ -283,7 +301,7 @@ test('Non-owner player3 (BB) with blind obligation can post now and clear the ob
     }
     await expect(postBtn).toContainText('Queued');
 
-    // End hand 2 so the queued post executes at the next preflop boundary
+    // End hand 3 so the queued post executes at hand 4's preflop boundary
     await endHandByFolding([owner, player2], 1);
 
     // Controls disappear once payOwedBlinds is processed and obligation cleared
@@ -296,11 +314,12 @@ test('Non-owner player3 (BB) with blind obligation can post now and clear the ob
     await player3
         .locator('[data-testid="game-stage"][data-stage="preflop"]')
         .waitFor({ timeout: 30_000 });
-    const hand3Pot = await parseNumericText(player3.getByTestId('pot-amount'));
+    endHandByFolding([owner, player2, player3]);
+    const hand4Pot = await parseNumericText(player3.getByTestId('pot-amount'));
     const player3StackAfterPost = await parseNumericText(
         player3.getByTestId('player-stack-3')
     );
-    expect(hand3Pot).toBeGreaterThan(hand2Pot);
+    expect(hand4Pot).toBeGreaterThan(hand3Pot);
     expect(player3StackAfterPost).toBeLessThan(player3StackBeforePost);
 
     await ctxOwner.close();

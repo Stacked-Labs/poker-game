@@ -271,6 +271,6 @@ Player B clicks "Cancel sit out" before hand ends. Verify: stays active next han
 
 | #  | Test                       | Types | Status  |
 |----|----------------------------|-------|---------|
-| 23 | Blind obligations          | F+C   | Don't do it for now |
+| 23 | Blind obligations          | F+C   | Done |
 | 24 | Show/reveal cards          | F+C   | Done    |
 | 25 | Spectator view             | F+C   | Done    |

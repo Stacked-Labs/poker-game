@@ -46,10 +46,6 @@ const BlindObligationControls = () => {
             ? localPlayer.position
             : -1;
 
-    const owesSB =
-        playerIndex >= 0
-            ? Boolean(game?.owesSB?.[playerIndex])
-            : Boolean(obligation?.owesSB);
     const owesBB =
         playerIndex >= 0
             ? Boolean(game?.owesBB?.[playerIndex])
@@ -67,12 +63,12 @@ const BlindObligationControls = () => {
     );
 
     const shouldRender =
-        !!localPlayer && (owesSB || owesBB || waitingForBB || obligation);
+        !!localPlayer && (owesBB || waitingForBB || obligation);
 
     // Default to queue "post now" once per new obligation (fallback to wait if needed)
     useEffect(() => {
         const key = obligation
-            ? `${obligation.seatID}:${obligation.owesSB}:${obligation.owesBB}:${obligation.waitingForBB}`
+            ? `${obligation.seatID}:${obligation.owesBB}:${obligation.waitingForBB}`
             : null;
         const canAutoQueue =
             obligation &&
@@ -101,10 +97,10 @@ const BlindObligationControls = () => {
     }, [submitting]);
 
     useEffect(() => {
-        if (!owesSB && !owesBB && !waitingForBB && submitting) {
+        if (!owesBB && !waitingForBB && submitting) {
             setSubmitting(null);
         }
-    }, [owesBB, owesSB, waitingForBB, submitting]);
+    }, [owesBB, waitingForBB, submitting]);
 
     useEffect(() => {
         if (!shouldRender && queuedBlindAction) {
@@ -136,7 +132,6 @@ const BlindObligationControls = () => {
                         type: 'setBlindObligation',
                         payload: {
                             seatID: localPlayer.seatID,
-                            owesSB,
                             owesBB,
                             waitingForBB: true,
                             options,
@@ -151,7 +146,7 @@ const BlindObligationControls = () => {
                     break;
             }
         },
-        [socket, localPlayer, toast, dispatch, owesSB, owesBB, options]
+        [socket, localPlayer, toast, dispatch, owesBB, options]
     );
 
     useEffect(() => {

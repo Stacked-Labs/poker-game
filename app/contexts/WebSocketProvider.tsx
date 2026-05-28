@@ -426,7 +426,6 @@ export function SocketProvider(props: SocketProviderProps) {
                             paused: eventData.game.paused,
                             pendingPause: eventData.game.pendingPause ?? false,
                             pendingBlinds: eventData.game?.pendingBlinds ?? undefined,
-                            owesSB: eventData.game?.owesSB,
                             owesBB: eventData.game?.owesBB,
                             waitingForBB: eventData.game?.waitingForBB,
                             actionDeadline:
@@ -521,12 +520,6 @@ export function SocketProvider(props: SocketProviderProps) {
                         const playerIndex = localPlayer
                             ? localPlayer.position
                             : -1;
-                        const owesSB =
-                            playerIndex >= 0
-                                ? Boolean(
-                                      eventData.game?.owesSB?.[playerIndex]
-                                  )
-                                : false;
                         const owesBB =
                             playerIndex >= 0
                                 ? Boolean(
@@ -542,7 +535,7 @@ export function SocketProvider(props: SocketProviderProps) {
                                   )
                                 : false;
 
-                        if (localPlayer && (owesSB || owesBB || waitingForBB)) {
+                        if (localPlayer && (owesBB || waitingForBB)) {
                             const existingOptions =
                                 appStateRef.current.blindObligation?.options ??
                                 ([
@@ -552,14 +545,12 @@ export function SocketProvider(props: SocketProviderProps) {
                                 ] as BlindObligationOptions[]);
                             bundlePayload.blindObligation = {
                                 seatID: localPlayer.seatID,
-                                owesSB,
                                 owesBB,
                                 waitingForBB,
                                 options: existingOptions,
                             };
                         } else if (
                             appStateRef.current.blindObligation &&
-                            !owesSB &&
                             !owesBB &&
                             !waitingForBB
                         ) {
@@ -585,7 +576,6 @@ export function SocketProvider(props: SocketProviderProps) {
                             type: 'setBlindObligation',
                             payload: {
                                 seatID: eventData.seatID,
-                                owesSB: Boolean(eventData.owesSB),
                                 owesBB: Boolean(eventData.owesBB),
                                 waitingForBB: Boolean(eventData.waitingForBB),
                                 options: Array.isArray(eventData.options)

@@ -103,6 +103,9 @@ export async function setupFreeGameTwoPlayers(browser: import('@playwright/test'
 
     // Owner creates game and sits seat 1
     await owner.goto('/create-game');
+    // The page now opens with no mode selected; the rest of the form (and
+    // create-game-btn) only renders once Free Play or Real Money is picked.
+    await owner.getByRole('radio', { name: 'Free Play' }).click();
     await owner.getByTestId('create-game-btn').click();
     await owner.waitForURL(/\/table\/.+/, { timeout: 30_000 });
     const tableUrl = owner.url();
@@ -143,12 +146,12 @@ export async function setupCryptoGameTwoPlayers(
     cryptoPlayerB: Page,
     pkA: string,
     pkB: string,
-    buyIn = '100',
+    buyIn = '0.20',
     chainTimeout = 120_000
 ) {
     // PlayerA creates crypto game and deposits to seat 1
     await cryptoPlayerA.goto(`/create-game?e2e_pk=${pkA}`);
-    await cryptoPlayerA.getByTestId('play-type-crypto').click();
+    await cryptoPlayerA.getByRole('radio', { name: 'Real Money' }).click();
     await cryptoPlayerA
         .getByTestId('create-game-btn')
         .waitFor({ timeout: 60_000 });
@@ -187,23 +190,8 @@ export async function setupCryptoGameTwoPlayers(
     await cryptoPlayerB.getByTestId('buy-in-input').fill(buyIn);
     await cryptoPlayerB.getByTestId('join-table-btn').click();
 
-    // Owner accepts
-    await cryptoPlayerA
-        .locator('[data-testid="seat-request-popup"]')
-        .waitFor({ state: 'visible', timeout: chainTimeout });
-    await cryptoPlayerA
-        .locator('[data-testid^="accept-player-"]')
-        .first()
-        .click();
-    await cryptoPlayerA
-        .getByTestId('taken-seat-2')
-        .waitFor({ timeout: 30_000 });
-    await cryptoPlayerB
-        .getByTestId('taken-seat-1')
-        .waitFor({ timeout: 30_000 });
-    await cryptoPlayerA
-        .locator('[data-testid="seat-request-popup"]')
-        .waitFor({ state: 'hidden', timeout: 10_000 });
+    await cryptoPlayerA.getByTestId('taken-seat-2').waitFor({ timeout: chainTimeout });
+    await cryptoPlayerB.getByTestId('taken-seat-1').waitFor({ timeout: 30_000 });
 }
 
 /**
@@ -220,6 +208,9 @@ export async function setupFreeGameThreePlayers(browser: import('@playwright/tes
 
     // Owner creates game and sits seat 1
     await owner.goto('/create-game');
+    // The page now opens with no mode selected; the rest of the form (and
+    // create-game-btn) only renders once Free Play or Real Money is picked.
+    await owner.getByRole('radio', { name: 'Free Play' }).click();
     await owner.getByTestId('create-game-btn').click();
     await owner.waitForURL(/\/table\/.+/, { timeout: 30_000 });
     const tableUrl = owner.url();
@@ -273,12 +264,12 @@ export async function setupCryptoGameThreePlayers(
     pkA: string,
     pkB: string,
     pkC: string,
-    buyIn = '100',
+    buyIn = '0.30',
     chainTimeout = 120_000
 ) {
     // PlayerA creates crypto game and deposits to seat 1
     await cryptoPlayerA.goto(`/create-game?e2e_pk=${pkA}`);
-    await cryptoPlayerA.getByTestId('play-type-crypto').click();
+    await cryptoPlayerA.getByRole('radio', { name: 'Real Money' }).click();
     await cryptoPlayerA.getByTestId('create-game-btn').waitFor({ timeout: 60_000 });
     await cryptoPlayerA.getByTestId('create-game-btn').click();
     await cryptoPlayerA.waitForURL(/\/table\/.+/, { timeout: 60_000 });
@@ -304,12 +295,7 @@ export async function setupCryptoGameThreePlayers(
     await cryptoPlayerB.getByTestId('buy-in-input').clear();
     await cryptoPlayerB.getByTestId('buy-in-input').fill(buyIn);
     await cryptoPlayerB.getByTestId('join-table-btn').click();
-
-    // Owner accepts player B
-    await cryptoPlayerA.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'visible', timeout: chainTimeout });
-    await cryptoPlayerA.locator('[data-testid^="accept-player-"]').first().click();
-    await cryptoPlayerA.getByTestId('taken-seat-2').waitFor({ timeout: 30_000 });
-    await cryptoPlayerA.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'hidden', timeout: 10_000 });
+    await cryptoPlayerA.getByTestId('taken-seat-2').waitFor({ timeout: chainTimeout });
 
     // PlayerC deposits to seat 3
     await cryptoPlayerC.goto(`${tablePath}?e2e_pk=${pkC}`);
@@ -320,12 +306,7 @@ export async function setupCryptoGameThreePlayers(
     await cryptoPlayerC.getByTestId('buy-in-input').clear();
     await cryptoPlayerC.getByTestId('buy-in-input').fill(buyIn);
     await cryptoPlayerC.getByTestId('join-table-btn').click();
-
-    // Owner accepts player C
-    await cryptoPlayerA.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'visible', timeout: chainTimeout });
-    await cryptoPlayerA.locator('[data-testid^="accept-player-"]').first().click();
-    await cryptoPlayerA.getByTestId('taken-seat-3').waitFor({ timeout: 30_000 });
-    await cryptoPlayerA.locator('[data-testid="seat-request-popup"]').waitFor({ state: 'hidden', timeout: 10_000 });
+    await cryptoPlayerA.getByTestId('taken-seat-3').waitFor({ timeout: chainTimeout });
 }
 
 /** Open the Settings modal and switch to a tab by name. */
@@ -355,7 +336,20 @@ export async function endHandByFolding(pages: Page[], foldCount = 2) {
             );
             const idx = visible.findIndex(Boolean);
             if (idx >= 0) {
-                await pages[idx].locator(selector).first().click({ force: true });
+                const btn = pages[idx].locator(selector).first();
+                await btn.click({ force: true });
+                // Guard modal ("Check Instead!") appears when canCheck === true.
+                const foldAnyway = pages[idx].getByTestId('fold-anyway-btn');
+                const modalVisible = await foldAnyway
+                    .waitFor({ state: 'visible', timeout: 1_000 })
+                    .then(() => true)
+                    .catch(() => false);
+                if (modalVisible) {
+                    await foldAnyway.click();
+                    await foldAnyway.waitFor({ state: 'hidden', timeout: 5_000 });
+                } else {
+                    await btn.waitFor({ state: 'hidden', timeout: 5_000 });
+                }
                 break;
             }
             await new Promise((r) => setTimeout(r, 100));

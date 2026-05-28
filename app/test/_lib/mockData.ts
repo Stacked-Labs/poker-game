@@ -354,13 +354,12 @@ export const scenarioBlindObligation: Game = {
     readyCount: 2,
     paused: false,
     actionDeadline: 0,
-    owesSB: [true, false, false],
-    owesBB: [false, false, false],
+    owesBB: [true, false, false],
     waitingForBB: [false, false, false],
 };
 
 // ─── Scenario 7 — Blind Obligation (waiting for BB) ───────────────────────
-// Player 1 (self) owes SB and has already chosen "Wait for BB".
+// Player 1 (self) owes a BB and has already chosen "Wait for BB".
 // Shows: BlindObligationControls in the "waiting" state (Wait for BB button disabled/active).
 export const scenarioWaitingForBB: Game = {
     running: false,
@@ -383,8 +382,7 @@ export const scenarioWaitingForBB: Game = {
     readyCount: 2,
     paused: false,
     actionDeadline: 0,
-    owesSB: [true, false, false],
-    owesBB: [false, false, false],
+    owesBB: [true, false, false],
     waitingForBB: [true, false, false],
 };
 

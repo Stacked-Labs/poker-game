@@ -5,7 +5,7 @@ const PK_A = process.env.TEST_CRYPTO_PK_A as string;
 const PK_B = process.env.TEST_CRYPTO_PK_B as string;
 const PK_C = process.env.TEST_CRYPTO_PK_C as string;
 
-test('Crypto: owner accepts multiple seat requests — all players seated', async ({
+test('Crypto: multiple players join via auto-accept — all players seated', async ({
     cryptoPlayerA,
     cryptoPlayerB,
     cryptoPlayerC,

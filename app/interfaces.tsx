@@ -116,7 +116,6 @@ export type Game = {
      */
     actionDeadline: number;
     pendingBlinds?: { sb: number; bb: number };
-    owesSB?: boolean[];
     owesBB?: boolean[];
     waitingForBB?: boolean[];
     /** Community cards that would have been dealt — populated after a concession when rabbit hunt is enabled. */
@@ -131,7 +130,6 @@ export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';
 
 export type BlindObligation = {
     seatID: number;
-    owesSB: boolean;
     owesBB: boolean;
     waitingForBB?: boolean;
     options: BlindObligationOptions[];

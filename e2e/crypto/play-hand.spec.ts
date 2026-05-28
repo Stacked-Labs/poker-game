@@ -7,7 +7,7 @@ import {
 } from '../helpers/common';
 
 const CHAIN_TIMEOUT = 120_000;
-const TEST_BUY_IN = '100';
+const TEST_BUY_IN = '0.20';
 const PK_A = process.env.TEST_CRYPTO_PK_A as string;
 const PK_B = process.env.TEST_CRYPTO_PK_B as string;
 
@@ -17,7 +17,7 @@ test('Crypto game: both players check/call through all streets — hand complete
 }) => {
     // ── PlayerA creates crypto game and deposits to seat 1 ──
     await cryptoPlayerA.goto(`/create-game?e2e_pk=${PK_A}`);
-    await cryptoPlayerA.getByTestId('play-type-crypto').click();
+    await cryptoPlayerA.getByRole('radio', { name: 'Real Money' }).click();
     await cryptoPlayerA
         .getByTestId('create-game-btn')
         .waitFor({ timeout: 60_000 });

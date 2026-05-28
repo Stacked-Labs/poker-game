@@ -27,6 +27,8 @@ const connectSrc = [
     "'self'",
     'https://api.stackedpoker.io',
     'wss://api.stackedpoker.io',
+    'https://dev-api.stackedpoker.io',
+    'wss://dev-api.stackedpoker.io',
     'https://challenges.cloudflare.com',
     'https://*.cloudflare.com',
     'https://mainnet.base.org',

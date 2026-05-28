@@ -731,6 +731,51 @@ const components = {
                     },
                 },
             },
+            // Tactile chrome solid — same chrome chip but with a fully
+            // opaque page-toned background. Used inside the portrait
+            // burger menu where chips float over the table felt with no
+            // surrounding container, so each one needs its own surface
+            // contrast to read.
+            tactileChromeSolid: {
+                bg: 'bg.default',
+                color: 'text.secondary',
+                border: '1px solid',
+                borderColor: 'rgba(0,0,0,0.10)',
+                borderRadius: '12px',
+                boxShadow:
+                    'inset 0 1px 0 rgba(255,255,255,0.50), 0 1px 0 rgba(0,0,0,0.10)',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease, border-color 80ms ease',
+                _hover: {
+                    bg: 'card.lightGray',
+                    color: 'text.primary',
+                    borderColor: 'rgba(0,0,0,0.18)',
+                },
+                _active: {
+                    bg: 'border.lightGray',
+                    transform: 'translateY(1px)',
+                    boxShadow:
+                        'inset 0 1px 2px rgba(0,0,0,0.15), 0 0 0 transparent',
+                },
+                _dark: {
+                    bg: 'bg.default',
+                    color: 'rgba(255,255,255,0.85)',
+                    borderColor: 'rgba(255,255,255,0.14)',
+                    boxShadow:
+                        'inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 0 rgba(0,0,0,0.4)',
+                    _hover: {
+                        bg: 'whiteAlpha.100',
+                        color: 'white',
+                        borderColor: 'rgba(255,255,255,0.20)',
+                    },
+                    _active: {
+                        bg: 'whiteAlpha.200',
+                        transform: 'translateY(1px)',
+                        boxShadow:
+                            'inset 0 1px 2px rgba(0,0,0,0.30), 0 0 0 transparent',
+                    },
+                },
+            },
             // Tactile ghost — for in-card utility toggles (chat header
             // buttons, scroll arrows in dense surfaces) where the chip-
             // style chrome of `tactileChrome` would add too much visual

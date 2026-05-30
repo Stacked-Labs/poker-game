@@ -597,6 +597,103 @@ export async function getPublicGames(params?: {
     }
 }
 
+// --- Tournament API ---
+
+export interface Tournament {
+    id: number;
+    host_uuid: string;
+    host_wallet: string;
+    template_id: string;
+    buy_in_usdc: number;
+    fee_bps: number;
+    min_entries: number;
+    max_entries: number;
+    guarantee_usdc: number;
+    scheduled_start_at: string;
+    late_reg_close_at: string;
+    advertised_end_at: string;
+    is_free_play: boolean;
+    status: string;
+    prize_pool_usdc: number;
+    metadata: Record<string, unknown>;
+    created_at: string;
+}
+
+export async function listTournaments(): Promise<{ tournaments: Tournament[] }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments`, { method: 'GET' });
+    if (!res.ok) throw new Error(`listTournaments: ${res.statusText}`);
+    return res.json();
+}
+
+export async function getTournament(id: number): Promise<{ tournament: Tournament }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}`, { method: 'GET' });
+    if (!res.ok) throw new Error(`getTournament: ${res.statusText}`);
+    return res.json();
+}
+
+export async function createTournament(data: {
+    min_entries: number;
+    max_entries: number;
+    buy_in_usdc: number;
+    scheduled_start_at: string;
+    is_free_play: boolean;
+    blind_structure?: string;
+}): Promise<{ tournament: Tournament }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+export async function registerForTournament(id: number): Promise<{ player_uuid: string }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/register`, {
+        method: 'POST',
+        credentials: 'include',
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+export async function unregisterFromTournament(id: number): Promise<void> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/register`, {
+        method: 'DELETE',
+        credentials: 'include',
+    });
+    if (!res.ok) throw new Error(await res.text());
+}
+
+export async function startTournament(id: number): Promise<void> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/start`, {
+        method: 'POST',
+        credentials: 'include',
+    });
+    if (!res.ok) throw new Error(await res.text());
+}
+
+export async function getTournamentClock(id: number) {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/clock`, { method: 'GET' });
+    if (!res.ok) return null;
+    return res.json();
+}
+
+export async function getTournamentLeaderboard(id: number) {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/leaderboard`, { method: 'GET' });
+    if (!res.ok) return null;
+    return res.json();
+}
+
 export async function getTableSpectatorCount(tableName: string): Promise<number> {
     isBackendUrlValid();
 

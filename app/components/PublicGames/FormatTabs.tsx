@@ -22,7 +22,7 @@ export function isGameFormat(value: string | null | undefined): value is GameFor
 
 const FORMATS: ReadonlyArray<{ id: GameFormat; label: string; badge?: string }> = [
     { id: 'cash', label: 'Cash games' },
-    { id: 'tournaments', label: 'Tournaments', badge: 'Soon' },
+    { id: 'tournaments', label: 'Tournaments' },
 ];
 
 export default function FormatTabs({ format, onChange }: FormatTabsProps) {

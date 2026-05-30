@@ -617,6 +617,9 @@ export interface Tournament {
     prize_pool_usdc: number;
     metadata: Record<string, unknown>;
     created_at: string;
+    contract_address?: string;
+    chain?: string;
+    has_password: boolean;
 }
 
 export async function listTournaments(): Promise<{ tournaments: Tournament[] }> {
@@ -640,6 +643,8 @@ export async function createTournament(data: {
     scheduled_start_at: string;
     is_free_play: boolean;
     blind_structure?: string;
+    chain?: string;
+    password_code_hash?: string;
 }): Promise<{ tournament: Tournament }> {
     isBackendUrlValid();
     const res = await fetch(`${backendUrl}/api/tournaments`, {
@@ -652,11 +657,19 @@ export async function createTournament(data: {
     return res.json();
 }
 
-export async function registerForTournament(id: number): Promise<{ player_uuid: string }> {
+export async function registerForTournament(
+    id: number,
+    options?: { passwordCodeHash?: string },
+): Promise<{ player_uuid: string }> {
     isBackendUrlValid();
+    const body = options?.passwordCodeHash
+        ? JSON.stringify({ password_code_hash: options.passwordCodeHash })
+        : undefined;
     const res = await fetch(`${backendUrl}/api/tournaments/${id}/register`, {
         method: 'POST',
         credentials: 'include',
+        headers: body ? { 'Content-Type': 'application/json' } : undefined,
+        body,
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();

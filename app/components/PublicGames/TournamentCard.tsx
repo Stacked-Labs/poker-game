@@ -84,9 +84,21 @@ export default function TournamentCard({
                         <Text fontWeight="bold" fontSize="md" color="text.primary" noOfLines={1}>
                             {t.is_free_play ? 'Free-Play MTT' : `MTT — ${buyInLabel}`}
                         </Text>
-                        <Text fontSize="xs" color={mutedColor} textTransform="capitalize">
-                            {blindLabel} blinds · NLH
-                        </Text>
+                        <HStack spacing={1}>
+                            <Text fontSize="xs" color={mutedColor} textTransform="capitalize">
+                                {blindLabel} blinds · NLH
+                            </Text>
+                            {!t.is_free_play && t.chain && (
+                                <Badge colorScheme="purple" borderRadius="full" px={1.5} py="1px" fontSize="2xs">
+                                    {t.chain === 'base' ? 'Base' : 'Sepolia'}
+                                </Badge>
+                            )}
+                            {t.has_password && (
+                                <Badge colorScheme="orange" borderRadius="full" px={1.5} py="1px" fontSize="2xs">
+                                    🔒
+                                </Badge>
+                            )}
+                        </HStack>
                     </VStack>
                     <Badge
                         colorScheme={statusColor(t.status)}

@@ -50,10 +50,18 @@ export const metadata: Metadata = {
     },
 };
 
-const HomePage: React.FC = () => {
+interface HomePageProps {
+    searchParams: Promise<{ broadcast?: string }>;
+}
+
+const HomePage = async ({ searchParams }: HomePageProps) => {
+    // Lighter "broadcast mode" (?broadcast=1) for the 24/7 livestream worker: skip the
+    // price ticker + autoplay video + hero animations so the homepage renders stably in
+    // headless software-GL Chromium. Normal visitors (no param) are unaffected.
+    const isBroadcast = (await searchParams)?.broadcast === '1';
     return (
         <>
-            <CoinGecko />
+            {!isBroadcast && <CoinGecko />}
             <Box w="100vw">
                 <VStack spacing={0} align="stretch" height={'fit-content'}>
                     <Flex
@@ -61,7 +69,7 @@ const HomePage: React.FC = () => {
                         height={'var(--full-vh)'}
                         width="100%"
                     >
-                        <HomeSection />
+                        <HomeSection isBroadcast={isBroadcast} />
                     </Flex>
                     <Box
                         position="relative"
@@ -83,7 +91,7 @@ const HomePage: React.FC = () => {
                     </Box>
                 </VStack>
             </Box>
-            <BackToTopButton />
+            {!isBroadcast && <BackToTopButton />}
         </>
     );
 };

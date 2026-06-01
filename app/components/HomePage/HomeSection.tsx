@@ -16,13 +16,20 @@ const MotionBox = motion(Box);
 
 const VIDEO_POSTER_SRC = '/video/bgplaceholder.webp';
 
-const HomeSection = () => {
+type HomeSectionProps = {
+    isBroadcast?: boolean;
+};
+
+const HomeSection = ({ isBroadcast = false }: HomeSectionProps) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const sectionRef = useRef<HTMLDivElement>(null);
     const [videoError, setVideoError] = useState(false);
     const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
     const prefersReducedMotion = useReducedMotion();
     const isDesktop = useBreakpointValue({ base: false, lg: true }) ?? false;
+    // Broadcast mode (livestream worker) is treated like reduced motion for
+    // rendering stability: no autoplay video, no parallax.
+    const staticMode = isBroadcast || prefersReducedMotion;
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
@@ -34,7 +41,7 @@ const HomeSection = () => {
     const videoScale = useTransform(scrollYProgress, [0, 1], [1.05, 1.0]);
 
     useEffect(() => {
-        if (prefersReducedMotion) {
+        if (staticMode) {
             setShouldLoadVideo(false);
             return;
         }
@@ -53,7 +60,7 @@ const HomeSection = () => {
             connection?.effectiveType === '2g';
 
         setShouldLoadVideo(!saveData && !slowConnection);
-    }, [prefersReducedMotion]);
+    }, [staticMode]);
 
     // Handle video loading and playback
     useEffect(() => {
@@ -113,7 +120,7 @@ const HomeSection = () => {
         };
     }, [shouldLoadVideo]);
 
-    const enableParallax = isDesktop && !prefersReducedMotion;
+    const enableParallax = isDesktop && !staticMode;
 
     return (
         <Box
@@ -197,7 +204,7 @@ const HomeSection = () => {
                 zIndex={2}
             >
                 <Box width={{ base: '100%', lg: '40%' }}>
-                    <HomeCard />
+                    <HomeCard isBroadcast={isBroadcast} />
                 </Box>
             </Flex>
 
@@ -219,7 +226,7 @@ const HomeSection = () => {
             />
 
             {/* Scroll Indicator */}
-            <ScrollIndicator />
+            <ScrollIndicator isBroadcast={isBroadcast} />
         </Box>
     );
 };

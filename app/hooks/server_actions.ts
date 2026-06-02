@@ -615,7 +615,6 @@ export interface Tournament {
     late_reg_close_at: string;
     late_reg_levels: number;
     advertised_end_at: string;
-    is_free_play: boolean;
     table_size: number;
     starting_stack: number;
     starting_stack_bb: number;
@@ -625,7 +624,7 @@ export interface Tournament {
     created_at: string;
     contract_address?: string;
     chain?: string;
-    has_password: boolean;
+    is_private: boolean;
     registered_count?: number;
     reentry_allowed: boolean;
     reentry_max: number;
@@ -657,13 +656,13 @@ export async function createTournament(data: {
     buy_in_usdc: number;
     guarantee_usdc?: number;
     scheduled_start_at: string;
-    is_free_play: boolean;
     blind_structure?: string;
     late_reg_levels?: number;
     table_size?: number;
     reentry_allowed?: boolean;
     reentry_max?: number;
     chain?: string;
+    is_private?: boolean;
     password_code_hash?: string;
 }): Promise<{ tournament: Tournament }> {
     isBackendUrlValid();

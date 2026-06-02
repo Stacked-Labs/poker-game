@@ -235,8 +235,9 @@ export default function TournamentPage() {
     }
 
     const t = tournament;
+    const isFreePlay = t.buy_in_usdc === 0;
     const blindLabel = t.metadata?.blind_structure ? String(t.metadata.blind_structure) : 'turbo';
-    const buyInLabel = t.is_free_play ? 'Free play' : `${(t.buy_in_usdc / 1_000_000).toFixed(2)} USDC`;
+    const buyInLabel = isFreePlay ? 'Free play' : `${(t.buy_in_usdc / 1_000_000).toFixed(2)} USDC`;
     const now = new Date();
     const lateRegCloseAt = new Date(t.late_reg_close_at);
     const scheduledStartAt = new Date(t.scheduled_start_at);
@@ -244,7 +245,7 @@ export default function TournamentPage() {
     const isLateRegOpen = t.status === 'running' && (t.late_reg_levels ?? 0) > 0 && now < lateRegCloseAt;
     const canRegister = t.status === 'registration' && !isRegistered;
     const canLateReg = isLateRegOpen && !isRegistered;
-    const canUnregister = t.status === 'registration' && isRegistered && (t.is_free_play || now < fiveMinBefore);
+    const canUnregister = t.status === 'registration' && isRegistered && (isFreePlay || now < fiveMinBefore);
     const tableSize = t.table_size || 9;
 
     const sortedPlayers = [...players].sort((a, b) => {
@@ -273,7 +274,7 @@ export default function TournamentPage() {
                             <Flex justify="space-between" align="flex-start" gap={3} flexWrap="wrap">
                                 <VStack align="start" spacing={1}>
                                     <Heading fontSize={{ base: 'xl', md: '2xl' }} color="text.primary">
-                                        {t.name || (t.is_free_play ? 'Free-Play MTT' : `MTT — ${buyInLabel}`)}
+                                        {t.name || (isFreePlay ? 'Free-Play MTT' : `MTT — ${buyInLabel}`)}
                                     </Heading>
                                     <HStack spacing={2} flexWrap="wrap">
                                         <Badge colorScheme={statusColor(t.status)} borderRadius="full" px={2} textTransform="capitalize">
@@ -291,7 +292,7 @@ export default function TournamentPage() {
                                         <Text fontSize="xs" color={mutedColor} textTransform="capitalize">
                                             {blindLabel} blinds · NLH · {tableSize}-max
                                         </Text>
-                                        {!t.is_free_play && t.chain && (
+                                        {!isFreePlay && t.chain && (
                                             <Badge colorScheme="purple" borderRadius="full" px={1.5} fontSize="2xs">
                                                 {t.chain === 'base' ? 'Base' : 'Sepolia'}
                                             </Badge>
@@ -347,7 +348,7 @@ export default function TournamentPage() {
                             </Flex>
 
                             {/* Contract link */}
-                            {!t.is_free_play && t.contract_address && t.chain && (
+                            {!isFreePlay && t.contract_address && t.chain && (
                                 <HStack spacing={2} fontSize="xs" color={mutedColor}>
                                     <Text>Contract:</Text>
                                     <Text
@@ -390,7 +391,7 @@ export default function TournamentPage() {
                                         </Text>
                                     </Box>
                                 )}
-                                {!t.is_free_play && t.fee_bps > 0 && (
+                                {!isFreePlay && t.fee_bps > 0 && (
                                     <Box>
                                         <Text color={mutedColor} fontSize="xs">Fee</Text>
                                         <Text fontWeight="semibold" color="text.primary">{(t.fee_bps / 100).toFixed(0)}%</Text>
@@ -470,7 +471,7 @@ export default function TournamentPage() {
                                             {t.status === 'running' && t.reentry_allowed && <Th isNumeric>Bullets</Th>}
                                             {t.status === 'running' && <Th isNumeric>Chips</Th>}
                                             {t.status === 'running' && <Th isNumeric>Table</Th>}
-                                            {t.status === 'completed' && !t.is_free_play && <Th isNumeric>Prize</Th>}
+                                            {t.status === 'completed' && !isFreePlay && <Th isNumeric>Prize</Th>}
                                         </Tr>
                                     </Thead>
                                     <Tbody>
@@ -518,7 +519,7 @@ export default function TournamentPage() {
                                                             </Text>
                                                         </Td>
                                                     )}
-                                                    {t.status === 'completed' && !t.is_free_play && (
+                                                    {t.status === 'completed' && !isFreePlay && (
                                                         <Td isNumeric>
                                                             <Text fontSize="xs" color={(p.prize_usdc ?? 0) > 0 ? 'brand.green' : mutedColor} fontWeight={(p.prize_usdc ?? 0) > 0 ? 'bold' : 'normal'}>
                                                                 {(p.prize_usdc ?? 0) > 0 ? `$${((p.prize_usdc ?? 0) / 1_000_000).toFixed(2)}` : '—'}
@@ -547,7 +548,7 @@ export default function TournamentPage() {
                     )}
 
                     {/* Refund claim (cancelled / emergency refund) */}
-                    {(t.status === 'cancelled' || t.status === 'emergency_refund') && !t.is_free_play && t.contract_address && myWallet && (
+                    {(t.status === 'cancelled' || t.status === 'emergency_refund') && !isFreePlay && t.contract_address && myWallet && (
                         <Box bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="14px" p={{ base: 4, md: 5 }}>
                             <VStack align="stretch" spacing={3}>
                                 <HStack spacing={2}>
@@ -591,7 +592,7 @@ export default function TournamentPage() {
                     )}
 
                     {/* Host rake claim */}
-                    {t.status === 'completed' && !t.is_free_play && t.contract_address && myWallet &&
+                    {t.status === 'completed' && !isFreePlay && t.contract_address && myWallet &&
                         myWallet.toLowerCase() === t.host_wallet?.toLowerCase() && (
                         <Box bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="14px" p={{ base: 4, md: 5 }}>
                             <VStack align="stretch" spacing={3}>
@@ -627,7 +628,7 @@ export default function TournamentPage() {
                     )}
 
                     {/* On-chain settlement info */}
-                    {t.status === 'completed' && !t.is_free_play && t.contract_address && t.chain && (
+                    {t.status === 'completed' && !isFreePlay && t.contract_address && t.chain && (
                         <Box bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="14px" p={{ base: 4, md: 5 }}>
                             <VStack align="stretch" spacing={2}>
                                 <Text fontSize="xs" fontWeight="semibold" color={mutedColor} textTransform="uppercase" letterSpacing="wider">
@@ -667,7 +668,7 @@ export default function TournamentPage() {
                     )}
 
                     {/* Emergency refund safety net */}
-                    {t.status === 'running' && !t.is_free_play && t.contract_address && t.chain && (
+                    {t.status === 'running' && !isFreePlay && t.contract_address && t.chain && (
                         <Box bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="14px" p={{ base: 4, md: 5 }}>
                             <VStack align="stretch" spacing={3}>
                                 <HStack spacing={2}>

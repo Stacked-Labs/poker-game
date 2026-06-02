@@ -89,13 +89,14 @@ export default function TournamentCard({
     const isLateRegOpen = t.status === 'running' && (t.late_reg_levels ?? 0) > 0 && now < lateRegCloseAt;
     const canRegister = t.status === 'registration' && !isRegistered;
     const canLateRegister = isLateRegOpen && !isRegistered && !pendingTx;
-    const canUnregister = t.status === 'registration' && isRegistered && !hasPendingRegister && (t.is_free_play || now < fiveMinBeforeStart);
+    const isFreePlay = t.buy_in_usdc === 0;
+    const canUnregister = t.status === 'registration' && isRegistered && !hasPendingRegister && (isFreePlay || now < fiveMinBeforeStart);
     const canFundGuarantee = isHost && t.status === 'pending' && t.guarantee_usdc > 0 && !!t.contract_address;
 
     const blindLabel = t.metadata?.blind_structure
         ? String(t.metadata.blind_structure)
         : 'turbo';
-    const buyInLabel = t.is_free_play ? 'Free play' : `${(t.buy_in_usdc / 1_000_000).toFixed(2)} USDC`;
+    const buyInLabel = isFreePlay ? 'Free play' : `${(t.buy_in_usdc / 1_000_000).toFixed(2)} USDC`;
 
     return (
         <Box
@@ -112,18 +113,18 @@ export default function TournamentCard({
                 <HStack justify="space-between" align="flex-start">
                     <VStack align="start" spacing={0.5} minW={0}>
                         <Text fontWeight="bold" fontSize="md" color="text.primary" noOfLines={1}>
-                            {t.name || (t.is_free_play ? 'Free-Play MTT' : `MTT — ${buyInLabel}`)}
+                            {t.name || (isFreePlay ? 'Free-Play MTT' : `MTT — ${buyInLabel}`)}
                         </Text>
                         <HStack spacing={1}>
                             <Text fontSize="xs" color={mutedColor} textTransform="capitalize">
                                 {blindLabel} blinds · NLH
                             </Text>
-                            {!t.is_free_play && t.chain && (
+                            {t.chain && (
                                 <Badge colorScheme="purple" borderRadius="full" px={1.5} py="1px" fontSize="2xs">
                                     {t.chain === 'base' ? 'Base' : 'Sepolia'}
                                 </Badge>
                             )}
-                            {t.has_password && (
+                            {t.is_private && (
                                 <Badge colorScheme="orange" borderRadius="full" px={1.5} py="1px" fontSize="2xs">
                                     🔒
                                 </Badge>
@@ -176,7 +177,7 @@ export default function TournamentCard({
                     </Flex>
                 )}
 
-                {!t.is_free_play && t.fee_bps > 0 && (
+                {!isFreePlay && t.fee_bps > 0 && (
                     <Flex justify="space-between" fontSize="xs" color={mutedColor}>
                         <Text>Fee</Text>
                         <Text fontWeight="semibold" color="text.primary">

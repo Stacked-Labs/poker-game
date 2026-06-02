@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { type Chain, getContract, prepareContractCall, toHex } from 'thirdweb';
-import { keccak256 } from 'thirdweb/utils';
+import { type Chain, getContract, prepareContractCall } from 'thirdweb';
 import { useSendAndConfirmTransaction, useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { approve, allowance } from 'thirdweb/extensions/erc20';
 import { client } from '../thirdwebclient';
@@ -12,7 +11,7 @@ import { registerForTournament, unregisterFromTournament, type Tournament } from
 export type RegisterStatus = 'idle' | 'approving' | 'registering' | 'success' | 'error';
 
 interface UseRegisterResult {
-    register: (passwordCode?: string) => Promise<{ ok: boolean; txHash?: string; error?: string }>;
+    register: (passwordCode?: string) => Promise<{ ok: boolean; txHash?: string; error?: string }>; // passwordCode only used for non-crypto
     reenter: (passwordCode?: string) => Promise<{ ok: boolean; txHash?: string; error?: string }>;
     unregister: () => Promise<{ ok: boolean; txHash?: string; error?: string }>;
     status: RegisterStatus;
@@ -34,7 +33,7 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
     }, []);
 
     // True when this tournament requires on-chain interaction
-    const isCrypto = !!(tournament && !tournament.is_free_play && tournament.contract_address);
+    const isCrypto = !!(tournament && tournament.contract_address);
 
     const errMsg = (e: unknown, fallback: string) =>
         e instanceof Error ? e.message : fallback;
@@ -79,11 +78,8 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
                 await sendAndConfirm(approve({ contract: usdcContract, spender: contractAddress, amountWei: buyIn }));
             }
 
-            let codeHash: `0x${string}` = '0x0000000000000000000000000000000000000000000000000000000000000000';
-            if (passwordCode) codeHash = keccak256(toHex(passwordCode));
-
             setStatus('registering');
-            const receipt = await sendAndConfirm(prepareContractCall({ contract: tournamentContract, method: 'function register(bytes32 codeHash)', params: [codeHash] }));
+            const receipt = await sendAndConfirm(prepareContractCall({ contract: tournamentContract, method: 'function register(bytes calldata operatorSig)', params: ['0x'] }));
             setStatus('success');
             return { ok: true, txHash: receipt.transactionHash };
         } catch (e) {
@@ -130,11 +126,8 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
                 await sendAndConfirm(approve({ contract: usdcContract, spender: contractAddress, amountWei: buyIn }));
             }
 
-            let codeHash: `0x${string}` = '0x0000000000000000000000000000000000000000000000000000000000000000';
-            if (passwordCode) codeHash = keccak256(toHex(passwordCode));
-
             setStatus('registering');
-            const receipt = await sendAndConfirm(prepareContractCall({ contract: tournamentContract, method: 'function reEnter(bytes32 codeHash)', params: [codeHash] }));
+            const receipt = await sendAndConfirm(prepareContractCall({ contract: tournamentContract, method: 'function reEnter(bytes calldata operatorSig)', params: ['0x'] }));
             setStatus('success');
             return { ok: true, txHash: receipt.transactionHash };
         } catch (e) {

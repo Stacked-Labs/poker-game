@@ -182,8 +182,7 @@ export default function TournamentsList() {
             .catch(() => {});
     }, [myWallet]);
 
-    const isCryptoTournament = (t: Tournament) =>
-        !t.is_free_play && !!t.contract_address;
+    const isCryptoTournament = (t: Tournament) => !!t.contract_address;
 
     const handleRegister = async (id: number) => {
         if (!myWallet) {
@@ -197,7 +196,7 @@ export default function TournamentsList() {
             return;
         }
         // Password-protected free-play tournament: show inline password modal.
-        if (t.has_password) {
+        if (t.is_private && !t.contract_address) {
             setPendingRegId(id);
             setPasswordCode('');
             return;
@@ -716,7 +715,6 @@ function CreateTournamentModal({ isOpen, onClose, onCreated }: CreateTournamentM
                 buy_in_usdc: isFreePlay ? 0 : Math.round(parseFloat(buyInUsdc) * 1_000_000),
                 guarantee_usdc: needsGuarantee ? guaranteeAmountMicro : undefined,
                 scheduled_start_at: new Date(scheduledAt).toISOString(),
-                is_free_play: isFreePlay,
                 blind_structure: blindStructure,
                 late_reg_levels: lateRegLevels,
                 table_size: tableSize,
@@ -1224,8 +1222,8 @@ function CryptoRegisterModal({ tournament: t, onClose, onSuccess }: CryptoRegist
 
     const handleRegister = async () => {
         if (!t) return;
-        const code = t.has_password ? passwordCode.trim() : undefined;
-        if (t.has_password && !code) {
+        const code = t.is_private ? passwordCode.trim() : undefined;
+        if (t.is_private && !code) {
             toast.warning('Enter the tournament password');
             return;
         }
@@ -1267,7 +1265,7 @@ function CryptoRegisterModal({ tournament: t, onClose, onSuccess }: CryptoRegist
                 <ModalCloseButton />
                 <ModalBody pb={2}>
                     <VStack spacing={4} align="stretch">
-                        {t?.has_password && !showStepper && (
+                        {t?.is_private && !showStepper && (
                             <FormControl>
                                 <FormLabel fontSize="sm">Tournament password</FormLabel>
                                 <Input

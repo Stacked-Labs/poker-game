@@ -81,7 +81,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
                         <Box position="relative" zIndex={1}>
                             <CommunitySection />
                             <ComparisonSection />
-                            <FeaturesSection />
+                            <FeaturesSection isBroadcast={isBroadcast} />
                             <HostToEarnSection />
                             <CustomChipValueSection />
                             <YourTableVaultSection />

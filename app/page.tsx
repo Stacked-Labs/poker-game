@@ -11,6 +11,7 @@ import ComparisonSection from './components/HomePage/ComparisonSection';
 import Footer from './components/HomePage/Footer';
 import FloatingDecor from './components/HomePage/FloatingDecor';
 import { Metadata } from 'next';
+import BroadcastMotion from './components/HomePage/BroadcastMotion';
 import BackToTopButton from './components/HomePage/BackToTopButton';
 import CoinGecko from './components/HomePage/CoinGeckoClient';
 
@@ -59,7 +60,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
     // price ticker + autoplay video + hero animations so the homepage renders stably in
     // headless software-GL Chromium. Normal visitors (no param) are unaffected.
     const isBroadcast = (await searchParams)?.broadcast === '1';
-    return (
+    const content = (
         <>
             {!isBroadcast && <CoinGecko />}
             <Box w="100vw">
@@ -94,6 +95,13 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
             {!isBroadcast && <BackToTopButton />}
         </>
     );
+
+    // In broadcast mode, force-disable all Framer Motion animations server-side so the
+    // reveal-on-scroll sections (FAQ etc.) render at their visible final state instead of
+    // staying hidden, and the page doesn't thrash software-GL Chromium while the stream
+    // auto-scrolls. Done here (not in providers) because this is where `broadcast` is
+    // known server-side, so the SSR HTML is already correct.
+    return isBroadcast ? <BroadcastMotion>{content}</BroadcastMotion> : content;
 };
 
 export default HomePage;

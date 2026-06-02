@@ -603,6 +603,8 @@ export interface Tournament {
     id: number;
     host_uuid: string;
     host_wallet: string;
+    name: string;
+    description: string;
     template_id: string;
     buy_in_usdc: number;
     fee_bps: number;
@@ -611,8 +613,12 @@ export interface Tournament {
     guarantee_usdc: number;
     scheduled_start_at: string;
     late_reg_close_at: string;
+    late_reg_levels: number;
     advertised_end_at: string;
     is_free_play: boolean;
+    table_size: number;
+    starting_stack: number;
+    starting_stack_bb: number;
     status: string;
     prize_pool_usdc: number;
     metadata: Record<string, unknown>;
@@ -620,6 +626,13 @@ export interface Tournament {
     contract_address?: string;
     chain?: string;
     has_password: boolean;
+    registered_count?: number;
+    reentry_allowed: boolean;
+    reentry_max: number;
+    started_at?: string;
+    ended_at?: string;
+    settlement_tx_hash?: string;
+    settlement_status?: 'paid' | 'pending';
 }
 
 export async function listTournaments(): Promise<{ tournaments: Tournament[] }> {
@@ -637,12 +650,19 @@ export async function getTournament(id: number): Promise<{ tournament: Tournamen
 }
 
 export async function createTournament(data: {
+    name?: string;
+    description?: string;
     min_entries: number;
     max_entries: number;
     buy_in_usdc: number;
+    guarantee_usdc?: number;
     scheduled_start_at: string;
     is_free_play: boolean;
     blind_structure?: string;
+    late_reg_levels?: number;
+    table_size?: number;
+    reentry_allowed?: boolean;
+    reentry_max?: number;
     chain?: string;
     password_code_hash?: string;
 }): Promise<{ tournament: Tournament }> {
@@ -655,6 +675,15 @@ export async function createTournament(data: {
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
+}
+
+export async function openTournamentRegistration(id: number): Promise<void> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/open-registration`, {
+        method: 'POST',
+        credentials: 'include',
+    });
+    if (!res.ok) throw new Error(await res.text());
 }
 
 export async function registerForTournament(
@@ -697,6 +726,19 @@ export async function getTournamentClock(id: number) {
     isBackendUrlValid();
     const res = await fetch(`${backendUrl}/api/tournaments/${id}/clock`, { method: 'GET' });
     if (!res.ok) return null;
+    return res.json();
+}
+
+export async function getMyTournamentRegistrations(): Promise<{
+    tournament_ids: number[];
+    finish_pos: Record<number, number>;
+}> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/registrations`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!res.ok) return { tournament_ids: [], finish_pos: {} };
     return res.json();
 }
 

@@ -446,6 +446,7 @@ const Table = ({ tableId }: { tableId: string }) => {
                                 ) : (
                                     (() => {
                                         const isDisabled =
+                                            !!appState.game?.config?.tournament ||
                                             appState.game?.players?.some(
                                                 (player) =>
                                                     player.uuid ===

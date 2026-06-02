@@ -14,6 +14,7 @@ import {
 import VolumeButton from '../VolumeButton';
 import WalletButton from '../WalletButton';
 import { ReactElement, useContext, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { FaPause } from 'react-icons/fa';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -58,6 +59,8 @@ const TableMenuBurger = ({
     isUserSeated: boolean | undefined;
     isAway: boolean | undefined;
 }) => {
+    const pathname = usePathname();
+    const isTournamentTable = pathname?.includes('/table/tournament-') ?? false;
     const { appState } = useContext(AppContext);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const socket = useContext(SocketContext);
@@ -161,7 +164,7 @@ const TableMenuBurger = ({
                     {isCryptoGame && (
                         <Item button={<WithdrawButton />} />
                     )}
-                    {isUserSeated && !isAway && (
+                    {isUserSeated && !isAway && !isTournamentTable && (
                         <Item
                             button={
                                 <AwayButton
@@ -247,7 +250,7 @@ const TableMenuBurger = ({
                             }
                         />
                     )}
-                    {isUserSeated && (
+                    {isUserSeated && !isTournamentTable && (
                         <Item
                             button={
                                 <LeaveButton

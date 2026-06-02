@@ -240,6 +240,15 @@ export function SocketProvider(props: SocketProviderProps) {
                 debugLog('[WebSocket] send', joinMessage);
                 _socket.send(JSON.stringify(joinMessage));
                 debugLog('[WebSocket] join-table sent');
+
+                // Subscribe to tournament fan-out events when on a tournament table
+                const tournamentMatch = tableId.match(/^tournament-(\d+)-table-\d+$/);
+                if (tournamentMatch) {
+                    const joinTournament = { action: 'join-tournament', tournament_id: Number(tournamentMatch[1]) };
+                    debugLog('[WebSocket] send', joinTournament);
+                    _socket.send(JSON.stringify(joinTournament));
+                    debugLog('[WebSocket] join-tournament sent');
+                }
             };
 
             _socket.onclose = (event) => {
@@ -773,6 +782,40 @@ export function SocketProvider(props: SocketProviderProps) {
                                 type: 'setSeatRequested',
                                 payload: null,
                             });
+                        }
+                        return;
+                    }
+                    case 'tournament-elimination': {
+                        const isLocalPlayer = eventData.player_uuid === appStateRef.current.clientID;
+                        if (isLocalPlayer) {
+                            toastErrorRef.current(
+                                "You've been eliminated",
+                                `You finished #${eventData.position}`,
+                                8000
+                            );
+                        } else {
+                            toastInfoRef.current(
+                                'Player eliminated',
+                                `${eventData.remaining} player${eventData.remaining !== 1 ? 's' : ''} remaining`,
+                                5000
+                            );
+                        }
+                        return;
+                    }
+                    case 'tournament-complete': {
+                        const isLocalWinner = eventData.winner_uuid === appStateRef.current.clientID;
+                        if (isLocalWinner) {
+                            toastSuccessRef.current(
+                                'You won the tournament!',
+                                'Congratulations — check the final standings.',
+                                10000
+                            );
+                        } else {
+                            toastSuccessRef.current(
+                                'Tournament complete',
+                                'Check the final standings for results.',
+                                8000
+                            );
                         }
                         return;
                     }

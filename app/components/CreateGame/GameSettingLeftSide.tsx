@@ -592,6 +592,9 @@ const GameSettingLeftSide: React.FC = () => {
         router.push('/public-games');
     };
 
+    const typeSwitcherBg = useColorModeValue('gray.100', 'whiteAlpha.50');
+    const activeTabBg = useColorModeValue('white', 'card.darkNavy');
+
     const handleDisconnectWallet = () => {
         if (wallet) {
             disconnect(wallet);
@@ -645,6 +648,46 @@ const GameSettingLeftSide: React.FC = () => {
                     Join Game
                 </Button>
             </Flex>
+
+            {/* Table vs Tournament type switcher */}
+            <HStack
+                width="100%"
+                spacing={0}
+                mb={4}
+                bg={typeSwitcherBg}
+                borderRadius="12px"
+                p="3px"
+            >
+                <Button
+                    flex={1}
+                    size="sm"
+                    height="36px"
+                    borderRadius="10px"
+                    fontWeight="semibold"
+                    fontSize="sm"
+                    bg={activeTabBg}
+                    color="text.primary"
+                    boxShadow="0 1px 3px rgba(0,0,0,0.10)"
+                    _hover={{}}
+                    _active={{}}
+                >
+                    Cash Table
+                </Button>
+                <Button
+                    flex={1}
+                    size="sm"
+                    height="36px"
+                    borderRadius="10px"
+                    fontWeight="semibold"
+                    fontSize="sm"
+                    variant="ghost"
+                    color="text.muted"
+                    _hover={{ color: 'brand.green', bg: 'transparent' }}
+                    onClick={() => router.push('/public-games?format=tournaments&action=create')}
+                >
+                    Tournament
+                </Button>
+            </HStack>
 
             {/* Mode Chooser — always visible; the page's primary decision. */}
             <Box width="100%" mb={4}>

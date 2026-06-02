@@ -48,7 +48,7 @@ const GHOSTS: GhostTournament[] = [
     },
 ];
 
-export default function TournamentsPlaceholder() {
+export default function TournamentsPlaceholder({ hideHeader }: { hideHeader?: boolean }) {
     return (
         <VStack
             as="section"
@@ -57,7 +57,7 @@ export default function TournamentsPlaceholder() {
             w="full"
             aria-labelledby="tournaments-placeholder-heading"
         >
-            <Header />
+            {!hideHeader && <Header />}
             <SimpleGrid
                 columns={{ base: 1, sm: 2, lg: 3 }}
                 spacing={{ base: 3, md: 4 }}

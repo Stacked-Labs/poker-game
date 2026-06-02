@@ -146,6 +146,7 @@ export type Config = {
     ownerSessionUUID?: string;
     rabbitHuntEnabled?: boolean;
     autoAccept?: boolean;
+    tournament?: { tournamentId: string } | null;
 };
 
 export type Pot = {

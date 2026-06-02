@@ -9,7 +9,7 @@ import PublicGamesGrid from '../components/PublicGames/PublicGamesGrid';
 import EmptyState from '../components/PublicGames/EmptyState';
 import FilterRail from '../components/PublicGames/FilterRail';
 import FormatTabs, { isGameFormat, type GameFormat } from '../components/PublicGames/FormatTabs';
-import TournamentsPlaceholder from '../components/PublicGames/TournamentsPlaceholder';
+import TournamentsList from '../components/PublicGames/TournamentsList';
 import { getPublicGames } from '../hooks/server_actions';
 import type {
     PublicGame,
@@ -163,7 +163,7 @@ const PublicPageInner = () => {
                                 </Box>
                             </>
                         ) : (
-                            <TournamentsPlaceholder />
+                            <TournamentsList />
                         )}
                     </VStack>
                 </Container>

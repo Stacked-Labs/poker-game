@@ -19,6 +19,7 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import React, { useContext, useRef, useState, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import {
     FiUsers,
     FiSettings,
@@ -154,6 +155,8 @@ const SettingsModal = ({
     const { appState } = useContext(AppContext);
     const config = appState.game?.config;
     const showOnchainTab = Boolean(config?.crypto && config?.contractAddress);
+    const pathname = usePathname();
+    const isTournamentTable = pathname?.includes('/table/tournament-') ?? false;
     const onchainTabIndex = 3;
 
     // Resolve theme colors for CSS gradients (semantic tokens don't work in bgGradient)
@@ -308,11 +311,13 @@ const SettingsModal = ({
                                         tone="pink"
                                         icon={BiSupport}
                                     />
-                                    <TabItem
-                                        text="How To"
-                                        tone="navy"
-                                        icon={FiHelpCircle}
-                                    />
+                                    {!isTournamentTable && (
+                                        <TabItem
+                                            text="How To"
+                                            tone="navy"
+                                            icon={FiHelpCircle}
+                                        />
+                                    )}
                                 </TabList>
 
                                 {/* Left gradient + arrow */}
@@ -490,12 +495,14 @@ const SettingsModal = ({
                             >
                                 <Support />
                             </TabPanel>
-                            <TabPanel
-                                px={{ base: 0, sm: 1, md: 2 }}
-                                py={{ base: 1, md: 2 }}
-                            >
-                                <HowTo />
-                            </TabPanel>
+                            {!isTournamentTable && (
+                                <TabPanel
+                                    px={{ base: 0, sm: 1, md: 2 }}
+                                    py={{ base: 1, md: 2 }}
+                                >
+                                    <HowTo />
+                                </TabPanel>
+                            )}
                         </TabPanels>
                     </Tabs>
                 </ModalBody>

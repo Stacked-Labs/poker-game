@@ -92,9 +92,16 @@ const HomeCard = () => {
         setShowPlayOptions(true);
     };
 
+    const [isHostingTournament, setIsHostingTournament] = useState(false);
+
     const handleCreateGame = () => {
         setIsCreating(true);
         router.push('/create-game');
+    };
+
+    const handleHostTournament = () => {
+        setIsHostingTournament(true);
+        router.push('/public-games?format=tournaments&action=create');
     };
 
     const handleJoinGame = () => {
@@ -450,48 +457,74 @@ const HomeCard = () => {
                                             damping: 22,
                                         }}
                                     >
-                                        <HStack spacing={2.5} width="100%">
+                                        <VStack spacing={2} width="100%">
+                                            <HStack spacing={2.5} width="100%">
+                                                <Button
+                                                    variant="tactilePrimary"
+                                                    flex={1}
+                                                    height="48px"
+                                                    fontSize={{
+                                                        base: 'sm',
+                                                        md: 'md',
+                                                    }}
+                                                    onClick={handleCreateGame}
+                                                    isLoading={isCreating}
+                                                    loadingText="Creating"
+                                                    spinner={
+                                                        <Spinner
+                                                            size="sm"
+                                                            color="white"
+                                                        />
+                                                    }
+                                                >
+                                                    CREATE
+                                                </Button>
+                                                <Button
+                                                    variant="tactileOutline"
+                                                    flex={1}
+                                                    height="48px"
+                                                    fontSize={{
+                                                        base: 'sm',
+                                                        md: 'md',
+                                                    }}
+                                                    onClick={handleJoinGame}
+                                                    isLoading={isJoining}
+                                                    loadingText="Joining"
+                                                    spinner={
+                                                        <Spinner
+                                                            size="sm"
+                                                            color="brand.green"
+                                                        />
+                                                    }
+                                                >
+                                                    JOIN
+                                                </Button>
+                                            </HStack>
                                             <Button
-                                                variant="tactilePrimary"
-                                                flex={1}
-                                                height="48px"
-                                                fontSize={{
-                                                    base: 'sm',
-                                                    md: 'md',
+                                                width="100%"
+                                                height="40px"
+                                                fontSize="sm"
+                                                fontWeight="semibold"
+                                                variant="ghost"
+                                                color="text.muted"
+                                                borderRadius="12px"
+                                                border="1px dashed"
+                                                borderColor="border.lightGray"
+                                                _hover={{
+                                                    color: 'brand.green',
+                                                    borderColor: 'brand.green',
+                                                    bg: 'rgba(54,163,123,0.04)',
                                                 }}
-                                                onClick={handleCreateGame}
-                                                isLoading={isCreating}
-                                                loadingText="Creating"
+                                                onClick={handleHostTournament}
+                                                isLoading={isHostingTournament}
+                                                loadingText="Opening…"
                                                 spinner={
-                                                    <Spinner
-                                                        size="sm"
-                                                        color="white"
-                                                    />
+                                                    <Spinner size="xs" color="brand.green" />
                                                 }
                                             >
-                                                CREATE
+                                                🏆 Host a Tournament
                                             </Button>
-                                            <Button
-                                                variant="tactileOutline"
-                                                flex={1}
-                                                height="48px"
-                                                fontSize={{
-                                                    base: 'sm',
-                                                    md: 'md',
-                                                }}
-                                                onClick={handleJoinGame}
-                                                isLoading={isJoining}
-                                                loadingText="Joining"
-                                                spinner={
-                                                    <Spinner
-                                                        size="sm"
-                                                        color="brand.green"
-                                                    />
-                                                }
-                                            >
-                                                JOIN
-                                            </Button>
-                                        </HStack>
+                                        </VStack>
                                     </MotionBox>
                                 )}
                             </AnimatePresence>

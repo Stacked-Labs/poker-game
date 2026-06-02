@@ -131,7 +131,11 @@ const StepRow = ({
     </MotionBox>
 );
 
-const FeaturesSection = () => {
+type FeaturesSectionProps = {
+    isBroadcast?: boolean;
+};
+
+const FeaturesSection = ({ isBroadcast = false }: FeaturesSectionProps) => {
     const prefersReducedMotion = useReducedMotion();
     const isMobile = useBreakpointValue({ base: true, md: false }) ?? false;
     const shouldAnimate = !prefersReducedMotion && !isMobile;
@@ -142,6 +146,10 @@ const FeaturesSection = () => {
     const [shouldLoadDemoVideo, setShouldLoadDemoVideo] = useState(false);
 
     useEffect(() => {
+        // Broadcast mode (livestream worker): never load/autoplay the demo video —
+        // video decode is heavy in headless software-GL. The iPhone frame keeps its
+        // static poster (home_preview.png) so the mockup still looks right.
+        if (isBroadcast) return;
         const section = sectionRef.current;
         if (!section || shouldLoadDemoVideo) return;
 
@@ -157,7 +165,7 @@ const FeaturesSection = () => {
 
         observer.observe(section);
         return () => observer.disconnect();
-    }, [shouldLoadDemoVideo]);
+    }, [shouldLoadDemoVideo, isBroadcast]);
 
     useEffect(() => {
         const video = videoRef.current;

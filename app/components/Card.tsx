@@ -685,5 +685,5 @@ const SVGCard = ({
 };
 
 const MemoizedSVGCard = React.memo(SVGCard);
-export { CardBack };
+export { CardBack, SVGCardFace };
 export default MemoizedSVGCard;

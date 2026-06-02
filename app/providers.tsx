@@ -16,14 +16,26 @@ import {
     TOAST_BANNER_POSITION,
 } from './utils/toastDefaults';
 import { sdk } from '@farcaster/miniapp-sdk';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import E2EAutoConnect from './components/E2EAutoConnect';
 import { PostHogProvider } from './components/analytics/PostHogProvider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+    // Broadcast mode (?broadcast=1) is the 24/7 livestream worker rendering a static
+    // view in headless software-GL Chromium. Skip wallet auto-connect + the miniapp
+    // ready signal — pure load with no value for a logged-out display. (Animations are
+    // disabled server-side in app/page.tsx via MotionConfig so reveal-on-scroll content
+    // renders visible; the context providers below stay mounted so the nav/hero, which
+    // read wallet/auth, don't crash.) Normal visitors are unaffected.
+    const [isBroadcast] = useState(
+        () =>
+            typeof window !== 'undefined' &&
+            new URLSearchParams(window.location.search).get('broadcast') === '1',
+    );
+
     useEffect(() => {
-        sdk.actions.ready();
-    }, []);
+        if (!isBroadcast) sdk.actions.ready();
+    }, [isBroadcast]);
 
     return (
         <CacheProvider>
@@ -39,15 +51,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 }}
             >
                 <ThirdwebProvider>
-                    <AutoConnect client={client} wallets={wallets} />
-                    <E2EAutoConnect />
+                    {!isBroadcast && <AutoConnect client={client} wallets={wallets} />}
+                    {!isBroadcast && <E2EAutoConnect />}
                     <AuthProvider>
                         <AppStoreProvider>
                             <UserProvider>
                                 <SoundProvider>
-                                    <PostHogProvider>
-                                        {children}
-                                    </PostHogProvider>
+                                    <PostHogProvider>{children}</PostHogProvider>
                                 </SoundProvider>
                             </UserProvider>
                         </AppStoreProvider>

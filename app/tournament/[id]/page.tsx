@@ -6,9 +6,19 @@ import {
     Button,
     Container,
     Flex,
+    FormControl,
+    FormLabel,
     Heading,
     HStack,
     Icon,
+    Input,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
     Spinner,
     Table,
     Tbody,
@@ -21,7 +31,7 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { FiExternalLink } from 'react-icons/fi';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useActiveAccount } from 'thirdweb/react';
 import {
@@ -36,6 +46,14 @@ import useToastHelper from '../../hooks/useToastHelper';
 import { useClaimHostRake } from '../../hooks/useClaimHostRake';
 import { useClaimRefund } from '../../hooks/useClaimRefund';
 import { useOpenEmergencyRefund } from '../../hooks/useOpenEmergencyRefund';
+
+async function hashPasswordCode(code: string): Promise<string> {
+    const enc = new TextEncoder().encode(code);
+    const digest = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+}
 
 function explorerBase(chain?: string): string {
     return chain === 'base' ? 'https://basescan.org' : 'https://sepolia.basescan.org';
@@ -95,6 +113,10 @@ export default function TournamentPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [goToTableLoading, setGoToTableLoading] = useState(false);
     const [blindLevel, setBlindLevel] = useState<number | null>(null);
+    const [pendingPasscode, setPendingPasscode] = useState<{ isReentry: boolean } | null>(null);
+    const [passcode, setPasscode] = useState('');
+    const [passcodeLoading, setPasscodeLoading] = useState(false);
+    const passcodeInputRef = useRef<HTMLInputElement>(null);
 
     const { register: registerOnChain, reenter: reenterOnChain, unregister: unregisterOnChain, status: registerStatus, error: registerError } = useRegisterForTournament(tournament ?? undefined);
     const isActionLoading = actionLoading || registerStatus === 'approving' || registerStatus === 'registering';
@@ -160,15 +182,22 @@ export default function TournamentPage() {
 
     const handleRegister = async (isReentry = false) => {
         if (!myWallet) { toast.warning('Connect wallet to register'); return; }
+        if (tournament?.is_private && !tournament?.contract_address) {
+            setPendingPasscode({ isReentry });
+            setPasscode('');
+            return;
+        }
+        await doRegister(isReentry);
+    };
+
+    const doRegister = async (isReentry = false, passwordCode?: string) => {
         setActionLoading(true);
         try {
-            const result = isReentry ? await reenterOnChain() : await registerOnChain();
+            const result = isReentry ? await reenterOnChain(passwordCode) : await registerOnChain(passwordCode);
             if (!result.ok) {
                 toast.error(result.error ?? (isReentry ? 'Re-entry failed' : 'Registration failed'));
             } else {
                 toast.success(isReentry ? 'Re-entered!' : 'Registered!');
-                // Optimistically update UI so buttons disappear immediately — for crypto
-                // tournaments the indexer may take several seconds to sync the on-chain event.
                 if (isReentry) {
                     setPlayers(prev => prev.map(p =>
                         myWallet && p.wallet.toLowerCase() === myWallet.toLowerCase()
@@ -178,10 +207,24 @@ export default function TournamentPage() {
                 } else {
                     setIsRegistered(true);
                 }
-                load(); // background sync — don't await
+                load();
             }
         } finally {
             setActionLoading(false);
+        }
+    };
+
+    const handlePasscodeSubmit = async () => {
+        if (!pendingPasscode) return;
+        if (!passcode.trim()) { toast.warning('Enter the tournament password'); return; }
+        setPasscodeLoading(true);
+        try {
+            const hash = await hashPasswordCode(passcode.trim());
+            await doRegister(pendingPasscode.isReentry, hash);
+            setPendingPasscode(null);
+            setPasscode('');
+        } finally {
+            setPasscodeLoading(false);
         }
     };
 
@@ -728,6 +771,46 @@ export default function TournamentPage() {
                     </Button>
                 </VStack>
             </Container>
+
+            <Modal
+                isOpen={pendingPasscode !== null}
+                onClose={() => setPendingPasscode(null)}
+                isCentered
+                initialFocusRef={passcodeInputRef}
+            >
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Tournament Password</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <FormControl>
+                            <FormLabel fontSize="sm">Enter the access code to register</FormLabel>
+                            <Input
+                                ref={passcodeInputRef}
+                                size="sm"
+                                type="password"
+                                placeholder="Access code"
+                                value={passcode}
+                                onChange={(e) => setPasscode(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handlePasscodeSubmit(); }}
+                            />
+                        </FormControl>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button variant="ghost" mr={3} size="sm" onClick={() => setPendingPasscode(null)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            colorScheme="green"
+                            size="sm"
+                            isLoading={passcodeLoading}
+                            onClick={handlePasscodeSubmit}
+                        >
+                            Register
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Box>
     );
 }

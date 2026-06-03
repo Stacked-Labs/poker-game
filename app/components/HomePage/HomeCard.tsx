@@ -101,7 +101,7 @@ const HomeCard = () => {
 
     const handleHostTournament = () => {
         setIsHostingTournament(true);
-        router.push('/public-games?format=tournaments&action=create');
+        router.push('/create-game?type=tournament');
     };
 
     const handleJoinGame = () => {
@@ -215,9 +215,7 @@ const HomeCard = () => {
                 opacity={0.04}
                 transform="translate(-40%, 30%)"
                 animation={
-                    allowMotion
-                        ? `${pulse} 7s ease-in-out 2s infinite`
-                        : 'none'
+                    allowMotion ? `${pulse} 7s ease-in-out 2s infinite` : 'none'
                 }
                 zIndex={0}
             />
@@ -375,35 +373,41 @@ const HomeCard = () => {
                                 Host a game. Invite the crew.
                             </Text>
 
-                            <HStack spacing={2} flexWrap="wrap" justify="center">
-                                {['NO SIGNUP', 'NO KYC', 'BUILT ON BASE'].map((label) => (
-                                    <HStack
-                                        key={label}
-                                        spacing={1.5}
-                                        bg="rgba(54, 163, 123, 0.06)"
-                                        border="1px solid"
-                                        borderColor="rgba(54, 163, 123, 0.12)"
-                                        borderRadius="full"
-                                        px={3}
-                                        py={1}
-                                    >
-                                        <Box
-                                            w="5px"
-                                            h="5px"
-                                            bg="brand.green"
+                            <HStack
+                                spacing={2}
+                                flexWrap="wrap"
+                                justify="center"
+                            >
+                                {['NO SIGNUP', 'NO KYC', 'BUILT ON BASE'].map(
+                                    (label) => (
+                                        <HStack
+                                            key={label}
+                                            spacing={1.5}
+                                            bg="rgba(54, 163, 123, 0.06)"
+                                            border="1px solid"
+                                            borderColor="rgba(54, 163, 123, 0.12)"
                                             borderRadius="full"
-                                        />
-                                        <Text
-                                            fontSize="2xs"
-                                            color="text.muted"
-                                            fontWeight="bold"
-                                            letterSpacing="0.08em"
-                                            textTransform="uppercase"
+                                            px={3}
+                                            py={1}
                                         >
-                                            {label}
-                                        </Text>
-                                    </HStack>
-                                ))}
+                                            <Box
+                                                w="5px"
+                                                h="5px"
+                                                bg="brand.green"
+                                                borderRadius="full"
+                                            />
+                                            <Text
+                                                fontSize="2xs"
+                                                color="text.muted"
+                                                fontWeight="bold"
+                                                letterSpacing="0.08em"
+                                                textTransform="uppercase"
+                                            >
+                                                {label}
+                                            </Text>
+                                        </HStack>
+                                    )
+                                )}
                             </HStack>
                         </VStack>
                     </MotionBox>
@@ -519,7 +523,10 @@ const HomeCard = () => {
                                                 isLoading={isHostingTournament}
                                                 loadingText="Opening…"
                                                 spinner={
-                                                    <Spinner size="xs" color="brand.green" />
+                                                    <Spinner
+                                                        size="xs"
+                                                        color="brand.green"
+                                                    />
                                                 }
                                             >
                                                 🏆 Host a Tournament
@@ -694,24 +701,24 @@ const HomeCard = () => {
                             width="100%"
                             pt={{ base: 0, md: 1 }}
                         >
-                                <Link
-                                    href="https://x.com/stacked_poker"
-                                    isExternal
-                                >
-                                    <SocialIconButton tone="x" chipSize="lg" />
-                                </Link>
-                                <Link
-                                    href="https://discord.gg/347RBVcvpn"
-                                    isExternal
-                                >
-                                    <SocialIconButton tone="discord" chipSize="lg" />
-                                </Link>
-                                <Link
-                                    href="https://t.me/stackedpoker"
-                                    isExternal
-                                >
-                                    <SocialIconButton tone="telegram" chipSize="lg" />
-                                </Link>
+                            <Link href="https://x.com/stacked_poker" isExternal>
+                                <SocialIconButton tone="x" chipSize="lg" />
+                            </Link>
+                            <Link
+                                href="https://discord.gg/347RBVcvpn"
+                                isExternal
+                            >
+                                <SocialIconButton
+                                    tone="discord"
+                                    chipSize="lg"
+                                />
+                            </Link>
+                            <Link href="https://t.me/stackedpoker" isExternal>
+                                <SocialIconButton
+                                    tone="telegram"
+                                    chipSize="lg"
+                                />
+                            </Link>
                         </Flex>
                     </MotionBox>
                 </Stack>

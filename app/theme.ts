@@ -44,6 +44,7 @@ const colors = {
         greenEdge: '#22674E',
         yellow: '#FDC51D',
         yellowDark: '#B78900',
+        base: '#0052FF',
         telegram: '#0088CC',
         telegramDark: '#0077B5',
         telegramEdge: '#006A9D',

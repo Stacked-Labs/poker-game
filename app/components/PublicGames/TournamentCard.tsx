@@ -15,6 +15,7 @@ import {
 import type { Tournament } from '../../hooks/server_actions';
 import type { PendingTournamentTx } from '../../hooks/usePendingTournamentTxs';
 import ExternalLink from '../ExternalLink';
+import ChainBadge from '../ChainBadge';
 
 interface TournamentCardProps {
     tournament: Tournament;
@@ -120,9 +121,7 @@ export default function TournamentCard({
                                 {blindLabel} blinds · NLH
                             </Text>
                             {t.chain && (
-                                <Badge colorScheme="purple" borderRadius="full" px={1.5} py="1px" fontSize="2xs">
-                                    {t.chain === 'base' ? 'Base' : 'Sepolia'}
-                                </Badge>
+                                <ChainBadge chain={t.chain} size="sm" />
                             )}
                             {t.is_private && (
                                 <Badge colorScheme="orange" borderRadius="full" px={1.5} py="1px" fontSize="2xs">

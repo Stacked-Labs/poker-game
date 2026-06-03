@@ -14,24 +14,35 @@ export type GameFormat = 'cash' | 'tournaments';
 interface FormatTabsProps {
     format: GameFormat;
     onChange: (next: GameFormat) => void;
+    /** When set, the Tournaments tab shows an accent count badge (open + live). */
+    tournamentCount?: number;
 }
 
 export function isGameFormat(value: string | null | undefined): value is GameFormat {
     return value === 'cash' || value === 'tournaments';
 }
 
-const FORMATS: ReadonlyArray<{ id: GameFormat; label: string; badge?: string }> = [
+const FORMATS: ReadonlyArray<{ id: GameFormat; label: string }> = [
     { id: 'cash', label: 'Cash games' },
     { id: 'tournaments', label: 'Tournaments' },
 ];
 
-export default function FormatTabs({ format, onChange }: FormatTabsProps) {
+export default function FormatTabs({ format, onChange, tournamentCount }: FormatTabsProps) {
     const ruleColor = useColorModeValue(
         'rgba(11, 20, 48, 0.10)',
         'rgba(255, 255, 255, 0.10)'
     );
 
     const tabRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+    const badgeFor = (
+        id: GameFormat
+    ): { label: string; tone: 'neutral' | 'accent' } | undefined => {
+        if (id === 'tournaments' && typeof tournamentCount === 'number' && tournamentCount > 0) {
+            return { label: String(tournamentCount), tone: 'accent' };
+        }
+        return undefined;
+    };
 
     const onKeyDown = (e: KeyboardEvent<HTMLDivElement>, index: number) => {
         const { key } = e;
@@ -71,7 +82,7 @@ export default function FormatTabs({ format, onChange }: FormatTabsProps) {
                     onSelect={() => onChange(item.id)}
                     onKeyDown={(e) => onKeyDown(e, index)}
                     label={item.label}
-                    badge={item.badge}
+                    badge={badgeFor(item.id)}
                 />
             ))}
         </Flex>
@@ -83,7 +94,7 @@ interface TabProps {
     onSelect: () => void;
     onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => void;
     label: string;
-    badge?: string;
+    badge?: { label: string; tone: 'neutral' | 'accent' };
 }
 
 const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
@@ -91,10 +102,15 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
     ref
 ) {
     const accent = 'brand.green';
-    const badgeBg = useColorModeValue(
+    const neutralBadgeBg = useColorModeValue(
         'rgba(11, 20, 48, 0.06)',
         'rgba(255, 255, 255, 0.08)'
     );
+    const accentBadgeBg = useColorModeValue(
+        'rgba(54, 163, 123, 0.10)',
+        'rgba(54, 163, 123, 0.18)'
+    );
+    const isAccent = badge?.tone === 'accent';
 
     return (
         <Box
@@ -130,8 +146,8 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
                 </Text>
                 {badge && (
                     <Box
-                        bg={badgeBg}
-                        color="text.muted"
+                        bg={isAccent ? accentBadgeBg : neutralBadgeBg}
+                        color={isAccent ? accent : 'text.muted'}
                         fontSize="2xs"
                         fontWeight="bold"
                         letterSpacing="0.08em"
@@ -140,8 +156,9 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
                         py="2px"
                         borderRadius="full"
                         lineHeight="1.2"
+                        sx={{ fontVariantNumeric: 'tabular-nums' }}
                     >
-                        {badge}
+                        {badge.label}
                     </Box>
                 )}
             </HStack>

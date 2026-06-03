@@ -18,6 +18,7 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import { Card, ChainSelector, StatCard, fmt } from './Primitives';
+import ChainBadge from '../ChainBadge';
 import type {
     AdminStatsResponse,
     AdminLiveStatsResponse,
@@ -337,13 +338,13 @@ export const StatsTab = ({
                 <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)' }} gap={4}>
                     <Box>
                         <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Unique Wallets</Text>
-                        <Text fontSize="3xl" fontWeight="extrabold" color="text.primary" lineHeight={1} sx={tabular}>{fmt(dt?.unique_wallets)}</Text>
-                        <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>{chainLabel(handsChain)}</Text>
+                        <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="extrabold" color="text.primary" lineHeight={1} noOfLines={1} sx={tabular}>{fmt(dt?.unique_wallets)}</Text>
+                        <Box mt={1}><ChainBadge chain={handsChain} size="sm" /></Box>
                     </Box>
                     <Box>
                         <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Total Hands Played</Text>
-                        <Text fontSize="3xl" fontWeight="extrabold" color="brand.green" lineHeight={1} sx={tabular}>{fmt(dt?.total_hands_played)}</Text>
-                        <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>{chainLabel(handsChain)}</Text>
+                        <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="extrabold" color="brand.green" lineHeight={1} noOfLines={1} sx={tabular}>{fmt(dt?.total_hands_played)}</Text>
+                        <Box mt={1}><ChainBadge chain={handsChain} size="sm" /></Box>
                     </Box>
                 </Grid>
             </Card>

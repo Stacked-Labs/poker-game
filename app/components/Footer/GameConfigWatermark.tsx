@@ -1,10 +1,11 @@
 'use client';
 
 import { useContext, useMemo } from 'react';
-import { Box, Text, Image, Flex, Link, Icon } from '@chakra-ui/react';
+import { Box, Text, Flex, Link, Icon } from '@chakra-ui/react';
 import { FiUser } from 'react-icons/fi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
+import ChainBadge from '../ChainBadge';
 
 interface ConfigWithCrypto {
     maxBuyIn: number;
@@ -42,30 +43,11 @@ const GameConfigWatermark = () => {
         return parts.join(' • ');
     }, [config, format, formatBlinds]);
 
-    const chainInfo = useMemo(() => {
+    const chain = useMemo(() => {
         const configWithCrypto = config as ConfigWithCrypto;
         if (!config || !configWithCrypto.crypto || !configWithCrypto.chain)
             return null;
-
-        const getChainLogo = (chain: string) => {
-            const chainLower = chain.toLowerCase();
-            if (chainLower === 'base') return '/networkLogos/base-logo.png';
-            if (chainLower === 'base sepolia')
-                return '/networkLogos/base-logo.png';
-            if (chainLower === 'base-sepolia')
-                return '/networkLogos/base-logo.png';
-            if (chainLower === 'arbitrum')
-                return '/networkLogos/arbitrum-logo.png';
-            if (chainLower === 'optimism')
-                return '/networkLogos/optimism-logo.png';
-            if (chainLower === 'solana') return '/networkLogos/solana-logo.png';
-            return null;
-        };
-
-        return {
-            name: configWithCrypto.chain,
-            logo: getChainLogo(configWithCrypto.chain),
-        };
+        return configWithCrypto.chain;
     }, [config]);
 
     const hostLabel = useMemo(() => {
@@ -98,7 +80,7 @@ const GameConfigWatermark = () => {
         return null;
     }, [config]);
 
-    if (!configText && !chainInfo) return null;
+    if (!configText && !chain) return null;
 
     const uppercaseText = configText ? configText.toUpperCase() : '';
 
@@ -120,38 +102,19 @@ const GameConfigWatermark = () => {
                         lineHeight={1.2}
                         fontWeight="semibold"
                         letterSpacing="0.04em"
+                        noOfLines={1}
                     >
                         {uppercaseText}
                     </Text>
                 )}
-                {chainInfo && (
-                    <Flex align="center" gap={1.5}>
-                        {chainInfo.logo && (
-                            <Image
-                                src={chainInfo.logo}
-                                alt={`${chainInfo.name} logo`}
-                                w={{ base: '12px', md: '14px' }}
-                                h={{ base: '12px', md: '14px' }}
-                                objectFit="contain"
-                            />
-                        )}
-                        <Text
-                            color="text.muted"
-                            fontSize={{ base: '10px', sm: '11px', md: '12px' }}
-                            lineHeight={1.2}
-                            fontWeight="medium"
-                            letterSpacing="0.04em"
-                        >
-                            {chainInfo.name.toUpperCase()}
-                        </Text>
-                    </Flex>
-                )}
+                {chain && <ChainBadge chain={chain} size="sm" />}
                 {hostLabel && (
-                    <Flex align="center" gap={1.5}>
+                    <Flex align="center" gap={1.5} minW={0}>
                         <Icon
                             as={FiUser}
                             boxSize={{ base: '12px', md: '14px' }}
                             color="text.muted"
+                            flexShrink={0}
                         />
                         {hostExplorerUrl ? (
                             <Link
@@ -163,6 +126,8 @@ const GameConfigWatermark = () => {
                                 lineHeight={1.2}
                                 fontWeight="medium"
                                 letterSpacing="0.04em"
+                                noOfLines={1}
+                                minW={0}
                                 transition="color 80ms ease"
                                 _hover={{
                                     color: 'text.primary',
@@ -180,6 +145,8 @@ const GameConfigWatermark = () => {
                                 lineHeight={1.2}
                                 fontWeight="medium"
                                 letterSpacing="0.04em"
+                                noOfLines={1}
+                                minW={0}
                             >
                                 {hostLabel}
                             </Text>

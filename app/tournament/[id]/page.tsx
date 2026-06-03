@@ -46,6 +46,7 @@ import useToastHelper from '../../hooks/useToastHelper';
 import { useClaimHostRake } from '../../hooks/useClaimHostRake';
 import { useClaimRefund } from '../../hooks/useClaimRefund';
 import { useOpenEmergencyRefund } from '../../hooks/useOpenEmergencyRefund';
+import ChainBadge from '../../components/ChainBadge';
 
 async function hashPasswordCode(code: string): Promise<string> {
     const enc = new TextEncoder().encode(code);
@@ -336,9 +337,7 @@ export default function TournamentPage() {
                                             {blindLabel} blinds · NLH · {tableSize}-max
                                         </Text>
                                         {!isFreePlay && t.chain && (
-                                            <Badge colorScheme="purple" borderRadius="full" px={1.5} fontSize="2xs">
-                                                {t.chain === 'base' ? 'Base' : 'Sepolia'}
-                                            </Badge>
+                                            <ChainBadge chain={t.chain} size="sm" />
                                         )}
                                     </HStack>
                                 </VStack>

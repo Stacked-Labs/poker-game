@@ -16,7 +16,7 @@ import {
     Icon,
     useMediaQuery,
 } from '@chakra-ui/react';
-import { MdArrowForward, MdCheck } from 'react-icons/md';
+import { MdArrowForward, MdCheck, MdEmojiEvents } from 'react-icons/md';
 import WalletButton from '@/app/components/WalletButton';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 import NewsletterSuccessModal from './NewsletterSuccessModal';
@@ -372,43 +372,6 @@ const HomeCard = () => {
                             >
                                 Host a game. Invite the crew.
                             </Text>
-
-                            <HStack
-                                spacing={2}
-                                flexWrap="wrap"
-                                justify="center"
-                            >
-                                {['NO SIGNUP', 'NO KYC', 'BUILT ON BASE'].map(
-                                    (label) => (
-                                        <HStack
-                                            key={label}
-                                            spacing={1.5}
-                                            bg="rgba(54, 163, 123, 0.06)"
-                                            border="1px solid"
-                                            borderColor="rgba(54, 163, 123, 0.12)"
-                                            borderRadius="full"
-                                            px={3}
-                                            py={1}
-                                        >
-                                            <Box
-                                                w="5px"
-                                                h="5px"
-                                                bg="brand.green"
-                                                borderRadius="full"
-                                            />
-                                            <Text
-                                                fontSize="2xs"
-                                                color="text.muted"
-                                                fontWeight="bold"
-                                                letterSpacing="0.08em"
-                                                textTransform="uppercase"
-                                            >
-                                                {label}
-                                            </Text>
-                                        </HStack>
-                                    )
-                                )}
-                            </HStack>
                         </VStack>
                     </MotionBox>
 
@@ -506,18 +469,40 @@ const HomeCard = () => {
                                             </HStack>
                                             <Button
                                                 width="100%"
-                                                height="40px"
+                                                height="46px"
                                                 fontSize="sm"
-                                                fontWeight="semibold"
-                                                variant="ghost"
-                                                color="text.muted"
+                                                fontWeight="bold"
+                                                variant="unstyled"
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                gap={2}
+                                                color="text.primary"
+                                                bg="white"
+                                                _dark={{ bg: 'whiteAlpha.100' }}
                                                 borderRadius="12px"
-                                                border="1px dashed"
-                                                borderColor="border.lightGray"
+                                                border="1.5px solid"
+                                                borderColor="rgba(253, 197, 29, 0.55)"
+                                                boxShadow="0 1px 3px rgba(0,0,0,0.08)"
+                                                leftIcon={
+                                                    <Icon
+                                                        as={MdEmojiEvents}
+                                                        boxSize="20px"
+                                                        color="brand.yellow"
+                                                    />
+                                                }
+                                                transition="background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 80ms ease"
                                                 _hover={{
-                                                    color: 'brand.green',
-                                                    borderColor: 'brand.green',
-                                                    bg: 'rgba(54,163,123,0.04)',
+                                                    bg: 'rgba(253, 197, 29, 0.12)',
+                                                    borderColor: 'brand.yellow',
+                                                    boxShadow:
+                                                        '0 2px 8px rgba(253,197,29,0.25)',
+                                                }}
+                                                _active={{
+                                                    transform:
+                                                        'translateY(1px)',
+                                                    boxShadow:
+                                                        'inset 0 1px 2px rgba(0,0,0,0.10)',
                                                 }}
                                                 onClick={handleHostTournament}
                                                 isLoading={isHostingTournament}
@@ -525,11 +510,11 @@ const HomeCard = () => {
                                                 spinner={
                                                     <Spinner
                                                         size="xs"
-                                                        color="brand.green"
+                                                        color="brand.yellow"
                                                     />
                                                 }
                                             >
-                                                🏆 Host a Tournament
+                                                Host a Tournament
                                             </Button>
                                         </VStack>
                                     </MotionBox>

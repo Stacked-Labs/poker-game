@@ -21,6 +21,7 @@ import {
 import { FaCheckCircle, FaInfoCircle } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
 import ChainBadge from '@/app/components/ChainBadge';
+import ModeChooser from './ModeChooser';
 import { formatUsdc } from '@/app/components/PublicGames/tournamentFormat';
 import { USDC_BLUE, USDC_LOGO } from '@/app/components/PublicGames/types';
 
@@ -147,99 +148,6 @@ function FieldLabel({
     );
 }
 
-function ModeToggle({
-    freePlay,
-    onChange,
-}: {
-    freePlay: boolean;
-    onChange: (next: boolean) => void;
-}) {
-    const trackBg = useColorModeValue('gray.100', 'whiteAlpha.50');
-    const activeBg = useColorModeValue('card.white', 'card.darkNavy');
-
-    const Segment = ({
-        active,
-        segAccent,
-        label,
-        sub,
-        onClick,
-    }: {
-        active: boolean;
-        segAccent: Accent;
-        label: string;
-        sub: string;
-        onClick: () => void;
-    }) => (
-        <Box
-            as="button"
-            type="button"
-            role="radio"
-            aria-checked={active}
-            flex={1}
-            onClick={onClick}
-            borderRadius="12px"
-            px={3}
-            py={2.5}
-            bg={active ? activeBg : 'transparent'}
-            borderWidth="1.5px"
-            borderColor={active ? segAccent.color : 'transparent'}
-            boxShadow={active ? `0 1.5px 0 ${segAccent.edge}` : 'none'}
-            transition="border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease"
-            _hover={active ? {} : { bg: segAccent.soft }}
-            _focusVisible={{
-                outline: '2px solid',
-                outlineColor: segAccent.color,
-                outlineOffset: '2px',
-            }}
-            textAlign="left"
-        >
-            <Text
-                fontSize="sm"
-                fontWeight="bold"
-                color={active ? segAccent.color : 'text.secondary'}
-                lineHeight="1.2"
-            >
-                {label}
-            </Text>
-            <Text
-                fontSize="xs"
-                color={active ? 'text.secondary' : 'text.muted'}
-                lineHeight="1.3"
-                mt={0.5}
-            >
-                {sub}
-            </Text>
-        </Box>
-    );
-
-    return (
-        <HStack
-            spacing={2}
-            p="4px"
-            bg={trackBg}
-            borderRadius="14px"
-            role="radiogroup"
-            aria-label="Tournament mode"
-            align="stretch"
-        >
-            <Segment
-                active={freePlay}
-                segAccent={GREEN_ACCENT}
-                label="Free Play"
-                sub="Practice chips, no risk"
-                onClick={() => onChange(true)}
-            />
-            <Segment
-                active={!freePlay}
-                segAccent={BLUE_ACCENT}
-                label="Real Money"
-                sub="USDC on Base"
-                onClick={() => onChange(false)}
-            />
-        </HStack>
-    );
-}
-
 function accentInput(accent: Accent) {
     return {
         bg: 'input.white',
@@ -301,6 +209,8 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     const minN = parseInt(minPlayers, 10);
     const maxN = parseInt(maxPlayers, 10);
 
+    const [showErrors, setShowErrors] = useState(false);
+
     const playersError = useMemo(() => {
         if (!Number.isFinite(minN) || !Number.isFinite(maxN)) {
             return 'Set how many players can join.';
@@ -340,7 +250,10 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     const fundingLabel = FUND_PHASE_LABEL[fundPhase];
 
     const handleSubmit = () => {
-        if (!isValid) return;
+        if (!isValid) {
+            setShowErrors(true);
+            return;
+        }
         onSubmit?.({
             name,
             freePlay,
@@ -387,9 +300,9 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                     </Box>
                     <Box>
                         <FieldLabel>Play mode</FieldLabel>
-                        <ModeToggle
-                            freePlay={freePlay}
-                            onChange={setFreePlay}
+                        <ModeChooser
+                            selectedMode={freePlay ? 'free' : 'real'}
+                            onSelect={(m) => setFreePlay(m === 'free')}
                         />
                     </Box>
                 </VStack>
@@ -519,7 +432,9 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             </Box>
                         )}
 
-                        {stakesError && <FieldError message={stakesError} />}
+                        {showErrors && stakesError && (
+                            <FieldError message={stakesError} />
+                        )}
                     </VStack>
                 </SectionCard>
             )}
@@ -537,7 +452,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             onChange={(e) => setScheduledAt(e.target.value)}
                             height="48px"
                         />
-                        {scheduleError && (
+                        {showErrors && scheduleError && (
                             <FieldError message={scheduleError} mt={2} />
                         )}
                     </Box>
@@ -620,7 +535,9 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             />
                         </Box>
                     </Flex>
-                    {playersError && <FieldError message={playersError} />}
+                    {showErrors && playersError && (
+                        <FieldError message={playersError} />
+                    )}
                 </VStack>
             </SectionCard>
 
@@ -782,7 +699,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                 isLoading={isSubmitting}
                 loadingText={isFunding ? fundingLabel : 'Creating…'}
                 spinner={<Spinner size="md" color="white" />}
-                isDisabled={!isValid}
+                isDisabled={isSubmitting}
                 onClick={handleSubmit}
             >
                 {submitLabel}

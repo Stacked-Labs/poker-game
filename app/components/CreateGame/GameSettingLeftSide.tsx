@@ -29,6 +29,8 @@ import {
     FaArrowRight,
     FaCheckCircle,
     FaExternalLinkAlt,
+    FaCoins,
+    FaTrophy,
 } from 'react-icons/fa';
 import { FiGift, FiChevronDown } from 'react-icons/fi';
 import ModeChooser, { CreateGameMode } from './ModeChooser';
@@ -668,8 +670,11 @@ const GameSettingLeftSide: React.FC = () => {
         router.push('/public-games');
     };
 
-    const typeSwitcherBg = useColorModeValue('gray.100', 'whiteAlpha.50');
-    const activeTabBg = useColorModeValue('white', 'card.darkNavy');
+    const typeSwitcherBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.05)',
+        'rgba(255, 255, 255, 0.06)'
+    );
+    const activeTabBg = useColorModeValue('white', 'whiteAlpha.100');
 
     const handleDisconnectWallet = () => {
         if (wallet) {
@@ -702,10 +707,14 @@ const GameSettingLeftSide: React.FC = () => {
                         fontWeight="extrabold"
                         color="text.primary"
                     >
-                        Host a Table
+                        {isTournamentMode
+                            ? 'Host a Tournament'
+                            : 'Host a Table'}
                     </Heading>
-                    <Text fontSize="sm" color="gray.500" mt={1}>
-                        Set the stakes. Invite your friends.
+                    <Text fontSize="sm" color="text.muted" mt={1}>
+                        {isTournamentMode
+                            ? 'Set the format. Invite your players.'
+                            : 'Set the stakes. Invite your friends.'}
                     </Text>
                 </Box>
                 <Button
@@ -735,56 +744,76 @@ const GameSettingLeftSide: React.FC = () => {
             {/* Table vs Tournament type switcher */}
             <HStack
                 width="100%"
-                spacing={0}
+                spacing={1.5}
                 mb={4}
                 bg={typeSwitcherBg}
-                borderRadius="12px"
-                p="3px"
+                borderRadius="14px"
+                p="4px"
             >
                 <Button
                     flex={1}
                     size="sm"
-                    height="36px"
+                    height="42px"
                     borderRadius="10px"
-                    fontWeight="semibold"
+                    variant="unstyled"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    gap={2}
+                    fontWeight={isTournamentMode ? 'medium' : 'bold'}
                     fontSize="sm"
                     bg={isTournamentMode ? 'transparent' : activeTabBg}
                     color={isTournamentMode ? 'text.muted' : 'text.primary'}
                     boxShadow={
-                        isTournamentMode ? 'none' : '0 1px 3px rgba(0,0,0,0.10)'
+                        isTournamentMode ? 'none' : '0 1px 2px rgba(0,0,0,0.12)'
                     }
-                    variant={isTournamentMode ? 'ghost' : undefined}
-                    _hover={
-                        isTournamentMode
-                            ? { color: 'brand.green', bg: 'transparent' }
-                            : {}
+                    borderWidth="1.5px"
+                    borderColor={
+                        isTournamentMode ? 'transparent' : 'brand.green'
                     }
+                    transition="color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, border-color 120ms ease"
+                    _hover={isTournamentMode ? { color: 'text.primary' } : {}}
                     _active={{}}
                     onClick={() => setIsTournamentMode(false)}
                 >
+                    <Icon
+                        as={FaCoins}
+                        boxSize={3.5}
+                        color={isTournamentMode ? 'inherit' : 'brand.green'}
+                    />
                     Cash Table
                 </Button>
                 <Button
                     flex={1}
                     size="sm"
-                    height="36px"
+                    height="42px"
                     borderRadius="10px"
-                    fontWeight="semibold"
+                    variant="unstyled"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    gap={2}
+                    fontWeight={isTournamentMode ? 'bold' : 'medium'}
                     fontSize="sm"
                     bg={isTournamentMode ? activeTabBg : 'transparent'}
                     color={isTournamentMode ? 'text.primary' : 'text.muted'}
                     boxShadow={
-                        isTournamentMode ? '0 1px 3px rgba(0,0,0,0.10)' : 'none'
+                        isTournamentMode ? '0 1px 2px rgba(0,0,0,0.12)' : 'none'
                     }
-                    variant={isTournamentMode ? undefined : 'ghost'}
-                    _hover={
-                        isTournamentMode
-                            ? {}
-                            : { color: 'brand.green', bg: 'transparent' }
+                    borderWidth="1.5px"
+                    borderColor={
+                        isTournamentMode ? 'brand.green' : 'transparent'
                     }
+                    transition="color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, border-color 120ms ease"
+                    _hover={isTournamentMode ? {} : { color: 'text.primary' }}
                     _active={{}}
                     onClick={() => setIsTournamentMode(true)}
                 >
+                    <Icon
+                        as={FaTrophy}
+                        boxSize={3.5}
+                        color={isTournamentMode ? 'brand.green' : 'inherit'}
+                    />
                     Tournament
                 </Button>
             </HStack>

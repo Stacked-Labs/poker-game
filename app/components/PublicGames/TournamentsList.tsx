@@ -7,7 +7,6 @@ import {
     Flex,
     FormControl,
     FormLabel,
-    Heading,
     HStack,
     Input,
     Modal,
@@ -26,6 +25,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { useRouter } from 'next/navigation';
+import { FiPlus } from 'react-icons/fi';
 import useToastHelper from '../../hooks/useToastHelper';
 import {
     getMyTournamentRegistrations,
@@ -298,20 +298,7 @@ export default function TournamentsList() {
                 gap={3}
                 flexWrap="wrap"
             >
-                <Heading
-                    as="h2"
-                    fontSize={{ base: 'lg', md: 'xl' }}
-                    fontWeight="extrabold"
-                    letterSpacing="-0.01em"
-                    color="text.primary"
-                >
-                    Tournaments
-                </Heading>
-                <HStack
-                    spacing={2}
-                    flex={1}
-                    justify={{ base: 'flex-start', sm: 'center' }}
-                >
+                <HStack spacing={2}>
                     <FilterTab
                         label="All"
                         active={filter === 'all'}
@@ -334,7 +321,8 @@ export default function TournamentsList() {
                 </HStack>
                 <Button
                     size="sm"
-                    colorScheme="green"
+                    variant="tactilePrimary"
+                    leftIcon={<FiPlus />}
                     onClick={() => {
                         if (!myWallet) {
                             toast.warning(
@@ -345,7 +333,7 @@ export default function TournamentsList() {
                         openCreate();
                     }}
                 >
-                    + Create
+                    Host tournament
                 </Button>
             </Flex>
 
@@ -621,12 +609,21 @@ function FilterTab({
     active: boolean;
     onClick: () => void;
 }) {
-    const activeBg = useColorModeValue('gray.900', 'white');
-    const activeColor = useColorModeValue('white', 'gray.900');
-    const idleBg = useColorModeValue('gray.100', 'whiteAlpha.100');
+    const activeBg = useColorModeValue('brand.darkNavy', 'white');
+    const activeColor = useColorModeValue('white', 'brand.darkNavy');
+    const idleBg = useColorModeValue(
+        'rgba(11,20,48,0.06)',
+        'rgba(255,255,255,0.08)'
+    );
     const idleColor = useColorModeValue('text.secondary', 'text.secondary');
-    const badgeIdleBg = useColorModeValue('gray.300', 'whiteAlpha.300');
-    const hoverBg = useColorModeValue('gray.200', 'whiteAlpha.200');
+    const badgeIdleBg = useColorModeValue(
+        'rgba(11,20,48,0.12)',
+        'rgba(255,255,255,0.16)'
+    );
+    const hoverBg = useColorModeValue(
+        'rgba(11,20,48,0.10)',
+        'rgba(255,255,255,0.12)'
+    );
 
     return (
         <Button

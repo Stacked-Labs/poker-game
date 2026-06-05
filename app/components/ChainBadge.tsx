@@ -42,10 +42,7 @@ export default function ChainBadge({
         '/networkLogos/base-lockup-2color.svg',
         '/networkLogos/base-lockup-white.svg'
     );
-    const symbolSrc = useColorModeValue(
-        '/networkLogos/base-square-blue.svg',
-        '/networkLogos/base-square-white.svg'
-    );
+    const symbolSrc = '/networkLogos/base-square-blue.svg';
     const testnetBg = useColorModeValue(
         'rgba(237, 137, 54, 0.14)',
         'rgba(237, 137, 54, 0.22)'

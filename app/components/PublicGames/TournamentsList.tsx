@@ -1,7 +1,6 @@
 'use client';
 
 import {
-    Badge,
     Box,
     Button,
     Flex,
@@ -25,7 +24,6 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { useRouter } from 'next/navigation';
-import { FiPlus } from 'react-icons/fi';
 import useToastHelper from '../../hooks/useToastHelper';
 import {
     getMyTournamentRegistrations,
@@ -54,6 +52,75 @@ async function hashPasswordCode(code: string): Promise<string> {
     return Array.from(new Uint8Array(digest))
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
+}
+
+// Lobby ordering: lead with the most actionable tournaments. Registering (join
+// now) first, then live (watch / late-reg), then upcoming, then finished and
+// cancelled. Joinable groups sort by soonest start; finished by most recent.
+function statusRank(status: string): number {
+    switch (status) {
+        case 'registration':
+            return 0;
+        case 'running':
+            return 1;
+        case 'pending':
+            return 2;
+        case 'completed':
+            return 3;
+        case 'emergency_refund':
+            return 4;
+        case 'cancelled':
+            return 5;
+        default:
+            return 6;
+    }
+}
+
+function timeMs(iso?: string): number {
+    if (!iso) return NaN;
+    return new Date(iso).getTime();
+}
+
+function lateRegStillOpen(t: Tournament, now: number): boolean {
+    return (
+        t.status === 'running' &&
+        (t.late_reg_levels ?? 0) > 0 &&
+        now < timeMs(t.late_reg_close_at)
+    );
+}
+
+function compareLobbyTournaments(
+    a: Tournament,
+    b: Tournament,
+    now: number
+): number {
+    const rankDiff = statusRank(a.status) - statusRank(b.status);
+    if (rankDiff !== 0) return rankDiff;
+
+    // Registering / upcoming: soonest scheduled start first (undated last).
+    if (a.status === 'registration' || a.status === 'pending') {
+        const sa = timeMs(a.scheduled_start_at);
+        const sb = timeMs(b.scheduled_start_at);
+        const na = Number.isNaN(sa) ? Infinity : sa;
+        const nb = Number.isNaN(sb) ? Infinity : sb;
+        if (na !== nb) return na - nb;
+        return (b.registered_count ?? 0) - (a.registered_count ?? 0);
+    }
+
+    // Live: still-joinable (late reg open) first, then most recently started.
+    if (a.status === 'running') {
+        const la = lateRegStillOpen(a, now) ? 0 : 1;
+        const lb = lateRegStillOpen(b, now) ? 0 : 1;
+        if (la !== lb) return la - lb;
+        const sa = timeMs(a.started_at ?? a.scheduled_start_at) || 0;
+        const sb = timeMs(b.started_at ?? b.scheduled_start_at) || 0;
+        return sb - sa;
+    }
+
+    // Finished / cancelled / refunding: most recent first.
+    const ea = timeMs(a.ended_at ?? a.scheduled_start_at) || 0;
+    const eb = timeMs(b.ended_at ?? b.scheduled_start_at) || 0;
+    return eb - ea;
 }
 
 export default function TournamentsList() {
@@ -88,7 +155,6 @@ export default function TournamentsList() {
         useState<Tournament | null>(null);
     const [cryptoUnregisterTournament, setCryptoUnregisterTournament] =
         useState<Tournament | null>(null);
-    const [filter, setFilter] = useState<'all' | 'mine'>('all');
 
     const {
         pending: pendingTxs,
@@ -129,14 +195,14 @@ export default function TournamentsList() {
         registeredIds.has(t.id) ||
         (!!myWallet && t.host_wallet.toLowerCase() === myWallet.toLowerCase());
 
-    const visibleTournaments = tournaments.filter((t) => {
-        if (filter === 'mine') return isMyTournament(t);
-        // All tab: hide pending (not yet open for registration) unless it's yours
-        if (t.status === 'pending') return isMyTournament(t);
-        return true;
-    });
-
-    const mineCount = tournaments.filter(isMyTournament).length;
+    const now = Date.now();
+    const visibleTournaments = tournaments
+        .filter((t) => {
+            // Hide pending (not yet open for registration) unless it's yours
+            if (t.status === 'pending') return isMyTournament(t);
+            return true;
+        })
+        .sort((a, b) => compareLobbyTournaments(a, b, now));
 
     const handleViewOverview = (id: number) => {
         router.push(`/tournament/${id}`);
@@ -292,69 +358,12 @@ export default function TournamentsList() {
 
     return (
         <VStack align="stretch" spacing={6} w="full">
-            <Flex
-                justify="space-between"
-                align="center"
-                gap={3}
-                flexWrap="wrap"
-            >
-                <HStack spacing={2}>
-                    <FilterTab
-                        label="All"
-                        active={filter === 'all'}
-                        onClick={() => setFilter('all')}
-                    />
-                    <FilterTab
-                        label="Mine"
-                        count={myWallet ? mineCount : undefined}
-                        active={filter === 'mine'}
-                        onClick={() => {
-                            if (!myWallet) {
-                                toast.warning(
-                                    'Connect your wallet to see your tournaments'
-                                );
-                                return;
-                            }
-                            setFilter('mine');
-                        }}
-                    />
-                </HStack>
-                <Button
-                    size="sm"
-                    variant="tactilePrimary"
-                    leftIcon={<FiPlus />}
-                    onClick={() => {
-                        if (!myWallet) {
-                            toast.warning(
-                                'Connect your wallet to create a tournament'
-                            );
-                            return;
-                        }
-                        openCreate();
-                    }}
-                >
-                    Host tournament
-                </Button>
-            </Flex>
-
             {isLoading ? (
                 <Flex justify="center" py={12}>
                     <Spinner color="brand.green" size="lg" />
                 </Flex>
             ) : visibleTournaments.length === 0 ? (
-                filter === 'mine' ? (
-                    <Text
-                        fontSize="sm"
-                        color="text.secondary"
-                        textAlign="center"
-                        py={10}
-                    >
-                        You haven&apos;t created or registered for any
-                        tournaments yet.
-                    </Text>
-                ) : (
-                    <TournamentsEmptyState onCreate={openCreate} />
-                )
+                <TournamentsEmptyState onCreate={openCreate} />
             ) : (
                 <SimpleGrid
                     columns={{ base: 1, sm: 2, lg: 3 }}
@@ -597,64 +606,6 @@ function FundGuaranteeModal({
 }
 
 // ─── Filter Tab ──────────────────────────────────────────────────────────────
-
-function FilterTab({
-    label,
-    count,
-    active,
-    onClick,
-}: {
-    label: string;
-    count?: number;
-    active: boolean;
-    onClick: () => void;
-}) {
-    const activeBg = useColorModeValue('brand.darkNavy', 'white');
-    const activeColor = useColorModeValue('white', 'brand.darkNavy');
-    const idleBg = useColorModeValue(
-        'rgba(11,20,48,0.06)',
-        'rgba(255,255,255,0.08)'
-    );
-    const idleColor = useColorModeValue('text.secondary', 'text.secondary');
-    const badgeIdleBg = useColorModeValue(
-        'rgba(11,20,48,0.12)',
-        'rgba(255,255,255,0.16)'
-    );
-    const hoverBg = useColorModeValue(
-        'rgba(11,20,48,0.10)',
-        'rgba(255,255,255,0.12)'
-    );
-
-    return (
-        <Button
-            size="xs"
-            px={3}
-            h="26px"
-            borderRadius="full"
-            bg={active ? activeBg : idleBg}
-            color={active ? activeColor : idleColor}
-            fontWeight={active ? 'semibold' : 'normal'}
-            _hover={{ bg: active ? activeBg : hoverBg }}
-            _active={{}}
-            onClick={onClick}
-        >
-            {label}
-            {count !== undefined && count > 0 && (
-                <Badge
-                    ml={1.5}
-                    px={1.5}
-                    py="1px"
-                    borderRadius="full"
-                    fontSize="2xs"
-                    bg={active ? 'brand.green' : badgeIdleBg}
-                    color={active ? 'white' : idleColor}
-                >
-                    {count}
-                </Badge>
-            )}
-        </Button>
-    );
-}
 
 // ─── TxStep — reusable visual step indicator ─────────────────────────────────
 

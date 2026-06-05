@@ -477,32 +477,36 @@ const HomeCard = () => {
                                                 alignItems="center"
                                                 justifyContent="center"
                                                 gap={2}
-                                                color="text.primary"
-                                                bg="white"
-                                                _dark={{ bg: 'whiteAlpha.100' }}
+                                                color="brand.yellowDark"
+                                                _dark={{
+                                                    color: 'brand.yellow',
+                                                }}
+                                                bg="transparent"
                                                 borderRadius="12px"
-                                                border="1.5px solid"
-                                                borderColor="rgba(253, 197, 29, 0.55)"
-                                                boxShadow="0 1px 3px rgba(0,0,0,0.08)"
+                                                border="2px solid"
+                                                borderColor="brand.yellow"
+                                                boxShadow="0 2px 0 #B78900"
                                                 leftIcon={
                                                     <Icon
                                                         as={MdEmojiEvents}
                                                         boxSize="20px"
-                                                        color="brand.yellow"
                                                     />
                                                 }
-                                                transition="background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 80ms ease"
+                                                transition="background-color 120ms ease, box-shadow 80ms ease, transform 80ms ease, color 120ms ease, border-color 120ms ease"
                                                 _hover={{
-                                                    bg: 'rgba(253, 197, 29, 0.12)',
-                                                    borderColor: 'brand.yellow',
-                                                    boxShadow:
-                                                        '0 2px 8px rgba(253,197,29,0.25)',
+                                                    bg: 'rgba(253,197,29,0.12)',
+                                                    borderColor:
+                                                        'brand.yellowDark',
+                                                    color: 'brand.yellowDark',
                                                 }}
                                                 _active={{
+                                                    bg: 'rgba(253,197,29,0.18)',
+                                                    borderColor:
+                                                        'brand.yellowDark',
+                                                    color: 'brand.yellowDark',
                                                     transform:
-                                                        'translateY(1px)',
-                                                    boxShadow:
-                                                        'inset 0 1px 2px rgba(0,0,0,0.10)',
+                                                        'translateY(2px)',
+                                                    boxShadow: '0 0 0 #B78900',
                                                 }}
                                                 onClick={handleHostTournament}
                                                 isLoading={isHostingTournament}

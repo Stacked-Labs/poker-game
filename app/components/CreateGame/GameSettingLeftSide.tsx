@@ -625,7 +625,7 @@ const GameSettingLeftSide: React.FC = () => {
         try {
             const buyInMicro = values.freePlay
                 ? 0
-                : Math.round(parseFloat(values.buyInUsdc) * 1_000_000);
+                : Math.round((parseFloat(values.buyInUsdc) || 0) * 1_000_000);
             const guaranteeMicro = Math.round(
                 (parseFloat(values.guaranteeUsdc) || 0) * 1_000_000
             );
@@ -635,7 +635,13 @@ const GameSettingLeftSide: React.FC = () => {
             const result = await createTournament({
                 name: values.name.trim() || undefined,
                 min_entries: parseInt(values.minPlayers, 10),
-                max_entries: parseInt(values.maxPlayers, 10),
+                // An empty maxPlayers means the host chose "Unlimited". We send
+                // a large effective ceiling as a stopgap. Once the poker-server
+                // change that treats max_entries === 0 as uncapped is deployed
+                // (branch feat/tournament-unlimited-entries), switch this to 0.
+                max_entries: values.maxPlayers
+                    ? parseInt(values.maxPlayers, 10)
+                    : 100000,
                 buy_in_usdc: buyInMicro,
                 guarantee_usdc: needsGuarantee ? guaranteeMicro : undefined,
                 scheduled_start_at: new Date(values.scheduledAt).toISOString(),
@@ -645,6 +651,10 @@ const GameSettingLeftSide: React.FC = () => {
                 reentry_allowed: reentryAllowed,
                 reentry_max: reentryAllowed ? values.reentryMax : undefined,
                 chain: values.freePlay ? undefined : values.chain,
+                // An access code only applies to free-play tournaments. Mark
+                // the tournament private so the join-time password gate and the
+                // Private pill actually engage (both key off is_private).
+                is_private: values.freePlay && !!values.passwordCode.trim(),
                 // Backend only stores/enforces the passcode for free-play
                 // tournaments, so never send it for real-money (it would be
                 // silently dropped and the table left public).
@@ -675,6 +685,16 @@ const GameSettingLeftSide: React.FC = () => {
         'rgba(255, 255, 255, 0.06)'
     );
     const activeTabBg = useColorModeValue('white', 'whiteAlpha.100');
+    // brand.yellow (#FDC51D) fails WCAG AA as text on the white active-tab bg in
+    // light mode, so use the darker gold for the label; icon/border can stay
+    // brand.yellow in both modes (they don't need text-level contrast).
+    const tournamentTextColor = useColorModeValue(
+        'brand.yellowDark',
+        'brand.yellow'
+    );
+    // brand.green (#36A37B) is ~3.1:1 on the white active tab — under AA — so
+    // use the darker green for the Cash label text in light mode.
+    const cashTextColor = useColorModeValue('brand.greenDark', 'brand.green');
 
     const handleDisconnectWallet = () => {
         if (wallet) {
@@ -763,7 +783,7 @@ const GameSettingLeftSide: React.FC = () => {
                     fontWeight={isTournamentMode ? 'medium' : 'bold'}
                     fontSize="sm"
                     bg={isTournamentMode ? 'transparent' : activeTabBg}
-                    color={isTournamentMode ? 'text.muted' : 'text.primary'}
+                    color={isTournamentMode ? 'text.muted' : cashTextColor}
                     boxShadow={
                         isTournamentMode ? 'none' : '0 1px 2px rgba(0,0,0,0.12)'
                     }
@@ -796,13 +816,15 @@ const GameSettingLeftSide: React.FC = () => {
                     fontWeight={isTournamentMode ? 'bold' : 'medium'}
                     fontSize="sm"
                     bg={isTournamentMode ? activeTabBg : 'transparent'}
-                    color={isTournamentMode ? 'text.primary' : 'text.muted'}
+                    color={
+                        isTournamentMode ? tournamentTextColor : 'text.muted'
+                    }
                     boxShadow={
                         isTournamentMode ? '0 1px 2px rgba(0,0,0,0.12)' : 'none'
                     }
                     borderWidth="1.5px"
                     borderColor={
-                        isTournamentMode ? 'brand.green' : 'transparent'
+                        isTournamentMode ? 'brand.yellow' : 'transparent'
                     }
                     transition="color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, border-color 120ms ease"
                     _hover={isTournamentMode ? {} : { color: 'text.primary' }}
@@ -812,7 +834,7 @@ const GameSettingLeftSide: React.FC = () => {
                     <Icon
                         as={FaTrophy}
                         boxSize={3.5}
-                        color={isTournamentMode ? 'brand.green' : 'inherit'}
+                        color={isTournamentMode ? 'brand.yellow' : 'inherit'}
                     />
                     Tournament
                 </Button>

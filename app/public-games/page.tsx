@@ -168,10 +168,7 @@ const PublicPageInner = () => {
                         w="full"
                         align="stretch"
                     >
-                        <PublicGamesHero
-                            games={visibleGames}
-                            totalCount={hasLoadedOnce ? totalCount : null}
-                        />
+                        <PublicGamesHero />
 
                         <FormatTabs
                             format={format}

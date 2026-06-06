@@ -721,7 +721,21 @@ export async function startTournament(id: number): Promise<void> {
     if (!res.ok) throw new Error(await res.text());
 }
 
-export async function getTournamentClock(id: number) {
+// Full clock snapshot from GET /clock — matches the WS tournament-clock payload
+// (poker-server/transport/http/tournament_handler.go handleGetClock).
+export interface TournamentClockResponse {
+    level: number;
+    level_number: number;
+    small: number;
+    big: number;
+    ante: number;
+    remaining_ms: number;
+    total_ms: number;
+}
+
+export async function getTournamentClock(
+    id: number
+): Promise<TournamentClockResponse | null> {
     isBackendUrlValid();
     const res = await fetch(`${backendUrl}/api/tournaments/${id}/clock`, { method: 'GET' });
     if (!res.ok) return null;

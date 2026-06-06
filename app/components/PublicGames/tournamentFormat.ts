@@ -90,3 +90,17 @@ export function getStatusDescriptor(status: string): { label: string; tone: Stat
             };
     }
 }
+
+// Finishing-position ordinal: 1 → "1st", 2 → "2nd", 11 → "11th".
+export function ordinal(n: number): string {
+    const suffixes = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return `${n}${suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]}`;
+}
+
+// Block-explorer origin for a tournament's chain (mainnet vs Sepolia testnet).
+export function explorerBase(chain?: string): string {
+    return chain === 'base'
+        ? 'https://basescan.org'
+        : 'https://sepolia.basescan.org';
+}

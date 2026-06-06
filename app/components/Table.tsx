@@ -14,6 +14,7 @@ import useToastHelper from '../hooks/useToastHelper';
 import { useRouter } from 'next/navigation';
 import { useEquity } from '../hooks/useEquity';
 import SessionPointsBadge from './NavBar/SessionPointsBadge';
+import TournamentLiveController from './Tournament/TournamentLiveController';
 
 const initialPlayers: (Player | null)[] = [
     null,
@@ -345,6 +346,13 @@ const Table = ({ tableId }: { tableId: string }) => {
         return ((povAnchorSeatId + (visualSeatId - 1) - 1) % SEAT_COUNT) + 1;
     };
 
+    // Parse `tournament-{id}-table-{n}` so we can drive the live tournament HUD.
+    const tournamentMatch = tableId.match(/^tournament-(\d+)-table-(\d+)$/);
+    const tournamentId = tournamentMatch ? Number(tournamentMatch[1]) : null;
+    const tournamentTableNumber = tournamentMatch
+        ? Number(tournamentMatch[2])
+        : null;
+
     return (
         <Flex
             className="table-container"
@@ -358,6 +366,13 @@ const Table = ({ tableId }: { tableId: string }) => {
             overflow="hidden"
             bg="transparent"
         >
+            {tournamentId !== null && tournamentTableNumber !== null && (
+                <TournamentLiveController
+                    tournamentId={tournamentId}
+                    tableNumber={tournamentTableNumber}
+                />
+            )}
+
             {/* Table image - switches via CSS media query */}
             <Box
                 as="picture"

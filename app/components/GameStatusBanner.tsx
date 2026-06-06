@@ -4,11 +4,20 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { AppContext } from '../contexts/AppStoreProvider';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import { useFormatAmount } from '../hooks/useFormatAmount';
-import { Box, Flex, Icon, Text, Spinner } from '@chakra-ui/react';
+import {
+    Box,
+    Flex,
+    Icon,
+    Text,
+    Spinner,
+    usePrefersReducedMotion,
+} from '@chakra-ui/react';
 import { MdPause, MdWarning, MdCheckCircle } from 'react-icons/md';
 import { FaPlay } from 'react-icons/fa6';
+import { FiClock, FiChevronsUp } from 'react-icons/fi';
 import { keyframes } from '@emotion/react';
 import useIsTableOwner from '../hooks/useIsTableOwner';
+import { useLevelCountdown } from '../hooks/useLevelCountdown';
 import { sendResumeGameCommand } from '../hooks/server_actions';
 
 // ── Cycling copy for pending settlement ──────────────────────────────
@@ -52,6 +61,7 @@ type BannerMode =
     | 'paused'
     | 'pausing'
     | 'pending-blinds'
+    | 'tournament-clock'
     | null;
 
 const GameStatusBanner = () => {
@@ -72,6 +82,9 @@ const GameStatusBanner = () => {
     const isPendingPause = appState.game?.pendingPause;
     const settlementStatus = appState.settlementStatus;
     const pendingBlinds = appState.game?.pendingBlinds;
+    const tournamentClock = appState.tournamentLive?.clock ?? null;
+    const prefersReducedMotion = usePrefersReducedMotion();
+    const countdown = useLevelCountdown(tournamentClock);
 
     // settlement-recovery takes priority: paused + pending means the background watcher
     // is polling and the table will auto-resume — don't show the generic pause banner.
@@ -83,6 +96,14 @@ const GameStatusBanner = () => {
     else if (isPaused) mode = 'paused';
     else if (isPendingPause) mode = 'pausing';
     else if (pendingBlinds) mode = 'pending-blinds';
+    else if (
+        tournamentClock &&
+        !appState.tournamentLive?.myResult &&
+        !appState.tournamentLive?.completed
+    )
+        // Once the local player is out (or the event is over), the result card
+        // takes over — don't keep an ambient clock running behind it.
+        mode = 'tournament-clock';
 
     // ── Cycling message index for settling ──
     const [msgIndex, setMsgIndex] = useState(0);
@@ -145,7 +166,28 @@ const GameStatusBanner = () => {
         };
     }, [mode]);
 
+    // Brief "blinds up" flash when the level advances.
+    const [blindsUpFlash, setBlindsUpFlash] = useState(false);
+    const prevLevelRef = useRef<number | null>(null);
+    const levelNumber = tournamentClock?.levelNumber ?? null;
+    useEffect(() => {
+        if (levelNumber == null) {
+            prevLevelRef.current = null;
+            return;
+        }
+        if (prevLevelRef.current != null && levelNumber > prevLevelRef.current) {
+            setBlindsUpFlash(true);
+            prevLevelRef.current = levelNumber;
+            const t = setTimeout(() => setBlindsUpFlash(false), 2000);
+            return () => clearTimeout(t);
+        }
+        prevLevelRef.current = levelNumber;
+    }, [levelNumber]);
+
     if (!mode) return null;
+
+    const lastMinute =
+        countdown.remainingMs > 0 && countdown.remainingMs <= 60_000;
 
     return (
         <Box
@@ -382,6 +424,64 @@ const GameStatusBanner = () => {
                         color="whiteAlpha.700"
                     >
                         NEXT HAND: {formatBlinds(pendingBlinds.sb)}/{formatBlinds(pendingBlinds.bb)}
+                    </Text>
+                </Flex>
+            )}
+
+            {/* ── Tournament clock (ambient; lowest priority) ── */}
+            {mode === 'tournament-clock' && tournamentClock && (
+                <Flex
+                    key="tournament-clock"
+                    align="center"
+                    justifyContent="center"
+                    gap={1.5}
+                    whiteSpace="nowrap"
+                    bg="blackAlpha.200"
+                    backdropFilter="blur(8px)"
+                    borderRadius="full"
+                    px={{ base: 2.5, md: 3 }}
+                    py={{ base: 1, md: 1.5 }}
+                    opacity={blindsUpFlash || lastMinute ? 0.95 : 0.7}
+                    animation={
+                        prefersReducedMotion
+                            ? undefined
+                            : lastMinute && !blindsUpFlash
+                              ? `${pulse} 1.4s ease-in-out infinite`
+                              : `${fadeIn} 300ms ease-out`
+                    }
+                    role="status"
+                >
+                    <Icon
+                        as={blindsUpFlash ? FiChevronsUp : FiClock}
+                        boxSize={{ base: 3.5, md: 4 }}
+                        color={
+                            blindsUpFlash || lastMinute
+                                ? 'brand.yellow'
+                                : 'whiteAlpha.700'
+                        }
+                        aria-hidden
+                    />
+                    <Text
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="700"
+                        letterSpacing="0.04em"
+                        lineHeight="1"
+                        color={
+                            blindsUpFlash || lastMinute
+                                ? 'brand.yellow'
+                                : 'whiteAlpha.700'
+                        }
+                        sx={{ fontVariantNumeric: 'tabular-nums' }}
+                    >
+                        {blindsUpFlash
+                            ? `Blinds up · ${tournamentClock.sb.toLocaleString(
+                                  'en-US'
+                              )}/${tournamentClock.bb.toLocaleString('en-US')}`
+                            : lastMinute
+                              ? `Blinds up in ${countdown.label}`
+                              : `Level ${
+                                    tournamentClock.levelNumber + 1
+                                } in ${countdown.label}`}
                     </Text>
                 </Flex>
             )}

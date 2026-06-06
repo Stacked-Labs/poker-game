@@ -30,6 +30,7 @@ import {
     FiX,
     FiChevronLeft,
     FiChevronRight,
+    FiAward,
 } from 'react-icons/fi';
 import { BiSupport } from 'react-icons/bi';
 import GameSettings from './GameSettings';
@@ -39,6 +40,7 @@ import Ledger from './Ledger';
 import HowTo from './HowTo';
 import Support from './Support';
 import OnchainTab from './OnchainTab/OnchainTab';
+import TournamentTabPanel from '../../Tournament/TournamentTabPanel';
 import { GameEventsProvider } from '@/app/contexts/GameEventsProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { IconType } from 'react-icons/lib/iconBase';
@@ -157,7 +159,9 @@ const SettingsModal = ({
     const showOnchainTab = Boolean(config?.crypto && config?.contractAddress);
     const pathname = usePathname();
     const isTournamentTable = pathname?.includes('/table/tournament-') ?? false;
-    const onchainTabIndex = 3;
+    // The Tournament tab is inserted first on tournament tables, shifting the
+    // Onchain tab's index by one.
+    const onchainTabIndex = isTournamentTable ? 4 : 3;
 
     // Resolve theme colors for CSS gradients (semantic tokens don't work in bgGradient)
     const tabBg = useColorModeValue('#ECEEF5', '#191414'); // card.lightGray
@@ -279,6 +283,13 @@ const SettingsModal = ({
                                         scrollbarWidth: 'none',
                                     }}
                                 >
+                                    {isTournamentTable && (
+                                        <TabItem
+                                            text="Tournament"
+                                            tone="green"
+                                            icon={FiAward}
+                                        />
+                                    )}
                                     <TabItem
                                         text="Players"
                                         tone="green"
@@ -450,6 +461,14 @@ const SettingsModal = ({
                                 },
                             }}
                         >
+                            {isTournamentTable && (
+                                <TabPanel
+                                    px={{ base: 0, sm: 1, md: 2 }}
+                                    py={{ base: 1, md: 2 }}
+                                >
+                                    <TournamentTabPanel />
+                                </TabPanel>
+                            )}
                             <TabPanel
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}

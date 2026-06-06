@@ -785,37 +785,89 @@ export function SocketProvider(props: SocketProviderProps) {
                         }
                         return;
                     }
+                    case 'tournament-clock': {
+                        dispatch({
+                            type: 'setTournamentClock',
+                            payload: {
+                                tournamentId: eventData.tournament_id,
+                                clock: {
+                                    level: eventData.level,
+                                    levelNumber: eventData.level_number,
+                                    sb: eventData.small,
+                                    bb: eventData.big,
+                                    ante: eventData.ante,
+                                    remainingMs: eventData.remaining_ms,
+                                    totalMs: eventData.total_ms,
+                                    receivedAt: Date.now(),
+                                },
+                            },
+                        });
+                        return;
+                    }
+                    case 'tournament-player-count': {
+                        dispatch({
+                            type: 'setTournamentPlayerCount',
+                            payload: {
+                                tournamentId: eventData.tournament_id,
+                                active: eventData.active,
+                            },
+                        });
+                        return;
+                    }
                     case 'tournament-elimination': {
-                        const isLocalPlayer = eventData.player_uuid === appStateRef.current.clientID;
-                        if (isLocalPlayer) {
-                            toastErrorRef.current(
-                                "You've been eliminated",
-                                `You finished #${eventData.position}`,
-                                8000
-                            );
-                        } else {
-                            toastInfoRef.current(
-                                'Player eliminated',
-                                `${eventData.remaining} player${eventData.remaining !== 1 ? 's' : ''} remaining`,
-                                5000
-                            );
+                        const tournamentId = eventData.tournament_id;
+                        // Accumulate into the persistent feed (replaces the
+                        // ephemeral "player eliminated" toast).
+                        dispatch({
+                            type: 'addTournamentElimination',
+                            payload: {
+                                tournamentId,
+                                elim: {
+                                    playerUuid: eventData.player_uuid,
+                                    position: eventData.position,
+                                    remaining: eventData.remaining,
+                                },
+                            },
+                        });
+                        // The local player's bust opens a persistent result card
+                        // (replaces the ephemeral "you've been eliminated" toast).
+                        if (
+                            eventData.player_uuid ===
+                            appStateRef.current.clientID
+                        ) {
+                            dispatch({
+                                type: 'setTournamentMyResult',
+                                payload: {
+                                    tournamentId,
+                                    result: {
+                                        kind: 'bust',
+                                        position: eventData.position,
+                                    },
+                                },
+                            });
                         }
                         return;
                     }
                     case 'tournament-complete': {
-                        const isLocalWinner = eventData.winner_uuid === appStateRef.current.clientID;
-                        if (isLocalWinner) {
-                            toastSuccessRef.current(
-                                'You won the tournament!',
-                                'Congratulations — check the final standings.',
-                                10000
-                            );
-                        } else {
-                            toastSuccessRef.current(
-                                'Tournament complete',
-                                'Check the final standings for results.',
-                                8000
-                            );
+                        const tournamentId = eventData.tournament_id;
+                        dispatch({
+                            type: 'setTournamentComplete',
+                            payload: {
+                                tournamentId,
+                                winnerUuid: eventData.winner_uuid,
+                            },
+                        });
+                        if (
+                            eventData.winner_uuid ===
+                            appStateRef.current.clientID
+                        ) {
+                            dispatch({
+                                type: 'setTournamentMyResult',
+                                payload: {
+                                    tournamentId,
+                                    result: { kind: 'win' },
+                                },
+                            });
                         }
                         return;
                     }

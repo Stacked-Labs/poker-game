@@ -68,7 +68,84 @@ export type AppState = {
     displayMode: DisplayMode;
     displayModeExplicit: boolean;
     tableClosed: { reason: string; message: string } | null;
+    /** Live tournament context when seated at a tournament table (null otherwise). */
+    tournamentLive: TournamentLive | null;
 };
+
+// --- Live tournament state (in-table HUD) ---
+// Fed by the backend WS pushes (tournament-clock / -player-count / -elimination /
+// -complete) plus a one-shot REST seed. See the "Build Spec — Live Tournament
+// Cluster" section of poker-game/docs/tournament-grinder-ui-gaps.md.
+
+export interface LeaderboardPlayer {
+    uuid: string;
+    wallet: string;
+    stack: number;
+    finish_pos: number;
+    table_index: number;
+    bullet_number?: number;
+    prize_usdc?: number;
+    // X identity, populated once the backend adds it to the leaderboard payload
+    // (the global leaderboard already returns these). Optional until then.
+    xUsername?: string | null;
+    xProfileImageUrl?: string | null;
+}
+
+export interface TournamentClock {
+    level: number;
+    levelNumber: number; // 1-based, for display
+    sb: number;
+    bb: number;
+    ante: number;
+    remainingMs: number;
+    totalMs: number;
+    receivedAt: number; // Date.now() when applied — lets the UI tick locally
+}
+
+export interface TournamentElim {
+    playerUuid: string;
+    position: number;
+    remaining: number;
+}
+
+export interface TournamentMeta {
+    name: string;
+    status: string;
+    registeredCount: number;
+    maxEntries: number;
+    minEntries: number;
+    prizePoolUsdc: number;
+    guaranteeUsdc: number;
+    buyInUsdc: number;
+    feeBps: number;
+    startingStack: number;
+    blindStructure: string;
+    lateRegLevels: number;
+    lateRegCloseAt: string;
+    reentryAllowed: boolean;
+    reentryMax: number;
+    chain?: string;
+    contractAddress?: string;
+    isFreePlay: boolean;
+    hostWallet: string;
+    settlementTxHash?: string;
+}
+
+export type TournamentMyResult =
+    | { kind: 'bust'; position: number }
+    | { kind: 'win' };
+
+export interface TournamentLive {
+    tournamentId: number;
+    meta: TournamentMeta | null;
+    clock: TournamentClock | null;
+    playersActive: number | null;
+    feed: TournamentElim[]; // newest first, capped
+    leaderboard: LeaderboardPlayer[];
+    completed: { winnerUuid: string } | null;
+    myResult: TournamentMyResult | null;
+    status: 'connecting' | 'live' | 'stale';
+}
 
 export type Player = {
     username: string;

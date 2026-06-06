@@ -29,10 +29,13 @@ import {
     FiShield,
 } from 'react-icons/fi';
 import type { Tournament } from '../../hooks/server_actions';
+import type { LeaderboardPlayer } from '../../interfaces';
 import ChainBadge from '../ChainBadge';
 import PlayerAvatar from '../PlayerAvatar';
 import PlayerNameLink from '../PlayerNameLink';
 import ExternalLink from '../ExternalLink';
+import StructureSheet from './StructureSheet';
+import PayoutLadder from './PayoutLadder';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     formatTournamentStart,
@@ -42,19 +45,10 @@ import {
     useCountdown,
 } from '../PublicGames/tournamentFormat';
 
-export interface LeaderboardPlayer {
-    uuid: string;
-    wallet: string;
-    stack: number;
-    finish_pos: number;
-    table_index: number;
-    bullet_number?: number;
-    prize_usdc?: number;
-    // X identity, populated once the backend adds it to the leaderboard payload
-    // (the global leaderboard already returns these). Optional until then.
-    xUsername?: string | null;
-    xProfileImageUrl?: string | null;
-}
+// LeaderboardPlayer now lives in app/interfaces (shared with the live-tournament
+// state slice). Re-exported here so existing `from './TournamentDetail'` imports
+// (page.tsx, stories) keep working.
+export type { LeaderboardPlayer };
 
 export interface RefundState {
     loading?: boolean;
@@ -414,6 +408,14 @@ export default function TournamentDetail({
                         </VStack>
                     </Box>
 
+                    {/* Blind structure sheet */}
+                    <StructureSheet
+                        blindStructure={blindLabel}
+                        startingStack={t.starting_stack}
+                        lateRegLevels={t.late_reg_levels}
+                        currentLevel={blindLevel}
+                    />
+
                     {/* Host panel */}
                     {isHost && (
                         <HostPanel
@@ -427,6 +429,27 @@ export default function TournamentDetail({
                             onClaimRake={onClaimRake}
                             cardBg={cardBg}
                             border={border}
+                        />
+                    )}
+
+                    {/* Payout ladder */}
+                    {(t.status === 'registration' ||
+                        t.status === 'pending' ||
+                        t.status === 'running' ||
+                        t.status === 'completed') && (
+                        <PayoutLadder
+                            entrants={
+                                /* Tiers key on unique players (one row each),
+                                   matching the backend; registeredCount counts
+                                   bullet entries. */
+                                players.length || registeredCount
+                            }
+                            prizePoolUsdc={Math.max(
+                                t.prize_pool_usdc ?? 0,
+                                t.guarantee_usdc ?? 0
+                            )}
+                            isFreePlay={freePlay}
+                            status={t.status}
                         />
                     )}
 

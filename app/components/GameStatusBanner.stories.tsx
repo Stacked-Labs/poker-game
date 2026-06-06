@@ -7,6 +7,7 @@ import GameStatusBanner from './GameStatusBanner';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import type { AppState, Game } from '@/app/interfaces';
+import { makeTournamentLive } from './Tournament/tournamentMocks';
 
 const mockSocket = {
     readyState: 1,
@@ -58,7 +59,9 @@ const baseAppState: AppState = {
     isTableOwner: false,
     settlementStatus: null,
     displayMode: 'chips',
+    displayModeExplicit: false,
     tableClosed: null,
+    tournamentLive: null,
 };
 
 // ─── Decorator ──────────────────────────────────────────────────────────────
@@ -218,6 +221,43 @@ export const PendingBlinds: Story = {
         makeDecorator({
             gameOverride: { pendingBlinds: { sb: 50, bb: 100 } },
         }),
+    ],
+};
+
+// ─── Tournament clock (ambient countdown) ──────────────────────────────────
+//
+// Lowest-priority state: the next-level countdown ticks down locally between WS
+// pushes. Reload to restart the tick. Yields to any settlement/pause state.
+
+const tournamentClockState = (remainingMs: number): Partial<AppState> => ({
+    settlementStatus: null,
+    tournamentLive: makeTournamentLive({
+        clock: {
+            level: 7,
+            levelNumber: 7,
+            sb: 300,
+            bb: 600,
+            ante: 600,
+            remainingMs,
+            totalMs: 600_000,
+            receivedAt: Date.now(),
+        },
+    }),
+});
+
+export const TournamentClockAmbient: Story = {
+    name: 'Tournament clock — ambient',
+    decorators: [
+        makeDecorator({
+            appStateOverride: tournamentClockState(8 * 60_000 + 42_000),
+        }),
+    ],
+};
+
+export const TournamentClockLastMinute: Story = {
+    name: 'Tournament clock — last 60s (blinds up soon)',
+    decorators: [
+        makeDecorator({ appStateOverride: tournamentClockState(45_000) }),
     ],
 };
 

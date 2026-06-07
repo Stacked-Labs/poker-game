@@ -26,6 +26,14 @@ import {
     placesPaid,
 } from '../PublicGames/payouts';
 
+// Podium medal chips — filled brights with dark numerals. Static across themes:
+// they pop on either card surface (discRing supplies the light-mode edge).
+const MEDALS: Record<number, { bg: string; fg: string }> = {
+    1: { bg: '#FDC51D', fg: '#2A1E00' },
+    2: { bg: '#C3CAD9', fg: '#1C2436' },
+    3: { bg: '#CE8E54', fg: '#2A1605' },
+};
+
 export interface PayoutLadderProps {
     entrants: number;
     prizePoolUsdc: number;
@@ -50,16 +58,28 @@ export default function PayoutLadder({
         'rgba(11, 20, 48, 0.06)',
         'rgba(255, 255, 255, 0.08)'
     );
-    // Subtle zebra for dense-row legibility; chip-yellow wash on the top spot.
+    // Subtle zebra for dense-row legibility; podium washes for the top three.
     const zebra = useColorModeValue(
         'rgba(11, 20, 48, 0.025)',
         'rgba(255, 255, 255, 0.025)'
     );
-    const topSpot = useColorModeValue(
-        'rgba(253, 197, 29, 0.10)',
-        'rgba(253, 197, 29, 0.12)'
+    const goldWash = useColorModeValue(
+        'rgba(253, 197, 29, 0.12)',
+        'rgba(253, 197, 29, 0.14)'
     );
-    const gold = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    const silverWash = useColorModeValue(
+        'rgba(148, 163, 184, 0.14)',
+        'rgba(148, 163, 184, 0.16)'
+    );
+    const bronzeWash = useColorModeValue(
+        'rgba(205, 137, 78, 0.12)',
+        'rgba(205, 137, 78, 0.18)'
+    );
+    // Edge for the medal disc so the lighter (silver) chip reads on a white card.
+    const discRing = useColorModeValue(
+        'inset 0 0 0 1px rgba(11, 20, 48, 0.10)',
+        'inset 0 0 0 1px rgba(0, 0, 0, 0.25)'
+    );
 
     const tiers = defaultPayouts(entrants);
     const amounts = calculatePayouts(entrants, prizePoolUsdc);
@@ -126,30 +146,57 @@ export default function PayoutLadder({
                                 ? `${ordinal(t.min)}–${ordinal(t.max)}`
                                 : ordinal(t.min);
                             const isMinCash = i === tiers.length - 1;
-                            const isTop = i === 0;
+                            const podium = !isRange && t.min <= 3 ? t.min : 0;
+                            const medal = podium ? MEDALS[podium] : null;
                             return (
                                 <Tr
                                     key={`${t.min}-${t.max}`}
                                     bg={
-                                        isTop
-                                            ? topSpot
-                                            : i % 2 === 1
-                                              ? zebra
-                                              : undefined
+                                        podium === 1
+                                            ? goldWash
+                                            : podium === 2
+                                              ? silverWash
+                                              : podium === 3
+                                                ? bronzeWash
+                                                : i % 2 === 1
+                                                  ? zebra
+                                                  : undefined
                                     }
                                 >
                                     <Td color="text.primary">
-                                        <HStack spacing={2}>
+                                        <HStack spacing={2.5}>
+                                            {medal && (
+                                                <Flex
+                                                    align="center"
+                                                    justify="center"
+                                                    boxSize="22px"
+                                                    borderRadius="full"
+                                                    bg={medal.bg}
+                                                    boxShadow={discRing}
+                                                    flexShrink={0}
+                                                    aria-hidden
+                                                >
+                                                    <Text
+                                                        as="span"
+                                                        fontSize="2xs"
+                                                        fontWeight="bold"
+                                                        color={medal.fg}
+                                                        lineHeight="1"
+                                                        sx={{
+                                                            fontVariantNumeric:
+                                                                'tabular-nums',
+                                                        }}
+                                                    >
+                                                        {t.min}
+                                                    </Text>
+                                                </Flex>
+                                            )}
                                             <Text
                                                 as="span"
                                                 fontWeight={
-                                                    isTop ? 'bold' : 'normal'
+                                                    medal ? 'bold' : 'normal'
                                                 }
-                                                color={
-                                                    isTop
-                                                        ? gold
-                                                        : 'text.primary'
-                                                }
+                                                color="text.primary"
                                             >
                                                 {label}
                                             </Text>
@@ -184,10 +231,19 @@ export default function PayoutLadder({
                                                 <Image
                                                     src={USDC_LOGO}
                                                     alt=""
-                                                    boxSize="13px"
+                                                    boxSize={
+                                                        podium === 1
+                                                            ? '15px'
+                                                            : '13px'
+                                                    }
                                                 />
                                                 <Text
-                                                    fontWeight="semibold"
+                                                    fontWeight="bold"
+                                                    fontSize={
+                                                        podium === 1
+                                                            ? 'md'
+                                                            : 'sm'
+                                                    }
                                                     color={USDC_BLUE}
                                                     sx={{
                                                         fontVariantNumeric:

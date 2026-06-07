@@ -4,6 +4,7 @@ import {
     Box,
     Button,
     Container,
+    Divider,
     Flex,
     HStack,
     Icon,
@@ -473,24 +474,26 @@ export default function TournamentDetail({
                                     onGoToTable={onGoToTable}
                                 />
                             </Flex>
+
+                            {/* Host controls — host-only, folded into the main
+                                card instead of a separate panel below. */}
+                            {isHost && (
+                                <>
+                                    <Divider borderColor={border} />
+                                    <HostPanel
+                                        tournament={t}
+                                        freePlay={freePlay}
+                                        registeredCount={registeredCount}
+                                        hostRakeUsdc={hostRakeUsdc}
+                                        rakeClaiming={rakeClaiming}
+                                        actionLoading={actionLoading}
+                                        onFundAndOpen={onFundAndOpen}
+                                        onClaimRake={onClaimRake}
+                                    />
+                                </>
+                            )}
                         </VStack>
                     </Box>
-
-                    {/* Host panel */}
-                    {isHost && (
-                        <HostPanel
-                            tournament={t}
-                            freePlay={freePlay}
-                            registeredCount={registeredCount}
-                            hostRakeUsdc={hostRakeUsdc}
-                            rakeClaiming={rakeClaiming}
-                            actionLoading={actionLoading}
-                            onFundAndOpen={onFundAndOpen}
-                            onClaimRake={onClaimRake}
-                            cardBg={cardBg}
-                            border={border}
-                        />
-                    )}
 
                     {/* Desktop (lg+): two columns — standings (left) · payouts
                         over structure (right). */}
@@ -1127,8 +1130,6 @@ function HostPanel({
     actionLoading,
     onFundAndOpen,
     onClaimRake,
-    cardBg,
-    border,
 }: {
     tournament: Tournament;
     freePlay: boolean;
@@ -1138,8 +1139,6 @@ function HostPanel({
     actionLoading: boolean;
     onFundAndOpen?: () => void;
     onClaimRake?: () => void;
-    cardBg: string;
-    border: string;
 }) {
     const accentBg = useColorModeValue(
         'rgba(253, 197, 29, 0.10)',
@@ -1153,141 +1152,123 @@ function HostPanel({
     const exposure = Math.max(0, t.guarantee_usdc - buyInsCollected);
 
     return (
-        <Box
-            bg={cardBg}
-            borderWidth="1px"
-            borderColor={border}
-            borderRadius="14px"
-            p={{ base: 4, md: 5 }}
-        >
-            <VStack align="stretch" spacing={3}>
-                <HStack spacing={2}>
-                    <Text
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        color="text.muted"
-                        textTransform="uppercase"
-                        letterSpacing="0.08em"
-                    >
-                        Host controls
-                    </Text>
-                    <Box
-                        bg={accentBg}
-                        color={hostTagFg}
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        px={2}
-                        py="1px"
-                        borderRadius="full"
-                        textTransform="uppercase"
-                        letterSpacing="0.06em"
-                    >
-                        You host this
-                    </Box>
-                </HStack>
+        <VStack align="stretch" spacing={3}>
+            <HStack spacing={2}>
+                <Text
+                    fontSize="2xs"
+                    fontWeight="bold"
+                    color="text.muted"
+                    textTransform="uppercase"
+                    letterSpacing="0.08em"
+                >
+                    Host controls
+                </Text>
+                <Box
+                    bg={accentBg}
+                    color={hostTagFg}
+                    fontSize="2xs"
+                    fontWeight="bold"
+                    px={2}
+                    py="1px"
+                    borderRadius="full"
+                    textTransform="uppercase"
+                    letterSpacing="0.06em"
+                >
+                    You host this
+                </Box>
+            </HStack>
 
-                {needsFunding && (
-                    <VStack align="stretch" spacing={2}>
-                        <Text
-                            fontSize="sm"
-                            color="text.secondary"
-                            lineHeight={1.5}
-                        >
-                            Fund the $
-                            {formatUsdc(t.guarantee_usdc, { decimals: 0 })}{' '}
-                            guaranteed pool to open registration. If buy-ins
-                            fall short, your deposit covers the gap, and the
-                            unused portion returns to you when the tournament
-                            starts.
-                        </Text>
-                        <Button
-                            variant="tactilePrimary"
-                            size="md"
-                            minH="48px"
-                            alignSelf="flex-start"
-                            isLoading={actionLoading}
-                            onClick={onFundAndOpen}
-                        >
-                            Fund $
-                            {formatUsdc(t.guarantee_usdc, { decimals: 0 })} GTD
-                            &amp; open registration
-                        </Button>
-                    </VStack>
+            {needsFunding && (
+                <VStack align="stretch" spacing={2}>
+                    <Text fontSize="sm" color="text.secondary" lineHeight={1.5}>
+                        Fund the $
+                        {formatUsdc(t.guarantee_usdc, { decimals: 0 })}{' '}
+                        guaranteed pool to open registration. If buy-ins fall
+                        short, your deposit covers the gap, and the unused
+                        portion returns to you when the tournament starts.
+                    </Text>
+                    <Button
+                        variant="tactilePrimary"
+                        size="md"
+                        minH="48px"
+                        alignSelf="flex-start"
+                        isLoading={actionLoading}
+                        onClick={onFundAndOpen}
+                    >
+                        Fund ${formatUsdc(t.guarantee_usdc, { decimals: 0 })} GTD
+                        &amp; open registration
+                    </Button>
+                </VStack>
+            )}
+
+            {!freePlay &&
+                t.guarantee_usdc > 0 &&
+                t.status === 'registration' && (
+                    <Stat label="Your current exposure">
+                        <HStack spacing={1}>
+                            <Image src={USDC_LOGO} alt="" boxSize="14px" />
+                            <Text
+                                fontWeight="bold"
+                                color={USDC_BLUE}
+                                sx={{ fontVariantNumeric: 'tabular-nums' }}
+                            >
+                                ${formatUsdc(exposure)}
+                            </Text>
+                            <Text fontSize="xs" color="text.muted">
+                                covered if no one else joins
+                            </Text>
+                        </HStack>
+                    </Stat>
                 )}
 
-                {!freePlay &&
-                    t.guarantee_usdc > 0 &&
-                    t.status === 'registration' && (
-                        <Stat label="Your current exposure">
+            {t.status === 'completed' && !freePlay && (
+                <HStack justify="space-between" flexWrap="wrap" gap={3}>
+                    <Stat label="Your rake earnings">
+                        {hostRakeUsdc === null ||
+                        hostRakeUsdc === undefined ? (
+                            <HStack spacing={2}>
+                                <Spinner size="xs" />
+                                <Text fontSize="sm" color="text.muted">
+                                    Loading…
+                                </Text>
+                            </HStack>
+                        ) : hostRakeUsdc > 0 ? (
                             <HStack spacing={1}>
                                 <Image src={USDC_LOGO} alt="" boxSize="14px" />
                                 <Text
                                     fontWeight="bold"
                                     color={USDC_BLUE}
-                                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                                    sx={{
+                                        fontVariantNumeric: 'tabular-nums',
+                                    }}
                                 >
-                                    ${formatUsdc(exposure)}
+                                    ${formatUsdc(hostRakeUsdc)}
                                 </Text>
                                 <Text fontSize="xs" color="text.muted">
-                                    covered if no one else joins
+                                    claimable
                                 </Text>
                             </HStack>
-                        </Stat>
-                    )}
-
-                {t.status === 'completed' && !freePlay && (
-                    <HStack justify="space-between" flexWrap="wrap" gap={3}>
-                        <Stat label="Your rake earnings">
-                            {hostRakeUsdc === null ||
-                            hostRakeUsdc === undefined ? (
-                                <HStack spacing={2}>
-                                    <Spinner size="xs" />
-                                    <Text fontSize="sm" color="text.muted">
-                                        Loading…
-                                    </Text>
-                                </HStack>
-                            ) : hostRakeUsdc > 0 ? (
-                                <HStack spacing={1}>
-                                    <Image
-                                        src={USDC_LOGO}
-                                        alt=""
-                                        boxSize="14px"
-                                    />
-                                    <Text
-                                        fontWeight="bold"
-                                        color={USDC_BLUE}
-                                        sx={{
-                                            fontVariantNumeric: 'tabular-nums',
-                                        }}
-                                    >
-                                        ${formatUsdc(hostRakeUsdc)}
-                                    </Text>
-                                    <Text fontSize="xs" color="text.muted">
-                                        claimable
-                                    </Text>
-                                </HStack>
-                            ) : (
-                                <Text fontSize="sm" color="text.muted">
-                                    Nothing to claim, already withdrawn.
-                                </Text>
-                            )}
-                        </Stat>
-                        {(hostRakeUsdc ?? 0) > 0 && (
-                            <Button
-                                variant="tactilePrimary"
-                                size="md"
-                                minH="44px"
-                                isLoading={rakeClaiming}
-                                loadingText="Claiming…"
-                                onClick={onClaimRake}
-                            >
-                                Claim rake
-                            </Button>
+                        ) : (
+                            <Text fontSize="sm" color="text.muted">
+                                Nothing to claim, already withdrawn.
+                            </Text>
                         )}
-                    </HStack>
-                )}
-            </VStack>
-        </Box>
+                    </Stat>
+                    {(hostRakeUsdc ?? 0) > 0 && (
+                        <Button
+                            variant="tactilePrimary"
+                            size="md"
+                            minH="44px"
+                            isLoading={rakeClaiming}
+                            loadingText="Claiming…"
+                            onClick={onClaimRake}
+                        >
+                            Claim rake
+                        </Button>
+                    )}
+                </HStack>
+            )}
+        </VStack>
     );
 }
 
@@ -1343,7 +1324,9 @@ function Standings({
             <Box
                 overflowX="auto"
                 overflowY="auto"
-                maxH={{ base: '440px', lg: '600px' }}
+                // Taller than a fixed cap so more rows show at once; grows with the
+                // viewport on tall screens, with a floor that always beats ~11 rows.
+                maxH={{ base: 'max(480px, 62vh)', lg: 'max(760px, 80vh)' }}
                 tabIndex={0}
                 role="region"
                 aria-label={completed ? 'Final standings' : 'Current standings'}
@@ -1906,9 +1889,9 @@ function StatusPill({ status }: { status: string }) {
 
     return (
         <HStack
-            spacing={1.5}
-            px={2.5}
-            py="4px"
+            spacing={2}
+            px={3}
+            py={1.5}
             borderRadius="full"
             bg={styles.bg}
             flexShrink={0}

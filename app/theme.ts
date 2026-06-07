@@ -488,6 +488,7 @@ const components = {
             //
             // tactilePrimary    — solid green. Default brand action.
             // tactileOutline    — green outline. Secondary action paired with primary.
+            // tactileNeutral    — charcoal outline. Neutral secondary (no go/stop tone).
             // tactileDestructive — pink outline. Destructive secondary.
             // tactileTelegram   — solid telegram-blue. Newsletter/community CTA.
             //
@@ -534,6 +535,30 @@ const components = {
                     color: 'brand.greenDark',
                     transform: 'translateY(2px)',
                     boxShadow: '0 0 0 #22674E',
+                },
+            },
+            // tactileNeutral — charcoal outline. Low-stakes secondary action with
+            // no go/stop connotation (e.g. viewing an ended tournament's results).
+            tactileNeutral: {
+                bg: 'transparent',
+                color: 'text.secondary',
+                border: '2px solid',
+                borderColor: 'currentColor',
+                borderRadius: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow: '0 2px 0 rgba(11, 20, 48, 0.18)',
+                _dark: { boxShadow: '0 2px 0 rgba(0, 0, 0, 0.45)' },
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease',
+                _hover: {
+                    bg: 'rgba(128, 128, 128, 0.14)',
+                    color: 'text.primary',
+                },
+                _active: {
+                    bg: 'rgba(128, 128, 128, 0.2)',
+                    transform: 'translateY(2px)',
+                    boxShadow: '0 0 0',
                 },
             },
             tactileDestructive: {

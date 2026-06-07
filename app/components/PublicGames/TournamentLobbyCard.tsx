@@ -352,18 +352,23 @@ export default function TournamentLobbyCard({
                             )}
                         </Text>
                     </Flex>
-                    <FillBar
-                        registered={t.registered_count ?? 0}
-                        max={t.max_entries}
-                        isUsdc={!freePlay}
-                    />
-                    {t.status !== 'completed' &&
-                        t.status !== 'cancelled' &&
-                        (t.registered_count ?? 0) < t.min_entries && (
-                            <Text fontSize="2xs" color="text.muted">
-                                Needs {t.min_entries} players to run
-                            </Text>
-                        )}
+                    {/* Fill-toward-cap bar only while the field is still filling;
+                        once the tournament starts/ends it's a locked field. */}
+                    {(t.status === 'registration' ||
+                        t.status === 'pending') && (
+                        <>
+                            <FillBar
+                                registered={t.registered_count ?? 0}
+                                max={t.max_entries}
+                                isUsdc={!freePlay}
+                            />
+                            {(t.registered_count ?? 0) < t.min_entries && (
+                                <Text fontSize="2xs" color="text.muted">
+                                    Needs {t.min_entries} players to run
+                                </Text>
+                            )}
+                        </>
+                    )}
                     {isLateRegOpen && (
                         <Text
                             fontSize="2xs"
@@ -495,7 +500,7 @@ export default function TournamentLobbyCard({
                     <ActionButton
                         variant={
                             t.status === 'completed'
-                                ? 'tactilePrimary'
+                                ? 'tactileNeutral'
                                 : 'tactileOutline'
                         }
                         isLoading={isLoading}
@@ -618,17 +623,17 @@ function StatusPill({ status }: { status: string }) {
 
     return (
         <HStack
-            spacing={1.5}
-            px={2}
-            py="3px"
+            spacing={2}
+            px={3}
+            py={1.5}
             borderRadius="full"
             bg={styles.bg}
             flexShrink={0}
         >
             {styles.dot && (
                 <Box
-                    w="6px"
-                    h="6px"
+                    w="7px"
+                    h="7px"
                     borderRadius="full"
                     bg={styles.dot}
                     animation={
@@ -640,7 +645,7 @@ function StatusPill({ status }: { status: string }) {
                 />
             )}
             <Text
-                fontSize="2xs"
+                fontSize="xs"
                 fontWeight="bold"
                 letterSpacing="0.06em"
                 textTransform="uppercase"

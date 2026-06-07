@@ -15,7 +15,11 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
-import { formatUsdc, ordinal } from '../PublicGames/tournamentFormat';
+import {
+    formatUsdc,
+    HIDE_X_SCROLLBAR_SX,
+    ordinal,
+} from '../PublicGames/tournamentFormat';
 import {
     calculatePayouts,
     defaultPayouts,
@@ -97,11 +101,16 @@ export default function PayoutLadder({
                 </Box>
             </Flex>
 
-            <Box overflowX="auto" px={bare ? 0 : { base: 1, md: 2 }} pb={3}>
+            <Box
+                overflowX="auto"
+                px={bare ? 0 : { base: 1, md: 2 }}
+                pb={3}
+                sx={HIDE_X_SCROLLBAR_SX}
+            >
                 <Table
                     size="sm"
                     variant="simple"
-                    sx={{ 'th, td': { borderColor: border } }}
+                    sx={{ 'th, td': { borderColor: border, px: 2 } }}
                 >
                     <Thead>
                         <Tr>

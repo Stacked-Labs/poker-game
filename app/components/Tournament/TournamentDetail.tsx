@@ -9,7 +9,12 @@ import {
     Icon,
     Image,
     Spinner,
+    Tab,
+    TabList,
+    TabPanel,
+    TabPanels,
     Table,
+    Tabs,
     Tbody,
     Td,
     Text,
@@ -41,6 +46,7 @@ import {
     formatTournamentStart,
     formatUsdc,
     getStatusDescriptor,
+    HIDE_X_SCROLLBAR_SX,
     isFreePlay as getIsFreePlay,
     useCountdown,
 } from '../PublicGames/tournamentFormat';
@@ -199,6 +205,68 @@ export default function TournamentDetail({
             : undefined;
 
     const registeredCount = t.registered_count ?? players.length;
+
+    // The three movable sections: two columns on desktop, three switchable tabs
+    // on mobile. Defined once as elements, then rendered in both layouts (the
+    // off-breakpoint copy is display:none — mounted but not painted).
+    const standingsEl =
+        sortedPlayers.length > 0 ? (
+            <Standings
+                tournament={t}
+                freePlay={freePlay}
+                players={sortedPlayers}
+                myWallet={myWallet}
+                cardBg={cardBg}
+                border={border}
+                rowHover={rowHover}
+                meHighlight={meHighlight}
+            />
+        ) : t.status === 'registration' ? (
+            <Box
+                bg={cardBg}
+                borderWidth="1px"
+                borderColor={border}
+                borderRadius="14px"
+                p={6}
+                textAlign="center"
+            >
+                <Text color="text.muted" fontSize="sm">
+                    {registeredCount > 0
+                        ? `${registeredCount} player${registeredCount !== 1 ? 's' : ''} registered, standings appear once the tournament starts.`
+                        : 'No players registered yet. Be the first.'}
+                </Text>
+            </Box>
+        ) : null;
+
+    const showPayouts =
+        t.status === 'registration' ||
+        t.status === 'pending' ||
+        t.status === 'running' ||
+        t.status === 'completed';
+    const payoutsEl = showPayouts ? (
+        <PayoutLadder
+            entrants={
+                /* Tiers key on unique players (one row each), matching the
+                   backend; registeredCount counts bullet entries. */
+                players.length || registeredCount
+            }
+            prizePoolUsdc={Math.max(
+                t.prize_pool_usdc ?? 0,
+                t.guarantee_usdc ?? 0
+            )}
+            isFreePlay={freePlay}
+            status={t.status}
+        />
+    ) : null;
+
+    const structureEl = (
+        <StructureSheet
+            blindStructure={blindLabel}
+            startingStack={t.starting_stack}
+            lateRegLevels={t.late_reg_levels}
+            currentLevel={blindLevel}
+        />
+    );
 
     return (
         <Box minH="100vh" bg="card.lightGray" pt={{ base: 20, md: 24 }} pb={16}>
@@ -408,14 +476,6 @@ export default function TournamentDetail({
                         </VStack>
                     </Box>
 
-                    {/* Blind structure sheet */}
-                    <StructureSheet
-                        blindStructure={blindLabel}
-                        startingStack={t.starting_stack}
-                        lateRegLevels={t.late_reg_levels}
-                        currentLevel={blindLevel}
-                    />
-
                     {/* Host panel */}
                     {isHost && (
                         <HostPanel
@@ -432,57 +492,43 @@ export default function TournamentDetail({
                         />
                     )}
 
-                    {/* Payout ladder */}
-                    {(t.status === 'registration' ||
-                        t.status === 'pending' ||
-                        t.status === 'running' ||
-                        t.status === 'completed') && (
-                        <PayoutLadder
-                            entrants={
-                                /* Tiers key on unique players (one row each),
-                                   matching the backend; registeredCount counts
-                                   bullet entries. */
-                                players.length || registeredCount
-                            }
-                            prizePoolUsdc={Math.max(
-                                t.prize_pool_usdc ?? 0,
-                                t.guarantee_usdc ?? 0
-                            )}
-                            isFreePlay={freePlay}
-                            status={t.status}
-                        />
-                    )}
+                    {/* Desktop (lg+): two columns — standings (left) · payouts
+                        over structure (right). */}
+                    <Flex
+                        display={{ base: 'none', lg: 'flex' }}
+                        direction="row"
+                        align="flex-start"
+                        gap={6}
+                    >
+                        {standingsEl && (
+                            <Box flex="1 1 0" minW={0}>
+                                {standingsEl}
+                            </Box>
+                        )}
+                        {/* Fixed 360px beside standings; grows to fill when there
+                            are no standings (e.g. cancelled with an empty field)
+                            so the cards don't orphan left against an empty gutter. */}
+                        <VStack
+                            align="stretch"
+                            spacing={6}
+                            w={standingsEl ? '360px' : 'full'}
+                            flexShrink={standingsEl ? 0 : 1}
+                        >
+                            {payoutsEl}
+                            {structureEl}
+                        </VStack>
+                    </Flex>
 
-                    {/* Standings */}
-                    {sortedPlayers.length > 0 ? (
-                        <Standings
-                            tournament={t}
-                            freePlay={freePlay}
-                            players={sortedPlayers}
-                            myWallet={myWallet}
+                    {/* Mobile (< lg): the same three sections as switchable tabs. */}
+                    <Box display={{ base: 'block', lg: 'none' }}>
+                        <MobileSectionTabs
+                            standings={standingsEl}
+                            payouts={payoutsEl}
+                            structure={structureEl}
                             cardBg={cardBg}
                             border={border}
-                            rowHover={rowHover}
-                            meHighlight={meHighlight}
                         />
-                    ) : (
-                        t.status === 'registration' && (
-                            <Box
-                                bg={cardBg}
-                                borderWidth="1px"
-                                borderColor={border}
-                                borderRadius="14px"
-                                p={6}
-                                textAlign="center"
-                            >
-                                <Text color="text.muted" fontSize="sm">
-                                    {registeredCount > 0
-                                        ? `${registeredCount} player${registeredCount !== 1 ? 's' : ''} registered, standings appear once the tournament starts.`
-                                        : 'No players registered yet. Be the first.'}
-                                </Text>
-                            </Box>
-                        )
-                    )}
+                    </Box>
 
                     {/* Payouts (completed) */}
                     {t.status === 'completed' &&
@@ -527,6 +573,87 @@ export default function TournamentDetail({
                 </VStack>
             </Container>
         </Box>
+    );
+}
+
+function MobileSectionTabs({
+    standings,
+    payouts,
+    structure,
+    cardBg,
+    border,
+}: {
+    standings: React.ReactNode;
+    payouts: React.ReactNode;
+    structure: React.ReactNode;
+    cardBg: string;
+    border: string;
+}) {
+    // Recessed track + an elevated, bordered pill for the active tab so the
+    // selection reads clearly in both themes (a flat card-on-card was too faint).
+    const trackBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.08)',
+        'rgba(0, 0, 0, 0.28)'
+    );
+    const selectedBg = useColorModeValue('white', 'rgba(255, 255, 255, 0.16)');
+    const selectedBorder = useColorModeValue(
+        'rgba(11, 20, 48, 0.10)',
+        'rgba(255, 255, 255, 0.20)'
+    );
+    const sections = [
+        { label: 'Players', content: standings },
+        { label: 'Payouts', content: payouts },
+        { label: 'Blinds', content: structure },
+    ];
+
+    return (
+        <Tabs variant="unstyled" isLazy isFitted>
+            <TabList bg={trackBg} p="4px" borderRadius="12px" gap="4px">
+                {sections.map((s) => (
+                    <Tab
+                        key={s.label}
+                        borderRadius="8px"
+                        py={2}
+                        fontSize="sm"
+                        fontWeight="semibold"
+                        color="text.secondary"
+                        borderWidth="1px"
+                        borderColor="transparent"
+                        transition="background-color 120ms ease, color 120ms ease, box-shadow 120ms ease"
+                        _selected={{
+                            bg: selectedBg,
+                            color: 'text.primary',
+                            fontWeight: 'bold',
+                            borderColor: selectedBorder,
+                            boxShadow: 'card.lift',
+                        }}
+                        _focusVisible={{ boxShadow: 'outline' }}
+                    >
+                        {s.label}
+                    </Tab>
+                ))}
+            </TabList>
+            <TabPanels>
+                {sections.map((s) => (
+                    <TabPanel key={s.label} px={0} pt={4}>
+                        {s.content ?? (
+                            <Box
+                                bg={cardBg}
+                                borderWidth="1px"
+                                borderColor={border}
+                                borderRadius="14px"
+                                p={6}
+                                textAlign="center"
+                            >
+                                <Text color="text.muted" fontSize="sm">
+                                    Nothing to show here yet.
+                                </Text>
+                            </Box>
+                        )}
+                    </TabPanel>
+                ))}
+            </TabPanels>
+        </Tabs>
     );
 }
 
@@ -756,10 +883,47 @@ function PlayersBar({
         'rgba(11, 20, 48, 0.10)',
         'rgba(255, 255, 255, 0.10)'
     );
-    const running = status === 'running' || status === 'completed';
-    const numerator = running ? playersLeft : registered;
-    const denom = running ? registered : max;
-    const fillRatio = denom > 0 ? Math.min(1, numerator / denom) : 0;
+    const isRunning = status === 'running';
+    const isCompleted = status === 'completed';
+    // "left" is only trustworthy once the live leaderboard has loaded (>0 alive).
+    // Otherwise fall back to the locked field size so a not-yet-loaded leaderboard
+    // never reads as "0 of N left".
+    const liveRemaining = isRunning && playersLeft > 0;
+    const entriesWord = registered === 1 ? 'entry' : 'entries';
+
+    let label: string;
+    let value: React.ReactNode;
+    let fillRatio = 0;
+    let showBar = false;
+
+    if (liveRemaining) {
+        // Running, live: how many are still in. Bar depletes as players bust.
+        label = 'Players remaining';
+        value = `${playersLeft} of ${registered} left`;
+        fillRatio = registered > 0 ? Math.min(1, playersLeft / registered) : 0;
+        showBar = true;
+    } else if (isCompleted) {
+        label = 'Final field';
+        value = `${registered} ${entriesWord}`;
+    } else if (isRunning) {
+        // Running but no live count yet — show the locked field, not "0 left".
+        label = 'Field';
+        value = `${registered} ${entriesWord}`;
+    } else {
+        // Registration / pending: filling toward the cap.
+        label = 'Players registered';
+        value = (
+            <>
+                {registered} / {max}
+                <Text as="span" color="text.muted" fontWeight="normal">
+                    {' '}
+                    · min {min}
+                </Text>
+            </>
+        );
+        fillRatio = max > 0 ? Math.min(1, registered / max) : 0;
+        showBar = true;
+    }
 
     return (
         <VStack align="stretch" spacing={1.5}>
@@ -769,7 +933,7 @@ function PlayersBar({
                     color="text.secondary"
                     fontWeight="semibold"
                 >
-                    {running ? 'Players remaining' : 'Players registered'}
+                    {label}
                 </Text>
                 <Text
                     fontSize="xs"
@@ -777,37 +941,31 @@ function PlayersBar({
                     fontWeight="semibold"
                     sx={{ fontVariantNumeric: 'tabular-nums' }}
                 >
-                    {running
-                        ? `${numerator} of ${registered}`
-                        : `${registered} / ${max}`}
-                    {!running && (
-                        <Text as="span" color="text.muted" fontWeight="normal">
-                            {' '}
-                            · min {min}
-                        </Text>
-                    )}
+                    {value}
                 </Text>
             </Flex>
-            <Box
-                position="relative"
-                w="full"
-                h="5px"
-                borderRadius="full"
-                bg={trackBg}
-            >
+            {showBar && (
                 <Box
-                    position="absolute"
-                    top={0}
-                    left={0}
+                    position="relative"
+                    w="full"
                     h="5px"
-                    w={`${fillRatio * 100}%`}
-                    minW={numerator > 0 ? '5px' : '0'}
                     borderRadius="full"
-                    bg={isUsdc ? USDC_BLUE : 'brand.green'}
-                    opacity={0.9}
-                    transition="width 0.3s ease"
-                />
-            </Box>
+                    bg={trackBg}
+                >
+                    <Box
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        h="5px"
+                        w={`${fillRatio * 100}%`}
+                        minW={fillRatio > 0 ? '5px' : '0'}
+                        borderRadius="full"
+                        bg={isUsdc ? USDC_BLUE : 'brand.green'}
+                        opacity={0.9}
+                        transition="width 0.3s ease"
+                    />
+                </Box>
+            )}
         </VStack>
     );
 }
@@ -1163,13 +1321,47 @@ function Standings({
             borderRadius="14px"
             overflow="hidden"
         >
-            <Box px={{ base: 4, md: 6 }} pt={4} pb={2}>
+            <Flex
+                px={{ base: 4, md: 6 }}
+                pt={4}
+                pb={2}
+                align="baseline"
+                justify="space-between"
+                gap={2}
+            >
                 <Text fontWeight="bold" fontSize="md" color="text.primary">
                     {completed ? 'Final standings' : 'Current standings'}
                 </Text>
-            </Box>
-            <Box overflowX="auto">
-                <Table size="sm" variant="simple">
+                <Text
+                    fontSize="xs"
+                    color="text.muted"
+                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                >
+                    {players.length} player{players.length !== 1 ? 's' : ''}
+                </Text>
+            </Flex>
+            <Box
+                overflowX="auto"
+                overflowY="auto"
+                maxH={{ base: '440px', lg: '600px' }}
+                tabIndex={0}
+                role="region"
+                aria-label={completed ? 'Final standings' : 'Current standings'}
+                sx={HIDE_X_SCROLLBAR_SX}
+            >
+                <Table
+                    size="sm"
+                    variant="simple"
+                    sx={{
+                        'th, td': { borderColor: border, px: 2 },
+                        'thead th': {
+                            position: 'sticky',
+                            top: 0,
+                            bg: cardBg,
+                            zIndex: 1,
+                        },
+                    }}
+                >
                     <Thead>
                         <Tr>
                             <Th w="48px">#</Th>

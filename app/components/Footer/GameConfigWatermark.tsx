@@ -86,7 +86,7 @@ const GameConfigWatermark = () => {
             live?.playersActive != null
                 ? `${live.playersActive.toLocaleString(
                       'en-US'
-                  )} / ${tMeta.registeredCount.toLocaleString('en-US')} LEFT`
+                  )} OF ${tMeta.registeredCount.toLocaleString('en-US')} LEFT`
                 : null;
         return {
             configText: configText.toUpperCase(),

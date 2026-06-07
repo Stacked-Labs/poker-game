@@ -104,3 +104,17 @@ export function explorerBase(chain?: string): string {
         ? 'https://basescan.org'
         : 'https://sepolia.basescan.org';
 }
+
+// Hides ONLY the horizontal scrollbar while keeping a slim vertical one. In
+// WebKit/Blink the scrollbar's `height` is the horizontal bar's thickness and
+// `width` is the vertical bar's, so height:0 removes the (ugly) bottom bar and a
+// styled thumb keeps vertical scrolling discoverable. Covers iOS Safari +
+// Android/Chrome where dense tables scroll sideways on narrow screens; Firefox
+// keeps native bars, but desktop tables fit so no horizontal bar shows there.
+export const HIDE_X_SCROLLBAR_SX = {
+    '&::-webkit-scrollbar': { height: '0px', width: '8px' },
+    '&::-webkit-scrollbar-thumb': {
+        background: 'rgba(128, 128, 128, 0.4)',
+        borderRadius: '4px',
+    },
+} as const;

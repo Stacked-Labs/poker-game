@@ -15,7 +15,9 @@ import {
     Tr,
     useColorModeValue,
     useDisclosure,
+    usePrefersReducedMotion,
 } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
 import { FiChevronDown } from 'react-icons/fi';
 import {
     BLINDS_KEEP_RISING_NOTE,
@@ -25,6 +27,14 @@ import {
     startingBigBlinds,
     templateLabel,
 } from '../PublicGames/blindStructures';
+import { HIDE_X_SCROLLBAR_SX } from '../PublicGames/tournamentFormat';
+
+// Seamless right-to-left ticker: the label is rendered twice and the track is
+// shifted by half its width, so copy #2 lands exactly where copy #1 began.
+const tickerScroll = keyframes`
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+`;
 
 export interface StructureSheetProps {
     blindStructure: string;
@@ -46,6 +56,7 @@ export default function StructureSheet({
     bare = false,
 }: StructureSheetProps) {
     const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: defaultOpen });
+    const prefersReducedMotion = usePrefersReducedMotion();
     const cardBg = useColorModeValue('white', 'card.darkNavy');
     const border = useColorModeValue(
         'rgba(11, 20, 48, 0.08)',
@@ -55,11 +66,19 @@ export default function StructureSheet({
         'rgba(54, 163, 123, 0.10)',
         'rgba(54, 163, 123, 0.16)'
     );
+    // Late-reg-close level gets its own colored role (chip-yellow wash), distinct
+    // from the green live-level wash.
+    const lateBg = useColorModeValue(
+        'rgba(253, 197, 29, 0.12)',
+        'rgba(253, 197, 29, 0.14)'
+    );
     const zebra = useColorModeValue(
         'rgba(11, 20, 48, 0.025)',
         'rgba(255, 255, 255, 0.025)'
     );
-    const gold = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    // brand.yellowDark fails AA as small text on the yellow row tint in light mode;
+    // yellowEdge clears 4.5:1. Dark mode keeps the brighter yellow.
+    const lateText = useColorModeValue('brand.yellowEdge', 'brand.yellow');
 
     const levels = getStructure(blindStructure);
     const startBB = startingBigBlinds(startingStack, blindStructure);
@@ -109,104 +128,201 @@ export default function StructureSheet({
             </Flex>
 
             <Collapse in={isOpen} animateOpacity>
-                <Box overflowX="auto" px={bare ? 0 : { base: 1, md: 2 }} pb={3}>
-                    <Table
-                        size="sm"
-                        variant="simple"
-                        sx={{ 'th, td': { borderColor: border } }}
+                <Box px={bare ? 0 : { base: 1, md: 2 }} pb={3}>
+                    <Box
+                        overflowX="auto"
+                        overflowY={bare ? 'visible' : 'auto'}
+                        maxH={bare ? undefined : { base: '320px', lg: '440px' }}
+                        tabIndex={bare ? undefined : 0}
+                        role={bare ? undefined : 'region'}
+                        aria-label={
+                            bare ? undefined : 'Blind structure levels'
+                        }
+                        sx={HIDE_X_SCROLLBAR_SX}
                     >
-                        <Thead>
-                            <Tr>
-                                <Th w="56px">Level</Th>
-                                <Th isNumeric>Blinds</Th>
-                                <Th isNumeric>Ante</Th>
-                            </Tr>
-                        </Thead>
-                        <Tbody>
-                            {levels.map((l, i) => {
-                                const isCurrent = currentLevel === l.level;
-                                const isLateClose =
-                                    lateRegValid && l.level === lateRegLevels;
-                                return (
-                                    <Tr
-                                        key={l.level}
-                                        bg={
-                                            isCurrent
-                                                ? currentBg
-                                                : i % 2 === 1
-                                                  ? zebra
-                                                  : undefined
-                                        }
-                                    >
-                                        <Td
-                                            fontWeight={
-                                                isCurrent ? 'bold' : 'normal'
+                        <Table
+                            size="sm"
+                            variant="simple"
+                            width="100%"
+                            sx={{
+                                // Fixed layout pins the numeric columns and gives
+                                // the Level column the remainder, so the late-reg
+                                // ticker flex-fills it edge-to-edge (no gap) without
+                                // the column growing greedily from the ticker's
+                                // off-screen content width.
+                                tableLayout: 'fixed',
+                                'th, td': { borderColor: border, px: 2 },
+                                // Sticky header only when this component owns a
+                                // bounded scroll box; in bare mode it would stick
+                                // to the parent (modal) scroll and overlap content.
+                                ...(bare
+                                    ? {}
+                                    : {
+                                          'thead th': {
+                                              position: 'sticky',
+                                              top: 0,
+                                              bg: cardBg,
+                                              zIndex: 1,
+                                          },
+                                      }),
+                            }}
+                        >
+                            <Thead>
+                                <Tr>
+                                    <Th>Level</Th>
+                                    <Th isNumeric w="118px">
+                                        Blinds
+                                    </Th>
+                                    <Th isNumeric w="66px">
+                                        Ante
+                                    </Th>
+                                </Tr>
+                            </Thead>
+                            <Tbody>
+                                {levels.map((l, i) => {
+                                    const isCurrent = currentLevel === l.level;
+                                    const isLateClose =
+                                        lateRegValid &&
+                                        l.level === lateRegLevels;
+                                    const blinds = `${l.sb.toLocaleString(
+                                        'en-US'
+                                    )}/${l.bb.toLocaleString('en-US')}`;
+                                    return (
+                                        <Tr
+                                            key={l.level}
+                                            bg={
+                                                isCurrent
+                                                    ? currentBg
+                                                    : isLateClose
+                                                      ? lateBg
+                                                      : i % 2 === 1
+                                                        ? zebra
+                                                        : undefined
                                             }
-                                            color="text.primary"
                                         >
-                                            <HStack spacing={1.5}>
-                                                <Text
-                                                    as="span"
-                                                    color="text.primary"
-                                                    sx={{
-                                                        fontVariantNumeric:
-                                                            'tabular-nums',
-                                                    }}
+                                            {isLateClose ? (
+                                                // Merge Level + Blinds so the ticker
+                                                // flex-fills the row up to the blinds
+                                                // value, which still right-aligns to
+                                                // the Blinds column edge.
+                                                <Td
+                                                    colSpan={2}
+                                                    fontWeight={
+                                                        isCurrent
+                                                            ? 'bold'
+                                                            : 'normal'
+                                                    }
                                                 >
-                                                    {l.level}
-                                                </Text>
-                                                {isCurrent && (
-                                                    <Box
-                                                        w="6px"
-                                                        h="6px"
-                                                        borderRadius="full"
-                                                        bg="brand.green"
-                                                        aria-label="current level"
-                                                    />
-                                                )}
-                                            </HStack>
-                                        </Td>
-                                        <Td
-                                            isNumeric
-                                            color="text.primary"
-                                            sx={{
-                                                fontVariantNumeric:
-                                                    'tabular-nums',
-                                            }}
-                                        >
-                                            {l.sb.toLocaleString('en-US')}/
-                                            {l.bb.toLocaleString('en-US')}
-                                            {isLateClose && (
-                                                <Text
-                                                    as="span"
-                                                    ml={2}
-                                                    fontSize="2xs"
-                                                    fontWeight="bold"
-                                                    color={gold}
-                                                    textTransform="uppercase"
-                                                    letterSpacing="0.05em"
-                                                >
-                                                    late reg ends
-                                                </Text>
+                                                    <Flex
+                                                        align="center"
+                                                        gap={2}
+                                                        minW={0}
+                                                        w="full"
+                                                    >
+                                                        <Text
+                                                            as="span"
+                                                            color="text.primary"
+                                                            flexShrink={0}
+                                                            sx={{
+                                                                fontVariantNumeric:
+                                                                    'tabular-nums',
+                                                            }}
+                                                        >
+                                                            {l.level}
+                                                        </Text>
+                                                        {isCurrent && (
+                                                            <Box
+                                                                w="6px"
+                                                                h="6px"
+                                                                borderRadius="full"
+                                                                bg="brand.green"
+                                                                flexShrink={0}
+                                                                aria-label="current level"
+                                                            />
+                                                        )}
+                                                        <LateRegTicker
+                                                            label={`Late registration closes · ~${closeBB} BB`}
+                                                            color={lateText}
+                                                            reduced={
+                                                                prefersReducedMotion
+                                                            }
+                                                        />
+                                                        <Text
+                                                            as="span"
+                                                            color="text.primary"
+                                                            flexShrink={0}
+                                                            sx={{
+                                                                fontVariantNumeric:
+                                                                    'tabular-nums',
+                                                            }}
+                                                        >
+                                                            {blinds}
+                                                        </Text>
+                                                    </Flex>
+                                                </Td>
+                                            ) : (
+                                                <>
+                                                    <Td
+                                                        fontWeight={
+                                                            isCurrent
+                                                                ? 'bold'
+                                                                : 'normal'
+                                                        }
+                                                    >
+                                                        <HStack spacing={1.5}>
+                                                            <Text
+                                                                as="span"
+                                                                color="text.primary"
+                                                                sx={{
+                                                                    fontVariantNumeric:
+                                                                        'tabular-nums',
+                                                                }}
+                                                            >
+                                                                {l.level}
+                                                            </Text>
+                                                            {isCurrent && (
+                                                                <Box
+                                                                    w="6px"
+                                                                    h="6px"
+                                                                    borderRadius="full"
+                                                                    bg="brand.green"
+                                                                    aria-label="current level"
+                                                                />
+                                                            )}
+                                                        </HStack>
+                                                    </Td>
+                                                    <Td
+                                                        isNumeric
+                                                        color="text.primary"
+                                                        sx={{
+                                                            fontVariantNumeric:
+                                                                'tabular-nums',
+                                                        }}
+                                                    >
+                                                        {blinds}
+                                                    </Td>
+                                                </>
                                             )}
-                                        </Td>
-                                        <Td
-                                            isNumeric
-                                            color="text.muted"
-                                            sx={{
-                                                fontVariantNumeric:
-                                                    'tabular-nums',
-                                            }}
-                                        >
-                                            {l.ante === 0
-                                                ? '—'
-                                                : l.ante.toLocaleString('en-US')}
-                                        </Td>
-                                    </Tr>
-                                );
-                            })}
-                        </Tbody>
-                    </Table>
+                                            <Td
+                                                isNumeric
+                                                color="text.muted"
+                                                sx={{
+                                                    fontVariantNumeric:
+                                                        'tabular-nums',
+                                                }}
+                                            >
+                                                {l.ante === 0
+                                                    ? '—'
+                                                    : l.ante.toLocaleString(
+                                                          'en-US'
+                                                      )}
+                                            </Td>
+                                        </Tr>
+                                    );
+                                })}
+                            </Tbody>
+                        </Table>
+                    </Box>
                     <Text
                         fontSize="2xs"
                         color="text.muted"
@@ -231,6 +347,79 @@ export default function StructureSheet({
             overflow="hidden"
         >
             {content}
+        </Box>
+    );
+}
+
+/**
+ * Compact late-registration marker that sits to the right of the level number.
+ * Scrolls right-to-left on a loop so the full phrase fits in a narrow cell;
+ * pauses on hover and collapses to a static, truncated label under
+ * prefers-reduced-motion. The numeric columns are never disturbed.
+ */
+function LateRegTicker({
+    label,
+    color,
+    reduced,
+}: {
+    label: string;
+    color: string;
+    reduced: boolean;
+}) {
+    if (reduced) {
+        return (
+            <Text
+                as="span"
+                fontSize="2xs"
+                fontWeight="bold"
+                color={color}
+                textTransform="uppercase"
+                letterSpacing="0.06em"
+                whiteSpace="nowrap"
+                noOfLines={1}
+                flex="1"
+                minW={0}
+                title={label}
+            >
+                {label}
+            </Text>
+        );
+    }
+    return (
+        <Box
+            overflow="hidden"
+            flex="1"
+            minW={0}
+            sx={{
+                maskImage:
+                    'linear-gradient(to right, transparent, #000 10%, #000 90%, transparent)',
+                WebkitMaskImage:
+                    'linear-gradient(to right, transparent, #000 10%, #000 90%, transparent)',
+            }}
+        >
+            <Flex
+                as="span"
+                w="max-content"
+                animation={`${tickerScroll} 9s linear infinite`}
+                _hover={{ animationPlayState: 'paused' }}
+            >
+                {[0, 1].map((copy) => (
+                    <Text
+                        key={copy}
+                        as="span"
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color={color}
+                        textTransform="uppercase"
+                        letterSpacing="0.06em"
+                        whiteSpace="nowrap"
+                        pr={6}
+                        aria-hidden={copy === 1 ? 'true' : undefined}
+                    >
+                        {label}
+                    </Text>
+                ))}
+            </Flex>
         </Box>
     );
 }

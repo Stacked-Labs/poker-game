@@ -322,15 +322,34 @@ export default function TournamentLobbyCard({
                             whiteSpace="nowrap"
                             sx={{ fontVariantNumeric: 'tabular-nums' }}
                         >
-                            {t.registered_count ?? 0} / {t.max_entries}
-                            <Text
-                                as="span"
-                                color="text.muted"
-                                fontWeight="normal"
-                            >
-                                {' '}
-                                players
-                            </Text>
+                            {t.status === 'registration' ||
+                            t.status === 'pending' ? (
+                                <>
+                                    {t.registered_count ?? 0} / {t.max_entries}
+                                    <Text
+                                        as="span"
+                                        color="text.muted"
+                                        fontWeight="normal"
+                                    >
+                                        {' '}
+                                        registered
+                                    </Text>
+                                </>
+                            ) : (
+                                <>
+                                    {t.registered_count ?? 0}
+                                    <Text
+                                        as="span"
+                                        color="text.muted"
+                                        fontWeight="normal"
+                                    >
+                                        {' '}
+                                        {(t.registered_count ?? 0) === 1
+                                            ? 'entry'
+                                            : 'entries'}
+                                    </Text>
+                                </>
+                            )}
                         </Text>
                     </Flex>
                     <FillBar

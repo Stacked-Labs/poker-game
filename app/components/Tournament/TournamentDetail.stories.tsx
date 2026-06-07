@@ -188,6 +188,44 @@ export const Running: Story = {
     },
 };
 
+// Large live field — exercises the standings scroll container (no infinite page
+// growth) and the two-column / mobile-tab split.
+const BIG_FIELD: LeaderboardPlayer[] = [
+    withX(alive(ME, 248_000, 0), 'degen_dan', px(5)),
+    ...Array.from({ length: 71 }, (_, i) =>
+        alive(addr(0x200 + i), 230_000 - i * 2_800, i % 9)
+    ),
+    ...Array.from({ length: 46 }, (_, i) => out(addr(0x300 + i), 73 + i)),
+];
+
+export const RunningLargeField: Story = {
+    args: {
+        myWallet: ME,
+        isRegistered: true,
+        blindLevel: 9,
+        players: BIG_FIELD,
+        tournament: makeTournament({
+            id: 109,
+            name: 'Sunday Million',
+            buy_in_usdc: 20_000_000,
+            guarantee_usdc: 2_000_000_000,
+            min_entries: 20,
+            max_entries: 500,
+            registered_count: 118,
+            late_reg_levels: 6,
+            status: 'running',
+            scheduled_start_at: hours(-2),
+            late_reg_close_at: hours(0.25),
+            started_at: hours(-2),
+            chain: 'base',
+            contract_address: addr(0x109),
+            reentry_allowed: true,
+            reentry_max: 3,
+            metadata: { blind_structure: 'regular' },
+        }),
+    },
+};
+
 // Live tournament, viewer busted but can re-enter (late reg still open).
 export const RunningEliminatedCanReenter: Story = {
     args: {

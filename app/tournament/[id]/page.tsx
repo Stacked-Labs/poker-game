@@ -160,6 +160,11 @@ export default function TournamentPage() {
         load();
     }, [id, myWallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        const interval = setInterval(() => { load(); }, 60_000);
+        return () => clearInterval(interval);
+    }, [id, myWallet]); // eslint-disable-line react-hooks/exhaustive-deps
+
     const handleRegister = async (isReentry = false) => {
         if (!myWallet) {
             toast.warning('Connect wallet to register');

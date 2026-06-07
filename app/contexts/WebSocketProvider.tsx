@@ -848,6 +848,27 @@ export function SocketProvider(props: SocketProviderProps) {
                         }
                         return;
                     }
+                    case 'tournament-table-move': {
+                        const isLocalPlayer = eventData.player_uuid === appStateRef.current.clientID;
+                        if (isLocalPlayer) {
+                            const tournamentId = eventData.tournament_id;
+                            const toTableNumber = Number(eventData.to_table_index) + 1;
+                            toastInfoRef.current(
+                                'Moving you to a new table',
+                                'Tables were rebalanced — reseating you now…',
+                                4000
+                            );
+                            if (tournamentId != null && Number.isFinite(toTableNumber)) {
+                                // Navigate to the destination table. A full navigation
+                                // (not SPA) is intentional: it tears down this table's
+                                // WebSocket and opens a clean connection to the new one.
+                                setTimeout(() => {
+                                    window.location.href = `/table/tournament-${tournamentId}-table-${toTableNumber}`;
+                                }, 2500);
+                            }
+                        }
+                        return;
+                    }
                     case 'tournament-complete': {
                         const tournamentId = eventData.tournament_id;
                         dispatch({

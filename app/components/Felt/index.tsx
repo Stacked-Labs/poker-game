@@ -2,6 +2,7 @@ import { Flex } from '@chakra-ui/react';
 import React, { useContext } from 'react';
 import Pot from './Pot';
 import CommunityCards from './CommunityCards';
+import AnteChip from './AnteChip';
 import GameStatusBanner from '../GameStatusBanner';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 
@@ -33,6 +34,7 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
         >
             <Pot activePotIndex={activePotIndex} />
             <CommunityCards activePotIndex={activePotIndex} />
+            <AnteChip />
             <GameStatusBanner />
         </Flex>
     );

@@ -223,7 +223,7 @@ export type Config = {
     ownerSessionUUID?: string;
     rabbitHuntEnabled?: boolean;
     autoAccept?: boolean;
-    tournament?: { tournamentId: string } | null;
+    tournament?: { tournamentId: string; ante?: number } | null;
 };
 
 export type Pot = {

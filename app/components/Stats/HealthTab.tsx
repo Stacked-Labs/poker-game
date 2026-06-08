@@ -305,7 +305,7 @@ export const HealthTab = ({
                             { label: 'Chain Tip',     value: indexer?.chainTip?.toLocaleString() ?? '—', mono: true },
                             { label: 'Lag (blocks)',  value: indexer?.lag !== null && indexer?.lag !== undefined ? String(indexer.lag) : '—', mono: true },
                             { label: 'Hands Indexed', value: indexer?.totalHands?.toLocaleString() ?? '—', mono: true },
-                            { label: 'Total Rake',    value: indexer ? `$${indexer.rakeAllTimeUsdc} USDC` : '—', mono: true },
+                            { label: 'Total Platform Fees', value: indexer ? `$${indexer.rakeAllTimeUsdc} USDC` : '—', mono: true },
                         ].map(({ label, value, mono }) => (
                             <Flex
                                 key={label}

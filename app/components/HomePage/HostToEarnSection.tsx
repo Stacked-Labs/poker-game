@@ -116,7 +116,7 @@ const HostToEarnSection = () => {
                         opacity={0.85}
                     >
                         Anyone can host. On every real-money hand at a table
-                        you run, you keep a quarter of the rake — credited
+                        you run, you keep a quarter of the platform fee — credited
                         on-chain, hand by hand. Run a public game, earn while
                         the room plays.
                     </Text>
@@ -194,14 +194,14 @@ const HostToEarnSection = () => {
                                     color="brand.yellowDark"
                                     _dark={{ color: 'brand.yellow' }}
                                 >
-                                    25% of every rake, credited per hand.
+                                    25% of the platform fee, credited per hand.
                                 </Text>{' '}
                                 You don&apos;t even have to play.
                             </Text>
                             <List spacing={3} w="100%">
                                 {[
                                     {
-                                        main: '25% of every rake',
+                                        main: '25% of the platform fee',
                                         detail: 'credited per hand, not per session',
                                     },
                                     {

@@ -258,8 +258,8 @@ const CommunitySection = () => {
                                         detail: 'No email, no account',
                                     },
                                     {
-                                        main: 'No KYC',
-                                        detail: 'No ID, no verification',
+                                        main: 'No Download',
+                                        detail: 'Plays in your browser',
                                     },
                                     {
                                         main: 'Free to Play',

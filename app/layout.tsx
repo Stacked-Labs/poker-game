@@ -60,7 +60,7 @@ const jsonLd = {
     name: 'Stacked Poker',
     url: 'https://stackedpoker.io',
     description:
-        'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no KYC, no account.',
+        'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no account.',
     applicationCategory: 'GameApplication',
     operatingSystem: 'Web',
     offers: {

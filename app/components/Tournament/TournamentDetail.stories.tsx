@@ -339,6 +339,65 @@ export const EmergencySafetyNet: Story = {
     },
 };
 
+// Host viewing their own tournament with nothing customized yet: the hero shows
+// the generated default branding plus inline "Add" affordances (hover or tap the
+// banner / avatar) and an "Add a description" prompt. Frontend skeleton — edits
+// preview locally; a backend dev wires persistence later.
+export const HostEditingEmpty: Story = {
+    args: {
+        myWallet: ME,
+        isRegistered: false,
+        players: [],
+        tournament: makeTournament({
+            id: 110,
+            name: 'My Home Game',
+            host_wallet: ME,
+            buy_in_usdc: 10_000_000,
+            min_entries: 4,
+            max_entries: 50,
+            registered_count: 8,
+            late_reg_levels: 2,
+            scheduled_start_at: hours(6),
+            late_reg_close_at: hours(7),
+            chain: 'base',
+            contract_address: addr(0x110),
+            metadata: { blind_structure: 'hyper' },
+        }),
+    },
+};
+
+// Host viewing a tournament that already has branding + a blurb: the images show
+// "Change" affordances and the description shows an edit pencil on hover.
+export const HostEditingBranded: Story = {
+    args: {
+        ...HostEditingEmpty.args,
+        tournament: makeTournament({
+            ...(HostEditingEmpty.args!.tournament as object),
+            id: 111,
+            name: 'Degen Collective Invitational',
+            description:
+                'Weekly community deepstack hosted by the Degen Collective. We run a relaxed, social game with a competitive final table, so bring your A game and your sense of humor.\n\nAdditional prizes:\nTop 3 split a 500 USDC bonus pool on top of the regular payouts. The bubble (first player out of the money) gets their buy-in refunded.\n\nHouse rules:\nOne re-entry per player through level 6. Be cool, no slow-rolling, and keep the table chat friendly.',
+            logo_url: '/IconLogo.png',
+            banner_url: '/table-horizontal-green.webp',
+            x_url: 'https://x.com/degencollective',
+            website_url: 'https://degencollective.xyz',
+            discord_url: 'https://discord.gg/degen',
+            telegram_url: 'https://t.me/degencollective',
+            chart_url: 'https://dexscreener.com/base/0xexample',
+        } as Parameters<typeof makeTournament>[0]),
+    },
+};
+
+// The same fully-branded tournament viewed by a player (not the host): colored
+// community link chips, no edit affordances anywhere. Pairs with
+// HostEditingBranded for a host-vs-player comparison.
+export const BrandedPlayerView: Story = {
+    args: {
+        ...HostEditingBranded.args,
+        myWallet: addr(0x999),
+    },
+};
+
 // Host branding: custom banner + logo on the detail hero (community-hosted look).
 export const RunningBranded: Story = {
     args: {
@@ -351,6 +410,10 @@ export const RunningBranded: Story = {
                 'Weekly community deepstack hosted by the Degen Collective. Re-entries open through level 6; last one standing takes the lion’s share of the pool.',
             logo_url: '/IconLogo.png',
             banner_url: '/video/bgplaceholder-1920x1080.png',
+            x_url: 'https://x.com/degencollective',
+            website_url: 'https://degencollective.xyz',
+            telegram_url: 'https://t.me/degencollective',
+            chart_url: 'https://www.geckoterminal.com/base/pools/0xexample',
         } as Parameters<typeof makeTournament>[0]),
     },
 };

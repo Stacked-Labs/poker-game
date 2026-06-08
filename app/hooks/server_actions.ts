@@ -636,6 +636,13 @@ export interface Tournament {
     // images; the UI falls back to the default look when absent.
     logo_url?: string;
     banner_url?: string;
+    // Host community links (optional). Any may be empty. chart_url is
+    // provider-agnostic (DexScreener, GeckoTerminal, etc.).
+    x_url?: string;
+    website_url?: string;
+    discord_url?: string;
+    telegram_url?: string;
+    chart_url?: string;
 }
 
 export async function listTournaments(): Promise<{ tournaments: Tournament[] }> {

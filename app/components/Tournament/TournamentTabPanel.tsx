@@ -22,7 +22,6 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { PiCrownFill } from 'react-icons/pi';
-import { FiRotateCw } from 'react-icons/fi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import PlayerAvatar from '../PlayerAvatar';
 import PlayerNameLink from '../PlayerNameLink';
@@ -38,6 +37,7 @@ import {
     isInTheMoney,
     nextPayJump,
     payoutForPosition,
+    percentForPosition,
     placesPaid,
 } from '../PublicGames/payouts';
 import { useLevelCountdown } from '../../hooks/useLevelCountdown';
@@ -344,8 +344,7 @@ export default function TournamentTabPanel() {
         }
     }
 
-    // Flip-tile back faces.
-    const secondPrize = payoutForPosition(2, tierEntrants, poolForLadder);
+    // Always-on tile detail.
     const minCashAmt = payoutForPosition(paid, tierEntrants, poolForLadder);
     const bustedSoFar = Math.max(0, tierEntrants - aliveCount);
     const bubbleProgress =
@@ -355,10 +354,14 @@ export default function TournamentTabPanel() {
     const topStack = aliveRows[0]?.stack ?? 0;
     const refIsMe = !!myP && !myOut;
     const refStack = refIsMe ? myStack : topStack;
-    const refLabel = refIsMe ? 'You' : 'Leader';
-    const refBB = refIsMe ? myBB : clock && clock.bb > 0 ? Math.floor(topStack / clock.bb) : null;
-    const maxStack = Math.max(refStack, avgStack, 1);
     const avgRatio = avgStack > 0 ? refStack / avgStack : 0;
+    // You/leader sit relative to the average: 50% fill == exactly average.
+    const avgFrac = avgStack > 0 ? refStack / (refStack + avgStack) : 0;
+    const split = [
+        { frac: percentForPosition(1, tierEntrants) / 100, color: '#F4B400' },
+        { frac: percentForPosition(2, tierEntrants) / 100, color: '#AEB6C6' },
+        { frac: percentForPosition(3, tierEntrants) / 100, color: '#C4824A' },
+    ];
 
     return (
         <VStack align="stretch" spacing={4} px={{ base: 1, md: 2 }} py={2}>
@@ -569,13 +572,11 @@ export default function TournamentTabPanel() {
                 </Box>
             )}
 
-            {/* Scoreboard — field stats at a glance, tap any tile for detail */}
+            {/* Scoreboard — uniform stat tiles, each with an at-a-glance bar */}
             <SimpleGrid columns={2} spacing={2}>
-                <FlipTile
+                <StatTile
                     label="Prize pool"
-                    backLabel="Payout split"
-                    reduceMotion={!!prefersReducedMotion}
-                    front={
+                    value={
                         meta.isFreePlay ? (
                             <Text
                                 fontWeight="bold"
@@ -585,263 +586,164 @@ export default function TournamentTabPanel() {
                                 Free play
                             </Text>
                         ) : (
-                            <>
-                                <HStack spacing={1.5} align="center" minW={0}>
-                                    <Image
-                                        src={USDC_LOGO}
-                                        alt=""
-                                        boxSize="16px"
-                                    />
-                                    <Text
-                                        fontWeight="bold"
-                                        fontSize="lg"
-                                        color={USDC_BLUE}
-                                        noOfLines={1}
-                                        sx={{
-                                            fontVariantNumeric: 'tabular-nums',
-                                        }}
-                                    >
-                                        $
-                                        {formatUsdc(poolForLadder, {
-                                            decimals: 0,
-                                        })}
-                                    </Text>
-                                </HStack>
+                            <HStack spacing={1.5} align="center" minW={0}>
+                                <Image src={USDC_LOGO} alt="" boxSize="16px" />
                                 <Text
-                                    fontSize="2xs"
-                                    color={overlay > 0 ? greenFg : 'text.muted'}
-                                    mt={0.5}
-                                    fontWeight={
-                                        overlay > 0 ? 'semibold' : 'normal'
-                                    }
+                                    fontWeight="bold"
+                                    fontSize="lg"
+                                    color={USDC_BLUE}
+                                    noOfLines={1}
                                     sx={{ fontVariantNumeric: 'tabular-nums' }}
                                 >
-                                    {overlay > 0
-                                        ? `+$${formatUsdc(overlay)} overlay`
-                                        : `Top $${formatUsdc(topPrize, { decimals: 0 })}`}
+                                    ${formatUsdc(poolForLadder, { decimals: 0 })}
                                 </Text>
-                            </>
+                            </HStack>
                         )
                     }
-                    back={
+                    sub={
                         meta.isFreePlay ? (
-                            <Text fontSize="xs" color="text.muted">
-                                No real-money prizes in Free Play — play for the
-                                glory.
+                            <Text fontSize="2xs" color="text.muted">
+                                Notional chips
                             </Text>
                         ) : (
-                            <VStack align="stretch" spacing={0.5}>
-                                <BackRow
-                                    k="1st"
-                                    v={`$${formatUsdc(topPrize, { decimals: 0 })}`}
-                                />
-                                <BackRow
-                                    k="2nd"
-                                    v={`$${formatUsdc(secondPrize, { decimals: 0 })}`}
-                                />
-                                <BackRow
-                                    k="Min-cash"
-                                    v={`$${formatUsdc(minCashAmt, { decimals: 0 })}`}
-                                />
-                            </VStack>
+                            <Text
+                                fontSize="2xs"
+                                color={overlay > 0 ? greenFg : 'text.muted'}
+                                fontWeight={overlay > 0 ? 'semibold' : 'normal'}
+                                sx={{ fontVariantNumeric: 'tabular-nums' }}
+                                noOfLines={1}
+                            >
+                                {overlay > 0
+                                    ? `+$${formatUsdc(overlay)} overlay`
+                                    : `Top $${formatUsdc(topPrize, { decimals: 0 })} · min $${formatUsdc(minCashAmt, { decimals: 0 })}`}
+                            </Text>
+                        )
+                    }
+                    bar={<SplitBar segs={split} track={border} />}
+                />
+
+                <StatTile
+                    label="Players left"
+                    value={
+                        <Text
+                            fontWeight="bold"
+                            fontSize="lg"
+                            color="text.primary"
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {aliveCount}
+                            <Text as="span" fontSize="sm" color="text.muted">
+                                {' '}
+                                / {tierEntrants}
+                            </Text>
+                        </Text>
+                    }
+                    sub={
+                        <Text
+                            fontSize="2xs"
+                            color={
+                                fromMoney === 0
+                                    ? greenFg
+                                    : fieldBubble
+                                      ? goldRank
+                                      : 'text.muted'
+                            }
+                            fontWeight={
+                                fromMoney === 0 || fieldBubble
+                                    ? 'semibold'
+                                    : 'normal'
+                            }
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {paid} paid ·{' '}
+                            {fromMoney === 0
+                                ? 'in the money'
+                                : `${fromMoney} from money`}
+                        </Text>
+                    }
+                    bar={
+                        <Meter
+                            frac={bubbleProgress}
+                            fill={fromMoney === 0 ? 'brand.green' : 'brand.yellow'}
+                            track={border}
+                        />
+                    }
+                />
+
+                <StatTile
+                    label="Avg stack"
+                    value={
+                        <Text
+                            fontWeight="bold"
+                            fontSize="lg"
+                            color="text.primary"
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {avgStack ? avgStack.toLocaleString('en-US') : '—'}
+                        </Text>
+                    }
+                    sub={
+                        <Text
+                            fontSize="2xs"
+                            color="text.muted"
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                            noOfLines={1}
+                        >
+                            {avgBB != null ? `${avgBB} BB avg` : 'across survivors'}
+                            {avgStack > 0 && refIsMe
+                                ? ` · you ${avgRatio >= 1 ? `${avgRatio.toFixed(1)}×` : `${Math.round(avgRatio * 100)}%`}`
+                                : ''}
+                        </Text>
+                    }
+                    bar={
+                        avgStack > 0 ? (
+                            <Meter
+                                frac={avgFrac}
+                                fill={greenFg}
+                                track={border}
+                                center
+                            />
+                        ) : (
+                            <Meter frac={0} fill={greenFg} track={border} />
                         )
                     }
                 />
 
-                <FlipTile
-                    label="Players left"
-                    backLabel="Bubble"
-                    reduceMotion={!!prefersReducedMotion}
-                    front={
-                        <>
-                            <Text
-                                fontWeight="bold"
-                                fontSize="lg"
-                                color="text.primary"
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                {aliveCount}
+                <StatTile
+                    label="Entries"
+                    value={
+                        <Text
+                            fontWeight="bold"
+                            fontSize="lg"
+                            color="text.primary"
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {uniqueEntrants}
+                            {reentries > 0 && (
                                 <Text as="span" fontSize="sm" color="text.muted">
                                     {' '}
-                                    / {tierEntrants}
+                                    +{reentries} re
                                 </Text>
-                            </Text>
-                            <Text
-                                fontSize="2xs"
-                                mt={0.5}
-                                color={
-                                    fromMoney === 0
-                                        ? greenFg
-                                        : fieldBubble
-                                          ? goldRank
-                                          : 'text.muted'
-                                }
-                                fontWeight={
-                                    fromMoney === 0 || fieldBubble
-                                        ? 'semibold'
-                                        : 'normal'
-                                }
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                {paid} paid ·{' '}
-                                {fromMoney === 0
-                                    ? 'in the money'
-                                    : `${fromMoney} from money`}
-                            </Text>
-                        </>
+                            )}
+                        </Text>
                     }
-                    back={
-                        <VStack align="stretch" spacing={1.5}>
-                            <Text
-                                fontSize="xs"
-                                fontWeight="semibold"
-                                color={fromMoney === 0 ? greenFg : goldRank}
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                {fromMoney === 0
-                                    ? 'Bubble burst — all paid'
-                                    : `${fromMoney} to burst the bubble`}
-                            </Text>
-                            <Box
-                                h="6px"
-                                borderRadius="full"
-                                bg={border}
-                                overflow="hidden"
-                            >
-                                <Box
-                                    h="100%"
-                                    w={`${Math.round(bubbleProgress * 100)}%`}
-                                    borderRadius="full"
-                                    bg={
-                                        fromMoney === 0
-                                            ? 'brand.green'
-                                            : 'brand.yellow'
-                                    }
-                                    transition="width 0.4s ease"
-                                />
-                            </Box>
-                            <Text
-                                fontSize="2xs"
-                                color="text.muted"
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                {paid} of {tierEntrants} make the money
-                            </Text>
-                        </VStack>
+                    sub={
+                        <Text
+                            fontSize="2xs"
+                            color="text.muted"
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {fieldFull != null
+                                ? `${fieldFull}% full`
+                                : `${totalBullets} ${totalBullets === 1 ? 'entry' : 'entries'}`}
+                        </Text>
                     }
-                />
-
-                <FlipTile
-                    label="Avg stack"
-                    backLabel={`${refLabel} vs avg`}
-                    reduceMotion={!!prefersReducedMotion}
-                    front={
-                        <>
-                            <Text
-                                fontWeight="bold"
-                                fontSize="lg"
-                                color="text.primary"
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                {avgStack
-                                    ? avgStack.toLocaleString('en-US')
-                                    : '—'}
-                            </Text>
-                            <Text fontSize="2xs" mt={0.5} color="text.muted">
-                                {avgBB != null
-                                    ? `${avgBB} BB avg`
-                                    : 'across survivors'}
-                            </Text>
-                        </>
-                    }
-                    back={
-                        avgStack > 0 ? (
-                            <VStack align="stretch" spacing={1.5}>
-                                <MiniBar
-                                    label={refLabel}
-                                    valueLabel={
-                                        refBB != null
-                                            ? `${refBB} BB`
-                                            : refStack.toLocaleString('en-US')
-                                    }
-                                    frac={refStack / maxStack}
-                                    fill={greenFg}
-                                    track={border}
-                                />
-                                <MiniBar
-                                    label="Avg"
-                                    valueLabel={
-                                        avgBB != null
-                                            ? `${avgBB} BB`
-                                            : avgStack.toLocaleString('en-US')
-                                    }
-                                    frac={avgStack / maxStack}
-                                    fill="text.muted"
-                                    track={border}
-                                />
-                                <Text fontSize="2xs" color="text.muted">
-                                    {avgRatio >= 1
-                                        ? `${refLabel === 'You' ? "You're" : 'Leader is'} ${avgRatio.toFixed(1)}× the average`
-                                        : `${refLabel === 'You' ? "You're" : 'Leader is'} at ${Math.round(avgRatio * 100)}% of average`}
-                                </Text>
-                            </VStack>
-                        ) : (
-                            <Text fontSize="xs" color="text.muted">
-                                Stacks appear once the clock starts.
-                            </Text>
-                        )
-                    }
-                />
-
-                <FlipTile
-                    label="Entries"
-                    backLabel="Field"
-                    reduceMotion={!!prefersReducedMotion}
-                    front={
-                        <>
-                            <Text
-                                fontWeight="bold"
-                                fontSize="lg"
-                                color="text.primary"
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                {uniqueEntrants}
-                                {reentries > 0 && (
-                                    <Text
-                                        as="span"
-                                        fontSize="sm"
-                                        color="text.muted"
-                                    >
-                                        {' '}
-                                        +{reentries} re
-                                    </Text>
-                                )}
-                            </Text>
-                            <Text
-                                fontSize="2xs"
-                                mt={0.5}
-                                color="text.muted"
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                {fieldFull != null
-                                    ? `${fieldFull}% full`
-                                    : `${totalBullets} ${totalBullets === 1 ? 'entry' : 'entries'}`}
-                            </Text>
-                        </>
-                    }
-                    back={
-                        <VStack align="stretch" spacing={0.5}>
-                            <BackRow k="Unique players" v={`${uniqueEntrants}`} />
-                            <BackRow k="Re-entries" v={`${reentries}`} />
-                            <BackRow
-                                k={meta.maxEntries > 0 ? 'Capacity' : 'Bullets'}
-                                v={
-                                    meta.maxEntries > 0
-                                        ? `${totalBullets} / ${meta.maxEntries}`
-                                        : `${totalBullets}`
-                                }
-                            />
-                        </VStack>
+                    bar={
+                        <Meter
+                            frac={fieldFull != null ? fieldFull / 100 : 0}
+                            fill="brand.green"
+                            track={border}
+                        />
                     }
                 />
             </SimpleGrid>
@@ -1117,174 +1019,111 @@ export default function TournamentTabPanel() {
     );
 }
 
-// A scoreboard tile that flips on tap/Enter to reveal a detail face. The spring
-// easing gives the flip a playful bounce; reduced-motion swaps faces instantly.
-function FlipTile({
+// A uniform scoreboard tile: label, headline value, a sub line, and a bottom-
+// anchored mini-bar. No interaction — all four tiles read at a glance and, with
+// the grid stretching them, stay exactly the same height with bars aligned.
+function StatTile({
     label,
-    backLabel,
-    front,
-    back,
-    reduceMotion,
+    value,
+    sub,
+    bar,
 }: {
     label: string;
-    backLabel: string;
-    front: ReactNode;
-    back: ReactNode;
-    reduceMotion: boolean;
+    value: ReactNode;
+    sub?: ReactNode;
+    bar?: ReactNode;
 }) {
-    const [flipped, setFlipped] = useState(false);
-    const face = {
-        position: 'absolute' as const,
-        inset: 0,
-        display: 'flex',
-        flexDirection: 'column' as const,
-        justifyContent: 'center' as const,
-        backfaceVisibility: 'hidden' as const,
-        WebkitBackfaceVisibility: 'hidden' as const,
-    };
     return (
-        <Box sx={{ perspective: '900px' }} h="96px">
-            <Box
-                role="button"
-                tabIndex={0}
-                aria-label={`${label}. Tap for ${backLabel}.`}
-                aria-pressed={flipped}
-                cursor="pointer"
-                position="relative"
-                w="100%"
-                h="100%"
-                onClick={() => setFlipped((f) => !f)}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setFlipped((f) => !f);
-                    }
-                }}
-                transform={flipped ? 'rotateY(180deg)' : 'rotateY(0deg)'}
-                transition={
-                    reduceMotion
-                        ? undefined
-                        : 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                }
-                sx={{ transformStyle: 'preserve-3d' }}
-                _focusVisible={{
-                    outline: '2px solid',
-                    outlineColor: 'brand.green',
-                    outlineOffset: '2px',
-                    borderRadius: '12px',
-                }}
+        <Box
+            bg="card.white"
+            border="1px solid"
+            borderColor="border.lightGray"
+            borderRadius="12px"
+            px={3}
+            py={2.5}
+            boxShadow="card.lift"
+            minW={0}
+            display="flex"
+            flexDirection="column"
+        >
+            <Text
+                fontSize="2xs"
+                color="text.muted"
+                textTransform="uppercase"
+                letterSpacing="0.08em"
+                fontWeight="semibold"
             >
-                <Box
-                    sx={face}
-                    bg="card.white"
-                    border="1px solid"
-                    borderColor="border.lightGray"
-                    borderRadius="12px"
-                    px={3}
-                    boxShadow="card.lift"
-                    _hover={{ boxShadow: 'card.liftHover' }}
-                >
-                    <Text
-                        fontSize="2xs"
-                        color="text.muted"
-                        textTransform="uppercase"
-                        letterSpacing="0.08em"
-                        fontWeight="semibold"
-                    >
-                        {label}
-                    </Text>
-                    <Box mt={1}>{front}</Box>
-                    <Icon
-                        as={FiRotateCw}
-                        position="absolute"
-                        top="9px"
-                        right="9px"
-                        boxSize="11px"
-                        color="text.muted"
-                        opacity={0.45}
-                        aria-hidden
-                    />
+                {label}
+            </Text>
+            <Box mt={1}>{value}</Box>
+            {sub && <Box mt={0.5}>{sub}</Box>}
+            {bar && (
+                <Box mt="auto" pt={2.5}>
+                    {bar}
                 </Box>
-                <Box
-                    sx={{ ...face, transform: 'rotateY(180deg)' }}
-                    bg="card.white"
-                    border="1px solid"
-                    borderColor="brand.green"
-                    borderRadius="12px"
-                    px={3}
-                    boxShadow="card.lift"
-                >
-                    <Text
-                        fontSize="2xs"
-                        color="text.muted"
-                        textTransform="uppercase"
-                        letterSpacing="0.08em"
-                        fontWeight="semibold"
-                        mb={1.5}
-                    >
-                        {backLabel}
-                    </Text>
-                    {back}
-                </Box>
-            </Box>
+            )}
         </Box>
     );
 }
 
-function BackRow({ k, v }: { k: string; v: string }) {
-    return (
-        <Flex justify="space-between" align="baseline" gap={2}>
-            <Text fontSize="2xs" color="text.muted">
-                {k}
-            </Text>
-            <Text
-                fontSize="xs"
-                fontWeight="semibold"
-                color="text.primary"
-                sx={{ fontVariantNumeric: 'tabular-nums' }}
-            >
-                {v}
-            </Text>
-        </Flex>
-    );
-}
-
-function MiniBar({
-    label,
-    valueLabel,
+// Single-track progress bar; `center` draws a tick at the midpoint (used for the
+// you-vs-average tile, where 50% fill == exactly average).
+function Meter({
     frac,
     fill,
     track,
+    center = false,
 }: {
-    label: string;
-    valueLabel: string;
     frac: number;
     fill: string;
     track: string;
+    center?: boolean;
+}) {
+    const pct =
+        frac <= 0 ? 0 : Math.max(3, Math.min(100, Math.round(frac * 100)));
+    return (
+        <Box position="relative" h="5px" borderRadius="full" bg={track}>
+            <Box
+                h="100%"
+                w={`${pct}%`}
+                borderRadius="full"
+                bg={fill}
+                transition="width 0.4s ease"
+            />
+            {center && (
+                <Box
+                    position="absolute"
+                    top="-1px"
+                    bottom="-1px"
+                    left="50%"
+                    w="1.5px"
+                    borderRadius="full"
+                    bg="rgba(127, 127, 127, 0.55)"
+                />
+            )}
+        </Box>
+    );
+}
+
+// Segmented bar showing the top-3 prize shares (gold / silver / bronze) against
+// the rest of the pool (the track) — a glanceable read of how top-heavy payouts are.
+function SplitBar({
+    segs,
+    track,
+}: {
+    segs: { frac: number; color: string }[];
+    track: string;
 }) {
     return (
-        <Box>
-            <Flex justify="space-between" align="baseline" mb="3px">
-                <Text fontSize="2xs" color="text.muted">
-                    {label}
-                </Text>
-                <Text
-                    fontSize="2xs"
-                    fontWeight="semibold"
-                    color="text.primary"
-                    sx={{ fontVariantNumeric: 'tabular-nums' }}
-                >
-                    {valueLabel}
-                </Text>
-            </Flex>
-            <Box h="5px" borderRadius="full" bg={track} overflow="hidden">
+        <Flex h="5px" borderRadius="full" bg={track} overflow="hidden" gap="1.5px">
+            {segs.map((s, i) => (
                 <Box
+                    key={i}
                     h="100%"
-                    w={`${Math.max(4, Math.min(100, Math.round(frac * 100)))}%`}
-                    borderRadius="full"
-                    bg={fill}
+                    w={`${Math.max(0, Math.min(100, Math.round(s.frac * 100)))}%`}
+                    bg={s.color}
                 />
-            </Box>
-        </Box>
+            ))}
+        </Flex>
     );
 }

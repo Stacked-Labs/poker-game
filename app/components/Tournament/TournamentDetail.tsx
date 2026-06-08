@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useState, type ReactNode } from 'react';
 import {
     Box,
     Button,
@@ -8,7 +9,10 @@ import {
     Flex,
     HStack,
     Icon,
+    IconButton,
     Image,
+    Input,
+    Link,
     Spinner,
     Tab,
     TabList,
@@ -28,21 +32,32 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
+import type { IconType } from 'react-icons';
 import {
     FiArrowLeft,
+    FiCamera,
     FiCheck,
     FiClock,
+    FiEdit2,
     FiExternalLink,
+    FiGlobe,
+    FiLink,
     FiShield,
+    FiX,
 } from 'react-icons/fi';
+import { FaChartLine, FaDiscord, FaTelegram } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
+import useToastHelper from '../../hooks/useToastHelper';
 import type { Tournament } from '../../hooks/server_actions';
 import type { LeaderboardPlayer } from '../../interfaces';
 import ChainBadge from '../ChainBadge';
+import { SocialIconButton, type SocialTone } from '../SocialIconButton';
 import PlayerAvatar from '../PlayerAvatar';
 import PlayerNameLink from '../PlayerNameLink';
 import ExternalLink from '../ExternalLink';
 import StructureSheet from './StructureSheet';
 import PayoutLadder from './PayoutLadder';
+import AboutPanel from './AboutPanel';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     formatTournamentStart,
@@ -78,6 +93,15 @@ export interface EmergencyState {
     msUntilAvailable?: number;
 }
 
+// Host community links. Any may be empty; chart_url is provider-agnostic.
+export interface CommunityLinkValues {
+    x_url?: string;
+    website_url?: string;
+    discord_url?: string;
+    telegram_url?: string;
+    chart_url?: string;
+}
+
 export interface TournamentDetailProps {
     tournament: Tournament;
     players: LeaderboardPlayer[];
@@ -100,6 +124,14 @@ export interface TournamentDetailProps {
     onClaimRefund?: () => void;
     onEnableEmergencyRefund?: () => void;
     onBack?: () => void;
+    /** Host-only inline edits (frontend skeleton; backend persistence is a
+     *  follow-up). Called with the new value so a parent can persist it. */
+    onUpdateBranding?: (patch: {
+        logo_url?: string | null;
+        banner_url?: string | null;
+    }) => void;
+    onUpdateDescription?: (description: string) => void;
+    onUpdateLinks?: (links: CommunityLinkValues) => void;
 }
 
 const dotPulse = keyframes`
@@ -139,6 +171,363 @@ function shortAddr(a: string): string {
     return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '';
 }
 
+// Host-only inline image editor. Wraps the cover or avatar and, for the host,
+// overlays an "add / change" affordance (always-visible badge for touch, full
+// prompt on hover/focus) plus a menu to replace or remove. Frontend skeleton:
+// it reads the chosen file into an object URL for preview and hands it back via
+// onPick; the real upload + persistence is a backend follow-up.
+const MAX_IMAGE_MB = 5;
+
+function HostImageEditor({
+    canEdit,
+    hasImage,
+    label,
+    rounded,
+    coverArea = false,
+    onPick,
+    onRemove,
+    children,
+}: {
+    canEdit: boolean;
+    hasImage: boolean;
+    label: string;
+    rounded: string;
+    coverArea?: boolean;
+    onPick: (url: string) => void;
+    onRemove: () => void;
+    children: ReactNode;
+}) {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const toast = useToastHelper();
+    const removeColor = useColorModeValue('red.600', 'red.300');
+    const scrim = 'rgba(11, 20, 48, 0.58)';
+
+    const handleFile = (file?: File | null) => {
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please choose an image file');
+            return;
+        }
+        if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+            toast.error(`Image must be under ${MAX_IMAGE_MB} MB`);
+            return;
+        }
+        onPick(URL.createObjectURL(file));
+    };
+
+    if (!canEdit) return <>{children}</>;
+
+    return (
+        <Box
+            position="relative"
+            lineHeight={0}
+            role="group"
+            {...(coverArea ? { w: 'full', h: 'full' } : {})}
+        >
+            {children}
+            <input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => {
+                    handleFile(e.target.files?.[0]);
+                    e.target.value = '';
+                }}
+            />
+            {/* The whole image is the add / change target: clicking it (or the
+                badge) opens the file picker. */}
+            <Box
+                as="button"
+                type="button"
+                aria-label={hasImage ? `Change ${label}` : `Add ${label}`}
+                onClick={() => inputRef.current?.click()}
+                position="absolute"
+                inset={0}
+                borderRadius={rounded}
+                overflow="hidden"
+                cursor="pointer"
+                sx={{
+                    '& .hint': { opacity: 0 },
+                    '&:hover .hint, &:focus-visible .hint': { opacity: 1 },
+                    '&:hover .badge, &:focus-visible .badge': { opacity: 0 },
+                }}
+                _focusVisible={{
+                    outline: '2px solid',
+                    outlineColor: 'brand.green',
+                    outlineOffset: '-2px',
+                }}
+            >
+                {/* Always-visible badge so the affordance is discoverable on touch;
+                    fades out when the full hover prompt takes over. */}
+                <Flex
+                    className="badge"
+                    position="absolute"
+                    bottom={coverArea ? 2 : 1.5}
+                    right={coverArea ? 2 : 1.5}
+                    align="center"
+                    justify="center"
+                    boxSize={coverArea ? '32px' : '28px'}
+                    borderRadius="full"
+                    bg={scrim}
+                    color="white"
+                    transition="opacity 140ms ease"
+                >
+                    <Icon as={FiCamera} boxSize={coverArea ? '17px' : '15px'} />
+                </Flex>
+                {/* Hover / focus prompt over the whole image. */}
+                <Flex
+                    className="hint"
+                    position="absolute"
+                    inset={0}
+                    direction="column"
+                    align="center"
+                    justify="center"
+                    gap={coverArea ? 2 : 1}
+                    bg={scrim}
+                    transition="opacity 140ms ease"
+                >
+                    <Icon
+                        as={FiCamera}
+                        color="white"
+                        boxSize={coverArea ? '26px' : '20px'}
+                    />
+                    <Text
+                        color="white"
+                        fontSize={coverArea ? 'sm' : 'xs'}
+                        fontWeight="bold"
+                        letterSpacing="0.04em"
+                        px={2}
+                        textAlign="center"
+                    >
+                        {hasImage ? `Change ${label}` : `Add ${label}`}
+                    </Text>
+                </Flex>
+            </Box>
+            {/* Remove control, shown when there is an uploaded image. */}
+            {hasImage && (
+                <IconButton
+                    aria-label={`Remove ${label}`}
+                    icon={<Icon as={FiX} boxSize="14px" />}
+                    size="xs"
+                    isRound
+                    border="none"
+                    position="absolute"
+                    top={1.5}
+                    right={1.5}
+                    zIndex={1}
+                    bg={scrim}
+                    color="white"
+                    _hover={{ bg: removeColor }}
+                    opacity={{ base: 1, md: 0 }}
+                    _groupHover={{ opacity: 1 }}
+                    onClick={onRemove}
+                />
+            )}
+        </Box>
+    );
+}
+
+// The tournament blurb: read-only for players, click-to-edit for the host, and a
+// gentle "Add a description" prompt for the host when it is empty.
+const LINK_FIELDS: {
+    key: keyof CommunityLinkValues;
+    label: string;
+    icon: IconType;
+    tone: SocialTone;
+    placeholder: string;
+}[] = [
+    {
+        key: 'x_url',
+        label: 'X',
+        icon: FaXTwitter,
+        tone: 'x',
+        placeholder: 'https://x.com/yourhandle',
+    },
+    {
+        key: 'discord_url',
+        label: 'Discord',
+        icon: FaDiscord,
+        tone: 'discord',
+        placeholder: 'https://discord.gg/invite',
+    },
+    {
+        key: 'telegram_url',
+        label: 'Telegram',
+        icon: FaTelegram,
+        tone: 'telegram',
+        placeholder: 'https://t.me/yourgroup',
+    },
+    {
+        key: 'website_url',
+        label: 'Website',
+        icon: FiGlobe,
+        tone: 'website',
+        placeholder: 'https://your-site.xyz',
+    },
+    {
+        key: 'chart_url',
+        label: 'Chart',
+        icon: FaChartLine,
+        tone: 'chart',
+        placeholder: 'DexScreener, GeckoTerminal, any chart URL',
+    },
+];
+
+// Host community link-outs (X, website, Discord, Telegram, and a provider-
+// agnostic chart). Quiet monochrome chips for everyone; the host gets
+// click-to-edit, with an "Add community links" prompt when empty. Frontend
+// skeleton — a backend dev persists the URLs later.
+function CommunityLinks({
+    value,
+    canEdit,
+    onSave,
+}: {
+    value: CommunityLinkValues;
+    canEdit: boolean;
+    onSave: (links: CommunityLinkValues) => void;
+}) {
+    const [editing, setEditing] = useState(false);
+    const [draft, setDraft] = useState<CommunityLinkValues>(value);
+    const chipBorder = useColorModeValue(
+        'rgba(11, 20, 48, 0.08)',
+        'rgba(255, 255, 255, 0.10)'
+    );
+    const editorBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.03)',
+        'rgba(255, 255, 255, 0.04)'
+    );
+
+    const present: { label: string; tone: SocialTone; href: string }[] = [];
+    for (const f of LINK_FIELDS) {
+        const href = value[f.key]?.trim();
+        if (href) present.push({ label: f.label, tone: f.tone, href });
+    }
+
+    const begin = () => {
+        setDraft(value);
+        setEditing(true);
+    };
+    const save = () => {
+        const next: CommunityLinkValues = {};
+        for (const f of LINK_FIELDS) {
+            const v = draft[f.key]?.trim();
+            if (v) next[f.key] = v;
+        }
+        onSave(next);
+        setEditing(false);
+    };
+
+    if (editing) {
+        return (
+            <Box
+                w="full"
+                mt={1}
+                p={3}
+                borderRadius="12px"
+                borderWidth="1px"
+                borderColor={chipBorder}
+                bg={editorBg}
+            >
+                <VStack spacing={2} align="stretch">
+                    {LINK_FIELDS.map((f) => (
+                        <HStack key={f.key} spacing={2.5}>
+                            <Icon
+                                as={f.icon}
+                                boxSize="16px"
+                                color="text.muted"
+                                flexShrink={0}
+                                w="20px"
+                            />
+                            <Input
+                                size="sm"
+                                borderRadius="8px"
+                                type="url"
+                                inputMode="url"
+                                value={draft[f.key] ?? ''}
+                                placeholder={f.placeholder}
+                                onChange={(e) =>
+                                    setDraft((d) => ({
+                                        ...d,
+                                        [f.key]: e.target.value,
+                                    }))
+                                }
+                            />
+                        </HStack>
+                    ))}
+                </VStack>
+                <HStack spacing={2} mt={3}>
+                    <Button size="xs" variant="tactilePrimary" onClick={save}>
+                        Save links
+                    </Button>
+                    <Button
+                        size="xs"
+                        variant="tactileGhost"
+                        onClick={() => setEditing(false)}
+                    >
+                        Cancel
+                    </Button>
+                </HStack>
+            </Box>
+        );
+    }
+
+    if (present.length === 0) {
+        if (!canEdit) return null;
+        return (
+            <Button
+                size="xs"
+                variant="tactileGhost"
+                leftIcon={<Icon as={FiLink} boxSize="12px" />}
+                onClick={begin}
+                mt={0.5}
+                color="text.muted"
+            >
+                Add community links
+            </Button>
+        );
+    }
+
+    return (
+        <HStack spacing={2} pt={1.5} role="group" flexWrap="wrap">
+            {present.map((f) => (
+                <Link
+                    key={f.label}
+                    href={f.href}
+                    isExternal
+                    aria-label={f.label}
+                    lineHeight={0}
+                    borderRadius="10px"
+                    _focusVisible={{
+                        outline: '2px solid',
+                        outlineColor: 'brand.green',
+                        outlineOffset: '2px',
+                    }}
+                >
+                    <SocialIconButton
+                        tone={f.tone}
+                        chipSize="md"
+                        tabIndex={-1}
+                        aria-label={f.label}
+                    />
+                </Link>
+            ))}
+            {canEdit && (
+                <IconButton
+                    aria-label="Edit community links"
+                    icon={<Icon as={FiEdit2} boxSize="14px" />}
+                    size="sm"
+                    variant="tactileGhost"
+                    color="text.muted"
+                    opacity={{ base: 1, md: 0 }}
+                    _groupHover={{ opacity: 1 }}
+                    onClick={begin}
+                />
+            )}
+        </HStack>
+    );
+}
+
 export default function TournamentDetail({
     tournament: t,
     players,
@@ -160,6 +549,9 @@ export default function TournamentDetail({
     onClaimRefund,
     onEnableEmergencyRefund,
     onBack,
+    onUpdateBranding,
+    onUpdateDescription,
+    onUpdateLinks,
 }: TournamentDetailProps) {
     const cardBg = useColorModeValue('white', 'card.darkNavy');
     const border = useColorModeValue(
@@ -216,6 +608,55 @@ export default function TournamentDetail({
 
     const isHost =
         !!myWallet && t.host_wallet?.toLowerCase() === myWallet.toLowerCase();
+
+    // Host inline editing (frontend skeleton — a backend dev wires persistence
+    // later). Optimistic local overrides so edits show immediately and the
+    // Storybook preview works without a parent handler; the change is also
+    // forwarded through the optional callbacks for when the backend exists.
+    // `undefined` = untouched (use the prop); `null` = explicitly cleared.
+    const [logoOverride, setLogoOverride] = useState<string | null | undefined>(
+        undefined
+    );
+    const [bannerOverride, setBannerOverride] = useState<
+        string | null | undefined
+    >(undefined);
+    const [descOverride, setDescOverride] = useState<string | undefined>(
+        undefined
+    );
+
+    const logoUrl = logoOverride !== undefined ? logoOverride : t.logo_url ?? null;
+    const bannerUrl =
+        bannerOverride !== undefined ? bannerOverride : t.banner_url ?? null;
+    const description =
+        descOverride !== undefined ? descOverride : t.description ?? '';
+
+    const updateLogo = (url: string | null) => {
+        setLogoOverride(url);
+        onUpdateBranding?.({ logo_url: url });
+    };
+    const updateBanner = (url: string | null) => {
+        setBannerOverride(url);
+        onUpdateBranding?.({ banner_url: url });
+    };
+    const updateDescription = (text: string) => {
+        setDescOverride(text);
+        onUpdateDescription?.(text);
+    };
+
+    const [linksOverride, setLinksOverride] = useState<
+        CommunityLinkValues | undefined
+    >(undefined);
+    const links: CommunityLinkValues = linksOverride ?? {
+        x_url: t.x_url,
+        website_url: t.website_url,
+        discord_url: t.discord_url,
+        telegram_url: t.telegram_url,
+        chart_url: t.chart_url,
+    };
+    const updateLinks = (next: CommunityLinkValues) => {
+        setLinksOverride(next);
+        onUpdateLinks?.(next);
+    };
 
     const myPlayer = myWallet
         ? players.find((p) => p.wallet.toLowerCase() === myWallet.toLowerCase())
@@ -317,6 +758,21 @@ export default function TournamentDetail({
         />
     );
 
+    // About card: the Host's (possibly tall, formatted) description, in its own
+    // readable body card. Shown when there is content, or to the Host so they can
+    // add it; a non-host viewing an empty tournament gets nothing.
+    const aboutEl =
+        description.trim() || isHost ? (
+            <AboutPanel
+                value={description}
+                canEdit={isHost}
+                onSave={updateDescription}
+                cardBg={cardBg}
+                border={border}
+            />
+        ) : null;
+    const hasLeftColumn = !!(aboutEl || standingsEl);
+
     return (
         <Box
             minH="100vh"
@@ -329,7 +785,7 @@ export default function TournamentDetail({
             {/* Ambient background — a blurred wash of the uploaded banner so the
                 whole page takes on the tournament's vibe. Generated tournaments
                 keep the neutral page color. Cards stay opaque on top. */}
-            {t.banner_url && (
+            {bannerUrl && (
                 <Box
                     aria-hidden
                     position="absolute"
@@ -341,7 +797,7 @@ export default function TournamentDetail({
                     <Box
                         position="absolute"
                         inset={0}
-                        bgImage={`url(${t.banner_url})`}
+                        bgImage={`url(${bannerUrl})`}
                         bgSize="cover"
                         bgPosition="center"
                         transform="scale(1.1)"
@@ -381,22 +837,32 @@ export default function TournamentDetail({
                         {/* Cover: uploaded banner, else a card-suit wallpaper in
                             the type's accent color over the neutral surface. */}
                         <Box
-                            h={{ base: '108px', md: '136px' }}
+                            h={{ base: '140px', md: '184px' }}
                             position="relative"
                             overflow="hidden"
                         >
-                            {t.banner_url ? (
-                                <Image
-                                    src={t.banner_url}
-                                    alt=""
-                                    w="full"
-                                    h="full"
-                                    objectFit="cover"
-                                    loading="lazy"
-                                />
-                            ) : (
-                                <TournamentDefaultCover type={blindLabel} />
-                            )}
+                            <HostImageEditor
+                                canEdit={isHost}
+                                hasImage={!!bannerUrl}
+                                label="banner"
+                                rounded="0"
+                                coverArea
+                                onPick={updateBanner}
+                                onRemove={() => updateBanner(null)}
+                            >
+                                {bannerUrl ? (
+                                    <Image
+                                        src={bannerUrl}
+                                        alt=""
+                                        w="full"
+                                        h="full"
+                                        objectFit="cover"
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <TournamentDefaultCover type={blindLabel} />
+                                )}
+                            </HostImageEditor>
                         </Box>
 
                         <Box
@@ -405,13 +871,8 @@ export default function TournamentDetail({
                             position="relative"
                             zIndex={1}
                         >
-                            {/* Avatar (logo or initial) straddles the cover edge;
-                                status sits opposite, like an X profile. */}
-                            <Flex
-                                justify="space-between"
-                                align="flex-start"
-                                gap={3}
-                            >
+                            {/* Avatar (logo or initial) straddles the cover edge. */}
+                            <Flex align="flex-start" gap={3}>
                                 <Box
                                     mt={{ base: '-50px', md: '-58px' }}
                                     borderRadius="22px"
@@ -423,65 +884,87 @@ export default function TournamentDetail({
                                     boxShadow="0 0 0 1px rgba(11, 20, 48, 0.10), 0 8px 24px rgba(11, 20, 48, 0.18)"
                                     flexShrink={0}
                                 >
-                                    {t.logo_url ? (
-                                        <Image
-                                            src={t.logo_url}
-                                            alt=""
-                                            boxSize={`${avatarSize}px`}
-                                            objectFit="cover"
-                                        />
-                                    ) : (
-                                        <TournamentDefaultAvatar
-                                            type={blindLabel}
-                                            size={avatarSize}
-                                            aria-label={`${typeIdentity.label} tournament`}
-                                        />
-                                    )}
-                                </Box>
-                                <Box pt={3} flexShrink={0}>
-                                    <StatusPill status={t.status} />
+                                    <HostImageEditor
+                                        canEdit={isHost}
+                                        hasImage={!!logoUrl}
+                                        label="logo"
+                                        rounded="18px"
+                                        onPick={updateLogo}
+                                        onRemove={() => updateLogo(null)}
+                                    >
+                                        {logoUrl ? (
+                                            <Image
+                                                src={logoUrl}
+                                                alt=""
+                                                boxSize={`${avatarSize}px`}
+                                                objectFit="cover"
+                                            />
+                                        ) : (
+                                            <TournamentDefaultAvatar
+                                                type={blindLabel}
+                                                size={avatarSize}
+                                                aria-label={`${typeIdentity.label} tournament`}
+                                            />
+                                        )}
+                                    </HostImageEditor>
                                 </Box>
                             </Flex>
 
                             <VStack align="stretch" spacing={4} mt={3}>
                                 {/* Name + format */}
                                 <VStack align="start" spacing={2} minW={0}>
-                                    <Text
-                                        as="h1"
-                                        fontWeight="bold"
-                                        fontSize={{ base: 'xl', md: '2xl' }}
-                                        letterSpacing="-0.02em"
-                                        color="text.primary"
-                                        noOfLines={2}
+                                    <Flex
+                                        direction={{ base: 'column', md: 'row' }}
+                                        justify="space-between"
+                                        align={{ base: 'start', md: 'flex-start' }}
+                                        gap={{ base: 1.5, md: 4 }}
+                                        w="full"
                                     >
-                                        {t.name ||
-                                            (freePlay
-                                                ? 'Free-play tournament'
-                                                : 'No-limit Hold’em')}
-                                    </Text>
-                                    <Text
-                                        fontSize="2xs"
-                                        color="text.muted"
-                                        textTransform="uppercase"
-                                        letterSpacing="0.08em"
-                                        fontWeight="semibold"
-                                    >
-                                        {blindLabel} · NLH · {tableSize}-max
-                                    </Text>
-                                    {!freePlay && t.chain && (
-                                        <ChainBadge chain={t.chain} size="sm" />
-                                    )}
-                                    {t.description?.trim() && (
                                         <Text
-                                            color="text.secondary"
-                                            fontSize="sm"
-                                            lineHeight={1.5}
+                                            as="h1"
+                                            fontWeight="bold"
+                                            fontSize={{ base: 'xl', md: '2xl' }}
+                                            letterSpacing="-0.02em"
+                                            color="text.primary"
                                             noOfLines={2}
-                                            pt={0.5}
+                                            flex="1"
+                                            minW={0}
                                         >
-                                            {t.description}
+                                            {t.name ||
+                                                (freePlay
+                                                    ? 'Free-play tournament'
+                                                    : 'No-limit Hold’em')}
                                         </Text>
-                                    )}
+                                        <VStack
+                                            align={{ base: 'start', md: 'end' }}
+                                            spacing={1.5}
+                                            flexShrink={0}
+                                        >
+                                            <StatusPill status={t.status} />
+                                            <Text
+                                                fontSize="2xs"
+                                                color="text.muted"
+                                                textTransform="uppercase"
+                                                letterSpacing="0.08em"
+                                                fontWeight="semibold"
+                                                whiteSpace="nowrap"
+                                            >
+                                                {blindLabel} · NLH · {tableSize}
+                                                -max
+                                            </Text>
+                                            {!freePlay && t.chain && (
+                                                <ChainBadge
+                                                    chain={t.chain}
+                                                    size="sm"
+                                                />
+                                            )}
+                                        </VStack>
+                                    </Flex>
+                                    <CommunityLinks
+                                        value={links}
+                                        canEdit={isHost}
+                                        onSave={updateLinks}
+                                    />
                                 </VStack>
 
                             {/* Hero: money + timing */}
@@ -659,19 +1142,25 @@ export default function TournamentDetail({
                         align="flex-start"
                         gap={6}
                     >
-                        {standingsEl && (
-                            <Box flex="1 1 0" minW={0}>
+                        {hasLeftColumn && (
+                            <VStack
+                                align="stretch"
+                                spacing={6}
+                                flex="1 1 0"
+                                minW={0}
+                            >
+                                {aboutEl}
                                 {standingsEl}
-                            </Box>
+                            </VStack>
                         )}
-                        {/* Fixed 360px beside standings; grows to fill when there
-                            are no standings (e.g. cancelled with an empty field)
-                            so the cards don't orphan left against an empty gutter. */}
+                        {/* Fixed 360px beside the left column; grows to fill when
+                            there is no left column (e.g. cancelled, empty field,
+                            no description) so the cards don't orphan left. */}
                         <VStack
                             align="stretch"
                             spacing={6}
-                            w={standingsEl ? '360px' : 'full'}
-                            flexShrink={standingsEl ? 0 : 1}
+                            w={hasLeftColumn ? '360px' : 'full'}
+                            flexShrink={hasLeftColumn ? 0 : 1}
                         >
                             {payoutsEl}
                             {structureEl}
@@ -681,6 +1170,7 @@ export default function TournamentDetail({
                     {/* Mobile (< lg): the same three sections as switchable tabs. */}
                     <Box display={{ base: 'block', lg: 'none' }}>
                         <MobileSectionTabs
+                            about={aboutEl}
                             standings={standingsEl}
                             payouts={payoutsEl}
                             structure={structureEl}
@@ -736,12 +1226,14 @@ export default function TournamentDetail({
 }
 
 function MobileSectionTabs({
+    about,
     standings,
     payouts,
     structure,
     cardBg,
     border,
 }: {
+    about: React.ReactNode;
     standings: React.ReactNode;
     payouts: React.ReactNode;
     structure: React.ReactNode;
@@ -760,6 +1252,7 @@ function MobileSectionTabs({
         'rgba(255, 255, 255, 0.20)'
     );
     const sections = [
+        ...(about ? [{ label: 'About', content: about }] : []),
         { label: 'Players', content: standings },
         { label: 'Payouts', content: payouts },
         { label: 'Blinds', content: structure },

@@ -52,7 +52,6 @@ import {
 } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import ModeChooser from './ModeChooser';
-import ImageUploadField from './ImageUploadField';
 import {
     formatUsdc,
     formatTournamentStart,
@@ -99,10 +98,6 @@ export interface CreateTournamentFormValues {
     maxPlayers: string;
     scheduledAt: string;
     passwordCode: string;
-    // Host branding (frontend preview only for now — backend upload + storage is
-    // a follow-up). Object-URL/string previews; empty when not set.
-    logoUrl?: string;
-    bannerUrl?: string;
 }
 
 export interface CreateTournamentFormProps {
@@ -701,8 +696,6 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
 }) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [logoUrl, setLogoUrl] = useState<string | null>(null);
-    const [bannerUrl, setBannerUrl] = useState<string | null>(null);
     const [freePlay, setFreePlay] = useState(true);
     const [chain, setChain] = useState<'base' | 'base-sepolia'>(DEFAULT_CHAIN);
     const [buyInUsdc, setBuyInUsdc] = useState('10');
@@ -923,8 +916,6 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
             maxPlayers: capped ? maxPlayers : '',
             scheduledAt,
             passwordCode,
-            logoUrl: logoUrl ?? undefined,
-            bannerUrl: bannerUrl ?? undefined,
         });
     };
 
@@ -978,7 +969,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                         />
                     </Box>
                     <Box>
-                        <FieldLabel optional hint="A short blurb shown on your tournament's lobby card and details page.">
+                        <FieldLabel optional hint="A short blurb shown on your tournament's lobby card and details page. You can edit it later, and add a logo and banner, from your tournament page.">
                             Description
                         </FieldLabel>
                         <Textarea
@@ -990,35 +981,6 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             rows={3}
                             resize="vertical"
                         />
-                    </Box>
-                    <Box>
-                        <FieldLabel hint="Give your tournament a custom look — shown on its lobby card and details page.">
-                            Branding
-                        </FieldLabel>
-                        <Flex
-                            direction={{ base: 'column', sm: 'row' }}
-                            gap={3}
-                            align="flex-start"
-                        >
-                            <Box flexShrink={0}>
-                                <ImageUploadField
-                                    variant="logo"
-                                    label="Logo"
-                                    hint="Square"
-                                    value={logoUrl}
-                                    onChange={setLogoUrl}
-                                />
-                            </Box>
-                            <Box flex="1" w="full">
-                                <ImageUploadField
-                                    variant="banner"
-                                    label="Background"
-                                    hint="Wide image works best (~3:1)"
-                                    value={bannerUrl}
-                                    onChange={setBannerUrl}
-                                />
-                            </Box>
-                        </Flex>
                     </Box>
                 </VStack>
             </SectionCard>

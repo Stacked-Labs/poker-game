@@ -26,6 +26,7 @@ import {
     Tbody,
     Td,
     Text,
+    Textarea,
     Th,
     Thead,
     Tooltip,
@@ -84,6 +85,7 @@ const USDC_BLUE_EDGE = '#1F5FA3';
 
 export interface CreateTournamentFormValues {
     name: string;
+    description: string;
     freePlay: boolean;
     chain: 'base' | 'base-sepolia';
     buyInUsdc: string;
@@ -698,6 +700,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     fundPhase = 'idle',
 }) => {
     const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
     const [logoUrl, setLogoUrl] = useState<string | null>(null);
     const [bannerUrl, setBannerUrl] = useState<string | null>(null);
     const [freePlay, setFreePlay] = useState(true);
@@ -904,6 +907,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
         }
         onSubmit?.({
             name,
+            description,
             freePlay,
             chain,
             buyInUsdc,
@@ -971,6 +975,20 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                         <ModeChooser
                             selectedMode={freePlay ? 'free' : 'real'}
                             onSelect={chooseMode}
+                        />
+                    </Box>
+                    <Box>
+                        <FieldLabel optional hint="A short blurb shown on your tournament's lobby card and details page.">
+                            Description
+                        </FieldLabel>
+                        <Textarea
+                            {...inputProps}
+                            value={description}
+                            maxLength={500}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Tell players what to expect — format, vibe, prizes…"
+                            rows={3}
+                            resize="vertical"
                         />
                     </Box>
                     <Box>

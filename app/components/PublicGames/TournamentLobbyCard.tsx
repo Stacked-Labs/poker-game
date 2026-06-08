@@ -28,7 +28,10 @@ import {
     isFreePlay as getIsFreePlay,
     useCountdown,
 } from './tournamentFormat';
-import { TournamentDefaultAvatar } from './tournamentDefaults';
+import {
+    TournamentDefaultAvatar,
+    TournamentDefaultCover,
+} from './tournamentDefaults';
 
 export interface TournamentLobbyCardProps {
     tournament: Tournament;
@@ -48,6 +51,10 @@ export interface TournamentLobbyCardProps {
     /** Index in the grid, used to stagger the entry animation. */
     index?: number;
 }
+
+// The banner is a card's hero image; eager-load the first couple of rows so the
+// above-the-fold banners count toward LCP instead of waiting on the observer.
+const EAGER_BANNER_COUNT = 6;
 
 const fadeUp = keyframes`
     from { opacity: 0; transform: translateY(8px); }
@@ -185,90 +192,82 @@ export default function TournamentLobbyCard({
             h="full"
         >
             <VStack align="stretch" spacing={4} flex="1">
-                {/* Host banner (optional) — full-bleed strip; logo sits in it. */}
-                {t.banner_url && (
-                    <Box
-                        mx={{ base: -4, md: -5 }}
-                        mt={{ base: -4, md: -5 }}
-                        mb={1}
-                        h="76px"
-                        position="relative"
-                        overflow="hidden"
-                    >
-                        <Image
-                            src={t.banner_url}
-                            alt=""
-                            w="full"
-                            h="full"
-                            objectFit="cover"
-                            loading="lazy"
-                        />
-                        <Box
-                            position="absolute"
-                            bottom={2}
-                            left={{ base: 4, md: 5 }}
-                            boxSize="40px"
-                            borderRadius="10px"
-                            borderWidth="2px"
-                            borderColor={cardBg}
-                            bg={cardBg}
-                            overflow="hidden"
-                            boxShadow="card.lift"
-                        >
-                            {t.logo_url ? (
-                                <Image
-                                    src={t.logo_url}
-                                    alt=""
-                                    w="full"
-                                    h="full"
-                                    objectFit="cover"
-                                />
-                            ) : (
-                                <TournamentDefaultAvatar
-                                    type={blindLabel}
-                                    size={36}
-                                />
-                            )}
-                        </Box>
+                {/* Media: full-bleed banner (uploaded art or the generated
+                    suit-wallpaper cover) with the tournament state pinned to its
+                    top-right and the avatar straddling its lower-left edge, so
+                    every card shares one layout. */}
+                <Box
+                    mx={{ base: -4, md: -5 }}
+                    mt={{ base: -4, md: -5 }}
+                    position="relative"
+                >
+                    <Box h="84px" overflow="hidden" position="relative">
+                        {t.banner_url ? (
+                            <Image
+                                src={t.banner_url}
+                                alt=""
+                                w="full"
+                                h="full"
+                                objectFit="cover"
+                                loading={
+                                    index < EAGER_BANNER_COUNT ? 'eager' : 'lazy'
+                                }
+                            />
+                        ) : (
+                            <TournamentDefaultCover type={blindLabel} />
+                        )}
                     </Box>
-                )}
-                {/* Header */}
-                <HStack justify="space-between" align="flex-start" spacing={3}>
-                    <HStack spacing={2.5} minW={0} align="flex-start">
-                        {!t.banner_url &&
-                            (t.logo_url ? (
-                                <Image
-                                    src={t.logo_url}
-                                    alt=""
-                                    boxSize="52px"
-                                    borderRadius="12px"
-                                    objectFit="cover"
-                                    flexShrink={0}
-                                    borderWidth="1px"
-                                    borderColor={standardBorder}
-                                />
-                            ) : (
-                                <TournamentDefaultAvatar
-                                    type={blindLabel}
-                                    size={52}
-                                />
-                            ))}
-                        <VStack align="start" spacing={1.5} minW={0}>
-                        <HStack spacing={2} minW={0}>
-                            <Text
-                                fontWeight="bold"
-                                fontSize="md"
-                                color="text.primary"
-                                letterSpacing="-0.01em"
-                                noOfLines={1}
-                                minW={0}
-                            >
-                                {t.name ||
-                                    (freePlay
-                                        ? 'Free-play tournament'
-                                        : 'No-limit Hold’em')}
-                            </Text>
-                        </HStack>
+                    <Box
+                        position="absolute"
+                        bottom="-20px"
+                        left={{ base: 4, md: 5 }}
+                        boxSize="68px"
+                        borderRadius="18px"
+                        borderWidth="3px"
+                        borderColor={cardBg}
+                        bg={cardBg}
+                        overflow="hidden"
+                        boxShadow="card.lift"
+                        zIndex={1}
+                    >
+                        {t.logo_url ? (
+                            <Image
+                                src={t.logo_url}
+                                alt=""
+                                w="full"
+                                h="full"
+                                objectFit="cover"
+                            />
+                        ) : (
+                            <TournamentDefaultAvatar
+                                type={blindLabel}
+                                size={62}
+                            />
+                        )}
+                    </Box>
+                </Box>
+                {/* Header: title + meta on the left (padded to clear the
+                    straddling avatar) and the tournament/player state on the right. */}
+                <HStack
+                    justify="space-between"
+                    align="flex-start"
+                    spacing={3}
+                    pt={3}
+                >
+                    <VStack align="start" spacing={1.5} minW={0}>
+                        <Text
+                            fontWeight="bold"
+                            fontSize="md"
+                            color="text.primary"
+                            letterSpacing="-0.01em"
+                            noOfLines={1}
+                            minW={0}
+                        >
+                            {t.name ||
+                                (freePlay
+                                    ? 'Free-play tournament'
+                                    : 'No-limit Hold’em')}
+                        </Text>
                         <HStack spacing={1.5} flexWrap="wrap">
                             <Text
                                 fontSize="2xs"
@@ -284,8 +283,7 @@ export default function TournamentLobbyCard({
                             {t.is_private && <PrivatePill />}
                         </HStack>
                         {t.chain && <ChainBadge chain={t.chain} size="sm" />}
-                        </VStack>
-                    </HStack>
+                    </VStack>
                     <VStack align="end" spacing={1.5} flexShrink={0}>
                         <StatusPill status={t.status} />
                         <PlayerStatePill
@@ -439,15 +437,7 @@ export default function TournamentLobbyCard({
                         </>
                     )}
                     {isLateRegOpen && (
-                        <Text
-                            fontSize="2xs"
-                            fontWeight="semibold"
-                            color={yellowText}
-                            sx={{ fontVariantNumeric: 'tabular-nums' }}
-                        >
-                            Late registration closes{' '}
-                            {formatTournamentStart(t.late_reg_close_at)}
-                        </Text>
+                        <LateRegNotice closeIso={t.late_reg_close_at} />
                     )}
                 </VStack>
 
@@ -800,6 +790,31 @@ function PlayerStatePill({
                 {content.label}
             </Text>
         </HStack>
+    );
+}
+
+function LateRegNotice({ closeIso }: { closeIso: string }) {
+    const yellowText = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    const countdown = useCountdown(closeIso);
+
+    let label: string;
+    if (!countdown.ready) {
+        label = `Late registration closes ${formatTournamentStart(closeIso)}`;
+    } else if (countdown.isPast) {
+        label = 'Late registration closing now';
+    } else {
+        label = `Late registration closes in ${countdown.label}`;
+    }
+
+    return (
+        <Text
+            fontSize="2xs"
+            fontWeight="semibold"
+            color={yellowText}
+            sx={{ fontVariantNumeric: 'tabular-nums' }}
+        >
+            {label}
+        </Text>
     );
 }
 

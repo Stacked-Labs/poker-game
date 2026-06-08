@@ -634,6 +634,7 @@ const GameSettingLeftSide: React.FC = () => {
                 values.reentryAllowed && values.lateRegLevels > 0;
             const result = await createTournament({
                 name: values.name.trim() || undefined,
+                description: values.description.trim() || undefined,
                 min_entries: parseInt(values.minPlayers, 10),
                 // An empty maxPlayers means the host chose "Unlimited". We send
                 // a large effective ceiling as a stopgap. Once the poker-server

@@ -19,14 +19,19 @@ events on Stacked. Two images: a **logo** (square) and a **background/banner**
 - **Types** — optional `logo_url` / `banner_url` added to the `Tournament` type
   (`app/hooks/server_actions.ts`) and `logoUrl` / `bannerUrl` to
   `CreateTournamentFormValues`.
-- **Lobby card** (`TournamentLobbyCard`) — full-bleed banner strip with the logo
-  inset; falls back to a small logo by the title when only a logo is set; falls
-  back to the generated type avatar (see below) when neither is set.
+- **Lobby card** (`TournamentLobbyCard`) — one layout for every card: a full-bleed
+  banner strip with a same-size avatar inset in its lower-left, then the title.
+  The banner is the uploaded banner, or the generated type cover when none is set;
+  the avatar is the uploaded logo, or the generated type mark when none is set. So
+  a card with only a logo, only a banner, or no upload at all still matches the
+  proportions of a fully branded one.
 - **Detail hero** (`TournamentDetail`) — full-bleed banner behind the title with
   the logo inset; falls back to the generated type cover + avatar when neither is
   set.
-- Storybook demos: `TournamentLobbyCard › BrandedWithBanner / BrandedLogoOnly`,
-  `TournamentDetail › RunningBranded`, and the generated default in
+- Storybook demos: the populated lobby in `PublicGames/TournamentLobby ›
+  Showcase` and the per-path comparison in `PublicGames/TournamentLobby ›
+  BrandingMatrix`; single-card states in `PublicGames/TournamentLobbyCard`; the
+  detail hero in `Tournament/TournamentDetail`; and the generated primitives in
   `Tournament/Foundations/DefaultBranding`.
 
 Everything degrades gracefully: with no `logo_url` / `banner_url` the UI shows
@@ -41,11 +46,11 @@ consistent from the moment a Host picks a structure through to the lobby and the
 detail page.
 
 - **Avatar** (`TournamentDefaultAvatar`) — the type's icon (bolt, fire, clock,
-  layers) in the type's accent color on a faint accent-tinted tile. Used on the
-  lobby card and as the detail-page hero avatar.
+  layers) in the type's accent color on a faint accent-tinted tile. Used as the
+  lobby-card and detail-page hero avatar whenever no logo is uploaded.
 - **Cover** (`TournamentDefaultCover`) — the neutral surface, wallpapered with
-  card suits in the type's accent color. Used as the detail-page hero banner when
-  there is no uploaded banner.
+  card suits in the type's accent color. Used as the lobby-card banner strip and
+  the detail-page hero banner whenever no banner is uploaded.
 
 Both are color-mode aware (legible in light and dark) and keep the type color as
 a small accent rather than a flood. They take only a `type` (the blind

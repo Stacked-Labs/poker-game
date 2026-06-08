@@ -35,6 +35,25 @@ const tickerScroll = keyframes`
     from { transform: translateX(0); }
     to   { transform: translateX(-50%); }
 `;
+// Soft halo that breathes around the live-level dot.
+const livePulse = keyframes`
+    0%, 100% { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0); }
+    50%      { box-shadow: 0 0 0 4px rgba(54, 163, 123, 0.32); }
+`;
+
+function LiveDot({ reduced }: { reduced: boolean }) {
+    return (
+        <Box
+            w="6px"
+            h="6px"
+            borderRadius="full"
+            bg="brand.green"
+            flexShrink={0}
+            aria-label="current level"
+            animation={reduced ? undefined : `${livePulse} 1.8s ease-in-out infinite`}
+        />
+    );
+}
 
 export interface StructureSheetProps {
     blindStructure: string;
@@ -199,6 +218,11 @@ export default function StructureSheet({
                                                         ? zebra
                                                         : undefined
                                             }
+                                            transition="box-shadow 120ms ease"
+                                            _hover={{
+                                                boxShadow:
+                                                    'inset 0 0 0 100vmax rgba(127, 127, 127, 0.045)',
+                                            }}
                                         >
                                             {isLateClose ? (
                                                 // Merge Level + Blinds so the ticker
@@ -231,13 +255,10 @@ export default function StructureSheet({
                                                             {l.level}
                                                         </Text>
                                                         {isCurrent && (
-                                                            <Box
-                                                                w="6px"
-                                                                h="6px"
-                                                                borderRadius="full"
-                                                                bg="brand.green"
-                                                                flexShrink={0}
-                                                                aria-label="current level"
+                                                            <LiveDot
+                                                                reduced={
+                                                                    prefersReducedMotion
+                                                                }
                                                             />
                                                         )}
                                                         <LateRegTicker
@@ -281,12 +302,10 @@ export default function StructureSheet({
                                                                 {l.level}
                                                             </Text>
                                                             {isCurrent && (
-                                                                <Box
-                                                                    w="6px"
-                                                                    h="6px"
-                                                                    borderRadius="full"
-                                                                    bg="brand.green"
-                                                                    aria-label="current level"
+                                                                <LiveDot
+                                                                    reduced={
+                                                                        prefersReducedMotion
+                                                                    }
                                                                 />
                                                             )}
                                                         </HStack>

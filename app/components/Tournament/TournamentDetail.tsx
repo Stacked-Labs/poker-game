@@ -106,6 +106,20 @@ const dotPulse = keyframes`
     0%, 100% { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.5); }
     50%      { box-shadow: 0 0 0 5px rgba(54, 163, 123, 0); }
 `;
+// Progress bar grows from the left on mount; a soft highlight sweeps across it.
+const fillGrow = keyframes`
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+`;
+const fillShimmer = keyframes`
+    0%        { transform: translateX(-120%); }
+    55%, 100% { transform: translateX(360%); }
+`;
+const valuePop = keyframes`
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.07); }
+    100% { transform: scale(1); }
+`;
 
 function formatDuration(ms: number): string {
     const h = Math.floor(ms / 3_600_000);
@@ -229,6 +243,17 @@ export default function TournamentDetail({
 
     const registeredCount = t.registered_count ?? players.length;
 
+    // Your live/final place, to flag your row in the payout ladder.
+    const myLadderPos =
+        myPlayer && (t.status === 'running' || t.status === 'completed')
+            ? myPlayer.finish_pos > 0
+                ? myPlayer.finish_pos
+                : sortedPlayers.findIndex(
+                      (p) =>
+                          p.wallet.toLowerCase() === myWallet?.toLowerCase()
+                  ) + 1
+            : null;
+
     // The three movable sections: two columns on desktop, three switchable tabs
     // on mobile. Defined once as elements, then rendered in both layouts (the
     // off-breakpoint copy is display:none — mounted but not painted).
@@ -279,6 +304,7 @@ export default function TournamentDetail({
             )}
             isFreePlay={freePlay}
             status={t.status}
+            highlightPosition={myLadderPos}
         />
     ) : null;
 
@@ -1016,6 +1042,7 @@ function PlayersBar({
         'rgba(11, 20, 48, 0.10)',
         'rgba(255, 255, 255, 0.10)'
     );
+    const prefersReducedMotion = usePrefersReducedMotion();
     const isRunning = status === 'running';
     const isCompleted = status === 'completed';
     // "left" is only trustworthy once the live leaderboard has loaded (>0 alive).
@@ -1069,10 +1096,17 @@ function PlayersBar({
                     {label}
                 </Text>
                 <Text
+                    key={typeof value === 'string' ? value : label}
                     fontSize="xs"
                     color="text.secondary"
                     fontWeight="semibold"
-                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                    transformOrigin="right center"
+                    sx={{
+                        fontVariantNumeric: 'tabular-nums',
+                        animation: prefersReducedMotion
+                            ? undefined
+                            : `${valuePop} 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)`,
+                    }}
                 >
                     {value}
                 </Text>
@@ -1084,6 +1118,7 @@ function PlayersBar({
                     h="5px"
                     borderRadius="full"
                     bg={trackBg}
+                    overflow="hidden"
                 >
                     <Box
                         position="absolute"
@@ -1095,8 +1130,31 @@ function PlayersBar({
                         borderRadius="full"
                         bg={isUsdc ? USDC_BLUE : 'brand.green'}
                         opacity={0.9}
+                        transformOrigin="left center"
                         transition="width 0.3s ease"
-                    />
+                        sx={{
+                            animation: prefersReducedMotion
+                                ? undefined
+                                : `${fillGrow} 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both`,
+                        }}
+                    >
+                        {!prefersReducedMotion && fillRatio > 0.04 && (
+                            <Box
+                                position="absolute"
+                                top={0}
+                                bottom={0}
+                                left={0}
+                                w="40%"
+                                borderRadius="full"
+                                aria-hidden
+                                sx={{
+                                    background:
+                                        'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)',
+                                    animation: `${fillShimmer} 2.6s ease-in-out 0.6s infinite`,
+                                }}
+                            />
+                        )}
+                    </Box>
                 </Box>
             )}
         </VStack>

@@ -851,6 +851,7 @@ export default function TournamentTabPanel() {
                 prizePoolUsdc={poolForLadder}
                 isFreePlay={meta.isFreePlay}
                 status={meta.status}
+                highlightPosition={myP && !myOut ? myRank : null}
                 bare
             />
 

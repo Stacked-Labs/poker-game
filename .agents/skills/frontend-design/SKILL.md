@@ -43,6 +43,7 @@ Load `references/motion-patterns.md` for the complete animation vocabulary. Key 
 - **Physics-based easing** — spring curves (`0.34, 1.56, 0.64, 1`) for playful elements, ease-out for reveals.
 - **Staggered entry** — delay children by 40-60ms for list/card reveals.
 - **Respect `prefers-reduced-motion`** — always use `useReducedMotion()` and provide a static fallback.
+- **Playful punctuation** — for lived-in surfaces (live tournament HUD, ladders, lobby) the same file has a *Playful punctuation* section: leader crown, fire-once crossing hook, coin-rain celebration, flip tiles, in-row share bars, live-level pulse, grow-in/shimmer bars. Penthouse-playful, real icons over emoji, one delight per moment, all reduced-motion-gated. Reach for these only on `brand`-register surfaces, never at `/table/[id]`.
 
 ### When to use other skills
 

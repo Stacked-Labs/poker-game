@@ -13,7 +13,9 @@ import {
     Thead,
     Tr,
     useColorModeValue,
+    usePrefersReducedMotion,
 } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     formatUsdc,
@@ -26,13 +28,132 @@ import {
     placesPaid,
 } from '../PublicGames/payouts';
 
-// Podium medal chips — filled brights with dark numerals. Static across themes:
-// they pop on either card surface (discRing supplies the light-mode edge).
-const MEDALS: Record<number, { bg: string; fg: string }> = {
-    1: { bg: '#FDC51D', fg: '#2A1E00' },
-    2: { bg: '#C3CAD9', fg: '#1C2436' },
-    3: { bg: '#CE8E54', fg: '#2A1605' },
+// Podium chips, styled as poker chips: a base colour, rim "edge spots", and a
+// glossed inner face with a dark numeral. Static across themes (discRing supplies
+// the light-mode edge); the gold chip gets a slow glint.
+const CHIP: Record<
+    number,
+    { base: string; spot: string; faceTop: string; faceBot: string; fg: string }
+> = {
+    1: {
+        base: '#F4B400',
+        spot: 'rgba(255, 255, 255, 0.92)',
+        faceTop: '#FFE079',
+        faceBot: '#F2B100',
+        fg: '#2A1E00',
+    },
+    2: {
+        base: '#AEB6C6',
+        spot: 'rgba(255, 255, 255, 0.96)',
+        faceTop: '#E9EDF4',
+        faceBot: '#B4BCCC',
+        fg: '#1C2436',
+    },
+    3: {
+        base: '#C4824A',
+        spot: 'rgba(255, 240, 222, 0.92)',
+        faceTop: '#E4A972',
+        faceBot: '#BB7B42',
+        fg: '#2A1605',
+    },
 };
+
+// Faint accent for the in-row "prize size" bar, widest at 1st and tapering down.
+const SHARE_BAR: Record<number, string> = {
+    1: 'rgba(253, 197, 29, 0.22)',
+    2: 'rgba(148, 163, 184, 0.20)',
+    3: 'rgba(205, 137, 78, 0.20)',
+};
+
+// Rows fade up in sequence; chips give a springy little pop as they land.
+const rowFade = keyframes`
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+`;
+const medalPop = keyframes`
+    0%   { transform: scale(0.4); opacity: 0; }
+    60%  { transform: scale(1.18); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+`;
+// Occasional light streak that sweeps across the gold chip's face.
+const chipShine = keyframes`
+    0%        { transform: translateX(-140%) rotate(12deg); opacity: 0; }
+    14%       { opacity: 0.85; }
+    34%, 100% { transform: translateX(180%) rotate(12deg); opacity: 0; }
+`;
+
+function ChipMedal({
+    place,
+    ring,
+    reduced,
+    delayMs,
+}: {
+    place: number;
+    ring: string;
+    reduced: boolean;
+    delayMs: number;
+}) {
+    const c = CHIP[place];
+    if (!c) return null;
+    return (
+        <Box
+            position="relative"
+            boxSize="22px"
+            borderRadius="full"
+            flexShrink={0}
+            aria-hidden
+            sx={{
+                backgroundColor: c.base,
+                // 6 evenly spaced rim spots — the classic chip edge.
+                backgroundImage: `repeating-conic-gradient(from 0deg, ${c.spot} 0deg 22deg, transparent 22deg 60deg)`,
+                boxShadow: `${ring}, 0 1px 2px rgba(0, 0, 0, 0.28)`,
+                animation: reduced
+                    ? undefined
+                    : `${medalPop} 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both`,
+                animationDelay: reduced ? undefined : `${delayMs}ms`,
+            }}
+        >
+            <Flex
+                position="absolute"
+                inset="3px"
+                borderRadius="full"
+                align="center"
+                justify="center"
+                overflow="hidden"
+                sx={{
+                    background: `radial-gradient(circle at 34% 28%, ${c.faceTop}, ${c.faceBot})`,
+                    boxShadow:
+                        'inset 0 0 0 1px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.55)',
+                }}
+            >
+                <Text
+                    as="span"
+                    fontSize="2xs"
+                    fontWeight="bold"
+                    color={c.fg}
+                    lineHeight="1"
+                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                >
+                    {place}
+                </Text>
+                {place === 1 && !reduced && (
+                    <Box
+                        position="absolute"
+                        top="-30%"
+                        left="-30%"
+                        w="45%"
+                        h="160%"
+                        sx={{
+                            background:
+                                'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent)',
+                            animation: `${chipShine} 4.5s ease-in-out 1s infinite`,
+                        }}
+                    />
+                )}
+            </Flex>
+        </Box>
+    );
+}
 
 export interface PayoutLadderProps {
     entrants: number;
@@ -40,6 +161,8 @@ export interface PayoutLadderProps {
     isFreePlay: boolean;
     status: string;
     bare?: boolean;
+    /** Finishing position to flag as "you" (1-based), e.g. your projected place. */
+    highlightPosition?: number | null;
 }
 
 export default function PayoutLadder({
@@ -48,7 +171,9 @@ export default function PayoutLadder({
     isFreePlay,
     status,
     bare = false,
+    highlightPosition = null,
 }: PayoutLadderProps) {
+    const prefersReducedMotion = usePrefersReducedMotion();
     const cardBg = useColorModeValue('white', 'card.darkNavy');
     const border = useColorModeValue(
         'rgba(11, 20, 48, 0.08)',
@@ -81,11 +206,19 @@ export default function PayoutLadder({
         'inset 0 0 0 1px rgba(0, 0, 0, 0.25)'
     );
 
+    const youWash = useColorModeValue(
+        'rgba(54, 163, 123, 0.10)',
+        'rgba(54, 163, 123, 0.18)'
+    );
+    const youText = useColorModeValue('brand.greenDark', 'brand.green');
+
     const tiers = defaultPayouts(entrants);
     const amounts = calculatePayouts(entrants, prizePoolUsdc);
     const paid = placesPaid(entrants);
     const itmPct = entrants > 0 ? Math.round((paid / entrants) * 100) : 0;
     const projected = status === 'registration' || status === 'pending';
+    // Widest prize anchors the in-row "share size" bars.
+    const maxPercent = tiers.length ? tiers[0].percent : 1;
 
     const content = (
         <>
@@ -147,60 +280,79 @@ export default function PayoutLadder({
                                 : ordinal(t.min);
                             const isMinCash = i === tiers.length - 1;
                             const podium = !isRange && t.min <= 3 ? t.min : 0;
-                            const medal = podium ? MEDALS[podium] : null;
+                            const isYou =
+                                highlightPosition != null &&
+                                highlightPosition >= t.min &&
+                                highlightPosition <= t.max;
+                            const washColor = isYou
+                                ? youWash
+                                : podium === 1
+                                  ? goldWash
+                                  : podium === 2
+                                    ? silverWash
+                                    : podium === 3
+                                      ? bronzeWash
+                                      : i % 2 === 1
+                                        ? zebra
+                                        : 'transparent';
+                            // Faint left-anchored bar sized to this tier's share.
+                            const barCol = SHARE_BAR[podium] ?? youWash;
+                            const barPct = Math.round(
+                                (t.percent / maxPercent) * 100
+                            );
                             return (
                                 <Tr
                                     key={`${t.min}-${t.max}`}
-                                    bg={
-                                        podium === 1
-                                            ? goldWash
-                                            : podium === 2
-                                              ? silverWash
-                                              : podium === 3
-                                                ? bronzeWash
-                                                : i % 2 === 1
-                                                  ? zebra
-                                                  : undefined
-                                    }
+                                    sx={{
+                                        backgroundColor: washColor,
+                                        backgroundImage: `linear-gradient(to right, ${barCol} ${barPct}%, transparent ${barPct}%)`,
+                                        boxShadow: isYou
+                                            ? `inset 3px 0 0 var(--chakra-colors-brand-green)`
+                                            : undefined,
+                                        animation: prefersReducedMotion
+                                            ? undefined
+                                            : `${rowFade} 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) both`,
+                                        animationDelay: prefersReducedMotion
+                                            ? undefined
+                                            : `${i * 40}ms`,
+                                    }}
                                 >
                                     <Td color="text.primary">
                                         <HStack spacing={2.5}>
-                                            {medal && (
-                                                <Flex
-                                                    align="center"
-                                                    justify="center"
-                                                    boxSize="22px"
-                                                    borderRadius="full"
-                                                    bg={medal.bg}
-                                                    boxShadow={discRing}
-                                                    flexShrink={0}
-                                                    aria-hidden
-                                                >
-                                                    <Text
-                                                        as="span"
-                                                        fontSize="2xs"
-                                                        fontWeight="bold"
-                                                        color={medal.fg}
-                                                        lineHeight="1"
-                                                        sx={{
-                                                            fontVariantNumeric:
-                                                                'tabular-nums',
-                                                        }}
-                                                    >
-                                                        {t.min}
-                                                    </Text>
-                                                </Flex>
+                                            {podium > 0 && (
+                                                <ChipMedal
+                                                    place={podium}
+                                                    ring={discRing}
+                                                    reduced={
+                                                        !!prefersReducedMotion
+                                                    }
+                                                    delayMs={120 + i * 60}
+                                                />
                                             )}
                                             <Text
                                                 as="span"
                                                 fontWeight={
-                                                    medal ? 'bold' : 'normal'
+                                                    podium || isYou
+                                                        ? 'bold'
+                                                        : 'normal'
                                                 }
                                                 color="text.primary"
                                             >
                                                 {label}
                                             </Text>
-                                            {isMinCash && (
+                                            {isYou && (
+                                                <Text
+                                                    as="span"
+                                                    fontSize="2xs"
+                                                    fontWeight="bold"
+                                                    color={youText}
+                                                    textTransform="uppercase"
+                                                    letterSpacing="0.05em"
+                                                >
+                                                    you
+                                                </Text>
+                                            )}
+                                            {isMinCash && !isYou && (
                                                 <Text
                                                     as="span"
                                                     fontSize="2xs"

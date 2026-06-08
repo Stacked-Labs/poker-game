@@ -22,6 +22,7 @@ import {
     Th,
     Thead,
     Tr,
+    useBreakpointValue,
     useColorModeValue,
     usePrefersReducedMotion,
     VStack,
@@ -51,6 +52,11 @@ import {
     isFreePlay as getIsFreePlay,
     useCountdown,
 } from '../PublicGames/tournamentFormat';
+import {
+    identityFor,
+    TournamentDefaultAvatar,
+    TournamentDefaultCover,
+} from '../PublicGames/tournamentDefaults';
 
 // LeaderboardPlayer now lives in app/interfaces (shared with the live-tournament
 // state slice). Re-exported here so existing `from './TournamentDetail'` imports
@@ -156,12 +162,28 @@ export default function TournamentDetail({
     );
     const yellowText = useColorModeValue('brand.yellowDark', 'brand.yellow');
     const linkColor = useColorModeValue('brand.navy', 'brand.lightGray');
+    // Faint chip behind the back button so it stays legible over the ambient wash.
+    const navBackdrop = useColorModeValue(
+        'rgba(255, 255, 255, 0.6)',
+        'rgba(11, 20, 48, 0.4)'
+    );
+    // Page-bg-colored wash over the blurred banner. Tuned so the page clearly
+    // takes on the tournament's colors while text on the surface stays legible
+    // (cards are opaque on top). Lighter scrim = more of the image shows through.
+    const ambientScrim = useColorModeValue(
+        'rgba(236, 238, 245, 0.58)',
+        'rgba(25, 20, 20, 0.62)'
+    );
 
     const freePlay = getIsFreePlay(t);
     const tableSize = t.table_size || 9;
     const blindLabel = t.metadata?.blind_structure
         ? String(t.metadata.blind_structure)
         : 'turbo';
+    // Default branding (used when the host uploaded no logo/banner): the type's
+    // icon avatar + a card-suit cover wallpaper in the type's accent color.
+    const typeIdentity = identityFor(blindLabel);
+    const avatarSize = useBreakpointValue({ base: 96, md: 112 }) ?? 112;
 
     const now = new Date();
     const lateRegCloseAt = new Date(t.late_reg_close_at);
@@ -270,35 +292,133 @@ export default function TournamentDetail({
     );
 
     return (
-        <Box minH="100vh" bg="card.lightGray" pt={{ base: 20, md: 24 }} pb={16}>
-            <Container maxW="container.lg" px={{ base: 3, md: 6 }}>
-                <VStack spacing={{ base: 4, md: 6 }} align="stretch">
+        <Box
+            minH="100vh"
+            bg="card.lightGray"
+            pt={{ base: 20, md: 24 }}
+            pb={16}
+            position="relative"
+            overflow="hidden"
+        >
+            {/* Ambient background — a blurred wash of the uploaded banner so the
+                whole page takes on the tournament's vibe. Generated tournaments
+                keep the neutral page color. Cards stay opaque on top. */}
+            {t.banner_url && (
+                <Box
+                    aria-hidden
+                    position="absolute"
+                    inset={0}
+                    zIndex={0}
+                    pointerEvents="none"
+                    overflow="hidden"
+                >
+                    <Box
+                        position="absolute"
+                        inset={0}
+                        bgImage={`url(${t.banner_url})`}
+                        bgSize="cover"
+                        bgPosition="center"
+                        transform="scale(1.1)"
+                        filter="blur(32px) saturate(1.2)"
+                    />
+                    <Box position="absolute" inset={0} bg={ambientScrim} />
+                </Box>
+            )}
+            <Container
+                maxW="container.lg"
+                px={{ base: 3, md: 6 }}
+                position="relative"
+                zIndex={1}
+            >
+                <VStack spacing={{ base: 4, md: 5 }} align="stretch">
                     <Button
                         variant="tactileGhost"
                         size="sm"
                         alignSelf="flex-start"
                         leftIcon={<Icon as={FiArrowLeft} />}
                         onClick={onBack}
+                        bg={navBackdrop}
+                        backdropFilter="blur(8px)"
                     >
                         All tournaments
                     </Button>
 
-                    {/* Primary panel */}
+                    {/* Primary panel — X-profile-style: cover + overlapping avatar. */}
                     <Box
                         bg={cardBg}
                         borderWidth="1px"
                         borderColor={border}
                         borderRadius="16px"
                         boxShadow="card.lift"
-                        p={{ base: 4, md: 6 }}
+                        overflow="hidden"
                     >
-                        <VStack align="stretch" spacing={5}>
-                            {/* Title + status */}
+                        {/* Cover: uploaded banner, else a card-suit wallpaper in
+                            the type's accent color over the neutral surface. */}
+                        <Box
+                            h={{ base: '108px', md: '136px' }}
+                            position="relative"
+                            overflow="hidden"
+                        >
+                            {t.banner_url ? (
+                                <Image
+                                    src={t.banner_url}
+                                    alt=""
+                                    w="full"
+                                    h="full"
+                                    objectFit="cover"
+                                    loading="lazy"
+                                />
+                            ) : (
+                                <TournamentDefaultCover type={blindLabel} />
+                            )}
+                        </Box>
+
+                        <Box
+                            px={{ base: 4, md: 6 }}
+                            pb={{ base: 4, md: 5 }}
+                            position="relative"
+                            zIndex={1}
+                        >
+                            {/* Avatar (logo or initial) straddles the cover edge;
+                                status sits opposite, like an X profile. */}
                             <Flex
                                 justify="space-between"
                                 align="flex-start"
                                 gap={3}
                             >
+                                <Box
+                                    mt={{ base: '-50px', md: '-58px' }}
+                                    borderRadius="22px"
+                                    borderWidth="4px"
+                                    borderColor={cardBg}
+                                    bg={cardBg}
+                                    overflow="hidden"
+                                    lineHeight={0}
+                                    boxShadow="0 0 0 1px rgba(11, 20, 48, 0.10), 0 8px 24px rgba(11, 20, 48, 0.18)"
+                                    flexShrink={0}
+                                >
+                                    {t.logo_url ? (
+                                        <Image
+                                            src={t.logo_url}
+                                            alt=""
+                                            boxSize={`${avatarSize}px`}
+                                            objectFit="cover"
+                                        />
+                                    ) : (
+                                        <TournamentDefaultAvatar
+                                            type={blindLabel}
+                                            size={avatarSize}
+                                            aria-label={`${typeIdentity.label} tournament`}
+                                        />
+                                    )}
+                                </Box>
+                                <Box pt={3} flexShrink={0}>
+                                    <StatusPill status={t.status} />
+                                </Box>
+                            </Flex>
+
+                            <VStack align="stretch" spacing={4} mt={3}>
+                                {/* Name + format */}
                                 <VStack align="start" spacing={2} minW={0}>
                                     <Text
                                         as="h1"
@@ -325,9 +445,18 @@ export default function TournamentDetail({
                                     {!freePlay && t.chain && (
                                         <ChainBadge chain={t.chain} size="sm" />
                                     )}
+                                    {t.description?.trim() && (
+                                        <Text
+                                            color="text.secondary"
+                                            fontSize="sm"
+                                            lineHeight={1.5}
+                                            noOfLines={2}
+                                            pt={0.5}
+                                        >
+                                            {t.description}
+                                        </Text>
+                                    )}
                                 </VStack>
-                                <StatusPill status={t.status} />
-                            </Flex>
 
                             {/* Hero: money + timing */}
                             <Flex
@@ -493,6 +622,7 @@ export default function TournamentDetail({
                                 </>
                             )}
                         </VStack>
+                        </Box>
                     </Box>
 
                     {/* Desktop (lg+): two columns — standings (left) · payouts

@@ -12,12 +12,24 @@ import {
     Input,
     InputGroup,
     InputLeftElement,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalHeader,
+    ModalOverlay,
     Select,
     SimpleGrid,
     Spinner,
     Switch,
+    Table,
+    Tbody,
+    Td,
     Text,
+    Th,
+    Thead,
     Tooltip,
+    Tr,
     useColorModeValue,
     useDisclosure,
     VStack,
@@ -35,15 +47,37 @@ import {
     FiChevronDown,
     FiChevronLeft,
     FiChevronRight,
+    FiClock,
 } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import ModeChooser from './ModeChooser';
+import ImageUploadField from './ImageUploadField';
 import {
     formatUsdc,
     formatTournamentStart,
     formatCountdown,
 } from '@/app/components/PublicGames/tournamentFormat';
 import { USDC_BLUE, USDC_LOGO } from '@/app/components/PublicGames/types';
+import {
+    BLINDS_KEEP_RISING_NOTE,
+    bbAtLateRegClose,
+    getStructure,
+    startingBigBlinds,
+    templateLabel,
+} from '@/app/components/PublicGames/blindStructures';
+
+// Backend default tournament starting stack (200 BB at the 25/50 level). The
+// create form doesn't expose it yet, so the structure preview uses this.
+const DEFAULT_STARTING_STACK = 10_000;
+
+// Cumulative elapsed time when a level begins (levels are a fixed length each).
+function formatElapsed(mins: number): string {
+    if (mins <= 0) return 'Start';
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h === 0) return `${m}m`;
+    return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
 
 const GREEN_HEX = '#36A37B';
 const USDC_BLUE_EDGE = '#1F5FA3';
@@ -63,6 +97,10 @@ export interface CreateTournamentFormValues {
     maxPlayers: string;
     scheduledAt: string;
     passwordCode: string;
+    // Host branding (frontend preview only for now — backend upload + storage is
+    // a follow-up). Object-URL/string previews; empty when not set.
+    logoUrl?: string;
+    bannerUrl?: string;
 }
 
 export interface CreateTournamentFormProps {
@@ -660,6 +698,8 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     fundPhase = 'idle',
 }) => {
     const [name, setName] = useState('');
+    const [logoUrl, setLogoUrl] = useState<string | null>(null);
+    const [bannerUrl, setBannerUrl] = useState<string | null>(null);
     const [freePlay, setFreePlay] = useState(true);
     const [chain, setChain] = useState<'base' | 'base-sepolia'>(DEFAULT_CHAIN);
     const [buyInUsdc, setBuyInUsdc] = useState('10');
@@ -733,6 +773,17 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     );
     // Pick the AA-safe per-tier label shade for the active blind tile.
     const isDark = useColorModeValue(false, true);
+    const structureModal = useDisclosure();
+    const viewLinkColor = useColorModeValue('brand.greenDark', 'brand.green');
+    const zebraRow = useColorModeValue(
+        'rgba(11,20,48,0.025)',
+        'rgba(255,255,255,0.025)'
+    );
+    const lateWash = useColorModeValue(
+        'rgba(253,197,29,0.12)',
+        'rgba(253,197,29,0.14)'
+    );
+    const lateTagColor = useColorModeValue('brand.yellowEdge', 'brand.yellow');
     const segActiveBg = useColorModeValue(
         'card.white',
         'rgba(255,255,255,0.1)'
@@ -868,8 +919,26 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
             maxPlayers: capped ? maxPlayers : '',
             scheduledAt,
             passwordCode,
+            logoUrl: logoUrl ?? undefined,
+            bannerUrl: bannerUrl ?? undefined,
         });
     };
+
+    // Blind-structure preview (modal): reflects the selected speed + the chosen
+    // late-reg window against the default 200 BB start.
+    const previewLevels = getStructure(blindStructure);
+    const previewStartBB = startingBigBlinds(
+        DEFAULT_STARTING_STACK,
+        blindStructure
+    );
+    const previewLevelMin = MIN_PER_LEVEL[blindStructure];
+    const previewLateValid =
+        lateRegLevels > 0 && lateRegLevels <= previewLevels.length;
+    const previewCloseBB = bbAtLateRegClose(
+        DEFAULT_STARTING_STACK,
+        blindStructure,
+        lateRegLevels
+    );
 
     return (
         <VStack
@@ -903,6 +972,35 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             selectedMode={freePlay ? 'free' : 'real'}
                             onSelect={chooseMode}
                         />
+                    </Box>
+                    <Box>
+                        <FieldLabel hint="Give your tournament a custom look — shown on its lobby card and details page.">
+                            Branding
+                        </FieldLabel>
+                        <Flex
+                            direction={{ base: 'column', sm: 'row' }}
+                            gap={3}
+                            align="flex-start"
+                        >
+                            <Box flexShrink={0}>
+                                <ImageUploadField
+                                    variant="logo"
+                                    label="Logo"
+                                    hint="Square"
+                                    value={logoUrl}
+                                    onChange={setLogoUrl}
+                                />
+                            </Box>
+                            <Box flex="1" w="full">
+                                <ImageUploadField
+                                    variant="banner"
+                                    label="Background"
+                                    hint="Wide image works best (~3:1)"
+                                    value={bannerUrl}
+                                    onChange={setBannerUrl}
+                                />
+                            </Box>
+                        </Flex>
                     </Box>
                 </VStack>
             </SectionCard>
@@ -1295,9 +1393,27 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                     </Box>
 
                     <Box>
-                        <FieldLabel hint="How fast the blinds climb. Faster speeds (Hyper, Turbo) mean shorter games and quicker all-ins; Deep stacks play out longer.">
-                            Blind structure
-                        </FieldLabel>
+                        <Flex align="center" justify="space-between" gap={2}>
+                            <FieldLabel hint="How fast the blinds climb. Faster speeds (Hyper, Turbo) mean shorter games and quicker all-ins; Deep stacks play out longer.">
+                                Blind structure
+                            </FieldLabel>
+                            <Box
+                                as="button"
+                                type="button"
+                                onClick={structureModal.onOpen}
+                                display="inline-flex"
+                                alignItems="center"
+                                gap="5px"
+                                mb={1.5}
+                                fontSize="sm"
+                                fontWeight="semibold"
+                                color={viewLinkColor}
+                                _hover={{ textDecoration: 'underline' }}
+                            >
+                                <Icon as={FiClock} boxSize="13px" />
+                                View structure
+                            </Box>
+                        </Flex>
                         <SimpleGrid columns={{ base: 2, sm: 4 }} spacing={2}>
                             {BLIND_OPTIONS.map((opt) => {
                                 const active = blindStructure === opt.value;
@@ -1366,6 +1482,239 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             })}
                         </SimpleGrid>
                     </Box>
+
+                    <Modal
+                        isOpen={structureModal.isOpen}
+                        onClose={structureModal.onClose}
+                        isCentered
+                        scrollBehavior="inside"
+                        size={{ base: 'full', sm: 'lg' }}
+                    >
+                        <ModalOverlay
+                            bg="rgba(11, 20, 48, 0.6)"
+                            backdropFilter="blur(6px)"
+                        />
+                        <ModalContent borderRadius={{ base: 0, sm: '16px' }}>
+                            <ModalHeader pb={2}>
+                                <Text
+                                    fontWeight="bold"
+                                    fontSize="lg"
+                                    color="text.primary"
+                                >
+                                    Blind structure
+                                </Text>
+                                <Text
+                                    fontSize="xs"
+                                    color="text.muted"
+                                    fontWeight="normal"
+                                >
+                                    {templateLabel(blindStructure)} ·{' '}
+                                    {previewLevelMin}-min levels ·{' '}
+                                    {DEFAULT_STARTING_STACK.toLocaleString(
+                                        'en-US'
+                                    )}{' '}
+                                    start ({previewStartBB} BB)
+                                </Text>
+                            </ModalHeader>
+                            <ModalCloseButton />
+                            <ModalBody pb={6}>
+                                <VStack align="stretch" spacing={4}>
+                                    <SimpleGrid columns={4} spacing={2}>
+                                        {BLIND_OPTIONS.map((opt) => {
+                                            const active =
+                                                blindStructure === opt.value;
+                                            return (
+                                                <Box
+                                                    key={opt.value}
+                                                    as="button"
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setBlindStructure(
+                                                            opt.value
+                                                        )
+                                                    }
+                                                    textAlign="center"
+                                                    py={2}
+                                                    borderRadius="10px"
+                                                    borderWidth="1.5px"
+                                                    bg={
+                                                        active
+                                                            ? opt.tint
+                                                            : chipIdleBg
+                                                    }
+                                                    borderColor={
+                                                        active
+                                                            ? opt.color
+                                                            : 'transparent'
+                                                    }
+                                                    transition="background-color 140ms ease, border-color 140ms ease"
+                                                    _hover={
+                                                        active
+                                                            ? {}
+                                                            : {
+                                                                  borderColor:
+                                                                      opt.color,
+                                                              }
+                                                    }
+                                                    _focusVisible={{
+                                                        outline: '2px solid',
+                                                        outlineColor: opt.color,
+                                                        outlineOffset: '2px',
+                                                    }}
+                                                >
+                                                    <Text
+                                                        fontSize="sm"
+                                                        fontWeight="bold"
+                                                        color={
+                                                            active
+                                                                ? isDark
+                                                                    ? opt.textDark
+                                                                    : opt.textLight
+                                                                : 'text.primary'
+                                                        }
+                                                    >
+                                                        {opt.label}
+                                                    </Text>
+                                                </Box>
+                                            );
+                                        })}
+                                    </SimpleGrid>
+
+                                    <Text
+                                        fontSize="xs"
+                                        color="text.secondary"
+                                        lineHeight={1.5}
+                                    >
+                                        {previewLateValid
+                                            ? `Late registration closes after level ${lateRegLevels} — about ${
+                                                  lateRegLevels * previewLevelMin
+                                              } min in (~${previewCloseBB} BB).`
+                                            : 'Late registration is off — the field locks at the start.'}
+                                    </Text>
+
+                                    <Box overflowX="auto">
+                                        <Table
+                                            size="sm"
+                                            variant="simple"
+                                            sx={{
+                                                'th, td': {
+                                                    borderColor: dividerColor,
+                                                },
+                                            }}
+                                        >
+                                            <Thead>
+                                                <Tr>
+                                                    <Th>Level</Th>
+                                                    <Th isNumeric>Blinds</Th>
+                                                    <Th isNumeric>Ante</Th>
+                                                    <Th isNumeric>Elapsed</Th>
+                                                </Tr>
+                                            </Thead>
+                                            <Tbody>
+                                                {previewLevels.map((l, i) => {
+                                                    const isLateClose =
+                                                        previewLateValid &&
+                                                        l.level === lateRegLevels;
+                                                    return (
+                                                        <Tr
+                                                            key={l.level}
+                                                            bg={
+                                                                isLateClose
+                                                                    ? lateWash
+                                                                    : i % 2 === 1
+                                                                      ? zebraRow
+                                                                      : undefined
+                                                            }
+                                                        >
+                                                            <Td color="text.primary">
+                                                                <HStack
+                                                                    spacing={2}
+                                                                >
+                                                                    <Text
+                                                                        as="span"
+                                                                        color="text.primary"
+                                                                        sx={{
+                                                                            fontVariantNumeric:
+                                                                                'tabular-nums',
+                                                                        }}
+                                                                    >
+                                                                        {l.level}
+                                                                    </Text>
+                                                                    {isLateClose && (
+                                                                        <Text
+                                                                            as="span"
+                                                                            fontSize="2xs"
+                                                                            fontWeight="bold"
+                                                                            color={
+                                                                                lateTagColor
+                                                                            }
+                                                                            textTransform="uppercase"
+                                                                            letterSpacing="0.05em"
+                                                                        >
+                                                                            late
+                                                                            reg
+                                                                            ends
+                                                                        </Text>
+                                                                    )}
+                                                                </HStack>
+                                                            </Td>
+                                                            <Td
+                                                                isNumeric
+                                                                color="text.primary"
+                                                                sx={{
+                                                                    fontVariantNumeric:
+                                                                        'tabular-nums',
+                                                                }}
+                                                            >
+                                                                {l.sb.toLocaleString(
+                                                                    'en-US'
+                                                                )}
+                                                                /
+                                                                {l.bb.toLocaleString(
+                                                                    'en-US'
+                                                                )}
+                                                            </Td>
+                                                            <Td
+                                                                isNumeric
+                                                                color="text.muted"
+                                                                sx={{
+                                                                    fontVariantNumeric:
+                                                                        'tabular-nums',
+                                                                }}
+                                                            >
+                                                                {l.ante === 0
+                                                                    ? '—'
+                                                                    : l.ante.toLocaleString(
+                                                                          'en-US'
+                                                                      )}
+                                                            </Td>
+                                                            <Td
+                                                                isNumeric
+                                                                color="text.secondary"
+                                                                sx={{
+                                                                    fontVariantNumeric:
+                                                                        'tabular-nums',
+                                                                }}
+                                                            >
+                                                                {formatElapsed(
+                                                                    i *
+                                                                        previewLevelMin
+                                                                )}
+                                                            </Td>
+                                                        </Tr>
+                                                    );
+                                                })}
+                                            </Tbody>
+                                        </Table>
+                                    </Box>
+
+                                    <Text fontSize="2xs" color="text.muted">
+                                        {BLINDS_KEEP_RISING_NOTE}
+                                    </Text>
+                                </VStack>
+                            </ModalBody>
+                        </ModalContent>
+                    </Modal>
 
                     <Box>
                         <FieldLabel hint="A grace window after the start where players can still join with a full stack. Re-entries (in Advanced) use this same window.">

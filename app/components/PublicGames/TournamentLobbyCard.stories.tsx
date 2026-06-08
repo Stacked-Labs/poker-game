@@ -107,3 +107,28 @@ export const SyncingRegistration: Story = {
         },
     },
 };
+
+// Host branding: custom background banner + logo (community-hosted look).
+export const BrandedWithBanner: Story = {
+    args: {
+        tournament: {
+            ...realMoneyOpen,
+            id: 9901,
+            name: 'Degen Collective Invitational',
+            logo_url: '/IconLogo.png',
+            banner_url: '/video/bgplaceholder-1920x1080.png',
+        },
+    },
+};
+
+// Host branding: logo only (no background uploaded).
+export const BrandedLogoOnly: Story = {
+    args: {
+        tournament: {
+            ...realMoneyOpen,
+            id: 9902,
+            name: 'Night Owls League',
+            logo_url: '/IconMain.png',
+        },
+    },
+};

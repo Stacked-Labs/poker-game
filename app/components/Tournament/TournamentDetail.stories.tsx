@@ -338,3 +338,19 @@ export const EmergencySafetyNet: Story = {
         }),
     },
 };
+
+// Host branding: custom banner + logo on the detail hero (community-hosted look).
+export const RunningBranded: Story = {
+    args: {
+        ...Running.args,
+        tournament: makeTournament({
+            ...(Running.args!.tournament as object),
+            id: 109,
+            name: 'Degen Collective Invitational',
+            description:
+                'Weekly community deepstack hosted by the Degen Collective. Re-entries open through level 6; last one standing takes the lion’s share of the pool.',
+            logo_url: '/IconLogo.png',
+            banner_url: '/video/bgplaceholder-1920x1080.png',
+        } as Parameters<typeof makeTournament>[0]),
+    },
+};

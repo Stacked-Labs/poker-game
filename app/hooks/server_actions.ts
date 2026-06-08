@@ -632,6 +632,10 @@ export interface Tournament {
     ended_at?: string;
     settlement_tx_hash?: string;
     settlement_status?: 'paid' | 'pending';
+    // Host branding (optional). Populated once the backend stores uploaded
+    // images; the UI falls back to the default look when absent.
+    logo_url?: string;
+    banner_url?: string;
 }
 
 export async function listTournaments(): Promise<{ tournaments: Tournament[] }> {

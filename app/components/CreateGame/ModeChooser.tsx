@@ -98,7 +98,7 @@ export default function ModeChooser({
                     hoverTint={blueTintHover}
                     title="Real Money"
                     body="Stakes in USDC on Base. Settles on-chain in under 5 seconds."
-                    proof="Hosts earn 25% of the rake."
+                    proof="Hosts earn 25% of the platform fee."
                     icon={
                         <Image
                             src="/usdc-logo.png"

@@ -1904,7 +1904,7 @@ function HostPanel({
 
             {t.status === 'completed' && !freePlay && (
                 <HStack justify="space-between" flexWrap="wrap" gap={3}>
-                    <Stat label="Your rake earnings">
+                    <Stat label="Your platform fee earnings">
                         {hostRakeUsdc === null ||
                         hostRakeUsdc === undefined ? (
                             <HStack spacing={2}>

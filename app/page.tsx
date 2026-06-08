@@ -17,14 +17,14 @@ import CoinGecko from './components/HomePage/CoinGeckoClient';
 export const metadata: Metadata = {
     title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',
     description:
-        'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no KYC, no account.',
+        'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no account.',
     icons: {
         icon: '/favicon.ico',
     },
     openGraph: {
         title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',
         description:
-            'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no KYC, no account.',
+            'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no account.',
         url: 'https://stackedpoker.io/',
         siteName: 'Stacked Poker',
         images: [
@@ -41,10 +41,10 @@ export const metadata: Metadata = {
     twitter: {
         title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',
         description:
-            'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no KYC, no account.',
+            'Play Texas Hold\'em in your browser with friends. Free play, or real stakes in USDC on Base. No downloads, no account.',
         images: ['https://stackedpoker.io/previews/home_preview.png'],
     },
-    keywords: ["poker, online poker, Texas Hold'em, USDC, Base, crypto poker, no signup, no KYC"],
+    keywords: ["poker, online poker, Texas Hold'em, USDC, Base, crypto poker, no signup"],
     alternates: {
         canonical: 'https://stackedpoker.io/',
     },

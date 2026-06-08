@@ -185,12 +185,12 @@ export const StatsTab = ({
                         <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>chips · 30 d</Text>
                     </Box>
                     <Box>
-                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Avg Rake / Hand</Text>
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Avg Fee / Hand</Text>
                         <Text fontSize="2xl" fontWeight="extrabold" color="brand.pink" sx={tabular}>{fmtPot(d?.avg_rake_per_hand_30d)}</Text>
                         <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>chips · 30 d</Text>
                     </Box>
                     <Box>
-                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Median Rake / Hand</Text>
+                        <Text fontSize="xs" color="text.secondary" fontWeight="medium" mb={1} _dark={{ color: 'whiteAlpha.700' }}>Median Fee / Hand</Text>
                         <Text fontSize="2xl" fontWeight="extrabold" color="brand.pink" sx={tabular}>{fmtPot(d?.median_rake_30d)}</Text>
                         <Text fontSize="xs" color="text.secondary" mt={1} _dark={{ color: 'whiteAlpha.600' }}>chips · 30 d</Text>
                     </Box>
@@ -272,8 +272,8 @@ export const StatsTab = ({
                             <Tr {...rakeRowBg}>
                                 <Td fontSize="sm" fontWeight="semibold" border="none" pl={0}>
                                     <HStack gap={1.5}>
-                                        <Badge bg="brand.pink" color="white" fontSize="xs" px={1.5} borderRadius="full">Rake</Badge>
-                                        <Text color="text.primary">Platform Rake (USDC)</Text>
+                                        <Badge bg="brand.pink" color="white" fontSize="xs" px={1.5} borderRadius="full">Fee</Badge>
+                                        <Text color="text.primary">Platform Fees (USDC)</Text>
                                     </HStack>
                                 </Td>
                                 <Td fontSize="sm" fontWeight="bold" border="none" isNumeric color="brand.pink" sx={tabular}>{activityRake ? `$${activityRake.rake24hUsdc}` : '—'}</Td>

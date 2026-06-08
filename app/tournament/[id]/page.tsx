@@ -272,7 +272,7 @@ export default function TournamentPage() {
 
     const handleClaimRake = async () => {
         const ok = await claimRake();
-        if (ok) toast.success('Rake claimed!');
+        if (ok) toast.success('Platform fee claimed!');
         else toast.error('Claim failed');
     };
 

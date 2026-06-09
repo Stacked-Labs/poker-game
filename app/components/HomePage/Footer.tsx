@@ -75,7 +75,7 @@ const Footer = () => {
                                 <SocialIconButton tone="x" />
                             </Link>
                             <Link
-                                href="https://discord.gg/FdzHKPESVd"
+                                href="https://discord.gg/xdaC5gRP4E"
                                 isExternal
                             >
                                 <SocialIconButton tone="discord" />
@@ -190,7 +190,7 @@ const Footer = () => {
                             Support
                         </Text>
                         <Link
-                            href="https://discord.gg/FdzHKPESVd"
+                            href="https://discord.gg/xdaC5gRP4E"
                             isExternal
                             color="text.secondary"
                             fontSize="sm"

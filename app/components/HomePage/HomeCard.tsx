@@ -673,7 +673,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                     <SocialIconButton tone="x" chipSize="lg" />
                                 </Link>
                                 <Link
-                                    href="https://discord.gg/FdzHKPESVd"
+                                    href="https://discord.gg/xdaC5gRP4E"
                                     isExternal
                                 >
                                     <SocialIconButton tone="discord" chipSize="lg" />

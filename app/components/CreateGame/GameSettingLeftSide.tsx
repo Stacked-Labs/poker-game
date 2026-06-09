@@ -1804,7 +1804,7 @@ const GameSettingLeftSide: React.FC = () => {
                                                 />
                                             </Link>
                                             <Link
-                                                href="https://discord.gg/FdzHKPESVd"
+                                                href="https://discord.gg/xdaC5gRP4E"
                                                 isExternal
                                             >
                                                 <SocialIconButton

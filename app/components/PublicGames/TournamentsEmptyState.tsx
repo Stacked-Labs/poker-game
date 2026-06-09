@@ -15,7 +15,7 @@ import { FiPlus } from 'react-icons/fi';
 import { SocialIconButton } from '../SocialIconButton';
 
 const X_URL = 'https://x.com/stacked_poker';
-const DISCORD_URL = 'https://discord.gg/347RBVcvpn';
+const DISCORD_URL = 'https://discord.gg/FdzHKPESVd';
 
 interface TournamentsEmptyStateProps {
     /** Where the "Host a tournament" CTA points. Defaults to the create-game page. */

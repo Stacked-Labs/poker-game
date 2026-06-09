@@ -39,7 +39,7 @@ const FAQSection = () => {
                 <>
                     {faq.answer}{' '}
                     <Link
-                        href="https://discord.gg/347RBVcvpn"
+                        href="https://discord.gg/FdzHKPESVd"
                         isExternal
                         textDecoration="none"
                         fontWeight="semibold"

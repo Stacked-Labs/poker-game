@@ -83,7 +83,7 @@ const HomeNavBar: React.FC = () => {
             </Button>
             <Button
                 as="a"
-                href="https://discord.gg/347RBVcvpn"
+                href="https://discord.gg/FdzHKPESVd"
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="navLink"
@@ -92,7 +92,7 @@ const HomeNavBar: React.FC = () => {
             </Button>
             <Button
                 as="a"
-                href="https://discord.gg/347RBVcvpn"
+                href="https://discord.gg/FdzHKPESVd"
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="navLink"
@@ -494,7 +494,7 @@ const HomeNavBar: React.FC = () => {
                                 </Button>
                                 <Button
                                     as="a"
-                                    href="https://discord.gg/347RBVcvpn"
+                                    href="https://discord.gg/FdzHKPESVd"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={onClose}
@@ -552,7 +552,7 @@ const HomeNavBar: React.FC = () => {
                                 </Button>
                                 <Button
                                     as="a"
-                                    href="https://discord.gg/347RBVcvpn"
+                                    href="https://discord.gg/FdzHKPESVd"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={onClose}
@@ -652,7 +652,7 @@ const HomeNavBar: React.FC = () => {
                                     />
                                 </Link>
                                 <Link
-                                    href="https://discord.gg/347RBVcvpn"
+                                    href="https://discord.gg/FdzHKPESVd"
                                     isExternal
                                 >
                                     <SocialIconButton

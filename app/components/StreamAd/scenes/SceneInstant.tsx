@@ -66,7 +66,7 @@ export default function SceneInstant() {
                     <>
                         No signup.
                         <br />
-                        No <Highlight>KYC</Highlight>. Just poker.
+                        Just <Highlight>poker</Highlight>.
                     </>
                 }
                 sub={

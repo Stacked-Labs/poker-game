@@ -374,7 +374,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                             </Text>
 
                             <HStack spacing={2} flexWrap="wrap" justify="center">
-                                {['NO SIGNUP', 'NO KYC', 'BUILT ON BASE'].map((label) => (
+                                {['NO SIGNUP', 'BUILT ON BASE'].map((label) => (
                                     <HStack
                                         key={label}
                                         spacing={1.5}
@@ -673,7 +673,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                     <SocialIconButton tone="x" chipSize="lg" />
                                 </Link>
                                 <Link
-                                    href="https://discord.gg/347RBVcvpn"
+                                    href="https://discord.gg/FdzHKPESVd"
                                     isExternal
                                 >
                                     <SocialIconButton tone="discord" chipSize="lg" />

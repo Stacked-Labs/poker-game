@@ -57,7 +57,7 @@ export default function SceneHero() {
                         the clock. Real Texas Hold&apos;em. Real USDC on Base.
                     </>
                 }
-                badges={['No signup', 'No KYC', 'Built on Base']}
+                badges={['No signup', 'Built on Base']}
                 badgeTone="green"
             />
 

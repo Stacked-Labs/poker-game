@@ -91,7 +91,7 @@ const HowTo = () => {
                             lineHeight="tall"
                         >
                             Your wallet is your account. There&apos;s no email
-                            signup, password, or KYC step. You connect, sign a
+                            signup or password step. You connect, sign a
                             message to prove the wallet is yours, and you&apos;re
                             in.
                         </Text>
@@ -336,7 +336,7 @@ const HowTo = () => {
                         >
                             Hosting means you create the table and run the
                             game. You set the rules, decide who plays, and earn
-                            a share of the rake on every hand that settles.
+                            a share of the platform fee on every hand that settles.
                         </Text>
                         <UnorderedList
                             spacing={2.5}
@@ -372,7 +372,7 @@ const HowTo = () => {
                             <ListItem>
                                 <TitleText>Collect host rewards</TitleText>{' '}
                                 <Text as="span" color="text.muted">
-                                    — a portion of the rake goes to the host.
+                                    — a portion of the platform fee goes to the host.
                                     You can collect it at any time from the
                                     Withdraw panel; it pays out in USDC on
                                     Base.

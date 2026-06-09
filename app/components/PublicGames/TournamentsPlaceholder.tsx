@@ -15,7 +15,7 @@ import { keyframes } from '@emotion/react';
 import { SocialIconButton } from '../SocialIconButton';
 
 const X_URL = 'https://x.com/stacked_poker';
-const DISCORD_URL = 'https://discord.gg/347RBVcvpn';
+const DISCORD_URL = 'https://discord.gg/FdzHKPESVd';
 
 // Ghost cards mirror the eventual PublicGameCard shape so the eye reads
 // "this is where tournaments will live" — not "marketing pitch."

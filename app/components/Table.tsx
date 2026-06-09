@@ -259,7 +259,7 @@ const Table = ({ tableId }: { tableId: string }) => {
         ) {
             return false;
         }
-        return player.position === appState.game.action;
+        return player.position === appState.game.action && player.in;
     };
 
     const isPlayerWinner = (player: Player): boolean => {

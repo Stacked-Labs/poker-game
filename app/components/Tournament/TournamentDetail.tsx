@@ -124,14 +124,17 @@ export interface TournamentDetailProps {
     onClaimRefund?: () => void;
     onEnableEmergencyRefund?: () => void;
     onBack?: () => void;
-    /** Host-only inline edits (frontend skeleton; backend persistence is a
-     *  follow-up). Called with the new value so a parent can persist it. */
+    /** Host-only inline edits. Called with the new value so the parent can
+     *  persist it via PATCH /api/tournaments/:id. */
     onUpdateBranding?: (patch: {
         logo_url?: string | null;
         banner_url?: string | null;
     }) => void;
     onUpdateDescription?: (description: string) => void;
     onUpdateLinks?: (links: CommunityLinkValues) => void;
+    /** Host-only: upload a branding image. Resolves once stored + persisted;
+     *  rejects (so the editor reverts its preview) on failure. */
+    onUploadImage?: (kind: 'logo' | 'banner', file: File) => Promise<void>;
 }
 
 const dotPulse = keyframes`
@@ -176,7 +179,7 @@ function shortAddr(a: string): string {
 // prompt on hover/focus) plus a menu to replace or remove. Frontend skeleton:
 // it reads the chosen file into an object URL for preview and hands it back via
 // onPick; the real upload + persistence is a backend follow-up.
-const MAX_IMAGE_MB = 5;
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 function HostImageEditor({
     canEdit,
@@ -184,6 +187,9 @@ function HostImageEditor({
     label,
     rounded,
     coverArea = false,
+    maxMb = 5,
+    uploading = false,
+    onSelectFile,
     onPick,
     onRemove,
     children,
@@ -193,6 +199,13 @@ function HostImageEditor({
     label: string;
     rounded: string;
     coverArea?: boolean;
+    /** Size cap in MB enforced client-side before upload. */
+    maxMb?: number;
+    /** True while the chosen file is uploading; shows a spinner overlay. */
+    uploading?: boolean;
+    /** Real upload path: hand the chosen File to the parent. When provided it
+     *  supersedes onPick (which is the object-URL preview fallback). */
+    onSelectFile?: (file: File) => void;
     onPick: (url: string) => void;
     onRemove: () => void;
     children: ReactNode;
@@ -204,15 +217,16 @@ function HostImageEditor({
 
     const handleFile = (file?: File | null) => {
         if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            toast.error('Please choose an image file');
+        if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+            toast.error('Please choose a PNG, JPEG, or WebP image');
             return;
         }
-        if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
-            toast.error(`Image must be under ${MAX_IMAGE_MB} MB`);
+        if (file.size > maxMb * 1024 * 1024) {
+            toast.error(`Image must be under ${maxMb} MB`);
             return;
         }
-        onPick(URL.createObjectURL(file));
+        if (onSelectFile) onSelectFile(file);
+        else onPick(URL.createObjectURL(file));
     };
 
     if (!canEdit) return <>{children}</>;
@@ -225,11 +239,25 @@ function HostImageEditor({
             {...(coverArea ? { w: 'full', h: 'full' } : {})}
         >
             {children}
+            {uploading && (
+                <Flex
+                    position="absolute"
+                    inset={0}
+                    align="center"
+                    justify="center"
+                    borderRadius={rounded}
+                    bg={scrim}
+                    zIndex={2}
+                >
+                    <Spinner color="white" size={coverArea ? 'md' : 'sm'} />
+                </Flex>
+            )}
             <input
                 ref={inputRef}
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp"
                 hidden
+                disabled={uploading}
                 onChange={(e) => {
                     handleFile(e.target.files?.[0]);
                     e.target.value = '';
@@ -552,6 +580,7 @@ export default function TournamentDetail({
     onUpdateBranding,
     onUpdateDescription,
     onUpdateLinks,
+    onUploadImage,
 }: TournamentDetailProps) {
     const cardBg = useColorModeValue('white', 'card.darkNavy');
     const border = useColorModeValue(
@@ -609,10 +638,9 @@ export default function TournamentDetail({
     const isHost =
         !!myWallet && t.host_wallet?.toLowerCase() === myWallet.toLowerCase();
 
-    // Host inline editing (frontend skeleton — a backend dev wires persistence
-    // later). Optimistic local overrides so edits show immediately and the
-    // Storybook preview works without a parent handler; the change is also
-    // forwarded through the optional callbacks for when the backend exists.
+    // Host inline editing. Optimistic local overrides so edits show immediately
+    // (and the Storybook preview works without a parent handler); changes are
+    // forwarded through the callbacks the parent uses to persist.
     // `undefined` = untouched (use the prop); `null` = explicitly cleared.
     const [logoOverride, setLogoOverride] = useState<string | null | undefined>(
         undefined
@@ -623,6 +651,8 @@ export default function TournamentDetail({
     const [descOverride, setDescOverride] = useState<string | undefined>(
         undefined
     );
+    const [logoUploading, setLogoUploading] = useState(false);
+    const [bannerUploading, setBannerUploading] = useState(false);
 
     const logoUrl = logoOverride !== undefined ? logoOverride : t.logo_url ?? null;
     const bannerUrl =
@@ -630,6 +660,8 @@ export default function TournamentDetail({
     const description =
         descOverride !== undefined ? descOverride : t.description ?? '';
 
+    // Clearing routes through onUpdateBranding (the parent PATCHes an empty
+    // string); setting goes through uploadBranding below.
     const updateLogo = (url: string | null) => {
         setLogoOverride(url);
         onUpdateBranding?.({ logo_url: url });
@@ -637,6 +669,31 @@ export default function TournamentDetail({
     const updateBanner = (url: string | null) => {
         setBannerOverride(url);
         onUpdateBranding?.({ banner_url: url });
+    };
+
+    // Upload a chosen branding image: show an instant object-URL preview, then
+    // upload via the parent (which persists and refreshes the tournament prop).
+    // On success we drop the override so the persisted URL shows; on failure we
+    // revert to the last persisted value (the parent surfaces the error).
+    const uploadBranding = async (
+        kind: 'logo' | 'banner',
+        file: File,
+        setOverride: (v: string | null | undefined) => void,
+        setUploading: (v: boolean) => void
+    ) => {
+        const preview = URL.createObjectURL(file);
+        setOverride(preview);
+        if (!onUploadImage) return; // no backend wired (e.g. Storybook): keep preview
+        setUploading(true);
+        try {
+            await onUploadImage(kind, file);
+            setOverride(undefined);
+        } catch {
+            setOverride(undefined);
+        } finally {
+            setUploading(false);
+            URL.revokeObjectURL(preview);
+        }
     };
     const updateDescription = (text: string) => {
         setDescOverride(text);
@@ -847,6 +904,16 @@ export default function TournamentDetail({
                                 label="banner"
                                 rounded="0"
                                 coverArea
+                                maxMb={5}
+                                uploading={bannerUploading}
+                                onSelectFile={(file) =>
+                                    uploadBranding(
+                                        'banner',
+                                        file,
+                                        setBannerOverride,
+                                        setBannerUploading
+                                    )
+                                }
                                 onPick={updateBanner}
                                 onRemove={() => updateBanner(null)}
                             >
@@ -889,6 +956,16 @@ export default function TournamentDetail({
                                         hasImage={!!logoUrl}
                                         label="logo"
                                         rounded="18px"
+                                        maxMb={2}
+                                        uploading={logoUploading}
+                                        onSelectFile={(file) =>
+                                            uploadBranding(
+                                                'logo',
+                                                file,
+                                                setLogoOverride,
+                                                setLogoUploading
+                                            )
+                                        }
                                         onPick={updateLogo}
                                         onRemove={() => updateLogo(null)}
                                     >

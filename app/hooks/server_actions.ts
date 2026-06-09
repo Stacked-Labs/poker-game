@@ -687,6 +687,54 @@ export async function createTournament(data: {
     return res.json();
 }
 
+// Host-only partial update of a tournament's cosmetic fields (description,
+// community links, branding image URLs). Only the provided fields are changed;
+// an empty string clears a link/branding value. Matches PATCH /api/tournaments/:id.
+export async function updateTournament(
+    id: number,
+    patch: {
+        description?: string;
+        logo_url?: string | null;
+        banner_url?: string | null;
+        x_url?: string | null;
+        website_url?: string | null;
+        discord_url?: string | null;
+        telegram_url?: string | null;
+        chart_url?: string | null;
+    }
+): Promise<{ tournament: Tournament }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// Host-only branding image upload (logo or banner). Sends the raw file as
+// multipart; the backend validates type/size, stores it, persists the resulting
+// URL on the tournament, and returns the updated tournament. Matches
+// POST /api/tournaments/:id/branding.
+export async function uploadTournamentBranding(
+    id: number,
+    kind: 'logo' | 'banner',
+    file: File
+): Promise<{ tournament: Tournament }> {
+    isBackendUrlValid();
+    const form = new FormData();
+    form.append(kind, file);
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/branding`, {
+        method: 'POST',
+        credentials: 'include',
+        body: form,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
 export async function openTournamentRegistration(id: number): Promise<void> {
     isBackendUrlValid();
     const res = await fetch(`${backendUrl}/api/tournaments/${id}/open-registration`, {

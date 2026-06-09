@@ -24,6 +24,8 @@ import {
     getTournamentClock,
     getTournamentLeaderboard,
     getMyTournamentRegistrations,
+    updateTournament,
+    uploadTournamentBranding,
 } from '../../hooks/server_actions';
 import type { Tournament } from '../../hooks/server_actions';
 import { useRegisterForTournament } from '../../hooks/useRegisterForTournament';
@@ -35,6 +37,7 @@ import { useFundTournamentGuarantee } from '../../hooks/useFundTournamentGuarant
 import { CHAIN_CONFIG } from '../../thirdwebclient';
 import TournamentDetail, {
     type LeaderboardPlayer,
+    type CommunityLinkValues,
 } from '../../components/Tournament/TournamentDetail';
 
 async function hashPasswordCode(code: string): Promise<string> {
@@ -121,7 +124,6 @@ export default function TournamentPage() {
             setTournament(tData.tournament);
             if (lbData?.live === false && Array.isArray(lbData.results)) {
                 // Completed tournament: map DB results to the unified player shape.
-                // TODO(backend): add x_username + x_profile_image_url to leaderboard to light up avatars/handles.
                 setPlayers(
                     lbData.results.map(
                         (
@@ -129,6 +131,8 @@ export default function TournamentPage() {
                                 wallet_address: string;
                                 finish_position: number;
                                 prize_usdc: number;
+                                xUsername?: string | null;
+                                xProfileImageUrl?: string | null;
                             },
                             i: number
                         ) => ({
@@ -138,6 +142,8 @@ export default function TournamentPage() {
                             finish_pos: r.finish_position,
                             table_index: -1,
                             prize_usdc: r.prize_usdc,
+                            xUsername: r.xUsername,
+                            xProfileImageUrl: r.xProfileImageUrl,
                         })
                     )
                 );
@@ -270,6 +276,79 @@ export default function TournamentPage() {
         }
     };
 
+    // Host-only cosmetic edits. Each persists via PATCH and folds the returned
+    // tournament back into state so the change survives a reload. TournamentDetail
+    // applies the value optimistically; on failure we resync from the server.
+    const persistTournamentPatch = async (
+        patch: Parameters<typeof updateTournament>[1],
+        successMsg: string
+    ) => {
+        try {
+            const { tournament: updated } = await updateTournament(id, patch);
+            setTournament(updated);
+            toast.success(successMsg);
+        } catch (error) {
+            toast.error(
+                'Save failed',
+                error instanceof Error ? error.message : 'Could not save changes.'
+            );
+            load(); // resync from server truth
+        }
+    };
+
+    const handleUpdateDescription = (description: string) => {
+        persistTournamentPatch({ description }, 'Description updated');
+    };
+
+    const handleUpdateBranding = (patch: {
+        logo_url?: string | null;
+        banner_url?: string | null;
+    }) => {
+        // The editor sends null to clear; the backend clears on empty string and
+        // leaves omitted fields unchanged — so forward only the provided key(s),
+        // mapping null → '' to clear.
+        const body: { logo_url?: string; banner_url?: string } = {};
+        if ('logo_url' in patch) body.logo_url = patch.logo_url ?? '';
+        if ('banner_url' in patch) body.banner_url = patch.banner_url ?? '';
+        persistTournamentPatch(body, 'Branding updated');
+    };
+
+    const handleUploadImage = async (
+        kind: 'logo' | 'banner',
+        file: File
+    ) => {
+        try {
+            const { tournament: updated } = await uploadTournamentBranding(
+                id,
+                kind,
+                file
+            );
+            setTournament(updated);
+            toast.success(kind === 'logo' ? 'Logo updated' : 'Banner updated');
+        } catch (error) {
+            toast.error(
+                'Upload failed',
+                error instanceof Error ? error.message : 'Could not upload image.'
+            );
+            throw error; // let TournamentDetail revert its optimistic preview
+        }
+    };
+
+    const handleUpdateLinks = (links: CommunityLinkValues) => {
+        // The editor omits cleared links; send all five keys (missing → '') so a
+        // removed link is actually cleared server-side rather than left untouched.
+        persistTournamentPatch(
+            {
+                x_url: links.x_url ?? '',
+                website_url: links.website_url ?? '',
+                discord_url: links.discord_url ?? '',
+                telegram_url: links.telegram_url ?? '',
+                chart_url: links.chart_url ?? '',
+            },
+            'Community links updated'
+        );
+    };
+
     const handleClaimRake = async () => {
         const ok = await claimRake();
         if (ok) toast.success('Platform fee claimed!');
@@ -366,6 +445,10 @@ export default function TournamentPage() {
                 onClaimRefund={handleClaimRefund}
                 onEnableEmergencyRefund={handleEnableEmergencyRefund}
                 onBack={() => router.push('/public-games?format=tournaments')}
+                onUpdateDescription={handleUpdateDescription}
+                onUpdateBranding={handleUpdateBranding}
+                onUpdateLinks={handleUpdateLinks}
+                onUploadImage={handleUploadImage}
             />
 
             <Modal

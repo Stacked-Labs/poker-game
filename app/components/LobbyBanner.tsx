@@ -213,7 +213,7 @@ const LobbyBanner = () => {
                         <Link href="https://x.com/stacked_poker" isExternal>
                             <SocialIconButton tone="x" chipSize="lg" />
                         </Link>
-                        <Link href="https://discord.gg/347RBVcvpn" isExternal>
+                        <Link href="https://discord.gg/FdzHKPESVd" isExternal>
                             <SocialIconButton tone="discord" chipSize="lg" />
                         </Link>
                         <Link href="https://t.me/stackedpoker" isExternal>

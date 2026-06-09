@@ -8,8 +8,7 @@ import {
     mockAppState,
 } from '../Tournament/tournamentMocks';
 
-// Minimal game stub — AnteChip only reads running / stage / config.tournament.ante
-// (and config.bb/crypto via useFormatAmount).
+// Minimal game stub — AnteChip only reads running / stage / config.tournament.ante.
 function makeGame(over: {
     running?: boolean;
     stage?: number;
@@ -77,6 +76,19 @@ export const DeepLevelLargeAnte: Story = {
     render: () => (
         <MockAppStateProvider
             state={mockAppState({ game: makeGame({ ante: 24000 }) })}
+        >
+            <Board>
+                <AnteChip />
+            </Board>
+        </MockAppStateProvider>
+    ),
+};
+
+// Late-tournament antes reach the millions — the amount abbreviates to "2M".
+export const UltraDeepMillionAnte: Story = {
+    render: () => (
+        <MockAppStateProvider
+            state={mockAppState({ game: makeGame({ ante: 2_000_000 }) })}
         >
             <Board>
                 <AnteChip />

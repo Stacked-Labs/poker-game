@@ -85,8 +85,9 @@ export interface LeaderboardPlayer {
     table_index: number;
     bullet_number?: number;
     prize_usdc?: number;
-    // X identity, populated once the backend adds it to the leaderboard payload
-    // (the global leaderboard already returns these). Optional until then.
+    // X identity from the tournament leaderboard payload (xUsername / xProfileImageUrl),
+    // matching the global leaderboard convention. Optional — absent for players who
+    // have not linked an X account.
     xUsername?: string | null;
     xProfileImageUrl?: string | null;
 }

@@ -61,6 +61,22 @@ function withX(
     return { ...p, xUsername, xProfileImageUrl: xProfileImageUrl ?? null };
 }
 
+// Registration-phase roster: a mix of X-identified and bare-wallet sign-ups,
+// with the viewer (ME) among them. registered_count exceeds the list to show
+// the face-pile "+N" overflow behaviour.
+const REGISTRANTS: LeaderboardPlayer[] = [
+    withX(alive(ME, 0), 'degen_dan', px(5)),
+    withX(alive(addr(0x21), 0), 'allin_alice', px(32)),
+    withX(alive(addr(0x22), 0), 'whale_watcher', px(12)),
+    alive(addr(0x23), 0),
+    withX(alive(addr(0x24), 0), 'pocket_rockets', px(15)),
+    withX(alive(addr(0x25), 0), 'river_rat', px(20)),
+    alive(addr(0x26), 0),
+    withX(alive(addr(0x27), 0), 'nina_v', px(33)),
+    alive(addr(0x28), 0),
+    withX(alive(addr(0x29), 0), 'cryptojoe', px(45)),
+];
+
 const meta = {
     title: 'Tournament/TournamentDetail',
     component: TournamentDetail,
@@ -77,6 +93,7 @@ export const Registering: Story = {
         myWallet: ME,
         isRegistered: false,
         players: [],
+        registrants: REGISTRANTS,
         tournament: makeTournament({
             id: 101,
             name: 'Sunday Major',

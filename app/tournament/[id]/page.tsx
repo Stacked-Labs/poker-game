@@ -58,6 +58,7 @@ export default function TournamentPage() {
 
     const [tournament, setTournament] = useState<Tournament | null>(null);
     const [players, setPlayers] = useState<LeaderboardPlayer[]>([]);
+    const [registrants, setRegistrants] = useState<LeaderboardPlayer[]>([]);
     const [loading, setLoading] = useState(true);
     const [isRegistered, setIsRegistered] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
@@ -122,8 +123,37 @@ export default function TournamentPage() {
                     : Promise.resolve({ tournament_ids: [], finish_pos: {} }),
             ]);
             setTournament(tData.tournament);
-            if (lbData?.live === false && Array.isArray(lbData.results)) {
+            if (Array.isArray(lbData?.registrants)) {
+                // Registration phase: nobody is in the field yet, but we have
+                // the list of who's signed up. Standings stay empty.
+                setPlayers([]);
+                setRegistrants(
+                    lbData.registrants.map(
+                        (
+                            r: {
+                                uuid: string;
+                                wallet: string;
+                                xUsername?: string | null;
+                                xProfileImageUrl?: string | null;
+                            },
+                            i: number
+                        ) => ({
+                            uuid: r.uuid || r.wallet + i,
+                            wallet: r.wallet,
+                            stack: 0,
+                            finish_pos: 0,
+                            table_index: -1,
+                            xUsername: r.xUsername,
+                            xProfileImageUrl: r.xProfileImageUrl,
+                        })
+                    )
+                );
+            } else if (
+                lbData?.live === false &&
+                Array.isArray(lbData.results)
+            ) {
                 // Completed tournament: map DB results to the unified player shape.
+                setRegistrants([]);
                 setPlayers(
                     lbData.results.map(
                         (
@@ -148,6 +178,7 @@ export default function TournamentPage() {
                     )
                 );
             } else {
+                setRegistrants([]);
                 setPlayers(lbData?.players ?? []);
             }
             setIsRegistered(new Set(regsData.tournament_ids).has(id));
@@ -167,7 +198,9 @@ export default function TournamentPage() {
     }, [id, myWallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
-        const interval = setInterval(() => { load(); }, 60_000);
+        const interval = setInterval(() => {
+            load();
+        }, 60_000);
         return () => clearInterval(interval);
     }, [id, myWallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -290,7 +323,9 @@ export default function TournamentPage() {
         } catch (error) {
             toast.error(
                 'Save failed',
-                error instanceof Error ? error.message : 'Could not save changes.'
+                error instanceof Error
+                    ? error.message
+                    : 'Could not save changes.'
             );
             load(); // resync from server truth
         }
@@ -313,10 +348,7 @@ export default function TournamentPage() {
         persistTournamentPatch(body, 'Branding updated');
     };
 
-    const handleUploadImage = async (
-        kind: 'logo' | 'banner',
-        file: File
-    ) => {
+    const handleUploadImage = async (kind: 'logo' | 'banner', file: File) => {
         try {
             const { tournament: updated } = await uploadTournamentBranding(
                 id,
@@ -328,7 +360,9 @@ export default function TournamentPage() {
         } catch (error) {
             toast.error(
                 'Upload failed',
-                error instanceof Error ? error.message : 'Could not upload image.'
+                error instanceof Error
+                    ? error.message
+                    : 'Could not upload image.'
             );
             throw error; // let TournamentDetail revert its optimistic preview
         }
@@ -409,6 +443,7 @@ export default function TournamentPage() {
             <TournamentDetail
                 tournament={tournament}
                 players={players}
+                registrants={registrants}
                 myWallet={myWallet}
                 isRegistered={isRegistered}
                 blindLevel={blindLevel}

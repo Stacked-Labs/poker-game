@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { usePrefersReducedMotion } from '@chakra-ui/react';
 import type { Tournament } from '../../hooks/server_actions';
 
 // Tournament money is stored as 6-decimal micro-USDC integers. Cash blinds use a
@@ -64,6 +65,79 @@ export function useCountdown(targetIso: string, tickMs = 30_000) {
         isPast: ready && diffMs <= 0,
         label: ready ? formatCountdown(diffMs) : '',
     };
+}
+
+// Zero-pad a single time part to two digits (e.g. 7 -> "07").
+function pad2(n: number): string {
+    return n < 10 ? `0${n}` : `${n}`;
+}
+
+// Like useCountdown, but inside the final minute it ticks every second and shows
+// mm:ss (e.g. "01:23"), so a player watching the bar sees the seconds drain. At
+// or past the deadline it reads "00:00" and then "now". When the player prefers
+// reduced motion we skip the sub-minute ticking entirely and show a static
+// "< 1m" so nothing animates. Outside the final minute it reuses the existing
+// 30s tick and the standard formatCountdown label.
+export function useCountdownWithSeconds(targetIso: string) {
+    const prefersReducedMotion = usePrefersReducedMotion();
+
+    // Self-rescheduling tick: 1s only inside the final minute (where the seconds
+    // actually drain), otherwise 30s. This banner is mounted app-wide, so a blanket
+    // 1Hz timer would wake the main thread every second for days; the adaptive
+    // cadence keeps it cheap on mobile. Reduced-motion users never need 1s ticks.
+    const [now, setNow] = useState<number | null>(null);
+    const target = new Date(targetIso).getTime();
+    const valid = !Number.isNaN(target);
+
+    useEffect(() => {
+        if (!valid) return;
+        let id: ReturnType<typeof setTimeout>;
+        const tick = () => {
+            const n = Date.now();
+            setNow(n);
+            const diff = target - n;
+            const next =
+                !prefersReducedMotion && diff > 0 && diff <= 60_000
+                    ? 1_000
+                    : 30_000;
+            id = setTimeout(tick, next);
+        };
+        tick();
+        return () => clearTimeout(id);
+    }, [target, valid, prefersReducedMotion]);
+
+    const ready = now !== null && valid;
+    const diffMs = ready ? target - (now as number) : 0;
+    const isPast = ready && diffMs <= 0;
+
+    if (!ready) return { ready, diffMs, isPast, label: '' };
+
+    const inFinalMinute = diffMs <= 60_000;
+
+    if (inFinalMinute) {
+        if (prefersReducedMotion) {
+            return {
+                ready,
+                diffMs,
+                isPast,
+                label: diffMs <= 0 ? 'now' : '< 1m',
+            };
+        }
+        if (diffMs <= 0) {
+            return { ready, diffMs, isPast, label: 'now' };
+        }
+        const totalSeconds = Math.floor(diffMs / 1_000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return {
+            ready,
+            diffMs,
+            isPast,
+            label: `${pad2(minutes)}:${pad2(seconds)}`,
+        };
+    }
+
+    return { ready, diffMs, isPast, label: formatCountdown(diffMs) };
 }
 
 export type StatusTone = 'open' | 'live' | 'done' | 'cancelled' | 'setup' | 'refund';

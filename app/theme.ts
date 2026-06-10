@@ -178,6 +178,42 @@ const semanticTokens = {
             _dark: 'rgba(255, 255, 255, 0.08)',
         },
 
+        // Tournament reminder surfaces — adaptive, unlike the always-dark felt.
+        // Warm paper in light mode, penthouse felt in dark. The countdown "chip"
+        // sits raised on top with a tactile edge; state chips tint green (soon).
+        'reminder.surface': {
+            default: '#FAF9F6',
+            _dark: 'brand.darkNavy',
+        },
+        'reminder.border': {
+            default: 'rgba(11, 20, 48, 0.08)',
+            _dark: 'rgba(255, 255, 255, 0.08)',
+        },
+        'reminder.chipBg': {
+            default: '#FFFFFF',
+            _dark: 'rgba(255, 255, 255, 0.06)',
+        },
+        'reminder.chipBorder': {
+            default: 'rgba(11, 20, 48, 0.10)',
+            _dark: 'rgba(255, 255, 255, 0.12)',
+        },
+        'reminder.chipEdge': {
+            default: 'rgba(11, 20, 48, 0.14)',
+            _dark: 'rgba(0, 0, 0, 0.45)',
+        },
+        'reminder.soonBg': {
+            default: 'rgba(54, 163, 123, 0.12)',
+            _dark: 'rgba(54, 163, 123, 0.18)',
+        },
+        'reminder.soonText': {
+            default: 'brand.greenDark',
+            _dark: 'brand.green',
+        },
+        'reminder.lateRegText': {
+            default: 'brand.yellowDark',
+            _dark: 'brand.yellow',
+        },
+
         // Input
         'input.white': {
             default: 'white',

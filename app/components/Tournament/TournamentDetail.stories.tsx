@@ -112,6 +112,31 @@ export const Registering: Story = {
     },
 };
 
+// Buy-in only — no guarantee, no prize pool yet. MoneyHero shows the buy-in as its
+// headline, so the separate "Buy-in" stat must NOT also render (no double "buy in"
+// before the tournament starts). Regression guard.
+export const RegisteringBuyInOnly: Story = {
+    args: {
+        myWallet: ME,
+        isRegistered: false,
+        players: [],
+        tournament: makeTournament({
+            id: 107,
+            name: 'Test run crypto tourney',
+            buy_in_usdc: 10_000, // $0.01
+            min_entries: 2,
+            max_entries: 100000,
+            registered_count: 6,
+            reentry_allowed: true,
+            reentry_max: 1,
+            scheduled_start_at: hours(0.02),
+            chain: 'base',
+            contract_address: addr(0x57),
+            metadata: { blind_structure: 'hyper' },
+        }),
+    },
+};
+
 // Same, but the viewer is already registered (locked in / can unregister).
 export const RegisteredAndWaiting: Story = {
     args: {
@@ -291,6 +316,47 @@ export const Completed: Story = {
             settlement_tx_hash: addr(0xee) + 'abcd',
             settlement_status: 'paid',
             metadata: { blind_structure: 'regular' },
+        }),
+    },
+};
+
+// Re-entry tournament: prize_pool_usdc froze at start (7 bullets), but 3 re-entries
+// grew the real on-chain pool to $4,825. The realized per-player prize_usdc (which
+// the contract paid) sum to that pool and are 50/30/20-shaped. The Payouts ladder
+// must follow the realized total — matching the Final standings — not the stale
+// $3,377.50 it was started with. Regression guard for the start-frozen-pool bug.
+const REENTRY_FINAL_PLAYERS: LeaderboardPlayer[] = [
+    withX(finished(addr(0x21), 1, 2_412_500_000), 'allin_alice', px(32)),
+    finished(addr(0x22), 2, 1_447_500_000),
+    withX(finished(ME, 3, 965_000_000), 'degen_dan', px(5)),
+    finished(addr(0x24), 4),
+    finished(addr(0x25), 5),
+    finished(addr(0x26), 6),
+    finished(addr(0x27), 7),
+];
+
+export const CompletedWithReentries: Story = {
+    args: {
+        myWallet: ME,
+        isRegistered: true,
+        players: REENTRY_FINAL_PLAYERS,
+        tournament: makeTournament({
+            id: 106,
+            name: 'Re-entry Rumble',
+            buy_in_usdc: 500_000_000,
+            prize_pool_usdc: 3_377_500_000, // stale: frozen at start, 7 bullets
+            min_entries: 6,
+            max_entries: 200,
+            registered_count: 10, // 10 bullets, 7 unique players
+            status: 'completed',
+            scheduled_start_at: hours(-26),
+            started_at: hours(-26),
+            ended_at: hours(-21),
+            chain: 'base',
+            contract_address: addr(0xdd),
+            settlement_tx_hash: addr(0xee) + 'cdef',
+            settlement_status: 'paid',
+            metadata: { blind_structure: 'hyper' },
         }),
     },
 };

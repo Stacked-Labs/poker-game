@@ -160,6 +160,16 @@ const valuePop = keyframes`
     50%  { transform: scale(1.07); }
     100% { transform: scale(1); }
 `;
+// Cashout strip (refund / payouts): a gentle rise-in, plus a one-time coin flip
+// on the currency mark — a small poker-table wink as your money comes back.
+const cashoutIn = keyframes`
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+`;
+const coinFlip = keyframes`
+    from { transform: rotateY(0deg); }
+    to   { transform: rotateY(360deg); }
+`;
 
 function formatDuration(ms: number): string {
     const h = Math.floor(ms / 3_600_000);
@@ -748,6 +758,17 @@ export default function TournamentDetail({
 
     const registeredCount = t.registered_count ?? players.length;
 
+    // MoneyHero shows the buy-in as its headline only when there's nothing bigger to
+    // show yet — no guarantee, no prize pool, and no final top prize. In that case
+    // the separate "Buy-in" stat beside it is a duplicate ("buy in" twice before the
+    // tournament starts), so hide it. Once the headline becomes a pool/top-prize
+    // figure, the Buy-in stat is meaningful again and reappears.
+    const heroShowsBuyIn =
+        !freePlay &&
+        (t.guarantee_usdc ?? 0) <= 0 &&
+        (t.prize_pool_usdc ?? 0) <= 0 &&
+        !(t.status === 'completed' && (winner?.prize_usdc ?? 0) > 0);
+
     // Your live/final place, to flag your row in the payout ladder.
     const myLadderPos =
         myPlayer && (t.status === 'running' || t.status === 'completed')
@@ -805,6 +826,27 @@ export default function TournamentDetail({
         t.status === 'pending' ||
         t.status === 'running' ||
         t.status === 'completed';
+    // Prize pool for the ladder. Live/upcoming tournaments use the projected pool;
+    // a completed one uses the realized on-chain payouts (sum of prize_usdc), because
+    // tournament.prize_pool_usdc was frozen at start and misses re-entry buy-ins — the
+    // projected ladder would understate and disagree with the Final standings (which
+    // read prize_usdc). The backend now also persists the realized pool into
+    // prize_pool_usdc at settlement, so the two normally agree; we still derive it
+    // here so the ladder stays exact even if a single per-winner prize write lagged —
+    // the one case the frontend sum and the stored pool can differ. Only reduce when
+    // completed (the value is unused otherwise).
+    const projectedPoolUsdc = Math.max(
+        t.prize_pool_usdc ?? 0,
+        t.guarantee_usdc ?? 0
+    );
+    let ladderPoolUsdc = projectedPoolUsdc;
+    if (t.status === 'completed') {
+        const realizedPoolUsdc = players.reduce(
+            (sum, p) => sum + (p.prize_usdc ?? 0),
+            0
+        );
+        if (realizedPoolUsdc > 0) ladderPoolUsdc = realizedPoolUsdc;
+    }
     const payoutsEl = showPayouts ? (
         <PayoutLadder
             entrants={
@@ -812,10 +854,7 @@ export default function TournamentDetail({
                    backend; registeredCount counts bullet entries. */
                 players.length || registeredCount
             }
-            prizePoolUsdc={Math.max(
-                t.prize_pool_usdc ?? 0,
-                t.guarantee_usdc ?? 0
-            )}
+            prizePoolUsdc={ladderPoolUsdc}
             isFreePlay={freePlay}
             status={t.status}
             highlightPosition={myLadderPos}
@@ -1093,7 +1132,7 @@ export default function TournamentDetail({
                                             blindLevel={blindLevel}
                                             playersLeft={playersLeft}
                                         />
-                                        {!freePlay && (
+                                        {!freePlay && !heroShowsBuyIn && (
                                             <Stat label="Buy-in">
                                                 <HStack spacing={1}>
                                                     <Image
@@ -1234,6 +1273,31 @@ export default function TournamentDetail({
                                         />
                                     </Flex>
 
+                                    {/* Terminal-state strip — claim your refund
+                                    (cancelled / emergency) or see where the prizes
+                                    went (completed). Lives in the hero so it's the
+                                    first thing a returning player sees, not buried
+                                    under the blind structure at the bottom. */}
+                                    {(t.status === 'cancelled' ||
+                                        t.status === 'emergency_refund') &&
+                                        !freePlay &&
+                                        t.contract_address && (
+                                            <RefundPanel
+                                                status={t.status}
+                                                refund={refund}
+                                                myWallet={myWallet}
+                                                onClaimRefund={onClaimRefund}
+                                            />
+                                        )}
+                                    {t.status === 'completed' &&
+                                        !freePlay &&
+                                        t.contract_address && (
+                                            <PayoutsPanel
+                                                tournament={t}
+                                                linkColor={linkColor}
+                                            />
+                                        )}
+
                                     {/* Host controls — host-only, folded into the main
                                 card instead of a separate panel below. */}
                                     {isHost && (
@@ -1301,33 +1365,6 @@ export default function TournamentDetail({
                                 border={border}
                             />
                         </Box>
-
-                        {/* Payouts (completed) */}
-                        {t.status === 'completed' &&
-                            !freePlay &&
-                            t.contract_address && (
-                                <PayoutsPanel
-                                    tournament={t}
-                                    cardBg={cardBg}
-                                    border={border}
-                                    linkColor={linkColor}
-                                />
-                            )}
-
-                        {/* Refund (cancelled / emergency) */}
-                        {(t.status === 'cancelled' ||
-                            t.status === 'emergency_refund') &&
-                            !freePlay &&
-                            t.contract_address && (
-                                <RefundPanel
-                                    status={t.status}
-                                    refund={refund}
-                                    myWallet={myWallet}
-                                    onClaimRefund={onClaimRefund}
-                                    cardBg={cardBg}
-                                    border={border}
-                                />
-                            )}
 
                         {/* Emergency safety net (running) */}
                         {t.status === 'running' &&
@@ -1913,11 +1950,17 @@ function PlayersBar({
                         bg={isUsdc ? USDC_BLUE : 'brand.green'}
                         opacity={0.9}
                         transformOrigin="left center"
-                        transition="width 0.3s ease"
+                        transition="width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                         sx={{
-                            animation: prefersReducedMotion
-                                ? undefined
-                                : `${fillGrow} 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both`,
+                            // Grow-in only while the bar is FILLING toward the cap
+                            // (registration). A running tournament's bar DEPLETES as
+                            // players bust; growing from empty up to a low remaining
+                            // fraction reads as "stuck partway", so render it at its
+                            // level and let the width transition animate depletion.
+                            animation:
+                                prefersReducedMotion || liveRemaining
+                                    ? undefined
+                                    : `${fillGrow} 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both`,
                         }}
                     >
                         {!prefersReducedMotion && fillRatio > 0.04 && (
@@ -2525,205 +2568,197 @@ function Standings({
     );
 }
 
+// Completed-state cashout, right-aligned inside the hero — no container, matches
+// RefundPanel's geometry. Green once prizes settle on-chain, warm while settling.
 function PayoutsPanel({
     tournament: t,
-    cardBg,
-    border,
     linkColor,
 }: {
     tournament: Tournament;
-    cardBg: string;
-    border: string;
     linkColor: string;
 }) {
+    const prefersReducedMotion = usePrefersReducedMotion();
     const settled = !!t.settlement_tx_hash;
-    const okBg = useColorModeValue(
-        'rgba(54, 163, 123, 0.10)',
-        'rgba(54, 163, 123, 0.18)'
-    );
-    const pendBg = useColorModeValue(
-        'rgba(237, 137, 54, 0.12)',
-        'rgba(237, 137, 54, 0.20)'
-    );
-    const pendFg = useColorModeValue('orange.600', 'orange.300');
+    const orangeFg = useColorModeValue('orange.600', 'orange.300');
+    const enter = prefersReducedMotion
+        ? undefined
+        : `${cashoutIn} 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both`;
+
     return (
-        <Box
-            bg={cardBg}
-            borderWidth="1px"
-            borderColor={border}
-            borderRadius="14px"
-            p={{ base: 4, md: 5 }}
-        >
-            <VStack align="stretch" spacing={2}>
-                <Text
-                    fontSize="2xs"
-                    fontWeight="bold"
-                    color="text.muted"
-                    textTransform="uppercase"
-                    letterSpacing="0.08em"
-                >
-                    Payouts
-                </Text>
-                {settled ? (
-                    <HStack spacing={2} fontSize="sm" flexWrap="wrap">
-                        <Box
-                            bg={okBg}
-                            color="brand.green"
-                            fontSize="2xs"
-                            fontWeight="bold"
-                            px={2}
-                            py="2px"
-                            borderRadius="full"
-                            textTransform="uppercase"
-                            letterSpacing="0.06em"
+        <VStack alignSelf="flex-end" align="end" spacing={0.5} animation={enter}>
+            <Text
+                fontSize="2xs"
+                fontWeight="bold"
+                color={settled ? 'brand.green' : orangeFg}
+                textTransform="uppercase"
+                letterSpacing="0.1em"
+            >
+                Payouts
+            </Text>
+            {settled ? (
+                <HStack spacing={2.5} justify="flex-end" flexWrap="wrap">
+                    <HStack spacing={1.5}>
+                        <Icon as={FiCheck} boxSize="15px" color="brand.green" />
+                        <Text
+                            fontSize="sm"
+                            fontWeight="semibold"
+                            color="text.primary"
                         >
                             Prizes distributed
-                        </Box>
-                        <Box
-                            as="a"
-                            href={`${explorerBase(t.chain)}/tx/${t.settlement_tx_hash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            fontFamily="mono"
-                            fontSize="xs"
-                            display="inline-flex"
-                            alignItems="center"
-                            gap="3px"
-                            color={linkColor}
-                            _hover={{
-                                color: 'brand.green',
-                                textDecoration: 'underline',
-                            }}
-                        >
-                            {t.settlement_tx_hash!.slice(0, 10)}…
-                            {t.settlement_tx_hash!.slice(-8)}
-                            <Icon as={FiExternalLink} boxSize="10px" />
-                        </Box>
-                    </HStack>
-                ) : (
-                    <HStack spacing={2} fontSize="sm" flexWrap="wrap">
-                        <Box
-                            bg={pendBg}
-                            color={pendFg}
-                            fontSize="2xs"
-                            fontWeight="bold"
-                            px={2}
-                            py="2px"
-                            borderRadius="full"
-                            textTransform="uppercase"
-                            letterSpacing="0.06em"
-                        >
-                            Settling
-                        </Box>
-                        <Text fontSize="xs" color="text.muted">
-                            Prizes are being distributed on-chain, this usually
-                            takes a moment.
                         </Text>
                     </HStack>
-                )}
-            </VStack>
-        </Box>
+                    <Box
+                        as="a"
+                        href={`${explorerBase(t.chain)}/tx/${t.settlement_tx_hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        fontFamily="mono"
+                        fontSize="xs"
+                        display="inline-flex"
+                        alignItems="center"
+                        gap="3px"
+                        color={linkColor}
+                        _hover={{
+                            color: 'brand.green',
+                            textDecoration: 'underline',
+                        }}
+                    >
+                        {t.settlement_tx_hash!.slice(0, 10)}…
+                        {t.settlement_tx_hash!.slice(-8)}
+                        <Icon as={FiExternalLink} boxSize="10px" />
+                    </Box>
+                </HStack>
+            ) : (
+                <Text
+                    fontSize="sm"
+                    color="text.muted"
+                    textAlign="right"
+                    maxW="320px"
+                >
+                    Prizes are being distributed on-chain, this usually takes a
+                    moment.
+                </Text>
+            )}
+        </VStack>
     );
 }
 
+// Terminal-state cashout, right-aligned inside the hero where the live-state
+// action button lives — no container of its own; the green button anchors it.
+// The hero's StatusPill already says CANCELLED, so we drop the redundant tag and
+// lead with the money + claim action.
 function RefundPanel({
     status,
     refund,
     myWallet,
     onClaimRefund,
-    cardBg,
-    border,
 }: {
     status: string;
     refund?: RefundState;
     myWallet?: string;
     onClaimRefund?: () => void;
-    cardBg: string;
-    border: string;
 }) {
     const r = refund ?? {};
-    const tagBg = useColorModeValue(
-        'rgba(237, 137, 54, 0.12)',
-        'rgba(237, 137, 54, 0.20)'
-    );
-    const tagFg = useColorModeValue('orange.600', 'orange.300');
-    return (
-        <Box
-            bg={cardBg}
-            borderWidth="1px"
-            borderColor={border}
-            borderRadius="14px"
-            p={{ base: 4, md: 5 }}
+    const prefersReducedMotion = usePrefersReducedMotion();
+    const headFg = useColorModeValue('orange.600', 'orange.300');
+    const heading =
+        status === 'emergency_refund' ? 'Emergency refund' : 'Your refund';
+    const enter = prefersReducedMotion
+        ? undefined
+        : `${cashoutIn} 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both`;
+
+    const kicker = (
+        <Text
+            fontSize="2xs"
+            fontWeight="bold"
+            color={headFg}
+            textTransform="uppercase"
+            letterSpacing="0.1em"
         >
-            <VStack align="stretch" spacing={3}>
-                <Box
-                    alignSelf="flex-start"
-                    bg={tagBg}
-                    color={tagFg}
-                    fontSize="2xs"
-                    fontWeight="bold"
-                    px={2}
-                    py="2px"
-                    borderRadius="full"
-                    textTransform="uppercase"
-                    letterSpacing="0.06em"
-                >
-                    {status === 'emergency_refund'
-                        ? 'Refunds open'
-                        : 'Tournament cancelled'}
-                </Box>
-                {!myWallet ? (
-                    <Text fontSize="sm" color="text.muted">
-                        Connect your wallet to check your refund.
-                    </Text>
-                ) : r.loading ? (
-                    <HStack spacing={2}>
-                        <Spinner size="xs" />
-                        <Text fontSize="sm" color="text.muted">
-                            Checking your refund…
+            {heading}
+        </Text>
+    );
+
+    // The main event: money waiting, with the claim CTA beside it.
+    if (myWallet && !r.loading && !r.alreadyClaimed && r.eligible) {
+        return (
+            <Flex
+                alignSelf="flex-end"
+                align="center"
+                gap={{ base: 3, md: 5 }}
+                flexWrap="wrap"
+                justify="flex-end"
+                animation={enter}
+            >
+                <VStack align="end" spacing={0}>
+                    {kicker}
+                    <HStack spacing={1.5}>
+                        <Image
+                            src={USDC_LOGO}
+                            alt=""
+                            boxSize="18px"
+                            animation={
+                                prefersReducedMotion
+                                    ? undefined
+                                    : `${coinFlip} 0.7s ease-out 0.2s both`
+                            }
+                        />
+                        <Text
+                            fontWeight="extrabold"
+                            fontSize="xl"
+                            color={USDC_BLUE}
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {r.estimatedUsdc != null
+                                ? `$${formatUsdc(r.estimatedUsdc)}`
+                                : 'Pro-rata'}
+                        </Text>
+                        <Text fontSize="xs" color="text.muted">
+                            {r.estimatedUsdc != null ? 'refundable' : 'available'}
                         </Text>
                     </HStack>
-                ) : r.alreadyClaimed ? (
+                </VStack>
+                <Button
+                    variant="tactilePrimary"
+                    size="md"
+                    minH="44px"
+                    isLoading={r.claiming}
+                    loadingText="Claiming…"
+                    onClick={onClaimRefund}
+                >
+                    Claim refund
+                </Button>
+            </Flex>
+        );
+    }
+
+    // Quiet states (no wallet / loading / already claimed / not eligible): the
+    // kicker over a single right-aligned line, still no container.
+    return (
+        <VStack alignSelf="flex-end" align="end" spacing={0.5} animation={enter}>
+            {kicker}
+            {r.loading ? (
+                <HStack spacing={2}>
+                    <Spinner size="xs" />
                     <Text fontSize="sm" color="text.muted">
-                        Your buy-in refund has been claimed.
+                        Checking your refund…
                     </Text>
-                ) : r.eligible ? (
-                    <HStack spacing={3} flexWrap="wrap">
-                        <HStack spacing={1}>
-                            <Image src={USDC_LOGO} alt="" boxSize="14px" />
-                            <Text
-                                fontWeight="bold"
-                                color={USDC_BLUE}
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                {r.estimatedUsdc != null
-                                    ? `$${formatUsdc(r.estimatedUsdc)}`
-                                    : 'Pro-rata refund'}
-                            </Text>
-                            <Text fontSize="xs" color="text.muted">
-                                {r.estimatedUsdc != null
-                                    ? 'refundable'
-                                    : 'available'}
-                            </Text>
-                        </HStack>
-                        <Button
-                            variant="tactilePrimary"
-                            size="md"
-                            minH="44px"
-                            isLoading={r.claiming}
-                            loadingText="Claiming…"
-                            onClick={onClaimRefund}
-                        >
-                            Claim refund
-                        </Button>
-                    </HStack>
-                ) : (
-                    <Text fontSize="sm" color="text.muted">
-                        You weren’t registered in this tournament.
+                </HStack>
+            ) : r.alreadyClaimed ? (
+                <HStack spacing={1.5}>
+                    <Icon as={FiCheck} boxSize="15px" color="brand.green" />
+                    <Text fontSize="sm" color="text.secondary">
+                        Refund claimed.
                     </Text>
-                )}
-            </VStack>
-        </Box>
+                </HStack>
+            ) : (
+                <Text fontSize="sm" color="text.muted" textAlign="right">
+                    {!myWallet
+                        ? 'Connect your wallet to check your refund.'
+                        : 'You weren’t registered in this tournament.'}
+                </Text>
+            )}
+        </VStack>
     );
 }
 

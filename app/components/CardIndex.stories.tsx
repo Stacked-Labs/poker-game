@@ -175,11 +175,11 @@ export const AllCards: Story = {
 
             <Divider />
 
-            <SectionTitle sub="Shown face-down. Default is Classic Blue.">
+            <SectionTitle sub="Shown face-down. Default is Classic Red.">
                 Default card back
             </SectionTitle>
             <Box w={`${CARD_W}px`} sx={{ borderRadius: '10%', overflow: 'hidden' }}>
-                <CardBack variant="classic-blue" idSuffix="-card-index-default" />
+                <CardBack variant="classic-red" idSuffix="-card-index-default" />
             </Box>
         </Box>
     ),

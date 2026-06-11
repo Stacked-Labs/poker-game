@@ -428,7 +428,7 @@ const CardBack = ({
     highlighted = false,
     dimmed = false,
     folded = false,
-    variant = 'classic-blue',
+    variant = 'classic-red',
     idSuffix = '',
 }: {
     highlighted?: boolean;
@@ -437,7 +437,7 @@ const CardBack = ({
     variant?: CardBackVariant;
     idSuffix?: string;
 }) => {
-    const design = cardBackDesigns[variant] ?? cardBackDesigns['classic-blue'];
+    const design = cardBackDesigns[variant] ?? cardBackDesigns['classic-red'];
     const patternId = `cardTexture-${variant}${idSuffix}`;
 
     return (

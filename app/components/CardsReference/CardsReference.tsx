@@ -28,8 +28,8 @@ const CARD_BACKS: { title: string; decks: { variant: CardBackVariant; label: str
     {
         title: 'Classic',
         decks: [
-            { variant: 'classic-blue', label: 'Blue (default)' },
-            { variant: 'classic-red', label: 'Red' },
+            { variant: 'classic-red', label: 'Red (default)' },
+            { variant: 'classic-blue', label: 'Blue' },
             { variant: 'classic-green', label: 'Green' },
             { variant: 'classic-black', label: 'Black' },
             { variant: 'classic-burgundy', label: 'Burgundy' },
@@ -181,7 +181,7 @@ const DeckPanel = ({
 const CardBacksPanel = () => (
     <Panel
         title="Card backs"
-        desc="Every shipping deck back. Players choose one in Settings → Display. Classic Blue is the default."
+        desc="Every shipping deck back. Players choose one in Settings → Display. Classic Red is the default."
     >
         <VStack spacing={7} align="stretch">
             {CARD_BACKS.map((group) => (

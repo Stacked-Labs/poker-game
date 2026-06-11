@@ -81,6 +81,7 @@ export default function TournamentResultModal({
                     placesPaid={placesPaid(fieldSize)}
                     isFreePlay={meta.isFreePlay}
                     tournamentName={meta.name}
+                    tournamentId={tournamentId}
                     settlementTxUrl={settlementTxUrl}
                     reentry={
                         canReenter

@@ -331,8 +331,9 @@ export default function TournamentPage() {
                 toast.error("You're not seated in this tournament");
                 return;
             }
-            router.push(
-                `/table/tournament-${id}-table-${entry.table_index + 1}`
+            window.open(
+                `/table/tournament-${id}-table-${entry.table_index + 1}`,
+                '_blank'
             );
         } catch {
             toast.error('Could not find your table');

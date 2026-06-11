@@ -15,6 +15,31 @@ export function formatUsdc(micro: number, opts: { decimals?: number } = {}): str
     });
 }
 
+// Amounts at or above this (in dollars) get abbreviated so a hero prize display
+// never overflows a narrow card. Below it, exact cents are shown.
+const COMPACT_USDC_THRESHOLD = 100_000;
+
+export function isLargeUsdc(micro: number): boolean {
+    return (micro ?? 0) / MICRO >= COMPACT_USDC_THRESHOLD;
+}
+
+// Compact display for hero prize numbers: "$120k", "$1.2M". Returns the exact
+// formatUsdc string for anything below the threshold.
+export function formatUsdcCompact(micro: number): string {
+    const value = (micro ?? 0) / MICRO;
+    if (value >= 1_000_000) {
+        return `${(value / 1_000_000)
+            .toLocaleString(undefined, { maximumFractionDigits: 2 })
+            .replace(/\.0+$/, '')}M`;
+    }
+    if (value >= COMPACT_USDC_THRESHOLD) {
+        return `${(value / 1_000)
+            .toLocaleString(undefined, { maximumFractionDigits: 1 })
+            .replace(/\.0$/, '')}k`;
+    }
+    return formatUsdc(micro);
+}
+
 export function isFreePlay(t: Tournament): boolean {
     return (t.buy_in_usdc ?? 0) === 0;
 }

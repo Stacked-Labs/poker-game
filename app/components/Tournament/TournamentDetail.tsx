@@ -1207,7 +1207,7 @@ export default function TournamentDetail({
                                         </Text>
                                     )}
 
-                                    {/* Footer: contract details (left), action (right) */}
+                                    {/* Footer: contract details (left), action or payout status (right) */}
                                     <Flex
                                         justify="space-between"
                                         align="center"
@@ -1262,33 +1262,39 @@ export default function TournamentDetail({
                                         ) : (
                                             <Box />
                                         )}
-                                        <PrimaryActions
-                                            status={t.status}
-                                            isRegistered={isRegistered}
-                                            isEliminated={isEliminated}
-                                            canRegister={canRegister}
-                                            canLateReg={canLateReg}
-                                            canUnregister={canUnregister}
-                                            canReenter={canReenter}
-                                            freePlay={freePlay}
-                                            myWallet={myWallet}
-                                            actionLoading={actionLoading}
-                                            actionLabel={actionLabel}
-                                            goToTableLoading={goToTableLoading}
-                                            bulletsUsed={bulletsUsed}
-                                            reentryMax={t.reentry_max}
-                                            buyInUsdc={t.buy_in_usdc}
-                                            onRegister={onRegister}
-                                            onUnregister={onUnregister}
-                                            onGoToTable={onGoToTable}
-                                        />
+                                        {t.status === 'completed' &&
+                                        !freePlay &&
+                                        t.contract_address ? (
+                                            <PayoutsPanel
+                                                tournament={t}
+                                                linkColor={linkColor}
+                                            />
+                                        ) : (
+                                            <PrimaryActions
+                                                status={t.status}
+                                                isRegistered={isRegistered}
+                                                isEliminated={isEliminated}
+                                                canRegister={canRegister}
+                                                canLateReg={canLateReg}
+                                                canUnregister={canUnregister}
+                                                canReenter={canReenter}
+                                                freePlay={freePlay}
+                                                myWallet={myWallet}
+                                                actionLoading={actionLoading}
+                                                actionLabel={actionLabel}
+                                                goToTableLoading={goToTableLoading}
+                                                bulletsUsed={bulletsUsed}
+                                                reentryMax={t.reentry_max}
+                                                buyInUsdc={t.buy_in_usdc}
+                                                onRegister={onRegister}
+                                                onUnregister={onUnregister}
+                                                onGoToTable={onGoToTable}
+                                            />
+                                        )}
                                     </Flex>
 
-                                    {/* Terminal-state strip — claim your refund
-                                    (cancelled / emergency) or see where the prizes
-                                    went (completed). Lives in the hero so it's the
-                                    first thing a returning player sees, not buried
-                                    under the blind structure at the bottom. */}
+                                    {/* Terminal-state strip — cancelled / emergency refund only.
+                                    Completed payout status is now inline in the row above. */}
                                     {(t.status === 'cancelled' ||
                                         t.status === 'emergency_refund') &&
                                         !freePlay &&
@@ -1298,14 +1304,6 @@ export default function TournamentDetail({
                                                 refund={refund}
                                                 myWallet={myWallet}
                                                 onClaimRefund={onClaimRefund}
-                                            />
-                                        )}
-                                    {t.status === 'completed' &&
-                                        !freePlay &&
-                                        t.contract_address && (
-                                            <PayoutsPanel
-                                                tournament={t}
-                                                linkColor={linkColor}
                                             />
                                         )}
 
@@ -1505,6 +1503,7 @@ function RegistrantsPanel({
                             boxSize={{ base: '38px', md: '42px' }}
                             ml="-6px"
                             borderRadius="full"
+                            overflow="hidden"
                             boxShadow={`0 0 0 2px ${ring}`}
                             transition="transform 140ms ease-out"
                             _hover={{
@@ -2287,7 +2286,7 @@ function HostPanel({
                             loadingText="Claiming…"
                             onClick={onClaimRake}
                         >
-                            Claim rake
+                            Claim fees
                         </Button>
                     )}
                 </HStack>

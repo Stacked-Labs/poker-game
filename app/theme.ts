@@ -640,6 +640,27 @@ const components = {
                         'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #006A9D',
                 },
             },
+            // tactileGold — solid brand yellow. Celebratory CTA (tournament win).
+            // Dark ink for contrast on the bright fill.
+            tactileGold: {
+                bg: 'brand.yellow',
+                color: '#3D2C00',
+                border: 'none',
+                borderRadius: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow:
+                    'inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 0 #8A6A00',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease',
+                _hover: { bg: 'brand.yellow' },
+                _active: {
+                    bg: 'brand.yellowDark',
+                    transform: 'translateY(2px)',
+                    boxShadow:
+                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #8A6A00',
+                },
+            },
 
             themeButton: {
                 border: 'none',

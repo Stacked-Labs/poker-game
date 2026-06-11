@@ -32,6 +32,7 @@ export const BustWithReentry: Story = {
         placesPaid: 18,
         isFreePlay: false,
         tournamentName: 'Nightly $50 GTD',
+        tournamentId: 42,
         reentry: { buyInUsdc: 50_000_000, closesAtIso: soon(6), bulletsLeft: 1 },
     },
 };
@@ -45,6 +46,7 @@ export const BustNoReentry: Story = {
         placesPaid: 18,
         isFreePlay: false,
         tournamentName: 'Nightly $50 GTD',
+        tournamentId: 42,
     },
 };
 
@@ -57,6 +59,7 @@ export const BustCashed: Story = {
         placesPaid: 18,
         isFreePlay: false,
         tournamentName: 'Nightly $50 GTD',
+        tournamentId: 42,
     },
 };
 
@@ -69,6 +72,21 @@ export const Win: Story = {
         placesPaid: 18,
         isFreePlay: false,
         tournamentName: 'Nightly $50 GTD',
+        tournamentId: 42,
+        settlementTxUrl: 'https://basescan.org/tx/0xabc',
+    },
+};
+
+export const WinBigPrize: Story = {
+    args: {
+        kind: 'win',
+        position: 1,
+        fieldSize: 2400,
+        prizeUsdc: 128_450_000_000,
+        placesPaid: 360,
+        isFreePlay: false,
+        tournamentName: 'Sunday Major',
+        tournamentId: 42,
         settlementTxUrl: 'https://basescan.org/tx/0xabc',
     },
 };
@@ -82,6 +100,7 @@ export const WinSettling: Story = {
         placesPaid: 18,
         isFreePlay: false,
         tournamentName: 'Nightly $50 GTD',
+        tournamentId: 42,
         settlementTxUrl: null,
     },
 };
@@ -95,6 +114,7 @@ export const FreePlayBust: Story = {
         placesPaid: 18,
         isFreePlay: true,
         tournamentName: 'Free Play Warmup',
+        tournamentId: 42,
         reentry: { buyInUsdc: 0, closesAtIso: soon(4), bulletsLeft: 2 },
     },
 };
@@ -108,5 +128,6 @@ export const FreePlayWin: Story = {
         placesPaid: 18,
         isFreePlay: true,
         tournamentName: 'Free Play Warmup',
+        tournamentId: 42,
     },
 };

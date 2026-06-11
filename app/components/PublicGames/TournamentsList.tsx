@@ -33,6 +33,7 @@ import {
     type Tournament,
     unregisterFromTournament,
 } from '../../hooks/server_actions';
+import { formatUsdc } from './tournamentFormat';
 import { useFundTournamentGuarantee } from '../../hooks/useFundTournamentGuarantee';
 import { useRegisterForTournament } from '../../hooks/useRegisterForTournament';
 import { usePendingTournamentTxs } from '../../hooks/usePendingTournamentTxs';
@@ -565,7 +566,7 @@ function FundGuaranteeModal({
                             fontWeight="bold"
                             color="brand.green"
                         >
-                            ${((t?.guarantee_usdc ?? 0) / 1_000_000).toFixed(0)}{' '}
+                            ${formatUsdc(t?.guarantee_usdc ?? 0, { decimals: (t?.guarantee_usdc ?? 0) < 5_000_000 ? 2 : 0 })}{' '}
                             USDC GTD
                         </Text>
                         {status === 'error' && error && (
@@ -597,7 +598,7 @@ function FundGuaranteeModal({
                         onClick={handleFund}
                     >
                         Approve &amp; Fund $
-                        {((t?.guarantee_usdc ?? 0) / 1_000_000).toFixed(0)} GTD
+                        {formatUsdc(t?.guarantee_usdc ?? 0, { decimals: (t?.guarantee_usdc ?? 0) < 5_000_000 ? 2 : 0 })} GTD
                     </Button>
                 </ModalFooter>
             </ModalContent>

@@ -74,6 +74,7 @@ import {
     TournamentDefaultAvatar,
     TournamentDefaultCover,
 } from '../PublicGames/tournamentDefaults';
+import { placesPaid } from '../PublicGames/payouts';
 
 // LeaderboardPlayer now lives in app/interfaces (shared with the live-tournament
 // state slice). Re-exported here so existing `from './TournamentDetail'` imports
@@ -826,35 +827,45 @@ export default function TournamentDetail({
         t.status === 'pending' ||
         t.status === 'running' ||
         t.status === 'completed';
-    // Prize pool for the ladder. Live/upcoming tournaments use the projected pool;
-    // a completed one uses the realized on-chain payouts (sum of prize_usdc), because
-    // tournament.prize_pool_usdc was frozen at start and misses re-entry buy-ins — the
-    // projected ladder would understate and disagree with the Final standings (which
-    // read prize_usdc). The backend now also persists the realized pool into
-    // prize_pool_usdc at settlement, so the two normally agree; we still derive it
-    // here so the ladder stays exact even if a single per-winner prize write lagged —
-    // the one case the frontend sum and the stored pool can differ. Only reduce when
-    // completed (the value is unused otherwise).
-    const projectedPoolUsdc = Math.max(
-        t.prize_pool_usdc ?? 0,
-        t.guarantee_usdc ?? 0
-    );
-    let ladderPoolUsdc = projectedPoolUsdc;
-    if (t.status === 'completed') {
-        const realizedPoolUsdc = players.reduce(
-            (sum, p) => sum + (p.prize_usdc ?? 0),
-            0
-        );
-        if (realizedPoolUsdc > 0) ladderPoolUsdc = realizedPoolUsdc;
-    }
+
+    // For completed tournaments derive both the prize pool and the entrant count
+    // from the actual on-chain data so the Payouts tab always matches Final Standings.
+    //
+    // Pool: sum of prize_usdc — the stored prize_pool_usdc can be stale (set before
+    // re-entries / late registrations grew the pool).
+    //
+    // Entrant count: players.length can be larger than what the backend used for
+    // defaultPayouts() when late regs inflated unique-player count after the payout
+    // tier was locked. We reverse-engineer the correct tier by finding the minimum
+    // entrant count that produces the same number of paid places as the actual
+    // settlement (i.e. players with prize_usdc > 0).
+    const settledPrizePool =
+        t.status === 'completed'
+            ? players.reduce((sum, p) => sum + (p.prize_usdc ?? 0), 0)
+            : 0;
+    const effectivePrizePool =
+        settledPrizePool > 0
+            ? settledPrizePool
+            : Math.max(t.prize_pool_usdc ?? 0, t.guarantee_usdc ?? 0);
+
+    const actualPaidPlaces =
+        t.status === 'completed'
+            ? players.filter((p) => (p.prize_usdc ?? 0) > 0).length
+            : 0;
+    const effectiveEntrants = (() => {
+        if (t.status !== 'completed' || actualPaidPlaces === 0) {
+            return players.length || registeredCount;
+        }
+        for (let n = 1; n <= 200; n++) {
+            if (placesPaid(n) === actualPaidPlaces) return n;
+        }
+        return players.length || registeredCount;
+    })();
+
     const payoutsEl = showPayouts ? (
         <PayoutLadder
-            entrants={
-                /* Tiers key on unique players (one row each), matching the
-                   backend; registeredCount counts bullet entries. */
-                players.length || registeredCount
-            }
-            prizePoolUsdc={ladderPoolUsdc}
+            entrants={effectiveEntrants}
+            prizePoolUsdc={effectivePrizePool}
             isFreePlay={freePlay}
             status={t.status}
             highlightPosition={myLadderPos}
@@ -1675,15 +1686,16 @@ function MoneyHero({
         value = 'Free';
     } else if (t.guarantee_usdc > 0) {
         label = 'Guaranteed pool';
-        value = `$${formatUsdc(t.guarantee_usdc, { decimals: 0 })}`;
+        value = `$${formatUsdc(t.guarantee_usdc, { decimals: t.guarantee_usdc < 5_000_000 ? 2 : 0 })}`;
         suffix = 'GTD';
     } else if (t.prize_pool_usdc > 0) {
         label = 'Prize pool';
-        value = `$${formatUsdc(t.prize_pool_usdc, { decimals: 0 })}`;
+        value = `$${formatUsdc(t.prize_pool_usdc, { decimals: t.prize_pool_usdc < 5_000_000 ? 2 : 0 })}`;
     }
     if (t.status === 'completed' && (winnerPrizeUsdc ?? 0) > 0) {
         label = 'Top prize';
-        value = `$${formatUsdc(winnerPrizeUsdc as number, { decimals: 0 })}`;
+        const w = winnerPrizeUsdc as number;
+        value = `$${formatUsdc(w, { decimals: w < 5_000_000 ? 2 : 0 })}`;
         suffix = undefined;
     }
     const usdc = !freePlay;
@@ -2306,6 +2318,17 @@ function Standings({
     const running = t.status === 'running';
     const completed = t.status === 'completed';
     const goldRank = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    // For completed tournaments the displayed field size is the highest finish
+    // position, not players.length. A race condition can leave a gap (e.g. no
+    // position 8 but position 9 exists), making players.length = 8 while the
+    // real field was 9. Taking the max finish_pos surfaces the true count.
+    const finishPositions = completed
+        ? players.map((p) => p.finish_pos).filter((pos) => pos > 0)
+        : [];
+    const fieldCount =
+        finishPositions.length > 0
+            ? Math.max(...finishPositions)
+            : players.length;
     return (
         <Box
             bg={cardBg}
@@ -2330,7 +2353,7 @@ function Standings({
                     color="text.muted"
                     sx={{ fontVariantNumeric: 'tabular-nums' }}
                 >
-                    {players.length} player{players.length !== 1 ? 's' : ''}
+                    {fieldCount} player{fieldCount !== 1 ? 's' : ''}
                 </Text>
             </Flex>
             <Box
@@ -2514,7 +2537,7 @@ function Standings({
                                     )}
                                     {running && (
                                         <Td isNumeric>
-                                            {isOut ? (
+                                            {isOut && p.table_index < 0 ? (
                                                 <Text
                                                     fontSize="xs"
                                                     color="text.muted"
@@ -2525,7 +2548,7 @@ function Standings({
                                                 <ExternalLink
                                                     href={`/table/tournament-${t.id}-table-${p.table_index + 1}`}
                                                     fontSize="xs"
-                                                    color="text.secondary"
+                                                    color={isOut ? 'text.muted' : 'text.secondary'}
                                                     iconSize="9px"
                                                 >
                                                     T{p.table_index + 1}
@@ -2830,11 +2853,15 @@ function EmergencyPanel({
                     </VStack>
                 ) : (
                     <Text fontSize="sm" color="text.secondary" lineHeight={1.5}>
-                        Your buy-in is safe. If prizes aren’t paid within 24
-                        hours of the advertised end (
-                        {formatTournamentStart(advertisedEnd)}), any player can
-                        open emergency refunds to recover buy-ins from the
-                        contract
+                        Your buy-in is safe. If prizes aren&apos;t paid by{" "}
+                        {formatTournamentStart(
+                            new Date(
+                                new Date(advertisedEnd).getTime() +
+                                    24 * 60 * 60 * 1000
+                            ).toISOString()
+                        )}
+                        , any player can open emergency refunds to recover
+                        buy-ins from the contract
                         {e.msUntilAvailable != null &&
                             e.msUntilAvailable > 0 && (
                                 <Text
@@ -2842,8 +2869,8 @@ function EmergencyPanel({
                                     color={yellowText}
                                     fontWeight="semibold"
                                 >
-                                    {' '}
-                                    · available in{' '}
+                                    {" "}
+                                    · available in{" "}
                                     {formatDuration(e.msUntilAvailable)}
                                 </Text>
                             )}

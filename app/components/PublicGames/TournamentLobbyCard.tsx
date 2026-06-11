@@ -139,14 +139,14 @@ export default function TournamentLobbyCard({
         : t.guarantee_usdc > 0
           ? {
                 label: 'Guaranteed pool',
-                value: `$${formatUsdc(t.guarantee_usdc, { decimals: 0 })}`,
+                value: `$${formatUsdc(t.guarantee_usdc, { decimals: t.guarantee_usdc < 5_000_000 ? 2 : 0 })}`,
                 suffix: 'GTD',
                 usdc: true,
             }
           : t.prize_pool_usdc > 0
             ? {
                   label: 'Prize pool',
-                  value: `$${formatUsdc(t.prize_pool_usdc, { decimals: 0 })}`,
+                  value: `$${formatUsdc(t.prize_pool_usdc, { decimals: t.prize_pool_usdc < 5_000_000 ? 2 : 0 })}`,
                   usdc: true,
               }
             : {
@@ -465,7 +465,7 @@ export default function TournamentLobbyCard({
                         isLoading={isLoading}
                         onClick={() => onFundGuarantee?.(t.id)}
                     >
-                        Fund ${formatUsdc(t.guarantee_usdc, { decimals: 0 })}{' '}
+                        Fund ${formatUsdc(t.guarantee_usdc, { decimals: t.guarantee_usdc < 5_000_000 ? 2 : 0 })}{' '}
                         GTD &amp; open
                     </ActionButton>
                 )}

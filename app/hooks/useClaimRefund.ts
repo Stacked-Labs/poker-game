@@ -21,14 +21,6 @@ const refundedAbi = {
     outputs: [{ type: 'bool' }],
 } as const;
 
-const isFreeEntryAbi = {
-    name: 'isFreeEntry',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'player', type: 'address' }],
-    outputs: [{ type: 'bool' }],
-} as const;
-
 const buyInAbi = {
     name: 'buyIn',
     type: 'function',
@@ -46,7 +38,7 @@ const claimRefundAbi = {
 } as const;
 
 export interface RefundState {
-    eligible: boolean;       // registered and not yet refunded and not free entry
+    eligible: boolean;       // registered (bulletsUsed > 0) and not yet refunded
     alreadyClaimed: boolean;
     estimatedUsdc: bigint | null; // null for emergency_refund (pro-rata, unknown until claim)
     loading: boolean;
@@ -74,40 +66,50 @@ export function useClaimRefund(
     const chainCfg = chainName ? CHAIN_CONFIG[chainName] : undefined;
     const isRefundable = tournamentStatus === 'cancelled' || tournamentStatus === 'emergency_refund';
 
-    const refresh = useCallback(async () => {
-        if (!contractAddress || !chainCfg || !account || !isRefundable) return;
-        setLoading(true);
-        try {
-            const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
-            const addr = account.address;
+    // readOnce returns the raw on-chain refund standing (or null when not applicable),
+    // so callers can both render it and poll on it after a claim.
+    const readOnce = useCallback(async () => {
+        if (!contractAddress || !chainCfg || !account || !isRefundable) return null;
+        const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
+        const addr = account.address;
+        const [bullets, alreadyRefunded, buyIn] = await Promise.all([
+            readContract({ contract, method: bulletsUsedAbi, params: [addr] }),
+            readContract({ contract, method: refundedAbi, params: [addr] }),
+            readContract({ contract, method: buyInAbi, params: [] }),
+        ]);
+        return { bullets: Number(bullets), alreadyRefunded, buyIn };
+    }, [contractAddress, chainCfg, account, isRefundable]);
 
-            const [bullets, alreadyRefunded, freeEntry, buyIn] = await Promise.all([
-                readContract({ contract, method: bulletsUsedAbi, params: [addr] }),
-                readContract({ contract, method: refundedAbi, params: [addr] }),
-                readContract({ contract, method: isFreeEntryAbi, params: [addr] }),
-                readContract({ contract, method: buyInAbi, params: [] }),
-            ]);
-
-            setAlreadyClaimed(alreadyRefunded);
-
-            if (bullets === 0 || freeEntry || alreadyRefunded) {
+    const apply = useCallback(
+        (s: { bullets: number; alreadyRefunded: boolean; buyIn: bigint }) => {
+            setAlreadyClaimed(s.alreadyRefunded);
+            if (s.bullets === 0 || s.alreadyRefunded) {
                 setEligible(false);
                 setEstimatedUsdc(null);
             } else {
                 setEligible(true);
-                if (tournamentStatus === 'cancelled') {
-                    setEstimatedUsdc(BigInt(buyIn) * BigInt(bullets));
-                } else {
-                    // emergency_refund: pro-rata split, unknown without live balance read
-                    setEstimatedUsdc(null);
-                }
+                // emergency_refund is a pro-rata split, unknown without a live balance read.
+                setEstimatedUsdc(
+                    tournamentStatus === 'cancelled'
+                        ? BigInt(s.buyIn) * BigInt(s.bullets)
+                        : null
+                );
             }
+        },
+        [tournamentStatus]
+    );
+
+    const refresh = useCallback(async () => {
+        setLoading(true);
+        try {
+            const s = await readOnce();
+            if (s) apply(s);
         } catch {
             setEligible(false);
         } finally {
             setLoading(false);
         }
-    }, [contractAddress, chainCfg, account, isRefundable, tournamentStatus]);
+    }, [readOnce, apply]);
 
     useEffect(() => { refresh(); }, [refresh]);
 
@@ -119,7 +121,16 @@ export function useClaimRefund(
             const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
             const tx = prepareContractCall({ contract, method: claimRefundAbi, params: [] });
             await sendTx(tx);
-            await refresh();
+            // Poll on-chain until the refund is reflected — a single read right after
+            // the tx can hit an RPC node a block behind and still show "claim".
+            for (let i = 0; i < 6; i++) {
+                const s = await readOnce().catch(() => null);
+                if (s) {
+                    apply(s);
+                    if (s.alreadyRefunded) break;
+                }
+                await new Promise((r) => setTimeout(r, 1500));
+            }
             return true;
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Claim failed');
@@ -127,7 +138,7 @@ export function useClaimRefund(
         } finally {
             setClaiming(false);
         }
-    }, [contractAddress, chainCfg, account, sendTx, refresh]);
+    }, [contractAddress, chainCfg, account, sendTx, readOnce, apply]);
 
     return { eligible, alreadyClaimed, estimatedUsdc, loading, claiming, error, claim, refresh };
 }

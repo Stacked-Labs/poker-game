@@ -31,16 +31,19 @@ export function useClaimHostRake(contractAddress: string | undefined, chainName:
 
     const chainCfg = chainName ? CHAIN_CONFIG[chainName] : undefined;
 
+    const readOnce = useCallback(async (): Promise<bigint | null> => {
+        if (!contractAddress || !chainCfg) return null;
+        const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
+        return readContract({ contract, method: hostRakePendingAbi, params: [] });
+    }, [contractAddress, chainCfg]);
+
     const refresh = useCallback(async () => {
-        if (!contractAddress || !chainCfg) return;
         try {
-            const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
-            const amount = await readContract({ contract, method: hostRakePendingAbi, params: [] });
-            setPendingRake(amount);
+            setPendingRake(await readOnce());
         } catch {
             setPendingRake(null);
         }
-    }, [contractAddress, chainCfg]);
+    }, [readOnce]);
 
     useEffect(() => { refresh(); }, [refresh]);
 
@@ -52,7 +55,16 @@ export function useClaimHostRake(contractAddress: string | undefined, chainName:
             const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
             const tx = prepareContractCall({ contract, method: claimHostRakeAbi, params: [] });
             await sendTx(tx);
-            await refresh();
+            // Poll until the pending rake reads 0 — a single read right after the tx
+            // can land on an RPC node a block behind and still show the old amount.
+            for (let i = 0; i < 6; i++) {
+                const amount = await readOnce().catch(() => null);
+                if (amount !== null) {
+                    setPendingRake(amount);
+                    if (amount === BigInt(0)) break;
+                }
+                await new Promise((r) => setTimeout(r, 1500));
+            }
             return true;
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Claim failed');
@@ -60,7 +72,7 @@ export function useClaimHostRake(contractAddress: string | undefined, chainName:
         } finally {
             setClaiming(false);
         }
-    }, [contractAddress, chainCfg, account, sendTx, refresh]);
+    }, [contractAddress, chainCfg, account, sendTx, readOnce]);
 
     return { pendingRake, claiming, error, claim, refresh };
 }

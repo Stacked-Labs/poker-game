@@ -59,6 +59,7 @@ export default function TournamentPage() {
 
     const [tournament, setTournament] = useState<Tournament | null>(null);
     const [players, setPlayers] = useState<LeaderboardPlayer[]>([]);
+    const [registrants, setRegistrants] = useState<LeaderboardPlayer[]>([]);
     const [loading, setLoading] = useState(true);
     const [isRegistered, setIsRegistered] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
@@ -72,6 +73,11 @@ export default function TournamentPage() {
     const [passcode, setPasscode] = useState('');
     const [passcodeLoading, setPasscodeLoading] = useState(false);
     const passcodeInputRef = useRef<HTMLInputElement>(null);
+    // After an on-chain register/unregister the DB lags by the indexer sync, so the
+    // server's "am I registered" answer is briefly stale. This holds the optimistic
+    // value (true after register, false after unregister) and stops load() from
+    // flipping the button back until the server agrees. null = no pending action.
+    const optimisticRegRef = useRef<boolean | null>(null);
 
     const {
         register: registerOnChain,
@@ -125,8 +131,37 @@ export default function TournamentPage() {
                     : Promise.resolve({ tournament_ids: [], finish_pos: {} }),
             ]);
             setTournament(tData.tournament);
-            if (lbData?.live === false && Array.isArray(lbData.results)) {
+            if (Array.isArray(lbData?.registrants)) {
+                // Registration phase: nobody is in the field yet, but we have
+                // the list of who's signed up. Standings stay empty.
+                setPlayers([]);
+                setRegistrants(
+                    lbData.registrants.map(
+                        (
+                            r: {
+                                uuid: string;
+                                wallet: string;
+                                xUsername?: string | null;
+                                xProfileImageUrl?: string | null;
+                            },
+                            i: number
+                        ) => ({
+                            uuid: r.uuid || r.wallet + i,
+                            wallet: r.wallet,
+                            stack: 0,
+                            finish_pos: 0,
+                            table_index: -1,
+                            xUsername: r.xUsername,
+                            xProfileImageUrl: r.xProfileImageUrl,
+                        })
+                    )
+                );
+            } else if (
+                lbData?.live === false &&
+                Array.isArray(lbData.results)
+            ) {
                 // Completed tournament: map DB results to the unified player shape.
+                setRegistrants([]);
                 setPlayers(
                     lbData.results.map(
                         (
@@ -151,9 +186,21 @@ export default function TournamentPage() {
                     )
                 );
             } else {
+                setRegistrants([]);
                 setPlayers(lbData?.players ?? []);
             }
-            setIsRegistered(new Set(regsData.tournament_ids).has(id));
+            const serverRegistered = new Set(regsData.tournament_ids).has(id);
+            // Respect a pending optimistic register/unregister: only accept the
+            // server value once it matches the action we just took, then clear the
+            // override. Otherwise the stale (pre-indexer-sync) value would flip the
+            // button back to "Register"/"Unregister" right after a successful tx.
+            if (
+                optimisticRegRef.current === null ||
+                optimisticRegRef.current === serverRegistered
+            ) {
+                optimisticRegRef.current = null;
+                setIsRegistered(serverRegistered);
+            }
             if (tData.tournament.status === 'running') {
                 const clock = await getTournamentClock(id);
                 setBlindLevel(clock?.level_number ?? null);
@@ -170,9 +217,22 @@ export default function TournamentPage() {
     }, [id, myWallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
-        const interval = setInterval(() => { load(); }, 60_000);
+        const interval = setInterval(() => {
+            load();
+        }, 60_000);
         return () => clearInterval(interval);
     }, [id, myWallet]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Re-pull server state a few times over ~35s after an on-chain action so the UI
+    // catches up as the indexer syncs the event into the DB — without the user
+    // having to refresh. load() preserves any pending optimistic register state.
+    const resyncAfterOnchainAction = () => {
+        [2000, 5000, 10000, 20000, 35000].forEach((ms) =>
+            setTimeout(() => {
+                load();
+            }, ms)
+        );
+    };
 
     const handleRegister = async (isReentry = false) => {
         if (!myWallet) {
@@ -212,8 +272,12 @@ export default function TournamentPage() {
                                 : p
                         )
                     );
+                } else {
+                    setIsRegistered(true);
+                    optimisticRegRef.current = true;
                 }
                 setConfirm({ isReentry });
+                resyncAfterOnchainAction();
             }
         } finally {
             setActionLoading(false);
@@ -246,7 +310,8 @@ export default function TournamentPage() {
             } else {
                 toast.success('Unregistered');
                 setIsRegistered(false); // optimistic
-                load(); // background sync
+                optimisticRegRef.current = false;
+                resyncAfterOnchainAction(); // background sync as the indexer catches up
             }
         } finally {
             setActionLoading(false);
@@ -290,7 +355,9 @@ export default function TournamentPage() {
         } catch (error) {
             toast.error(
                 'Save failed',
-                error instanceof Error ? error.message : 'Could not save changes.'
+                error instanceof Error
+                    ? error.message
+                    : 'Could not save changes.'
             );
             load(); // resync from server truth
         }
@@ -313,10 +380,7 @@ export default function TournamentPage() {
         persistTournamentPatch(body, 'Branding updated');
     };
 
-    const handleUploadImage = async (
-        kind: 'logo' | 'banner',
-        file: File
-    ) => {
+    const handleUploadImage = async (kind: 'logo' | 'banner', file: File) => {
         try {
             const { tournament: updated } = await uploadTournamentBranding(
                 id,
@@ -328,7 +392,9 @@ export default function TournamentPage() {
         } catch (error) {
             toast.error(
                 'Upload failed',
-                error instanceof Error ? error.message : 'Could not upload image.'
+                error instanceof Error
+                    ? error.message
+                    : 'Could not upload image.'
             );
             throw error; // let TournamentDetail revert its optimistic preview
         }
@@ -363,16 +429,17 @@ export default function TournamentPage() {
 
     const handleEnableEmergencyRefund = async () => {
         const ok = await emergencyRefund.open();
-        if (ok)
+        if (ok) {
             toast.success('Emergency refunds enabled — players can now claim.');
-        else toast.error(emergencyRefund.error ?? 'Transaction failed');
+            resyncAfterOnchainAction(); // pick up the status → emergency_refund flip
+        } else toast.error(emergencyRefund.error ?? 'Transaction failed');
     };
 
     const handleFundAndOpen = async () => {
         const ok = await fundAndOpen();
         if (ok) {
             toast.success('Guarantee funded — registration is open!');
-            load();
+            resyncAfterOnchainAction();
         } else {
             toast.error('Funding failed');
         }
@@ -409,6 +476,7 @@ export default function TournamentPage() {
             <TournamentDetail
                 tournament={tournament}
                 players={players}
+                registrants={registrants}
                 myWallet={myWallet}
                 isRegistered={isRegistered}
                 blindLevel={blindLevel}

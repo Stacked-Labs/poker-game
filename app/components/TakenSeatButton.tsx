@@ -28,7 +28,7 @@ import {
     AnimatePresence,
 } from 'framer-motion';
 import PlayerAvatar from './PlayerAvatar';
-import { Card, Player } from '../interfaces';
+import { Card, DisplayMode, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import { SocketContext } from '../contexts/WebSocketProvider';
 import { useSound } from '../contexts/SoundProvider';
@@ -351,10 +351,20 @@ const TakenSeatButton = ({
     activePotIndex: number | null;
     equity: number | null;
 }) => {
-    const { appState } = useContext(AppContext);
+    const { appState, dispatch } = useContext(AppContext);
     const socket = useContext(SocketContext);
     const { play, stop } = useSound();
-    const { format } = useFormatAmount();
+    const { format, mode: displayMode } = useFormatAmount();
+
+    const isCrypto = appState.game?.config?.crypto === true;
+    const cycleDisplayMode = useCallback(() => {
+        const order: DisplayMode[] = isCrypto
+            ? ['chips', 'bb', 'usdc']
+            : ['chips', 'bb'];
+        const idx = order.indexOf(displayMode);
+        const next = order[(idx === -1 ? 0 : idx + 1) % order.length];
+        dispatch({ type: 'setDisplayMode', payload: next });
+    }, [dispatch, displayMode, isCrypto]);
     const { isAuthenticated, xUsername, refreshXStatus } = useAuth();
     const { info: toastInfo } = useToastHelper();
     const playCardFlip = useCallback(() => play('card_flip'), [play]);
@@ -1103,7 +1113,7 @@ const TakenSeatButton = ({
                     width={'110%'}
                     minWidth={0}
                     maxWidth={'110%'}
-                    zIndex={1}
+                    zIndex={showXHoverCard ? 7 : 1}
                     alignSelf={'flex-end'}
                     overflow="visible"
                 >
@@ -1584,6 +1594,10 @@ const TakenSeatButton = ({
                                     alignItems="center"
                                     gap={{ base: 1, md: 2 }}
                                     width="100%"
+                                    cursor="pointer"
+                                    onClick={cycleDisplayMode}
+                                    title="Click to change display format"
+                                    userSelect="none"
                                     sx={{
                                         '@media (orientation: portrait)': {
                                             fontSize: 'sm',

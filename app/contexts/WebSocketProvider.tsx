@@ -831,20 +831,23 @@ export function SocketProvider(props: SocketProviderProps) {
                         });
                         // The local player's bust opens a persistent result card
                         // (replaces the ephemeral "you've been eliminated" toast).
+                        // Delayed so the player can watch the showdown before the popup appears.
                         if (
                             eventData.player_uuid ===
                             appStateRef.current.clientID
                         ) {
-                            dispatch({
-                                type: 'setTournamentMyResult',
-                                payload: {
-                                    tournamentId,
-                                    result: {
-                                        kind: 'bust',
-                                        position: eventData.position,
+                            setTimeout(() => {
+                                dispatch({
+                                    type: 'setTournamentMyResult',
+                                    payload: {
+                                        tournamentId,
+                                        result: {
+                                            kind: 'bust',
+                                            position: eventData.position,
+                                        },
                                     },
-                                },
-                            });
+                                });
+                            }, 5000);
                         }
                         return;
                     }

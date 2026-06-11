@@ -38,6 +38,8 @@ import { useFundTournamentGuarantee } from '../../hooks/useFundTournamentGuarant
 import { useRegisterForTournament } from '../../hooks/useRegisterForTournament';
 import { usePendingTournamentTxs } from '../../hooks/usePendingTournamentTxs';
 import { CHAIN_CONFIG } from '../../thirdwebclient';
+import { useTournamentReminderStore } from '../../stores/tournamentReminders';
+import RegistrationConfirmationModal from '../Tournament/RegistrationConfirmationModal';
 import TournamentLobbyCard from './TournamentLobbyCard';
 import TournamentsEmptyState from './TournamentsEmptyState';
 
@@ -130,6 +132,8 @@ export default function TournamentsList() {
     const [actionLoading, setActionLoading] = useState(false);
     const [registeredIds, setRegisteredIds] = useState<Set<number>>(new Set());
     const [finishPos, setFinishPos] = useState<Record<number, number>>({});
+    // The just-registered tournament whose "You're in." confirmation is open.
+    const [confirmTour, setConfirmTour] = useState<Tournament | null>(null);
     const toast = useToastHelper();
     const toastRef = useRef(toast);
     toastRef.current = toast;
@@ -276,7 +280,13 @@ export default function TournamentsList() {
                 n.add(id);
                 return n;
             });
-            toast.success('Registered!');
+            const justRegistered = tournaments.find((t) => t.id === id) ?? null;
+            // Upsert (not replace) so other already-registered tournaments stay on
+            // the banner; the provider poll reconciles the full set shortly after.
+            useTournamentReminderStore
+                .getState()
+                .upsertTournament(justRegistered ?? undefined);
+            setConfirmTour(justRegistered);
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : 'Registration failed';
             toast.error(msg);
@@ -315,6 +325,14 @@ export default function TournamentsList() {
             setRegisteredIds((prev) => {
                 const next = new Set(Array.from(prev));
                 next.delete(id);
+                const ids = Array.from(next);
+                const byId: Record<number, Tournament | undefined> = {};
+                ids.forEach((rid) => {
+                    byId[rid] = tournaments.find((t) => t.id === rid);
+                });
+                useTournamentReminderStore
+                    .getState()
+                    .updateRegistrations(ids, byId);
                 return next;
             });
             toast.info('Unregistered');
@@ -411,6 +429,13 @@ export default function TournamentsList() {
                         n.add(id);
                         return n;
                     });
+                    const justRegistered =
+                        tournaments.find((t) => t.id === id) ?? null;
+                    // Upsert so other registered tournaments survive; poll reconciles.
+                    useTournamentReminderStore
+                        .getState()
+                        .upsertTournament(justRegistered ?? undefined);
+                    setConfirmTour(justRegistered);
                     if (txHash && cryptoRegisterTournament?.chain) {
                         addPendingTx({
                             tournamentId: id,
@@ -496,6 +521,14 @@ export default function TournamentsList() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
+            {confirmTour && (
+                <RegistrationConfirmationModal
+                    tournament={confirmTour}
+                    isOpen={!!confirmTour}
+                    onClose={() => setConfirmTour(null)}
+                />
+            )}
         </VStack>
     );
 }
@@ -757,7 +790,8 @@ function CryptoRegisterModal({
         }
         const { ok, txHash } = await register(code);
         if (ok) {
-            toast.success('Registered! Your spot is confirmed on-chain.');
+            // The confirmation modal (opened via onSuccess) is the single success
+            // surface now, so no toast here would double up the "you're in" moment.
             onSuccess(t.id, txHash);
         }
     };

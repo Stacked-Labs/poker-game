@@ -8,8 +8,10 @@ import { AppStoreProvider } from '@/app/contexts/AppStoreProvider';
 import { UserProvider } from '@/app/contexts/CurrentUserProvider';
 import { SoundProvider } from '@/app/contexts/SoundProvider';
 import { AuthProvider } from '@/app/contexts/AuthContext';
+import { TournamentReminderProvider } from '@/app/contexts/TournamentReminderProvider';
 import { AutoConnect, ThirdwebProvider } from 'thirdweb/react';
 import { client, wallets } from './thirdwebclient';
+import ServiceWorkerRegistration from './components/ServiceWorkerRegistration';
 import {
     TOAST_BANNER_CONTAINER_STYLE,
     TOAST_BANNER_DURATION_MS,
@@ -40,12 +42,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 <ThirdwebProvider>
                     <AutoConnect client={client} wallets={wallets} />
                     <E2EAutoConnect />
+                    <ServiceWorkerRegistration />
                     <AuthProvider>
-                        <AppStoreProvider>
-                            <UserProvider>
-                                <SoundProvider>{children}</SoundProvider>
-                            </UserProvider>
-                        </AppStoreProvider>
+                        <TournamentReminderProvider>
+                            <AppStoreProvider>
+                                <UserProvider>
+                                    <SoundProvider>{children}</SoundProvider>
+                                </UserProvider>
+                            </AppStoreProvider>
+                        </TournamentReminderProvider>
                     </AuthProvider>
                 </ThirdwebProvider>
             </ChakraProvider>

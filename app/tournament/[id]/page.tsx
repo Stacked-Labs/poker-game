@@ -39,6 +39,7 @@ import TournamentDetail, {
     type LeaderboardPlayer,
     type CommunityLinkValues,
 } from '../../components/Tournament/TournamentDetail';
+import RegistrationConfirmationModal from '../../components/Tournament/RegistrationConfirmationModal';
 
 async function hashPasswordCode(code: string): Promise<string> {
     const enc = new TextEncoder().encode(code);
@@ -67,6 +68,8 @@ export default function TournamentPage() {
     const [pendingPasscode, setPendingPasscode] = useState<{
         isReentry: boolean;
     } | null>(null);
+    // Drives the "You're in." confirmation after a successful register/re-entry.
+    const [confirm, setConfirm] = useState<{ isReentry: boolean } | null>(null);
     const [passcode, setPasscode] = useState('');
     const [passcodeLoading, setPasscodeLoading] = useState(false);
     const passcodeInputRef = useRef<HTMLInputElement>(null);
@@ -256,7 +259,6 @@ export default function TournamentPage() {
                         (isReentry ? 'Re-entry failed' : 'Registration failed')
                 );
             } else {
-                toast.success(isReentry ? 'Re-entered!' : 'Registered!');
                 if (isReentry) {
                     setPlayers((prev) =>
                         prev.map((p) =>
@@ -274,6 +276,7 @@ export default function TournamentPage() {
                     setIsRegistered(true);
                     optimisticRegRef.current = true;
                 }
+                setConfirm({ isReentry });
                 resyncAfterOnchainAction();
             }
         } finally {
@@ -565,6 +568,20 @@ export default function TournamentPage() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
+            {confirm && tournament && (
+                <RegistrationConfirmationModal
+                    tournament={tournament}
+                    isReentry={confirm.isReentry}
+                    isOpen
+                    onClose={() => setConfirm(null)}
+                    onSuccess={() => {
+                        // Registered or re-entered, the player is now registered.
+                        setIsRegistered(true);
+                        load();
+                    }}
+                />
+            )}
         </>
     );
 }

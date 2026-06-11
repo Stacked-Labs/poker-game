@@ -1113,7 +1113,7 @@ const TakenSeatButton = ({
                     width={'110%'}
                     minWidth={0}
                     maxWidth={'110%'}
-                    zIndex={1}
+                    zIndex={showXHoverCard ? 7 : 1}
                     alignSelf={'flex-end'}
                     overflow="visible"
                 >

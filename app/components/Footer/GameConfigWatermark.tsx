@@ -8,6 +8,7 @@ import {
     Link,
     Icon,
     useColorModeValue,
+    useBreakpointValue,
 } from '@chakra-ui/react';
 import { FiUser } from 'react-icons/fi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
@@ -26,6 +27,20 @@ interface ConfigWithCrypto {
 
 function shortAddr(addr: string): string {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`.toUpperCase();
+}
+
+// On narrow portrait screens the watermark sits right under the hero's seat HUD,
+// so blind/ante numbers get abbreviated (3,000 → "3K", 6,000 → "6K") to keep the
+// config line to one short row. Mirrors AnteChip's compactChips.
+function compactChips(n: number): string {
+    const abbr = (v: number, suffix: string) => {
+        if (v >= 100) return `${Math.round(v)}${suffix}`;
+        const fixed = v.toFixed(1);
+        return `${fixed.endsWith('.0') ? fixed.slice(0, -2) : fixed}${suffix}`;
+    };
+    if (n >= 1_000_000) return abbr(n / 1_000_000, 'M');
+    if (n >= 1_000) return abbr(n / 1_000, 'K');
+    return n.toLocaleString('en-US');
 }
 
 function explorerAddressUrl(
@@ -48,6 +63,9 @@ const GameConfigWatermark = () => {
     // brand.green is only ~2.2:1 on the light letterbox/footer surface (fails AA);
     // use the darker greenEdge in light mode, keep the brighter green in dark.
     const freePlayGreen = useColorModeValue('brand.greenEdge', 'brand.green');
+    // Mobile-first: portrait phones get abbreviated, shorter copy so the watermark
+    // doesn't bleed up into the hero's hole cards / seat HUD. SSR falls back to base.
+    const compact = useBreakpointValue({ base: true, md: false }) ?? true;
     const formatBlinds = useMemo(
         () =>
             displayMode === 'bb'
@@ -77,16 +95,23 @@ const GameConfigWatermark = () => {
                       ante: l.ante,
                   };
               })();
-        const anteSuffix =
-            lvl.ante > 0 ? ` (${lvl.ante.toLocaleString('en-US')}A)` : '';
-        const configText = `NLH · LVL ${lvl.levelNumber} · ${lvl.sb.toLocaleString(
-            'en-US'
-        )}/${lvl.bb.toLocaleString('en-US')}${anteSuffix}`;
+        const fmtChip = compact
+            ? compactChips
+            : (v: number) => v.toLocaleString('en-US');
+        const anteSuffix = lvl.ante > 0 ? ` (${fmtChip(lvl.ante)}A)` : '';
+        const levelLabel = compact ? `L${lvl.levelNumber}` : `LVL ${lvl.levelNumber}`;
+        const configText = `NLH · ${levelLabel} · ${fmtChip(lvl.sb)}/${fmtChip(
+            lvl.bb
+        )}${anteSuffix}`;
         const playersLine =
             live?.playersActive != null
-                ? `${live.playersActive.toLocaleString(
-                      'en-US'
-                  )} OF ${tMeta.registeredCount.toLocaleString('en-US')} LEFT`
+                ? compact
+                    ? `${live.playersActive.toLocaleString(
+                          'en-US'
+                      )}/${tMeta.registeredCount.toLocaleString('en-US')} LEFT`
+                    : `${live.playersActive.toLocaleString(
+                          'en-US'
+                      )} OF ${tMeta.registeredCount.toLocaleString('en-US')} LEFT`
                 : null;
         return {
             configText: configText.toUpperCase(),
@@ -98,7 +123,7 @@ const GameConfigWatermark = () => {
                 ? explorerAddressUrl(tMeta.chain, tMeta.hostWallet)
                 : null,
         };
-    }, [tMeta, live?.clock, live?.playersActive]);
+    }, [tMeta, live?.clock, live?.playersActive, compact]);
 
     const cashConfigText = useMemo(() => {
         if (!config) return null;
@@ -109,10 +134,12 @@ const GameConfigWatermark = () => {
             );
         }
         if (config.maxBuyIn != null) {
-            parts.push(`Max Buy-In ${format(config.maxBuyIn)}`);
+            parts.push(
+                `${compact ? 'Max' : 'Max Buy-In'} ${format(config.maxBuyIn)}`
+            );
         }
         return parts.join(' • ');
-    }, [config, format, formatBlinds]);
+    }, [config, format, formatBlinds, compact]);
 
     const cashChain = useMemo(() => {
         const configWithCrypto = config as ConfigWithCrypto;
@@ -153,6 +180,9 @@ const GameConfigWatermark = () => {
         : cashHostExplorerUrl;
     const playersLine = tournament?.playersLine ?? null;
     const freePlay = tournament?.freePlay ?? false;
+    // The FiUser icon already reads as "host"; drop the word on narrow screens.
+    const hostText =
+        tournament && !compact && hostLabel ? `Host ${hostLabel}` : hostLabel;
 
     if (!configText && !chain && !freePlay) return null;
 
@@ -161,17 +191,17 @@ const GameConfigWatermark = () => {
             position="absolute"
             bottom={{ base: 'calc(100% + 4px)', md: 'calc(100% + 8px)' }}
             left={0}
-            width="100%"
+            maxW={{ base: '70%', sm: '85%', md: '100%' }}
             px={{ base: 2, md: 4 }}
             pointerEvents="none"
             zIndex={1}
         >
-            <Flex direction="column" gap={1}>
+            <Flex direction="column" gap={{ base: 0.5, md: 1 }}>
                 {configText && (
                     <Text
                         color="text.primary"
-                        fontSize={{ base: '11px', sm: '12px', md: '13px' }}
-                        lineHeight={1.2}
+                        fontSize={{ base: '10px', sm: '12px', md: '13px' }}
+                        lineHeight={{ base: 1.15, md: 1.2 }}
                         fontWeight="semibold"
                         letterSpacing="0.04em"
                         noOfLines={1}
@@ -182,8 +212,8 @@ const GameConfigWatermark = () => {
                 {playersLine && (
                     <Text
                         color="text.secondary"
-                        fontSize={{ base: '10px', sm: '11px', md: '12px' }}
-                        lineHeight={1.2}
+                        fontSize={{ base: '9px', sm: '11px', md: '12px' }}
+                        lineHeight={{ base: 1.15, md: 1.2 }}
                         fontWeight="semibold"
                         letterSpacing="0.06em"
                         noOfLines={1}
@@ -195,12 +225,13 @@ const GameConfigWatermark = () => {
                 {freePlay ? (
                     <Text
                         color={freePlayGreen}
-                        fontSize={{ base: '10px', sm: '11px' }}
-                        lineHeight={1.2}
+                        fontSize={{ base: '9px', sm: '11px' }}
+                        lineHeight={{ base: 1.15, md: 1.2 }}
                         fontWeight="bold"
                         letterSpacing="0.08em"
+                        noOfLines={1}
                     >
-                        FREE PLAY · NO REAL VALUE
+                        {compact ? 'FREE PLAY' : 'FREE PLAY · NO REAL VALUE'}
                     </Text>
                 ) : (
                     chain && <ChainBadge chain={chain} size="sm" />
@@ -209,7 +240,7 @@ const GameConfigWatermark = () => {
                     <Flex align="center" gap={1.5} minW={0}>
                         <Icon
                             as={FiUser}
-                            boxSize={{ base: '12px', md: '14px' }}
+                            boxSize={{ base: '11px', md: '14px' }}
                             color="text.muted"
                             flexShrink={0}
                         />
@@ -220,11 +251,11 @@ const GameConfigWatermark = () => {
                                 pointerEvents="auto"
                                 color="text.muted"
                                 fontSize={{
-                                    base: '10px',
+                                    base: '9px',
                                     sm: '11px',
                                     md: '12px',
                                 }}
-                                lineHeight={1.2}
+                                lineHeight={{ base: 1.15, md: 1.2 }}
                                 fontWeight="medium"
                                 letterSpacing="0.04em"
                                 noOfLines={1}
@@ -237,23 +268,23 @@ const GameConfigWatermark = () => {
                                     textUnderlineOffset: '3px',
                                 }}
                             >
-                                {tournament ? `Host ${hostLabel}` : hostLabel}
+                                {hostText}
                             </Link>
                         ) : (
                             <Text
                                 color="text.muted"
                                 fontSize={{
-                                    base: '10px',
+                                    base: '9px',
                                     sm: '11px',
                                     md: '12px',
                                 }}
-                                lineHeight={1.2}
+                                lineHeight={{ base: 1.15, md: 1.2 }}
                                 fontWeight="medium"
                                 letterSpacing="0.04em"
                                 noOfLines={1}
                                 minW={0}
                             >
-                                {tournament ? `Host ${hostLabel}` : hostLabel}
+                                {hostText}
                             </Text>
                         )}
                     </Flex>

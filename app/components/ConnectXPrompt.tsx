@@ -2,11 +2,12 @@
 
 import React from 'react';
 import {
+    Box,
     Button,
     CloseButton,
-    HStack,
     Icon,
     Text,
+    VStack,
 } from '@chakra-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FaXTwitter } from 'react-icons/fa6';
@@ -52,6 +53,10 @@ const XButtonProps = {
         boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.30), 0 0 0 #000000',
     },
     _focus: { color: 'white' },
+    _focusVisible: {
+        boxShadow:
+            'inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 #000000, 0 0 0 3px var(--prompt-focus-ring)',
+    },
 } as const;
 
 const ConnectXPrompt: React.FC<ConnectXPromptProps> = ({
@@ -62,55 +67,72 @@ const ConnectXPrompt: React.FC<ConnectXPromptProps> = ({
     <AnimatePresence>
         {isOpen && (
             <motion.div key="x-prompt" {...motionProps} style={wrapperStyle}>
-                <HStack
-                    spacing={2.5}
+                <Box
+                    position="relative"
                     bg="card.white"
-                    borderRadius="full"
+                    borderRadius="14px"
                     boxShadow="0 12px 28px rgba(12, 21, 49, 0.18), 0 0 0 1px rgba(11, 20, 48, 0.06)"
                     _dark={{
                         boxShadow:
                             '0 14px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06)',
                     }}
-                    pl={3}
-                    pr={1.5}
-                    py={1.5}
+                    px={3}
+                    pt={2.5}
+                    pb={2.5}
+                    width="fit-content"
+                    sx={{ '--prompt-focus-ring': 'rgba(255,255,255,0.55)' }}
                 >
-                    <Text
-                        fontSize="xs"
-                        fontWeight={700}
-                        color="text.primary"
-                        whiteSpace="nowrap"
-                    >
-                        Get social. Earn more.
-                    </Text>
-                    <Button
-                        {...XButtonProps}
-                        onClick={onConnect}
-                        size="xs"
-                        h="26px"
-                        borderRadius="full"
-                        px={3}
-                        leftIcon={
-                            <Icon as={FaXTwitter} boxSize={2.5} color="white" />
-                        }
-                    >
-                        <Text
-                            as="span"
-                            fontWeight={800}
-                            color="white"
-                            fontSize="xs"
-                        >
-                            Link
-                        </Text>
-                    </Button>
                     <CloseButton
                         size="sm"
+                        position="absolute"
+                        top={1}
+                        right={1}
                         color="text.secondary"
                         _hover={{ color: 'text.primary', bg: 'card.lightGray' }}
                         onClick={onDismiss}
                         aria-label="Dismiss"
                     />
-                </HStack>
+                    <VStack spacing={2} align="start">
+                        <Text
+                            fontSize="xs"
+                            fontWeight={700}
+                            color="text.primary"
+                            lineHeight="1.25"
+                            whiteSpace="nowrap"
+                            pr={5}
+                        >
+                            Get social.
+                            <br />
+                            Earn more.
+                        </Text>
+                        <Button
+                            {...XButtonProps}
+                            onClick={onConnect}
+                            size="xs"
+                            h="28px"
+                            minH="28px"
+                            alignSelf="start"
+                            borderRadius="9px"
+                            px={2.5}
+                            leftIcon={
+                                <Icon
+                                    as={FaXTwitter}
+                                    boxSize={3}
+                                    color="white"
+                                />
+                            }
+                        >
+                            <Text
+                                as="span"
+                                fontWeight={800}
+                                color="white"
+                                fontSize="xs"
+                            >
+                                Link
+                            </Text>
+                        </Button>
+                    </VStack>
+                </Box>
             </motion.div>
         )}
     </AnimatePresence>

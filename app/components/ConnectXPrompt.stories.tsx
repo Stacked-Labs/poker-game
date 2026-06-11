@@ -12,7 +12,7 @@ const meta = {
         docs: {
             description: {
                 component:
-                    'Compact pill-shaped prompt that floats above a seated avatar to nudge the local player to link X. Single-row: label, X-brand tactile button, dismiss. Surface uses card.white with hairline outline + soft shadow so both color modes work. The X button matches the recipe in Settings/ConnectXSection so all X buttons in the app feel like one component.',
+                    'Compact two-line card that floats above a seated avatar to nudge the local player to link X. Headline ("Get social. Earn more.") stacks over a full-width X-brand tactile button, with a corner dismiss control. Surface uses card.white with hairline outline + soft shadow so both color modes work. The X button matches the recipe in Settings/ConnectXSection so all X buttons in the app feel like one component.',
             },
         },
     },

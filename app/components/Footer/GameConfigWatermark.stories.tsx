@@ -12,21 +12,32 @@ import {
 
 // The watermark is absolutely positioned just above its parent's top edge, so we
 // give it a tall letterbox-colored stage (matching where it sits at the table).
-function Stage({ children }: { children: React.ReactNode }) {
+// `width` mirrors the footer-wrapper it anchors to — pass a phone width to see the
+// compact (base-breakpoint) copy. NOTE: the compact/full switch is driven by
+// useBreakpointValue, which reads the actual iframe width — narrow the Storybook
+// viewport (or the PortraitMobile story) to exercise it, not just this box.
+function Stage({
+    children,
+    width = '640px',
+}: {
+    children: React.ReactNode;
+    width?: string;
+}) {
     return (
         <Box bg="bg.letterbox" minH="320px" p={6}>
-            <Box
-                position="relative"
-                mt="200px"
-                mx="auto"
-                maxW="640px"
-                h="56px"
-            >
+            <Box position="relative" mt="200px" mx="auto" maxW={width} h="56px">
                 {children}
             </Box>
         </Box>
     );
 }
+
+// 390px ≈ iPhone 14 portrait — the screen the watermark was crowding.
+const portraitMobile = {
+    name: 'Portrait phone',
+    styles: { width: '390px', height: '844px' },
+    type: 'mobile' as const,
+};
 
 const meta = {
     title: 'Tournament/InTable/GameConfigWatermark',
@@ -41,6 +52,51 @@ export const RealMoneyTournament: Story = {
     render: () => (
         <MockAppStateProvider state={mockAppState()}>
             <Stage>
+                <GameConfigWatermark />
+            </Stage>
+        </MockAppStateProvider>
+    ),
+};
+
+// The crowded-on-mobile case the redesign targets: deep blinds + ante on a
+// portrait phone. Renders the compact copy ("NLH · L12 · 3K/6K (6KA)",
+// "7/34 LEFT", "FREE PLAY") so it stays one tight column clear of the seat HUD.
+export const PortraitMobile: Story = {
+    parameters: {
+        viewport: {
+            options: { portraitMobile },
+        },
+    },
+    globals: {
+        viewport: { value: 'portraitMobile', isRotated: false },
+    },
+    render: () => (
+        <MockAppStateProvider
+            state={mockAppState({
+                tournamentLive: makeTournamentLive({
+                    meta: makeTournamentMeta({
+                        name: 'Free Play Warmup',
+                        isFreePlay: true,
+                        chain: undefined,
+                        contractAddress: undefined,
+                        buyInUsdc: 0,
+                        registeredCount: 34,
+                    }),
+                    clock: {
+                        level: 12,
+                        levelNumber: 12,
+                        sb: 3_000,
+                        bb: 6_000,
+                        ante: 6_000,
+                        remainingMs: 7 * 60_000,
+                        totalMs: 10 * 60_000,
+                        receivedAt: 0,
+                    },
+                    playersActive: 7,
+                }),
+            })}
+        >
+            <Stage width="390px">
                 <GameConfigWatermark />
             </Stage>
         </MockAppStateProvider>

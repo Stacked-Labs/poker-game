@@ -143,7 +143,7 @@ const Support = () => {
                             </Text>
                         </VStack>
                         <Link
-                            href="https://discord.gg/FdzHKPESVd"
+                            href="https://discord.gg/xdaC5gRP4E"
                             isExternal
                             _hover={{ textDecoration: 'none' }}
                             alignSelf="flex-start"

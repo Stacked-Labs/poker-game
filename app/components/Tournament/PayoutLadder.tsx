@@ -217,6 +217,9 @@ export default function PayoutLadder({
     const paid = placesPaid(entrants);
     const itmPct = entrants > 0 ? Math.round((paid / entrants) * 100) : 0;
     const projected = status === 'registration' || status === 'pending';
+    // Before the field locks, USDC amounts are noise (a shifting pool over a
+    // shifting count), so we show shares only. Concrete prizes appear at start.
+    const showPrize = !isFreePlay && !projected;
     // Widest prize anchors the in-row "share size" bars.
     const maxPercent = tiers.length ? tiers[0].percent : 1;
 
@@ -269,7 +272,7 @@ export default function PayoutLadder({
                         <Tr>
                             <Th>Place</Th>
                             <Th isNumeric>Share</Th>
-                            {!isFreePlay && <Th isNumeric>Prize</Th>}
+                            {showPrize && <Th isNumeric>Prize</Th>}
                         </Tr>
                     </Thead>
                     <Tbody>
@@ -374,7 +377,7 @@ export default function PayoutLadder({
                                     >
                                         {t.percent}%{isRange ? ' ea' : ''}
                                     </Td>
-                                    {!isFreePlay && (
+                                    {showPrize && (
                                         <Td isNumeric>
                                             <HStack
                                                 justify="flex-end"

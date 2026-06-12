@@ -803,6 +803,8 @@ const RaiseInputBox = ({
                     >
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(
@@ -818,6 +820,8 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(
@@ -829,6 +833,8 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(
@@ -844,6 +850,8 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(
@@ -855,6 +863,8 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(

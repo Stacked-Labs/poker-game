@@ -20,11 +20,65 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+// Reproduces the real surface this panel renders on: the in-game Settings modal,
+// which is a *transparent* ModalContent with a backdrop blur floating over the live
+// poker table. The panel must stay legible against that frosted felt — the whole
+// point of the panel's own opaque sheet. The scrim/wash values below mirror
+// SettingsModal.tsx (ModalOverlay + ModalContent + TabPanels) exactly so the story
+// shows what players actually see. Toggle the toolbar light/dark switch to verify both.
 function Stage({ children }: { children: React.ReactNode }) {
     return (
-        <Box bg="card.lightGray" p={{ base: 3, md: 6 }} minH="100vh">
-            <Box maxW="720px" mx="auto">
-                {children}
+        <Box position="relative" minH="100vh" overflow="hidden">
+            {/* The live poker table the modal floats over (gets frosted by the blur) */}
+            <Box
+                position="absolute"
+                inset={0}
+                bgGradient="radial(brand.green 0%, brand.greenDark 55%, brand.darkNavy 100%)"
+            />
+            {/* Faux felt oval + rail so the blurred backdrop reads as a real table */}
+            <Box
+                position="absolute"
+                top="16%"
+                left="50%"
+                transform="translateX(-50%)"
+                w={{ base: '90%', md: '62%' }}
+                h="48%"
+                borderRadius="9999px"
+                border="16px solid"
+                borderColor="brand.darkNavy"
+                bgGradient="radial(brand.green, brand.greenDark)"
+                boxShadow="inset 0 0 80px rgba(0,0,0,0.45)"
+            />
+
+            {/* ModalOverlay: navy scrim + blur (mirrors SettingsModal) */}
+            <Box
+                position="absolute"
+                inset={0}
+                bg="rgba(11, 20, 48, 0.5)"
+                backdropFilter="blur(6px)"
+            />
+
+            {/* ModalContent (transparent + blur) → TabPanels wash → TabPanel padding */}
+            <Box
+                position="relative"
+                minH="100vh"
+                backdropFilter="blur(8px)"
+                p={{ base: 4, md: 8 }}
+            >
+                <Box
+                    maxW="720px"
+                    mx="auto"
+                    bg="rgba(255, 255, 255, 0.05)"
+                    borderRadius="20px"
+                    p={{ base: 1, md: 2 }}
+                >
+                    <Box
+                        px={{ base: 0, sm: 1, md: 2 }}
+                        py={{ base: 1, md: 2 }}
+                    >
+                        {children}
+                    </Box>
+                </Box>
             </Box>
         </Box>
     );

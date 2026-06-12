@@ -44,6 +44,7 @@ import {
     FiGlobe,
     FiLink,
     FiShield,
+    FiUser,
     FiX,
 } from 'react-icons/fi';
 import { FaChartLine, FaDiscord, FaTelegram } from 'react-icons/fa';
@@ -58,7 +59,7 @@ import PlayerNameLink from '../PlayerNameLink';
 import ExternalLink from '../ExternalLink';
 import Footer from '../HomePage/Footer';
 import StructureSheet from './StructureSheet';
-import PayoutLadder from './PayoutLadder';
+import PayoutLadder, { RankBadge } from './PayoutLadder';
 import AboutPanel from './AboutPanel';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
@@ -188,6 +189,13 @@ function explorerBase(chain?: string): string {
 
 function shortAddr(a: string): string {
     return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '';
+}
+
+// Pull a display handle out of a host's X/Twitter community URL, if present.
+function xHandle(url?: string): string | null {
+    if (!url) return null;
+    const m = url.match(/(?:x|twitter)\.com\/@?([A-Za-z0-9_]{1,15})/i);
+    return m ? `@${m[1]}` : null;
 }
 
 // Host-only inline image editor. Wraps the cover or avatar and, for the host,
@@ -760,10 +768,11 @@ export default function TournamentDetail({
     const registeredCount = t.registered_count ?? players.length;
 
     // MoneyHero shows the buy-in as its headline only when there's nothing bigger to
-    // show yet — no guarantee, no prize pool, and no final top prize. In that case
+    // show yet — no guarantee, no prize pool, and no settled prize pool. In that case
     // the separate "Buy-in" stat beside it is a duplicate ("buy in" twice before the
-    // tournament starts), so hide it. Once the headline becomes a pool/top-prize
-    // figure, the Buy-in stat is meaningful again and reappears.
+    // tournament starts), so hide it. Once the headline becomes a pool figure, the
+    // Buy-in stat is meaningful again and reappears. A completed tournament with a
+    // winner payout always has a settled pool, so that's the proxy used here.
     const heroShowsBuyIn =
         !freePlay &&
         (t.guarantee_usdc ?? 0) <= 0 &&
@@ -1134,7 +1143,7 @@ export default function TournamentDetail({
                                         <MoneyHero
                                             tournament={t}
                                             freePlay={freePlay}
-                                            winnerPrizeUsdc={winner?.prize_usdc}
+                                            finalPrizePoolUsdc={effectivePrizePool}
                                         />
                                         <TimingHero
                                             status={t.status}
@@ -1214,54 +1223,68 @@ export default function TournamentDetail({
                                         gap={3}
                                         flexWrap="wrap"
                                     >
-                                        {!freePlay &&
-                                        t.contract_address &&
-                                        t.chain ? (
-                                            <HStack
-                                                spacing={2}
-                                                fontSize="xs"
-                                                color="text.muted"
-                                                minW={0}
-                                            >
-                                                <Icon
-                                                    as={FiShield}
-                                                    boxSize="12px"
-                                                    flexShrink={0}
+                                        <VStack
+                                            align="start"
+                                            spacing={1}
+                                            minW={0}
+                                        >
+                                            {!freePlay &&
+                                                t.contract_address &&
+                                                t.chain && (
+                                                    <HStack
+                                                        spacing={2}
+                                                        fontSize="xs"
+                                                        color="text.muted"
+                                                        minW={0}
+                                                    >
+                                                        <Icon
+                                                            as={FiShield}
+                                                            boxSize="12px"
+                                                            flexShrink={0}
+                                                        />
+                                                        <Text
+                                                            color="text.muted"
+                                                            whiteSpace="nowrap"
+                                                        >
+                                                            Held by the table
+                                                            contract
+                                                        </Text>
+                                                        <Box
+                                                            as="a"
+                                                            href={`${explorerBase(t.chain)}/address/${t.contract_address}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            fontFamily="mono"
+                                                            display="inline-flex"
+                                                            alignItems="center"
+                                                            gap="3px"
+                                                            color={linkColor}
+                                                            _hover={{
+                                                                color: 'brand.green',
+                                                                textDecoration:
+                                                                    'underline',
+                                                            }}
+                                                        >
+                                                            {shortAddr(
+                                                                t.contract_address
+                                                            )}
+                                                            <Icon
+                                                                as={
+                                                                    FiExternalLink
+                                                                }
+                                                                boxSize="10px"
+                                                            />
+                                                        </Box>
+                                                    </HStack>
+                                                )}
+                                            {t.host_wallet && (
+                                                <HostedByLine
+                                                    tournament={t}
+                                                    linkColor={linkColor}
+                                                    isHost={isHost}
                                                 />
-                                                <Text
-                                                    color="text.muted"
-                                                    whiteSpace="nowrap"
-                                                >
-                                                    Held by the table contract
-                                                </Text>
-                                                <Box
-                                                    as="a"
-                                                    href={`${explorerBase(t.chain)}/address/${t.contract_address}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    fontFamily="mono"
-                                                    display="inline-flex"
-                                                    alignItems="center"
-                                                    gap="3px"
-                                                    color={linkColor}
-                                                    _hover={{
-                                                        color: 'brand.green',
-                                                        textDecoration:
-                                                            'underline',
-                                                    }}
-                                                >
-                                                    {shortAddr(
-                                                        t.contract_address
-                                                    )}
-                                                    <Icon
-                                                        as={FiExternalLink}
-                                                        boxSize="10px"
-                                                    />
-                                                </Box>
-                                            </HStack>
-                                        ) : (
-                                            <Box />
-                                        )}
+                                            )}
+                                        </VStack>
                                         {t.status === 'completed' &&
                                         !freePlay &&
                                         t.contract_address ? (
@@ -1671,11 +1694,11 @@ function Stat({
 function MoneyHero({
     tournament: t,
     freePlay,
-    winnerPrizeUsdc,
+    finalPrizePoolUsdc,
 }: {
     tournament: Tournament;
     freePlay: boolean;
-    winnerPrizeUsdc?: number;
+    finalPrizePoolUsdc?: number;
 }) {
     let label = 'Buy-in';
     let value = `$${formatUsdc(t.buy_in_usdc)}`;
@@ -1691,10 +1714,13 @@ function MoneyHero({
         label = 'Prize pool';
         value = `$${formatUsdc(t.prize_pool_usdc, { decimals: t.prize_pool_usdc < 5_000_000 ? 2 : 0 })}`;
     }
-    if (t.status === 'completed' && (winnerPrizeUsdc ?? 0) > 0) {
-        label = 'Top prize';
-        const w = winnerPrizeUsdc as number;
-        value = `$${formatUsdc(w, { decimals: w < 5_000_000 ? 2 : 0 })}`;
+    if (t.status === 'completed' && (finalPrizePoolUsdc ?? 0) > 0) {
+        // Once settled, lead with the full prize pool that was paid out — the
+        // realized figure (sum of every payout), not the guarantee or the stale
+        // stored pool — and drop the GTD suffix since it's no longer a promise.
+        label = 'Prize pool';
+        const pool = finalPrizePoolUsdc as number;
+        value = `$${formatUsdc(pool, { decimals: pool < 5_000_000 ? 2 : 0 })}`;
         suffix = undefined;
     }
     const usdc = !freePlay;
@@ -2316,7 +2342,39 @@ function Standings({
 }) {
     const running = t.status === 'running';
     const completed = t.status === 'completed';
+    const prefersReducedMotion = usePrefersReducedMotion();
+    // Gold numeral for the live chip leader (running view; completed top three get
+    // chip medals instead).
     const goldRank = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    // Podium dressing for the finished top three: the same gold/silver/bronze poker
+    // chips as the payout ladder, a soft metal wash down each row, and a crown +
+    // "Champion" tag on 1st. Washes and disc-ring mirror PayoutLadder so the two
+    // surfaces read as one system.
+    const goldWash = useColorModeValue(
+        'rgba(253, 197, 29, 0.12)',
+        'rgba(253, 197, 29, 0.14)'
+    );
+    const silverWash = useColorModeValue(
+        'rgba(148, 163, 184, 0.14)',
+        'rgba(148, 163, 184, 0.16)'
+    );
+    const bronzeWash = useColorModeValue(
+        'rgba(205, 137, 78, 0.12)',
+        'rgba(205, 137, 78, 0.18)'
+    );
+    const championPillBg = useColorModeValue(
+        'rgba(253, 197, 29, 0.18)',
+        'rgba(253, 197, 29, 0.16)'
+    );
+    const championPillFg = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    const podiumWash = (r: number) =>
+        r === 1
+            ? goldWash
+            : r === 2
+              ? silverWash
+              : r === 3
+                ? bronzeWash
+                : undefined;
     // For completed tournaments the displayed field size is the highest finish
     // position, not players.length. A race condition can leave a gap (e.g. no
     // position 8 but position 9 exists), making players.length = 8 while the
@@ -2400,24 +2458,46 @@ function Standings({
                                 myWallet &&
                                 p.wallet.toLowerCase() ===
                                     myWallet.toLowerCase();
+                            const isPodium = completed && rank <= 3;
+                            const isChampion = completed && rank === 1;
+                            const wash = isPodium
+                                ? podiumWash(rank)
+                                : undefined;
                             return (
                                 <Tr
                                     key={p.uuid}
-                                    bg={isMe ? meHighlight : undefined}
+                                    bg={isMe ? meHighlight : wash}
                                     _hover={{
-                                        bg: isMe ? meHighlight : rowHover,
+                                        bg: isMe
+                                            ? meHighlight
+                                            : (wash ?? rowHover),
                                     }}
                                     opacity={isOut && !completed ? 0.55 : 1}
                                 >
-                                    <Td
-                                        fontWeight="bold"
-                                        color={
-                                            rank === 1
-                                                ? goldRank
-                                                : 'text.primary'
-                                        }
-                                    >
-                                        {rank}
+                                    <Td fontWeight="bold" color="text.primary">
+                                        {isPodium ? (
+                                            <RankBadge
+                                                place={rank}
+                                                reduced={prefersReducedMotion}
+                                                delayMs={(rank - 1) * 90}
+                                                size={32}
+                                            />
+                                        ) : (
+                                            <Text
+                                                as="span"
+                                                color={
+                                                    running && rank === 1
+                                                        ? goldRank
+                                                        : 'text.primary'
+                                                }
+                                                sx={{
+                                                    fontVariantNumeric:
+                                                        'tabular-nums',
+                                                }}
+                                            >
+                                                {rank}
+                                            </Text>
+                                        )}
                                     </Td>
                                     <Td>
                                         <HStack spacing={3} minW={0}>
@@ -2466,6 +2546,25 @@ function Standings({
                                                             fontFamily="mono"
                                                         >
                                                             {p.uuid.slice(0, 8)}
+                                                        </Text>
+                                                    )}
+                                                    {isChampion && (
+                                                        <Text
+                                                            as="span"
+                                                            fontSize="2xs"
+                                                            fontWeight="bold"
+                                                            color={
+                                                                championPillFg
+                                                            }
+                                                            bg={championPillBg}
+                                                            px={1.5}
+                                                            py="1px"
+                                                            borderRadius="full"
+                                                            textTransform="uppercase"
+                                                            letterSpacing="0.06em"
+                                                            flexShrink={0}
+                                                        >
+                                                            Champion
                                                         </Text>
                                                     )}
                                                     {isMe && (
@@ -2558,7 +2657,12 @@ function Standings({
                                     {completed && !freePlay && (
                                         <Td isNumeric>
                                             <Text
-                                                fontSize="xs"
+                                                fontSize={
+                                                    isPodium &&
+                                                    (p.prize_usdc ?? 0) > 0
+                                                        ? 'sm'
+                                                        : 'xs'
+                                                }
                                                 fontWeight={
                                                     (p.prize_usdc ?? 0) > 0
                                                         ? 'bold'
@@ -2587,6 +2691,87 @@ function Standings({
                 </Table>
             </Box>
         </Box>
+    );
+}
+
+// Subtle host attribution for the main details card: the host's X handle (when
+// they've added one) and their wallet, both linked. Sits beside the contract
+// trust line so "who runs this table" is one quiet glance away.
+function HostedByLine({
+    tournament: t,
+    linkColor,
+    isHost,
+}: {
+    tournament: Tournament;
+    linkColor: string;
+    isHost: boolean;
+}) {
+    const handle = xHandle(t.x_url);
+    return (
+        <HStack spacing={1.5} fontSize="xs" color="text.muted" minW={0}>
+            <Icon as={FiUser} boxSize="12px" flexShrink={0} />
+            <Text whiteSpace="nowrap">Hosted by</Text>
+            {handle && (
+                <>
+                    <Box
+                        as="a"
+                        href={t.x_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        display="inline-flex"
+                        alignItems="center"
+                        gap="3px"
+                        fontWeight="semibold"
+                        color={linkColor}
+                        _hover={{
+                            color: 'brand.green',
+                            textDecoration: 'underline',
+                        }}
+                    >
+                        <Icon as={FaXTwitter} boxSize="9px" />
+                        {handle}
+                    </Box>
+                    <Text color="text.muted" aria-hidden>
+                        ·
+                    </Text>
+                </>
+            )}
+            {t.chain ? (
+                <Box
+                    as="a"
+                    href={`${explorerBase(t.chain)}/address/${t.host_wallet}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    fontFamily="mono"
+                    display="inline-flex"
+                    alignItems="center"
+                    gap="3px"
+                    color={linkColor}
+                    _hover={{
+                        color: 'brand.green',
+                        textDecoration: 'underline',
+                    }}
+                >
+                    {shortAddr(t.host_wallet)}
+                    <Icon as={FiExternalLink} boxSize="10px" />
+                </Box>
+            ) : (
+                <Text fontFamily="mono" whiteSpace="nowrap">
+                    {shortAddr(t.host_wallet)}
+                </Text>
+            )}
+            {isHost && (
+                <Text
+                    fontSize="2xs"
+                    fontWeight="bold"
+                    color="brand.green"
+                    textTransform="uppercase"
+                    letterSpacing="0.05em"
+                >
+                    you
+                </Text>
+            )}
+        </HStack>
     );
 }
 

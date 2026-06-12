@@ -305,12 +305,14 @@ export default function TournamentTabPanel() {
 
     if (!live || !meta) {
         return (
-            <Box p={6} textAlign="center">
-                <Text color="text.muted" fontSize="sm">
-                    Tournament details will appear here once the live feed
-                    connects.
-                </Text>
-            </Box>
+            <Sheet>
+                <Box py={4} textAlign="center">
+                    <Text color="text.muted" fontSize="sm">
+                        Tournament details will appear here once the live feed
+                        connects.
+                    </Text>
+                </Box>
+            </Sheet>
         );
     }
 
@@ -364,8 +366,9 @@ export default function TournamentTabPanel() {
     ];
 
     return (
-        <VStack align="stretch" spacing={4} px={{ base: 1, md: 2 }} py={2}>
-            {/* Header */}
+        <Sheet>
+            <VStack align="stretch" spacing={4}>
+                {/* Header */}
             <Box>
                 <Flex justify="space-between" align="baseline" gap={3} wrap="wrap">
                     <Text
@@ -1015,7 +1018,31 @@ export default function TournamentTabPanel() {
                 defaultOpen={false}
                 bare
             />
-        </VStack>
+            </VStack>
+        </Sheet>
+    );
+}
+
+// Opaque surface the whole panel floats on. The settings modal is frosted glass
+// over the live table (transparent ModalContent + backdrop blur), so without a
+// solid base the translucent row tints, dividers and standings read straight
+// through to the felt and become illegible. This gives the panel its own opaque
+// surface — the same move every sibling settings tab (PlayerList, Ledger) makes —
+// so every section sits on a legible base in both light and dark mode. The inner
+// StatTiles stay `card.white`, lifting off this lighter-gray sheet.
+function Sheet({ children }: { children: ReactNode }) {
+    return (
+        <Box
+            bg="card.lightGray"
+            border="1px solid"
+            borderColor="border.lightGray"
+            borderRadius={{ base: '16px', md: '18px' }}
+            boxShadow="card.lift"
+            px={{ base: 2.5, md: 3.5 }}
+            py={{ base: 3, md: 3.5 }}
+        >
+            {children}
+        </Box>
     );
 }
 

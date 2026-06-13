@@ -41,7 +41,7 @@ When writing copy or generating UI, read `PRODUCT.md` first. When picking colors
 - **chakra-design-system** — Chakra v2 patterns, theme tokens, variants, a11y
 - **react-architecture** — Component structure, hooks, Server vs Client
 - **web3-thirdweb-siwe** — Wallet connection, SIWE auth, Base/USDC
-- **base-miniapp-developer** — MiniKit / Coinbase Wallet Mini App work
+- **base-miniapp-developer** — Base App as a standard web app + one-tap Base Account login (thirdweb-primary). NOT MiniKit/OnchainKit; Base App dropped Farcaster Mini Apps Apr 2026
 - **storybook-testing** — Storybook v9 stories
 - **frontend-design** — Building distinctive UI from scratch (auto-activates)
 - **frontend-quality-bar** — "Ready to merge" gate (a11y, perf, polish)

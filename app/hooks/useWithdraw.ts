@@ -4,13 +4,12 @@ import { useState, useCallback } from 'react';
 import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
 import {
-    useSendAndConfirmTransaction,
     useActiveAccount,
     useActiveWallet,
-    useSwitchActiveWalletChain,
 } from 'thirdweb/react';
 import { getWalletBalance } from 'thirdweb/wallets';
 import { client } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
 
 export type WithdrawStatus =
     | 'idle'
@@ -59,8 +58,7 @@ export function useWithdraw(
         null
     );
 
-    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
-    const switchChain = useSwitchActiveWalletChain();
+    const sendOnChain = useChainBoundSend();
 
     const reset = useCallback(() => {
         setStatus('idle');
@@ -157,8 +155,7 @@ export function useWithdraw(
                 params: [],
             });
 
-            await switchChain(chain);
-            await sendAndConfirm(withdrawTx);
+            await sendOnChain(chain, withdrawTx);
 
             setStatus('success');
             setCanWithdrawState(false);
@@ -182,7 +179,7 @@ export function useWithdraw(
             setStatus('error');
             return false;
         }
-    }, [account?.address, contractAddress, chain, sendAndConfirm, switchChain]);
+    }, [account?.address, contractAddress, chain, sendOnChain]);
 
     return {
         withdraw,

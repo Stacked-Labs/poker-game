@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
+import { useActiveAccount } from 'thirdweb/react';
 import { client, CHAIN_CONFIG } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
 
 const hostRakePendingAbi = {
     name: 'hostRakePending',
@@ -23,7 +24,7 @@ const claimHostRakeAbi = {
 
 export function useClaimHostRake(contractAddress: string | undefined, chainName: string | undefined) {
     const account = useActiveAccount();
-    const { mutateAsync: sendTx } = useSendAndConfirmTransaction();
+    const sendOnChain = useChainBoundSend();
 
     const [pendingRake, setPendingRake] = useState<bigint | null>(null);
     const [claiming, setClaiming] = useState(false);
@@ -51,7 +52,7 @@ export function useClaimHostRake(contractAddress: string | undefined, chainName:
         try {
             const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
             const tx = prepareContractCall({ contract, method: claimHostRakeAbi, params: [] });
-            await sendTx(tx);
+            await sendOnChain(chainCfg.chain, tx);
             await refresh();
             return true;
         } catch (e) {
@@ -60,7 +61,7 @@ export function useClaimHostRake(contractAddress: string | undefined, chainName:
         } finally {
             setClaiming(false);
         }
-    }, [contractAddress, chainCfg, account, sendTx, refresh]);
+    }, [contractAddress, chainCfg, account, sendOnChain, refresh]);
 
     return { pendingRake, claiming, error, claim, refresh };
 }

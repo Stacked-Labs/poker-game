@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
+import { useActiveAccount } from 'thirdweb/react';
 import { client, CHAIN_CONFIG } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
 
 const bulletsUsedAbi = {
     name: 'bulletsUsed',
@@ -15,14 +16,6 @@ const bulletsUsedAbi = {
 
 const refundedAbi = {
     name: 'refunded',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: 'player', type: 'address' }],
-    outputs: [{ type: 'bool' }],
-} as const;
-
-const isFreeEntryAbi = {
-    name: 'isFreeEntry',
     type: 'function',
     stateMutability: 'view',
     inputs: [{ name: 'player', type: 'address' }],
@@ -46,7 +39,7 @@ const claimRefundAbi = {
 } as const;
 
 export interface RefundState {
-    eligible: boolean;       // registered and not yet refunded and not free entry
+    eligible: boolean;       // registered, not yet refunded, and buyIn > 0
     alreadyClaimed: boolean;
     estimatedUsdc: bigint | null; // null for emergency_refund (pro-rata, unknown until claim)
     loading: boolean;
@@ -62,7 +55,7 @@ export function useClaimRefund(
     tournamentStatus: string | undefined,
 ): RefundState {
     const account = useActiveAccount();
-    const { mutateAsync: sendTx } = useSendAndConfirmTransaction();
+    const sendOnChain = useChainBoundSend();
 
     const [eligible, setEligible] = useState(false);
     const [alreadyClaimed, setAlreadyClaimed] = useState(false);
@@ -81,16 +74,15 @@ export function useClaimRefund(
             const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
             const addr = account.address;
 
-            const [bullets, alreadyRefunded, freeEntry, buyIn] = await Promise.all([
+            const [bullets, alreadyRefunded, buyIn] = await Promise.all([
                 readContract({ contract, method: bulletsUsedAbi, params: [addr] }),
                 readContract({ contract, method: refundedAbi, params: [addr] }),
-                readContract({ contract, method: isFreeEntryAbi, params: [addr] }),
                 readContract({ contract, method: buyInAbi, params: [] }),
             ]);
 
             setAlreadyClaimed(alreadyRefunded);
 
-            if (bullets === 0 || freeEntry || alreadyRefunded) {
+            if (bullets === 0 || alreadyRefunded || buyIn === BigInt(0)) {
                 setEligible(false);
                 setEstimatedUsdc(null);
             } else {
@@ -118,7 +110,7 @@ export function useClaimRefund(
         try {
             const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
             const tx = prepareContractCall({ contract, method: claimRefundAbi, params: [] });
-            await sendTx(tx);
+            await sendOnChain(chainCfg.chain, tx);
             await refresh();
             return true;
         } catch (e) {
@@ -127,7 +119,7 @@ export function useClaimRefund(
         } finally {
             setClaiming(false);
         }
-    }, [contractAddress, chainCfg, account, sendTx, refresh]);
+    }, [contractAddress, chainCfg, account, sendOnChain, refresh]);
 
     return { eligible, alreadyClaimed, estimatedUsdc, loading, claiming, error, claim, refresh };
 }

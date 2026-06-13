@@ -703,6 +703,28 @@ const GameSettingLeftSide: React.FC = () => {
         }
     };
 
+    // Hosting a tournament always requires sign-in; cash tables only require it
+    // for real-money play (Free Play stays open to guests).
+    const isSignedIn = !!address && isAuthenticated;
+    const signInGate = !address ? (
+        <WalletButton width="100%" height="56px" label="Sign in to host" />
+    ) : (
+        <Button
+            variant="tactilePrimary"
+            width="100%"
+            height="56px"
+            fontSize="md"
+            fontWeight="bold"
+            borderRadius="16px"
+            isLoading={isAuthenticating}
+            loadingText="Signing in…"
+            spinner={<Spinner size="md" color="white" />}
+            onClick={requestAuthentication}
+        >
+            Sign in to host
+        </Button>
+    );
+
     return (
         <VStack
             spacing={1}
@@ -845,6 +867,7 @@ const GameSettingLeftSide: React.FC = () => {
                 <CreateTournamentForm
                     onSubmit={handleCreateTournament}
                     isSubmitting={creating}
+                    authGate={isSignedIn ? undefined : signInGate}
                 />
             ) : (
                 <>
@@ -1881,6 +1904,10 @@ const GameSettingLeftSide: React.FC = () => {
                                             )}
                                         </Flex>
                                     </Flex>
+                                </Box>
+                            ) : mode === 'real' && !isSignedIn ? (
+                                <Box width="100%" maxW="480px">
+                                    {signInGate}
                                 </Box>
                             ) : (
                                 <Tooltip

@@ -62,11 +62,11 @@ const slideDown = keyframes`
     }
 `;
 
-type TabTone = 'green' | 'pink' | 'navy';
+type TabTone = 'green' | 'pink' | 'navy' | 'gold';
 
 const TAB_PALETTE: Record<
     TabTone,
-    { bg: string; edge: string; dark: string; tint: string }
+    { bg: string; edge: string; dark: string; tint: string; selectedText?: string }
 > = {
     green: {
         bg: 'brand.green',
@@ -85,6 +85,13 @@ const TAB_PALETTE: Record<
         edge: '#1B2754',
         dark: 'brand.darkNavy',
         tint: 'rgba(51, 68, 121, 0.10)',
+    },
+    gold: {
+        bg: 'brand.yellow',
+        edge: '#A07B0A',
+        dark: 'brand.yellowDark',
+        tint: 'rgba(253, 197, 29, 0.12)',
+        selectedText: '#3D2C00',
     },
 };
 
@@ -111,15 +118,15 @@ const TabItem = ({
             }}
             _selected={{
                 bg: p.bg,
-                color: 'white',
+                color: p.selectedText ?? 'white',
                 boxShadow: `inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 ${p.edge}`,
-                '& *': { color: 'white' },
+                '& *': { color: p.selectedText ?? 'white' },
             }}
             _active={{
                 bg: p.dark,
                 transform: 'translateY(1px)',
                 boxShadow: `inset 0 1px 2px rgba(0,0,0,0.20), 0 0 0 ${p.edge}`,
-                '& *': { color: 'white' },
+                '& *': { color: p.selectedText ?? 'white' },
             }}
             borderRadius="8px"
             fontWeight="bold"
@@ -286,7 +293,7 @@ const SettingsModal = ({
                                     {isTournamentTable && (
                                         <TabItem
                                             text="Tournament"
-                                            tone="green"
+                                            tone="gold"
                                             icon={FiAward}
                                         />
                                     )}

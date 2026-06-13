@@ -106,6 +106,8 @@ const nextConfig = {
             process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
         NEXT_PUBLIC_THIRDWEB_BUNDLER_URL:
             process.env.NEXT_PUBLIC_THIRDWEB_BUNDLER_URL,
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY:
+            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
     },
     images: {
         remotePatterns: [

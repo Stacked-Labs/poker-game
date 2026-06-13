@@ -104,6 +104,11 @@ export interface CreateTournamentFormProps {
     onSubmit?: (values: CreateTournamentFormValues) => void;
     isSubmitting?: boolean;
     fundPhase?: 'idle' | 'approving' | 'depositing' | 'opening';
+    /**
+     * Rendered in place of the submit button when the host isn't signed in.
+     * Creating a tournament always requires sign-in.
+     */
+    authGate?: React.ReactNode;
 }
 
 interface Accent {
@@ -693,6 +698,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     onSubmit,
     isSubmitting = false,
     fundPhase = 'idle',
+    authGate,
 }) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -1193,9 +1199,10 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                         if (!on) setGuaranteeUsdc('');
                                     }}
                                     sx={{
-                                        '& span[data-checked]': {
-                                            background: accent.color,
-                                        },
+                                        '& .chakra-switch__track[data-checked]':
+                                            {
+                                                background: accent.color,
+                                            },
                                     }}
                                 />
                             </Flex>
@@ -2064,22 +2071,24 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
             </SectionCard>
 
             {/* ── Submit ──────────────────────────────────────────────────── */}
-            <Button
-                type="submit"
-                variant="tactilePrimary"
-                width="100%"
-                height="56px"
-                fontSize="md"
-                fontWeight="bold"
-                borderRadius="16px"
-                isLoading={isSubmitting}
-                loadingText={isFunding ? fundingLabel : 'Creating…'}
-                spinner={<Spinner size="md" color="white" />}
-                isDisabled={isSubmitting}
-                onClick={handleSubmit}
-            >
-                {submitLabel}
-            </Button>
+            {authGate ?? (
+                <Button
+                    type="submit"
+                    variant="tactilePrimary"
+                    width="100%"
+                    height="56px"
+                    fontSize="md"
+                    fontWeight="bold"
+                    borderRadius="16px"
+                    isLoading={isSubmitting}
+                    loadingText={isFunding ? fundingLabel : 'Creating…'}
+                    spinner={<Spinner size="md" color="white" />}
+                    isDisabled={isSubmitting}
+                    onClick={handleSubmit}
+                >
+                    {submitLabel}
+                </Button>
+            )}
 
             {isFunding && (
                 <HStack spacing={2} justify="center">

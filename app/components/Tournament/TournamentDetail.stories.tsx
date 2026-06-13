@@ -315,6 +315,7 @@ export const Completed: Story = {
             contract_address: addr(0xdd),
             settlement_tx_hash: addr(0xee) + 'abcd',
             settlement_status: 'paid',
+            x_url: 'https://x.com/allin_alice',
             metadata: { blind_structure: 'regular' },
         }),
     },

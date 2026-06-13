@@ -39,6 +39,7 @@ import TournamentDetail, {
     type LeaderboardPlayer,
     type CommunityLinkValues,
 } from '../../components/Tournament/TournamentDetail';
+import RegistrationConfirmationModal from '../../components/Tournament/RegistrationConfirmationModal';
 
 async function hashPasswordCode(code: string): Promise<string> {
     const enc = new TextEncoder().encode(code);
@@ -67,9 +68,16 @@ export default function TournamentPage() {
     const [pendingPasscode, setPendingPasscode] = useState<{
         isReentry: boolean;
     } | null>(null);
+    // Drives the "You're in." confirmation after a successful register/re-entry.
+    const [confirm, setConfirm] = useState<{ isReentry: boolean } | null>(null);
     const [passcode, setPasscode] = useState('');
     const [passcodeLoading, setPasscodeLoading] = useState(false);
     const passcodeInputRef = useRef<HTMLInputElement>(null);
+    // After an on-chain register/unregister the DB lags by the indexer sync, so the
+    // server's "am I registered" answer is briefly stale. This holds the optimistic
+    // value (true after register, false after unregister) and stops load() from
+    // flipping the button back until the server agrees. null = no pending action.
+    const optimisticRegRef = useRef<boolean | null>(null);
 
     const {
         register: registerOnChain,
@@ -181,7 +189,18 @@ export default function TournamentPage() {
                 setRegistrants([]);
                 setPlayers(lbData?.players ?? []);
             }
-            setIsRegistered(new Set(regsData.tournament_ids).has(id));
+            const serverRegistered = new Set(regsData.tournament_ids).has(id);
+            // Respect a pending optimistic register/unregister: only accept the
+            // server value once it matches the action we just took, then clear the
+            // override. Otherwise the stale (pre-indexer-sync) value would flip the
+            // button back to "Register"/"Unregister" right after a successful tx.
+            if (
+                optimisticRegRef.current === null ||
+                optimisticRegRef.current === serverRegistered
+            ) {
+                optimisticRegRef.current = null;
+                setIsRegistered(serverRegistered);
+            }
             if (tData.tournament.status === 'running') {
                 const clock = await getTournamentClock(id);
                 setBlindLevel(clock?.level_number ?? null);
@@ -203,6 +222,17 @@ export default function TournamentPage() {
         }, 60_000);
         return () => clearInterval(interval);
     }, [id, myWallet]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Re-pull server state a few times over ~35s after an on-chain action so the UI
+    // catches up as the indexer syncs the event into the DB — without the user
+    // having to refresh. load() preserves any pending optimistic register state.
+    const resyncAfterOnchainAction = () => {
+        [2000, 5000, 10000, 20000, 35000].forEach((ms) =>
+            setTimeout(() => {
+                load();
+            }, ms)
+        );
+    };
 
     const handleRegister = async (isReentry = false) => {
         if (!myWallet) {
@@ -229,7 +259,6 @@ export default function TournamentPage() {
                         (isReentry ? 'Re-entry failed' : 'Registration failed')
                 );
             } else {
-                toast.success(isReentry ? 'Re-entered!' : 'Registered!');
                 if (isReentry) {
                     setPlayers((prev) =>
                         prev.map((p) =>
@@ -245,8 +274,10 @@ export default function TournamentPage() {
                     );
                 } else {
                     setIsRegistered(true);
+                    optimisticRegRef.current = true;
                 }
-                load();
+                setConfirm({ isReentry });
+                resyncAfterOnchainAction();
             }
         } finally {
             setActionLoading(false);
@@ -279,7 +310,8 @@ export default function TournamentPage() {
             } else {
                 toast.success('Unregistered');
                 setIsRegistered(false); // optimistic
-                load(); // background sync
+                optimisticRegRef.current = false;
+                resyncAfterOnchainAction(); // background sync as the indexer catches up
             }
         } finally {
             setActionLoading(false);
@@ -299,8 +331,9 @@ export default function TournamentPage() {
                 toast.error("You're not seated in this tournament");
                 return;
             }
-            router.push(
-                `/table/tournament-${id}-table-${entry.table_index + 1}`
+            window.open(
+                `/table/tournament-${id}-table-${entry.table_index + 1}`,
+                '_blank'
             );
         } catch {
             toast.error('Could not find your table');
@@ -397,16 +430,17 @@ export default function TournamentPage() {
 
     const handleEnableEmergencyRefund = async () => {
         const ok = await emergencyRefund.open();
-        if (ok)
+        if (ok) {
             toast.success('Emergency refunds enabled — players can now claim.');
-        else toast.error(emergencyRefund.error ?? 'Transaction failed');
+            resyncAfterOnchainAction(); // pick up the status → emergency_refund flip
+        } else toast.error(emergencyRefund.error ?? 'Transaction failed');
     };
 
     const handleFundAndOpen = async () => {
         const ok = await fundAndOpen();
         if (ok) {
             toast.success('Guarantee funded — registration is open!');
-            load();
+            resyncAfterOnchainAction();
         } else {
             toast.error('Funding failed');
         }
@@ -535,6 +569,20 @@ export default function TournamentPage() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
+            {confirm && tournament && (
+                <RegistrationConfirmationModal
+                    tournament={tournament}
+                    isReentry={confirm.isReentry}
+                    isOpen
+                    onClose={() => setConfirm(null)}
+                    onSuccess={() => {
+                        // Registered or re-entered, the player is now registered.
+                        setIsRegistered(true);
+                        load();
+                    }}
+                />
+            )}
         </>
     );
 }

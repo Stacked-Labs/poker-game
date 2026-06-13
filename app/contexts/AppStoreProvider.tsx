@@ -38,7 +38,7 @@ const initialState: AppState = {
     chatSoundEnabled: true,
     chatOverlayEnabled: true,
     fourColorDeckEnabled: false,
-    cardBackDesign: 'classic-blue',
+    cardBackDesign: 'classic-red',
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,

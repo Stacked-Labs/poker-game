@@ -4,6 +4,7 @@ import {
     Box,
     Flex,
     HStack,
+    Icon,
     Image,
     Table,
     Tbody,
@@ -16,6 +17,7 @@ import {
     usePrefersReducedMotion,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
+import { PiMedalFill, PiTrophyFill } from 'react-icons/pi';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     formatUsdc,
@@ -28,34 +30,12 @@ import {
     placesPaid,
 } from '../PublicGames/payouts';
 
-// Podium chips, styled as poker chips: a base colour, rim "edge spots", and a
-// glossed inner face with a dark numeral. Static across themes (discRing supplies
-// the light-mode edge); the gold chip gets a slow glint.
-const CHIP: Record<
-    number,
-    { base: string; spot: string; faceTop: string; faceBot: string; fg: string }
-> = {
-    1: {
-        base: '#F4B400',
-        spot: 'rgba(255, 255, 255, 0.92)',
-        faceTop: '#FFE079',
-        faceBot: '#F2B100',
-        fg: '#2A1E00',
-    },
-    2: {
-        base: '#AEB6C6',
-        spot: 'rgba(255, 255, 255, 0.96)',
-        faceTop: '#E9EDF4',
-        faceBot: '#B4BCCC',
-        fg: '#1C2436',
-    },
-    3: {
-        base: '#C4824A',
-        spot: 'rgba(255, 240, 222, 0.92)',
-        faceTop: '#E4A972',
-        faceBot: '#BB7B42',
-        fg: '#2A1605',
-    },
+// Podium metal for the top three: a gold trophy for the champion, silver/bronze
+// medals for the runners-up. Colours read on both light and dark surfaces.
+const PODIUM_METAL: Record<number, string> = {
+    1: '#F4B400', // gold
+    2: '#9AA3B5', // silver
+    3: '#C4824A', // bronze
 };
 
 // Faint accent for the in-row "prize size" bar, widest at 1st and tapering down.
@@ -65,7 +45,7 @@ const SHARE_BAR: Record<number, string> = {
     3: 'rgba(205, 137, 78, 0.20)',
 };
 
-// Rows fade up in sequence; chips give a springy little pop as they land.
+// Rows fade up in sequence; the trophy/medals give a springy little pop as they land.
 const rowFade = keyframes`
     from { opacity: 0; transform: translateY(5px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -75,83 +55,52 @@ const medalPop = keyframes`
     60%  { transform: scale(1.18); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 `;
-// Occasional light streak that sweeps across the gold chip's face.
-const chipShine = keyframes`
-    0%        { transform: translateX(-140%) rotate(12deg); opacity: 0; }
-    14%       { opacity: 0.85; }
-    34%, 100% { transform: translateX(180%) rotate(12deg); opacity: 0; }
-`;
 
-function ChipMedal({
+// Shared so the Final Standings podium (TournamentDetail) shows the exact same
+// gold-trophy / silver- & bronze-medal marks as the payout ladder. `size` scales
+// the icon; the rank is announced via aria-label since the glyph carries no numeral.
+export function RankBadge({
     place,
-    ring,
     reduced,
     delayMs,
+    size = 22,
 }: {
     place: number;
-    ring: string;
     reduced: boolean;
     delayMs: number;
+    size?: number;
 }) {
-    const c = CHIP[place];
-    if (!c) return null;
+    const color = PODIUM_METAL[place];
+    if (!color) return null;
+    const Glyph = place === 1 ? PiTrophyFill : PiMedalFill;
+    const label =
+        place === 1
+            ? '1st place'
+            : place === 2
+              ? '2nd place'
+              : '3rd place';
     return (
-        <Box
-            position="relative"
-            boxSize="22px"
-            borderRadius="full"
+        <Flex
+            role="img"
+            aria-label={label}
+            align="center"
+            justify="center"
+            boxSize={`${size}px`}
             flexShrink={0}
-            aria-hidden
             sx={{
-                backgroundColor: c.base,
-                // 6 evenly spaced rim spots — the classic chip edge.
-                backgroundImage: `repeating-conic-gradient(from 0deg, ${c.spot} 0deg 22deg, transparent 22deg 60deg)`,
-                boxShadow: `${ring}, 0 1px 2px rgba(0, 0, 0, 0.28)`,
                 animation: reduced
                     ? undefined
                     : `${medalPop} 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both`,
                 animationDelay: reduced ? undefined : `${delayMs}ms`,
             }}
         >
-            <Flex
-                position="absolute"
-                inset="3px"
-                borderRadius="full"
-                align="center"
-                justify="center"
-                overflow="hidden"
-                sx={{
-                    background: `radial-gradient(circle at 34% 28%, ${c.faceTop}, ${c.faceBot})`,
-                    boxShadow:
-                        'inset 0 0 0 1px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.55)',
-                }}
-            >
-                <Text
-                    as="span"
-                    fontSize="2xs"
-                    fontWeight="bold"
-                    color={c.fg}
-                    lineHeight="1"
-                    sx={{ fontVariantNumeric: 'tabular-nums' }}
-                >
-                    {place}
-                </Text>
-                {place === 1 && !reduced && (
-                    <Box
-                        position="absolute"
-                        top="-30%"
-                        left="-30%"
-                        w="45%"
-                        h="160%"
-                        sx={{
-                            background:
-                                'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent)',
-                            animation: `${chipShine} 4.5s ease-in-out 1s infinite`,
-                        }}
-                    />
-                )}
-            </Flex>
-        </Box>
+            <Icon
+                as={Glyph}
+                boxSize={`${Math.round(size * 0.88)}px`}
+                color={color}
+                sx={{ filter: 'drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3))' }}
+            />
+        </Flex>
     );
 }
 
@@ -200,12 +149,6 @@ export default function PayoutLadder({
         'rgba(205, 137, 78, 0.12)',
         'rgba(205, 137, 78, 0.18)'
     );
-    // Edge for the medal disc so the lighter (silver) chip reads on a white card.
-    const discRing = useColorModeValue(
-        'inset 0 0 0 1px rgba(11, 20, 48, 0.10)',
-        'inset 0 0 0 1px rgba(0, 0, 0, 0.25)'
-    );
-
     const youWash = useColorModeValue(
         'rgba(54, 163, 123, 0.10)',
         'rgba(54, 163, 123, 0.18)'
@@ -217,6 +160,9 @@ export default function PayoutLadder({
     const paid = placesPaid(entrants);
     const itmPct = entrants > 0 ? Math.round((paid / entrants) * 100) : 0;
     const projected = status === 'registration' || status === 'pending';
+    // Before the field locks, USDC amounts are noise (a shifting pool over a
+    // shifting count), so we show shares only. Concrete prizes appear at start.
+    const showPrize = !isFreePlay && !projected;
     // Widest prize anchors the in-row "share size" bars.
     const maxPercent = tiers.length ? tiers[0].percent : 1;
 
@@ -269,7 +215,7 @@ export default function PayoutLadder({
                         <Tr>
                             <Th>Place</Th>
                             <Th isNumeric>Share</Th>
-                            {!isFreePlay && <Th isNumeric>Prize</Th>}
+                            {showPrize && <Th isNumeric>Prize</Th>}
                         </Tr>
                     </Thead>
                     <Tbody>
@@ -320,9 +266,8 @@ export default function PayoutLadder({
                                     <Td color="text.primary">
                                         <HStack spacing={2.5}>
                                             {podium > 0 && (
-                                                <ChipMedal
+                                                <RankBadge
                                                     place={podium}
-                                                    ring={discRing}
                                                     reduced={
                                                         !!prefersReducedMotion
                                                     }
@@ -374,7 +319,7 @@ export default function PayoutLadder({
                                     >
                                         {t.percent}%{isRange ? ' ea' : ''}
                                     </Td>
-                                    {!isFreePlay && (
+                                    {showPrize && (
                                         <Td isNumeric>
                                             <HStack
                                                 justify="flex-end"

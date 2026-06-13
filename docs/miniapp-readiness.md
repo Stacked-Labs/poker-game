@@ -1,5 +1,7 @@
 # Mini App Readiness Review (Stacked Poker)
 
+> ⚠️ **OUTDATED (superseded 2026-06-12).** This review predates the Base App's move to a standard-web-app model (the Base App dropped Farcaster Mini Apps on **April 9, 2026**). Its claims about the manifest (`REPLACE_ME` placeholders, ngrok/pexels `fc:miniapp`) are also no longer true — `public/.well-known/farcaster.json` is fully populated and signed. For the current plan see the `base-miniapp-developer` skill (`.claude/skills/base-miniapp-developer/`) and Claude memory `project_base_app_miniapp_pivot`. Kept for history only.
+
 Date: 2026-01-30
 
 ## Grand tree view (selected)

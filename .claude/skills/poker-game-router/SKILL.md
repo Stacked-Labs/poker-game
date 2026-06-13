@@ -37,9 +37,17 @@ Use `web3-thirdweb-siwe` when:
 - Working with `thirdweb/react` hooks (`useActiveAccount`, `useActiveWallet`, etc)
 - Debugging auth loops, signature issues, disconnect behavior, or CSP issues
 - Updating `next.config.js` CSP headers related to thirdweb embedded wallet
-- Sending on-chain transactions (always via `useStackedTransaction` — never `useSendAndConfirmTransaction` directly)
+- Sending on-chain transactions (hooks use `useSendAndConfirmTransaction` directly; the shared `useStackedTransaction` wrapper was tried and pulled — see `web3-thirdweb-siwe`)
 - Adding onramp / top-up / "buy USDC" UI (BuyWidget, TopUpModal/TopUpButton)
 - ERC-1271 / smart account signature verification questions
+
+### Base App / Mini App / Base Account
+
+Use `base-miniapp-developer` when:
+- Making Stacked run inside the Coinbase **Base App** (standard web app + Base Account, thirdweb-primary)
+- One-tap "log in with your Base wallet" (bridge the Base Account into thirdweb + SIWE)
+- `farcaster.json` / `fc:miniapp` / Base.dev registration, in-webview links/sharing/deep-links, Base notifications
+- NOTE: the Base App dropped Farcaster Mini Apps (Apr 9 2026) — do NOT use MiniKit/OnchainKit or assume `sdk.actions.*` work there
 
 ### Storybook / component visualization
 

@@ -261,6 +261,64 @@ export const TournamentClockLastMinute: Story = {
     ],
 };
 
+// ─── Rest breaks ────────────────────────────────────────────────────────────
+//
+// "Break coming" hint: the final minute of the level immediately before a break
+// (next break follows the current level, secondsToNextBreak inside the window) —
+// the clock banner reads "Break in m:ss" instead of "Blinds up in m:ss".
+
+const breakComingState = (remainingMs: number): Partial<AppState> => ({
+    settlementStatus: null,
+    tournamentLive: makeTournamentLive({
+        clock: {
+            level: 6,
+            levelNumber: 6,
+            sb: 200,
+            bb: 400,
+            ante: 400,
+            remainingMs,
+            totalMs: 600_000,
+            receivedAt: Date.now(),
+            onBreak: false,
+            secondsToNextBreak: Math.round(remainingMs / 1000),
+            nextBreakAfterLevel: 6,
+        },
+    }),
+});
+
+export const TournamentBreakComing: Story = {
+    name: 'Rest break — coming (final minute, "Break in m:ss")',
+    decorators: [makeDecorator({ appStateOverride: breakComingState(42_000) })],
+};
+
+// On break: the level is frozen at N and the banner counts down the break
+// remainder, "On break — m:ss · Level N+1 next".
+const onBreakState = (breakRemainingMs: number): Partial<AppState> => ({
+    settlementStatus: null,
+    tournamentLive: makeTournamentLive({
+        clock: {
+            level: 6,
+            levelNumber: 6,
+            sb: 200,
+            bb: 400,
+            ante: 400,
+            remainingMs: 0,
+            totalMs: 600_000,
+            receivedAt: Date.now(),
+            onBreak: true,
+            breakRemainingMs,
+            nextBreakAfterLevel: 6,
+        },
+    }),
+});
+
+export const TournamentOnBreak: Story = {
+    name: 'Rest break — on break ("On break — m:ss · Level 7 next")',
+    decorators: [
+        makeDecorator({ appStateOverride: onBreakState(4 * 60_000 + 32_000) }),
+    ],
+};
+
 // ─── Hidden ────────────────────────────────────────────────────────────────
 
 export const Hidden: Story = {

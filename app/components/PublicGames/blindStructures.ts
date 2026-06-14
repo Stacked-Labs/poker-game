@@ -147,6 +147,45 @@ export function getStructure(name?: string | null): BlindLevel[] {
     return BLIND_TEMPLATES[normalizeTemplate(name)];
 }
 
+// ── Rest breaks ──────────────────────────────────────────────────────────
+//
+// MIRROR of the backend cadence rule in poker-server/tournament/blind_structures.go
+// (breakEveryNLevels = round(targetPlaySeconds / levelDurationSeconds)).
+// SOURCE OF TRUTH is the server; this mirror only drives the *pre-live* structure
+// sheet (before any clock exists). Once a live clock arrives, prefer the server's
+// `next_break_after_level`. Keep these two in lockstep — assumes uniform level
+// durations (all four presets are; see plan §4.1). The cadence-mirror story
+// (StructureSheet.stories) asserts this equals 12 / 6 / 3 / 2 so drift fails loud.
+
+/** A break lands after roughly every 60 minutes of play. */
+const BREAK_TARGET_PLAY_MIN = 60;
+/** Fixed break length, mirrored from the backend (restBreakDuration = 5m). */
+export const BREAK_DURATION_MIN = 5;
+
+/**
+ * Number of levels between rest breaks for a template. Derived from the
+ * (uniform) level duration: round(60 / levelDurationMin), floored at 1.
+ */
+export function breakEveryNLevels(name?: string | null): number {
+    const durationMin = levelDurationMin(name);
+    return Math.max(1, Math.round(BREAK_TARGET_PLAY_MIN / durationMin));
+}
+
+/**
+ * The level indices a break follows, for the *defined* portion of the ladder
+ * (1-based "break after level N"). E.g. Regular → [3, 6, 9, …]. The backend keeps
+ * firing breaks on cadence through the padded doubling levels; the sheet only
+ * draws the defined ladder, so we cap at the last defined level. No break is ever
+ * appended after the final level.
+ */
+export function breakAfterLevels(name?: string | null): number[] {
+    const every = breakEveryNLevels(name);
+    const lastLevel = definedLevelCount(name);
+    const out: number[] = [];
+    for (let n = every; n < lastLevel; n += every) out.push(n);
+    return out;
+}
+
 export function templateLabel(name?: string | null): string {
     return TEMPLATE_LABELS[normalizeTemplate(name)];
 }

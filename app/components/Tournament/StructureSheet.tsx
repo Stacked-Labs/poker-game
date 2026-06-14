@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import {
     Box,
     Collapse,
@@ -18,10 +19,12 @@ import {
     usePrefersReducedMotion,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { FiChevronDown } from 'react-icons/fi';
+import { FiChevronDown, FiCoffee } from 'react-icons/fi';
 import {
     BLINDS_KEEP_RISING_NOTE,
+    BREAK_DURATION_MIN,
     bbAtLateRegClose,
+    breakAfterLevels,
     getStructure,
     levelDurationMin,
     startingBigBlinds,
@@ -55,12 +58,69 @@ function LiveDot({ reduced }: { reduced: boolean }) {
     );
 }
 
+/**
+ * Full-width intermission row injected between two level rows. Mirrors the
+ * late-reg merged-row pattern (colSpan across all three columns). Highlights to
+ * the live-green wash while the break is actually running.
+ */
+function BreakRow({
+    nextLevel,
+    live,
+    bg,
+    liveBg,
+    textColor,
+}: {
+    nextLevel: number;
+    live: boolean;
+    bg: string;
+    liveBg: string;
+    textColor: string;
+}) {
+    return (
+        <Tr bg={live ? liveBg : bg} role={live ? 'status' : undefined}>
+            <Td colSpan={3} py={1.5}>
+                <Flex align="center" justify="center" gap={1.5} minW={0}>
+                    <Icon
+                        as={FiCoffee}
+                        boxSize="13px"
+                        color={live ? 'brand.green' : textColor}
+                        flexShrink={0}
+                        aria-hidden
+                    />
+                    <Text
+                        as="span"
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color={live ? 'brand.green' : textColor}
+                        textTransform="uppercase"
+                        letterSpacing="0.08em"
+                        whiteSpace="nowrap"
+                    >
+                        {live
+                            ? `On break · Level ${nextLevel} next`
+                            : `Break · ${BREAK_DURATION_MIN} min`}
+                    </Text>
+                </Flex>
+            </Td>
+        </Tr>
+    );
+}
+
 export interface StructureSheetProps {
     blindStructure: string;
     startingStack: number;
     lateRegLevels: number;
     /** Live level to highlight (1-based), if running. */
     currentLevel?: number | null;
+    /**
+     * Server-authoritative "break after this level" index from the live clock,
+     * preferred over the local cadence mirror when present (the mirror is the
+     * pre-live fallback). The break row that follows this level is highlighted
+     * while `onBreak` is true.
+     */
+    nextBreakAfterLevel?: number | null;
+    /** True while the tournament is currently on a rest break (live highlight). */
+    onBreak?: boolean;
     defaultOpen?: boolean;
     /** Render without the card chrome (when embedded in another card/panel). */
     bare?: boolean;
@@ -71,6 +131,8 @@ export default function StructureSheet({
     startingStack,
     lateRegLevels,
     currentLevel = null,
+    nextBreakAfterLevel = null,
+    onBreak = false,
     defaultOpen = true,
     bare = false,
 }: StructureSheetProps) {
@@ -98,8 +160,25 @@ export default function StructureSheet({
     // brand.yellowDark fails AA as small text on the yellow row tint in light mode;
     // yellowEdge clears 4.5:1. Dark mode keeps the brighter yellow.
     const lateText = useColorModeValue('brand.yellowEdge', 'brand.yellow');
+    // Rest-break row: a calm neutral wash by default, brightened to the live-green
+    // wash while the break is actually running (parallel to the current-level row).
+    const breakBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.04)',
+        'rgba(255, 255, 255, 0.05)'
+    );
+    const breakText = useColorModeValue('text.secondary', 'text.secondary');
 
     const levels = getStructure(blindStructure);
+    // Every level a break follows, for the full static schedule. The local cadence
+    // mirror draws all rows; the server's `nextBreakAfterLevel` (when live) only
+    // identifies which break is imminent so it can be highlighted while running.
+    // Prefer the server value for that highlight, falling back to the mirror's
+    // first upcoming break relative to the current level.
+    const breakAfterSet = new Set(breakAfterLevels(blindStructure));
+    const liveBreakAfter =
+        nextBreakAfterLevel != null && breakAfterSet.has(nextBreakAfterLevel)
+            ? nextBreakAfterLevel
+            : null;
     const startBB = startingBigBlinds(startingStack, blindStructure);
     const lateRegValid = lateRegLevels > 0 && lateRegLevels <= levels.length;
     const closeBB = bbAtLateRegClose(
@@ -206,7 +285,23 @@ export default function StructureSheet({
                                     const blinds = `${l.sb.toLocaleString(
                                         'en-US'
                                     )}/${l.bb.toLocaleString('en-US')}`;
-                                    return (
+                                    const hasBreakAfter = breakAfterSet.has(
+                                        l.level
+                                    );
+                                    const breakRow = hasBreakAfter ? (
+                                        <BreakRow
+                                            key={`break-after-${l.level}`}
+                                            nextLevel={l.level + 1}
+                                            live={
+                                                onBreak &&
+                                                liveBreakAfter === l.level
+                                            }
+                                            bg={breakBg}
+                                            liveBg={currentBg}
+                                            textColor={breakText}
+                                        />
+                                    ) : null;
+                                    const levelRow = (
                                         <Tr
                                             key={l.level}
                                             bg={
@@ -337,6 +432,13 @@ export default function StructureSheet({
                                                       )}
                                             </Td>
                                         </Tr>
+                                    );
+                                    if (!breakRow) return levelRow;
+                                    return (
+                                        <Fragment key={l.level}>
+                                            {levelRow}
+                                            {breakRow}
+                                        </Fragment>
                                     );
                                 })}
                             </Tbody>

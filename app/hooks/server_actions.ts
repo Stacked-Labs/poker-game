@@ -790,6 +790,12 @@ export interface TournamentClockResponse {
     ante: number;
     remaining_ms: number;
     total_ms: number;
+    // Rest breaks (mirror poker-server clockResponse). During a break the level
+    // fields stay at N; next_break_after_level tells the client N+1 is next.
+    on_break?: boolean;
+    break_remaining_ms?: number;
+    seconds_to_next_break?: number;
+    next_break_after_level?: number;
 }
 
 export async function getTournamentClock(

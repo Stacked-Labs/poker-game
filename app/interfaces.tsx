@@ -101,6 +101,18 @@ export interface TournamentClock {
     remainingMs: number;
     totalMs: number;
     receivedAt: number; // Date.now() when applied — lets the UI tick locally
+    // ── Rest breaks ──────────────────────────────────────────────────────
+    // During a break the clock stays on level N (does NOT advance to N+1 until
+    // the break ends); `breakRemainingMs` drives the same receivedAt local-tick
+    // math as `remainingMs`. Optional — older payloads / pre-start have none.
+    /** True while the tournament is on a scheduled rest break. */
+    onBreak?: boolean;
+    /** Milliseconds left in the current break (tick locally off `receivedAt`). */
+    breakRemainingMs?: number;
+    /** Seconds until the next break begins — the "break coming" countdown value. */
+    secondsToNextBreak?: number;
+    /** Level index after which the next break occurs (server-authoritative). */
+    nextBreakAfterLevel?: number;
 }
 
 export interface TournamentElim {

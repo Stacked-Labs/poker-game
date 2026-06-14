@@ -399,16 +399,28 @@ export default function TournamentTabPanel() {
                 {clock && (
                     <Text
                         fontSize="sm"
-                        color="text.secondary"
+                        color={countdown.onBreak ? greenFg : 'text.secondary'}
+                        fontWeight={countdown.onBreak ? 'semibold' : undefined}
                         sx={{ fontVariantNumeric: 'tabular-nums' }}
                     >
-                        Level {clock.levelNumber} ·{' '}
-                        {clock.sb.toLocaleString('en-US')}/
-                        {clock.bb.toLocaleString('en-US')}
-                        {clock.ante > 0
-                            ? ` (${clock.ante.toLocaleString('en-US')}a)`
-                            : ''}{' '}
-                        · {countdown.label} to next
+                        {countdown.onBreak ? (
+                            <>
+                                On break · {countdown.label} · Level{' '}
+                                {(clock.nextBreakAfterLevel ??
+                                    clock.levelNumber) + 1}{' '}
+                                next
+                            </>
+                        ) : (
+                            <>
+                                Level {clock.levelNumber} ·{' '}
+                                {clock.sb.toLocaleString('en-US')}/
+                                {clock.bb.toLocaleString('en-US')}
+                                {clock.ante > 0
+                                    ? ` (${clock.ante.toLocaleString('en-US')}a)`
+                                    : ''}{' '}
+                                · {countdown.label} to next
+                            </>
+                        )}
                     </Text>
                 )}
             </Box>
@@ -1015,6 +1027,8 @@ export default function TournamentTabPanel() {
                 startingStack={meta.startingStack}
                 lateRegLevels={meta.lateRegLevels}
                 currentLevel={clock?.levelNumber ?? null}
+                nextBreakAfterLevel={clock?.nextBreakAfterLevel ?? null}
+                onBreak={clock?.onBreak ?? false}
                 defaultOpen={false}
                 bare
             />

@@ -799,6 +799,12 @@ export function SocketProvider(props: SocketProviderProps) {
                                     remainingMs: eventData.remaining_ms,
                                     totalMs: eventData.total_ms,
                                     receivedAt: Date.now(),
+                                    onBreak: eventData.on_break,
+                                    breakRemainingMs: eventData.break_remaining_ms,
+                                    secondsToNextBreak:
+                                        eventData.seconds_to_next_break,
+                                    nextBreakAfterLevel:
+                                        eventData.next_break_after_level,
                                 },
                             },
                         });

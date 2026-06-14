@@ -216,8 +216,11 @@ const GameStatusBanner = () => {
     // The break countdown label/remaining (when on break) comes from the same
     // hook, which switches to the break remainder while onBreak.
     const breakLabel = countdown.label;
-    const nextLevelAfterBreak =
-        (nextBreakAfterLevel ?? tournamentClock?.levelNumber ?? 0) + 1;
+    // While on a break the server freezes levelNumber at the just-completed level,
+    // so play resumes into the next one. Do NOT derive this from nextBreakAfterLevel:
+    // during a break that field points at the NEXT future break boundary (and is 0 on
+    // the final break), which would show a wrong/nonsensical resume level.
+    const nextLevelAfterBreak = (tournamentClock?.levelNumber ?? 0) + 1;
 
     return (
         <Box
@@ -454,7 +457,7 @@ const GameStatusBanner = () => {
                     <Icon
                         as={FiCoffee}
                         boxSize={{ base: 3.5, md: 4 }}
-                        color="brand.green"
+                        color="brand.yellow"
                         aria-hidden
                     />
                     <Text
@@ -462,7 +465,7 @@ const GameStatusBanner = () => {
                         fontWeight="700"
                         letterSpacing="0.04em"
                         lineHeight="1"
-                        color="brand.green"
+                        color="brand.yellow"
                         sx={{ fontVariantNumeric: 'tabular-nums' }}
                     >
                         On break — {breakLabel} · Level {nextLevelAfterBreak}{' '}

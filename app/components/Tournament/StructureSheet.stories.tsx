@@ -93,7 +93,6 @@ export const RegularLiveBreak: Story = {
         startingStack: 20_000,
         lateRegLevels: 3,
         currentLevel: 6,
-        nextBreakAfterLevel: 6,
         onBreak: true,
     },
 };

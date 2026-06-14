@@ -406,9 +406,7 @@ export default function TournamentTabPanel() {
                         {countdown.onBreak ? (
                             <>
                                 On break · {countdown.label} · Level{' '}
-                                {(clock.nextBreakAfterLevel ??
-                                    clock.levelNumber) + 1}{' '}
-                                next
+                                {clock.levelNumber + 1} next
                             </>
                         ) : (
                             <>
@@ -1027,7 +1025,6 @@ export default function TournamentTabPanel() {
                 startingStack={meta.startingStack}
                 lateRegLevels={meta.lateRegLevels}
                 currentLevel={clock?.levelNumber ?? null}
-                nextBreakAfterLevel={clock?.nextBreakAfterLevel ?? null}
                 onBreak={clock?.onBreak ?? false}
                 defaultOpen={false}
                 bare

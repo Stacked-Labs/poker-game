@@ -307,7 +307,12 @@ const onBreakState = (breakRemainingMs: number): Partial<AppState> => ({
             receivedAt: Date.now(),
             onBreak: true,
             breakRemainingMs,
-            nextBreakAfterLevel: 6,
+            // Real server shape: WHILE on a break the clock's nextBreakAfterLevel
+            // points at the NEXT FUTURE break (here, after L9 for Regular cadence),
+            // NOT the break in progress. The banner must still resume into L7 by
+            // reading the frozen levelNumber — pinning this to 6 previously masked
+            // that bug.
+            nextBreakAfterLevel: 9,
         },
     }),
 });

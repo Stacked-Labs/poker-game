@@ -319,20 +319,12 @@ const timerColorMap: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
     gray: 'gray.400',
 };
 
-/** Raw hex values for use in CSS functions (conic-gradient) that can't resolve Chakra tokens */
-const timerColorHexMap: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
-    red: '#FF2D6F',
-    yellow: '#FDC51D',
-    green: '#3FBD8A',
-    gray: '#A0AEC0',
-};
-
 /**
- * Distinct color for the refillable time-bank segment of the action ring. Cool
- * blue reads as "bonus time" — clearly separate from the green→yellow→red base
- * urgency colors, so the bank segment never looks like a base-clock state.
+ * Distinct color for the refillable time-bank reserve of the action ring. Violet
+ * reads as "reserve / bonus time" — clearly separate from the green→yellow→red
+ * standard-clock urgency colors, so the bank segment never looks like a base state.
  */
-const TIME_BANK_COLOR = '#5AA9FF';
+const TIME_BANK_COLOR = '#A78BFA';
 
 // ── Card V-shape layout tuning ──
 const CARD_FAN_ANGLE = 4; // degrees each card rotates outward (try 5–15)
@@ -498,45 +490,45 @@ const TakenSeatButton = ({
 
     const total = initialDuration || 1; // avoid divide by zero
     const progress = Math.min((remaining / total) * 100, 100);
-    const barScheme: 'green' | 'yellow' | 'red' | 'gray' = isCurrentTurn
-        ? remaining <= 5000
+    const timerAngle = progress * 3.6; // 0-100% → 0-360deg
+
+    // Time-bank two-segment split. The actor's window is `base + bank`. STANDARD
+    // (base) time is spent FIRST — the backend only charges the bank for elapsed
+    // beyond base (deadline = base + bank), so the standard segment depletes before
+    // the bank reserve and the ring counts down continuously from the full window.
+    // When the feature is off / no config, baseMs is the whole window so the ring
+    // collapses to a single standard segment with the legacy thresholds.
+    const configBaseMs = appState.game?.config?.baseActionMs ?? 0;
+    const baseMs = configBaseMs > 0 ? Math.min(configBaseMs, total) : total;
+    const bankMs = Math.max(0, total - baseMs);
+    const hasBankSegment = bankMs > 0;
+    const bankRemaining = Math.min(remaining, bankMs); // reserve still held
+    const standardRemaining = Math.max(0, remaining - bankMs); // standard clock left
+    const onBankReserve = hasBankSegment && standardRemaining <= 0; // standard spent
+
+    // Urgency tracks the STANDARD clock (green → yellow → red as the free time runs
+    // out). Once the player is on the bank reserve the ring switches to the time-bank
+    // color regardless of how much reserve remains.
+    const standardScheme: 'green' | 'yellow' | 'red' | 'gray' = isCurrentTurn
+        ? standardRemaining <= 5000
             ? 'red'
-            : remaining <= 10000
+            : standardRemaining <= 10000
               ? 'yellow'
               : 'green'
         : 'gray';
+    const standardColor = timerColorMap[standardScheme] || 'brand.navy';
 
-    const timerColor = timerColorMap[barScheme] || 'brand.navy';
-    const timerColorHex = timerColorHexMap[barScheme] || '#0B1430';
-    const timerAngle = progress * 3.6; // 0-100% → 0-360deg
+    // Border / seat highlight: violet while on the bank reserve, else standard urgency.
+    const timerColor = onBankReserve ? TIME_BANK_COLOR : standardColor;
 
-    // Time-bank two-segment split (§14). The actor's window is `base + bank`;
-    // `remaining` is consumed bank-first, leaving the base clock as the floor.
-    // baseRemaining is the inner segment (guaranteed base clock, colored by
-    // urgency); bankRemaining is the extra on top, shown in a distinct color.
-    // When the feature is off / no config, baseMs falls back to the whole window
-    // so the ring collapses to a single base segment with the legacy thresholds.
-    const configBaseMs = appState.game?.config?.baseActionMs ?? 0;
-    const baseMs = configBaseMs > 0 ? Math.min(configBaseMs, total) : total;
-    const baseRemaining = Math.min(remaining, baseMs);
-    const bankRemaining = Math.max(0, remaining - baseMs);
-    const hasBankSegment = bankRemaining > 0;
-    const baseScheme: 'green' | 'yellow' | 'red' = isCurrentTurn
-        ? baseRemaining <= 5000
-            ? 'red'
-            : baseRemaining <= 10000
-              ? 'yellow'
-              : 'green'
-        : 'green';
-    const baseColor = timerColorMap[baseScheme];
-    const baseAngle = Math.min((baseRemaining / total) * 360, 360);
-    // Numeric overlay: show the bank countdown as "+Ns" while bank time remains,
-    // then the plain base seconds (urgency-colored) once on the base floor.
-    const timerSeconds = hasBankSegment
-        ? Math.ceil(bankRemaining / 1000)
-        : Math.ceil(baseRemaining / 1000);
-    const timerLabel = hasBankSegment ? `+${timerSeconds}` : `${timerSeconds}`;
-    const timerTextColor = hasBankSegment ? TIME_BANK_COLOR : 'whiteAlpha.900';
+    // Bank arc sits nearest the top (depletes LAST); the standard arc is the tail
+    // (depletes FIRST). bankAngle stays constant until the standard clock is spent.
+    const bankAngle = Math.min((bankRemaining / total) * 360, 360);
+
+    // Single countdown from the TOTAL window (base + bank); no "+Ns" overlay.
+    const timerSeconds = Math.ceil(remaining / 1000);
+    const timerLabel = `${timerSeconds}`;
+    const timerTextColor = onBankReserve ? TIME_BANK_COLOR : 'whiteAlpha.900';
 
     const pots = appState.game?.pots ?? [];
     const resolvedPot =
@@ -1169,9 +1161,9 @@ const TakenSeatButton = ({
                                 pointerEvents="none"
                                 zIndex={2}
                             />
-                            {/* Bank segment (distinct color, the extra time on top of the
-                                base clock — masked to the band between the base floor and
-                                the full remaining arc; depletes first). */}
+                            {/* Bank reserve (violet — the extra time beyond the standard
+                                clock; the arc nearest the top, which depletes LAST because
+                                standard time is spent first). */}
                             {hasBankSegment && (
                                 <Box
                                     className="player-timer-fill-bank"
@@ -1186,14 +1178,16 @@ const TakenSeatButton = ({
                                     pointerEvents="none"
                                     zIndex={2}
                                     sx={{
-                                        maskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg, #000 ${360 - baseAngle}deg, transparent ${360 - baseAngle}deg)`,
-                                        WebkitMaskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg, #000 ${360 - baseAngle}deg, transparent ${360 - baseAngle}deg)`,
+                                        maskImage: `conic-gradient(from 0deg, transparent ${360 - bankAngle}deg, #000 ${360 - bankAngle}deg)`,
+                                        WebkitMaskImage: `conic-gradient(from 0deg, transparent ${360 - bankAngle}deg, #000 ${360 - bankAngle}deg)`,
                                     }}
+                                    transition="border-color 0.5s ease-in-out"
                                 />
                             )}
-                            {/* Base segment (the guaranteed base clock floor — green→yellow→red
-                                by base time remaining; masked to the arc nearest the top, which
-                                depletes last). */}
+                            {/* Standard clock (green→yellow→red by standard time left — the
+                                tail of the arc, which depletes FIRST; masked to the band
+                                between the full remaining arc and the bank reserve. With no
+                                bank configured this is the whole ring). */}
                             <Box
                                 className="player-timer-fill"
                                 position="absolute"
@@ -1203,12 +1197,12 @@ const TakenSeatButton = ({
                                 bottom="-4px"
                                 borderRadius="8px"
                                 border="4px solid"
-                                borderColor={baseColor}
+                                borderColor={standardColor}
                                 pointerEvents="none"
                                 zIndex={2}
                                 sx={{
-                                    maskImage: `conic-gradient(from 0deg, transparent ${360 - baseAngle}deg, #000 ${360 - baseAngle}deg)`,
-                                    WebkitMaskImage: `conic-gradient(from 0deg, transparent ${360 - baseAngle}deg, #000 ${360 - baseAngle}deg)`,
+                                    maskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg, #000 ${360 - bankAngle}deg, transparent ${360 - bankAngle}deg)`,
+                                    WebkitMaskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg, #000 ${360 - bankAngle}deg, transparent ${360 - bankAngle}deg)`,
                                 }}
                                 transition="border-color 0.5s ease-in-out"
                             />

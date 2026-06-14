@@ -112,13 +112,6 @@ export interface StructureSheetProps {
     lateRegLevels: number;
     /** Live level to highlight (1-based), if running. */
     currentLevel?: number | null;
-    /**
-     * Server-authoritative "break after this level" index from the live clock,
-     * preferred over the local cadence mirror when present (the mirror is the
-     * pre-live fallback). The break row that follows this level is highlighted
-     * while `onBreak` is true.
-     */
-    nextBreakAfterLevel?: number | null;
     /** True while the tournament is currently on a rest break (live highlight). */
     onBreak?: boolean;
     defaultOpen?: boolean;
@@ -131,7 +124,6 @@ export default function StructureSheet({
     startingStack,
     lateRegLevels,
     currentLevel = null,
-    nextBreakAfterLevel = null,
     onBreak = false,
     defaultOpen = true,
     bare = false,
@@ -169,15 +161,15 @@ export default function StructureSheet({
     const breakText = useColorModeValue('text.secondary', 'text.secondary');
 
     const levels = getStructure(blindStructure);
-    // Every level a break follows, for the full static schedule. The local cadence
-    // mirror draws all rows; the server's `nextBreakAfterLevel` (when live) only
-    // identifies which break is imminent so it can be highlighted while running.
-    // Prefer the server value for that highlight, falling back to the mirror's
-    // first upcoming break relative to the current level.
+    // Every level a break follows, for the full static schedule (the local cadence
+    // mirror draws all rows). While on a break the server freezes levelNumber at the
+    // just-completed level, so the break currently running is the one that follows
+    // `currentLevel` — that is the row to highlight live. (Do NOT use the clock's
+    // nextBreakAfterLevel here: during a break it points at the NEXT future break.)
     const breakAfterSet = new Set(breakAfterLevels(blindStructure));
     const liveBreakAfter =
-        nextBreakAfterLevel != null && breakAfterSet.has(nextBreakAfterLevel)
-            ? nextBreakAfterLevel
+        onBreak && currentLevel != null && breakAfterSet.has(currentLevel)
+            ? currentLevel
             : null;
     const startBB = startingBigBlinds(startingStack, blindStructure);
     const lateRegValid = lateRegLevels > 0 && lateRegLevels <= levels.length;
@@ -278,7 +270,12 @@ export default function StructureSheet({
                             </Thead>
                             <Tbody>
                                 {levels.map((l, i) => {
-                                    const isCurrent = currentLevel === l.level;
+                                    // While on a break the live indicator belongs to the
+                                    // break row ("On break · Level N+1 next"), not the
+                                    // just-completed level — otherwise both light up green
+                                    // and read as two "current" rows.
+                                    const isCurrent =
+                                        currentLevel === l.level && !onBreak;
                                     const isLateClose =
                                         lateRegValid &&
                                         l.level === lateRegLevels;

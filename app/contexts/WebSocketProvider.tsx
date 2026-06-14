@@ -446,6 +446,27 @@ export function SocketProvider(props: SocketProviderProps) {
                             settlementInProgress: eventData.game?.settlementInProgress,
                         };
 
+                        // Time bank contract (§14): `actionDeadline` is absolute epoch-ms
+                        // and already encodes `config.baseActionMs + actor.timeBankMs`.
+                        // `timeBankMs` (per player) and `baseActionMs` (on config) ride
+                        // through the wholesale `players`/`config` assignment above. The
+                        // client must NOT locally re-arm the timer — it only counts down to
+                        // the server-supplied deadline. Warn if the deadline is already past
+                        // on receipt, which would indicate clock skew or a stale broadcast.
+                        if (
+                            newGame.actionDeadline > 0 &&
+                            newGame.actionDeadline < Date.now()
+                        ) {
+                            console.warn(
+                                '[WebSocket] update-game actionDeadline is already in the past on receipt',
+                                {
+                                    actionDeadline: newGame.actionDeadline,
+                                    now: Date.now(),
+                                    skewMs: Date.now() - newGame.actionDeadline,
+                                }
+                            );
+                        }
+
                         const hasAnyCommunityCard = (
                             newGame.communityCards ?? []
                         ).some((card) => Number(card) > 0);

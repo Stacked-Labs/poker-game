@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { MdPause, MdWarning, MdCheckCircle } from 'react-icons/md';
 import { FaPlay } from 'react-icons/fa6';
-import { FiClock, FiChevronsUp } from 'react-icons/fi';
+import { FiClock, FiChevronsUp, FiCoffee } from 'react-icons/fi';
 import { keyframes } from '@emotion/react';
 import useIsTableOwner from '../hooks/useIsTableOwner';
 import { useLevelCountdown } from '../hooks/useLevelCountdown';
@@ -60,6 +60,7 @@ type BannerMode =
     | 'settlement-failed'
     | 'paused'
     | 'pausing'
+    | 'break'
     | 'pending-blinds'
     | 'tournament-clock'
     | null;
@@ -86,6 +87,19 @@ const GameStatusBanner = () => {
     const prefersReducedMotion = usePrefersReducedMotion();
     const countdown = useLevelCountdown(tournamentClock);
 
+    // Whether the ambient tournament UI (clock / break) should show at all: only
+    // while the local player is still in and the event isn't over (otherwise the
+    // result card owns the space).
+    const tournamentActive =
+        !!tournamentClock &&
+        !appState.tournamentLive?.myResult &&
+        !appState.tournamentLive?.completed;
+    const onBreak = tournamentActive && tournamentClock?.onBreak === true;
+
+    // Precedence (highest → lowest): the settlement states and an explicit table
+    // pause win over the rest break — a table still settling its last hand shows
+    // the settlement message first, then the break. The break in turn outranks the
+    // ambient tournament clock and pending-blinds. (Plan §7.4.)
     // settlement-recovery takes priority: paused + pending means the background watcher
     // is polling and the table will auto-resume — don't show the generic pause banner.
     let mode: BannerMode = null;
@@ -95,12 +109,9 @@ const GameStatusBanner = () => {
     else if (settlementStatus === 'failed') mode = 'settlement-failed';
     else if (isPaused) mode = 'paused';
     else if (isPendingPause) mode = 'pausing';
+    else if (onBreak) mode = 'break';
     else if (pendingBlinds) mode = 'pending-blinds';
-    else if (
-        tournamentClock &&
-        !appState.tournamentLive?.myResult &&
-        !appState.tournamentLive?.completed
-    )
+    else if (tournamentActive)
         // Once the local player is out (or the event is over), the result card
         // takes over — don't keep an ambient clock running behind it.
         mode = 'tournament-clock';
@@ -188,6 +199,25 @@ const GameStatusBanner = () => {
 
     const lastMinute =
         countdown.remainingMs > 0 && countdown.remainingMs <= 60_000;
+    // "Break coming" hint during the level immediately before a break: the server
+    // tells us how many wall-clock seconds remain until the break, and the next
+    // break follows the current level. Show it only in the final minute so it
+    // doesn't crowd the normal "blinds up" copy.
+    const secondsToNextBreak = tournamentClock?.secondsToNextBreak;
+    const nextBreakAfterLevel = tournamentClock?.nextBreakAfterLevel;
+    const breakComing =
+        mode === 'tournament-clock' &&
+        secondsToNextBreak != null &&
+        secondsToNextBreak > 0 &&
+        nextBreakAfterLevel != null &&
+        tournamentClock != null &&
+        nextBreakAfterLevel === tournamentClock.levelNumber &&
+        lastMinute;
+    // The break countdown label/remaining (when on break) comes from the same
+    // hook, which switches to the break remainder while onBreak.
+    const breakLabel = countdown.label;
+    const nextLevelAfterBreak =
+        (nextBreakAfterLevel ?? tournamentClock?.levelNumber ?? 0) + 1;
 
     return (
         <Box
@@ -399,6 +429,48 @@ const GameStatusBanner = () => {
                 </Flex>
             )}
 
+            {/* ── Rest break (above clock/pending-blinds, below pause) ── */}
+            {mode === 'break' && tournamentClock && (
+                <Flex
+                    key="break"
+                    data-testid="game-break-banner"
+                    align="center"
+                    justifyContent="center"
+                    gap={1.5}
+                    whiteSpace="nowrap"
+                    bg="blackAlpha.200"
+                    backdropFilter="blur(8px)"
+                    borderRadius="full"
+                    px={{ base: 2.5, md: 3 }}
+                    py={{ base: 1, md: 1.5 }}
+                    opacity={0.9}
+                    animation={
+                        prefersReducedMotion
+                            ? undefined
+                            : `${fadeIn} 300ms ease-out`
+                    }
+                    role="status"
+                >
+                    <Icon
+                        as={FiCoffee}
+                        boxSize={{ base: 3.5, md: 4 }}
+                        color="brand.green"
+                        aria-hidden
+                    />
+                    <Text
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="700"
+                        letterSpacing="0.04em"
+                        lineHeight="1"
+                        color="brand.green"
+                        sx={{ fontVariantNumeric: 'tabular-nums' }}
+                    >
+                        On break — {breakLabel} · Level {nextLevelAfterBreak}{' '}
+                        next
+                    </Text>
+                </Flex>
+            )}
+
             {/* ── Pending blinds (lowest priority) ────────── */}
             {mode === 'pending-blinds' && pendingBlinds && (
                 <Flex
@@ -452,7 +524,13 @@ const GameStatusBanner = () => {
                     role="status"
                 >
                     <Icon
-                        as={blindsUpFlash ? FiChevronsUp : FiClock}
+                        as={
+                            blindsUpFlash
+                                ? FiChevronsUp
+                                : breakComing
+                                  ? FiCoffee
+                                  : FiClock
+                        }
                         boxSize={{ base: 3.5, md: 4 }}
                         color={
                             blindsUpFlash || lastMinute
@@ -477,11 +555,13 @@ const GameStatusBanner = () => {
                             ? `Blinds up · ${tournamentClock.sb.toLocaleString(
                                   'en-US'
                               )}/${tournamentClock.bb.toLocaleString('en-US')}`
-                            : lastMinute
-                              ? `Blinds up in ${countdown.label}`
-                              : `Level ${
-                                    tournamentClock.levelNumber + 1
-                                } in ${countdown.label}`}
+                            : breakComing
+                              ? `Break in ${countdown.label}`
+                              : lastMinute
+                                ? `Blinds up in ${countdown.label}`
+                                : `Level ${
+                                      tournamentClock.levelNumber + 1
+                                  } in ${countdown.label}`}
                     </Text>
                 </Flex>
             )}

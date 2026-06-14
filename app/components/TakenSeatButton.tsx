@@ -327,6 +327,13 @@ const timerColorHexMap: Record<'green' | 'yellow' | 'red' | 'gray', string> = {
     gray: '#A0AEC0',
 };
 
+/**
+ * Distinct color for the refillable time-bank segment of the action ring. Cool
+ * blue reads as "bonus time" — clearly separate from the green→yellow→red base
+ * urgency colors, so the bank segment never looks like a base-clock state.
+ */
+const TIME_BANK_COLOR = '#5AA9FF';
+
 // ── Card V-shape layout tuning ──
 const CARD_FAN_ANGLE = 4; // degrees each card rotates outward (try 5–15)
 const CARD_FAN_SPREAD = 0; // px horizontal offset from center (try 0–8)
@@ -502,6 +509,34 @@ const TakenSeatButton = ({
     const timerColor = timerColorMap[barScheme] || 'brand.navy';
     const timerColorHex = timerColorHexMap[barScheme] || '#0B1430';
     const timerAngle = progress * 3.6; // 0-100% → 0-360deg
+
+    // Time-bank two-segment split (§14). The actor's window is `base + bank`;
+    // `remaining` is consumed bank-first, leaving the base clock as the floor.
+    // baseRemaining is the inner segment (guaranteed base clock, colored by
+    // urgency); bankRemaining is the extra on top, shown in a distinct color.
+    // When the feature is off / no config, baseMs falls back to the whole window
+    // so the ring collapses to a single base segment with the legacy thresholds.
+    const configBaseMs = appState.game?.config?.baseActionMs ?? 0;
+    const baseMs = configBaseMs > 0 ? Math.min(configBaseMs, total) : total;
+    const baseRemaining = Math.min(remaining, baseMs);
+    const bankRemaining = Math.max(0, remaining - baseMs);
+    const hasBankSegment = bankRemaining > 0;
+    const baseScheme: 'green' | 'yellow' | 'red' = isCurrentTurn
+        ? baseRemaining <= 5000
+            ? 'red'
+            : baseRemaining <= 10000
+              ? 'yellow'
+              : 'green'
+        : 'green';
+    const baseColor = timerColorMap[baseScheme];
+    const baseAngle = Math.min((baseRemaining / total) * 360, 360);
+    // Numeric overlay: show the bank countdown as "+Ns" while bank time remains,
+    // then the plain base seconds (urgency-colored) once on the base floor.
+    const timerSeconds = hasBankSegment
+        ? Math.ceil(bankRemaining / 1000)
+        : Math.ceil(baseRemaining / 1000);
+    const timerLabel = hasBankSegment ? `+${timerSeconds}` : `${timerSeconds}`;
+    const timerTextColor = hasBankSegment ? TIME_BANK_COLOR : 'whiteAlpha.900';
 
     const pots = appState.game?.pots ?? [];
     const resolvedPot =
@@ -1134,7 +1169,31 @@ const TakenSeatButton = ({
                                 pointerEvents="none"
                                 zIndex={2}
                             />
-                            {/* Fill (colored border, masked by conic-gradient to reveal remaining time) */}
+                            {/* Bank segment (distinct color, the extra time on top of the
+                                base clock — masked to the band between the base floor and
+                                the full remaining arc; depletes first). */}
+                            {hasBankSegment && (
+                                <Box
+                                    className="player-timer-fill-bank"
+                                    position="absolute"
+                                    top="-4px"
+                                    left="-4px"
+                                    right="-4px"
+                                    bottom="-4px"
+                                    borderRadius="8px"
+                                    border="4px solid"
+                                    borderColor={TIME_BANK_COLOR}
+                                    pointerEvents="none"
+                                    zIndex={2}
+                                    sx={{
+                                        maskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg, #000 ${360 - baseAngle}deg, transparent ${360 - baseAngle}deg)`,
+                                        WebkitMaskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg, #000 ${360 - baseAngle}deg, transparent ${360 - baseAngle}deg)`,
+                                    }}
+                                />
+                            )}
+                            {/* Base segment (the guaranteed base clock floor — green→yellow→red
+                                by base time remaining; masked to the arc nearest the top, which
+                                depletes last). */}
                             <Box
                                 className="player-timer-fill"
                                 position="absolute"
@@ -1144,12 +1203,12 @@ const TakenSeatButton = ({
                                 bottom="-4px"
                                 borderRadius="8px"
                                 border="4px solid"
-                                borderColor={timerColor}
+                                borderColor={baseColor}
                                 pointerEvents="none"
                                 zIndex={2}
                                 sx={{
-                                    maskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg)`,
-                                    WebkitMaskImage: `conic-gradient(from 0deg, transparent ${360 - timerAngle}deg, #000 ${360 - timerAngle}deg)`,
+                                    maskImage: `conic-gradient(from 0deg, transparent ${360 - baseAngle}deg, #000 ${360 - baseAngle}deg)`,
+                                    WebkitMaskImage: `conic-gradient(from 0deg, transparent ${360 - baseAngle}deg, #000 ${360 - baseAngle}deg)`,
                                 }}
                                 transition="border-color 0.5s ease-in-out"
                             />
@@ -1371,12 +1430,13 @@ const TakenSeatButton = ({
                                                         },
                                                 }}
                                                 fontWeight="900"
-                                                color="whiteAlpha.900"
+                                                color={timerTextColor}
                                                 lineHeight="1"
                                                 userSelect="none"
                                                 textShadow="0 1px 4px rgba(0,0,0,0.6)"
+                                                transition="color 0.3s ease-in-out"
                                             >
-                                                {Math.ceil(remaining / 1000)}
+                                                {timerLabel}
                                             </Text>
                                         </Flex>
                                     )}

@@ -3,12 +3,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
-import {
-    useSendAndConfirmTransaction,
-    useActiveAccount,
-    useSwitchActiveWalletChain,
-} from 'thirdweb/react';
+import { useActiveAccount } from 'thirdweb/react';
 import { client } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
 
 /** USDC uses 6 decimals on Base */
 const USDC_DECIMALS = 6;
@@ -39,8 +36,7 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
     const [error, setError] = useState<string | null>(null);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
-    const switchChain = useSwitchActiveWalletChain();
+    const sendOnChain = useChainBoundSend();
 
     const refresh = useCallback(async () => {
         if (!account?.address || !contractAddress) {
@@ -81,7 +77,6 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
 
         try {
             setStatus('withdrawing');
-            await switchChain(chain);
 
             const pokerContract = getContract({
                 client,
@@ -95,7 +90,7 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
                 params: [],
             });
 
-            await sendAndConfirm(tx);
+            await sendOnChain(chain, tx);
             setRakeBalance(BigInt(0));
             setStatus('success');
             setError(null);
@@ -106,7 +101,7 @@ export function useHostRake(contractAddress: string | undefined, chain: Chain): 
             setStatus('error');
             return false;
         }
-    }, [account?.address, contractAddress, chain, sendAndConfirm, switchChain]);
+    }, [account?.address, contractAddress, chain, sendOnChain]);
 
     // Poll every 30 seconds to pick up new rake from settlements
     useEffect(() => {

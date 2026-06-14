@@ -8,7 +8,7 @@ import {
     optimism,
     polygon,
 } from 'thirdweb/chains';
-import { createWallet, inAppWallet } from 'thirdweb/wallets';
+import { createWallet, inAppWallet, type Account } from 'thirdweb/wallets';
 
 // HyperEVM (Hyperliquid's L1) — not yet exported as a named chain by
 // thirdweb/chains, so define it inline. Chain ID 999.
@@ -143,26 +143,33 @@ export const isTestnetOnly = !enabledChainNames.includes('base');
 export const BASE_PAYMASTER_URL: string =
     process.env.NEXT_PUBLIC_THIRDWEB_BUNDLER_URL ?? '';
 
-// Wallet providers - Including social login options
-export const wallets = [
-    inAppWallet({
-        // smartAccount turns social-login users into ERC-4337 smart accounts so
-        // thirdweb can sponsor gas for them (configured in the dashboard under
-        // Sponsored Transactions). Without this they're plain EOAs with no way
-        // to pay gas until they've already onboarded USDC.
-        //
-        // factoryAddress is pinned so the smart-account address a user
-        // gets is stable across sessions and matches what was used at
-        // create-table / SIWE time. Without pinning, thirdweb can resolve
-        // to a different default factory and the predicted address drifts
-        // — which breaks owner-match (table.ownerAddress vs the new
-        // useActiveAccount().address) and orphans funds sent to the old
-        // counterfactual address. Must stay in sync with the backend's
-        // SIWE_ALLOWED_FACTORIES.
+// factoryAddress is pinned so the smart-account address a user gets is stable
+// across sessions and matches what was used at create-table / SIWE time.
+// Without pinning, thirdweb can resolve to a different default factory and the
+// predicted address drifts — which breaks owner-match (table.ownerAddress vs
+// the new useActiveAccount().address) and orphans funds sent to the old
+// counterfactual address. Must stay in sync with the backend's
+// SIWE_ALLOWED_FACTORIES.
+const SMART_ACCOUNT_FACTORY = '0x85e23b94e7F5E9cC1fF78BCe78cfb15B81f0DF00';
+
+// Builds an in-app (social-login) wallet whose ERC-4337 smart account operates
+// on ONE chain. A thirdweb in-app smart account is pinned to `smartAccount.chain`
+// at connect time and `switchChain` cannot move a (non-ecosystem) in-app wallet
+// off it — so to let a social-login user transact on a chain other than the one
+// they connected on, we reconnect a fresh instance pinned to that chain via
+// `getInAppAccountForChain()`. The smart-account address is deterministic
+// (factory + admin EOA), so identity and funds are preserved across chains.
+//
+// smartAccount turns social-login users into smart accounts so thirdweb can
+// sponsor gas for them (configured in the dashboard under Sponsored
+// Transactions). sponsorGas must be enabled for every chain the app transacts
+// on, including mainnet, or sends on that chain will fail to be sponsored.
+export function makeInAppWallet(chain: Chain) {
+    return inAppWallet({
         smartAccount: {
-            chain: defaultChain,
+            chain,
             sponsorGas: true,
-            factoryAddress: '0x85e23b94e7F5E9cC1fF78BCe78cfb15B81f0DF00',
+            factoryAddress: SMART_ACCOUNT_FACTORY,
         },
         auth: {
             options: [
@@ -176,7 +183,32 @@ export const wallets = [
                 'phone',
             ],
         },
-    }),
+    });
+}
+
+// One in-app wallet instance per chain. thirdweb caches the underlying
+// connector by clientId (not by wallet instance or chain), so a fresh instance
+// reconnects from the existing social-login session via autoConnect — no
+// re-login — and yields the same deterministic smart-account address on the
+// target chain.
+const inAppWalletByChain = new Map<number, ReturnType<typeof makeInAppWallet>>();
+
+export async function getInAppAccountForChain(chain: Chain): Promise<Account> {
+    let wallet = inAppWalletByChain.get(chain.id);
+    if (!wallet) {
+        wallet = makeInAppWallet(chain);
+        inAppWalletByChain.set(chain.id, wallet);
+    }
+    const existing = wallet.getAccount();
+    if (existing) return existing;
+    return wallet.autoConnect({ client });
+}
+
+// Wallet providers shown in the ConnectButton modal. The in-app wallet is
+// pinned to `defaultChain`; cross-chain sends for social-login users go through
+// getInAppAccountForChain() (see useChainBoundSend).
+export const wallets = [
+    makeInAppWallet(defaultChain),
     // Traditional crypto wallets. 7702 upgrade for these happens at
     // sendCalls-time via EIP-5792 (no wallet-level config needed here).
     createWallet('io.metamask'),

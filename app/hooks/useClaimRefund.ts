@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getContract, prepareContractCall, readContract } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount } from 'thirdweb/react';
+import { useActiveAccount } from 'thirdweb/react';
 import { client, CHAIN_CONFIG } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
 
 const bulletsUsedAbi = {
     name: 'bulletsUsed',
@@ -38,7 +39,7 @@ const claimRefundAbi = {
 } as const;
 
 export interface RefundState {
-    eligible: boolean;       // registered (bulletsUsed > 0) and not yet refunded
+    eligible: boolean;       // registered (bulletsUsed > 0), not yet refunded, and buyIn > 0
     alreadyClaimed: boolean;
     estimatedUsdc: bigint | null; // null for emergency_refund (pro-rata, unknown until claim)
     loading: boolean;
@@ -54,7 +55,7 @@ export function useClaimRefund(
     tournamentStatus: string | undefined,
 ): RefundState {
     const account = useActiveAccount();
-    const { mutateAsync: sendTx } = useSendAndConfirmTransaction();
+    const sendOnChain = useChainBoundSend();
 
     const [eligible, setEligible] = useState(false);
     const [alreadyClaimed, setAlreadyClaimed] = useState(false);
@@ -83,7 +84,7 @@ export function useClaimRefund(
     const apply = useCallback(
         (s: { bullets: number; alreadyRefunded: boolean; buyIn: bigint }) => {
             setAlreadyClaimed(s.alreadyRefunded);
-            if (s.bullets === 0 || s.alreadyRefunded) {
+            if (s.bullets === 0 || s.alreadyRefunded || s.buyIn === BigInt(0)) {
                 setEligible(false);
                 setEstimatedUsdc(null);
             } else {
@@ -120,7 +121,7 @@ export function useClaimRefund(
         try {
             const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
             const tx = prepareContractCall({ contract, method: claimRefundAbi, params: [] });
-            await sendTx(tx);
+            await sendOnChain(chainCfg.chain, tx);
             // Poll on-chain until the refund is reflected — a single read right after
             // the tx can hit an RPC node a block behind and still show "claim".
             for (let i = 0; i < 6; i++) {
@@ -138,7 +139,7 @@ export function useClaimRefund(
         } finally {
             setClaiming(false);
         }
-    }, [contractAddress, chainCfg, account, sendTx, readOnce, apply]);
+    }, [contractAddress, chainCfg, account, sendOnChain, readOnce, apply]);
 
     return { eligible, alreadyClaimed, estimatedUsdc, loading, claiming, error, claim, refresh };
 }

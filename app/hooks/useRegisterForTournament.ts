@@ -2,10 +2,11 @@
 
 import { useState, useCallback } from 'react';
 import { type Chain, getContract, prepareContractCall } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
+import { useActiveAccount } from 'thirdweb/react';
 import { approve, allowance } from 'thirdweb/extensions/erc20';
 import { client } from '../thirdwebclient';
 import { CHAIN_CONFIG } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
 import { registerForTournament, unregisterFromTournament, type Tournament } from './server_actions';
 
 export type RegisterStatus = 'idle' | 'approving' | 'registering' | 'success' | 'error';
@@ -24,8 +25,7 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
     const account = useActiveAccount();
     const [status, setStatus] = useState<RegisterStatus>('idle');
     const [error, setError] = useState<string | null>(null);
-    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
-    const switchChain = useSwitchActiveWalletChain();
+    const sendOnChain = useChainBoundSend();
 
     const reset = useCallback(() => {
         setStatus('idle');
@@ -68,18 +68,17 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
         const buyIn = BigInt(tournament.buy_in_usdc);
 
         try {
-            await switchChain(chain);
             const usdcContract = getContract({ client, chain, address: usdcAddress });
             const tournamentContract = getContract({ client, chain, address: contractAddress });
 
             const currentAllowance = await allowance({ contract: usdcContract, owner: account.address, spender: contractAddress });
             if (currentAllowance < buyIn) {
                 setStatus('approving');
-                await sendAndConfirm(approve({ contract: usdcContract, spender: contractAddress, amountWei: buyIn }));
+                await sendOnChain(chain, approve({ contract: usdcContract, spender: contractAddress, amountWei: buyIn }));
             }
 
             setStatus('registering');
-            const receipt = await sendAndConfirm(prepareContractCall({ contract: tournamentContract, method: 'function register(bytes calldata operatorSig)', params: ['0x'] }));
+            const receipt = await sendOnChain(chain, prepareContractCall({ contract: tournamentContract, method: 'function register(bytes calldata operatorSig)', params: ['0x'] }));
             setStatus('success');
             return { ok: true, txHash: receipt.transactionHash };
         } catch (e) {
@@ -87,7 +86,7 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
             setError(msg); setStatus('error');
             return { ok: false, error: msg };
         }
-    }, [tournament, isCrypto, account, sendAndConfirm, switchChain]);
+    }, [tournament, isCrypto, account, sendOnChain]);
 
     const reenter = useCallback(async (passwordCode?: string): Promise<{ ok: boolean; txHash?: string; error?: string }> => {
         if (!tournament) return { ok: false, error: 'No tournament' };
@@ -116,18 +115,17 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
         const buyIn = BigInt(tournament.buy_in_usdc);
 
         try {
-            await switchChain(chain);
             const usdcContract = getContract({ client, chain, address: usdcAddress });
             const tournamentContract = getContract({ client, chain, address: contractAddress });
 
             const currentAllowance = await allowance({ contract: usdcContract, owner: account.address, spender: contractAddress });
             if (currentAllowance < buyIn) {
                 setStatus('approving');
-                await sendAndConfirm(approve({ contract: usdcContract, spender: contractAddress, amountWei: buyIn }));
+                await sendOnChain(chain, approve({ contract: usdcContract, spender: contractAddress, amountWei: buyIn }));
             }
 
             setStatus('registering');
-            const receipt = await sendAndConfirm(prepareContractCall({ contract: tournamentContract, method: 'function reEnter(bytes calldata operatorSig)', params: ['0x'] }));
+            const receipt = await sendOnChain(chain, prepareContractCall({ contract: tournamentContract, method: 'function reEnter(bytes calldata operatorSig)', params: ['0x'] }));
             setStatus('success');
             return { ok: true, txHash: receipt.transactionHash };
         } catch (e) {
@@ -135,7 +133,7 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
             setError(msg); setStatus('error');
             return { ok: false, error: msg };
         }
-    }, [tournament, isCrypto, account, sendAndConfirm, switchChain]);
+    }, [tournament, isCrypto, account, sendOnChain]);
 
     const unregister = useCallback(async (): Promise<{ ok: boolean; txHash?: string; error?: string }> => {
         if (!tournament) return { ok: false, error: 'No tournament' };
@@ -162,10 +160,9 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
         const { chain } = chainCfg;
 
         try {
-            await switchChain(chain);
             const tournamentContract = getContract({ client, chain, address: tournament.contract_address! });
             setStatus('registering');
-            const receipt = await sendAndConfirm(prepareContractCall({ contract: tournamentContract, method: 'function unregister()', params: [] }));
+            const receipt = await sendOnChain(chain, prepareContractCall({ contract: tournamentContract, method: 'function unregister()', params: [] }));
             setStatus('success');
             return { ok: true, txHash: receipt.transactionHash };
         } catch (e) {
@@ -173,7 +170,7 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
             setError(msg); setStatus('error');
             return { ok: false, error: msg };
         }
-    }, [tournament, isCrypto, account, sendAndConfirm, switchChain]);
+    }, [tournament, isCrypto, account, sendOnChain]);
 
     return {
         register,

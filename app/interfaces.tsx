@@ -181,6 +181,8 @@ export type Player = {
     sitOutNextHand?: boolean;
     leaveAfterHand?: boolean;
     isOnline?: boolean; // Whether player has active WebSocket connection
+    /** Remaining action time bank in milliseconds. Refillable per-player overage clock that extends the base action timer. */
+    timeBankMs?: number;
 };
 
 export type Game = {
@@ -237,6 +239,11 @@ export type Config = {
     rabbitHuntEnabled?: boolean;
     autoAccept?: boolean;
     tournament?: { tournamentId: string; ante?: number } | null;
+    /**
+     * Always-on base action clock in milliseconds. The current actor's total window is
+     * `baseActionMs + timeBankMs`; `actionDeadline` already encodes this sum.
+     */
+    baseActionMs?: number;
 };
 
 export type Pot = {

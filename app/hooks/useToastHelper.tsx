@@ -8,7 +8,7 @@ import {
     showCustomToast,
     buildBannerRender,
 } from '../utils/toastConfig';
-import ConnectionLostToast from '../components/Toasts/ConnectionLostToast';
+import ReconnectingToast from '../components/Toasts/ReconnectingToast';
 import DepositSuccessToast from '../components/Toasts/DepositSuccessToast';
 import {
     CONNECTION_LOST_CONTAINER_STYLE,
@@ -59,14 +59,26 @@ const useToastHelper = () => {
     const info = (title: string, description?: string, duration?: number, id?: string) =>
         showBanner('info', title, description, duration, id);
 
-    const connectionLost = (duration?: number | null, id?: string) => {
+    const connectionLost = (
+        opts: {
+            duration?: number | null;
+            id?: string;
+            onReconnectNow?: () => void;
+        } = {}
+    ) => {
+        const { duration = null, id, onReconnectNow } = opts;
         if (id && toast.isActive(id)) return;
         showCustomToast(toast, {
             id,
-            duration: duration ?? null, // null = persist until closed
+            duration, // null = persist until closed
             position: CONNECTION_LOST_TOAST_POSITION,
             containerStyle: CONNECTION_LOST_CONTAINER_STYLE,
-            render: ({ onClose }) => <ConnectionLostToast onClose={onClose} />,
+            render: ({ onClose }) => (
+                <ReconnectingToast
+                    onClose={onClose}
+                    onReconnectNow={onReconnectNow}
+                />
+            ),
         });
     };
 

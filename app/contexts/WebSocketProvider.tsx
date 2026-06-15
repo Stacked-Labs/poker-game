@@ -69,6 +69,10 @@ const SETTLEMENT_SUCCESS_DISPLAY_MS = 2500;
 // Suppress the "Reconnected" toast for blips shorter than this — tab-switch
 // reconnects and sub-3s network hiccups would otherwise spam users.
 const RECONNECT_TOAST_GRACE_MS = 3000;
+// Only surface the persistent "Reconnecting…" card once a quick blip has clearly
+// become a real outage (the first retry already failed), so instant reconnects
+// never flash it.
+const RECONNECT_CARD_AFTER_ATTEMPTS = 2;
 
 export function SocketProvider(props: SocketProviderProps) {
     const { tableId } = props;
@@ -125,7 +129,6 @@ export function SocketProvider(props: SocketProviderProps) {
     ]);
 
     const reconnectionAttemptsRef = useRef(0);
-    const maxReconnectionAttempts = 5;
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const settlementPendingTimerRef = useRef<NodeJS.Timeout | null>(null);
     const settlementSuccessTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -188,14 +191,10 @@ export function SocketProvider(props: SocketProviderProps) {
                     sessionInitResponse.status,
                     sessionInitResponse.statusText
                 );
-                toastErrorRef.current(
-                    'Connection unavailable',
-                    'We could not reach the table. Reconnecting…',
-                    undefined,
-                    TOAST_ID_CONNECTION_ERROR
-                );
+                // No transient toast here — the persistent "Reconnecting…" card
+                // (shown by attemptReconnection) is the single source of truth.
                 isReconnectingRef.current = false;
-                    attemptReconnection();
+                attemptReconnection();
                 return;
             }
             const sessionData = await sessionInitResponse.json();
@@ -941,13 +940,8 @@ export function SocketProvider(props: SocketProviderProps) {
             };
         } catch (e) {
             console.error('Fatal error during WebSocket connection setup:', e);
-            toastErrorRef.current(
-                'Connection unavailable',
-                'We could not connect to the table. Reconnecting…',
-                undefined,
-                TOAST_ID_CONNECTION_ERROR
-            );
-            // If the exception occurs during fetch or new WebSocket(), then attempt reconnection.
+            // No transient toast here — the persistent "Reconnecting…" card
+            // (shown by attemptReconnection) is the single source of truth.
             isReconnectingRef.current = false;
             attemptReconnection(); // Safe to call here
         }
@@ -963,6 +957,23 @@ export function SocketProvider(props: SocketProviderProps) {
         // state change, which triggers the useEffect cleanup and cancels the pending
         // reconnect timeout before it fires.
     ]);
+
+    // Skip the backoff wait and reconnect immediately from a disconnected state
+    // (the "Reconnect now" button on the persistent card). Unlike forceReconnect,
+    // this works when there is no live socket to close.
+    const reconnectNow = useCallback(() => {
+        if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+            reconnectTimeoutRef.current = null;
+        }
+        reconnectionAttemptsRef.current = 0;
+        isReconnectingRef.current = false;
+        connectWebSocket();
+    }, [connectWebSocket]);
+    const reconnectNowRef = useRef(reconnectNow);
+    useEffect(() => {
+        reconnectNowRef.current = reconnectNow;
+    }, [reconnectNow]);
 
     const forceReconnect = useCallback(
         (reason: string) => {
@@ -992,17 +1003,7 @@ export function SocketProvider(props: SocketProviderProps) {
     );
 
     const attemptReconnection = useCallback(() => {
-        if (!WS_BASE_URL || reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
-            if (reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
-                isReconnectingRef.current = false;
-                connectionLostShownRef.current = true;
-                toastConnectionLostRef.current(
-                    null, // persist until closed or user refreshes
-                    'connectionFailed'
-                );
-            }
-            return;
-        }
+        if (!WS_BASE_URL) return;
         if (isReconnectingRef.current) return; // Already trying to reconnect
 
         isReconnectingRef.current = true;
@@ -1010,7 +1011,22 @@ export function SocketProvider(props: SocketProviderProps) {
         const nextAttempt = reconnectionAttemptsRef.current + 1;
         reconnectionAttemptsRef.current = nextAttempt;
 
-        const delay = getReconnectDelay(nextAttempt - 1);
+        // Once a quick blip has clearly become a real outage, surface the
+        // persistent "Reconnecting…" card. We keep retrying with capped backoff
+        // indefinitely; the card stays up (with a "Reconnect now" shortcut) until
+        // the socket reopens or the player dismisses it.
+        if (
+            nextAttempt >= RECONNECT_CARD_AFTER_ATTEMPTS &&
+            !connectionLostShownRef.current
+        ) {
+            connectionLostShownRef.current = true;
+            toastConnectionLostRef.current({
+                id: 'connectionFailed',
+                onReconnectNow: reconnectNowRef.current,
+            });
+        }
+
+        const delay = getReconnectDelay(nextAttempt - 1); // capped at 16s
 
         if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
@@ -1018,12 +1034,7 @@ export function SocketProvider(props: SocketProviderProps) {
         reconnectTimeoutRef.current = setTimeout(() => {
             connectWebSocket();
         }, delay);
-    }, [
-        WS_BASE_URL,
-        maxReconnectionAttempts,
-        getReconnectDelay,
-        connectWebSocket,
-    ]);
+    }, [WS_BASE_URL, getReconnectDelay, connectWebSocket, debugLog]);
 
     useEffect(() => {
         if (!socketRef.current && !isReconnectingRef.current) {

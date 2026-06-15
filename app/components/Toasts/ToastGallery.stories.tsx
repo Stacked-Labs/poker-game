@@ -4,7 +4,7 @@ import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Box, Stack, Text } from '@chakra-ui/react';
 import ToastBanner, { type ToastBannerVariant } from './ToastBanner';
-import ConnectionLostToast from './ConnectionLostToast';
+import ReconnectingToast from './ReconnectingToast';
 import DepositSuccessToast from './DepositSuccessToast';
 
 // One page that shows every toast variant and state at once, using the real
@@ -134,9 +134,9 @@ export const Gallery: Story = {
                     />
                 </Box>
 
-                <Caption>Custom — connection lost (persistent)</Caption>
+                <Caption>Custom — reconnecting (persistent)</Caption>
                 <Box maxW="380px" mx="auto" w="100%">
-                    <ConnectionLostToast onClose={noop} />
+                    <ReconnectingToast onClose={noop} onReconnectNow={noop} />
                 </Box>
             </Stack>
         </Box>

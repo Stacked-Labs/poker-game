@@ -20,6 +20,7 @@ import {
 } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
+import { friendlyError } from '../utils/toastErrors';
 import { soundManager } from '../utils/SoundManager';
 import { formatGameEvent } from '../utils/formatGameEvent';
 import SeatRequestConflictModal from '../components/SeatRequestConflictModal';
@@ -61,6 +62,9 @@ type SocketProviderProps = {
 };
 
 const TOAST_ID_RECONNECTED = 'isReconnected';
+// Generic connection-failure toasts can fire in a reconnect storm; a stable id
+// keeps them from stacking.
+const TOAST_ID_CONNECTION_ERROR = 'ws-connection-error';
 const SETTLEMENT_PENDING_SPINNER_DELAY_MS = 3000;
 const SETTLEMENT_SUCCESS_DISPLAY_MS = 2500;
 // Suppress the "Reconnected" toast for blips shorter than this — tab-switch
@@ -155,8 +159,10 @@ export function SocketProvider(props: SocketProviderProps) {
         if (!WS_BASE_URL || !API_URL) {
             console.error('WebSocket URL or API URL is not defined.');
             toastErrorRef.current(
-                'Configuration Error',
-                'WebSocket or API URL not set.'
+                'Connection unavailable',
+                'We could not reach the table. Please try again later.',
+                undefined,
+                TOAST_ID_CONNECTION_ERROR
             );
             return;
         }
@@ -184,8 +190,10 @@ export function SocketProvider(props: SocketProviderProps) {
                     sessionInitResponse.statusText
                 );
                 toastErrorRef.current(
-                    'Session Init Failed',
-                    `Server error: ${sessionInitResponse.statusText}`
+                    'Connection unavailable',
+                    'We could not reach the table. Reconnecting…',
+                    undefined,
+                    TOAST_ID_CONNECTION_ERROR
                 );
                 isReconnectingRef.current = false;
                     attemptReconnection();
@@ -380,9 +388,8 @@ export function SocketProvider(props: SocketProviderProps) {
                         ) {
                             dispatch({ type: 'setSeatRequested', payload: null });
                             toastSuccessRef.current(
-                                'Request Cancelled',
-                                'Seat request cancelled successfully.',
-                                5000
+                                'Request cancelled',
+                                'Your seat request was cancelled.'
                             );
                         }
                         return;
@@ -621,9 +628,8 @@ export function SocketProvider(props: SocketProviderProps) {
                     }
                     case 'game-paused': {
                         toastInfoRef.current(
-                            'Game Paused',
-                            `Game paused by ${eventData.pausedBy || 'table owner'}.`,
-                            5000
+                            'Game paused',
+                            `Paused by ${eventData.pausedBy || 'the Host'}.`
                         );
                         // The backend sends a full 'update-game' before this message
                         // with the correct paused state and actionDeadline: 0.
@@ -633,9 +639,8 @@ export function SocketProvider(props: SocketProviderProps) {
                     }
                     case 'game-resumed': {
                         toastSuccessRef.current(
-                            'Game Resumed',
-                            `Game resumed by ${eventData.resumedBy || 'table owner'}.`,
-                            5000
+                            'Game resumed',
+                            `Resumed by ${eventData.resumedBy || 'the Host'}.`
                         );
                         // The backend sends a full 'update-game' before this message
                         // with the correct paused state and restored actionDeadline.
@@ -746,9 +751,8 @@ export function SocketProvider(props: SocketProviderProps) {
                         }
                         // Show success toast
                         toastSuccessRef.current(
-                            'Seat Accepted',
-                            eventData.message,
-                            5000
+                            'Seat accepted',
+                            'You are in — good luck at the table.'
                         );
                         return;
                     }
@@ -786,7 +790,16 @@ export function SocketProvider(props: SocketProviderProps) {
                         }
 
                         // Handle other errors with toast fallback
-                        toastErrorRef.current(eventData.message);
+                        {
+                            const { title, description } = friendlyError(
+                                eventData.message,
+                                {
+                                    title: 'Something went wrong',
+                                    description: 'Please try again.',
+                                }
+                            );
+                            toastErrorRef.current(title, description);
+                        }
                         // If seat request was denied (message check), reset the flag
                         const errorMsg =
                             typeof eventData.message === 'string'
@@ -885,8 +898,7 @@ export function SocketProvider(props: SocketProviderProps) {
                             const toTableNumber = Number(eventData.to_table_index) + 1;
                             toastInfoRef.current(
                                 'Moving you to a new table',
-                                'Tables were rebalanced — reseating you now…',
-                                4000
+                                'Tables were rebalanced — reseating you now…'
                             );
                             if (tournamentId != null && Number.isFinite(toTableNumber)) {
                                 // Navigate to the destination table. A full navigation
@@ -933,8 +945,10 @@ export function SocketProvider(props: SocketProviderProps) {
         } catch (e) {
             console.error('Fatal error during WebSocket connection setup:', e);
             toastErrorRef.current(
-                'Connection Error',
-                'Could not establish WebSocket connection. Check console.'
+                'Connection unavailable',
+                'We could not connect to the table. Reconnecting…',
+                undefined,
+                TOAST_ID_CONNECTION_ERROR
             );
             // If the exception occurs during fetch or new WebSocket(), then attempt reconnection.
             isReconnectingRef.current = false;

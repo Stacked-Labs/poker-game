@@ -23,6 +23,7 @@ import { FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
 import { FaMedal, FaXTwitter } from 'react-icons/fa6';
 import { FiExternalLink, FiCopy, FiCheck } from 'react-icons/fi';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { TOAST_BANNER_DURATION_SHORT_MS } from '@/app/utils/toastDefaults';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
 import { getTier } from './tierUtils';
@@ -379,10 +380,10 @@ const WalletPopoverContent = ({
         try {
             await navigator.clipboard.writeText(address);
             setCopied(true);
-            toast.success('Address copied', '', 1500);
+            toast.success('Address copied', '', TOAST_BANNER_DURATION_SHORT_MS);
             setTimeout(() => setCopied(false), 1500);
         } catch {
-            toast.error('Could not copy', '', 2000);
+            toast.error('Could not copy');
         }
     };
 

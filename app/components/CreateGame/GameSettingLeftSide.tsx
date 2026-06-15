@@ -45,6 +45,7 @@ import WalletButton from '@/app/components/WalletButton';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 import { useAuth } from '@/app/contexts/AuthContext';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { friendlyError } from '@/app/utils/toastErrors';
 import { useRotatingMessages } from '@/app/hooks/useRotatingMessages';
 import { initSession, createTournament } from '@/app/hooks/server_actions';
 import {
@@ -458,7 +459,7 @@ const GameSettingLeftSide: React.FC = () => {
 
         if (mode === 'real' && !isCryptoEnabled) {
             toast.info(
-                'Coming Soon',
+                'Coming soon',
                 'Crypto games are coming soon. Follow us on social media for updates.'
             );
             return;
@@ -471,7 +472,7 @@ const GameSettingLeftSide: React.FC = () => {
             process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
         ) {
             toast.warning(
-                'Verification Pending',
+                'Verification pending',
                 'Please wait for bot verification to complete.'
             );
             return;
@@ -483,7 +484,7 @@ const GameSettingLeftSide: React.FC = () => {
                 (!isCryptoEnabled || !address || !isAuthenticated)
             ) {
                 toast.warning(
-                    'Authentication Required',
+                    'Sign in to continue',
                     !isCryptoEnabled
                         ? 'Crypto games are coming soon.'
                         : !address
@@ -506,7 +507,7 @@ const GameSettingLeftSide: React.FC = () => {
                 !Number.isInteger(bigBlind)
             ) {
                 toast.warning(
-                    'Invalid Blinds',
+                    'Invalid blinds',
                     mode === 'real'
                         ? 'Minimum stakes are 5/10 chips. Whole chips only, big ≥ small.'
                         : 'Whole chips only, big blind ≥ small blind.'
@@ -515,22 +516,22 @@ const GameSettingLeftSide: React.FC = () => {
             }
             if (selectedGameMode === '') {
                 toast.warning(
-                    'Game Mode Not Selected',
+                    'Pick a game mode',
                     'Please select a game mode.'
                 );
                 return;
             }
             if (mode === 'real' && selectedNetwork === '') {
                 toast.warning(
-                    'Network Not Selected',
+                    'Pick a network',
                     'Please select a network for crypto play.'
                 );
                 return;
             }
             if (!isFormValid) {
                 toast.error(
-                    'Validation Error',
-                    'Please check your game settings.'
+                    'Check your settings',
+                    'Please review your game settings and try again.'
                 );
                 return;
             }
@@ -567,38 +568,39 @@ const GameSettingLeftSide: React.FC = () => {
                 const data = await response.json();
                 if (data && data.tablename) {
                     toast.success(
-                        'Game Created',
-                        `Successfully created game: ${data.tablename}`
+                        'Game created',
+                        `Your table is ready: ${data.tablename}`
                     );
                     didCreate = true;
                     dispatch({ type: 'setTablename', payload: data.tablename });
                     router.push(`/table/${data.tablename}`);
                 } else {
                     toast.error(
-                        'Create Error',
-                        'Received invalid response from server.'
+                        'Could not create game',
+                        'We got an unexpected response. Please try again.'
                     );
                 }
             } else {
                 if (response.status === 403) {
                     toast.error(
-                        'Security Check Failed',
+                        'Security check failed',
                         'Please wait a moment and try again.'
                     );
                 } else {
-                    const errorData = await response.text();
-                    toast.error(
-                        'Create Failed',
-                        `Failed to create game: ${response.statusText} - ${errorData}`
-                    );
+                    const { title, description } = friendlyError(undefined, {
+                        title: 'Could not create game',
+                        description: 'Something went wrong. Please try again.',
+                    });
+                    toast.error(title, description);
                 }
             }
         } catch (error) {
             console.error('Error creating game:', error);
-            toast.error(
-                'Create Failed',
-                `An error occurred: ${error instanceof Error ? error.message : String(error)}`
-            );
+            const { title, description } = friendlyError(error, {
+                title: 'Could not create game',
+                description: 'Something went wrong. Please try again.',
+            });
+            toast.error(title, description);
         } finally {
             setTurnstileToken(null);
             if (!didCreate) {
@@ -613,7 +615,7 @@ const GameSettingLeftSide: React.FC = () => {
     ) => {
         if (!address || !isAuthenticated) {
             toast.warning(
-                'Authentication Required',
+                'Sign in to continue',
                 !address
                     ? 'Please sign in with your wallet to create a tournament.'
                     : 'Please sign the message in your wallet to continue.'
@@ -667,12 +669,11 @@ const GameSettingLeftSide: React.FC = () => {
             toast.success('Tournament created');
             router.push(`/tournament/${result.tournament.id}`);
         } catch (error) {
-            toast.error(
-                'Create Failed',
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to create tournament.'
-            );
+            const { title, description } = friendlyError(error, {
+                title: 'Could not create tournament',
+                description: 'Something went wrong. Please try again.',
+            });
+            toast.error(title, description);
             setCreating(false);
         }
     };

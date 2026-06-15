@@ -321,7 +321,7 @@ const Table = ({ tableId }: { tableId: string }) => {
                     }
                 } catch (error) {
                     console.error('Error checking table existence:', error);
-                    toast.error('Table does not exist.');
+                    toast.error('Table does not exist');
                     await new Promise((resolve) => setTimeout(resolve, 5000));
                     router.push('/create-game');
                 }

@@ -25,6 +25,7 @@ import { useActiveAccount } from 'thirdweb/react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { getQuests, completeQuest, type QuestItem } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { friendlyError } from '@/app/utils/toastErrors';
 
 const QUEST_ICONS: Record<string, IconType> = {
     follow_x: FaXTwitter,
@@ -406,7 +407,11 @@ const QuestsSection: React.FC<QuestsSectionProps> = ({ tablesCreated = 0 }) => {
             try {
                 const result = await completeQuest(questId);
                 if (!result.success && !result.alreadyCompleted) {
-                    toast.error('Quest failed', result.message ?? 'Could not claim quest');
+                    const { title, description } = friendlyError(result.message, {
+                        title: 'Quest failed',
+                        description: 'Could not claim quest. Please try again.',
+                    });
+                    toast.error(title, description);
                 }
                 await loadQuests();
             } catch {

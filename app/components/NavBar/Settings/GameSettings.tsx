@@ -30,7 +30,7 @@ import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { sendUpdateBlinds, sendToggleRabbitHunt, sendToggleAutoAccept } from '@/app/hooks/server_actions';
 import { useConnectX } from '@/app/hooks/useConnectX';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
-import { useToast } from '@chakra-ui/react';
+import useToastHelper from '@/app/hooks/useToastHelper';
 
 // Chip Display backgrounds — chips/bb use brand tokens (raw hex avoided
 // where possible). USDC keeps its real brand hex since it identifies
@@ -274,7 +274,7 @@ const GameSettings = () => {
     const { appState, dispatch } = useContext(AppContext);
     const socket = useContext(SocketContext);
     const isOwner = useIsTableOwner();
-    const toast = useToast();
+    const toast = useToastHelper();
     const [isPortrait] = useMediaQuery('(orientation: portrait)');
     const tableColorKey = localStorage.getItem('tableColorKey') ?? 'green';
     const config = appState.game?.config;
@@ -310,14 +310,10 @@ const GameSettings = () => {
     const handleBlindsSubmit = () => {
         if (!socket || !isValidBlinds) return;
         sendUpdateBlinds(socket, sbChips, bbChips);
-        toast({
-            title: 'Blind change queued',
-            description: `${formatBlinds(sbChips)} / ${formatBlinds(bbChips)} will apply at the start of the next hand.`,
-            status: 'info',
-            duration: 4000,
-            isClosable: true,
-            position: 'top',
-        });
+        toast.info(
+            'Blind change queued',
+            `${formatBlinds(sbChips)} / ${formatBlinds(bbChips)} will apply at the start of the next hand.`
+        );
     };
 
     const handleBlindsCancel = () => {

@@ -1,6 +1,13 @@
 'use client';
 
-import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import React, {
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+} from 'react';
 import {
     Box,
     Divider,
@@ -30,6 +37,7 @@ import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     explorerBase,
     formatUsdc,
+    formatUsdcAuto,
     ordinal,
 } from '../PublicGames/tournamentFormat';
 import {
@@ -41,13 +49,17 @@ import {
     placesPaid,
 } from '../PublicGames/payouts';
 import { useLevelCountdown } from '../../hooks/useLevelCountdown';
-import type { LeaderboardPlayer } from '@/app/interfaces';
+import type { LeaderboardPlayer, TournamentClock } from '@/app/interfaces';
 import PayoutLadder from './PayoutLadder';
 import StructureSheet from './StructureSheet';
 
 function shortAddr(a: string): string {
     return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '';
 }
+
+// Stable empty-array reference for the no-feed case so the derived-data memos keep
+// a constant `leaderboard` dependency until a real feed arrives.
+const EMPTY_LEADERBOARD: LeaderboardPlayer[] = [];
 
 // The one approved warm accent: a single green flourish each time you cross into
 // the money, plus a slow amber pulse while you sit on the bubble. Both honour
@@ -173,7 +185,6 @@ export default function TournamentTabPanel() {
     const live = appState.tournamentLive;
     const meta = live?.meta ?? null;
     const clock = live?.clock ?? null;
-    const countdown = useLevelCountdown(clock);
     const prefersReducedMotion = usePrefersReducedMotion();
 
     const border = useColorModeValue(
@@ -221,77 +232,166 @@ export default function TournamentTabPanel() {
     // Everything below is null-safe so the hooks above (and useItmCrossing below)
     // always run before the not-connected guard — Rules of Hooks.
     const myWallet = appState.address?.toLowerCase();
-    const isMe = (p: LeaderboardPlayer) =>
-        (!!myWallet && p.wallet?.toLowerCase() === myWallet) ||
-        p.uuid === appState.clientID;
-
-    const leaderboard = live?.leaderboard ?? [];
-    const sorted = [...leaderboard].sort((a, b) => {
-        if (a.finish_pos === 0 && b.finish_pos === 0) return b.stack - a.stack;
-        if (a.finish_pos === 0) return -1;
-        if (b.finish_pos === 0) return 1;
-        return a.finish_pos - b.finish_pos;
-    });
-    const aliveRows = sorted.filter((p) => p.finish_pos === 0);
-    const aliveCount = live?.playersActive ?? aliveRows.length;
-    // The payout TIER (places paid / percentages) is keyed on UNIQUE players, like
-    // the backend's DefaultPayouts(len(players)) — one leaderboard row per player,
-    // re-entries don't add rows. registered_count counts bullet entries (the prize
-    // POOL basis), which can cross a tier boundary in re-entry-heavy fields.
-    const tierEntrants = leaderboard.length || meta?.registeredCount || 0;
-    const paid = placesPaid(tierEntrants);
-    const fromMoney = distanceToMoney(aliveCount, tierEntrants);
-
-    const poolForLadder = Math.max(
-        meta?.prizePoolUsdc ?? 0,
-        meta?.guaranteeUsdc ?? 0
-    );
-    const overlay = Math.max(
-        0,
-        (meta?.guaranteeUsdc ?? 0) - (meta?.prizePoolUsdc ?? 0)
-    );
-    const topPrize = payoutForPosition(1, tierEntrants, poolForLadder);
-    const nameByUuid = new Map(
-        leaderboard.map((p) => [
-            p.uuid,
-            p.xUsername ? `@${p.xUsername}` : shortAddr(p.wallet),
-        ])
+    const clientID = appState.clientID;
+    // The isMe check closes over BOTH the wallet and the client id, so the memo
+    // deps below must include both — a wallet-less observer still matches by uuid.
+    const isMe = useMemo(
+        () => (p: LeaderboardPlayer) =>
+            (!!myWallet && p.wallet?.toLowerCase() === myWallet) ||
+            p.uuid === clientID,
+        [myWallet, clientID]
     );
 
-    // Field / entries: unique players vs total bullets vs how full the field is.
-    const uniqueEntrants = leaderboard.length;
-    const totalBullets = meta?.registeredCount ?? uniqueEntrants;
-    const reentries = Math.max(0, totalBullets - uniqueEntrants);
-    const fieldFull =
-        meta && meta.maxEntries > 0
-            ? Math.round((totalBullets / meta.maxEntries) * 100)
-            : null;
+    // Stable empty fallback so an absent feed doesn't hand the memos a fresh []
+    // reference each render (which would defeat their memoization).
+    const leaderboard = useMemo(
+        () => live?.leaderboard ?? EMPTY_LEADERBOARD,
+        [live?.leaderboard]
+    );
+    // Big-blind size drives the BB conversions below; pulled out as a primitive so
+    // the memos depend on it (not the whole clock object) and skip the local
+    // countdown tick, which now lives in LevelClockLine.
+    const clockBb = clock?.bb ?? 0;
+    const playersActive = live?.playersActive;
+    // Meta money/field primitives feed the tier memo; pulled out so the memo deps
+    // are concrete values rather than the whole (stable but opaque) meta object.
+    const registeredCount = meta?.registeredCount;
+    const prizePoolUsdc = meta?.prizePoolUsdc;
+    const guaranteeUsdc = meta?.guaranteeUsdc;
+    const maxEntries = meta?.maxEntries;
 
-    // Average stack across survivors (in chips and BB).
-    const aliveDenom = aliveRows.length || aliveCount || 1;
-    const avgStack = aliveRows.length
-        ? Math.round(
-              aliveRows.reduce((s, p) => s + p.stack, 0) / aliveDenom
-          )
-        : 0;
-    const avgBB = clock && clock.bb > 0 ? Math.floor(avgStack / clock.bb) : null;
+    // Leaderboard-derived data — sorted standings, the bust-feed name map, the
+    // survivor aggregates. Recomputed only when the feed (leaderboard /
+    // playersActive) or the blind size moves, not on every WS push that leaves
+    // these unchanged.
+    const { sorted, nameByUuid, aliveRows, aliveCount, avgStack, avgBB } =
+        useMemo(() => {
+            const sorted = [...leaderboard].sort((a, b) => {
+                if (a.finish_pos === 0 && b.finish_pos === 0)
+                    return b.stack - a.stack;
+                if (a.finish_pos === 0) return -1;
+                if (b.finish_pos === 0) return 1;
+                return a.finish_pos - b.finish_pos;
+            });
+            const aliveRows = sorted.filter((p) => p.finish_pos === 0);
+            const aliveCount = playersActive ?? aliveRows.length;
+            const nameByUuid = new Map(
+                leaderboard.map((p) => [
+                    p.uuid,
+                    p.xUsername ? `@${p.xUsername}` : shortAddr(p.wallet),
+                ])
+            );
+            const aliveDenom = aliveRows.length || aliveCount || 1;
+            const avgStack = aliveRows.length
+                ? Math.round(
+                      aliveRows.reduce((s, p) => s + p.stack, 0) / aliveDenom
+                  )
+                : 0;
+            const avgBB =
+                clockBb > 0 ? Math.floor(avgStack / clockBb) : null;
+            return { sorted, nameByUuid, aliveRows, aliveCount, avgStack, avgBB };
+        }, [leaderboard, playersActive, clockBb]);
 
-    // "You" facts for the personal strip.
-    const myIdx = sorted.findIndex(isMe);
-    const myP = myIdx >= 0 ? sorted[myIdx] : null;
-    const myOut = myP ? myP.finish_pos > 0 : false;
-    const myRank = myP ? (myOut ? myP.finish_pos : myIdx + 1) : 0;
-    const myStack = myP?.stack ?? 0;
-    const myBB =
-        myP && clock && clock.bb > 0 && !myOut
-            ? Math.floor(myStack / clock.bb)
-            : null;
-    const myPrize = myP?.prize_usdc ?? 0;
-    const myInMoney = !!myP && !myOut && isInTheMoney(myRank, tierEntrants);
-    const myJump =
-        myP && !myOut ? nextPayJump(myRank, tierEntrants, poolForLadder) : null;
-    const onBubble = !!myP && !myOut && !myInMoney && fromMoney > 0 && fromMoney <= 2;
-    const chipLead = !!myP && !myOut && myRank === 1;
+    const {
+        tierEntrants,
+        paid,
+        fromMoney,
+        poolForLadder,
+        overlay,
+        topPrize,
+        uniqueEntrants,
+        totalBullets,
+        reentries,
+        fieldFull,
+    } = useMemo(() => {
+        // The payout TIER (places paid / percentages) is keyed on UNIQUE players,
+        // like the backend's DefaultPayouts(len(players)) — one leaderboard row per
+        // player, re-entries don't add rows. registered_count counts bullet entries
+        // (the prize POOL basis), which can cross a tier boundary in re-entry-heavy
+        // fields.
+        const tierEntrants = leaderboard.length || registeredCount || 0;
+        const paid = placesPaid(tierEntrants);
+        const fromMoney = distanceToMoney(aliveCount, tierEntrants);
+        const poolForLadder = Math.max(prizePoolUsdc ?? 0, guaranteeUsdc ?? 0);
+        const overlay = Math.max(
+            0,
+            (guaranteeUsdc ?? 0) - (prizePoolUsdc ?? 0)
+        );
+        const topPrize = payoutForPosition(1, tierEntrants, poolForLadder);
+        // Field / entries: unique players vs total bullets vs how full the field is.
+        const uniqueEntrants = leaderboard.length;
+        const totalBullets = registeredCount ?? uniqueEntrants;
+        const reentries = Math.max(0, totalBullets - uniqueEntrants);
+        const fieldFull =
+            maxEntries && maxEntries > 0
+                ? Math.round((totalBullets / maxEntries) * 100)
+                : null;
+        return {
+            tierEntrants,
+            paid,
+            fromMoney,
+            poolForLadder,
+            overlay,
+            topPrize,
+            uniqueEntrants,
+            totalBullets,
+            reentries,
+            fieldFull,
+        };
+    }, [
+        leaderboard.length,
+        aliveCount,
+        registeredCount,
+        prizePoolUsdc,
+        guaranteeUsdc,
+        maxEntries,
+    ]);
+
+    // "You" facts for the personal strip. isMe closes over both myWallet and the
+    // client id (see the memoized isMe above), so both flow in via that dep.
+    const {
+        myP,
+        myOut,
+        myRank,
+        myStack,
+        myBB,
+        myPrize,
+        myInMoney,
+        myJump,
+        onBubble,
+        chipLead,
+    } = useMemo(() => {
+        const myIdx = sorted.findIndex(isMe);
+        const myP = myIdx >= 0 ? sorted[myIdx] : null;
+        const myOut = myP ? myP.finish_pos > 0 : false;
+        const myRank = myP ? (myOut ? myP.finish_pos : myIdx + 1) : 0;
+        const myStack = myP?.stack ?? 0;
+        const myBB =
+            myP && clockBb > 0 && !myOut
+                ? Math.floor(myStack / clockBb)
+                : null;
+        const myPrize = myP?.prize_usdc ?? 0;
+        const myInMoney = !!myP && !myOut && isInTheMoney(myRank, tierEntrants);
+        const myJump =
+            myP && !myOut
+                ? nextPayJump(myRank, tierEntrants, poolForLadder)
+                : null;
+        const onBubble =
+            !!myP && !myOut && !myInMoney && fromMoney > 0 && fromMoney <= 2;
+        const chipLead = !!myP && !myOut && myRank === 1;
+        return {
+            myP,
+            myOut,
+            myRank,
+            myStack,
+            myBB,
+            myPrize,
+            myInMoney,
+            myJump,
+            onBubble,
+            chipLead,
+        };
+    }, [sorted, isMe, clockBb, tierEntrants, poolForLadder, fromMoney]);
 
     const itmCrossed = useItmCrossing(myInMoney);
     const rankDelta = useRankDelta(myOut ? 0 : myRank);
@@ -397,29 +497,7 @@ export default function TournamentTabPanel() {
                     )}
                 </Flex>
                 {clock && (
-                    <Text
-                        fontSize="sm"
-                        color={countdown.onBreak ? greenFg : 'text.secondary'}
-                        fontWeight={countdown.onBreak ? 'semibold' : undefined}
-                        sx={{ fontVariantNumeric: 'tabular-nums' }}
-                    >
-                        {countdown.onBreak ? (
-                            <>
-                                On break · {countdown.label} · Level{' '}
-                                {clock.levelNumber + 1} next
-                            </>
-                        ) : (
-                            <>
-                                Level {clock.levelNumber} ·{' '}
-                                {clock.sb.toLocaleString('en-US')}/
-                                {clock.bb.toLocaleString('en-US')}
-                                {clock.ante > 0
-                                    ? ` (${clock.ante.toLocaleString('en-US')}a)`
-                                    : ''}{' '}
-                                · {countdown.label} to next
-                            </>
-                        )}
-                    </Text>
+                    <LevelClockLine clock={clock} greenFg={greenFg} />
                 )}
             </Box>
 
@@ -608,7 +686,7 @@ export default function TournamentTabPanel() {
                                     noOfLines={1}
                                     sx={{ fontVariantNumeric: 'tabular-nums' }}
                                 >
-                                    ${formatUsdc(poolForLadder, { decimals: 0 })}
+                                    ${formatUsdcAuto(poolForLadder)}
                                 </Text>
                             </HStack>
                         )
@@ -628,7 +706,7 @@ export default function TournamentTabPanel() {
                             >
                                 {overlay > 0
                                     ? `+$${formatUsdc(overlay)} overlay`
-                                    : `Top $${formatUsdc(topPrize, { decimals: 0 })} · min $${formatUsdc(minCashAmt, { decimals: 0 })}`}
+                                    : `Top $${formatUsdcAuto(topPrize)} · min $${formatUsdcAuto(minCashAmt)}`}
                             </Text>
                         )
                     }
@@ -802,188 +880,32 @@ export default function TournamentTabPanel() {
                                 const rank =
                                     p.finish_pos === 0 ? i + 1 : p.finish_pos;
                                 const out = p.finish_pos > 0;
-                                const me = isMe(p);
-                                const topAlive = rank === 1 && !out;
                                 const bb =
                                     clock && clock.bb > 0 && !out
                                         ? Math.floor(p.stack / clock.bb)
                                         : null;
                                 return (
-                                    <Tr
+                                    <StandingsRow
                                         key={p.uuid}
-                                        bg={
-                                            me
-                                                ? meHighlight
-                                                : rank === 1 && !out
-                                                  ? topSpot
-                                                  : i % 2 === 1
-                                                    ? zebra
-                                                    : undefined
+                                        p={p}
+                                        rank={rank}
+                                        out={out}
+                                        bb={bb}
+                                        even={i % 2 === 0}
+                                        isMe={isMe(p)}
+                                        showBullet={meta.reentryAllowed}
+                                        chain={meta.chain}
+                                        tournamentId={live.tournamentId}
+                                        prefersReducedMotion={
+                                            !!prefersReducedMotion
                                         }
-                                        _hover={{ bg: me ? meHighlight : rowHover }}
-                                        opacity={out ? 0.55 : 1}
-                                    >
-                                        <Td
-                                            fontWeight="bold"
-                                            color={
-                                                rank === 1
-                                                    ? goldRank
-                                                    : 'text.primary'
-                                            }
-                                        >
-                                            {rank}
-                                        </Td>
-                                        <Td>
-                                            <HStack spacing={2.5} minW={0}>
-                                                <Box
-                                                    position="relative"
-                                                    boxSize="30px"
-                                                    flexShrink={0}
-                                                >
-                                                    {topAlive && (
-                                                        <Icon
-                                                            as={PiCrownFill}
-                                                            position="absolute"
-                                                            top="-9px"
-                                                            left="50%"
-                                                            zIndex={1}
-                                                            color="brand.yellow"
-                                                            boxSize="14px"
-                                                            transform="translateX(-50%) rotate(-6deg)"
-                                                            sx={{
-                                                                filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
-                                                            }}
-                                                            animation={
-                                                                prefersReducedMotion
-                                                                    ? undefined
-                                                                    : `${crownBob} 2.4s ease-in-out infinite`
-                                                            }
-                                                            aria-label="Chip leader"
-                                                        />
-                                                    )}
-                                                    <PlayerAvatar
-                                                        profileImageUrl={
-                                                            p.xProfileImageUrl
-                                                        }
-                                                        address={p.wallet}
-                                                        username={
-                                                            p.xUsername
-                                                                ? `@${p.xUsername}`
-                                                                : p.wallet ||
-                                                                  p.uuid
-                                                        }
-                                                        initialsFontSize="11px"
-                                                    />
-                                                </Box>
-                                                {p.xUsername ? (
-                                                    <PlayerNameLink
-                                                        username={`@${p.xUsername}`}
-                                                        fontSize="sm"
-                                                        fontWeight="semibold"
-                                                        noOfLines={1}
-                                                    />
-                                                ) : p.wallet ? (
-                                                    <ExternalLink
-                                                        href={`${explorerBase(
-                                                            meta.chain
-                                                        )}/address/${p.wallet}`}
-                                                        fontSize="sm"
-                                                        fontFamily="mono"
-                                                        color="text.primary"
-                                                    >
-                                                        {shortAddr(p.wallet)}
-                                                    </ExternalLink>
-                                                ) : (
-                                                    <Text
-                                                        fontSize="sm"
-                                                        color="text.muted"
-                                                        fontFamily="mono"
-                                                    >
-                                                        {p.uuid.slice(0, 8)}
-                                                    </Text>
-                                                )}
-                                                {me && (
-                                                    <Text
-                                                        fontSize="2xs"
-                                                        fontWeight="bold"
-                                                        color={greenFg}
-                                                        textTransform="uppercase"
-                                                    >
-                                                        you
-                                                    </Text>
-                                                )}
-                                            </HStack>
-                                        </Td>
-                                        {meta.reentryAllowed && (
-                                            <Td isNumeric>
-                                                <Text
-                                                    fontSize="xs"
-                                                    color="text.muted"
-                                                >
-                                                    {p.bullet_number ?? 1}
-                                                </Text>
-                                            </Td>
-                                        )}
-                                        <Td
-                                            isNumeric
-                                            sx={{
-                                                fontVariantNumeric:
-                                                    'tabular-nums',
-                                            }}
-                                        >
-                                            {out ? (
-                                                <Text
-                                                    fontSize="xs"
-                                                    color="text.muted"
-                                                >
-                                                    —
-                                                </Text>
-                                            ) : (
-                                                <VStack
-                                                    spacing={0}
-                                                    align="flex-end"
-                                                >
-                                                    <Text
-                                                        fontSize="xs"
-                                                        color="text.primary"
-                                                    >
-                                                        {p.stack.toLocaleString(
-                                                            'en-US'
-                                                        )}
-                                                    </Text>
-                                                    {bb != null && (
-                                                        <Text
-                                                            fontSize="2xs"
-                                                            color="text.muted"
-                                                        >
-                                                            {bb} BB
-                                                        </Text>
-                                                    )}
-                                                </VStack>
-                                            )}
-                                        </Td>
-                                        <Td isNumeric>
-                                            {out || p.table_index < 0 ? (
-                                                <Text
-                                                    fontSize="xs"
-                                                    color="text.muted"
-                                                >
-                                                    —
-                                                </Text>
-                                            ) : (
-                                                <ExternalLink
-                                                    href={`/table/tournament-${live.tournamentId}-table-${
-                                                        p.table_index + 1
-                                                    }`}
-                                                    fontSize="xs"
-                                                    color="text.secondary"
-                                                    iconSize="9px"
-                                                >
-                                                    T{p.table_index + 1}
-                                                </ExternalLink>
-                                            )}
-                                        </Td>
-                                    </Tr>
+                                        meHighlight={meHighlight}
+                                        topSpot={topSpot}
+                                        zebra={zebra}
+                                        rowHover={rowHover}
+                                        goldRank={goldRank}
+                                        greenFg={greenFg}
+                                    />
                                 );
                             })}
                         </Tbody>
@@ -1033,6 +955,225 @@ export default function TournamentTabPanel() {
         </Sheet>
     );
 }
+
+// The level/break sub-line owns its own 1-second countdown. Isolating the tick
+// here means the panel's per-second re-render is scoped to this one line of text
+// instead of the whole ~900-line panel.
+function LevelClockLine({
+    clock,
+    greenFg,
+}: {
+    clock: TournamentClock;
+    greenFg: string;
+}) {
+    const countdown = useLevelCountdown(clock);
+    return (
+        <Text
+            fontSize="sm"
+            color={countdown.onBreak ? greenFg : 'text.secondary'}
+            fontWeight={countdown.onBreak ? 'semibold' : undefined}
+            sx={{ fontVariantNumeric: 'tabular-nums' }}
+        >
+            {countdown.onBreak ? (
+                <>
+                    On break · {countdown.label} · Level {clock.levelNumber + 1}{' '}
+                    next
+                </>
+            ) : (
+                <>
+                    Level {clock.levelNumber} ·{' '}
+                    {clock.sb.toLocaleString('en-US')}/
+                    {clock.bb.toLocaleString('en-US')}
+                    {clock.ante > 0
+                        ? ` (${clock.ante.toLocaleString('en-US')}a)`
+                        : ''}{' '}
+                    · {countdown.label} to next
+                </>
+            )}
+        </Text>
+    );
+}
+
+// One standings row. Memoized on stable/primitive props so a WS push that leaves
+// a player's row unchanged skips its re-render — only the rows whose stack/rank/
+// table actually moved repaint. The color tokens and prefersReducedMotion arrive
+// as props so the row never reads context and stays cheap to compare.
+const StandingsRow = React.memo(function StandingsRow({
+    p,
+    rank,
+    out,
+    bb,
+    even,
+    isMe,
+    showBullet,
+    chain,
+    tournamentId,
+    prefersReducedMotion,
+    meHighlight,
+    topSpot,
+    zebra,
+    rowHover,
+    goldRank,
+    greenFg,
+}: {
+    p: LeaderboardPlayer;
+    rank: number;
+    out: boolean;
+    bb: number | null;
+    even: boolean;
+    isMe: boolean;
+    showBullet: boolean;
+    chain?: string;
+    tournamentId: number;
+    prefersReducedMotion: boolean;
+    meHighlight: string;
+    topSpot: string;
+    zebra: string;
+    rowHover: string;
+    goldRank: string;
+    greenFg: string;
+}) {
+    const topAlive = rank === 1 && !out;
+    return (
+        <Tr
+            bg={
+                isMe
+                    ? meHighlight
+                    : rank === 1 && !out
+                      ? topSpot
+                      : !even
+                        ? zebra
+                        : undefined
+            }
+            _hover={{ bg: isMe ? meHighlight : rowHover }}
+            opacity={out ? 0.55 : 1}
+        >
+            <Td
+                fontWeight="bold"
+                color={rank === 1 ? goldRank : 'text.primary'}
+            >
+                {rank}
+            </Td>
+            <Td>
+                <HStack spacing={2.5} minW={0}>
+                    <Box position="relative" boxSize="30px" flexShrink={0}>
+                        {topAlive && (
+                            <Icon
+                                as={PiCrownFill}
+                                position="absolute"
+                                top="-9px"
+                                left="50%"
+                                zIndex={1}
+                                color="brand.yellow"
+                                boxSize="14px"
+                                transform="translateX(-50%) rotate(-6deg)"
+                                sx={{
+                                    filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                                }}
+                                animation={
+                                    prefersReducedMotion
+                                        ? undefined
+                                        : `${crownBob} 2.4s ease-in-out infinite`
+                                }
+                                aria-label="Chip leader"
+                            />
+                        )}
+                        <PlayerAvatar
+                            profileImageUrl={p.xProfileImageUrl}
+                            address={p.wallet}
+                            username={
+                                p.xUsername
+                                    ? `@${p.xUsername}`
+                                    : p.wallet || p.uuid
+                            }
+                            initialsFontSize="11px"
+                        />
+                    </Box>
+                    {p.xUsername ? (
+                        <PlayerNameLink
+                            username={`@${p.xUsername}`}
+                            fontSize="sm"
+                            fontWeight="semibold"
+                            noOfLines={1}
+                        />
+                    ) : p.wallet ? (
+                        <ExternalLink
+                            href={`${explorerBase(
+                                chain
+                            )}/address/${p.wallet}`}
+                            fontSize="sm"
+                            fontFamily="mono"
+                            color="text.primary"
+                        >
+                            {shortAddr(p.wallet)}
+                        </ExternalLink>
+                    ) : (
+                        <Text
+                            fontSize="sm"
+                            color="text.muted"
+                            fontFamily="mono"
+                        >
+                            {p.uuid.slice(0, 8)}
+                        </Text>
+                    )}
+                    {isMe && (
+                        <Text
+                            fontSize="2xs"
+                            fontWeight="bold"
+                            color={greenFg}
+                            textTransform="uppercase"
+                        >
+                            you
+                        </Text>
+                    )}
+                </HStack>
+            </Td>
+            {showBullet && (
+                <Td isNumeric>
+                    <Text fontSize="xs" color="text.muted">
+                        {p.bullet_number ?? 1}
+                    </Text>
+                </Td>
+            )}
+            <Td isNumeric sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                {out ? (
+                    <Text fontSize="xs" color="text.muted">
+                        —
+                    </Text>
+                ) : (
+                    <VStack spacing={0} align="flex-end">
+                        <Text fontSize="xs" color="text.primary">
+                            {p.stack.toLocaleString('en-US')}
+                        </Text>
+                        {bb != null && (
+                            <Text fontSize="2xs" color="text.muted">
+                                {bb} BB
+                            </Text>
+                        )}
+                    </VStack>
+                )}
+            </Td>
+            <Td isNumeric>
+                {out || p.table_index < 0 ? (
+                    <Text fontSize="xs" color="text.muted">
+                        —
+                    </Text>
+                ) : (
+                    <ExternalLink
+                        href={`/table/tournament-${tournamentId}-table-${
+                            p.table_index + 1
+                        }`}
+                        fontSize="xs"
+                        color="text.secondary"
+                        iconSize="9px"
+                    >
+                        T{p.table_index + 1}
+                    </ExternalLink>
+                )}
+            </Td>
+        </Tr>
+    );
+});
 
 // Opaque surface the whole panel floats on. The settings modal is frosted glass
 // over the live table (transparent ModalContent + backdrop blur), so without a

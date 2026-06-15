@@ -10,6 +10,7 @@ import {
 import { getWalletBalance } from 'thirdweb/wallets';
 import { client } from '../thirdwebclient';
 import { useChainBoundSend } from './useChainBoundSend';
+import { isGasShortage, GAS_SHORTAGE_MESSAGE } from '../utils/toastErrors';
 
 export type WithdrawStatus =
     | 'idle'
@@ -165,17 +166,7 @@ export function useWithdraw(
             console.error('Withdraw failed:', err);
             const rawMessage =
                 err instanceof Error ? err.message : 'Withdraw failed';
-            // Mirror useDepositAndJoin: map wallet-provider gas-shortage
-            // strings into actionable copy so the user knows the fix.
-            const looksLikeGasShortage =
-                /insufficient funds|exceeds balance|gas required exceeds/i.test(
-                    rawMessage
-                );
-            setError(
-                looksLikeGasShortage
-                    ? 'Not enough ETH on Base for gas. Swap a tiny bit of USDC for ETH and try again.'
-                    : rawMessage
-            );
+            setError(isGasShortage(err) ? GAS_SHORTAGE_MESSAGE : rawMessage);
             setStatus('error');
             return false;
         }

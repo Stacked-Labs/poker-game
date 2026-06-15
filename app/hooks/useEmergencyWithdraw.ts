@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { getContract, prepareContractCall, type Chain } from 'thirdweb';
 import { client } from '../thirdwebclient';
 import { useChainBoundSend } from './useChainBoundSend';
+import { friendlyError } from '../utils/toastErrors';
 
 export type EmergencyWithdrawStatus = 'idle' | 'pending' | 'success' | 'error';
 
@@ -55,7 +56,12 @@ export function useEmergencyWithdraw(
             return true;
         } catch (err) {
             console.error('[useEmergencyWithdraw] failed:', err);
-            setError(err instanceof Error ? err.message : 'Transaction failed');
+            const { description } = friendlyError(err, {
+                title: '',
+                description:
+                    'Something went wrong submitting the withdrawal. Please try again.',
+            });
+            setError(description ?? 'Please try again.');
             setStatus('error');
             return false;
         }

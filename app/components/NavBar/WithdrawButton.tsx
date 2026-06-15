@@ -29,6 +29,11 @@ import { useWithdraw } from '@/app/hooks/useWithdraw';
 import { useActiveWallet } from 'thirdweb/react';
 import { CHAIN_CONFIG, defaultChain } from '@/app/thirdwebclient';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import {
+    GAS_SHORTAGE_MESSAGE,
+    GAS_SHORTAGE_TITLE,
+    GAS_SHORTAGE_DESCRIPTION,
+} from '@/app/utils/toastErrors';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { handleLeaveTable } from '@/app/hooks/useTableOptions';
@@ -162,12 +167,14 @@ const WithdrawButton = () => {
         const withdrawSuccess = await withdraw();
         if (withdrawSuccess) {
             success(
-                'Withdrawal Successful',
-                'Your chips have been converted back to USDC.'
+                'Withdrawal sent',
+                'Your chips are converting back to USDC.'
             );
             onClose();
+        } else if (error === GAS_SHORTAGE_MESSAGE) {
+            toastError(GAS_SHORTAGE_TITLE, GAS_SHORTAGE_DESCRIPTION);
         } else if (error) {
-            toastError('Withdrawal Failed', error);
+            toastError('Withdrawal failed', 'Please try again.');
         }
     };
 

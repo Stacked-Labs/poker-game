@@ -196,26 +196,38 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
     };
 
     const handleShareX = async () => {
+        // Open the tab synchronously inside the click so Safari doesn't block it;
+        // the desktop branch points it at the X composer once the capture resolves.
+        // The native-share branch closes it instead.
+        const tab = window.open('', '_blank');
         setSharing(true);
         try {
             const blob = await captureBlob();
-            if (!blob) return;
+            if (!blob) {
+                tab?.close();
+                return;
+            }
             const file = new File([blob], `stacked-rank-${rank}.png`, { type: 'image/png' });
 
             // Mobile: native share sheet passes the image directly into X (no prefilled text)
             if (navigator.canShare?.({ files: [file] })) {
+                tab?.close();
                 await navigator.share({ files: [file] });
             } else {
                 // Desktop: X intent has no media param, so we open an empty
                 // composer pointed at /rank/<address>?... which unfurls into the
                 // same preview image via Twitter Cards.
-                window.open(tweetUrl, '_blank', 'noopener,noreferrer');
+                if (tab) tab.location.href = tweetUrl;
+                else window.open(tweetUrl, '_blank', 'noopener,noreferrer');
             }
         } catch (err) {
             // User cancelled share — ignore
             if (err instanceof Error && err.name !== 'AbortError') {
                 // Something else went wrong — still open the tweet
-                window.open(tweetUrl, '_blank', 'noopener,noreferrer');
+                if (tab) tab.location.href = tweetUrl;
+                else window.open(tweetUrl, '_blank', 'noopener,noreferrer');
+            } else {
+                tab?.close();
             }
         } finally {
             setSharing(false);

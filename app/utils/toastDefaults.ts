@@ -1,6 +1,9 @@
 import { UseToastOptions } from '@chakra-ui/react';
 
 export const TOAST_BANNER_DURATION_MS = 5000;
+// Short-lived confirmations (e.g. "Address copied") that don't need the full
+// banner dwell time.
+export const TOAST_BANNER_DURATION_SHORT_MS = 1500;
 export const TOAST_BANNER_ID = 'stacked-banner';
 export const TOAST_BANNER_ANIMATION_MS = 180;
 

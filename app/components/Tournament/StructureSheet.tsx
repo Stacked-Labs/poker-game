@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment } from 'react';
+import React, { Fragment, useMemo } from 'react';
 import {
     Box,
     Collapse,
@@ -119,7 +119,7 @@ export interface StructureSheetProps {
     bare?: boolean;
 }
 
-export default function StructureSheet({
+function StructureSheet({
     blindStructure,
     startingStack,
     lateRegLevels,
@@ -160,24 +160,35 @@ export default function StructureSheet({
     );
     const breakText = useColorModeValue('text.secondary', 'text.secondary');
 
-    const levels = getStructure(blindStructure);
-    // Every level a break follows, for the full static schedule (the local cadence
-    // mirror draws all rows). While on a break the server freezes levelNumber at the
-    // just-completed level, so the break currently running is the one that follows
-    // `currentLevel` — that is the row to highlight live. (Do NOT use the clock's
-    // nextBreakAfterLevel here: during a break it points at the NEXT future break.)
-    const breakAfterSet = new Set(breakAfterLevels(blindStructure));
+    // The full static schedule is purely a function of the structure inputs, but
+    // the <Collapse> keeps its children mounted while closed, so without this memo
+    // getStructure + the break-set + the BB math all re-run on every parent render.
+    const { levels, breakAfterSet, startBB, lateRegValid, closeBB } = useMemo(
+        () => {
+            const levels = getStructure(blindStructure);
+            // Every level a break follows, for the full static schedule (the local
+            // cadence mirror draws all rows).
+            const breakAfterSet = new Set(breakAfterLevels(blindStructure));
+            const startBB = startingBigBlinds(startingStack, blindStructure);
+            const lateRegValid =
+                lateRegLevels > 0 && lateRegLevels <= levels.length;
+            const closeBB = bbAtLateRegClose(
+                startingStack,
+                blindStructure,
+                lateRegLevels
+            );
+            return { levels, breakAfterSet, startBB, lateRegValid, closeBB };
+        },
+        [blindStructure, startingStack, lateRegLevels]
+    );
+    // While on a break the server freezes levelNumber at the just-completed level,
+    // so the break currently running is the one that follows `currentLevel` — that
+    // is the row to highlight live. (Do NOT use the clock's nextBreakAfterLevel
+    // here: during a break it points at the NEXT future break.)
     const liveBreakAfter =
         onBreak && currentLevel != null && breakAfterSet.has(currentLevel)
             ? currentLevel
             : null;
-    const startBB = startingBigBlinds(startingStack, blindStructure);
-    const lateRegValid = lateRegLevels > 0 && lateRegLevels <= levels.length;
-    const closeBB = bbAtLateRegClose(
-        startingStack,
-        blindStructure,
-        lateRegLevels
-    );
 
     const content = (
         <>
@@ -468,6 +479,8 @@ export default function StructureSheet({
         </Box>
     );
 }
+
+export default React.memo(StructureSheet);
 
 /**
  * Compact late-registration marker that sits to the right of the level number.

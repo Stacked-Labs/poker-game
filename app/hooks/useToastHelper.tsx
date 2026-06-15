@@ -11,8 +11,6 @@ import {
 import ReconnectingToast from '../components/Toasts/ReconnectingToast';
 import DepositSuccessToast from '../components/Toasts/DepositSuccessToast';
 import {
-    CONNECTION_LOST_CONTAINER_STYLE,
-    CONNECTION_LOST_TOAST_POSITION,
     TOAST_BANNER_CONTAINER_STYLE,
     TOAST_BANNER_ID,
     TOAST_BANNER_POSITION,
@@ -71,8 +69,8 @@ const useToastHelper = () => {
         showCustomToast(toast, {
             id,
             duration, // null = persist until closed
-            position: CONNECTION_LOST_TOAST_POSITION,
-            containerStyle: CONNECTION_LOST_CONTAINER_STYLE,
+            position: TOAST_BANNER_POSITION,
+            containerStyle: TOAST_BANNER_CONTAINER_STYLE,
             render: ({ onClose }) => (
                 <ReconnectingToast
                     onClose={onClose}

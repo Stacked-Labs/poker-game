@@ -19,14 +19,3 @@ export const TOAST_BANNER_CONTAINER_STYLE: UseToastOptions['containerStyle'] = {
     right: '0px',
 };
 
-export const CONNECTION_LOST_TOAST_POSITION: UseToastOptions['position'] =
-    'top-right';
-export const CONNECTION_LOST_CONTAINER_STYLE: UseToastOptions['containerStyle'] =
-    {
-        marginTop: '0px',
-        marginBottom: '0px',
-        maxWidth: '340px',
-        minWidth: '340px',
-        width: '340px',
-        marginInline: 'auto',
-    };

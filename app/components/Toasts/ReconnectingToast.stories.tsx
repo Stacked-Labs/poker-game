@@ -15,11 +15,10 @@ const meta = {
         onReconnectNow: () => {},
     },
     decorators: [
+        // Full-width like the other top banner toasts.
         (Story: React.FC) => (
-            <Box bg="card.lightGray" minH="100vh" p={6}>
-                <Box maxW="380px" mx="auto" pt={10}>
-                    <Story />
-                </Box>
+            <Box bg="card.lightGray" minH="100vh">
+                <Story />
             </Box>
         ),
     ],

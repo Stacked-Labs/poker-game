@@ -134,8 +134,8 @@ export const Gallery: Story = {
                     />
                 </Box>
 
-                <Caption>Custom — reconnecting (persistent)</Caption>
-                <Box maxW="380px" mx="auto" w="100%">
+                <Caption>Reconnecting — full-width banner (persistent)</Caption>
+                <Box w="100%">
                     <ReconnectingToast onClose={noop} onReconnectNow={noop} />
                 </Box>
             </Stack>

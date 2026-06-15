@@ -30,6 +30,7 @@ import {
 import type { Tournament } from '../../hooks/server_actions';
 import { useRegisterForTournament } from '../../hooks/useRegisterForTournament';
 import useToastHelper from '../../hooks/useToastHelper';
+import { friendlyError, friendlyMessage } from '../../utils/toastErrors';
 import { useClaimHostRake } from '../../hooks/useClaimHostRake';
 import { useClaimRefund } from '../../hooks/useClaimRefund';
 import { useOpenEmergencyRefund } from '../../hooks/useOpenEmergencyRefund';
@@ -258,10 +259,13 @@ export default function TournamentPage() {
                 ? await reenterOnChain(passwordCode)
                 : await registerOnChain(passwordCode);
             if (!result.ok) {
-                toast.error(
-                    result.error ??
-                        (isReentry ? 'Re-entry failed' : 'Registration failed')
-                );
+                const { title, description } = friendlyMessage(result.error, {
+                    title: isReentry
+                        ? 'Could not re-enter'
+                        : 'Could not register',
+                    description: 'Please try again.',
+                });
+                toast.error(title, description);
             } else {
                 if (isReentry) {
                     setPlayers((prev) =>
@@ -310,7 +314,11 @@ export default function TournamentPage() {
         try {
             const result = await unregisterOnChain();
             if (!result.ok) {
-                toast.error(result.error ?? 'Unregister failed');
+                const { title, description } = friendlyMessage(result.error, {
+                    title: 'Could not unregister',
+                    description: 'Please try again.',
+                });
+                toast.error(title, description);
             } else {
                 toast.success('Unregistered');
                 setIsRegistered(false); // optimistic
@@ -324,6 +332,9 @@ export default function TournamentPage() {
 
     const handleGoToTable = async () => {
         if (!myWallet) return;
+        // Open the tab synchronously inside the click so Safari doesn't block it,
+        // then point it at the resolved URL once the leaderboard lookup returns.
+        const tab = window.open('', '_blank');
         setGoToTableLoading(true);
         try {
             const data = await getTournamentLeaderboard(id);
@@ -332,14 +343,15 @@ export default function TournamentPage() {
                     p.wallet.toLowerCase() === myWallet.toLowerCase()
             );
             if (!entry) {
+                tab?.close();
                 toast.error("You're not seated in this tournament");
                 return;
             }
-            window.open(
-                `/table/tournament-${id}-table-${entry.table_index + 1}`,
-                '_blank'
-            );
+            const url = `/table/tournament-${id}-table-${entry.table_index + 1}`;
+            if (tab) tab.location.href = url;
+            else router.push(url);
         } catch {
+            tab?.close();
             toast.error('Could not find your table');
         } finally {
             setGoToTableLoading(false);
@@ -358,12 +370,11 @@ export default function TournamentPage() {
             setTournament(updated);
             toast.success(successMsg);
         } catch (error) {
-            toast.error(
-                'Save failed',
-                error instanceof Error
-                    ? error.message
-                    : 'Could not save changes.'
-            );
+            const { title, description } = friendlyMessage(error, {
+                title: 'Could not save changes',
+                description: 'Please try again.',
+            });
+            toast.error(title, description);
             load(); // resync from server truth
         }
     };
@@ -395,12 +406,11 @@ export default function TournamentPage() {
             setTournament(updated);
             toast.success(kind === 'logo' ? 'Logo updated' : 'Banner updated');
         } catch (error) {
-            toast.error(
-                'Upload failed',
-                error instanceof Error
-                    ? error.message
-                    : 'Could not upload image.'
-            );
+            const { title, description } = friendlyMessage(error, {
+                title: 'Could not upload image',
+                description: 'Please try again.',
+            });
+            toast.error(title, description);
             throw error; // let TournamentDetail revert its optimistic preview
         }
     };
@@ -423,13 +433,19 @@ export default function TournamentPage() {
     const handleClaimRake = async () => {
         const ok = await claimRake();
         if (ok) toast.success('Platform fee claimed!');
-        else toast.error('Claim failed');
+        else toast.error('Could not claim platform fee', 'Please try again.');
     };
 
     const handleClaimRefund = async () => {
         const ok = await refund.claim();
         if (ok) toast.success('Refund claimed!');
-        else toast.error(refund.error ?? 'Claim failed');
+        else {
+            const { title, description } = friendlyError(refund.error, {
+                title: 'Could not claim refund',
+                description: 'Please try again.',
+            });
+            toast.error(title, description);
+        }
     };
 
     const handleEnableEmergencyRefund = async () => {
@@ -437,7 +453,13 @@ export default function TournamentPage() {
         if (ok) {
             toast.success('Emergency refunds enabled — players can now claim.');
             resyncAfterOnchainAction(); // pick up the status → emergency_refund flip
-        } else toast.error(emergencyRefund.error ?? 'Transaction failed');
+        } else {
+            const { title, description } = friendlyError(emergencyRefund.error, {
+                title: 'Could not enable emergency refunds',
+                description: 'Please try again.',
+            });
+            toast.error(title, description);
+        }
     };
 
     const handleFundAndOpen = async () => {
@@ -446,7 +468,7 @@ export default function TournamentPage() {
             toast.success('Guarantee funded — registration is open!');
             resyncAfterOnchainAction();
         } else {
-            toast.error('Funding failed');
+            toast.error('Could not fund guarantee', 'Please try again.');
         }
     };
 

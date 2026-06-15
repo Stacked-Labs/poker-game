@@ -65,6 +65,7 @@ import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     formatTournamentStart,
     formatUsdc,
+    formatUsdcAuto,
     getStatusDescriptor,
     HIDE_X_SCROLLBAR_SX,
     isFreePlay as getIsFreePlay,
@@ -1712,11 +1713,11 @@ function MoneyHero({
         value = 'Free';
     } else if (t.guarantee_usdc > 0) {
         label = 'Guaranteed pool';
-        value = `$${formatUsdc(t.guarantee_usdc, { decimals: t.guarantee_usdc < 5_000_000 ? 2 : 0 })}`;
+        value = `$${formatUsdcAuto(t.guarantee_usdc)}`;
         suffix = 'GTD';
     } else if (t.prize_pool_usdc > 0) {
         label = 'Prize pool';
-        value = `$${formatUsdc(t.prize_pool_usdc, { decimals: t.prize_pool_usdc < 5_000_000 ? 2 : 0 })}`;
+        value = `$${formatUsdcAuto(t.prize_pool_usdc)}`;
     }
     if (t.status === 'completed' && (finalPrizePoolUsdc ?? 0) > 0) {
         // Once settled, lead with the full prize pool that was paid out — the
@@ -1724,7 +1725,7 @@ function MoneyHero({
         // stored pool — and drop the GTD suffix since it's no longer a promise.
         label = 'Prize pool';
         const pool = finalPrizePoolUsdc as number;
-        value = `$${formatUsdc(pool, { decimals: pool < 5_000_000 ? 2 : 0 })}`;
+        value = `$${formatUsdcAuto(pool)}`;
         suffix = undefined;
     }
     const usdc = !freePlay;
@@ -2235,8 +2236,7 @@ function HostPanel({
             {needsFunding && (
                 <VStack align="stretch" spacing={2}>
                     <Text fontSize="sm" color="text.secondary" lineHeight={1.5}>
-                        Fund the $
-                        {formatUsdc(t.guarantee_usdc, { decimals: 0 })}{' '}
+                        Fund the ${formatUsdcAuto(t.guarantee_usdc)}{' '}
                         guaranteed pool to open registration. If buy-ins fall
                         short, your deposit covers the gap, and the unused
                         portion returns to you when the tournament starts.
@@ -2249,7 +2249,7 @@ function HostPanel({
                         isLoading={actionLoading}
                         onClick={onFundAndOpen}
                     >
-                        Fund ${formatUsdc(t.guarantee_usdc, { decimals: 0 })}{' '}
+                        Fund ${formatUsdcAuto(t.guarantee_usdc)}{' '}
                         GTD &amp; open registration
                     </Button>
                 </VStack>
@@ -2714,7 +2714,9 @@ function HostedByLine({
     return (
         <HStack spacing={1.5} fontSize="xs" color="text.muted" minW={0}>
             <Icon as={FiUser} boxSize="12px" flexShrink={0} />
-            <Text whiteSpace="nowrap">Hosted by</Text>
+            <Text color="text.muted" whiteSpace="nowrap">
+                Hosted by
+            </Text>
             {handle && (
                 <>
                     <Box
@@ -2760,7 +2762,11 @@ function HostedByLine({
                     <Icon as={FiExternalLink} boxSize="10px" />
                 </Box>
             ) : (
-                <Text fontFamily="mono" whiteSpace="nowrap">
+                <Text
+                    color="text.muted"
+                    fontFamily="mono"
+                    whiteSpace="nowrap"
+                >
                     {shortAddr(t.host_wallet)}
                 </Text>
             )}

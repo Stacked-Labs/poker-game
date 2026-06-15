@@ -155,6 +155,31 @@ export const Running: Story = {
     ),
 };
 
+// Sub-$5 prize pool: a tiny real-money pool ($0.13) that must read as "$0.13",
+// not round down to a flat "$0" on the Prize pool tile (issue #519). guaranteeUsdc
+// is 0 so poolForLadder == the prize pool exactly.
+export const SmallPool: Story = {
+    render: () => (
+        <MockAppStateProvider
+            state={mockAppState({
+                tournamentLive: makeTournamentLive({
+                    meta: makeTournamentMeta({
+                        name: 'Micro Freeroll Prize',
+                        prizePoolUsdc: 130_000,
+                        guaranteeUsdc: 0,
+                        buyInUsdc: 0,
+                        maxEntries: 0,
+                    }),
+                }),
+            })}
+        >
+            <Stage>
+                <TournamentTabPanel />
+            </Stage>
+        </MockAppStateProvider>
+    ),
+};
+
 // Chip leader: you're 1st of the field. Crown on your strip and on the top
 // standings row; status reads "Chip lead · in the money".
 export const ChipLeader: Story = {

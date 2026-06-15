@@ -27,6 +27,11 @@ import { useEmergencyWithdraw } from '@/app/hooks/useEmergencyWithdraw';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
 import { useActiveWallet } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import {
+    GAS_SHORTAGE_MESSAGE,
+    GAS_SHORTAGE_TITLE,
+    GAS_SHORTAGE_DESCRIPTION,
+} from '@/app/utils/toastErrors';
 import { useAuth } from '@/app/contexts/AuthContext';
 import ExternalLink from '@/app/components/ExternalLink';
 import LeaveSeatAction from './LeaveSeatAction';
@@ -77,7 +82,6 @@ const WithdrawBalanceCard = () => {
         rakeBalance,
         rakeUsdcFormatted,
         status: rakeStatus,
-        error: rakeError,
         isLoading: rakeLoading,
         withdraw: rakeWithdraw,
         refresh: rakeRefresh,
@@ -137,14 +141,16 @@ const WithdrawBalanceCard = () => {
             : '0.00';
 
     const handleWithdraw = async () => {
-        const withdrawSuccess = await withdraw();
-        if (withdrawSuccess) {
+        const res = await withdraw();
+        if (res.ok) {
             success(
-                'Withdrawal Successful',
-                'Your chips have been converted back to USDC.'
+                'Withdrawal sent',
+                'Your chips are converting back to USDC.'
             );
-        } else if (error) {
-            toastError('Withdrawal Failed', error);
+        } else if (res.error === GAS_SHORTAGE_MESSAGE) {
+            toastError(GAS_SHORTAGE_TITLE, GAS_SHORTAGE_DESCRIPTION);
+        } else {
+            toastError('Withdrawal failed', 'Please try again.');
         }
     };
 
@@ -152,11 +158,11 @@ const WithdrawBalanceCard = () => {
         const ok = await rakeWithdraw();
         if (ok) {
             success(
-                'Rewards Collected',
-                'Your host rewards have been transferred to your wallet.'
+                'Rewards collected',
+                'Your host rewards are on their way to your wallet.'
             );
-        } else if (rakeError) {
-            toastError('Collect Failed', rakeError);
+        } else {
+            toastError('Could not collect rewards', 'Please try again.');
         }
     };
 

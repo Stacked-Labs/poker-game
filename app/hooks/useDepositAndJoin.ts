@@ -11,6 +11,7 @@ import { approve, allowance, balanceOf } from 'thirdweb/extensions/erc20';
 import { getWalletBalance } from 'thirdweb/wallets';
 import { client } from '../thirdwebclient';
 import { useChainBoundSend } from './useChainBoundSend';
+import { isGasShortage, GAS_SHORTAGE_MESSAGE } from '../utils/toastErrors';
 
 const ALLOWANCE_POLL_INTERVAL_MS = 1500;
 const ALLOWANCE_POLL_MAX_ATTEMPTS = 10;
@@ -222,19 +223,7 @@ export function useDepositAndJoin(
                 console.error('Deposit and join failed:', err);
                 const rawMessage =
                     err instanceof Error ? err.message : 'Transaction failed';
-                // Wallets surface gas-shortage failures with a few different
-                // strings ("insufficient funds for gas * price + value",
-                // "insufficient funds", "exceeds balance"). Map any of them
-                // to actionable copy so the user knows what to do.
-                const looksLikeGasShortage =
-                    /insufficient funds|exceeds balance|gas required exceeds/i.test(
-                        rawMessage
-                    );
-                setError(
-                    looksLikeGasShortage
-                        ? `Not enough ETH on Base for gas. Add a small amount of ETH to your wallet (most wallets let you buy ETH directly) and try again.`
-                        : rawMessage
-                );
+                setError(isGasShortage(err) ? GAS_SHORTAGE_MESSAGE : rawMessage);
                 setStatus('error');
                 return false;
             }

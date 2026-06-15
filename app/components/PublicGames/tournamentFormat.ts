@@ -15,6 +15,17 @@ export function formatUsdc(micro: number, opts: { decimals?: number } = {}): str
     });
 }
 
+// Below $5 we always show cents so a tiny pool never reads as a flat "$0"; at or
+// above, whole dollars keep the number compact. Shared so every scoreboard tile
+// and money line uses the same cutoff (MoneyHero, the prize-pool tile, etc.).
+const SMALL_USDC_THRESHOLD = 5_000_000;
+
+export function formatUsdcAuto(micro: number): string {
+    return formatUsdc(micro, {
+        decimals: (micro ?? 0) < SMALL_USDC_THRESHOLD ? 2 : 0,
+    });
+}
+
 // Amounts at or above this (in dollars) get abbreviated so a hero prize display
 // never overflows a narrow card. Below it, exact cents are shown.
 const COMPACT_USDC_THRESHOLD = 100_000;

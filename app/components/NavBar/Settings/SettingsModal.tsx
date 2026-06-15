@@ -266,6 +266,14 @@ const SettingsModal = ({
                         h="100%"
                         display="flex"
                         flexDirection="column"
+                        // Defer the initial render of inactive panels so the heavy
+                        // Tournament panel (and its live derivations) doesn't mount
+                        // while a sibling tab is showing. keepMounted preserves state
+                        // once a tab has been opened — GameLog's loaded events and
+                        // pagination, GameSettings' form state — so switching back
+                        // doesn't reset them or refetch from scratch.
+                        isLazy
+                        lazyBehavior="keepMounted"
                     >
                         <HStack
                             gap={{ base: 2, md: 3 }}

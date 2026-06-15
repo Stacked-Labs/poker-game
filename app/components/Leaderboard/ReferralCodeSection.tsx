@@ -14,6 +14,7 @@ import { FaCheck, FaGift } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useActiveAccount } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { friendlyMessage } from '@/app/utils/toastErrors';
 import { registerReferral, setMyReferralCode } from '@/app/hooks/server_actions';
 
 const MotionBox = motion(Box);
@@ -69,7 +70,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch {
-            toast.error('Error', 'Failed to copy referral link', 2000);
+            toast.error('Could not copy', 'Failed to copy your referral link.');
         }
     };
 
@@ -80,14 +81,18 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
         try {
             const result = await setMyReferralCode(code);
             if (result.success) {
-                toast.success('Code set!', result.message, 3000);
+                toast.success('Code set', 'Your referral code is ready to share.');
                 setLocalCode(code);
                 setShowSetCode(false);
             } else {
-                toast.error('Could not set code', result.message, 3000);
+                const { title, description } = friendlyMessage(result.message, {
+                    title: 'Could not set code',
+                    description: 'Please try a different code.',
+                });
+                toast.error(title, description);
             }
         } catch {
-            toast.error('Error', 'Failed to set referral code', 3000);
+            toast.error('Could not set code', 'Please try again.');
         } finally {
             setSettingCode(false);
         }
@@ -100,13 +105,17 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
         try {
             const result = await registerReferral(code);
             if (result.success) {
-                toast.success('Referral registered!', result.message, 3000);
+                toast.success('Referral registered', 'Your bonus is now active.');
                 setSubmitted(true);
             } else {
-                toast.error('Referral failed', result.message, 3000);
+                const { title, description } = friendlyMessage(result.message, {
+                    title: 'Referral failed',
+                    description: 'Check the code and try again.',
+                });
+                toast.error(title, description);
             }
         } catch {
-            toast.error('Error', 'Failed to submit referral', 3000);
+            toast.error('Referral failed', 'Please try again.');
         } finally {
             setSubmitting(false);
         }

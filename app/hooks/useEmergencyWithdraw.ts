@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { getContract, prepareContractCall, type Chain } from 'thirdweb';
 import { client } from '../thirdwebclient';
 import { useChainBoundSend } from './useChainBoundSend';
+import { isGasShortage, GAS_SHORTAGE_MESSAGE } from '../utils/toastErrors';
 
 export type EmergencyWithdrawStatus = 'idle' | 'pending' | 'success' | 'error';
 
@@ -55,7 +56,11 @@ export function useEmergencyWithdraw(
             return true;
         } catch (err) {
             console.error('[useEmergencyWithdraw] failed:', err);
-            setError(err instanceof Error ? err.message : 'Transaction failed');
+            const rawMessage =
+                err instanceof Error
+                    ? err.message
+                    : 'Something went wrong submitting the withdrawal. Please try again.';
+            setError(isGasShortage(err) ? GAS_SHORTAGE_MESSAGE : rawMessage);
             setStatus('error');
             return false;
         }

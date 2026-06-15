@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useMemo } from 'react';
 import {
     Box,
     Flex,
@@ -114,7 +115,7 @@ export interface PayoutLadderProps {
     highlightPosition?: number | null;
 }
 
-export default function PayoutLadder({
+function PayoutLadder({
     entrants,
     prizePoolUsdc,
     isFreePlay,
@@ -155,9 +156,16 @@ export default function PayoutLadder({
     );
     const youText = useColorModeValue('brand.greenDark', 'brand.green');
 
-    const tiers = defaultPayouts(entrants);
-    const amounts = calculatePayouts(entrants, prizePoolUsdc);
-    const paid = placesPaid(entrants);
+    // The tier table and per-place amounts recompute only when the field size or
+    // pool moves, not on every parent render under a heavy live feed.
+    const { tiers, amounts, paid } = useMemo(
+        () => ({
+            tiers: defaultPayouts(entrants),
+            amounts: calculatePayouts(entrants, prizePoolUsdc),
+            paid: placesPaid(entrants),
+        }),
+        [entrants, prizePoolUsdc]
+    );
     const itmPct = entrants > 0 ? Math.round((paid / entrants) * 100) : 0;
     const projected = status === 'registration' || status === 'pending';
     // Before the field locks, USDC amounts are noise (a shifting pool over a
@@ -399,3 +407,5 @@ export default function PayoutLadder({
         </Box>
     );
 }
+
+export default React.memo(PayoutLadder);

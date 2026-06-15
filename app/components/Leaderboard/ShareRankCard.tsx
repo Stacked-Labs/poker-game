@@ -197,9 +197,14 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
 
     const handleShareX = async () => {
         // Open the tab synchronously inside the click so Safari doesn't block it;
-        // the desktop branch points it at the X composer once the capture resolves.
-        // The native-share branch closes it instead.
+        // once the capture resolves we point it at the X composer or close it.
         const tab = window.open('', '_blank');
+        const openComposer = () => {
+            // Reuse the gesture-opened tab when possible; a fresh window.open here
+            // (post-await) would be popup-blocked on Safari.
+            if (tab && !tab.closed) tab.location.href = tweetUrl;
+            else window.open(tweetUrl, '_blank', 'noopener,noreferrer');
+        };
         setSharing(true);
         try {
             const blob = await captureBlob();
@@ -211,24 +216,27 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
 
             // Mobile: native share sheet passes the image directly into X (no prefilled text)
             if (navigator.canShare?.({ files: [file] })) {
-                tab?.close();
-                await navigator.share({ files: [file] });
+                // Keep the placeholder open during the share so a failure can still
+                // fall back to the composer without a blocked window.open.
+                try {
+                    await navigator.share({ files: [file] });
+                    tab?.close();
+                } catch (err) {
+                    if (err instanceof Error && err.name === 'AbortError') {
+                        tab?.close(); // user cancelled — discard the placeholder
+                    } else {
+                        openComposer(); // share failed — still open the tweet
+                    }
+                }
             } else {
                 // Desktop: X intent has no media param, so we open an empty
                 // composer pointed at /rank/<address>?... which unfurls into the
                 // same preview image via Twitter Cards.
-                if (tab) tab.location.href = tweetUrl;
-                else window.open(tweetUrl, '_blank', 'noopener,noreferrer');
+                openComposer();
             }
-        } catch (err) {
-            // User cancelled share — ignore
-            if (err instanceof Error && err.name !== 'AbortError') {
-                // Something else went wrong — still open the tweet
-                if (tab) tab.location.href = tweetUrl;
-                else window.open(tweetUrl, '_blank', 'noopener,noreferrer');
-            } else {
-                tab?.close();
-            }
+        } catch {
+            // Capture failed — discard the placeholder tab.
+            tab?.close();
         } finally {
             setSharing(false);
         }

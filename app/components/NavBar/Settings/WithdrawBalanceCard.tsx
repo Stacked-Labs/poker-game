@@ -82,7 +82,6 @@ const WithdrawBalanceCard = () => {
         rakeBalance,
         rakeUsdcFormatted,
         status: rakeStatus,
-        error: rakeError,
         isLoading: rakeLoading,
         withdraw: rakeWithdraw,
         refresh: rakeRefresh,
@@ -142,15 +141,15 @@ const WithdrawBalanceCard = () => {
             : '0.00';
 
     const handleWithdraw = async () => {
-        const withdrawSuccess = await withdraw();
-        if (withdrawSuccess) {
+        const res = await withdraw();
+        if (res.ok) {
             success(
                 'Withdrawal sent',
                 'Your chips are converting back to USDC.'
             );
-        } else if (error === GAS_SHORTAGE_MESSAGE) {
+        } else if (res.error === GAS_SHORTAGE_MESSAGE) {
             toastError(GAS_SHORTAGE_TITLE, GAS_SHORTAGE_DESCRIPTION);
-        } else if (error) {
+        } else {
             toastError('Withdrawal failed', 'Please try again.');
         }
     };
@@ -162,7 +161,7 @@ const WithdrawBalanceCard = () => {
                 'Rewards collected',
                 'Your host rewards are on their way to your wallet.'
             );
-        } else if (rakeError) {
+        } else {
             toastError('Could not collect rewards', 'Please try again.');
         }
     };

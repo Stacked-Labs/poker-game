@@ -26,7 +26,7 @@ export type WithdrawStatus =
 const MIN_NATIVE_BALANCE_WEI = BigInt(50_000_000_000_000);
 
 interface UseWithdrawResult {
-    withdraw: () => Promise<boolean>;
+    withdraw: () => Promise<{ ok: boolean; error: string | null }>;
     checkCanWithdraw: () => Promise<boolean>;
     canWithdraw: boolean | null;
     chipBalance: bigint | null;
@@ -128,17 +128,25 @@ export function useWithdraw(
         }
     }, [account?.address, contractAddress, chain, wallet?.id]);
 
-    const withdraw = useCallback(async (): Promise<boolean> => {
+    // Returns the outcome (including the resolved error string) so callers can
+    // toast off the return value — reading the `error` state right after the
+    // await would be the previous render's stale value.
+    const withdraw = useCallback(async (): Promise<{
+        ok: boolean;
+        error: string | null;
+    }> => {
         if (!account?.address) {
-            setError('Wallet not connected');
+            const msg = 'Wallet not connected';
+            setError(msg);
             setStatus('error');
-            return false;
+            return { ok: false, error: msg };
         }
 
         if (!contractAddress) {
-            setError('Contract address not available');
+            const msg = 'Contract address not available';
+            setError(msg);
             setStatus('error');
-            return false;
+            return { ok: false, error: msg };
         }
 
         try {
@@ -161,14 +169,15 @@ export function useWithdraw(
             setStatus('success');
             setCanWithdrawState(false);
             setChipBalance(BigInt(0));
-            return true;
+            return { ok: true, error: null };
         } catch (err) {
             console.error('Withdraw failed:', err);
             const rawMessage =
                 err instanceof Error ? err.message : 'Withdraw failed';
-            setError(isGasShortage(err) ? GAS_SHORTAGE_MESSAGE : rawMessage);
+            const msg = isGasShortage(err) ? GAS_SHORTAGE_MESSAGE : rawMessage;
+            setError(msg);
             setStatus('error');
-            return false;
+            return { ok: false, error: msg };
         }
     }, [account?.address, contractAddress, chain, sendOnChain]);
 

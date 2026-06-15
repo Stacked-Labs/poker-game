@@ -14,7 +14,7 @@ import { FaCheck, FaGift } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useActiveAccount } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
-import { friendlyError } from '@/app/utils/toastErrors';
+import { friendlyMessage } from '@/app/utils/toastErrors';
 import { registerReferral, setMyReferralCode } from '@/app/hooks/server_actions';
 
 const MotionBox = motion(Box);
@@ -85,7 +85,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                 setLocalCode(code);
                 setShowSetCode(false);
             } else {
-                const { title, description } = friendlyError(result.message, {
+                const { title, description } = friendlyMessage(result.message, {
                     title: 'Could not set code',
                     description: 'Please try a different code.',
                 });
@@ -108,7 +108,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                 toast.success('Referral registered', 'Your bonus is now active.');
                 setSubmitted(true);
             } else {
-                const { title, description } = friendlyError(result.message, {
+                const { title, description } = friendlyMessage(result.message, {
                     title: 'Referral failed',
                     description: 'Check the code and try again.',
                 });

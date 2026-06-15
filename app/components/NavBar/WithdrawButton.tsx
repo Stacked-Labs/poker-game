@@ -164,16 +164,16 @@ const WithdrawButton = () => {
             : '0.00';
 
     const handleWithdraw = async () => {
-        const withdrawSuccess = await withdraw();
-        if (withdrawSuccess) {
+        const res = await withdraw();
+        if (res.ok) {
             success(
                 'Withdrawal sent',
                 'Your chips are converting back to USDC.'
             );
             onClose();
-        } else if (error === GAS_SHORTAGE_MESSAGE) {
+        } else if (res.error === GAS_SHORTAGE_MESSAGE) {
             toastError(GAS_SHORTAGE_TITLE, GAS_SHORTAGE_DESCRIPTION);
-        } else if (error) {
+        } else {
             toastError('Withdrawal failed', 'Please try again.');
         }
     };

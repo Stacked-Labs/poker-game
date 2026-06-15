@@ -8,7 +8,7 @@ import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
 import { checkSBTEligibility, claimSBT, getSBTInfo, type SBTInfo } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
-import { friendlyError } from '@/app/utils/toastErrors';
+import { friendlyMessage } from '@/app/utils/toastErrors';
 import ClaimCard from './components/ClaimCard';
 
 const fireConfetti = () => {
@@ -60,7 +60,7 @@ export default function ClaimPage() {
                     setEligibility(updated);
                 }
             } else {
-                const { title, description } = friendlyError(result.message, {
+                const { title, description } = friendlyMessage(result.message, {
                     title: 'Claim failed',
                     description: 'Something went wrong. Please try again.',
                 });

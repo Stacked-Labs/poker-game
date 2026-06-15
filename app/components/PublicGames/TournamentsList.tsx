@@ -25,7 +25,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { useRouter } from 'next/navigation';
 import useToastHelper from '../../hooks/useToastHelper';
-import { friendlyError } from '../../utils/toastErrors';
+import { friendlyMessage } from '../../utils/toastErrors';
 import {
     getMyTournamentRegistrations,
     getTournamentLeaderboard,
@@ -289,7 +289,7 @@ export default function TournamentsList() {
                 .upsertTournament(justRegistered ?? undefined);
             setConfirmTour(justRegistered);
         } catch (e: unknown) {
-            const { title, description } = friendlyError(e, {
+            const { title, description } = friendlyMessage(e, {
                 title: 'Could not register',
                 description: 'Please try again.',
             });

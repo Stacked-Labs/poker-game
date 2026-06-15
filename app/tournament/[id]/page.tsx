@@ -30,7 +30,7 @@ import {
 import type { Tournament } from '../../hooks/server_actions';
 import { useRegisterForTournament } from '../../hooks/useRegisterForTournament';
 import useToastHelper from '../../hooks/useToastHelper';
-import { friendlyError } from '../../utils/toastErrors';
+import { friendlyError, friendlyMessage } from '../../utils/toastErrors';
 import { useClaimHostRake } from '../../hooks/useClaimHostRake';
 import { useClaimRefund } from '../../hooks/useClaimRefund';
 import { useOpenEmergencyRefund } from '../../hooks/useOpenEmergencyRefund';
@@ -259,7 +259,7 @@ export default function TournamentPage() {
                 ? await reenterOnChain(passwordCode)
                 : await registerOnChain(passwordCode);
             if (!result.ok) {
-                const { title, description } = friendlyError(result.error, {
+                const { title, description } = friendlyMessage(result.error, {
                     title: isReentry
                         ? 'Could not re-enter'
                         : 'Could not register',
@@ -314,7 +314,7 @@ export default function TournamentPage() {
         try {
             const result = await unregisterOnChain();
             if (!result.ok) {
-                const { title, description } = friendlyError(result.error, {
+                const { title, description } = friendlyMessage(result.error, {
                     title: 'Could not unregister',
                     description: 'Please try again.',
                 });
@@ -370,7 +370,7 @@ export default function TournamentPage() {
             setTournament(updated);
             toast.success(successMsg);
         } catch (error) {
-            const { title, description } = friendlyError(error, {
+            const { title, description } = friendlyMessage(error, {
                 title: 'Could not save changes',
                 description: 'Please try again.',
             });
@@ -406,7 +406,7 @@ export default function TournamentPage() {
             setTournament(updated);
             toast.success(kind === 'logo' ? 'Logo updated' : 'Banner updated');
         } catch (error) {
-            const { title, description } = friendlyError(error, {
+            const { title, description } = friendlyMessage(error, {
                 title: 'Could not upload image',
                 description: 'Please try again.',
             });

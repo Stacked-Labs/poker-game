@@ -20,7 +20,6 @@ import {
 } from '@/app/interfaces';
 import { AppContext } from './AppStoreProvider';
 import useToastHelper from '../hooks/useToastHelper';
-import { friendlyError } from '../utils/toastErrors';
 import { soundManager } from '../utils/SoundManager';
 import { formatGameEvent } from '../utils/formatGameEvent';
 import SeatRequestConflictModal from '../components/SeatRequestConflictModal';
@@ -789,17 +788,15 @@ export function SocketProvider(props: SocketProviderProps) {
                             return;
                         }
 
-                        // Handle other errors with toast fallback
-                        {
-                            const { title, description } = friendlyError(
-                                eventData.message,
-                                {
-                                    title: 'Something went wrong',
-                                    description: 'Please try again.',
-                                }
-                            );
-                            toastErrorRef.current(title, description);
-                        }
+                        // Show the server's own message — it is player-facing domain
+                        // copy (e.g. "Seat request denied."), not a wallet/RPC blob,
+                        // so it must not be routed through the wallet-error mapper.
+                        toastErrorRef.current(
+                            typeof eventData.message === 'string' &&
+                                eventData.message.trim()
+                                ? eventData.message
+                                : 'Something went wrong'
+                        );
                         // If seat request was denied (message check), reset the flag
                         const errorMsg =
                             typeof eventData.message === 'string'

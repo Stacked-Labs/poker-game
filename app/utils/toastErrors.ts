@@ -8,7 +8,11 @@ export interface FriendlyToast {
     description?: string;
 }
 
-const REJECTION_RE = /rejected|denied|cancell?ed/i;
+// Wallet-rejection phrasing only — deliberately narrow so backend/domain copy
+// like "Seat request denied." or "Tournament cancelled" is NOT misread as a
+// wallet dismissal. Code-based detection (4001/ACTION_REJECTED) covers the rest.
+const REJECTION_RE =
+    /\buser (?:rejected|denied|cancell?ed|refused)\b|\b(?:rejected|denied|cancell?ed) (?:the )?(?:transaction|request|signature|message|connection|by user)\b|\baction[ _]?rejected\b/i;
 const GAS_RE = /insufficient funds|exceeds balance|gas required exceeds/i;
 
 // One canonical gas-shortage line. Used both as a toast (via friendlyError) and
@@ -41,9 +45,10 @@ export function isGasShortage(err: unknown): boolean {
     return GAS_RE.test(errorMessage(err) ?? '');
 }
 
-// Map an unknown error to player-facing toast copy. Known failure modes get
-// canonical copy; anything else falls back to the caller's copy so we never leak
-// a raw provider/backend string into the UI.
+// Map an ON-CHAIN/wallet error to player-facing toast copy. Wallet rejection and
+// gas shortage get canonical copy; anything else falls back to the caller's
+// generic copy so we never leak a raw RPC/provider blob. Use this for wallet/
+// contract calls (withdraw, refund, etc.).
 export function friendlyError(err: unknown, fallback: FriendlyToast): FriendlyToast {
     if (isUserRejection(err)) {
         return {
@@ -58,4 +63,27 @@ export function friendlyError(err: unknown, fallback: FriendlyToast): FriendlyTo
         };
     }
     return fallback;
+}
+
+// For BACKEND/server-authored errors (API result.message, WS error events): map a
+// genuine wallet rejection/gas error to canonical copy, but otherwise PRESERVE the
+// server's own message as the description — it is player-facing domain copy (e.g.
+// "Tournament is full", "Seat request denied"). Only when there is no message do
+// we use the caller's generic fallback. Unlike friendlyError, this never discards
+// a useful backend reason.
+export function friendlyMessage(err: unknown, fallback: FriendlyToast): FriendlyToast {
+    if (isUserRejection(err)) {
+        return {
+            title: 'Request cancelled',
+            description: 'You dismissed the request in your wallet.',
+        };
+    }
+    if (isGasShortage(err)) {
+        return {
+            title: GAS_SHORTAGE_TITLE,
+            description: GAS_SHORTAGE_DESCRIPTION,
+        };
+    }
+    const message = errorMessage(err)?.trim();
+    return { title: fallback.title, description: message || fallback.description };
 }

@@ -30,7 +30,7 @@ Stacked becomes **the poker table you can deal into in one tap, right inside the
 | 3 | **Host flywheel** | M | After "Create table" the next screen is "invite players / share link" (Slack: invite = setup step). Surface host earnings + Host badge + "your table filled" push. |
 | 4 | **Wallet-keyed Base notifications** | L | Behavioral triggers: "your turn to act", "2 seats left", "friend joined", "lost your #1 spot", "your table filled". Channel-abstraction reconciled with tournament-reminders (no double-send). |
 | 5 | **Result/brag cards + Seasons** | M | Extend `ShareRankCard` into per-URL OG cards triggered at peak moments; add Seasons to the leaderboard. |
-| 6 | **Builder Code (ERC-8021)** | S | Data-suffix on deposit/join/settle → App Leaderboard featuring + Builder Rewards (cold-start discovery). |
+| 6 | **Builder Code** | S | Claim on Base.dev (ERC-721 code); attribute via ERC-8021 data-suffix on deposit/join/settle calldata (thirdweb: append to tx `data`) → App Leaderboard / Base App store visibility + Builder Rewards. |
 | 7 | **Two-sided referral ride-along** | S | Ride the existing referral code on `/table/[id]?join=1&ref=CODE` (unify the two disconnected loops); invitee fee-free first buy-in, inviter points. |
 
 Detail + the existing growth stack to reuse: `.claude/skills/base-miniapp-developer/references/growth-loops.md`.
@@ -72,7 +72,7 @@ Detail + the existing growth stack to reuse: `.claude/skills/base-miniapp-develo
 - **poker-server SIWE** (`transport/http/auth/siwe.go`) — deployed CBSW works via ERC-1271; fix undeployed-first-login via deploy-before-login; add ERC-1271/6492 tests; optionally emit the active Base chain instead of `ChainID:1`.
 - **Notifications** — a poker-server channel-abstraction dispatcher (Base API for Base App, `sw.js` web-push for plain web), reconciled with `[[project_tournament_reminders]]`.
 - **Growth reuse** — `ReferralCodeSection`, `QuestsSection`/`getQuests`/`completeQuest`, `leaderboard`, `ShareRankCard` already ship; wire into Base-native loops; unify the disconnected `/leaderboard?referralCode=` and `/table/[id]` links.
-- **Builder Code (ERC-8021)** — data-suffix on existing tx calls, mapped to the Stacked treasury; claim on Base.dev. No redeploy.
+- **Builder Code** — claim on Base.dev (an ERC-721 code); attribute by appending the **ERC-8021** data-suffix to existing deposit/join/settle calldata (thirdweb v5 has no wagmi path → append to the tx `data` ourselves). No contract redeploy.
 - **Manifest** — re-sign `accountAssociation` (broken placeholder); verify `baseBuilder.allowedAddresses` (array) vs repo's `ownerAddress`; remove duplicate `base:app_id`.
 
 ## Key risks

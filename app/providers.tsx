@@ -41,7 +41,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
             >
                 <ThirdwebProvider>
                     <AutoConnect client={client} wallets={wallets} />
-                    <E2EAutoConnect />
+                    {/* Test-only: reads ?e2e_pk= and auto-connects that private
+                        key. Gated behind NEXT_PUBLIC_E2E (set by playwright.config)
+                        so a crafted ?e2e_pk= URL cannot auto-connect an arbitrary
+                        wallet in dev/prod — a phishing/loss vector otherwise. */}
+                    {process.env.NEXT_PUBLIC_E2E === 'true' && <E2EAutoConnect />}
                     <ServiceWorkerRegistration />
                     <AuthProvider>
                         <TournamentReminderProvider>

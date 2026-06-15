@@ -36,12 +36,13 @@ description: Implement and debug wallet connection and authentication in this re
    - `verifySignedPayload({ payload, signature })`
    - On failure, disconnect wallet and clear attempt ref
 
-## Mini App notes (Coinbase Wallet / Base)
-- Use `ConnectButton` or `ConnectEmbed` for wallet UI. `ConnectEmbed` is the same UI as the modal, but inline, which is useful for an embedded sign-in screen in a Mini App.
-- Configure wallets explicitly via the `wallets` prop; include `inAppWallet()` and any target wallets (ex: `createWallet("com.coinbase.wallet")`).
-- The Connect UI supports 500+ wallets and in-app wallets, so keep a short, curated list for Mini App UX.
-- The Connect UI can optionally include Auth (SIWE-style), which can be wired to your existing server endpoints.
-- Inference: WebViews typically don’t have browser extensions, so don’t rely on auto-detected EIP-6963 extensions; prefer explicit wallet configuration.
+## Base App notes (read `base-miniapp-developer` first)
+- **The Base App is now a standard web-app host** (it dropped Farcaster Mini Apps Apr 9 2026). Inside it, the user's Base Account (Coinbase Smart Wallet) is a standard injected EIP-1193 provider — `sdk.actions.*`/FID context do NOT work there. See `[[project_base_app_miniapp_pivot]]`.
+- **One-tap Base login = bridge, don't replace.** Get the provider via `@base-org/account` `createBaseAccountSDK().getProvider()` (run `npm i @base-org/account` first — it's only transitive today), wrap with thirdweb `EIP1193.fromProvider({ provider, walletId: 'app.base' })`, then `const account = await wallet.connect({ client })`. ⚠️ `client` goes to `connect()`, **not** to `fromProvider` (which takes `{ provider, walletId? }`). Set active via the `useConnect().connect(async () => wallet)` activation step (reuse only that step from `E2EAutoConnect.tsx` — its `createWalletAdapter`/private-key construction is a different path). The existing `useWalletAuth` SIWE flow then fires unchanged off `useActiveAccount()`. NO wagmi/OnchainKit migration.
+- In the Base App context, suppress the social-login `AutoConnect`/`ConnectButton` so it doesn't race the injected provider.
+- Key owner-match/`gameCreator`/predicted-address off the **live connected address** — in the Base App that's the Coinbase Smart Wallet, not the thirdweb factory account `0x85e2…DF00`.
+- Backend SIWE already verifies deployed Coinbase Smart Wallets (ERC-1271); undeployed-first-login (EIP-6492) is thirdweb-pinned and needs work. Smart-account SIWE paths are untested.
+- WebViews have no extensions — don't rely on EIP-6963 auto-detection; configure explicitly.
 
 ## Smart accounts (in-app social-login users)
 

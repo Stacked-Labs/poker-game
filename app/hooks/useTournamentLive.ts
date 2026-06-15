@@ -52,6 +52,13 @@ function mapClock(res: TournamentClockResponse): TournamentClock {
         remainingMs: res.remaining_ms,
         totalMs: res.total_ms,
         receivedAt: Date.now(),
+        // Rest-break fields. This is the join-time / self-heal path, so a player
+        // who joins mid-break must learn the break from REST here (the WS push
+        // only fires on break/level edges).
+        onBreak: res.on_break,
+        breakRemainingMs: res.break_remaining_ms,
+        secondsToNextBreak: res.seconds_to_next_break,
+        nextBreakAfterLevel: res.next_break_after_level,
     };
 }
 

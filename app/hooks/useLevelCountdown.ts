@@ -7,6 +7,12 @@ export interface LevelCountdown {
     remainingMs: number;
     /** mm:ss */
     label: string;
+    /**
+     * True while the clock is on a rest break — `remainingMs`/`label` then count
+     * down the break, not the level, so consumers never show "Blinds up in 0:00"
+     * stuck at zero during the intermission.
+     */
+    onBreak: boolean;
 }
 
 function formatMs(ms: number): string {
@@ -37,16 +43,21 @@ export function useLevelCountdown(
     }, [clock]);
 
     if (!clock) {
-        return { ready: false, remainingMs: 0, label: '0:00' };
+        return { ready: false, remainingMs: 0, label: '0:00', onBreak: false };
     }
+    // On a break the level clock is frozen; count down the break remainder using
+    // the same receivedAt anchor so the local tick stays in sync between pushes.
+    const onBreak = clock.onBreak === true;
+    const base = onBreak ? clock.breakRemainingMs ?? 0 : clock.remainingMs;
     if (now === null) {
         // Pre-tick: show the last pushed value so there is no flash of 0:00.
         return {
             ready: false,
-            remainingMs: clock.remainingMs,
-            label: formatMs(clock.remainingMs),
+            remainingMs: base,
+            label: formatMs(base),
+            onBreak,
         };
     }
-    const remainingMs = Math.max(0, clock.remainingMs - (now - clock.receivedAt));
-    return { ready: true, remainingMs, label: formatMs(remainingMs) };
+    const remainingMs = Math.max(0, base - (now - clock.receivedAt));
+    return { ready: true, remainingMs, label: formatMs(remainingMs), onBreak };
 }

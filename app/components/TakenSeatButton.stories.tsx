@@ -306,6 +306,44 @@ export const ActiveTurnRed: Story = {
     args: { isCurrentTurn: true },
 };
 
+// ── Time bank: two-segment action ring ────────────────────────────────────────
+// The ring splits when the table runs the time-bank feature (config.baseActionMs)
+// and the deadline window exceeds the base clock. Standard (base) time is spent
+// FIRST — it's the tail of the arc and depletes before the violet bank reserve
+// nearest the top. The numeral is a single countdown from the full base+bank window
+// (no "+Ns"); it turns violet once the standard clock is spent and the player is on
+// the reserve. (Watch a story live to see green → yellow → red → violet.)
+
+/** 20s standard + 40s reserve: green standard arc (tail) + violet reserve arc, the
+ *  numeral counts down from 60. */
+export const ActiveTurnTimeBankFull: Story = {
+    name: 'Active Turn — time bank (standard clock + violet reserve, counts from 60)',
+    decorators: [
+        makeDecorator({
+            gameOverride: {
+                actionDeadline: Date.now() + 60_000,
+                config: { ...baseConfig, baseActionMs: 20_000 },
+            },
+        }),
+    ],
+    args: { isCurrentTurn: true },
+};
+
+/** On the reserve: a short 5s standard clock so it is quickly spent, leaving the
+ *  player on the violet bank reserve (ring + numeral both violet). */
+export const ActiveTurnTimeBankReserve: Story = {
+    name: 'Active Turn — time bank (on reserve, standard spent → violet)',
+    decorators: [
+        makeDecorator({
+            gameOverride: {
+                actionDeadline: Date.now() + 35_000,
+                config: { ...baseConfig, baseActionMs: 5_000 },
+            },
+        }),
+    ],
+    args: { isCurrentTurn: true },
+};
+
 // ── Winner ─────────────────────────────────────────────────────────────────────
 
 /** Player won the pot — yellow border, winner glow, green stack label. */

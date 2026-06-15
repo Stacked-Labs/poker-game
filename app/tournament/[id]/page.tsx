@@ -65,6 +65,9 @@ export default function TournamentPage() {
     const [actionLoading, setActionLoading] = useState(false);
     const [goToTableLoading, setGoToTableLoading] = useState(false);
     const [blindLevel, setBlindLevel] = useState<number | null>(null);
+    // Rest-break state from the same /clock fetch — lets the structure sheet
+    // highlight the live break row on the detail page (no live socket here).
+    const [onBreak, setOnBreak] = useState(false);
     const [pendingPasscode, setPendingPasscode] = useState<{
         isReentry: boolean;
     } | null>(null);
@@ -204,6 +207,7 @@ export default function TournamentPage() {
             if (tData.tournament.status === 'running') {
                 const clock = await getTournamentClock(id);
                 setBlindLevel(clock?.level_number ?? null);
+                setOnBreak(clock?.on_break ?? false);
             }
         } catch {
             toast.error('Could not load tournament');
@@ -481,6 +485,7 @@ export default function TournamentPage() {
                 myWallet={myWallet}
                 isRegistered={isRegistered}
                 blindLevel={blindLevel}
+                onBreak={onBreak}
                 actionLoading={isActionLoading}
                 actionLabel={
                     registerStatus === 'approving'

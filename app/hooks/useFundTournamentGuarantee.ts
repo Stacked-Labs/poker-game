@@ -2,9 +2,10 @@
 
 import { useState, useCallback } from 'react';
 import { type Chain, getContract, prepareContractCall } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
+import { useActiveAccount } from 'thirdweb/react';
 import { approve, allowance } from 'thirdweb/extensions/erc20';
 import { client } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
 import { openTournamentRegistration } from './server_actions';
 
 export type FundGuaranteeStatus =
@@ -34,8 +35,7 @@ export function useFundTournamentGuarantee(
     const [status, setStatus] = useState<FundGuaranteeStatus>('idle');
     const [error, setError] = useState<string | null>(null);
 
-    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
-    const switchChain = useSwitchActiveWalletChain();
+    const sendOnChain = useChainBoundSend();
 
     const reset = useCallback(() => {
         setStatus('idle');
@@ -55,8 +55,6 @@ export function useFundTournamentGuarantee(
             const usdcContract = getContract({ client, chain, address: usdcAddress });
             const tournamentContract = getContract({ client, chain, address: contractAddress });
 
-            await switchChain(chain);
-
             // Step 1: Approve USDC if needed
             const currentAllowance = await allowance({
                 contract: usdcContract,
@@ -66,7 +64,7 @@ export function useFundTournamentGuarantee(
 
             if (currentAllowance < amount) {
                 setStatus('approving');
-                await sendAndConfirm(approve({
+                await sendOnChain(chain, approve({
                     contract: usdcContract,
                     spender: contractAddress,
                     amountWei: amount,
@@ -75,7 +73,7 @@ export function useFundTournamentGuarantee(
 
             // Step 2: Deposit guarantee into the tournament contract
             setStatus('depositing');
-            await sendAndConfirm(prepareContractCall({
+            await sendOnChain(chain, prepareContractCall({
                 contract: tournamentContract,
                 method: 'function depositHostFunding(uint256 amount)',
                 params: [amount],
@@ -100,8 +98,7 @@ export function useFundTournamentGuarantee(
         chain,
         usdcAddress,
         guaranteeAmountUsdc,
-        sendAndConfirm,
-        switchChain,
+        sendOnChain,
     ]);
 
     return {

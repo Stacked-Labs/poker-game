@@ -4,14 +4,13 @@ import { useState, useCallback } from 'react';
 import { type Chain } from 'thirdweb';
 import { getContract, prepareContractCall } from 'thirdweb';
 import {
-    useSendAndConfirmTransaction,
     useActiveAccount,
     useActiveWallet,
-    useSwitchActiveWalletChain,
 } from 'thirdweb/react';
 import { approve, allowance, balanceOf } from 'thirdweb/extensions/erc20';
 import { getWalletBalance } from 'thirdweb/wallets';
 import { client } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
 
 const ALLOWANCE_POLL_INTERVAL_MS = 1500;
 const ALLOWANCE_POLL_MAX_ATTEMPTS = 10;
@@ -68,8 +67,7 @@ export function useDepositAndJoin(
         null
     );
 
-    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
-    const switchChain = useSwitchActiveWalletChain();
+    const sendOnChain = useChainBoundSend();
 
     const reset = useCallback(() => {
         setStatus('idle');
@@ -142,8 +140,6 @@ export function useDepositAndJoin(
                     address: contractAddress,
                 });
 
-                await switchChain(chain);
-
                 // Step 1: Check USDC balance
                 setStatus('checking_allowance');
                 const userBalance = await balanceOf({
@@ -181,7 +177,7 @@ export function useDepositAndJoin(
                         amountWei: usdcAmount,
                     });
 
-                    await sendAndConfirm(approveTx);
+                    await sendOnChain(chain, approveTx);
 
                     // Wait for allowance to propagate — RPC nodes can lag behind
                     let confirmed = false;
@@ -218,7 +214,7 @@ export function useDepositAndJoin(
                     params: [BigInt(chipAmount)],
                 });
 
-                await sendAndConfirm(depositTx);
+                await sendOnChain(chain, depositTx);
 
                 setStatus('success');
                 return true;
@@ -248,8 +244,7 @@ export function useDepositAndJoin(
             contractAddress,
             chain,
             usdcAddress,
-            sendAndConfirm,
-            switchChain,
+            sendOnChain,
         ]
     );
 

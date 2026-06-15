@@ -100,9 +100,13 @@ const GameConfigWatermark = () => {
             : (v: number) => v.toLocaleString('en-US');
         const anteSuffix = lvl.ante > 0 ? ` (${fmtChip(lvl.ante)}A)` : '';
         const levelLabel = compact ? `L${lvl.levelNumber}` : `LVL ${lvl.levelNumber}`;
-        const configText = `NLH · ${levelLabel} · ${fmtChip(lvl.sb)}/${fmtChip(
-            lvl.bb
-        )}${anteSuffix}`;
+        // On a rest break the level/blinds are frozen — surface the break instead
+        // of the blind line so the watermark matches the in-game break banner.
+        const configText = clock?.onBreak
+            ? 'NLH · ON BREAK'
+            : `NLH · ${levelLabel} · ${fmtChip(lvl.sb)}/${fmtChip(
+                  lvl.bb
+              )}${anteSuffix}`;
         const playersLine =
             live?.playersActive != null
                 ? compact

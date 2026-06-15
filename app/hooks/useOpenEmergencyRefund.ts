@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getContract, prepareContractCall } from 'thirdweb';
-import { useSendAndConfirmTransaction, useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
+import { useActiveAccount } from 'thirdweb/react';
 import { client, CHAIN_CONFIG } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
 
 const EMERGENCY_DELAY_MS = 24 * 60 * 60 * 1000;
 
@@ -23,8 +24,7 @@ export function useOpenEmergencyRefund(
     tournamentStatus: string | undefined,
 ): OpenEmergencyRefundState {
     const account = useActiveAccount();
-    const { mutateAsync: sendTx } = useSendAndConfirmTransaction();
-    const switchChain = useSwitchActiveWalletChain();
+    const sendOnChain = useChainBoundSend();
 
     const [msUntilAvailable, setMsUntilAvailable] = useState<number>(Infinity);
     const [opening, setOpening] = useState(false);
@@ -58,14 +58,13 @@ export function useOpenEmergencyRefund(
         setOpening(true);
         setError(null);
         try {
-            await switchChain(chainCfg.chain);
             const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
             const tx = prepareContractCall({
                 contract,
                 method: 'function openEmergencyRefund()',
                 params: [],
             });
-            await sendTx(tx);
+            await sendOnChain(chainCfg.chain, tx);
             setOpened(true);
             return true;
         } catch (e) {
@@ -74,7 +73,7 @@ export function useOpenEmergencyRefund(
         } finally {
             setOpening(false);
         }
-    }, [contractAddress, chainCfg, account, sendTx, switchChain]);
+    }, [contractAddress, chainCfg, account, sendOnChain]);
 
     return { available, msUntilAvailable, opening, opened, error, open };
 }

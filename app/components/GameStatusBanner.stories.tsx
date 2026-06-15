@@ -261,6 +261,69 @@ export const TournamentClockLastMinute: Story = {
     ],
 };
 
+// ─── Rest breaks ────────────────────────────────────────────────────────────
+//
+// "Break coming" hint: the final minute of the level immediately before a break
+// (next break follows the current level, secondsToNextBreak inside the window) —
+// the clock banner reads "Break in m:ss" instead of "Blinds up in m:ss".
+
+const breakComingState = (remainingMs: number): Partial<AppState> => ({
+    settlementStatus: null,
+    tournamentLive: makeTournamentLive({
+        clock: {
+            level: 6,
+            levelNumber: 6,
+            sb: 200,
+            bb: 400,
+            ante: 400,
+            remainingMs,
+            totalMs: 600_000,
+            receivedAt: Date.now(),
+            onBreak: false,
+            secondsToNextBreak: Math.round(remainingMs / 1000),
+            nextBreakAfterLevel: 6,
+        },
+    }),
+});
+
+export const TournamentBreakComing: Story = {
+    name: 'Rest break — coming (final minute, "Break in m:ss")',
+    decorators: [makeDecorator({ appStateOverride: breakComingState(42_000) })],
+};
+
+// On break: the level is frozen at N and the banner counts down the break
+// remainder, "On break — m:ss · Level N+1 next".
+const onBreakState = (breakRemainingMs: number): Partial<AppState> => ({
+    settlementStatus: null,
+    tournamentLive: makeTournamentLive({
+        clock: {
+            level: 6,
+            levelNumber: 6,
+            sb: 200,
+            bb: 400,
+            ante: 400,
+            remainingMs: 0,
+            totalMs: 600_000,
+            receivedAt: Date.now(),
+            onBreak: true,
+            breakRemainingMs,
+            // Real server shape: WHILE on a break the clock's nextBreakAfterLevel
+            // points at the NEXT FUTURE break (here, after L9 for Regular cadence),
+            // NOT the break in progress. The banner must still resume into L7 by
+            // reading the frozen levelNumber — pinning this to 6 previously masked
+            // that bug.
+            nextBreakAfterLevel: 9,
+        },
+    }),
+});
+
+export const TournamentOnBreak: Story = {
+    name: 'Rest break — on break ("On break — m:ss · Level 7 next")',
+    decorators: [
+        makeDecorator({ appStateOverride: onBreakState(4 * 60_000 + 32_000) }),
+    ],
+};
+
 // ─── Hidden ────────────────────────────────────────────────────────────────
 
 export const Hidden: Story = {

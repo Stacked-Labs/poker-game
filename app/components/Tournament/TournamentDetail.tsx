@@ -115,6 +115,8 @@ export interface TournamentDetailProps {
     myWallet?: string;
     isRegistered?: boolean;
     blindLevel?: number | null;
+    /** True while the tournament is on a scheduled rest break (from /clock). */
+    onBreak?: boolean;
     actionLoading?: boolean;
     actionLabel?: string;
     goToTableLoading?: boolean;
@@ -587,6 +589,7 @@ export default function TournamentDetail({
     myWallet,
     isRegistered = false,
     blindLevel = null,
+    onBreak = false,
     actionLoading = false,
     actionLabel,
     goToTableLoading = false,
@@ -887,6 +890,7 @@ export default function TournamentDetail({
             startingStack={t.starting_stack}
             lateRegLevels={t.late_reg_levels}
             currentLevel={blindLevel}
+            onBreak={onBreak}
         />
     );
 

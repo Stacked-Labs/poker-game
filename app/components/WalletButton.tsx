@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useMediaQuery } from '@chakra-ui/react';
-import { ConnectButton, darkTheme, lightTheme } from 'thirdweb/react';
+import { ConnectButton, darkTheme, lightTheme, useActiveWallet } from 'thirdweb/react';
 import { type Chain } from 'thirdweb';
 import {
     client,
@@ -145,10 +145,20 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     // Use the required chain for balance display if specified, otherwise fall back to default.
     const displayChain = requiredChain ?? defaultChain;
 
+    // In-app (social-login) smart accounts are single-chain and CANNOT switch
+    // networks (see thirdwebclient.ts / useChainBoundSend). Passing `chain` to
+    // ConnectButton makes thirdweb render a non-functional "Switch Network"
+    // button whenever the table chain differs from the wallet's home chain —
+    // cross-chain sends are already handled transparently by useChainBoundSend.
+    // Only enforce `chain` for external EOAs, which can actually switch.
+    const activeWallet = useActiveWallet();
+    const enforcedChain =
+        activeWallet?.id === 'inApp' ? undefined : requiredChain;
+
     return (
         <ConnectButton
             client={client}
-            chain={requiredChain}
+            chain={enforcedChain}
             chains={enabledChains}
             wallets={wallets}
             supportedTokens={supportedTokens}

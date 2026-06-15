@@ -244,7 +244,11 @@ export default function TournamentPage() {
             toast.warning('Connect wallet to register');
             return;
         }
-        if (tournament?.is_private && !tournament?.contract_address) {
+        // Private tournaments require the access code. Free-play tournaments are
+        // gated server-side at /register; crypto tournaments use the code to fetch
+        // an operator permit before the on-chain register() call. Both paths
+        // flow the hashed code through doRegister.
+        if (tournament?.is_private) {
             setPendingPasscode({ isReentry });
             setPasscode('');
             return;

@@ -654,17 +654,17 @@ const GameSettingLeftSide: React.FC = () => {
                 reentry_allowed: reentryAllowed,
                 reentry_max: reentryAllowed ? values.reentryMax : undefined,
                 chain: values.freePlay ? undefined : values.chain,
-                // An access code only applies to free-play tournaments. Mark
-                // the tournament private so the join-time password gate and the
-                // Private pill actually engage (both key off is_private).
-                is_private: values.freePlay && !!values.passwordCode.trim(),
-                // Backend only stores/enforces the passcode for free-play
-                // tournaments, so never send it for real-money (it would be
-                // silently dropped and the table left public).
-                password_code_hash:
-                    values.freePlay && values.passwordCode
-                        ? await hashPasswordCode(values.passwordCode)
-                        : undefined,
+                // An access code makes the tournament private. Free-play
+                // tournaments are gated at the server /register endpoint; crypto
+                // tournaments are deployed isPrivate and gated on-chain via an
+                // operator permit. Both key off is_private (also drives the
+                // Private pill and the join-time password gate).
+                is_private: !!values.passwordCode.trim(),
+                // Send the SHA-256 hash of the code (never the raw code). The
+                // backend stores it for both free-play and crypto tournaments.
+                password_code_hash: values.passwordCode
+                    ? await hashPasswordCode(values.passwordCode)
+                    : undefined,
             });
             toast.success('Tournament created');
             router.push(`/tournament/${result.tournament.id}`);

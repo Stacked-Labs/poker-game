@@ -2040,32 +2040,30 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             </Box>
                         )}
 
-                        {freePlay && (
-                            <Box>
-                                <FieldLabel optional>Access code</FieldLabel>
-                                <Input
-                                    {...inputProps}
-                                    type="text"
-                                    value={passwordCode}
-                                    onChange={(e) =>
-                                        setPasswordCode(e.target.value)
-                                    }
-                                    placeholder="Leave blank for open registration"
-                                    height="48px"
-                                />
-                                {passwordCode.trim() && (
-                                    <Text
-                                        fontSize="xs"
-                                        color="text.muted"
-                                        mt={1.5}
-                                    >
-                                        With an access code set, this tournament
-                                        is private — only players with the code
-                                        can join.
-                                    </Text>
-                                )}
-                            </Box>
-                        )}
+                        <Box>
+                            <FieldLabel optional>Access code</FieldLabel>
+                            <Input
+                                {...inputProps}
+                                type="text"
+                                value={passwordCode}
+                                onChange={(e) =>
+                                    setPasswordCode(e.target.value)
+                                }
+                                placeholder="Leave blank for open registration"
+                                height="48px"
+                            />
+                            {passwordCode.trim() && (
+                                <Text
+                                    fontSize="xs"
+                                    color="text.muted"
+                                    mt={1.5}
+                                >
+                                    With an access code set, this tournament is
+                                    private — only players with the code can
+                                    join{freePlay ? '' : ' (enforced on-chain)'}.
+                                </Text>
+                            )}
+                        </Box>
                     </VStack>
                 </Collapse>
             </SectionCard>

@@ -762,6 +762,25 @@ export async function registerForTournament(
     return res.json();
 }
 
+// getRegistrationPermit fetches a single-use operator signature for registering
+// to a private CRYPTO tournament. The server verifies the access-code hash, then
+// signs a permit bound to the caller's wallet and on-chain nonce. The returned
+// operator_sig is passed to the contract's register()/reEnter() call.
+export async function getRegistrationPermit(
+    id: number,
+    passwordCodeHash: string,
+): Promise<{ operator_sig: string }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/permit`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password_code_hash: passwordCodeHash }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
 export async function unregisterFromTournament(id: number): Promise<void> {
     isBackendUrlValid();
     const res = await fetch(`${backendUrl}/api/tournaments/${id}/register`, {

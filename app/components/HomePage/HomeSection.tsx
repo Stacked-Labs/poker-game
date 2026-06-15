@@ -3,6 +3,8 @@
 import { Box, Flex, useBreakpointValue } from '@chakra-ui/react';
 import { useRef, useEffect, useState } from 'react';
 import HomeCard from './HomeCard';
+import BaseAppHero from './BaseAppHero';
+import { useIsBaseApp } from '@/app/hooks/useIsBaseApp';
 import ScrollIndicator from './ScrollIndicator';
 import {
     motion,
@@ -23,6 +25,7 @@ const HomeSection = () => {
     const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
     const prefersReducedMotion = useReducedMotion();
     const isDesktop = useBreakpointValue({ base: false, lg: true }) ?? false;
+    const isBaseApp = useIsBaseApp();
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
@@ -197,7 +200,7 @@ const HomeSection = () => {
                 zIndex={2}
             >
                 <Box width={{ base: '100%', lg: '40%' }}>
-                    <HomeCard />
+                    {isBaseApp ? <BaseAppHero /> : <HomeCard />}
                 </Box>
             </Flex>
 

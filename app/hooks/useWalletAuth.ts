@@ -8,6 +8,7 @@ import {
 } from 'thirdweb/react';
 import { getAuthPayload, verifySignedPayload, isAuth } from './server_actions';
 import useToastHelper from './useToastHelper';
+import { track, identifyUser } from '@/app/lib/analytics';
 
 const DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
 
@@ -29,11 +30,22 @@ export const useWalletAuth = (onAuthComplete?: OnAuthCompleteCallback) => {
     // Use ref to prevent duplicate authentication attempts
     const authAttemptRef = useRef<string | null>(null);
     const onAuthCompleteRef = useRef(onAuthComplete);
+    const connectedRef = useRef<string | null>(null);
 
     // Keep ref updated
     useEffect(() => {
         onAuthCompleteRef.current = onAuthComplete;
     }, [onAuthComplete]);
+
+    // Analytics: a wallet became active (once per address). This hook is mounted
+    // once at the provider level, so it won't double-fire across WalletButtons.
+    useEffect(() => {
+        const addr = account?.address;
+        if (addr && connectedRef.current !== addr) {
+            connectedRef.current = addr;
+            track('wallet_connected', { address: addr.toLowerCase() });
+        }
+    }, [account?.address]);
 
     const authenticate = useCallback(
         async (force = false) => {
@@ -59,6 +71,7 @@ export const useWalletAuth = (onAuthComplete?: OnAuthCompleteCallback) => {
                 const authenticated = await isAuth();
                 if (authenticated) {
                     // Already authenticated - still call onAuthComplete to ensure state is synced
+                    identifyUser(account.address);
                     if (onAuthCompleteRef.current) {
                         await onAuthCompleteRef.current();
                     }
@@ -80,6 +93,8 @@ export const useWalletAuth = (onAuthComplete?: OnAuthCompleteCallback) => {
                 });
 
                 if (result.success) {
+                    identifyUser(account.address);
+                    track('siwe_success', { address: account.address.toLowerCase() });
                     success(
                         'Authentication Successful',
                         'You have been successfully authenticated.'

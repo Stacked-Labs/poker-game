@@ -1,5 +1,6 @@
 'use client';
 
+import { track } from '@/app/lib/analytics';
 import {
     createContext,
     ReactNode,
@@ -129,6 +130,10 @@ export function SocketProvider(props: SocketProviderProps) {
     // Set to true while the local player has player.in === true during a running hand.
     // Consumed at settlement-status: success so points only animate for actual participants.
     const userWasInHandRef = useRef(false);
+    // Session-scoped: fire the `first_hand` analytics event ONCE. (userWasInHandRef
+    // resets every hand for settlement bookkeeping, so it can't gate a once-per-
+    // user event.)
+    const firstHandTrackedRef = useRef(false);
     const [seatRequestConflict, setSeatRequestConflict] = useState<{
         seatId: number | null;
         message?: string;
@@ -523,6 +528,10 @@ export function SocketProvider(props: SocketProviderProps) {
 
                         // Track whether the local player was dealt into this hand
                         if (newGame.running && localPlayer?.in) {
+                            if (!firstHandTrackedRef.current) {
+                                firstHandTrackedRef.current = true;
+                                track('first_hand');
+                            }
                             userWasInHandRef.current = true;
                         }
 
@@ -704,6 +713,10 @@ export function SocketProvider(props: SocketProviderProps) {
                         return;
                     }
                     case 'seat-request-accepted': {
+                        track('seat_granted', {
+                            queued: Boolean(eventData.queued),
+                            seatId: eventData.seatId,
+                        });
                         // Only keep "accepted" UI state when the player is actually queued.
                         // For immediate seating (queued=false), clear request state and let
                         // update-game drive the visible seated/cards state.

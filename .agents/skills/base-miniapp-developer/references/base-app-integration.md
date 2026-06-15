@@ -17,7 +17,7 @@ Inside the Base App in-app browser the Base Account is a **standard injected EIP
 2. **Bridge into thirdweb** with the adapter already shipped in our installed thirdweb (currently unused). ⚠️ `fromProvider` takes `{ provider, walletId? }` — **`client` goes to `connect()`, NOT to `fromProvider`** (verified against the installed type `from-eip1193.d.ts`):
    ```ts
    import { EIP1193 } from 'thirdweb/wallets';
-   const wallet = EIP1193.fromProvider({ provider, walletId: 'app.base' });
+   const wallet = EIP1193.fromProvider({ provider, walletId: 'com.coinbase.wallet' });
    const account = await wallet.connect({ client }); // client goes HERE
    ```
 
@@ -25,7 +25,7 @@ Inside the Base App in-app browser the Base Account is a **standard injected EIP
    ```ts
    const { connect } = useConnect();
    connect(async () => {
-       const wallet = EIP1193.fromProvider({ provider, walletId: 'app.base' });
+       const wallet = EIP1193.fromProvider({ provider, walletId: 'com.coinbase.wallet' });
        await wallet.connect({ client });
        return wallet;
    });

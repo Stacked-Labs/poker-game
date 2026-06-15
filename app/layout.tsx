@@ -6,7 +6,7 @@ import PointsActivityFeed from './components/PointsActivityFeed';
 import ServiceStatusBanner from './components/ServiceStatusBanner';
 import TournamentReminderBanner from './components/Tournament/TournamentReminderBanner';
 import React from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 
 const poppins = Poppins({
     subsets: ['latin'],
@@ -33,6 +33,13 @@ const libreBarcode = Libre_Barcode_39_Text({
 // SSR fetches don't hammer the backend on every request. Per-route overrides as
 // needed.
 export const fetchCache = 'default-cache';
+
+// viewport-fit=cover lets `env(safe-area-inset-*)` resolve to non-zero on
+// notched devices — needed for the Base App safe-area padding (gated to the
+// Base App context in the consuming components, so the normal web is unchanged).
+export const viewport: Viewport = {
+    viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
     other: {

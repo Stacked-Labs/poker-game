@@ -1,4 +1,5 @@
 'use client';
+import { useIsBaseApp } from '@/app/hooks/useIsBaseApp';
 import {
     Button,
     Flex,
@@ -48,6 +49,7 @@ const HomeNavBar: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const pathname = usePathname();
+    const isBaseApp = useIsBaseApp(); // call before the early return (rules of hooks)
     const showHomeNavBar = !pathname.startsWith('/table');
     if (!showHomeNavBar) {
         return null; // Do not render the navbar on /table pages
@@ -113,7 +115,17 @@ const HomeNavBar: React.FC = () => {
             justifyContent="space-between"
             alignItems="center"
             position="fixed"
-            height={{ base: '68px', md: '76px' }}
+            height={
+                isBaseApp
+                    ? {
+                          base: 'calc(68px + env(safe-area-inset-top))',
+                          md: 'calc(76px + env(safe-area-inset-top))',
+                      }
+                    : { base: '68px', md: '76px' }
+            }
+            paddingTop={
+                isBaseApp ? 'calc(0.5rem + env(safe-area-inset-top))' : undefined
+            }
             zIndex={99}
             as="nav"
             bg="bg.navbar"

@@ -46,8 +46,9 @@ import BuyInPresets from './TakeSeat/BuyInPresets';
 import StakesChip from './TakeSeat/StakesChip';
 import { readLastBuyIn, writeLastBuyIn } from '@/app/lib/takeSeat/lastBuyIn';
 import TopUpModal from './TopUp/TopUpModal';
-import { useIsMiniApp } from '@/app/hooks/useIsMiniApp';
+import { useIsBaseApp } from '@/app/hooks/useIsBaseApp';
 import { isTestnetOnly } from '@/app/thirdwebclient';
+import { track } from '@/app/lib/analytics';
 
 interface TakeSeatModalProps {
     isOpen: boolean;
@@ -293,11 +294,11 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         });
     }, [deficitUsdc]);
 
-    // Bridge widget can only run on mainnet outside a Mini App host. When
-    // unavailable, we still surface the deficit hint but the CTA stays in
-    // "Sit down" mode (existing behavior — user tops up externally).
-    const isMiniApp = useIsMiniApp();
-    const canBridgeTopUp = !isTestnetOnly && !isMiniApp;
+    // Bridge widget can only run on mainnet outside a host with its own onramp.
+    // Inside the Base App the host provides funding, so we suppress our Bridge
+    // top-up; the CTA stays in "Sit down" mode (user tops up via the host).
+    const isBaseApp = useIsBaseApp();
+    const canBridgeTopUp = !isTestnetOnly && !isBaseApp;
     const isTopUpMode = Boolean(
         isCryptoGame && isBalanceInsufficient && canBridgeTopUp
     );
@@ -393,6 +394,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             if (depositSuccess) {
                 writeLastBuyIn(tableKey, buyInValue);
                 appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
+                track('seat_requested', { mode: 'crypto', seatId });
                 deposit(buyInValue, isCryptoGame);
                 onClose();
             } else if (depositError) {
@@ -421,6 +423,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         writeLastBuyIn(tableKey, buyInValue);
         appStore.dispatch({ type: 'setUsername', payload: effectiveName });
         appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
+        track('seat_requested', { mode: 'free', seatId });
         currentUser.setCurrentUser({ name: effectiveName, seatId });
         onClose();
     };

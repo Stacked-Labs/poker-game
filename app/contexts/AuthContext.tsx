@@ -12,6 +12,7 @@ import React, {
 import { useActiveAccount } from 'thirdweb/react';
 import { isAuth } from '../hooks/server_actions';
 import { useWalletAuth } from '../hooks/useWalletAuth';
+import { resetAnalytics } from '@/app/lib/analytics';
 
 const DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
 
@@ -168,6 +169,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Wallet disconnected (had an address, now has none)
         if (prevAddress && !currentAddress && lastAuthenticatedAddress) {
             if (DEBUG) console.log('[AuthContext] Wallet disconnected - logging out session for', lastAuthenticatedAddress);
+            resetAnalytics(); // unbind the PostHog identity so events don't bleed to the next user
             logoutUser().then(() => {
                 setIsAuthenticated(false);
                 setLastAuthenticatedAddress(null);
@@ -186,6 +188,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // because the JWT is still bound to the old wallet address
             if (lastAuthenticatedAddress && lastAuthenticatedAddress !== currentAddress) {
                 if (DEBUG) console.log('[AuthContext] Wallet swap detected - logging out old session');
+                resetAnalytics(); // unbind the previous wallet's PostHog identity
                 logoutUser().then(() => {
                     setIsAuthenticated(false);
                     setLastAuthenticatedAddress(null);

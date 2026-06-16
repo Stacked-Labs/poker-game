@@ -1,0 +1,60 @@
+name: CI
+
+# Runs on every PR targeting the protected branches. Once the `build` job is
+# confirmed green on a real PR, mark it a required status check in the branch
+# ruleset so nothing merges into dev/main without it passing.
+on:
+  pull_request:
+    branches: [dev, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          # next build runs without an .env file in CI (it warns and proceeds).
+          # If the build ever needs real values, add them as repo secrets and
+          # map them here, e.g.:
+          # NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NODE_ENV: production
+
+  lint:
+    name: Lint (advisory)
+    runs-on: ubuntu-latest
+    # Advisory for now: the repo ignores eslint during builds and carries some
+    # lint debt. Once it's clean, drop continue-on-error and make this required.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        # next lint without --fix (CI must not mutate the tree)
+        run: npx next lint

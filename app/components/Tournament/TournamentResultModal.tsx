@@ -28,6 +28,10 @@ export default function TournamentResultModal({
 
     const isWin = myResult.kind === 'win';
     const position = isWin ? 1 : myResult.position;
+    // A bust event can arrive before the finish position is settled (0 or
+    // undefined). Rendering it would show a bogus "0th"/$0 finish, so wait for
+    // the next push that carries a real placing rather than imply a result.
+    if (!isWin && !(Number.isInteger(position) && position > 0)) return null;
     // Finish position + payout tier are per unique player (one leaderboard row
     // each); registered_count counts bullet entries. Prefer the unique count.
     const fieldSize = live!.leaderboard.length || meta.registeredCount;

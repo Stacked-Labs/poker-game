@@ -46,6 +46,7 @@ export default function RegistrationConfirmationModal({
         isSupported,
         isIOSNonPWA,
         permission,
+        isSubscribed,
         isLoading,
         requestPermission,
     } = usePushReminders();
@@ -73,8 +74,11 @@ export default function RegistrationConfirmationModal({
     const startLabel = formatTournamentStart(tournament.scheduled_start_at);
     const heading = isReentry ? "You're back in." : "You're in.";
 
-    // Already granted (returning player): treat as on so we never re-prompt.
-    const isOn = reminderOn || permission === 'granted';
+    // "On" requires both permission and a live subscription. A returning player
+    // whose subscription was dropped (permission still granted) drops back to
+    // the "Turn on" path so they can re-subscribe instead of seeing a false
+    // "Reminders are on". reminderOn covers the just-subscribed turn this session.
+    const isOn = reminderOn || (permission === 'granted' && isSubscribed);
     const showPrimary = isSupported && !isOn;
 
     return (

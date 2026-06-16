@@ -29,11 +29,15 @@ interface ReconnectingToastProps {
     // Skip the backoff wait and reconnect immediately. Falls back to a full reload
     // when the live reconnect path is unavailable.
     onReconnectNow?: () => void;
+    // Terminal state: retries are exhausted, so we stop signalling "working" and
+    // tell the player the connection is lost and a refresh is needed.
+    terminal?: boolean;
 }
 
 const ReconnectingToast = ({
     onClose,
     onReconnectNow,
+    terminal = false,
 }: ReconnectingToastProps) => {
     const prefersReducedMotion = usePrefersReducedMotion();
 
@@ -44,13 +48,13 @@ const ReconnectingToast = ({
 
     return (
         <Box
-            role="status"
-            aria-live="polite"
+            role={terminal ? 'alert' : 'status'}
+            aria-live={terminal ? 'assertive' : 'polite'}
             aria-atomic
             position="relative"
             overflow="hidden"
             width="100%"
-            bg="brand.yellowDark"
+            bg={terminal ? 'brand.red' : 'brand.yellowDark'}
             color="white"
             boxShadow="0 8px 18px rgba(0, 0, 0, 0.18)"
             animation={
@@ -75,7 +79,9 @@ const ReconnectingToast = ({
                     flex="1"
                     minW={0}
                 >
-                    Reconnecting to the table…
+                    {terminal
+                        ? 'Connection lost — refresh to rejoin the table'
+                        : 'Reconnecting to the table…'}
                 </Text>
 
                 <Box
@@ -100,7 +106,7 @@ const ReconnectingToast = ({
                         boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.7)',
                     }}
                 >
-                    Reconnect now
+                    {terminal ? 'Refresh' : 'Reconnect now'}
                 </Box>
 
                 <CloseButton
@@ -114,29 +120,31 @@ const ReconnectingToast = ({
             </Flex>
 
             {/* Indeterminate progress along the bottom edge; static when the player
-                prefers reduced motion. */}
-            <Box
-                position="absolute"
-                bottom={0}
-                left={0}
-                right={0}
-                h="2px"
-                overflow="hidden"
-                aria-hidden
-            >
-                {prefersReducedMotion ? (
-                    <Box position="absolute" inset={0} bg="whiteAlpha.500" />
-                ) : (
-                    <Box
-                        position="absolute"
-                        top={0}
-                        bottom={0}
-                        w="45%"
-                        bg="whiteAlpha.800"
-                        animation={`${sweep} 1.5s ease-in-out infinite`}
-                    />
-                )}
-            </Box>
+                prefers reduced motion. Hidden once terminal — nothing is "working". */}
+            {!terminal && (
+                <Box
+                    position="absolute"
+                    bottom={0}
+                    left={0}
+                    right={0}
+                    h="2px"
+                    overflow="hidden"
+                    aria-hidden
+                >
+                    {prefersReducedMotion ? (
+                        <Box position="absolute" inset={0} bg="whiteAlpha.500" />
+                    ) : (
+                        <Box
+                            position="absolute"
+                            top={0}
+                            bottom={0}
+                            w="45%"
+                            bg="whiteAlpha.800"
+                            animation={`${sweep} 1.5s ease-in-out infinite`}
+                        />
+                    )}
+                </Box>
+            )}
         </Box>
     );
 };

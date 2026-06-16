@@ -15,12 +15,13 @@ interface AddToGoogleCalendarButtonProps {
 export default function AddToGoogleCalendarButton({
     tournament,
 }: AddToGoogleCalendarButtonProps) {
+    const calendarUrl = generateGoogleCalendarUrl(tournament);
+
+    // No usable start instant: skip the action rather than offer a broken one.
+    if (!calendarUrl) return null;
+
     const openCalendar = () => {
-        window.open(
-            generateGoogleCalendarUrl(tournament),
-            '_blank',
-            'noopener,noreferrer'
-        );
+        window.open(calendarUrl, '_blank', 'noopener,noreferrer');
     };
 
     return (

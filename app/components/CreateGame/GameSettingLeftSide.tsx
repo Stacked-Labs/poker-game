@@ -649,6 +649,9 @@ const GameSettingLeftSide: React.FC = () => {
             const needsGuarantee = !values.freePlay && guaranteeMicro > 0;
             const reentryAllowed =
                 values.reentryAllowed && values.lateRegLevels > 0;
+            // Trim once and use for both is_private and the hash so joiners
+            // (who hash the trimmed code) produce a matching hash.
+            const trimmedCode = values.passwordCode.trim();
             const result = await createTournament({
                 name: values.name.trim() || undefined,
                 description: values.description.trim() || undefined,
@@ -674,11 +677,11 @@ const GameSettingLeftSide: React.FC = () => {
                 // tournaments are deployed isPrivate and gated on-chain via an
                 // operator permit. Both key off is_private (also drives the
                 // Private pill and the join-time password gate).
-                is_private: !!values.passwordCode.trim(),
+                is_private: !!trimmedCode,
                 // Send the SHA-256 hash of the code (never the raw code). The
                 // backend stores it for both free-play and crypto tournaments.
-                password_code_hash: values.passwordCode
-                    ? await hashPasswordCode(values.passwordCode)
+                password_code_hash: trimmedCode
+                    ? await hashPasswordCode(trimmedCode)
                     : undefined,
             });
             toast.success('Tournament created');

@@ -105,11 +105,14 @@ export default function TournamentCountdownDisplay({
         : null;
     const nowMs = start.ready ? startMs - start.diffMs : null;
 
+    // Late reg closes after the start, so "Last call" is relative to NOW, not the
+    // start: fire once the tournament is running (start passed) and the close is
+    // within the near window and still ahead of us.
     const lateRegSoon =
         lateClose != null &&
         nowMs != null &&
+        nowMs >= startMs &&
         lateClose > nowMs &&
-        lateClose < startMs &&
         lateClose - nowMs <= NEAR_WINDOW_MS;
 
     const startingSoon =

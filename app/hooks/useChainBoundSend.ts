@@ -49,6 +49,14 @@ export function useChainBoundSend() {
                 }
             } else if (wallet.getChain()?.id !== chain.id) {
                 await switchChain(chain);
+                // Verify the wallet actually landed on the target chain before
+                // sending a money tx — switchChain can resolve without the wallet
+                // having switched (user rejected, unsupported network, etc.).
+                if (wallet.getChain()?.id !== chain.id) {
+                    throw new Error(
+                        `Wrong network — please switch to ${chain.name ?? chain.id} and try again`
+                    );
+                }
             }
 
             return sendAndConfirmTransaction({ account: signer, transaction });

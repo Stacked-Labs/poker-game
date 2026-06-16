@@ -43,6 +43,11 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
     const register = useCallback(async (passwordCodeHash?: string): Promise<{ ok: boolean; txHash?: string; error?: string }> => {
         if (!tournament) return { ok: false, error: 'No tournament' };
 
+        // In-flight guard: don't start a second register tx while one is running.
+        if (status === 'approving' || status === 'registering') {
+            return { ok: false, error: 'Registration already in progress' };
+        }
+
         if (!isCrypto) {
             try {
                 setStatus('registering');
@@ -95,7 +100,7 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
             setError(msg); setStatus('error');
             return { ok: false, error: msg };
         }
-    }, [tournament, isCrypto, account, sendOnChain]);
+    }, [tournament, isCrypto, account, sendOnChain, status]);
 
     const reenter = useCallback(async (passwordCodeHash?: string): Promise<{ ok: boolean; txHash?: string; error?: string }> => {
         if (!tournament) return { ok: false, error: 'No tournament' };

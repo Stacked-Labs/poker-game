@@ -55,6 +55,37 @@ leak anything that wasn't already public.
 export const SocketContext: Context<WebSocket | null> =
     createContext<WebSocket | null>(null);
 
+// Single source of truth for tournament table-balancing navigation. The WS
+// `tournament-table-move` push is authoritative and claims its destination here;
+// TournamentTableMoveWatcher (which infers moves from the polled leaderboard) is
+// a fallback and must NOT navigate to a destination the WS push already owns, or
+// the two race and double-navigate. The watcher's poll-only path (no WS event)
+// still fires normally.
+const claimedTournamentMoves = new Set<string>();
+
+export function tournamentMoveKey(
+    tournamentId: number,
+    tableNumber: number
+): string {
+    return `${tournamentId}:${tableNumber}`;
+}
+
+export function claimTournamentMove(
+    tournamentId: number,
+    tableNumber: number
+): void {
+    claimedTournamentMoves.add(tournamentMoveKey(tournamentId, tableNumber));
+}
+
+export function isTournamentMoveClaimed(
+    tournamentId: number,
+    tableNumber: number
+): boolean {
+    return claimedTournamentMoves.has(
+        tournamentMoveKey(tournamentId, tableNumber)
+    );
+}
+
 type SocketProviderProps = {
     children: ReactNode;
     tableId: string;
@@ -73,6 +104,10 @@ const RECONNECT_TOAST_GRACE_MS = 3000;
 // become a real outage (the first retry already failed), so instant reconnects
 // never flash it.
 const RECONNECT_CARD_AFTER_ATTEMPTS = 2;
+// After this many consecutive failed retries we stop scheduling reconnects and
+// surface a terminal "Connection lost — refresh" state. The counter resets to 0
+// on a successful open, so transient blips never count toward the cap.
+const MAX_RECONNECTION_ATTEMPTS = 5;
 
 export function SocketProvider(props: SocketProviderProps) {
     const { tableId } = props;
@@ -129,6 +164,8 @@ export function SocketProvider(props: SocketProviderProps) {
     ]);
 
     const reconnectionAttemptsRef = useRef(0);
+    const isConnectingRef = useRef(false);
+    const tournamentResultTimerRef = useRef<NodeJS.Timeout | null>(null);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const settlementPendingTimerRef = useRef<NodeJS.Timeout | null>(null);
     const settlementSuccessTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -158,6 +195,15 @@ export function SocketProvider(props: SocketProviderProps) {
         const API_URL = process.env.NEXT_PUBLIC_API_URL;
         debugLog('[WebSocket] connection attempt start');
 
+        // A connect can be in flight across the awaited init-session fetch before
+        // socketRef is assigned; the visibility/online handlers call us directly,
+        // so without this guard a second connect can orphan the first open socket.
+        if (isConnectingRef.current) {
+            debugLog('[WebSocket] connection attempt skipped: already connecting');
+            return;
+        }
+        isConnectingRef.current = true;
+
         if (!WS_BASE_URL || !API_URL) {
             console.error('WebSocket URL or API URL is not defined.');
             toastErrorRef.current(
@@ -166,12 +212,14 @@ export function SocketProvider(props: SocketProviderProps) {
                 undefined,
                 TOAST_ID_CONNECTION_ERROR
             );
+            isConnectingRef.current = false;
             return;
         }
 
         if (socketRef.current) {
             debugLog('[WebSocket] connection attempt skipped: already connected/in progress');
             isReconnectingRef.current = false;
+            isConnectingRef.current = false;
             return;
         }
 
@@ -194,6 +242,7 @@ export function SocketProvider(props: SocketProviderProps) {
                 // No transient toast here — the persistent "Reconnecting…" card
                 // (shown by attemptReconnection) is the single source of truth.
                 isReconnectingRef.current = false;
+                isConnectingRef.current = false;
                 attemptReconnection();
                 return;
             }
@@ -212,6 +261,7 @@ export function SocketProvider(props: SocketProviderProps) {
 
             _socket.onopen = () => {
                 debugLog('[WebSocket] connected');
+                isConnectingRef.current = false;
                 authStateAtConnectRef.current = {
                     isAuthenticated: authRef.current.isAuthenticated,
                     address: authRef.current.address,
@@ -259,6 +309,7 @@ export function SocketProvider(props: SocketProviderProps) {
 
             _socket.onclose = (event) => {
                 debugLog('[WebSocket] disconnected', event);
+                isConnectingRef.current = false;
                 socketRef.current = null;
                 setSocket(null);
 
@@ -275,6 +326,7 @@ export function SocketProvider(props: SocketProviderProps) {
 
             _socket.onerror = (err) => {
                 console.error('WebSocket error:', err);
+                isConnectingRef.current = false;
                 socketRef.current = null;
                 setSocket(null);
                 // Don't show error toast here - onclose will handle it
@@ -872,7 +924,11 @@ export function SocketProvider(props: SocketProviderProps) {
                             eventData.player_uuid ===
                             appStateRef.current.clientID
                         ) {
-                            setTimeout(() => {
+                            if (tournamentResultTimerRef.current) {
+                                clearTimeout(tournamentResultTimerRef.current);
+                            }
+                            tournamentResultTimerRef.current = setTimeout(() => {
+                                tournamentResultTimerRef.current = null;
                                 dispatch({
                                     type: 'setTournamentMyResult',
                                     payload: {
@@ -897,6 +953,10 @@ export function SocketProvider(props: SocketProviderProps) {
                                 'Tables were rebalanced — reseating you now…'
                             );
                             if (tournamentId != null && Number.isFinite(toTableNumber)) {
+                                // Claim this move so the leaderboard-poll fallback
+                                // (TournamentTableMoveWatcher) doesn't also navigate
+                                // and double-fire.
+                                claimTournamentMove(tournamentId, toTableNumber);
                                 // Navigate to the destination table. A full navigation
                                 // (not SPA) is intentional: it tears down this table's
                                 // WebSocket and opens a clean connection to the new one.
@@ -943,6 +1003,7 @@ export function SocketProvider(props: SocketProviderProps) {
             // No transient toast here — the persistent "Reconnecting…" card
             // (shown by attemptReconnection) is the single source of truth.
             isReconnectingRef.current = false;
+            isConnectingRef.current = false;
             attemptReconnection(); // Safe to call here
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1006,6 +1067,21 @@ export function SocketProvider(props: SocketProviderProps) {
         if (!WS_BASE_URL) return;
         if (isReconnectingRef.current) return; // Already trying to reconnect
 
+        // Bounded retries: once we've exhausted the cap, stop scheduling and
+        // surface a terminal "Connection lost — refresh" banner (with a
+        // refresh/reconnect-now affordance) instead of retrying forever. The
+        // counter resets to 0 on a successful open, so a real reconnect clears it.
+        if (reconnectionAttemptsRef.current >= MAX_RECONNECTION_ATTEMPTS) {
+            isReconnectingRef.current = false;
+            connectionLostShownRef.current = true;
+            toastConnectionLostRef.current({
+                id: 'connectionFailed',
+                onReconnectNow: reconnectNowRef.current,
+                terminal: true,
+            });
+            return;
+        }
+
         isReconnectingRef.current = true;
         debugLog('[WebSocket] reconnecting');
         const nextAttempt = reconnectionAttemptsRef.current + 1;
@@ -1013,8 +1089,8 @@ export function SocketProvider(props: SocketProviderProps) {
 
         // Once a quick blip has clearly become a real outage, surface the
         // persistent "Reconnecting…" card. We keep retrying with capped backoff
-        // indefinitely; the card stays up (with a "Reconnect now" shortcut) until
-        // the socket reopens or the player dismisses it.
+        // (up to MAX_RECONNECTION_ATTEMPTS); the card stays up (with a "Reconnect
+        // now" shortcut) until the socket reopens or the player dismisses it.
         if (
             nextAttempt >= RECONNECT_CARD_AFTER_ATTEMPTS &&
             !connectionLostShownRef.current
@@ -1043,6 +1119,10 @@ export function SocketProvider(props: SocketProviderProps) {
         return () => {
             if (reconnectTimeoutRef.current) {
                 clearTimeout(reconnectTimeoutRef.current);
+            }
+            if (tournamentResultTimerRef.current) {
+                clearTimeout(tournamentResultTimerRef.current);
+                tournamentResultTimerRef.current = null;
             }
             if (socketRef.current) {
                 debugLog('[WebSocket] closing connection on cleanup');
@@ -1105,7 +1185,11 @@ export function SocketProvider(props: SocketProviderProps) {
                     socketRef.current.readyState === WebSocket.CLOSED ||
                     socketRef.current.readyState === WebSocket.CLOSING;
 
-                if (isDisconnected && !isReconnectingRef.current) {
+                if (
+                    isDisconnected &&
+                    !isReconnectingRef.current &&
+                    !isConnectingRef.current
+                ) {
                     debugLog('[WebSocket] disconnected; resetting attempts and reconnecting');
                     // Reset reconnection attempts for a fresh start
                     reconnectionAttemptsRef.current = 0;
@@ -1136,7 +1220,11 @@ export function SocketProvider(props: SocketProviderProps) {
                 socketRef.current.readyState === WebSocket.CLOSED ||
                 socketRef.current.readyState === WebSocket.CLOSING;
 
-            if (isDisconnected && !isReconnectingRef.current) {
+            if (
+                isDisconnected &&
+                !isReconnectingRef.current &&
+                !isConnectingRef.current
+            ) {
                 debugLog('[WebSocket] online + disconnected; reconnecting');
 
                 if (reconnectTimeoutRef.current) {

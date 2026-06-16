@@ -62,10 +62,14 @@ const useToastHelper = () => {
             duration?: number | null;
             id?: string;
             onReconnectNow?: () => void;
+            terminal?: boolean;
         } = {}
     ) => {
-        const { duration = null, id, onReconnectNow } = opts;
-        if (id && toast.isActive(id)) return;
+        const { duration = null, id, onReconnectNow, terminal = false } = opts;
+        // The terminal banner replaces an active reconnecting one with the same id,
+        // so don't bail out when it's already showing.
+        if (id && !terminal && toast.isActive(id)) return;
+        if (id && toast.isActive(id)) toast.close(id);
         showCustomToast(toast, {
             id,
             duration, // null = persist until closed
@@ -75,6 +79,7 @@ const useToastHelper = () => {
                 <ReconnectingToast
                     onClose={onClose}
                     onReconnectNow={onReconnectNow}
+                    terminal={terminal}
                 />
             ),
         });

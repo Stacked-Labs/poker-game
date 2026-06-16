@@ -460,9 +460,15 @@ export default function TournamentPage() {
     };
 
     const handleClaimRefund = async () => {
-        const ok = await refund.claim();
-        if (ok) toast.success('Refund claimed!');
-        else {
+        const result = await refund.claim();
+        if (result === 'confirmed') {
+            toast.success('Refund claimed!');
+        } else if (result === 'pending') {
+            toast.info(
+                'Refund is processing',
+                "It's confirmed on-chain and will show here shortly."
+            );
+        } else {
             const { title, description } = friendlyError(refund.error, {
                 title: 'Could not claim refund',
                 description: 'Please try again.',

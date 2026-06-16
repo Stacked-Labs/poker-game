@@ -157,6 +157,7 @@ export function useTournamentLive(tournamentId: number | null): void {
     // missed or the socket reconnected.
     useEffect(() => {
         if (tournamentId == null || Number.isNaN(tournamentId)) return;
+        let cancelled = false;
         const id = setInterval(async () => {
             try {
                 const [tData, lb, clockRes] = await Promise.all([
@@ -166,6 +167,9 @@ export function useTournamentLive(tournamentId: number | null): void {
                     ) as Promise<LeaderboardResponse | null>,
                     getTournamentClock(tournamentId),
                 ]);
+                // A poll resolving after unmount / tournamentId change must not
+                // write stale data over the next tournament's state.
+                if (cancelled) return;
                 dispatch({
                     type: 'setTournamentMeta',
                     payload: { tournamentId, meta: mapMeta(tData.tournament) },
@@ -184,7 +188,10 @@ export function useTournamentLive(tournamentId: number | null): void {
                 // transient; the next tick retries
             }
         }, POLL_MS);
-        return () => clearInterval(id);
+        return () => {
+            cancelled = true;
+            clearInterval(id);
+        };
     }, [tournamentId, dispatch]);
 
     useEffect(() => {

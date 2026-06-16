@@ -32,15 +32,24 @@ export function useLevelCountdown(
 ): LevelCountdown {
     const [now, setNow] = useState<number | null>(null);
 
+    // Depend on the stable timing primitives, not the whole clock object: each WS
+    // push/poll yields a new object identity, so keying the interval on `clock`
+    // would tear down and recreate it (resetting `now`) every push and visibly
+    // stutter the tick. A new object with the same timing values now keeps ticking.
+    const receivedAt = clock?.receivedAt ?? null;
+    const levelRemainingMs = clock?.remainingMs ?? null;
+    const breakRemainingMs = clock?.breakRemainingMs ?? null;
+    const onBreakFlag = clock?.onBreak ?? null;
+
     useEffect(() => {
-        if (!clock) {
+        if (receivedAt === null) {
             setNow(null);
             return;
         }
         setNow(Date.now());
         const id = setInterval(() => setNow(Date.now()), 1000);
         return () => clearInterval(id);
-    }, [clock]);
+    }, [receivedAt, levelRemainingMs, breakRemainingMs, onBreakFlag]);
 
     if (!clock) {
         return { ready: false, remainingMs: 0, label: '0:00', onBreak: false };

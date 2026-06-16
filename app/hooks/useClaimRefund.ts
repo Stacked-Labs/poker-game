@@ -38,6 +38,11 @@ const claimRefundAbi = {
     outputs: [],
 } as const;
 
+// 'confirmed' — refund observed on-chain. 'pending' — tx confirmed but the read
+// model hasn't caught up yet (RPC lag), not a failure. 'failed' — tx reverted or
+// preconditions unmet.
+export type ClaimResult = 'confirmed' | 'pending' | 'failed';
+
 export interface RefundState {
     eligible: boolean;       // registered (bulletsUsed > 0), not yet refunded, and buyIn > 0
     alreadyClaimed: boolean;
@@ -45,7 +50,7 @@ export interface RefundState {
     loading: boolean;
     claiming: boolean;
     error: string | null;
-    claim: () => Promise<boolean>;
+    claim: () => Promise<ClaimResult>;
     refresh: () => Promise<void>;
 }
 
@@ -114,28 +119,31 @@ export function useClaimRefund(
 
     useEffect(() => { refresh(); }, [refresh]);
 
-    const claim = useCallback(async (): Promise<boolean> => {
-        if (!contractAddress || !chainCfg || !account) return false;
+    const claim = useCallback(async (): Promise<ClaimResult> => {
+        if (!contractAddress || !chainCfg || !account) return 'failed';
         setClaiming(true);
         setError(null);
         try {
             const contract = getContract({ client, chain: chainCfg.chain, address: contractAddress });
             const tx = prepareContractCall({ contract, method: claimRefundAbi, params: [] });
+            // sendOnChain confirms the tx (and throws on revert), so reaching past
+            // this line means the refund executed on-chain.
             await sendOnChain(chainCfg.chain, tx);
-            // Poll on-chain until the refund is reflected — a single read right after
-            // the tx can hit an RPC node a block behind and still show "claim".
+            // Poll the read model — a read right after the tx can hit an RPC node a
+            // block behind and still show the refund as unclaimed.
             for (let i = 0; i < 6; i++) {
                 const s = await readOnce().catch(() => null);
                 if (s) {
                     apply(s);
-                    if (s.alreadyRefunded) break;
+                    if (s.alreadyRefunded) return 'confirmed';
                 }
                 await new Promise((r) => setTimeout(r, 1500));
             }
-            return true;
+            // Tx confirmed on-chain but the read model hasn't caught up yet.
+            return 'pending';
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Claim failed');
-            return false;
+            return 'failed';
         } finally {
             setClaiming(false);
         }

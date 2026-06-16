@@ -73,6 +73,8 @@ export function useClaimUnclaimedPrize(
 
     const claim = useCallback(async (): Promise<boolean> => {
         if (!contractAddress || !chainCfg || !account) return false;
+        // Nothing claimable — don't send a wasted no-op tx on stale state.
+        if (!claimableUsdc || claimableUsdc === BigInt(0)) return false;
         setClaiming(true);
         setError(null);
         try {
@@ -99,7 +101,7 @@ export function useClaimUnclaimedPrize(
         } finally {
             setClaiming(false);
         }
-    }, [contractAddress, chainCfg, account, sendTx, readOnce]);
+    }, [contractAddress, chainCfg, account, sendTx, readOnce, claimableUsdc]);
 
     return { claimableUsdc, claimed, loading, claiming, error, claim, refresh };
 }

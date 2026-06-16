@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { isTournamentMoveClaimed } from '@/app/contexts/WebSocketProvider';
 
 const MOVE_NOTICE_MS = 2500;
 
@@ -52,6 +53,13 @@ export default function TournamentTableMoveWatcher({
         if (myTableNumber == null || myTableNumber === currentTableNumber)
             return;
         if (navigatedRef.current === myTableNumber) return;
+        // The authoritative WS `tournament-table-move` push owns this move if it
+        // already fired; defer to it rather than double-navigate. The genuine
+        // poll-only fallback (no WS event) is unclaimed and proceeds.
+        if (isTournamentMoveClaimed(tournamentId, myTableNumber)) {
+            navigatedRef.current = myTableNumber;
+            return;
+        }
         navigatedRef.current = myTableNumber;
         setMoveTo(myTableNumber);
         const t = setTimeout(() => {

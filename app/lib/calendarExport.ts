@@ -8,9 +8,12 @@ const SITE = 'https://stackedpoker.io';
 
 // Google reads a dates range with no UTC offset as UTC, which matches the Z
 // basic format below: 20260610T153000Z with separators and fractional seconds
-// stripped. We require/assume a trailing Z on the ISO input.
-function toUtcBasic(iso: string): string {
-    return new Date(iso)
+// stripped. We require/assume a trailing Z on the ISO input. Returns null for
+// an empty or malformed instant so callers can hide the action rather than crash.
+function toUtcBasic(iso: string): string | null {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d
         .toISOString()
         .replace(/[-:]/g, '')
         .replace(/\.\d{3}/, '');
@@ -39,9 +42,12 @@ function resolveEndIso(t: Tournament): string {
 const eventDescription = (t: Tournament) =>
     `Your seat is reserved. Take it at ${SITE}/tournament/${t.id}`;
 
-export function generateGoogleCalendarUrl(t: Tournament): string {
+// Null when the start instant is missing/malformed: the caller hides the
+// action rather than render a button that would throw on click.
+export function generateGoogleCalendarUrl(t: Tournament): string | null {
     const start = toUtcBasic(t.scheduled_start_at);
     const end = toUtcBasic(resolveEndIso(t));
+    if (!start || !end) return null;
 
     const params = new URLSearchParams({
         action: 'TEMPLATE',

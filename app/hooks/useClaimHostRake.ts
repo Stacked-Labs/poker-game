@@ -50,6 +50,8 @@ export function useClaimHostRake(contractAddress: string | undefined, chainName:
 
     const claim = useCallback(async (): Promise<boolean> => {
         if (!contractAddress || !chainCfg || !account) return false;
+        // Nothing pending — don't send a wasted no-op tx on stale state.
+        if (!pendingRake || pendingRake === BigInt(0)) return false;
         setClaiming(true);
         setError(null);
         try {
@@ -73,7 +75,7 @@ export function useClaimHostRake(contractAddress: string | undefined, chainName:
         } finally {
             setClaiming(false);
         }
-    }, [contractAddress, chainCfg, account, sendOnChain, readOnce]);
+    }, [contractAddress, chainCfg, account, sendOnChain, readOnce, pendingRake]);
 
     return { pendingRake, claiming, error, claim, refresh };
 }

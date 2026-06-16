@@ -93,20 +93,23 @@ export default function TournamentLobbyCard({
     const yellowText = useColorModeValue('brand.yellowDark', 'brand.yellow');
 
     const now = new Date();
-    const lateRegCloseAt = new Date(t.late_reg_close_at);
-    const scheduledStartAt = new Date(t.scheduled_start_at);
-    const fiveMinBeforeStart = new Date(
-        scheduledStartAt.getTime() - 5 * 60 * 1000
-    );
+    const lateRegCloseMs = new Date(t.late_reg_close_at).getTime();
+    const lateRegCloseKnown = !Number.isNaN(lateRegCloseMs);
+    const scheduledStartMs = new Date(t.scheduled_start_at).getTime();
+    const scheduledStartKnown = !Number.isNaN(scheduledStartMs);
+    const fiveMinBeforeStart = scheduledStartMs - 5 * 60 * 1000;
 
     const hasPendingRegister = pendingTx?.type === 'register';
     const isRegistered = registeredIds.has(t.id) || hasPendingRegister;
     const isHost =
         !!myWallet && t.host_wallet?.toLowerCase() === myWallet.toLowerCase();
+    // While the tournament is running with late-reg levels, treat an unknown
+    // close time as still-open rather than silently suppressing the CTA — the
+    // backend owns the hard cutoff, so a missing timestamp shouldn't lock players out.
     const isLateRegOpen =
         t.status === 'running' &&
         (t.late_reg_levels ?? 0) > 0 &&
-        now < lateRegCloseAt;
+        (!lateRegCloseKnown || now.getTime() < lateRegCloseMs);
     const freePlay = getIsFreePlay(t);
     const canRegister = t.status === 'registration' && !isRegistered;
     const canLateRegister = isLateRegOpen && !isRegistered && !pendingTx;
@@ -114,7 +117,9 @@ export default function TournamentLobbyCard({
         t.status === 'registration' &&
         isRegistered &&
         !hasPendingRegister &&
-        (freePlay || now < fiveMinBeforeStart);
+        (freePlay ||
+            !scheduledStartKnown ||
+            now.getTime() < fiveMinBeforeStart);
     const canFundGuarantee =
         isHost &&
         t.status === 'pending' &&

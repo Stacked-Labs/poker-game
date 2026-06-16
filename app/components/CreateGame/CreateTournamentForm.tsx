@@ -69,6 +69,9 @@ import {
 // Backend default tournament starting stack (200 BB at the 25/50 level). The
 // create form doesn't expose it yet, so the structure preview uses this.
 const DEFAULT_STARTING_STACK = 10_000;
+const MAX_PLAYERS = 1000;
+// Minimum lead time before a scheduled start is accepted.
+const MIN_START_LEAD_MS = 3 * 60 * 1000;
 
 // Cumulative elapsed time when a level begins (levels are a fixed length each).
 function formatElapsed(mins: number): string {
@@ -807,6 +810,11 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     ) => {
         const d = new Date(Date.now() + hours * 60 * 60 * 1000);
         d.setMinutes(0, 0, 0);
+        // Flooring to the top of the hour can drop the start under the minimum
+        // lead time when "now" is late in the hour — bump to the next hour.
+        if (d.getTime() < Date.now() + MIN_START_LEAD_MS) {
+            d.setHours(d.getHours() + 1);
+        }
         setScheduledAt(toLocalInputValue(d));
         setStartPreset(key);
     };
@@ -859,12 +867,16 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     const playersError = useMemo(() => {
         if (!Number.isFinite(minN)) return 'Set how many players can join.';
         if (minN < 2) return 'You need at least 2 players.';
+        if (minN > MAX_PLAYERS) return `Field can't exceed ${MAX_PLAYERS} players.`;
         if (capped) {
             if (!Number.isFinite(maxN)) {
                 return 'Set a maximum, or switch to Unlimited.';
             }
             if (maxN < minN) {
                 return 'Max players must be at least the minimum.';
+            }
+            if (maxN > MAX_PLAYERS) {
+                return `Field can't exceed ${MAX_PLAYERS} players.`;
             }
         }
         return '';
@@ -874,7 +886,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
         if (!scheduledAt) return 'Pick a start time.';
         const startMs = new Date(scheduledAt).getTime();
         if (Number.isNaN(startMs)) return 'Pick a valid start time.';
-        if (startMs < Date.now() + 3 * 60 * 1000) {
+        if (startMs < Date.now() + MIN_START_LEAD_MS) {
             return 'Start time must be a few minutes in the future.';
         }
         return '';
@@ -1774,7 +1786,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                 type="number"
                                 inputMode="numeric"
                                 min={2}
-                                max={1000}
+                                max={MAX_PLAYERS}
                                 aria-label="Minimum players"
                                 value={minPlayers}
                                 onChange={(e) => setMinPlayers(e.target.value)}
@@ -1790,7 +1802,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                     type="number"
                                     inputMode="numeric"
                                     min={2}
-                                    max={1000}
+                                    max={MAX_PLAYERS}
                                     aria-label="Maximum players"
                                     value={maxPlayers}
                                     onChange={(e) =>

@@ -98,6 +98,15 @@ export interface EmergencyState {
     msUntilAvailable?: number;
 }
 
+// A winner whose auto-payout push failed at settlement; the prize sits in the
+// contract's claimable bucket until they pull it. claimableUsdc in micro-USDC.
+export interface UnclaimedPrizeState {
+    loading?: boolean;
+    claimableUsdc?: number | null;
+    claiming?: boolean;
+    claimed?: boolean;
+}
+
 // Host community links. Any may be empty; chart_url is provider-agnostic.
 export interface CommunityLinkValues {
     x_url?: string;
@@ -126,13 +135,21 @@ export interface TournamentDetailProps {
     rakeClaiming?: boolean;
     refund?: RefundState;
     emergency?: EmergencyState;
+    /** Viewer's failed-push prize awaiting a manual claim (completed only). */
+    unclaimed?: UnclaimedPrizeState;
+    /** Host-only: their reserved guarantee deposit in micro-USDC, reclaimable in
+     *  emergency-refund state (null = loading). */
+    hostEmergencyRefundUsdc?: number | null;
+    hostRefundClaiming?: boolean;
     onRegister?: (isReentry?: boolean) => void;
     onUnregister?: () => void;
     onGoToTable?: () => void;
     onFundAndOpen?: () => void;
     onClaimRake?: () => void;
     onClaimRefund?: () => void;
+    onClaimPrize?: () => void;
     onEnableEmergencyRefund?: () => void;
+    onClaimHostEmergencyRefund?: () => void;
     onBack?: () => void;
     /** Host-only inline edits. Called with the new value so the parent can
      *  persist it via PATCH /api/tournaments/:id. */
@@ -598,13 +615,18 @@ export default function TournamentDetail({
     rakeClaiming = false,
     refund,
     emergency,
+    unclaimed,
+    hostEmergencyRefundUsdc,
+    hostRefundClaiming = false,
     onRegister,
     onUnregister,
     onGoToTable,
     onFundAndOpen,
     onClaimRake,
     onClaimRefund,
+    onClaimPrize,
     onEnableEmergencyRefund,
+    onClaimHostEmergencyRefund,
     onBack,
     onUpdateBranding,
     onUpdateDescription,
@@ -1296,6 +1318,9 @@ export default function TournamentDetail({
                                             <PayoutsPanel
                                                 tournament={t}
                                                 linkColor={linkColor}
+                                                myWallet={myWallet}
+                                                unclaimed={unclaimed}
+                                                onClaimPrize={onClaimPrize}
                                             />
                                         ) : (
                                             <PrimaryActions
@@ -1349,8 +1374,17 @@ export default function TournamentDetail({
                                                 hostRakeUsdc={hostRakeUsdc}
                                                 rakeClaiming={rakeClaiming}
                                                 actionLoading={actionLoading}
+                                                hostEmergencyRefundUsdc={
+                                                    hostEmergencyRefundUsdc
+                                                }
+                                                hostRefundClaiming={
+                                                    hostRefundClaiming
+                                                }
                                                 onFundAndOpen={onFundAndOpen}
                                                 onClaimRake={onClaimRake}
+                                                onClaimHostEmergencyRefund={
+                                                    onClaimHostEmergencyRefund
+                                                }
                                             />
                                         </>
                                     )}
@@ -2183,8 +2217,11 @@ function HostPanel({
     hostRakeUsdc,
     rakeClaiming,
     actionLoading,
+    hostEmergencyRefundUsdc,
+    hostRefundClaiming,
     onFundAndOpen,
     onClaimRake,
+    onClaimHostEmergencyRefund,
 }: {
     tournament: Tournament;
     freePlay: boolean;
@@ -2192,8 +2229,11 @@ function HostPanel({
     hostRakeUsdc?: number | null;
     rakeClaiming: boolean;
     actionLoading: boolean;
+    hostEmergencyRefundUsdc?: number | null;
+    hostRefundClaiming?: boolean;
     onFundAndOpen?: () => void;
     onClaimRake?: () => void;
+    onClaimHostEmergencyRefund?: () => void;
 }) {
     const accentBg = useColorModeValue(
         'rgba(253, 197, 29, 0.10)',
@@ -2320,6 +2360,65 @@ function HostPanel({
                         </Button>
                     )}
                 </HStack>
+            )}
+
+            {t.status === 'emergency_refund' && !freePlay && (
+                <VStack align="stretch" spacing={2}>
+                    <Text fontSize="sm" color="text.secondary" lineHeight={1.5}>
+                        This tournament stalled and went to emergency refunds.
+                        Players are recovering their buy-ins, and the guarantee
+                        you funded is reserved for you to reclaim.
+                    </Text>
+                    <HStack justify="space-between" flexWrap="wrap" gap={3}>
+                        <Stat label="Your guarantee deposit">
+                            {hostEmergencyRefundUsdc === null ||
+                            hostEmergencyRefundUsdc === undefined ? (
+                                <HStack spacing={2}>
+                                    <Spinner size="xs" />
+                                    <Text fontSize="sm" color="text.muted">
+                                        Loading…
+                                    </Text>
+                                </HStack>
+                            ) : hostEmergencyRefundUsdc > 0 ? (
+                                <HStack spacing={1}>
+                                    <Image
+                                        src={USDC_LOGO}
+                                        alt=""
+                                        boxSize="14px"
+                                    />
+                                    <Text
+                                        fontWeight="bold"
+                                        color={USDC_BLUE}
+                                        sx={{
+                                            fontVariantNumeric: 'tabular-nums',
+                                        }}
+                                    >
+                                        ${formatUsdc(hostEmergencyRefundUsdc)}
+                                    </Text>
+                                    <Text fontSize="xs" color="text.muted">
+                                        reclaimable
+                                    </Text>
+                                </HStack>
+                            ) : (
+                                <Text fontSize="sm" color="text.muted">
+                                    Nothing to reclaim, already withdrawn.
+                                </Text>
+                            )}
+                        </Stat>
+                        {(hostEmergencyRefundUsdc ?? 0) > 0 && (
+                            <Button
+                                variant="tactilePrimary"
+                                size="md"
+                                minH="44px"
+                                isLoading={hostRefundClaiming}
+                                loadingText="Reclaiming…"
+                                onClick={onClaimHostEmergencyRefund}
+                            >
+                                Reclaim deposit
+                            </Button>
+                        )}
+                    </HStack>
+                </VStack>
             )}
         </VStack>
     );
@@ -2790,9 +2889,15 @@ function HostedByLine({
 function PayoutsPanel({
     tournament: t,
     linkColor,
+    myWallet,
+    unclaimed,
+    onClaimPrize,
 }: {
     tournament: Tournament;
     linkColor: string;
+    myWallet?: string;
+    unclaimed?: UnclaimedPrizeState;
+    onClaimPrize?: () => void;
 }) {
     const prefersReducedMotion = usePrefersReducedMotion();
     const settled = !!t.settlement_tx_hash;
@@ -2800,6 +2905,77 @@ function PayoutsPanel({
     const enter = prefersReducedMotion
         ? undefined
         : `${cashoutIn} 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both`;
+
+    // Rare path: this viewer's auto-payout didn't land, so their prize is waiting
+    // in the contract for a manual claim. Lead with the money + a one-tap claim,
+    // mirroring RefundPanel's "money waiting" geometry.
+    const u = unclaimed ?? {};
+    if (
+        myWallet &&
+        !u.loading &&
+        !u.claimed &&
+        (u.claimableUsdc ?? 0) > 0
+    ) {
+        return (
+            <Flex
+                alignSelf="flex-end"
+                align="center"
+                gap={{ base: 3, md: 5 }}
+                flexWrap="wrap"
+                justify="flex-end"
+                animation={enter}
+            >
+                <VStack align="end" spacing={0}>
+                    <Text
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color="brand.green"
+                        textTransform="uppercase"
+                        letterSpacing="0.1em"
+                    >
+                        Your prize
+                    </Text>
+                    <HStack spacing={1.5}>
+                        <Image
+                            src={USDC_LOGO}
+                            alt=""
+                            boxSize="18px"
+                            animation={
+                                prefersReducedMotion
+                                    ? undefined
+                                    : `${coinFlip} 0.7s ease-out 0.2s both`
+                            }
+                        />
+                        <Text
+                            fontWeight="extrabold"
+                            fontSize="xl"
+                            color={USDC_BLUE}
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            ${formatUsdc(u.claimableUsdc!)}
+                        </Text>
+                        <Text fontSize="xs" color="text.muted">
+                            waiting for you
+                        </Text>
+                    </HStack>
+                    <Text fontSize="xs" color="text.muted" textAlign="right" maxW="260px">
+                        Your payout didn’t land automatically. It’s safe in the
+                        table contract, claim it whenever you’re ready.
+                    </Text>
+                </VStack>
+                <Button
+                    variant="tactilePrimary"
+                    size="md"
+                    minH="44px"
+                    isLoading={u.claiming}
+                    loadingText="Claiming…"
+                    onClick={onClaimPrize}
+                >
+                    Claim prize
+                </Button>
+            </Flex>
+        );
+    }
 
     return (
         <VStack alignSelf="flex-end" align="end" spacing={0.5} animation={enter}>

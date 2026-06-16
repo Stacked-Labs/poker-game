@@ -148,8 +148,9 @@ const TableMenuBurger = ({
                               },
                           }
                         : {
-                              // Closed: idle chrome via tactileChrome variant.
-                              variant: 'tactileChrome',
+                              // Closed: opaque page-toned chip so it reads
+                              // against the table felt.
+                              variant: 'tactileChromeSolid',
                           })}
                 />
                 <MenuList

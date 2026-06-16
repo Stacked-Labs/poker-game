@@ -64,9 +64,17 @@ const LeaveButton = ({
                           },
                       }
                     : {
-                          // Idle: tactileChrome variant — mode-aware.
-                          // Pink-icon hint signals it's a destructive action.
-                          variant: 'tactileChrome',
+                          // Idle: opaque page-toned chip so it reads against
+                          // the table felt in both landscape NavBar and the
+                          // portrait burger menu. Pink-icon hint signals it's
+                          // a destructive action.
+                          //
+                          // Note: tactileChromeSolid sets its own `_dark.color`
+                          // and `_dark._hover`, which would win over a plain
+                          // top-level `color` / `_hover` here. Mirror the pink
+                          // overrides inside `_dark` so the destructive hint
+                          // survives dark mode too.
+                          variant: 'tactileChromeSolid',
                           color: 'brand.pink',
                           _hover: {
                               bg: 'brand.pink',
@@ -78,6 +86,27 @@ const LeaveButton = ({
                               transform: 'translateY(1px)',
                               boxShadow:
                                   'inset 0 1px 2px rgba(0,0,0,0.30), 0 0 0 transparent',
+                          },
+                          _dark: {
+                              color: 'brand.pink',
+                              // Chakra replaces (does not merge) `_dark` from
+                              // the variant when a component sets its own
+                              // `_dark`, so re-include the variant's dark
+                              // borderColor + boxShadow here.
+                              borderColor: 'rgba(255,255,255,0.14)',
+                              boxShadow:
+                                  'inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 0 rgba(0,0,0,0.4)',
+                              _hover: {
+                                  bg: 'brand.pink',
+                                  color: 'white',
+                                  borderColor: 'brand.pink',
+                              },
+                              _active: {
+                                  bg: 'brand.pinkDark',
+                                  transform: 'translateY(1px)',
+                                  boxShadow:
+                                      'inset 0 1px 2px rgba(0,0,0,0.30), 0 0 0 transparent',
+                              },
                           },
                       })}
             />

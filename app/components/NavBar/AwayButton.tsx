@@ -137,9 +137,10 @@ const AwayButton = ({
                           },
                       }
                     : {
-                          // Idle chrome — uses tactileChrome variant via the
-                          // `variant` prop so light/dark mode is automatic.
-                          variant: 'tactileChrome',
+                          // Idle chrome — opaque page-toned chip so it reads
+                          // against the table felt in landscape NavBar and in
+                          // the portrait burger menu without a container.
+                          variant: 'tactileChromeSolid',
                       })}
             />
         </Tooltip>

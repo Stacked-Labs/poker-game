@@ -63,7 +63,11 @@ const slideUp = keyframes`
 // Flip to true to restore the Play Now / Create / Join buttons
 const SHOW_PLAY_BUTTONS = true;
 
-const HomeCard = () => {
+type HomeCardProps = {
+    isBroadcast?: boolean;
+};
+
+const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
     const [isCreating, setIsCreating] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
     const [showPlayOptions, setShowPlayOptions] = useState(false);
@@ -80,7 +84,9 @@ const HomeCard = () => {
     } = useDisclosure();
     const toast = useToastHelper();
     const [isPortrait] = useMediaQuery('(orientation: portrait)');
-    const allowMotion = !prefersReducedMotion;
+    // Broadcast mode disables looping animations (glow pulses, heading swap, card
+    // entrance) so the homepage renders stably in the livestream worker.
+    const allowMotion = !prefersReducedMotion && !isBroadcast;
     const swapHeadingPrimaryMotion = allowMotion
         ? `${swapPrimary} 4.8s ease-in-out infinite`
         : 'none';
@@ -234,14 +240,13 @@ const HomeCard = () => {
                 overflow="hidden"
                 border="1px solid"
                 borderColor="border.lightGray"
-                initial={{ opacity: 0, y: 30, scale: 0.96 }}
+                initial={allowMotion ? { opacity: 0, y: 30, scale: 0.96 } : false}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{
-                    type: 'spring',
-                    stiffness: 200,
-                    damping: 20,
-                    mass: 1,
-                }}
+                transition={
+                    allowMotion
+                        ? { type: 'spring', stiffness: 200, damping: 20, mass: 1 }
+                        : { duration: 0 }
+                }
             >
                 {/* Content */}
                 <Stack

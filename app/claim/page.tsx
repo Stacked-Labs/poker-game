@@ -10,6 +10,7 @@ import { checkSBTEligibility, claimSBT, getSBTInfo, type SBTInfo } from '@/app/h
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { friendlyMessage } from '@/app/utils/toastErrors';
 import ClaimCard from './components/ClaimCard';
+import { track } from '@/app/utils/analytics';
 
 const fireConfetti = () => {
     const reduced =
@@ -49,10 +50,12 @@ export default function ClaimPage() {
     }, [account?.address]);
 
     const handleClaim = async () => {
+        track('free_tokens_claim_started');
         setClaiming(true);
         try {
             const result = await claimSBT();
             if (result.success) {
+                track('free_tokens_claimed');
                 setJustClaimed(true);
                 fireConfetti();
                 if (account?.address) {

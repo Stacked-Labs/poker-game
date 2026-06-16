@@ -56,6 +56,7 @@ import {
 import { CHAIN_CONFIG } from '@/app/thirdwebclient';
 import Turnstile from 'react-turnstile';
 import { keyframes } from '@emotion/react';
+import { track } from '@/app/utils/analytics';
 
 const CREATE_GAME_MESSAGES = [
     'Deploying…',
@@ -540,6 +541,15 @@ const GameSettingLeftSide: React.FC = () => {
         isCreatingRef.current = true;
         setIsLoading(true);
 
+        track('table_create_started', {
+            mode,
+            network: mode === 'real' ? selectedNetwork : null,
+            game_mode: selectedGameMode,
+            small_blind: smallBlind,
+            big_blind: bigBlind,
+            is_public: isPublicGame,
+        });
+
         let didCreate = false;
         try {
             // Ensure HTTP session is initialized so `credentials: include` works as expected
@@ -572,6 +582,11 @@ const GameSettingLeftSide: React.FC = () => {
                         `Your table is ready: ${data.tablename}`
                     );
                     didCreate = true;
+                    track('table_create_completed', {
+                        mode,
+                        network: mode === 'real' ? selectedNetwork : null,
+                        tablename: data.tablename,
+                    });
                     dispatch({ type: 'setTablename', payload: data.tablename });
                     router.push(`/table/${data.tablename}`);
                 } else {

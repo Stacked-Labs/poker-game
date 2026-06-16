@@ -13,7 +13,11 @@ const haloPulse = keyframes`
     100% { transform: scale(1.22); opacity: 0; }
 `;
 
-const ScrollIndicator = () => {
+type ScrollIndicatorProps = {
+    isBroadcast?: boolean;
+};
+
+const ScrollIndicator = ({ isBroadcast = false }: ScrollIndicatorProps) => {
     const { scrollY } = useScroll();
     const opacity = useTransform(scrollY, [0, 400], [1, 0]);
 
@@ -51,7 +55,11 @@ const ScrollIndicator = () => {
                     border="1px solid"
                     borderColor="brand.lightGray"
                     _dark={{ borderColor: 'bg.charcoal' }}
-                    animation={`${haloPulse} 2.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite`}
+                    animation={
+                        isBroadcast
+                            ? 'none'
+                            : `${haloPulse} 2.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite`
+                    }
                     pointerEvents="none"
                 />
 
@@ -105,12 +113,12 @@ const ScrollIndicator = () => {
                 >
                     More below
                     <MotionBox
-                        animate={{ y: [0, 3, 0] }}
-                        transition={{
-                            duration: 1.6,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                        }}
+                        animate={isBroadcast ? { y: 0 } : { y: [0, 3, 0] }}
+                        transition={
+                            isBroadcast
+                                ? { duration: 0 }
+                                : { duration: 1.6, repeat: Infinity, ease: 'easeInOut' }
+                        }
                         display="inline-flex"
                         alignItems="center"
                     >

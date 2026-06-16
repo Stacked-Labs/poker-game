@@ -25,6 +25,9 @@ import {
 } from './constants';
 import GuardModal from '../GuardModal';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
+import { trackSampled } from '@/app/utils/analytics';
+
+const PLAYER_ACTION_SAMPLE_RATE = 0.1;
 
 const AUTO_ACTION_DELAY_MS = 750;
 
@@ -177,6 +180,10 @@ const FooterWithActionButtons = ({
         resetQueuedActions();
         if (socket) {
             playerCall(socket);
+            trackSampled('player_action', PLAYER_ACTION_SAMPLE_RATE, {
+                action: 'call',
+                amount: callAmount,
+            });
         }
     };
 
@@ -184,6 +191,9 @@ const FooterWithActionButtons = ({
         resetQueuedActions();
         if (socket) {
             playerCheck(socket);
+            trackSampled('player_action', PLAYER_ACTION_SAMPLE_RATE, {
+                action: 'check',
+            });
         }
     };
 
@@ -191,6 +201,9 @@ const FooterWithActionButtons = ({
         resetQueuedActions();
         if (socket) {
             playerFold(socket);
+            trackSampled('player_action', PLAYER_ACTION_SAMPLE_RATE, {
+                action: 'fold',
+            });
         }
     };
 

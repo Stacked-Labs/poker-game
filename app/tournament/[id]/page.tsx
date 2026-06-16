@@ -33,6 +33,8 @@ import useToastHelper from '../../hooks/useToastHelper';
 import { friendlyError, friendlyMessage } from '../../utils/toastErrors';
 import { useClaimHostRake } from '../../hooks/useClaimHostRake';
 import { useClaimRefund } from '../../hooks/useClaimRefund';
+import { useClaimUnclaimedPrize } from '../../hooks/useClaimUnclaimedPrize';
+import { useClaimHostEmergencyRefund } from '../../hooks/useClaimHostEmergencyRefund';
 import { useOpenEmergencyRefund } from '../../hooks/useOpenEmergencyRefund';
 import { useFundTournamentGuarantee } from '../../hooks/useFundTournamentGuarantee';
 import { CHAIN_CONFIG } from '../../thirdwebclient';
@@ -111,6 +113,23 @@ export default function TournamentPage() {
         tournament?.chain,
         tournament?.advertised_end_at,
         tournament?.status
+    );
+
+    const unclaimedPrize = useClaimUnclaimedPrize(
+        tournament?.contract_address,
+        tournament?.chain,
+        tournament?.status
+    );
+
+    const isHost =
+        !!myWallet &&
+        tournament?.host_wallet?.toLowerCase() === myWallet.toLowerCase();
+
+    const hostEmergencyRefund = useClaimHostEmergencyRefund(
+        tournament?.contract_address,
+        tournament?.chain,
+        tournament?.status,
+        isHost
     );
 
     const fundChainConfig = tournament?.chain
@@ -452,6 +471,18 @@ export default function TournamentPage() {
         }
     };
 
+    const handleClaimPrize = async () => {
+        const ok = await unclaimedPrize.claim();
+        if (ok) toast.success('Prize claimed!');
+        else toast.error(unclaimedPrize.error ?? 'Claim failed');
+    };
+
+    const handleClaimHostEmergencyRefund = async () => {
+        const ok = await hostEmergencyRefund.claim();
+        if (ok) toast.success('Guarantee deposit reclaimed!');
+        else toast.error(hostEmergencyRefund.error ?? 'Claim failed');
+    };
+
     const handleEnableEmergencyRefund = async () => {
         const ok = await emergencyRefund.open();
         if (ok) {
@@ -537,13 +568,30 @@ export default function TournamentPage() {
                     opening: emergencyRefund.opening,
                     msUntilAvailable: emergencyRefund.msUntilAvailable,
                 }}
+                unclaimed={{
+                    loading: unclaimedPrize.loading,
+                    claimableUsdc:
+                        unclaimedPrize.claimableUsdc == null
+                            ? null
+                            : Number(unclaimedPrize.claimableUsdc),
+                    claiming: unclaimedPrize.claiming,
+                    claimed: unclaimedPrize.claimed,
+                }}
+                hostEmergencyRefundUsdc={
+                    hostEmergencyRefund.depositUsdc == null
+                        ? null
+                        : Number(hostEmergencyRefund.depositUsdc)
+                }
+                hostRefundClaiming={hostEmergencyRefund.claiming}
                 onRegister={handleRegister}
                 onUnregister={handleUnregister}
                 onGoToTable={handleGoToTable}
                 onFundAndOpen={handleFundAndOpen}
                 onClaimRake={handleClaimRake}
                 onClaimRefund={handleClaimRefund}
+                onClaimPrize={handleClaimPrize}
                 onEnableEmergencyRefund={handleEnableEmergencyRefund}
+                onClaimHostEmergencyRefund={handleClaimHostEmergencyRefund}
                 onBack={() => router.push('/public-games?format=tournaments')}
                 onUpdateDescription={handleUpdateDescription}
                 onUpdateBranding={handleUpdateBranding}

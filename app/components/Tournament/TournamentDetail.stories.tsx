@@ -423,6 +423,70 @@ export const EmergencySafetyNet: Story = {
     },
 };
 
+// Completed, but the viewer's auto-payout push failed at settlement — their prize
+// sits in the table contract awaiting a manual claim. The hero-right slot shows the
+// "Claim prize" affordance in place of the usual "Prizes distributed" line.
+export const CompletedUnclaimedPrize: Story = {
+    args: {
+        ...Completed.args,
+        unclaimed: { claimableUsdc: 800_000_000 },
+    },
+};
+
+// Tournament stalled past its advertised end and went to emergency refunds, viewed
+// by the host. Players recover buy-ins (RefundPanel); the host reclaims the
+// guarantee deposit they funded via the new Host-controls reclaim button.
+export const EmergencyRefundHostView: Story = {
+    args: {
+        myWallet: ME,
+        isRegistered: false,
+        players: [],
+        hostEmergencyRefundUsdc: 320_000_000,
+        tournament: makeTournament({
+            id: 112,
+            name: 'Stalled Guarantee',
+            host_wallet: ME,
+            buy_in_usdc: 25_000_000,
+            guarantee_usdc: 500_000_000,
+            min_entries: 10,
+            max_entries: 100,
+            registered_count: 18,
+            status: 'emergency_refund',
+            scheduled_start_at: hours(-30),
+            started_at: hours(-30),
+            advertised_end_at: hours(-26),
+            chain: 'base',
+            contract_address: addr(0x112),
+        }),
+    },
+};
+
+// The same stalled tournament from a registered player's seat: a pro-rata buy-in
+// refund waiting to be claimed. Pairs with EmergencyRefundHostView.
+export const EmergencyRefundPlayerView: Story = {
+    args: {
+        myWallet: ME,
+        isRegistered: true,
+        players: [],
+        refund: { eligible: true, estimatedUsdc: null },
+        tournament: makeTournament({
+            id: 113,
+            name: 'Stalled Guarantee',
+            buy_in_usdc: 25_000_000,
+            guarantee_usdc: 500_000_000,
+            min_entries: 10,
+            max_entries: 100,
+            registered_count: 18,
+            status: 'emergency_refund',
+            scheduled_start_at: hours(-30),
+            started_at: hours(-30),
+            advertised_end_at: hours(-26),
+            chain: 'base',
+            contract_address: addr(0x113),
+        }),
+    },
+};
+
 // Host viewing their own tournament with nothing customized yet: the hero shows
 // the generated default branding plus inline "Add" affordances (hover or tap the
 // banner / avatar) and an "Add a description" prompt. Frontend skeleton — edits

@@ -11,6 +11,7 @@ import ComparisonSection from './components/HomePage/ComparisonSection';
 import Footer from './components/HomePage/Footer';
 import FloatingDecor from './components/HomePage/FloatingDecor';
 import { Metadata } from 'next';
+import BroadcastMotion from './components/HomePage/BroadcastMotion';
 import BackToTopButton from './components/HomePage/BackToTopButton';
 import CoinGecko from './components/HomePage/CoinGeckoClient';
 
@@ -50,10 +51,18 @@ export const metadata: Metadata = {
     },
 };
 
-const HomePage: React.FC = () => {
-    return (
+interface HomePageProps {
+    searchParams: Promise<{ broadcast?: string }>;
+}
+
+const HomePage = async ({ searchParams }: HomePageProps) => {
+    // Lighter "broadcast mode" (?broadcast=1) for the 24/7 livestream worker: skip the
+    // price ticker + autoplay video + hero animations so the homepage renders stably in
+    // headless software-GL Chromium. Normal visitors (no param) are unaffected.
+    const isBroadcast = (await searchParams)?.broadcast === '1';
+    const content = (
         <>
-            <CoinGecko />
+            {!isBroadcast && <CoinGecko />}
             <Box w="100vw">
                 <VStack spacing={0} align="stretch" height={'fit-content'}>
                     <Flex
@@ -61,7 +70,7 @@ const HomePage: React.FC = () => {
                         height={'var(--full-vh)'}
                         width="100%"
                     >
-                        <HomeSection />
+                        <HomeSection isBroadcast={isBroadcast} />
                     </Flex>
                     <Box
                         position="relative"
@@ -72,7 +81,7 @@ const HomePage: React.FC = () => {
                         <Box position="relative" zIndex={1}>
                             <CommunitySection />
                             <ComparisonSection />
-                            <FeaturesSection />
+                            <FeaturesSection isBroadcast={isBroadcast} />
                             <HostToEarnSection />
                             <CustomChipValueSection />
                             <YourTableVaultSection />
@@ -83,9 +92,16 @@ const HomePage: React.FC = () => {
                     </Box>
                 </VStack>
             </Box>
-            <BackToTopButton />
+            {!isBroadcast && <BackToTopButton />}
         </>
     );
+
+    // In broadcast mode, force-disable all Framer Motion animations server-side so the
+    // reveal-on-scroll sections (FAQ etc.) render at their visible final state instead of
+    // staying hidden, and the page doesn't thrash software-GL Chromium while the stream
+    // auto-scrolls. Done here (not in providers) because this is where `broadcast` is
+    // known server-side, so the SSR HTML is already correct.
+    return isBroadcast ? <BroadcastMotion>{content}</BroadcastMotion> : content;
 };
 
 export default HomePage;

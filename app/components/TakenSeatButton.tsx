@@ -17,7 +17,11 @@ import {
 } from '@chakra-ui/react';
 import { FiSmile } from 'react-icons/fi';
 import ConnectXPrompt from './ConnectXPrompt';
-import SeatStatusChip from './SeatStatusChip';
+import SeatStatusChip, {
+    SEAT_BADGE_STYLE,
+    SEAT_BADGE_PORTRAIT_SX,
+    SEAT_BADGE_TOP_OFFSET,
+} from './SeatStatusChip';
 import { getSeatStatus } from '@/app/lib/seatStatus';
 import { keyframes } from '@emotion/react';
 import {
@@ -1265,25 +1269,20 @@ const TakenSeatButton = ({
                         />
                         {strengthLabel && (
                             <Tag
+                                {...SEAT_BADGE_STYLE}
                                 position="absolute"
-                                top={{ base: -2, md: -3 }}
+                                top={SEAT_BADGE_TOP_OFFSET}
                                 left={'50%'}
                                 transform={'translateX(-50%)'}
                                 bg="brand.green"
                                 color="white"
                                 variant="solid"
-                                size={{ base: 'xs', md: 'sm' }}
-                                fontSize={{ base: '8px', md: 'sm' }}
-                                px={{ base: 1.5, md: 2 }}
-                                py={{ base: 0, md: 0.5 }}
+                                borderColor="brand.greenDark"
                                 whiteSpace="nowrap"
                                 pointerEvents="none"
                                 zIndex={4}
-                                fontWeight="bold"
-                                borderRadius="6px"
-                                border="1px solid"
-                                borderColor="brand.greenDark"
                                 boxShadow="0 0 16px rgba(54, 163, 123, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)"
+                                sx={SEAT_BADGE_PORTRAIT_SX}
                             >
                                 {strengthLabel}
                             </Tag>

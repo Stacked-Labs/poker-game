@@ -40,6 +40,7 @@ import { handleLeaveTable } from '@/app/hooks/useTableOptions';
 import { cancelSeatRequest } from '@/app/hooks/server_actions';
 import LeaveSeatAction from './Settings/LeaveSeatAction';
 import CancelSeatRequestAction from './Settings/CancelSeatRequestAction';
+import { track } from '@/app/utils/analytics';
 
 const CHIPS_PER_USDC = 100;
 const USDC_LOGO_URL = '/usdc-logo.png';
@@ -164,6 +165,7 @@ const WithdrawButton = () => {
             : '0.00';
 
     const handleWithdraw = async () => {
+        track('withdrawal_initiated', { chip_balance: Number(chipBalance) });
         const res = await withdraw();
         if (res.ok) {
             success(

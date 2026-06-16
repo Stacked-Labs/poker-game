@@ -33,6 +33,7 @@ import { newPlayer, takeSeat } from '../hooks/server_actions';
 import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { track } from '@/app/utils/analytics';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { useDepositAndJoin } from '../hooks/useDepositAndJoin';
@@ -376,6 +377,12 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
             return error('Authentication Required', cryptoJoinHint);
 
         const buyInValue = buyIn;
+
+        track('seat_requested', {
+            seat_id: seatId,
+            buy_in: buyInValue,
+            mode: isCryptoGame ? 'real' : 'free',
+        });
 
         if (isCryptoGame) {
             if (!contractAddress)

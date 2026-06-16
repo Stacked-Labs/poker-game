@@ -10,6 +10,7 @@ import LobbyBanner from '@/app/components/LobbyBanner';
 import SeatRequestPopup from '@/app/components/SeatRequestPopup';
 import TableClosedModal from '@/app/components/TableClosedModal';
 import WalletChangeReloader from '@/app/components/WalletChangeReloader';
+import WithdrawPromptModal from '@/app/components/WithdrawPromptModal';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
@@ -50,6 +51,7 @@ const TableLayout = async ({
             <LobbyBanner />
             <SeatRequestPopup />
             <TableClosedModal />
+            <WithdrawPromptModal />
             <WalletChangeReloader />
         </>
     );

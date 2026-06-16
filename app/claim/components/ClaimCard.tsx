@@ -17,7 +17,7 @@ interface ClaimCardProps {
     justClaimed?: boolean;
 }
 
-const FALLBACK_IMAGE = '/previews/home_preview.png';
+const FALLBACK_IMAGE = '/previews/sbt_fallback.png';
 const FALLBACK_NAME = 'Stacked Poker Badge';
 
 type ActionState =

@@ -23,6 +23,7 @@ import { keyframes } from '@emotion/react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { type Chain } from 'thirdweb';
 import { useEmergencyWithdrawAll } from '../hooks/useEmergencyWithdrawAll';
+import { track } from '@/app/utils/analytics';
 
 const slideUp = keyframes`
     from { opacity: 0; transform: translateY(20px); }
@@ -42,6 +43,10 @@ const EmergencyWithdrawAllButton = ({ contractAddress, chain }: Props) => {
     const shortAddress = `${contractAddress.slice(0, 6)}…${contractAddress.slice(-4)}`;
 
     const handleConfirm = () => {
+        track('emergency_withdraw_clicked', {
+            contract: contractAddress,
+            retry: status === 'error',
+        });
         onClose();
         if (status === 'error') reset();
         trigger();

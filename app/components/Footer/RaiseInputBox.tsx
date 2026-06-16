@@ -26,6 +26,7 @@ import { playerRaise } from '@/app/hooks/server_actions';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { HOTKEY_BACK, HOTKEY_RAISE } from './constants';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
+import { trackSampled } from '@/app/utils/analytics';
 
 // Display-only formatter for the bet/raise field. In BB (and USDC) mode the raw
 // `chips / bb` value can be an ugly repeating decimal (e.g. 279/70 = 3.9857142…),
@@ -132,6 +133,10 @@ const RaiseInputBox = ({
         (targetBet: number) => {
             if (socket) {
                 playerRaise(socket, targetBet);
+                trackSampled('player_action', 0.1, {
+                    action: 'raise',
+                    amount: targetBet,
+                });
             }
             setShowRaise(false);
         },

@@ -11,6 +11,48 @@ import {
 import type { IconType } from 'react-icons';
 import type { SeatStatusKind } from '../lib/seatStatus';
 
+// Shared sizing tokens for the two seat-top badges (this chip + the
+// hand-strength tag in TakenSeatButton). Kept identical so both render at
+// matching heights at every breakpoint and orientation.
+export const SEAT_BADGE_STYLE = {
+    minH: { base: '16px', md: '20px' },
+    h: { base: '16px', md: '20px' },
+    fontSize: { base: '10px', md: '12px' },
+    px: { base: 1.5, md: 2 },
+    py: 0,
+    fontWeight: 'bold' as const,
+    borderRadius: '6px',
+    border: '1px solid',
+    lineHeight: 1,
+    display: 'inline-flex' as const,
+    alignItems: 'center' as const,
+    letterSpacing: '0.01em',
+};
+
+export const SEAT_BADGE_PORTRAIT_SX = {
+    '@media (orientation: portrait)': {
+        minH: '14px',
+        h: '14px',
+        fontSize: '9px',
+        px: 1,
+        py: 0,
+        borderRadius: '5px',
+    },
+};
+
+export const SEAT_BADGE_ICON_STYLE = {
+    width: { base: '11px', md: '13px' },
+    height: { base: '11px', md: '13px' },
+    sx: {
+        '@media (orientation: portrait)': {
+            width: '10px',
+            height: '10px',
+        },
+    },
+};
+
+export const SEAT_BADGE_TOP_OFFSET = { base: -2, md: -2.5 };
+
 type StatusConfig = {
     label: string;
     icon: IconType;
@@ -74,7 +116,7 @@ const SeatStatusChip = ({
     return (
         <Box
             position="absolute"
-            top={{ base: -2, md: -3 }}
+            top={SEAT_BADGE_TOP_OFFSET}
             right={0}
             zIndex={5}
             pointerEvents="none"
@@ -106,33 +148,27 @@ const StatusTag = ({
     const config = STATUS_CONFIG[kind];
     return (
         <Tag
+            {...SEAT_BADGE_STYLE}
             bg={config.bg}
             color={config.fg}
             variant="solid"
-            size={{ base: 'xs', md: 'sm' }}
-            fontSize={{ base: '8px', md: 'sm' }}
-            px={{ base: 1.5, md: 2 }}
-            py={{ base: 0, md: 0.5 }}
-            fontWeight="bold"
-            borderRadius="6px"
-            border="1px solid"
             borderColor={config.borderColor}
-            display="flex"
-            alignItems="center"
             gap={1}
             aria-label={config.label}
             boxShadow={config.boxShadow}
+            sx={SEAT_BADGE_PORTRAIT_SX}
         >
             <Icon
                 as={config.icon}
                 color={config.fg}
-                boxSize={{ base: 3, md: 3 }}
+                {...SEAT_BADGE_ICON_STYLE}
             />
             {!iconOnly && (
                 <Text
                     as="span"
                     color={config.fg}
                     display={{ base: 'none', md: 'inline' }}
+                    lineHeight={1}
                 >
                     {config.label}
                 </Text>

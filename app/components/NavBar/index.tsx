@@ -195,7 +195,7 @@ const Navbar = () => {
                             py={2}
                             width={{ base: '40px', sm: '40px', md: '48px' }}
                             height={{ base: '40px', sm: '40px', md: '48px' }}
-                            variant={'tactileChrome'}
+                            variant={'tactileChromeSolid'}
                             size={{ base: 'md', md: 'md' }}
                         />
                         {pendingCount > 0 && (
@@ -517,7 +517,7 @@ const Navbar = () => {
                             }
                             aria-label="Chat"
                             onClick={handleChatToggle}
-                            variant={'tactileChrome'}
+                            variant={'tactileChromeSolid'}
                             size={{ base: 'md', md: 'md' }}
                             px={2}
                             py={2}

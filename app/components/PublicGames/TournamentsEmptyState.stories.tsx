@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Box, Container } from '@chakra-ui/react';
-import TournamentsPlaceholder from './TournamentsPlaceholder';
+import TournamentsEmptyState from './TournamentsEmptyState';
 
 const meta = {
-    title: 'PublicGames/TournamentsPlaceholder',
-    component: TournamentsPlaceholder,
+    title: 'PublicGames/TournamentsEmptyState',
+    component: TournamentsEmptyState,
     tags: ['autodocs'],
     parameters: { layout: 'fullscreen', nextjs: { appDirectory: true } },
     decorators: [
@@ -16,9 +16,15 @@ const meta = {
             </Box>
         ),
     ],
-} satisfies Meta<typeof TournamentsPlaceholder>;
+} satisfies Meta<typeof TournamentsEmptyState>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+// The honest empty state, no fabricated tournaments.
 export const Default: Story = {};
+
+// With a click handler instead of a link (e.g. opening the create flow in place).
+export const WithCreateHandler: Story = {
+    args: { onCreate: () => {} },
+};

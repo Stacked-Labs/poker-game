@@ -3,12 +3,22 @@ import { useState } from 'react';
 import { Box, Container } from '@chakra-ui/react';
 import FormatTabs, { type GameFormat } from './FormatTabs';
 
-function Interactive({ initial }: { initial: GameFormat }) {
+function Interactive({
+    initial,
+    tournamentCount,
+}: {
+    initial: GameFormat;
+    tournamentCount?: number;
+}) {
     const [format, setFormat] = useState<GameFormat>(initial);
     return (
         <Box bg="card.lightGray" minH="240px" py={{ base: 6, md: 10 }}>
             <Container maxW="container.xl" px={{ base: 3, md: 6, lg: 8 }}>
-                <FormatTabs format={format} onChange={setFormat} />
+                <FormatTabs
+                    format={format}
+                    onChange={setFormat}
+                    tournamentCount={tournamentCount}
+                />
             </Container>
         </Box>
     );
@@ -30,4 +40,9 @@ export const CashSelected: Story = {
 
 export const TournamentsSelected: Story = {
     render: () => <Interactive initial="tournaments" />,
+};
+
+// The prominent treatment: a live count badge draws the eye to Tournaments.
+export const TournamentsWithCount: Story = {
+    render: () => <Interactive initial="tournaments" tournamentCount={12} />,
 };

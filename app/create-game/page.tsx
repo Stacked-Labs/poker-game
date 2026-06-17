@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import GameSettingLeftSide from '../components/CreateGame/GameSettingLeftSide';
 import Footer from '../components/HomePage/Footer';
 import { Metadata } from 'next';
@@ -58,7 +59,9 @@ const CreateGamePage: React.FC = () => {
                 position="relative"
                 zIndex={1}
             >
-                <GameSettingLeftSide />
+                <Suspense fallback={null}>
+                    <GameSettingLeftSide />
+                </Suspense>
             </Flex>
             <Footer />
         </Box>

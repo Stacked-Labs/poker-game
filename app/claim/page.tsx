@@ -8,6 +8,7 @@ import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
 import { checkSBTEligibility, claimSBT, getSBTInfo, type SBTInfo } from '@/app/hooks/server_actions';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { friendlyMessage } from '@/app/utils/toastErrors';
 import ClaimCard from './components/ClaimCard';
 import { track } from '@/app/utils/analytics';
 
@@ -62,7 +63,11 @@ export default function ClaimPage() {
                     setEligibility(updated);
                 }
             } else {
-                toast.error('Claim failed', result.message ?? 'Something went wrong');
+                const { title, description } = friendlyMessage(result.message, {
+                    title: 'Claim failed',
+                    description: 'Something went wrong. Please try again.',
+                });
+                toast.error(title, description);
             }
         } catch {
             toast.error('Claim failed', 'Network error, please try again');

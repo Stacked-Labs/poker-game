@@ -7,6 +7,7 @@ import GameStatusBanner from './GameStatusBanner';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import type { AppState, Game } from '@/app/interfaces';
+import { makeTournamentLive } from './Tournament/tournamentMocks';
 
 const mockSocket = {
     readyState: 1,
@@ -58,7 +59,9 @@ const baseAppState: AppState = {
     isTableOwner: false,
     settlementStatus: null,
     displayMode: 'chips',
+    displayModeExplicit: false,
     tableClosed: null,
+    tournamentLive: null,
 };
 
 // ─── Decorator ──────────────────────────────────────────────────────────────
@@ -218,6 +221,106 @@ export const PendingBlinds: Story = {
         makeDecorator({
             gameOverride: { pendingBlinds: { sb: 50, bb: 100 } },
         }),
+    ],
+};
+
+// ─── Tournament clock (ambient countdown) ──────────────────────────────────
+//
+// Lowest-priority state: the next-level countdown ticks down locally between WS
+// pushes. Reload to restart the tick. Yields to any settlement/pause state.
+
+const tournamentClockState = (remainingMs: number): Partial<AppState> => ({
+    settlementStatus: null,
+    tournamentLive: makeTournamentLive({
+        clock: {
+            level: 7,
+            levelNumber: 7,
+            sb: 300,
+            bb: 600,
+            ante: 600,
+            remainingMs,
+            totalMs: 600_000,
+            receivedAt: Date.now(),
+        },
+    }),
+});
+
+export const TournamentClockAmbient: Story = {
+    name: 'Tournament clock — ambient',
+    decorators: [
+        makeDecorator({
+            appStateOverride: tournamentClockState(8 * 60_000 + 42_000),
+        }),
+    ],
+};
+
+export const TournamentClockLastMinute: Story = {
+    name: 'Tournament clock — last 60s (blinds up soon)',
+    decorators: [
+        makeDecorator({ appStateOverride: tournamentClockState(45_000) }),
+    ],
+};
+
+// ─── Rest breaks ────────────────────────────────────────────────────────────
+//
+// "Break coming" hint: the final minute of the level immediately before a break
+// (next break follows the current level, secondsToNextBreak inside the window) —
+// the clock banner reads "Break in m:ss" instead of "Blinds up in m:ss".
+
+const breakComingState = (remainingMs: number): Partial<AppState> => ({
+    settlementStatus: null,
+    tournamentLive: makeTournamentLive({
+        clock: {
+            level: 6,
+            levelNumber: 6,
+            sb: 200,
+            bb: 400,
+            ante: 400,
+            remainingMs,
+            totalMs: 600_000,
+            receivedAt: Date.now(),
+            onBreak: false,
+            secondsToNextBreak: Math.round(remainingMs / 1000),
+            nextBreakAfterLevel: 6,
+        },
+    }),
+});
+
+export const TournamentBreakComing: Story = {
+    name: 'Rest break — coming (final minute, "Break in m:ss")',
+    decorators: [makeDecorator({ appStateOverride: breakComingState(42_000) })],
+};
+
+// On break: the level is frozen at N and the banner counts down the break
+// remainder, "On break — m:ss · Level N+1 next".
+const onBreakState = (breakRemainingMs: number): Partial<AppState> => ({
+    settlementStatus: null,
+    tournamentLive: makeTournamentLive({
+        clock: {
+            level: 6,
+            levelNumber: 6,
+            sb: 200,
+            bb: 400,
+            ante: 400,
+            remainingMs: 0,
+            totalMs: 600_000,
+            receivedAt: Date.now(),
+            onBreak: true,
+            breakRemainingMs,
+            // Real server shape: WHILE on a break the clock's nextBreakAfterLevel
+            // points at the NEXT FUTURE break (here, after L9 for Regular cadence),
+            // NOT the break in progress. The banner must still resume into L7 by
+            // reading the frozen levelNumber — pinning this to 6 previously masked
+            // that bug.
+            nextBreakAfterLevel: 9,
+        },
+    }),
+});
+
+export const TournamentOnBreak: Story = {
+    name: 'Rest break — on break ("On break — m:ss · Level 7 next")',
+    decorators: [
+        makeDecorator({ appStateOverride: onBreakState(4 * 60_000 + 32_000) }),
     ],
 };
 

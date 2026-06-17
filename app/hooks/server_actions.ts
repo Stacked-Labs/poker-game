@@ -597,6 +597,255 @@ export async function getPublicGames(params?: {
     }
 }
 
+// --- Tournament API ---
+
+export interface Tournament {
+    id: number;
+    host_uuid: string;
+    host_wallet: string;
+    name: string;
+    description: string;
+    template_id: string;
+    buy_in_usdc: number;
+    fee_bps: number;
+    min_entries: number;
+    max_entries: number;
+    guarantee_usdc: number;
+    scheduled_start_at: string;
+    late_reg_close_at: string;
+    late_reg_levels: number;
+    advertised_end_at: string;
+    table_size: number;
+    starting_stack: number;
+    starting_stack_bb: number;
+    status: string;
+    prize_pool_usdc: number;
+    metadata: Record<string, unknown>;
+    created_at: string;
+    contract_address?: string;
+    chain?: string;
+    is_private: boolean;
+    registered_count?: number;
+    reentry_allowed: boolean;
+    reentry_max: number;
+    started_at?: string;
+    ended_at?: string;
+    settlement_tx_hash?: string;
+    settlement_status?: 'paid' | 'pending';
+    // Host branding (optional). Populated once the backend stores uploaded
+    // images; the UI falls back to the default look when absent.
+    logo_url?: string;
+    banner_url?: string;
+    // Host community links (optional). Any may be empty. chart_url is
+    // provider-agnostic (DexScreener, GeckoTerminal, etc.).
+    x_url?: string;
+    website_url?: string;
+    discord_url?: string;
+    telegram_url?: string;
+    chart_url?: string;
+}
+
+export async function listTournaments(): Promise<{ tournaments: Tournament[] }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments`, { method: 'GET' });
+    if (!res.ok) throw new Error(`listTournaments: ${res.statusText}`);
+    return res.json();
+}
+
+export async function getTournament(id: number): Promise<{ tournament: Tournament }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}`, { method: 'GET' });
+    if (!res.ok) throw new Error(`getTournament: ${res.statusText}`);
+    return res.json();
+}
+
+export async function createTournament(data: {
+    name?: string;
+    description?: string;
+    min_entries: number;
+    max_entries: number;
+    buy_in_usdc: number;
+    guarantee_usdc?: number;
+    scheduled_start_at: string;
+    blind_structure?: string;
+    late_reg_levels?: number;
+    table_size?: number;
+    reentry_allowed?: boolean;
+    reentry_max?: number;
+    chain?: string;
+    is_private?: boolean;
+    password_code_hash?: string;
+}): Promise<{ tournament: Tournament }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// Host-only partial update of a tournament's cosmetic fields (description,
+// community links, branding image URLs). Only the provided fields are changed;
+// an empty string clears a link/branding value. Matches PATCH /api/tournaments/:id.
+export async function updateTournament(
+    id: number,
+    patch: {
+        description?: string;
+        logo_url?: string | null;
+        banner_url?: string | null;
+        x_url?: string | null;
+        website_url?: string | null;
+        discord_url?: string | null;
+        telegram_url?: string | null;
+        chart_url?: string | null;
+    }
+): Promise<{ tournament: Tournament }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// Host-only branding image upload (logo or banner). Sends the raw file as
+// multipart; the backend validates type/size, stores it, persists the resulting
+// URL on the tournament, and returns the updated tournament. Matches
+// POST /api/tournaments/:id/branding.
+export async function uploadTournamentBranding(
+    id: number,
+    kind: 'logo' | 'banner',
+    file: File
+): Promise<{ tournament: Tournament }> {
+    isBackendUrlValid();
+    const form = new FormData();
+    form.append(kind, file);
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/branding`, {
+        method: 'POST',
+        credentials: 'include',
+        body: form,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+export async function openTournamentRegistration(id: number): Promise<void> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/open-registration`, {
+        method: 'POST',
+        credentials: 'include',
+    });
+    if (!res.ok) throw new Error(await res.text());
+}
+
+export async function registerForTournament(
+    id: number,
+    options?: { passwordCodeHash?: string },
+): Promise<{ player_uuid: string }> {
+    isBackendUrlValid();
+    const body = options?.passwordCodeHash
+        ? JSON.stringify({ password_code_hash: options.passwordCodeHash })
+        : undefined;
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/register`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: body ? { 'Content-Type': 'application/json' } : undefined,
+        body,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// getRegistrationPermit fetches a single-use operator signature for registering
+// to a private CRYPTO tournament. The server verifies the access-code hash, then
+// signs a permit bound to the caller's wallet and on-chain nonce. The returned
+// operator_sig is passed to the contract's register()/reEnter() call.
+export async function getRegistrationPermit(
+    id: number,
+    passwordCodeHash: string,
+): Promise<{ operator_sig: string }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/permit`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password_code_hash: passwordCodeHash }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+export async function unregisterFromTournament(id: number): Promise<void> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/register`, {
+        method: 'DELETE',
+        credentials: 'include',
+    });
+    if (!res.ok) throw new Error(await res.text());
+}
+
+export async function startTournament(id: number): Promise<void> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/start`, {
+        method: 'POST',
+        credentials: 'include',
+    });
+    if (!res.ok) throw new Error(await res.text());
+}
+
+// Full clock snapshot from GET /clock — matches the WS tournament-clock payload
+// (poker-server/transport/http/tournament_handler.go handleGetClock).
+export interface TournamentClockResponse {
+    level: number;
+    level_number: number;
+    small: number;
+    big: number;
+    ante: number;
+    remaining_ms: number;
+    total_ms: number;
+    // Rest breaks (mirror poker-server clockResponse). During a break the level
+    // fields stay at N; next_break_after_level tells the client N+1 is next.
+    on_break?: boolean;
+    break_remaining_ms?: number;
+    seconds_to_next_break?: number;
+    next_break_after_level?: number;
+}
+
+export async function getTournamentClock(
+    id: number
+): Promise<TournamentClockResponse | null> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/clock`, { method: 'GET' });
+    if (!res.ok) return null;
+    return res.json();
+}
+
+export async function getMyTournamentRegistrations(): Promise<{
+    tournament_ids: number[];
+    finish_pos: Record<number, number>;
+}> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/registrations`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!res.ok) return { tournament_ids: [], finish_pos: {} };
+    return res.json();
+}
+
+export async function getTournamentLeaderboard(id: number) {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/leaderboard`, { method: 'GET' });
+    if (!res.ok) return null;
+    return res.json();
+}
+
 export async function getTableSpectatorCount(tableName: string): Promise<number> {
     isBackendUrlValid();
 

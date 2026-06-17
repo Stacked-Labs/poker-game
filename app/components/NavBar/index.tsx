@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useContext } from 'react';
+import { usePathname } from 'next/navigation';
 import {
     HStack,
     Flex,
@@ -47,6 +48,8 @@ const pulseAnimation = keyframes`
 `;
 
 const Navbar = () => {
+    const pathname = usePathname();
+    const isTournamentTable = pathname?.includes('/table/tournament-') ?? false;
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { isOpen: isOpenChat, onToggle: onToggleChat } = useDisclosure();
     const { appState, dispatch } = useContext(AppContext);
@@ -223,7 +226,7 @@ const Navbar = () => {
                             </Flex>
                         )}
                     </Box>
-                    {isUserSeated && (
+                    {isUserSeated && !isTournamentTable && (
                         <Box
                             className="navbar-away-wrapper"
                             sx={{
@@ -252,7 +255,7 @@ const Navbar = () => {
                         </Box>
                     )}
                     <StartGameButton />
-                    {isUserSeated && isAway && (
+                    {isUserSeated && isAway && !isTournamentTable && (
                         <Box
                             className="navbar-away-portrait-wrapper"
                             sx={{
@@ -477,7 +480,7 @@ const Navbar = () => {
                         <VolumeButton />
                     </Box>
                     {/* Away toggle is now placed on the left next to Settings */}
-                    {isUserSeated && (
+                    {isUserSeated && !isTournamentTable && (
                         <Box
                             className="navbar-leave-wrapper"
                             sx={{

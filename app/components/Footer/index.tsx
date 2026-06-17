@@ -34,10 +34,6 @@ const Footer = () => {
         localPlayer && typeof localPlayer.position === 'number'
             ? localPlayer.position
             : -1;
-    const owesSB =
-        playerIndex >= 0
-            ? Boolean(appState.game?.owesSB?.[playerIndex])
-            : false;
     const owesBB =
         playerIndex >= 0
             ? Boolean(appState.game?.owesBB?.[playerIndex])
@@ -48,7 +44,7 @@ const Footer = () => {
             : false;
     const hasBlindObligation =
         !!localPlayer &&
-        (owesSB || owesBB || waitingForBB || appState.blindObligation);
+        (owesBB || waitingForBB || appState.blindObligation);
 
     const isActuallyAway = Boolean(
         localPlayer &&

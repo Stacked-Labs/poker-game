@@ -2,8 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { getContract, prepareContractCall, type Chain } from 'thirdweb';
-import { useSendAndConfirmTransaction, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { client } from '../thirdwebclient';
+import { useChainBoundSend } from './useChainBoundSend';
+import { isGasShortage, GAS_SHORTAGE_MESSAGE } from '../utils/toastErrors';
 
 export type EmergencyWithdrawAllStatus = 'idle' | 'pending' | 'success' | 'error';
 
@@ -21,8 +22,7 @@ export function useEmergencyWithdrawAll(
     const [status, setStatus] = useState<EmergencyWithdrawAllStatus>('idle');
     const [error, setError] = useState<string | null>(null);
 
-    const { mutateAsync: sendAndConfirm } = useSendAndConfirmTransaction();
-    const switchChain = useSwitchActiveWalletChain();
+    const sendOnChain = useChainBoundSend();
 
     const reset = useCallback(() => {
         setStatus('idle');
@@ -38,7 +38,6 @@ export function useEmergencyWithdrawAll(
 
         try {
             setStatus('pending');
-            await switchChain(chain);
 
             const pokerContract = getContract({
                 client,
@@ -52,16 +51,20 @@ export function useEmergencyWithdrawAll(
                 params: [],
             });
 
-            await sendAndConfirm(tx);
+            await sendOnChain(chain, tx);
             setStatus('success');
             return true;
         } catch (err) {
             console.error('[useEmergencyWithdrawAll] failed:', err);
-            setError(err instanceof Error ? err.message : 'Transaction failed');
+            const rawMessage =
+                err instanceof Error
+                    ? err.message
+                    : 'Something went wrong submitting the withdrawal. Please try again.';
+            setError(isGasShortage(err) ? GAS_SHORTAGE_MESSAGE : rawMessage);
             setStatus('error');
             return false;
         }
-    }, [contractAddress, chain, sendAndConfirm, switchChain]);
+    }, [contractAddress, chain, sendOnChain]);
 
     return { trigger, status, error, reset };
 }

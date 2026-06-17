@@ -19,6 +19,7 @@ import {
 } from '@chakra-ui/react';
 import Link from 'next/link';
 import EmergencyWithdrawAllButton from '../EmergencyWithdrawAllButton';
+import ChainBadge from '../ChainBadge';
 import { CHAIN_CONFIG, defaultChain } from '../../thirdwebclient';
 import { Card, StatusDot } from './Primitives';
 import type { AdminTablesResponse } from '../../stats/types';
@@ -345,17 +346,7 @@ export const TablesTab = ({
                                     </Td>
                                     <Td {...cellBorder}>
                                         {t.chain ? (
-                                            <Badge
-                                                bg={t.chain === 'base' ? 'brand.green' : 'card.lightGray'}
-                                                color={t.chain === 'base' ? 'white' : 'text.secondary'}
-                                                fontSize="xs"
-                                                px={2}
-                                                borderRadius="full"
-                                                textTransform="none"
-                                                fontWeight={700}
-                                            >
-                                                {t.chain === 'base' ? 'Mainnet' : 'Testnet'}
-                                            </Badge>
+                                            <ChainBadge chain={t.chain} size="sm" variant="symbol" />
                                         ) : (
                                             <Text fontSize="xs" color="text.secondary">—</Text>
                                         )}

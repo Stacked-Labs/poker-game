@@ -8,6 +8,7 @@ import {
 } from 'thirdweb/react';
 import { getAuthPayload, verifySignedPayload, isAuth } from './server_actions';
 import useToastHelper from './useToastHelper';
+import { isUserRejection } from '../utils/toastErrors';
 
 const DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
 
@@ -81,8 +82,8 @@ export const useWalletAuth = (onAuthComplete?: OnAuthCompleteCallback) => {
 
                 if (result.success) {
                     success(
-                        'Authentication Successful',
-                        'You have been successfully authenticated.'
+                        'Signed in',
+                        'Your wallet is verified — you\'re good to go.'
                     );
                     // Case 2: Immediately refresh auth status after successful SIWE
                     // This triggers WS reconnect so ownership is recognized without page refresh
@@ -94,35 +95,25 @@ export const useWalletAuth = (onAuthComplete?: OnAuthCompleteCallback) => {
                     authAttemptRef.current = null;
                     disconnect(wallet);
                     showError(
-                        'Authentication Failed',
-                        'Signature verification failed. Please try again.'
+                        'Sign-in failed',
+                        'We couldn\'t verify your signature. Please try again.'
                     );
                 }
             } catch (err: unknown) {
                 console.error('Authentication error:', err);
                 authAttemptRef.current = null;
 
-                const error = err as {
-                    message?: string;
-                    code?: number | string;
-                };
-                if (
-                    error?.message?.includes('rejected') ||
-                    error?.message?.includes('denied') ||
-                    error?.message?.includes('cancelled') ||
-                    error?.code === 4001 ||
-                    error?.code === 'ACTION_REJECTED'
-                ) {
+                if (isUserRejection(err)) {
                     disconnect(wallet);
                     warning(
-                        'Authentication Required',
-                        'You must sign the message to use the app.'
+                        'Signature needed',
+                        'Sign the message in your wallet to use the app.'
                     );
                 } else {
                     disconnect(wallet);
                     showError(
-                        'Authentication Failed',
-                        'There was an error during authentication. Please try again.'
+                        'Sign-in failed',
+                        'Something went wrong signing you in. Please try again.'
                     );
                 }
             } finally {

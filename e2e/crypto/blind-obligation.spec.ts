@@ -12,10 +12,11 @@
  * While hand 2 is ongoing, owner must see BlindObligationControls. playerB
  * and playerC must not.
  *
- * Per Robert's Rules:
- *   - Missing BB only     → post live BB to re-enter immediately.
- *   - Missing SB + BB     → post dead SB + live BB, or wait for natural BB.
- *   - "Wait for BB"       → skip until the blind reaches your seat naturally.
+ * House rule (issue #380): missing any blind costs exactly one BB on return.
+ * No dead SB, no SB-only obligation, no compounding across multiple missed
+ * hands. Choices on return:
+ *   - "Post now"    → post one BB at the next hand start, then play normally.
+ *   - "Wait for BB" → skip until the blind reaches your seat naturally.
  *
  * Crypto-specific notes:
  *   - Setup uses on-chain deposits — allow CHAIN_TIMEOUT for seat confirmation.
@@ -43,7 +44,7 @@ test('Crypto: owner queues sit-out mid-hand → sees blind obligation controls d
     await setupCryptoGameThreePlayers(
         cryptoPlayerA, cryptoPlayerB, cryptoPlayerC,
         PK_A, PK_B, PK_C,
-        '100', CHAIN_TIMEOUT
+        '0.30', CHAIN_TIMEOUT
     );
 
     // ── Start hand 1 ──────────────────────────────────────────────────────
@@ -74,6 +75,14 @@ test('Crypto: owner queues sit-out mid-hand → sees blind obligation controls d
     ).toHaveAttribute('aria-label', "I'm back", { timeout: 30_000 });
 
     // ── Wait for hand 2 to be running (playerB vs playerC) ────────────────
+    await cryptoPlayerB
+        .locator('[data-testid="game-stage"][data-stage="preflop"]')
+        .waitFor({ timeout: 30_000 });
+
+    // End hand 2 so owner's BB position is skipped → oweBB obligation set
+    await endHandByFolding([cryptoPlayerB, cryptoPlayerC], 1);
+
+    // ── Wait for hand 3 ───────────────────────────────────────────────────
     await cryptoPlayerB
         .locator('[data-testid="game-stage"][data-stage="preflop"]')
         .waitFor({ timeout: 30_000 });
@@ -109,7 +118,7 @@ test('Crypto: owner with blind obligation can post now and clear the obligation'
     await setupCryptoGameThreePlayers(
         cryptoPlayerA, cryptoPlayerB, cryptoPlayerC,
         PK_A, PK_B, PK_C,
-        '100', CHAIN_TIMEOUT
+        '0.30', CHAIN_TIMEOUT
     );
 
     await startGame(cryptoPlayerA);
@@ -135,7 +144,15 @@ test('Crypto: owner with blind obligation can post now and clear the obligation'
         .locator('[data-testid="game-stage"][data-stage="preflop"]')
         .waitFor({ timeout: 30_000 });
 
-    // Blind obligation controls appear while hand 2 is running
+    // End hand 2 so owner's BB position is skipped → oweBB obligation set
+    await endHandByFolding([cryptoPlayerB, cryptoPlayerC], 1);
+
+    // ── Wait for hand 3 ───────────────────────────────────────────────────
+    await cryptoPlayerB
+        .locator('[data-testid="game-stage"][data-stage="preflop"]')
+        .waitFor({ timeout: 30_000 });
+
+    // Blind obligation controls appear while hand 3 is running
     await expect(
         cryptoPlayerA.getByTestId('blind-obligation-controls')
     ).toBeVisible({ timeout: 15_000 });
@@ -151,7 +168,7 @@ test('Crypto: owner with blind obligation can post now and clear the obligation'
     }
     await expect(postBtn).toContainText('Queued');
 
-    // End hand 2 so the queued post executes at the next preflop boundary
+    // End hand 3 so the queued post executes at the next preflop boundary
     await endHandByFolding([cryptoPlayerB, cryptoPlayerC], 1);
 
     // Controls disappear once payOwedBlinds is processed and obligation cleared

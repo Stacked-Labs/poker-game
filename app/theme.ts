@@ -44,6 +44,8 @@ const colors = {
         greenEdge: '#22674E',
         yellow: '#FDC51D',
         yellowDark: '#B78900',
+        yellowEdge: '#8A6A00',
+        base: '#0052FF',
         telegram: '#0088CC',
         telegramDark: '#0077B5',
         telegramEdge: '#006A9D',
@@ -174,6 +176,42 @@ const semanticTokens = {
         'border.felt': {
             default: 'rgba(255, 255, 255, 0.10)',
             _dark: 'rgba(255, 255, 255, 0.08)',
+        },
+
+        // Tournament reminder surfaces — adaptive, unlike the always-dark felt.
+        // Warm paper in light mode, penthouse felt in dark. The countdown "chip"
+        // sits raised on top with a tactile edge; state chips tint green (soon).
+        'reminder.surface': {
+            default: '#FAF9F6',
+            _dark: 'brand.darkNavy',
+        },
+        'reminder.border': {
+            default: 'rgba(11, 20, 48, 0.08)',
+            _dark: 'rgba(255, 255, 255, 0.08)',
+        },
+        'reminder.chipBg': {
+            default: '#FFFFFF',
+            _dark: 'rgba(255, 255, 255, 0.06)',
+        },
+        'reminder.chipBorder': {
+            default: 'rgba(11, 20, 48, 0.10)',
+            _dark: 'rgba(255, 255, 255, 0.12)',
+        },
+        'reminder.chipEdge': {
+            default: 'rgba(11, 20, 48, 0.14)',
+            _dark: 'rgba(0, 0, 0, 0.45)',
+        },
+        'reminder.soonBg': {
+            default: 'rgba(54, 163, 123, 0.12)',
+            _dark: 'rgba(54, 163, 123, 0.18)',
+        },
+        'reminder.soonText': {
+            default: 'brand.greenDark',
+            _dark: 'brand.green',
+        },
+        'reminder.lateRegText': {
+            default: 'brand.yellowDark',
+            _dark: 'brand.yellow',
         },
 
         // Input
@@ -486,6 +524,7 @@ const components = {
             //
             // tactilePrimary    — solid green. Default brand action.
             // tactileOutline    — green outline. Secondary action paired with primary.
+            // tactileNeutral    — charcoal outline. Neutral secondary (no go/stop tone).
             // tactileDestructive — pink outline. Destructive secondary.
             // tactileTelegram   — solid telegram-blue. Newsletter/community CTA.
             //
@@ -534,6 +573,30 @@ const components = {
                     boxShadow: '0 0 0 #22674E',
                 },
             },
+            // tactileNeutral — charcoal outline. Low-stakes secondary action with
+            // no go/stop connotation (e.g. viewing an ended tournament's results).
+            tactileNeutral: {
+                bg: 'transparent',
+                color: 'text.secondary',
+                border: '2px solid',
+                borderColor: 'currentColor',
+                borderRadius: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow: '0 2px 0 rgba(11, 20, 48, 0.18)',
+                _dark: { boxShadow: '0 2px 0 rgba(0, 0, 0, 0.45)' },
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease',
+                _hover: {
+                    bg: 'rgba(128, 128, 128, 0.14)',
+                    color: 'text.primary',
+                },
+                _active: {
+                    bg: 'rgba(128, 128, 128, 0.2)',
+                    transform: 'translateY(2px)',
+                    boxShadow: '0 0 0',
+                },
+            },
             tactileDestructive: {
                 bg: 'transparent',
                 color: 'brand.pink',
@@ -575,6 +638,27 @@ const components = {
                     transform: 'translateY(2px)',
                     boxShadow:
                         'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #006A9D',
+                },
+            },
+            // tactileGold — solid brand yellow. Celebratory CTA (tournament win).
+            // Dark ink for contrast on the bright fill.
+            tactileGold: {
+                bg: 'brand.yellow',
+                color: '#3D2C00',
+                border: 'none',
+                borderRadius: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                boxShadow:
+                    'inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 0 #8A6A00',
+                transition:
+                    'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease',
+                _hover: { bg: 'brand.yellow' },
+                _active: {
+                    bg: 'brand.yellowDark',
+                    transform: 'translateY(2px)',
+                    boxShadow:
+                        'inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 #8A6A00',
                 },
             },
 

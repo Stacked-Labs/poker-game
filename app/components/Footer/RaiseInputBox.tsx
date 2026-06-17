@@ -28,6 +28,15 @@ import { HOTKEY_BACK, HOTKEY_RAISE } from './constants';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { trackSampled } from '@/app/utils/analytics';
 
+// Display-only formatter for the bet/raise field. In BB (and USDC) mode the raw
+// `chips / bb` value can be an ugly repeating decimal (e.g. 279/70 = 3.9857142…),
+// so cap it to 2 dp for the field. This NEVER touches the exact chip amount held
+// in `betValue` — that's what gets submitted — so all-in stays all-in.
+const formatBetDisplay = (displayValue: number, mode: string): string => {
+    if (mode === 'chips') return String(displayValue);
+    return parseFloat(displayValue.toFixed(2)).toString();
+};
+
 const RaiseInputBox = ({
     isCurrentTurn,
     showRaise,
@@ -95,7 +104,9 @@ const RaiseInputBox = ({
 
     // All hooks must be called before any early returns
     const [betValue, setBetValue] = useState<number>(sliderMinValue);
-    const [betInput, setBetInput] = useState<string>(fromChips(sliderMinValue).toString());
+    const [betInput, setBetInput] = useState<string>(
+        formatBetDisplay(fromChips(sliderMinValue), displayMode)
+    );
 
     // Update both slider and input from controls (buttons/slider), clamped
     const setBetFromControl = useCallback(
@@ -103,9 +114,9 @@ const RaiseInputBox = ({
             isTypingRef.current = false;
             const validated = betValidator(value, minRaise, maxTotalBet);
             setBetValue(validated);
-            setBetInput(fromChips(validated).toString());
+            setBetInput(formatBetDisplay(fromChips(validated), displayMode));
         },
-        [maxTotalBet, minRaise, fromChips]
+        [maxTotalBet, minRaise, fromChips, displayMode]
     );
 
     const half =
@@ -797,6 +808,8 @@ const RaiseInputBox = ({
                     >
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(
@@ -812,6 +825,8 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(
@@ -823,6 +838,8 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(
@@ -838,6 +855,8 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(
@@ -849,6 +868,8 @@ const RaiseInputBox = ({
                         </Button>
                         <Button
                             variant={'raiseActionButton'}
+                            flex={1}
+                            minW={0}
                             isDisabled={gameIsPaused || !isCurrentTurn}
                             onClick={() =>
                                 setBetFromControl(

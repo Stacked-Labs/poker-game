@@ -8,9 +8,10 @@ import {
 } from '@chakra-ui/react';
 import { ReactElement, forwardRef } from 'react';
 import { RiTwitterXLine } from 'react-icons/ri';
-import { FaDiscord, FaTelegram } from 'react-icons/fa';
+import { FaChartLine, FaDiscord, FaTelegram } from 'react-icons/fa';
+import { FiGlobe } from 'react-icons/fi';
 
-export type SocialTone = 'x' | 'discord' | 'telegram';
+export type SocialTone = 'x' | 'discord' | 'telegram' | 'website' | 'chart';
 
 const TONES: Record<
     SocialTone,
@@ -36,6 +37,20 @@ const TONES: Record<
         pressBg: '#0077B5',
         label: 'Telegram',
         icon: <FaTelegram />,
+    },
+    website: {
+        bg: '#475569',
+        edge: '#334155',
+        pressBg: '#3E4A5C',
+        label: 'Website',
+        icon: <FiGlobe />,
+    },
+    chart: {
+        bg: '#36A37B',
+        edge: '#22674E',
+        pressBg: '#2A8463',
+        label: 'Chart',
+        icon: <FaChartLine />,
     },
 };
 

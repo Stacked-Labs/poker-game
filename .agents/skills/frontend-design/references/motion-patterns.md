@@ -146,6 +146,109 @@ In light mode: `startColor="gray.100"` / `endColor="gray.200"`.
 
 ---
 
+## Playful punctuation (tournament & live surfaces)
+
+A small, **earned** layer of character for lived-in surfaces — the live tournament HUD, payout ladders, the details page. Penthouse-playful, never Chuck-E-Cheese: real iconography over emoji, brand tokens over neon, one delight per moment. Every pattern here is gated on `usePrefersReducedMotion()` with a static fallback. Use sparingly — if everything bounces, nothing reads.
+
+### Leader crown
+
+A `PiCrownFill` (react-icons) on the chip leader's avatar / your strip, with a slow royal sway. Static (no animation) under reduced motion — keep a baseline `transform` so it stays put.
+
+```tsx
+const crownBob = keyframes`
+  0%, 100% { transform: translateY(0) rotate(-7deg); }
+  50%      { transform: translateY(-2px) rotate(7deg); }
+`;
+<Icon as={PiCrownFill} color="brand.yellow" boxSize="17px"
+  sx={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.25))' }}
+  animation={prefersReducedMotion ? undefined : `${crownBob} 2.4s ease-in-out infinite`} />
+```
+
+### Coin-rain celebration
+
+A short, one-shot burst at a genuine milestone (reaching the money). Deterministic offsets — **no `Math.random()`** (SSR must agree). USDC discs for real money, chip discs for Free Play. Fire once on the state crossing (see "crossing hook" below), never on idle. Skip entirely under reduced motion.
+
+```tsx
+const coinFall = keyframes`
+  0%   { opacity: 0; transform: translateY(-16px) scale(0.5) rotate(0); }
+  18%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(58px) scale(1) rotate(240deg); }
+`;
+// Render absolutely-positioned coins inside an overflow:hidden parent, each with a
+// fixed left%/delay/duration from a constant array. Bounce easing (0.34,1.56,...).
+```
+
+### Crossing hook (fire-once on a state change)
+
+Reusable shape for "celebrate the moment X becomes true" — drives the coin-rain, ITM flourish, and rank-change pulse. Tracks the previous value in a ref and returns `true` for a beat on the transition.
+
+```tsx
+function useCrossing(active: boolean, ms = 1300): boolean {
+  const prev = useRef(active);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    if (active && !prev.current) {
+      setOn(true);
+      const id = setTimeout(() => setOn(false), ms);
+      prev.current = active; return () => clearTimeout(id);
+    }
+    prev.current = active;
+  }, [active]);
+  return on;
+}
+```
+
+A directional variant (compare numbers, return `'up' | 'down' | null`) drives ▲/▼ rank-change arrows — pop them in with the bounce `popIn` and let them fade.
+
+### Flip tile (tap for detail)
+
+A scoreboard stat that flips on tap/Enter to a detail face — keyboard-accessible (`role="button"`, `tabIndex`, Enter/Space, focus ring), spring easing on the flip, green border to signal the flipped state.
+
+```tsx
+<Box sx={{ perspective: '900px' }} h="96px">
+  <Box role="button" tabIndex={0} onClick={() => setFlipped(f => !f)}
+    transform={flipped ? 'rotateY(180deg)' : 'rotateY(0deg)'}
+    transition={reduce ? undefined : 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1)'}
+    sx={{ transformStyle: 'preserve-3d' }}>
+    <Box sx={{ position:'absolute', inset:0, backfaceVisibility:'hidden' }}>{front}</Box>
+    <Box sx={{ position:'absolute', inset:0, backfaceVisibility:'hidden', transform:'rotateY(180deg)' }}>{back}</Box>
+  </Box>
+</Box>
+```
+
+### In-row share bar
+
+Embed a faint, left-anchored bar **inside** a data table row to show relative magnitude (prize size, stack depth) without adding a column — set it as a `backgroundImage` gradient on the row, layered over the existing wash `backgroundColor`.
+
+```tsx
+sx={{
+  backgroundColor: washColor,
+  backgroundImage: `linear-gradient(to right, ${barColor} ${pct}%, transparent ${pct}%)`,
+}}
+```
+
+### Live-level pulse / "you are here"
+
+A 6px dot with a breathing halo marks the live row; an `inset` left-border + a "you" tag flags the viewer's own row. Stagger table rows in with `rowFade` (opacity-only on `<tr>` — translateY is unreliable on table rows) at `i * 40ms`.
+
+```tsx
+const livePulse = keyframes`
+  0%, 100% { box-shadow: 0 0 0 0 rgba(54,163,123,0); }
+  50%      { box-shadow: 0 0 0 4px rgba(54,163,123,0.32); }
+`;
+```
+
+### Progress bar: grow-in + shimmer + value pop
+
+Grow the fill from the left with `transform: scaleX` (GPU-friendly; `transformOrigin: 'left'`), sweep a soft highlight across it on a loop, and pop the paired value on change via a `key`-triggered `valuePop`. Reduced motion → static full-width bar, no shimmer.
+
+```tsx
+const fillGrow = keyframes`from { transform: scaleX(0); } to { transform: scaleX(1); }`;
+// shimmer: an absolute 40%-wide white-gradient stripe translating across the fill.
+```
+
+---
+
 ## Reduced motion fallback
 
 Always wrap animation logic:

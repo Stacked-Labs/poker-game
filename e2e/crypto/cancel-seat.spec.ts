@@ -1,8 +1,8 @@
 import { test, expect } from '../fixtures-wallet';
-import { dismissLobbyBanner } from '../helpers/common';
+import { dismissLobbyBanner, disableAutoAccept } from '../helpers/common';
 
 const CHAIN_TIMEOUT = 120_000;
-const TEST_BUY_IN = '100';
+const TEST_BUY_IN = '0.20';
 const PK_A = process.env.TEST_CRYPTO_PK_A as string;
 const PK_B = process.env.TEST_CRYPTO_PK_B as string;
 
@@ -12,7 +12,7 @@ test('Requester cancels crypto seat request — both sides reset', async ({
 }) => {
     // ── PlayerA creates crypto game and deposits to seat 1 ──
     await cryptoPlayerA.goto(`/create-game?e2e_pk=${PK_A}`);
-    await cryptoPlayerA.getByTestId('play-type-crypto').click();
+    await cryptoPlayerA.getByRole('radio', { name: 'Real Money' }).click();
     await cryptoPlayerA
         .getByTestId('create-game-btn')
         .waitFor({ timeout: 60_000 });
@@ -34,6 +34,9 @@ test('Requester cancels crypto seat request — both sides reset', async ({
     await cryptoPlayerA
         .getByTestId('taken-seat-1')
         .waitFor({ timeout: CHAIN_TIMEOUT });
+
+    // ── Disable auto-accept so the seat request stays pending ──
+    await disableAutoAccept(cryptoPlayerA);
 
     // ── PlayerB navigates to table and deposits to request seat 2 ──
     const tablePath = new URL(tableUrl).pathname;

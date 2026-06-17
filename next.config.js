@@ -27,6 +27,8 @@ const connectSrc = [
     "'self'",
     'https://api.stackedpoker.io',
     'wss://api.stackedpoker.io',
+    'https://dev-api.stackedpoker.io',
+    'wss://dev-api.stackedpoker.io',
     'https://challenges.cloudflare.com',
     'https://*.cloudflare.com',
     'https://mainnet.base.org',
@@ -106,6 +108,8 @@ const nextConfig = {
             process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
         NEXT_PUBLIC_THIRDWEB_BUNDLER_URL:
             process.env.NEXT_PUBLIC_THIRDWEB_BUNDLER_URL,
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY:
+            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
         NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
         NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     },

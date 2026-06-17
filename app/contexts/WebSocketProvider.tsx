@@ -55,17 +55,59 @@ leak anything that wasn't already public.
 export const SocketContext: Context<WebSocket | null> =
     createContext<WebSocket | null>(null);
 
+// Single source of truth for tournament table-balancing navigation. The WS
+// `tournament-table-move` push is authoritative and claims its destination here;
+// TournamentTableMoveWatcher (which infers moves from the polled leaderboard) is
+// a fallback and must NOT navigate to a destination the WS push already owns, or
+// the two race and double-navigate. The watcher's poll-only path (no WS event)
+// still fires normally.
+const claimedTournamentMoves = new Set<string>();
+
+export function tournamentMoveKey(
+    tournamentId: number,
+    tableNumber: number
+): string {
+    return `${tournamentId}:${tableNumber}`;
+}
+
+export function claimTournamentMove(
+    tournamentId: number,
+    tableNumber: number
+): void {
+    claimedTournamentMoves.add(tournamentMoveKey(tournamentId, tableNumber));
+}
+
+export function isTournamentMoveClaimed(
+    tournamentId: number,
+    tableNumber: number
+): boolean {
+    return claimedTournamentMoves.has(
+        tournamentMoveKey(tournamentId, tableNumber)
+    );
+}
+
 type SocketProviderProps = {
     children: ReactNode;
     tableId: string;
 };
 
 const TOAST_ID_RECONNECTED = 'isReconnected';
+// Generic connection-failure toasts can fire in a reconnect storm; a stable id
+// keeps them from stacking.
+const TOAST_ID_CONNECTION_ERROR = 'ws-connection-error';
 const SETTLEMENT_PENDING_SPINNER_DELAY_MS = 3000;
 const SETTLEMENT_SUCCESS_DISPLAY_MS = 2500;
 // Suppress the "Reconnected" toast for blips shorter than this — tab-switch
 // reconnects and sub-3s network hiccups would otherwise spam users.
 const RECONNECT_TOAST_GRACE_MS = 3000;
+// Only surface the persistent "Reconnecting…" card once a quick blip has clearly
+// become a real outage (the first retry already failed), so instant reconnects
+// never flash it.
+const RECONNECT_CARD_AFTER_ATTEMPTS = 2;
+// After this many consecutive failed retries we stop scheduling reconnects and
+// surface a terminal "Connection lost — refresh" state. The counter resets to 0
+// on a successful open, so transient blips never count toward the cap.
+const MAX_RECONNECTION_ATTEMPTS = 5;
 
 export function SocketProvider(props: SocketProviderProps) {
     const { tableId } = props;
@@ -122,7 +164,8 @@ export function SocketProvider(props: SocketProviderProps) {
     ]);
 
     const reconnectionAttemptsRef = useRef(0);
-    const maxReconnectionAttempts = 5;
+    const isConnectingRef = useRef(false);
+    const tournamentResultTimerRef = useRef<NodeJS.Timeout | null>(null);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const settlementPendingTimerRef = useRef<NodeJS.Timeout | null>(null);
     const settlementSuccessTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -152,18 +195,31 @@ export function SocketProvider(props: SocketProviderProps) {
         const API_URL = process.env.NEXT_PUBLIC_API_URL;
         debugLog('[WebSocket] connection attempt start');
 
+        // A connect can be in flight across the awaited init-session fetch before
+        // socketRef is assigned; the visibility/online handlers call us directly,
+        // so without this guard a second connect can orphan the first open socket.
+        if (isConnectingRef.current) {
+            debugLog('[WebSocket] connection attempt skipped: already connecting');
+            return;
+        }
+        isConnectingRef.current = true;
+
         if (!WS_BASE_URL || !API_URL) {
             console.error('WebSocket URL or API URL is not defined.');
             toastErrorRef.current(
-                'Configuration Error',
-                'WebSocket or API URL not set.'
+                'Connection unavailable',
+                'We could not reach the table. Please try again later.',
+                undefined,
+                TOAST_ID_CONNECTION_ERROR
             );
+            isConnectingRef.current = false;
             return;
         }
 
         if (socketRef.current) {
             debugLog('[WebSocket] connection attempt skipped: already connected/in progress');
             isReconnectingRef.current = false;
+            isConnectingRef.current = false;
             return;
         }
 
@@ -183,12 +239,11 @@ export function SocketProvider(props: SocketProviderProps) {
                     sessionInitResponse.status,
                     sessionInitResponse.statusText
                 );
-                toastErrorRef.current(
-                    'Session Init Failed',
-                    `Server error: ${sessionInitResponse.statusText}`
-                );
+                // No transient toast here — the persistent "Reconnecting…" card
+                // (shown by attemptReconnection) is the single source of truth.
                 isReconnectingRef.current = false;
-                    attemptReconnection();
+                isConnectingRef.current = false;
+                attemptReconnection();
                 return;
             }
             const sessionData = await sessionInitResponse.json();
@@ -206,6 +261,7 @@ export function SocketProvider(props: SocketProviderProps) {
 
             _socket.onopen = () => {
                 debugLog('[WebSocket] connected');
+                isConnectingRef.current = false;
                 authStateAtConnectRef.current = {
                     isAuthenticated: authRef.current.isAuthenticated,
                     address: authRef.current.address,
@@ -240,10 +296,20 @@ export function SocketProvider(props: SocketProviderProps) {
                 debugLog('[WebSocket] send', joinMessage);
                 _socket.send(JSON.stringify(joinMessage));
                 debugLog('[WebSocket] join-table sent');
+
+                // Subscribe to tournament fan-out events when on a tournament table
+                const tournamentMatch = tableId.match(/^tournament-(\d+)-table-\d+$/);
+                if (tournamentMatch) {
+                    const joinTournament = { action: 'join-tournament', tournament_id: Number(tournamentMatch[1]) };
+                    debugLog('[WebSocket] send', joinTournament);
+                    _socket.send(JSON.stringify(joinTournament));
+                    debugLog('[WebSocket] join-tournament sent');
+                }
             };
 
             _socket.onclose = (event) => {
                 debugLog('[WebSocket] disconnected', event);
+                isConnectingRef.current = false;
                 socketRef.current = null;
                 setSocket(null);
 
@@ -260,6 +326,7 @@ export function SocketProvider(props: SocketProviderProps) {
 
             _socket.onerror = (err) => {
                 console.error('WebSocket error:', err);
+                isConnectingRef.current = false;
                 socketRef.current = null;
                 setSocket(null);
                 // Don't show error toast here - onclose will handle it
@@ -371,9 +438,8 @@ export function SocketProvider(props: SocketProviderProps) {
                         ) {
                             dispatch({ type: 'setSeatRequested', payload: null });
                             toastSuccessRef.current(
-                                'Request Cancelled',
-                                'Seat request cancelled successfully.',
-                                5000
+                                'Request cancelled',
+                                'Your seat request was cancelled.'
                             );
                         }
                         return;
@@ -426,7 +492,6 @@ export function SocketProvider(props: SocketProviderProps) {
                             paused: eventData.game.paused,
                             pendingPause: eventData.game.pendingPause ?? false,
                             pendingBlinds: eventData.game?.pendingBlinds ?? undefined,
-                            owesSB: eventData.game?.owesSB,
                             owesBB: eventData.game?.owesBB,
                             waitingForBB: eventData.game?.waitingForBB,
                             actionDeadline:
@@ -437,6 +502,27 @@ export function SocketProvider(props: SocketProviderProps) {
                             settlementStuck: eventData.game?.settlementStuck,
                             settlementInProgress: eventData.game?.settlementInProgress,
                         };
+
+                        // Time bank contract (§14): `actionDeadline` is absolute epoch-ms
+                        // and already encodes `config.baseActionMs + actor.timeBankMs`.
+                        // `timeBankMs` (per player) and `baseActionMs` (on config) ride
+                        // through the wholesale `players`/`config` assignment above. The
+                        // client must NOT locally re-arm the timer — it only counts down to
+                        // the server-supplied deadline. Warn if the deadline is already past
+                        // on receipt, which would indicate clock skew or a stale broadcast.
+                        if (
+                            newGame.actionDeadline > 0 &&
+                            newGame.actionDeadline < Date.now()
+                        ) {
+                            console.warn(
+                                '[WebSocket] update-game actionDeadline is already in the past on receipt',
+                                {
+                                    actionDeadline: newGame.actionDeadline,
+                                    now: Date.now(),
+                                    skewMs: Date.now() - newGame.actionDeadline,
+                                }
+                            );
+                        }
 
                         const hasAnyCommunityCard = (
                             newGame.communityCards ?? []
@@ -521,12 +607,6 @@ export function SocketProvider(props: SocketProviderProps) {
                         const playerIndex = localPlayer
                             ? localPlayer.position
                             : -1;
-                        const owesSB =
-                            playerIndex >= 0
-                                ? Boolean(
-                                      eventData.game?.owesSB?.[playerIndex]
-                                  )
-                                : false;
                         const owesBB =
                             playerIndex >= 0
                                 ? Boolean(
@@ -542,7 +622,7 @@ export function SocketProvider(props: SocketProviderProps) {
                                   )
                                 : false;
 
-                        if (localPlayer && (owesSB || owesBB || waitingForBB)) {
+                        if (localPlayer && (owesBB || waitingForBB)) {
                             const existingOptions =
                                 appStateRef.current.blindObligation?.options ??
                                 ([
@@ -552,14 +632,12 @@ export function SocketProvider(props: SocketProviderProps) {
                                 ] as BlindObligationOptions[]);
                             bundlePayload.blindObligation = {
                                 seatID: localPlayer.seatID,
-                                owesSB,
                                 owesBB,
                                 waitingForBB,
                                 options: existingOptions,
                             };
                         } else if (
                             appStateRef.current.blindObligation &&
-                            !owesSB &&
                             !owesBB &&
                             !waitingForBB
                         ) {
@@ -585,7 +663,6 @@ export function SocketProvider(props: SocketProviderProps) {
                             type: 'setBlindObligation',
                             payload: {
                                 seatID: eventData.seatID,
-                                owesSB: Boolean(eventData.owesSB),
                                 owesBB: Boolean(eventData.owesBB),
                                 waitingForBB: Boolean(eventData.waitingForBB),
                                 options: Array.isArray(eventData.options)
@@ -601,9 +678,8 @@ export function SocketProvider(props: SocketProviderProps) {
                     }
                     case 'game-paused': {
                         toastInfoRef.current(
-                            'Game Paused',
-                            `Game paused by ${eventData.pausedBy || 'table owner'}.`,
-                            5000
+                            'Game paused',
+                            `Paused by ${eventData.pausedBy || 'the Host'}.`
                         );
                         // The backend sends a full 'update-game' before this message
                         // with the correct paused state and actionDeadline: 0.
@@ -613,9 +689,8 @@ export function SocketProvider(props: SocketProviderProps) {
                     }
                     case 'game-resumed': {
                         toastSuccessRef.current(
-                            'Game Resumed',
-                            `Game resumed by ${eventData.resumedBy || 'table owner'}.`,
-                            5000
+                            'Game resumed',
+                            `Resumed by ${eventData.resumedBy || 'the Host'}.`
                         );
                         // The backend sends a full 'update-game' before this message
                         // with the correct paused state and restored actionDeadline.
@@ -726,9 +801,8 @@ export function SocketProvider(props: SocketProviderProps) {
                         }
                         // Show success toast
                         toastSuccessRef.current(
-                            'Seat Accepted',
-                            eventData.message,
-                            5000
+                            'Seat accepted',
+                            'You are in — good luck at the table.'
                         );
                         return;
                     }
@@ -765,8 +839,15 @@ export function SocketProvider(props: SocketProviderProps) {
                             return;
                         }
 
-                        // Handle other errors with toast fallback
-                        toastErrorRef.current(eventData.message);
+                        // Show the server's own message — it is player-facing domain
+                        // copy (e.g. "Seat request denied."), not a wallet/RPC blob,
+                        // so it must not be routed through the wallet-error mapper.
+                        toastErrorRef.current(
+                            typeof eventData.message === 'string' &&
+                                eventData.message.trim()
+                                ? eventData.message
+                                : 'Something went wrong'
+                        );
                         // If seat request was denied (message check), reset the flag
                         const errorMsg =
                             typeof eventData.message === 'string'
@@ -786,6 +867,129 @@ export function SocketProvider(props: SocketProviderProps) {
                         }
                         return;
                     }
+                    case 'tournament-clock': {
+                        dispatch({
+                            type: 'setTournamentClock',
+                            payload: {
+                                tournamentId: eventData.tournament_id,
+                                clock: {
+                                    level: eventData.level,
+                                    levelNumber: eventData.level_number,
+                                    sb: eventData.small,
+                                    bb: eventData.big,
+                                    ante: eventData.ante,
+                                    remainingMs: eventData.remaining_ms,
+                                    totalMs: eventData.total_ms,
+                                    receivedAt: Date.now(),
+                                    onBreak: eventData.on_break,
+                                    breakRemainingMs: eventData.break_remaining_ms,
+                                    secondsToNextBreak:
+                                        eventData.seconds_to_next_break,
+                                    nextBreakAfterLevel:
+                                        eventData.next_break_after_level,
+                                },
+                            },
+                        });
+                        return;
+                    }
+                    case 'tournament-player-count': {
+                        dispatch({
+                            type: 'setTournamentPlayerCount',
+                            payload: {
+                                tournamentId: eventData.tournament_id,
+                                active: eventData.active,
+                            },
+                        });
+                        return;
+                    }
+                    case 'tournament-elimination': {
+                        const tournamentId = eventData.tournament_id;
+                        // Accumulate into the persistent feed (replaces the
+                        // ephemeral "player eliminated" toast).
+                        dispatch({
+                            type: 'addTournamentElimination',
+                            payload: {
+                                tournamentId,
+                                elim: {
+                                    playerUuid: eventData.player_uuid,
+                                    position: eventData.position,
+                                    remaining: eventData.remaining,
+                                },
+                            },
+                        });
+                        // The local player's bust opens a persistent result card
+                        // (replaces the ephemeral "you've been eliminated" toast).
+                        // Delayed so the player can watch the showdown before the popup appears.
+                        if (
+                            eventData.player_uuid ===
+                            appStateRef.current.clientID
+                        ) {
+                            if (tournamentResultTimerRef.current) {
+                                clearTimeout(tournamentResultTimerRef.current);
+                            }
+                            tournamentResultTimerRef.current = setTimeout(() => {
+                                tournamentResultTimerRef.current = null;
+                                dispatch({
+                                    type: 'setTournamentMyResult',
+                                    payload: {
+                                        tournamentId,
+                                        result: {
+                                            kind: 'bust',
+                                            position: eventData.position,
+                                        },
+                                    },
+                                });
+                            }, 5000);
+                        }
+                        return;
+                    }
+                    case 'tournament-table-move': {
+                        const isLocalPlayer = eventData.player_uuid === appStateRef.current.clientID;
+                        if (isLocalPlayer) {
+                            const tournamentId = eventData.tournament_id;
+                            const toTableNumber = Number(eventData.to_table_index) + 1;
+                            toastInfoRef.current(
+                                'Moving you to a new table',
+                                'Tables were rebalanced — reseating you now…'
+                            );
+                            if (tournamentId != null && Number.isFinite(toTableNumber)) {
+                                // Claim this move so the leaderboard-poll fallback
+                                // (TournamentTableMoveWatcher) doesn't also navigate
+                                // and double-fire.
+                                claimTournamentMove(tournamentId, toTableNumber);
+                                // Navigate to the destination table. A full navigation
+                                // (not SPA) is intentional: it tears down this table's
+                                // WebSocket and opens a clean connection to the new one.
+                                setTimeout(() => {
+                                    window.location.href = `/table/tournament-${tournamentId}-table-${toTableNumber}`;
+                                }, 2500);
+                            }
+                        }
+                        return;
+                    }
+                    case 'tournament-complete': {
+                        const tournamentId = eventData.tournament_id;
+                        dispatch({
+                            type: 'setTournamentComplete',
+                            payload: {
+                                tournamentId,
+                                winnerUuid: eventData.winner_uuid,
+                            },
+                        });
+                        if (
+                            eventData.winner_uuid ===
+                            appStateRef.current.clientID
+                        ) {
+                            dispatch({
+                                type: 'setTournamentMyResult',
+                                payload: {
+                                    tournamentId,
+                                    result: { kind: 'win' },
+                                },
+                            });
+                        }
+                        return;
+                    }
                     default: {
                         console.warn(
                             `Unhandled action type: ${eventData.action}`
@@ -796,12 +1000,10 @@ export function SocketProvider(props: SocketProviderProps) {
             };
         } catch (e) {
             console.error('Fatal error during WebSocket connection setup:', e);
-            toastErrorRef.current(
-                'Connection Error',
-                'Could not establish WebSocket connection. Check console.'
-            );
-            // If the exception occurs during fetch or new WebSocket(), then attempt reconnection.
+            // No transient toast here — the persistent "Reconnecting…" card
+            // (shown by attemptReconnection) is the single source of truth.
             isReconnectingRef.current = false;
+            isConnectingRef.current = false;
             attemptReconnection(); // Safe to call here
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -816,6 +1018,23 @@ export function SocketProvider(props: SocketProviderProps) {
         // state change, which triggers the useEffect cleanup and cancels the pending
         // reconnect timeout before it fires.
     ]);
+
+    // Skip the backoff wait and reconnect immediately from a disconnected state
+    // (the "Reconnect now" button on the persistent card). Unlike forceReconnect,
+    // this works when there is no live socket to close.
+    const reconnectNow = useCallback(() => {
+        if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+            reconnectTimeoutRef.current = null;
+        }
+        reconnectionAttemptsRef.current = 0;
+        isReconnectingRef.current = false;
+        connectWebSocket();
+    }, [connectWebSocket]);
+    const reconnectNowRef = useRef(reconnectNow);
+    useEffect(() => {
+        reconnectNowRef.current = reconnectNow;
+    }, [reconnectNow]);
 
     const forceReconnect = useCallback(
         (reason: string) => {
@@ -845,25 +1064,45 @@ export function SocketProvider(props: SocketProviderProps) {
     );
 
     const attemptReconnection = useCallback(() => {
-        if (!WS_BASE_URL || reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
-            if (reconnectionAttemptsRef.current >= maxReconnectionAttempts) {
-                isReconnectingRef.current = false;
-                connectionLostShownRef.current = true;
-                toastConnectionLostRef.current(
-                    null, // persist until closed or user refreshes
-                    'connectionFailed'
-                );
-            }
+        if (!WS_BASE_URL) return;
+        if (isReconnectingRef.current) return; // Already trying to reconnect
+
+        // Bounded retries: once we've exhausted the cap, stop scheduling and
+        // surface a terminal "Connection lost — refresh" banner (with a
+        // refresh/reconnect-now affordance) instead of retrying forever. The
+        // counter resets to 0 on a successful open, so a real reconnect clears it.
+        if (reconnectionAttemptsRef.current >= MAX_RECONNECTION_ATTEMPTS) {
+            isReconnectingRef.current = false;
+            connectionLostShownRef.current = true;
+            toastConnectionLostRef.current({
+                id: 'connectionFailed',
+                onReconnectNow: reconnectNowRef.current,
+                terminal: true,
+            });
             return;
         }
-        if (isReconnectingRef.current) return; // Already trying to reconnect
 
         isReconnectingRef.current = true;
         debugLog('[WebSocket] reconnecting');
         const nextAttempt = reconnectionAttemptsRef.current + 1;
         reconnectionAttemptsRef.current = nextAttempt;
 
-        const delay = getReconnectDelay(nextAttempt - 1);
+        // Once a quick blip has clearly become a real outage, surface the
+        // persistent "Reconnecting…" card. We keep retrying with capped backoff
+        // (up to MAX_RECONNECTION_ATTEMPTS); the card stays up (with a "Reconnect
+        // now" shortcut) until the socket reopens or the player dismisses it.
+        if (
+            nextAttempt >= RECONNECT_CARD_AFTER_ATTEMPTS &&
+            !connectionLostShownRef.current
+        ) {
+            connectionLostShownRef.current = true;
+            toastConnectionLostRef.current({
+                id: 'connectionFailed',
+                onReconnectNow: reconnectNowRef.current,
+            });
+        }
+
+        const delay = getReconnectDelay(nextAttempt - 1); // capped at 16s
 
         if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
@@ -871,12 +1110,7 @@ export function SocketProvider(props: SocketProviderProps) {
         reconnectTimeoutRef.current = setTimeout(() => {
             connectWebSocket();
         }, delay);
-    }, [
-        WS_BASE_URL,
-        maxReconnectionAttempts,
-        getReconnectDelay,
-        connectWebSocket,
-    ]);
+    }, [WS_BASE_URL, getReconnectDelay, connectWebSocket, debugLog]);
 
     useEffect(() => {
         if (!socketRef.current && !isReconnectingRef.current) {
@@ -885,6 +1119,10 @@ export function SocketProvider(props: SocketProviderProps) {
         return () => {
             if (reconnectTimeoutRef.current) {
                 clearTimeout(reconnectTimeoutRef.current);
+            }
+            if (tournamentResultTimerRef.current) {
+                clearTimeout(tournamentResultTimerRef.current);
+                tournamentResultTimerRef.current = null;
             }
             if (socketRef.current) {
                 debugLog('[WebSocket] closing connection on cleanup');
@@ -947,7 +1185,11 @@ export function SocketProvider(props: SocketProviderProps) {
                     socketRef.current.readyState === WebSocket.CLOSED ||
                     socketRef.current.readyState === WebSocket.CLOSING;
 
-                if (isDisconnected && !isReconnectingRef.current) {
+                if (
+                    isDisconnected &&
+                    !isReconnectingRef.current &&
+                    !isConnectingRef.current
+                ) {
                     debugLog('[WebSocket] disconnected; resetting attempts and reconnecting');
                     // Reset reconnection attempts for a fresh start
                     reconnectionAttemptsRef.current = 0;
@@ -978,7 +1220,11 @@ export function SocketProvider(props: SocketProviderProps) {
                 socketRef.current.readyState === WebSocket.CLOSED ||
                 socketRef.current.readyState === WebSocket.CLOSING;
 
-            if (isDisconnected && !isReconnectingRef.current) {
+            if (
+                isDisconnected &&
+                !isReconnectingRef.current &&
+                !isConnectingRef.current
+            ) {
                 debugLog('[WebSocket] online + disconnected; reconnecting');
 
                 if (reconnectTimeoutRef.current) {

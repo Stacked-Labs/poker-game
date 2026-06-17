@@ -19,6 +19,7 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import React, { useContext, useRef, useState, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import {
     FiUsers,
     FiSettings,
@@ -29,6 +30,7 @@ import {
     FiX,
     FiChevronLeft,
     FiChevronRight,
+    FiAward,
 } from 'react-icons/fi';
 import { BiSupport } from 'react-icons/bi';
 import GameSettings from './GameSettings';
@@ -38,6 +40,7 @@ import Ledger from './Ledger';
 import HowTo from './HowTo';
 import Support from './Support';
 import OnchainTab from './OnchainTab/OnchainTab';
+import TournamentTabPanel from '../../Tournament/TournamentTabPanel';
 import { GameEventsProvider } from '@/app/contexts/GameEventsProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { IconType } from 'react-icons/lib/iconBase';
@@ -59,11 +62,11 @@ const slideDown = keyframes`
     }
 `;
 
-type TabTone = 'green' | 'pink' | 'navy';
+type TabTone = 'green' | 'pink' | 'navy' | 'gold';
 
 const TAB_PALETTE: Record<
     TabTone,
-    { bg: string; edge: string; dark: string; tint: string }
+    { bg: string; edge: string; dark: string; tint: string; selectedText?: string }
 > = {
     green: {
         bg: 'brand.green',
@@ -82,6 +85,13 @@ const TAB_PALETTE: Record<
         edge: '#1B2754',
         dark: 'brand.darkNavy',
         tint: 'rgba(51, 68, 121, 0.10)',
+    },
+    gold: {
+        bg: 'brand.yellow',
+        edge: '#A07B0A',
+        dark: 'brand.yellowDark',
+        tint: 'rgba(253, 197, 29, 0.12)',
+        selectedText: '#3D2C00',
     },
 };
 
@@ -108,15 +118,15 @@ const TabItem = ({
             }}
             _selected={{
                 bg: p.bg,
-                color: 'white',
+                color: p.selectedText ?? 'white',
                 boxShadow: `inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 ${p.edge}`,
-                '& *': { color: 'white' },
+                '& *': { color: p.selectedText ?? 'white' },
             }}
             _active={{
                 bg: p.dark,
                 transform: 'translateY(1px)',
                 boxShadow: `inset 0 1px 2px rgba(0,0,0,0.20), 0 0 0 ${p.edge}`,
-                '& *': { color: 'white' },
+                '& *': { color: p.selectedText ?? 'white' },
             }}
             borderRadius="8px"
             fontWeight="bold"
@@ -154,7 +164,11 @@ const SettingsModal = ({
     const { appState } = useContext(AppContext);
     const config = appState.game?.config;
     const showOnchainTab = Boolean(config?.crypto && config?.contractAddress);
-    const onchainTabIndex = 3;
+    const pathname = usePathname();
+    const isTournamentTable = pathname?.includes('/table/tournament-') ?? false;
+    // The Tournament tab is inserted first on tournament tables, shifting the
+    // Onchain tab's index by one.
+    const onchainTabIndex = isTournamentTable ? 4 : 3;
 
     // Resolve theme colors for CSS gradients (semantic tokens don't work in bgGradient)
     const tabBg = useColorModeValue('#ECEEF5', '#191414'); // card.lightGray
@@ -252,6 +266,14 @@ const SettingsModal = ({
                         h="100%"
                         display="flex"
                         flexDirection="column"
+                        // Defer the initial render of inactive panels so the heavy
+                        // Tournament panel (and its live derivations) doesn't mount
+                        // while a sibling tab is showing. keepMounted preserves state
+                        // once a tab has been opened — GameLog's loaded events and
+                        // pagination, GameSettings' form state — so switching back
+                        // doesn't reset them or refetch from scratch.
+                        isLazy
+                        lazyBehavior="keepMounted"
                     >
                         <HStack
                             gap={{ base: 2, md: 3 }}
@@ -276,6 +298,13 @@ const SettingsModal = ({
                                         scrollbarWidth: 'none',
                                     }}
                                 >
+                                    {isTournamentTable && (
+                                        <TabItem
+                                            text="Tournament"
+                                            tone="gold"
+                                            icon={FiAward}
+                                        />
+                                    )}
                                     <TabItem
                                         text="Players"
                                         tone="green"
@@ -308,11 +337,13 @@ const SettingsModal = ({
                                         tone="pink"
                                         icon={BiSupport}
                                     />
-                                    <TabItem
-                                        text="How To"
-                                        tone="navy"
-                                        icon={FiHelpCircle}
-                                    />
+                                    {!isTournamentTable && (
+                                        <TabItem
+                                            text="How To"
+                                            tone="navy"
+                                            icon={FiHelpCircle}
+                                        />
+                                    )}
                                 </TabList>
 
                                 {/* Left gradient + arrow */}
@@ -445,6 +476,14 @@ const SettingsModal = ({
                                 },
                             }}
                         >
+                            {isTournamentTable && (
+                                <TabPanel
+                                    px={{ base: 0, sm: 1, md: 2 }}
+                                    py={{ base: 1, md: 2 }}
+                                >
+                                    <TournamentTabPanel />
+                                </TabPanel>
+                            )}
                             <TabPanel
                                 px={{ base: 0, sm: 1, md: 2 }}
                                 py={{ base: 1, md: 2 }}
@@ -490,12 +529,14 @@ const SettingsModal = ({
                             >
                                 <Support />
                             </TabPanel>
-                            <TabPanel
-                                px={{ base: 0, sm: 1, md: 2 }}
-                                py={{ base: 1, md: 2 }}
-                            >
-                                <HowTo />
-                            </TabPanel>
+                            {!isTournamentTable && (
+                                <TabPanel
+                                    px={{ base: 0, sm: 1, md: 2 }}
+                                    py={{ base: 1, md: 2 }}
+                                >
+                                    <HowTo />
+                                </TabPanel>
+                            )}
                         </TabPanels>
                     </Tabs>
                 </ModalBody>

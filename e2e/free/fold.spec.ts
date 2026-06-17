@@ -15,6 +15,7 @@ test('Acting player folds — opponent wins, new hand starts', async ({
 
     // ── Owner creates free game and sits seat 1 ──
     await owner.goto('/create-game');
+    await owner.getByRole('radio', { name: 'Free Play' }).click();
     await owner.getByTestId('create-game-btn').click();
     await owner.waitForURL(/\/table\/.+/, { timeout: 30_000 });
     const tableUrl = owner.url();

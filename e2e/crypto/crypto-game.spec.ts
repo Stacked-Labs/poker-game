@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures-wallet';
 
 // Blockchain operations on Base Sepolia can take 1-2 min each.
 const CHAIN_TIMEOUT = 120_000; // 2 min per on-chain step
-const TEST_BUY_IN = '100'; // 100 chips = 1 USDC
+const TEST_BUY_IN = '0.20';
 const PK_A = process.env.TEST_CRYPTO_PK_A as string;
 const PK_B = process.env.TEST_CRYPTO_PK_B as string;
 
@@ -23,7 +23,7 @@ test('Crypto game: owner and player deposit, owner accepts, game starts, each pl
 }) => {
     // ── playerA: navigate to create-game — pass e2e_pk so E2EAutoConnect fires ──
     await cryptoPlayerA.goto(`/create-game?e2e_pk=${PK_A}`);
-    await cryptoPlayerA.getByTestId('play-type-crypto').click();
+    await cryptoPlayerA.getByRole('radio', { name: 'Real Money' }).click();
 
     // create-game-btn only appears once SIWE auth is complete
     await cryptoPlayerA.getByTestId('create-game-btn').waitFor({ timeout: 60_000 });

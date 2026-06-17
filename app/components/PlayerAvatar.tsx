@@ -2,7 +2,7 @@
 
 import { Box, Flex, Text, type ResponsiveValue } from '@chakra-ui/react';
 import { blo } from 'blo';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { getColorForUsername } from '@/app/utils/chatColors';
 
 type PlayerAvatarProps = {
@@ -27,7 +27,7 @@ const computeInitials = (username: string): string => {
     return parts || stripped.slice(0, 2).toUpperCase();
 };
 
-export default function PlayerAvatar({
+function PlayerAvatar({
     profileImageUrl,
     address,
     username,
@@ -38,6 +38,13 @@ export default function PlayerAvatar({
     useEffect(() => {
         setImgFailed(false);
     }, [profileImageUrl]);
+
+    // blo() hashes the address into a deterministic data-URI blockie; memoize so a
+    // re-render (e.g. a leaderboard tick) doesn't re-derive the same image.
+    const blockie = useMemo(
+        () => (address ? blo(address as `0x${string}`) : null),
+        [address]
+    );
 
     const showImage = Boolean(profileImageUrl) && !imgFailed;
 
@@ -56,11 +63,11 @@ export default function PlayerAvatar({
         );
     }
 
-    if (address) {
+    if (blockie) {
         return (
             <Box
                 as="img"
-                src={blo(address as `0x${string}`)}
+                src={blockie}
                 alt=""
                 width="100%"
                 height="100%"
@@ -92,3 +99,5 @@ export default function PlayerAvatar({
         </Flex>
     );
 }
+
+export default React.memo(PlayerAvatar);

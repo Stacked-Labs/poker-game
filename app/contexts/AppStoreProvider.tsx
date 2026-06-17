@@ -16,6 +16,12 @@ import {
     PendingPlayer,
     SeatAccepted,
     SettlementStatus,
+    LeaderboardPlayer,
+    TournamentClock,
+    TournamentElim,
+    TournamentLive,
+    TournamentMeta,
+    TournamentMyResult,
 } from '@/app/interfaces';
 import { isTableOwner as fetchIsTableOwner } from '@/app/hooks/server_actions';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -32,7 +38,7 @@ const initialState: AppState = {
     chatSoundEnabled: true,
     chatOverlayEnabled: true,
     fourColorDeckEnabled: false,
-    cardBackDesign: 'classic-blue',
+    cardBackDesign: 'classic-red',
     unreadMessageCount: 0,
     isChatOpen: false,
     seatRequested: null,
@@ -46,6 +52,7 @@ const initialState: AppState = {
     displayMode: 'chips',
     displayModeExplicit: false,
     tableClosed: null,
+    tournamentLive: null,
 };
 
 export type ACTIONTYPE =
@@ -89,12 +96,70 @@ export type ACTIONTYPE =
     | { type: 'addMessageWithUnread'; payload: Message }
     | { type: 'setDisplayMode'; payload: DisplayMode }
     | { type: 'setDisplayModeAuto'; payload: DisplayMode }
-    | { type: 'setTableClosed'; payload: { reason: string; message: string } };
+    | { type: 'setTableClosed'; payload: { reason: string; message: string } }
+    | { type: 'setTournamentSeed'; payload: TournamentLive }
+    | {
+          type: 'setTournamentMeta';
+          payload: { tournamentId: number; meta: TournamentMeta };
+      }
+    | {
+          type: 'setTournamentClock';
+          payload: { tournamentId: number; clock: TournamentClock };
+      }
+    | {
+          type: 'setTournamentPlayerCount';
+          payload: { tournamentId: number; active: number };
+      }
+    | {
+          type: 'addTournamentElimination';
+          payload: { tournamentId: number; elim: TournamentElim };
+      }
+    | {
+          type: 'setTournamentLeaderboard';
+          payload: { tournamentId: number; leaderboard: LeaderboardPlayer[] };
+      }
+    | {
+          type: 'setTournamentComplete';
+          payload: { tournamentId: number; winnerUuid: string };
+      }
+    | {
+          type: 'setTournamentStatus';
+          payload: { tournamentId: number; status: TournamentLive['status'] };
+      }
+    | {
+          type: 'setTournamentMyResult';
+          payload: { tournamentId: number; result: TournamentMyResult };
+      }
+    | { type: 'clearTournamentMyResult' }
+    | { type: 'resetTournamentLive' };
 
 const MAX_MESSAGES = 500;
 const MAX_LOGS = 1000;
+const TOURNAMENT_FEED_CAP = 50;
 
-function reducer(state: AppState, action: ACTIONTYPE) {
+// Return the current live-tournament slice if it matches `tournamentId`, else a
+// fresh one. Lets WS pushes that arrive before the REST seed lazily initialize
+// the slice instead of being dropped.
+function ensureTournamentLive(
+    state: AppState,
+    tournamentId: number
+): TournamentLive {
+    const cur = state.tournamentLive;
+    if (cur && cur.tournamentId === tournamentId) return cur;
+    return {
+        tournamentId,
+        meta: null,
+        clock: null,
+        playersActive: null,
+        feed: [],
+        leaderboard: [],
+        completed: null,
+        myResult: null,
+        status: 'connecting',
+    };
+}
+
+function reducer(state: AppState, action: ACTIONTYPE): AppState {
     switch (action.type) {
         case 'addMessage': {
             const messages = [...state.messages, action.payload];
@@ -131,6 +196,7 @@ function reducer(state: AppState, action: ACTIONTYPE) {
                 isTableOwner: null,
                 settlementStatus: null,
                 tableClosed: null,
+                tournamentLive: null,
             };
         case 'updatePlayerID':
             return { ...state, clientID: action.payload };
@@ -258,6 +324,131 @@ function reducer(state: AppState, action: ACTIONTYPE) {
             return { ...state, displayMode: action.payload };
         case 'setTableClosed':
             return { ...state, tableClosed: action.payload };
+        case 'setTournamentSeed': {
+            // Preserve the live-only feed and the local player's result across a
+            // re-seed (reconnect) for the same tournament — they can't be
+            // reconstructed from REST.
+            const prev = state.tournamentLive;
+            const same =
+                prev && prev.tournamentId === action.payload.tournamentId;
+            return {
+                ...state,
+                tournamentLive: {
+                    ...action.payload,
+                    feed: same ? prev!.feed : action.payload.feed,
+                    myResult: same ? prev!.myResult : action.payload.myResult,
+                },
+            };
+        }
+        case 'setTournamentMeta': {
+            const live = ensureTournamentLive(
+                state,
+                action.payload.tournamentId
+            );
+            return {
+                ...state,
+                tournamentLive: { ...live, meta: action.payload.meta },
+            };
+        }
+        case 'setTournamentClock': {
+            const live = ensureTournamentLive(
+                state,
+                action.payload.tournamentId
+            );
+            return {
+                ...state,
+                tournamentLive: {
+                    ...live,
+                    clock: action.payload.clock,
+                    status: 'live',
+                },
+            };
+        }
+        case 'setTournamentPlayerCount': {
+            const live = ensureTournamentLive(
+                state,
+                action.payload.tournamentId
+            );
+            return {
+                ...state,
+                tournamentLive: {
+                    ...live,
+                    playersActive: action.payload.active,
+                },
+            };
+        }
+        case 'addTournamentElimination': {
+            const live = ensureTournamentLive(
+                state,
+                action.payload.tournamentId
+            );
+            const feed = [action.payload.elim, ...live.feed].slice(
+                0,
+                TOURNAMENT_FEED_CAP
+            );
+            return {
+                ...state,
+                tournamentLive: {
+                    ...live,
+                    feed,
+                    playersActive: action.payload.elim.remaining,
+                },
+            };
+        }
+        case 'setTournamentLeaderboard': {
+            const live = ensureTournamentLive(
+                state,
+                action.payload.tournamentId
+            );
+            return {
+                ...state,
+                tournamentLive: {
+                    ...live,
+                    leaderboard: action.payload.leaderboard,
+                },
+            };
+        }
+        case 'setTournamentComplete': {
+            const live = ensureTournamentLive(
+                state,
+                action.payload.tournamentId
+            );
+            return {
+                ...state,
+                tournamentLive: {
+                    ...live,
+                    completed: { winnerUuid: action.payload.winnerUuid },
+                },
+            };
+        }
+        case 'setTournamentStatus': {
+            const live = ensureTournamentLive(
+                state,
+                action.payload.tournamentId
+            );
+            return {
+                ...state,
+                tournamentLive: { ...live, status: action.payload.status },
+            };
+        }
+        case 'setTournamentMyResult': {
+            const live = ensureTournamentLive(
+                state,
+                action.payload.tournamentId
+            );
+            return {
+                ...state,
+                tournamentLive: { ...live, myResult: action.payload.result },
+            };
+        }
+        case 'clearTournamentMyResult':
+            if (!state.tournamentLive) return state;
+            return {
+                ...state,
+                tournamentLive: { ...state.tournamentLive, myResult: null },
+            };
+        case 'resetTournamentLive':
+            return { ...state, tournamentLive: null };
         default: {
             const exhaustiveCheck: never = action;
             throw new Error(`Unhandled action type: ${exhaustiveCheck}`);

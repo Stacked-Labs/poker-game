@@ -4,6 +4,7 @@ import { Libre_Barcode_39_Text, Poppins, Teko } from 'next/font/google';
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import PointsActivityFeed from './components/PointsActivityFeed';
 import ServiceStatusBanner from './components/ServiceStatusBanner';
+import TournamentReminderBanner from './components/Tournament/TournamentReminderBanner';
 import React from 'react';
 import type { Metadata } from 'next';
 
@@ -108,6 +109,7 @@ export default function RootLayout({
                     <ServiceStatusBanner />
                     <HomeNavBar />
                     <main>{children}</main>
+                    <TournamentReminderBanner />
                     <PointsActivityFeed />
                 </Providers>
             </body>

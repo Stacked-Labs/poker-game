@@ -68,7 +68,97 @@ export type AppState = {
     displayMode: DisplayMode;
     displayModeExplicit: boolean;
     tableClosed: { reason: string; message: string } | null;
+    /** Live tournament context when seated at a tournament table (null otherwise). */
+    tournamentLive: TournamentLive | null;
 };
+
+// --- Live tournament state (in-table HUD) ---
+// Fed by the backend WS pushes (tournament-clock / -player-count / -elimination /
+// -complete) plus a one-shot REST seed. See the "Build Spec — Live Tournament
+// Cluster" section of poker-game/docs/tournament-grinder-ui-gaps.md.
+
+export interface LeaderboardPlayer {
+    uuid: string;
+    wallet: string;
+    stack: number;
+    finish_pos: number;
+    table_index: number;
+    bullet_number?: number;
+    prize_usdc?: number;
+    // X identity from the tournament leaderboard payload (xUsername / xProfileImageUrl),
+    // matching the global leaderboard convention. Optional — absent for players who
+    // have not linked an X account.
+    xUsername?: string | null;
+    xProfileImageUrl?: string | null;
+}
+
+export interface TournamentClock {
+    level: number;
+    levelNumber: number; // 1-based, for display
+    sb: number;
+    bb: number;
+    ante: number;
+    remainingMs: number;
+    totalMs: number;
+    receivedAt: number; // Date.now() when applied — lets the UI tick locally
+    // ── Rest breaks ──────────────────────────────────────────────────────
+    // During a break the clock stays on level N (does NOT advance to N+1 until
+    // the break ends); `breakRemainingMs` drives the same receivedAt local-tick
+    // math as `remainingMs`. Optional — older payloads / pre-start have none.
+    /** True while the tournament is on a scheduled rest break. */
+    onBreak?: boolean;
+    /** Milliseconds left in the current break (tick locally off `receivedAt`). */
+    breakRemainingMs?: number;
+    /** Seconds until the next break begins — the "break coming" countdown value. */
+    secondsToNextBreak?: number;
+    /** Level index after which the next break occurs (server-authoritative). */
+    nextBreakAfterLevel?: number;
+}
+
+export interface TournamentElim {
+    playerUuid: string;
+    position: number;
+    remaining: number;
+}
+
+export interface TournamentMeta {
+    name: string;
+    status: string;
+    registeredCount: number;
+    maxEntries: number;
+    minEntries: number;
+    prizePoolUsdc: number;
+    guaranteeUsdc: number;
+    buyInUsdc: number;
+    feeBps: number;
+    startingStack: number;
+    blindStructure: string;
+    lateRegLevels: number;
+    lateRegCloseAt: string;
+    reentryAllowed: boolean;
+    reentryMax: number;
+    chain?: string;
+    contractAddress?: string;
+    isFreePlay: boolean;
+    hostWallet: string;
+    settlementTxHash?: string;
+}
+
+export type TournamentMyResult =
+    | { kind: 'bust'; position: number }
+    | { kind: 'win' };
+
+export interface TournamentLive {
+    tournamentId: number;
+    meta: TournamentMeta | null;
+    clock: TournamentClock | null;
+    playersActive: number | null;
+    feed: TournamentElim[]; // newest first, capped
+    leaderboard: LeaderboardPlayer[];
+    completed: { winnerUuid: string } | null;
+    myResult: TournamentMyResult | null;
+    status: 'connecting' | 'live' | 'stale';
+}
 
 export type Player = {
     username: string;
@@ -91,6 +181,8 @@ export type Player = {
     sitOutNextHand?: boolean;
     leaveAfterHand?: boolean;
     isOnline?: boolean; // Whether player has active WebSocket connection
+    /** Remaining action time bank in milliseconds. Refillable per-player overage clock that extends the base action timer. */
+    timeBankMs?: number;
 };
 
 export type Game = {
@@ -116,7 +208,6 @@ export type Game = {
      */
     actionDeadline: number;
     pendingBlinds?: { sb: number; bb: number };
-    owesSB?: boolean[];
     owesBB?: boolean[];
     waitingForBB?: boolean[];
     /** Community cards that would have been dealt — populated after a concession when rabbit hunt is enabled. */
@@ -131,7 +222,6 @@ export type BlindObligationOptions = 'post_now' | 'wait_bb' | 'sit_out';
 
 export type BlindObligation = {
     seatID: number;
-    owesSB: boolean;
     owesBB: boolean;
     waitingForBB?: boolean;
     options: BlindObligationOptions[];
@@ -148,6 +238,12 @@ export type Config = {
     ownerSessionUUID?: string;
     rabbitHuntEnabled?: boolean;
     autoAccept?: boolean;
+    tournament?: { tournamentId: string; ante?: number } | null;
+    /**
+     * Always-on base action clock in milliseconds. The current actor's total window is
+     * `baseActionMs + timeBankMs`; `actionDeadline` already encodes this sum.
+     */
+    baseActionMs?: number;
 };
 
 export type Pot = {

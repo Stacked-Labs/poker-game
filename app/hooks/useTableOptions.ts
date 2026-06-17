@@ -36,7 +36,7 @@ export const handleSitOutNext = (
 ) => {
     if (!socket) return;
     playerSitOutNext(socket);
-    toast('Away...', '', 3000);
+    toast('You\'re away');
 };
 
 export const handleReturnReady = (
@@ -50,7 +50,7 @@ export const handleReturnReady = (
 ) => {
     if (!socket) return;
     playerSetReady(socket);
-    toast("I'm Back", '', 3000);
+    toast('Welcome back');
 };
 
 export const handleCancelRejoin = (
@@ -64,5 +64,5 @@ export const handleCancelRejoin = (
 ) => {
     if (!socket) return;
     playerSetReady(socket);
-    toast('Rejoin Cancelled', '', 3000);
+    toast('Rejoin canceled');
 };

@@ -29,19 +29,25 @@ import {
     FaArrowRight,
     FaCheckCircle,
     FaExternalLinkAlt,
+    FaCoins,
+    FaTrophy,
 } from 'react-icons/fa';
 import { FiGift, FiChevronDown } from 'react-icons/fi';
 import ModeChooser, { CreateGameMode } from './ModeChooser';
 import NetworkCard from './NetworkCard';
+import CreateTournamentForm, {
+    CreateTournamentFormValues,
+} from './CreateTournamentForm';
 import gameData from '../../create-game/gameOptions.json';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import WalletButton from '@/app/components/WalletButton';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 import { useAuth } from '@/app/contexts/AuthContext';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import { friendlyError } from '@/app/utils/toastErrors';
 import { useRotatingMessages } from '@/app/hooks/useRotatingMessages';
-import { initSession } from '@/app/hooks/server_actions';
+import { initSession, createTournament } from '@/app/hooks/server_actions';
 import {
     useActiveAccount,
     useActiveWallet,
@@ -69,6 +75,16 @@ const fadeIn = keyframes`
         transform: translateY(0);
     }
 `;
+
+// Derives the password hash sent to the backend by encoding the access code as
+// UTF-8 and hashing with SHA-256.
+async function hashPasswordCode(code: string): Promise<string> {
+    const enc = new TextEncoder().encode(code);
+    const digest = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+}
 
 interface StakePreset {
     name: string;
@@ -143,10 +159,7 @@ function InfoDot({ label }: { label: string }) {
 
 function SectionCard({ children }: { children: React.ReactNode }) {
     const bg = useColorModeValue('card.white', 'card.darkNavy');
-    const borderColor = useColorModeValue(
-        'border.lightGray',
-        'whiteAlpha.200'
-    );
+    const borderColor = useColorModeValue('border.lightGray', 'whiteAlpha.200');
     const edge = useColorModeValue(
         '0 2px 0 rgba(0,0,0,0.06)',
         '0 2px 0 rgba(0,0,0,0.35)'
@@ -190,16 +203,23 @@ const GameSettingLeftSide: React.FC = () => {
     // Enabled chains come from env var (e.g. "base-sepolia,base"); fall back to sepolia.
     const enabledChainIds = useMemo(() => {
         const raw = process.env.NEXT_PUBLIC_ENABLED_CHAINS ?? 'base-sepolia';
-        return raw.split(',').map((s) => s.trim()).filter(Boolean);
+        return raw
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
     }, []);
 
     const enabledNetworks = useMemo(
-        () => gameData.networks.filter((n) => enabledChainIds.includes(n.chainId)),
+        () =>
+            gameData.networks.filter((n) =>
+                enabledChainIds.includes(n.chainId)
+            ),
         [enabledChainIds]
     );
 
-    const [selectedNetwork, setSelectedNetwork] =
-        useState<string>(enabledChainIds[0] ?? 'base-sepolia');
+    const [selectedNetwork, setSelectedNetwork] = useState<string>(
+        enabledChainIds[0] ?? 'base-sepolia'
+    );
     const [isLoading, setIsLoading] = useState(false);
     const rotatingCreateLabel = useRotatingMessages(
         CREATE_GAME_MESSAGES,
@@ -212,8 +232,15 @@ const GameSettingLeftSide: React.FC = () => {
     const { isAuthenticated, isAuthenticating, requestAuthentication } =
         useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { dispatch } = useContext(AppContext);
     const toast = useToastHelper();
+    // Cash vs Tournament toggle. Initialized to tournament mode when the page is
+    // opened via ?type=tournament so the deep-link lands on the right form.
+    const [isTournamentMode, setIsTournamentMode] = useState(
+        () => searchParams?.get('type') === 'tournament'
+    );
+    const [creating, setCreating] = useState(false);
     // Blinds are stored as display strings so the field renders without
     // leading-zero artifacts ("05" vs "5") when the user pastes or retypes.
     const [smallBlindStr, setSmallBlindStr] = useState<string>('5');
@@ -334,13 +361,7 @@ const GameSettingLeftSide: React.FC = () => {
             return 'Big blind must be at least the small blind.';
         }
         return '';
-    }, [
-        smallBlind,
-        bigBlind,
-        blindsMinChips.big,
-        blindsMinChips.small,
-        mode,
-    ]);
+    }, [smallBlind, bigBlind, blindsMinChips.big, blindsMinChips.small, mode]);
 
     useEffect(() => {
         const validateForm = () => {
@@ -354,8 +375,7 @@ const GameSettingLeftSide: React.FC = () => {
                 Number.isInteger(bigBlind);
             const isGameModeSelected = selectedGameMode !== '';
             const isNetworkSelected =
-                mode === 'free' ||
-                (mode === 'real' && selectedNetwork !== '');
+                mode === 'free' || (mode === 'real' && selectedNetwork !== '');
             const isWalletConnected =
                 mode === 'free' ||
                 (mode === 'real' &&
@@ -388,7 +408,8 @@ const GameSettingLeftSide: React.FC = () => {
 
     useEffect(() => {
         if (mode !== 'real') return;
-        if (!Number.isFinite(smallBlind) || smallBlind < 5) setSmallBlindStr('5');
+        if (!Number.isFinite(smallBlind) || smallBlind < 5)
+            setSmallBlindStr('5');
         if (!Number.isFinite(bigBlind) || bigBlind < 10) setBigBlindStr('10');
     }, [mode, smallBlind, bigBlind]);
 
@@ -420,7 +441,8 @@ const GameSettingLeftSide: React.FC = () => {
     // Persist blinds to localStorage after hydration completes.
     useEffect(() => {
         if (!blindsHydratedRef.current) return;
-        if (!Number.isInteger(smallBlind) || !Number.isInteger(bigBlind)) return;
+        if (!Number.isInteger(smallBlind) || !Number.isInteger(bigBlind))
+            return;
         try {
             window.localStorage.setItem(
                 BLINDS_STORAGE_KEY,
@@ -438,7 +460,7 @@ const GameSettingLeftSide: React.FC = () => {
 
         if (mode === 'real' && !isCryptoEnabled) {
             toast.info(
-                'Coming Soon',
+                'Coming soon',
                 'Crypto games are coming soon. Follow us on social media for updates.'
             );
             return;
@@ -451,7 +473,7 @@ const GameSettingLeftSide: React.FC = () => {
             process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
         ) {
             toast.warning(
-                'Verification Pending',
+                'Verification pending',
                 'Please wait for bot verification to complete.'
             );
             return;
@@ -463,7 +485,7 @@ const GameSettingLeftSide: React.FC = () => {
                 (!isCryptoEnabled || !address || !isAuthenticated)
             ) {
                 toast.warning(
-                    'Authentication Required',
+                    'Sign in to continue',
                     !isCryptoEnabled
                         ? 'Crypto games are coming soon.'
                         : !address
@@ -486,7 +508,7 @@ const GameSettingLeftSide: React.FC = () => {
                 !Number.isInteger(bigBlind)
             ) {
                 toast.warning(
-                    'Invalid Blinds',
+                    'Invalid blinds',
                     mode === 'real'
                         ? 'Minimum stakes are 5/10 chips. Whole chips only, big ≥ small.'
                         : 'Whole chips only, big blind ≥ small blind.'
@@ -495,22 +517,22 @@ const GameSettingLeftSide: React.FC = () => {
             }
             if (selectedGameMode === '') {
                 toast.warning(
-                    'Game Mode Not Selected',
+                    'Pick a game mode',
                     'Please select a game mode.'
                 );
                 return;
             }
             if (mode === 'real' && selectedNetwork === '') {
                 toast.warning(
-                    'Network Not Selected',
+                    'Pick a network',
                     'Please select a network for crypto play.'
                 );
                 return;
             }
             if (!isFormValid) {
                 toast.error(
-                    'Validation Error',
-                    'Please check your game settings.'
+                    'Check your settings',
+                    'Please review your game settings and try again.'
                 );
                 return;
             }
@@ -547,8 +569,7 @@ const GameSettingLeftSide: React.FC = () => {
                         chain: mode === 'real' ? selectedNetwork : '',
                         isPublic: isPublicGame,
                         cfTurnstileToken:
-                            turnstileToken ||
-                            (isE2E ? 'E2E_DUMMY_TOKEN' : ''),
+                            turnstileToken || (isE2E ? 'E2E_DUMMY_TOKEN' : ''),
                     }),
                 }
             );
@@ -557,8 +578,8 @@ const GameSettingLeftSide: React.FC = () => {
                 const data = await response.json();
                 if (data && data.tablename) {
                     toast.success(
-                        'Game Created',
-                        `Successfully created game: ${data.tablename}`
+                        'Game created',
+                        `Your table is ready: ${data.tablename}`
                     );
                     didCreate = true;
                     track('table_create_completed', {
@@ -570,30 +591,31 @@ const GameSettingLeftSide: React.FC = () => {
                     router.push(`/table/${data.tablename}`);
                 } else {
                     toast.error(
-                        'Create Error',
-                        'Received invalid response from server.'
+                        'Could not create game',
+                        'We got an unexpected response. Please try again.'
                     );
                 }
             } else {
                 if (response.status === 403) {
                     toast.error(
-                        'Security Check Failed',
+                        'Security check failed',
                         'Please wait a moment and try again.'
                     );
                 } else {
-                    const errorData = await response.text();
-                    toast.error(
-                        'Create Failed',
-                        `Failed to create game: ${response.statusText} - ${errorData}`
-                    );
+                    const { title, description } = friendlyError(undefined, {
+                        title: 'Could not create game',
+                        description: 'Something went wrong. Please try again.',
+                    });
+                    toast.error(title, description);
                 }
             }
         } catch (error) {
             console.error('Error creating game:', error);
-            toast.error(
-                'Create Failed',
-                `An error occurred: ${error instanceof Error ? error.message : String(error)}`
-            );
+            const { title, description } = friendlyError(error, {
+                title: 'Could not create game',
+                description: 'Something went wrong. Please try again.',
+            });
+            toast.error(title, description);
         } finally {
             setTurnstileToken(null);
             if (!didCreate) {
@@ -603,15 +625,124 @@ const GameSettingLeftSide: React.FC = () => {
         }
     };
 
+    const handleCreateTournament = async (
+        values: CreateTournamentFormValues
+    ) => {
+        if (!address || !isAuthenticated) {
+            toast.warning(
+                'Sign in to continue',
+                !address
+                    ? 'Please sign in with your wallet to create a tournament.'
+                    : 'Please sign the message in your wallet to continue.'
+            );
+            return;
+        }
+
+        setCreating(true);
+        try {
+            const buyInMicro = values.freePlay
+                ? 0
+                : Math.round((parseFloat(values.buyInUsdc) || 0) * 1_000_000);
+            const guaranteeMicro = Math.round(
+                (parseFloat(values.guaranteeUsdc) || 0) * 1_000_000
+            );
+            const needsGuarantee = !values.freePlay && guaranteeMicro > 0;
+            const reentryAllowed =
+                values.reentryAllowed && values.lateRegLevels > 0;
+            // Trim once and use for both is_private and the hash so joiners
+            // (who hash the trimmed code) produce a matching hash.
+            const trimmedCode = values.passwordCode.trim();
+            const result = await createTournament({
+                name: values.name.trim() || undefined,
+                description: values.description.trim() || undefined,
+                min_entries: parseInt(values.minPlayers, 10),
+                // An empty maxPlayers means the host chose "Unlimited". We send
+                // a large effective ceiling as a stopgap. Once the poker-server
+                // change that treats max_entries === 0 as uncapped is deployed
+                // (branch feat/tournament-unlimited-entries), switch this to 0.
+                max_entries: values.maxPlayers
+                    ? parseInt(values.maxPlayers, 10)
+                    : 100000,
+                buy_in_usdc: buyInMicro,
+                guarantee_usdc: needsGuarantee ? guaranteeMicro : undefined,
+                scheduled_start_at: new Date(values.scheduledAt).toISOString(),
+                blind_structure: values.blindStructure,
+                late_reg_levels: values.lateRegLevels,
+                table_size: values.tableSize,
+                reentry_allowed: reentryAllowed,
+                reentry_max: reentryAllowed ? values.reentryMax : undefined,
+                chain: values.freePlay ? undefined : values.chain,
+                // An access code makes the tournament private. Free-play
+                // tournaments are gated at the server /register endpoint; crypto
+                // tournaments are deployed isPrivate and gated on-chain via an
+                // operator permit. Both key off is_private (also drives the
+                // Private pill and the join-time password gate).
+                is_private: !!trimmedCode,
+                // Send the SHA-256 hash of the code (never the raw code). The
+                // backend stores it for both free-play and crypto tournaments.
+                password_code_hash: trimmedCode
+                    ? await hashPasswordCode(trimmedCode)
+                    : undefined,
+            });
+            toast.success('Tournament created');
+            router.push(`/tournament/${result.tournament.id}`);
+        } catch (error) {
+            const { title, description } = friendlyError(error, {
+                title: 'Could not create tournament',
+                description: 'Something went wrong. Please try again.',
+            });
+            toast.error(title, description);
+            setCreating(false);
+        }
+    };
+
     const handleJoinPublicGame = () => {
         router.push('/public-games');
     };
+
+    const typeSwitcherBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.05)',
+        'rgba(255, 255, 255, 0.06)'
+    );
+    const activeTabBg = useColorModeValue('white', 'whiteAlpha.100');
+    // brand.yellow (#FDC51D) fails WCAG AA as text on the white active-tab bg in
+    // light mode, so use the darker gold for the label; icon/border can stay
+    // brand.yellow in both modes (they don't need text-level contrast).
+    const tournamentTextColor = useColorModeValue(
+        'brand.yellowDark',
+        'brand.yellow'
+    );
+    // brand.green (#36A37B) is ~3.1:1 on the white active tab — under AA — so
+    // use the darker green for the Cash label text in light mode.
+    const cashTextColor = useColorModeValue('brand.greenDark', 'brand.green');
 
     const handleDisconnectWallet = () => {
         if (wallet) {
             disconnect(wallet);
         }
     };
+
+    // Hosting a tournament always requires sign-in; cash tables only require it
+    // for real-money play (Free Play stays open to guests).
+    const isSignedIn = !!address && isAuthenticated;
+    const signInGate = !address ? (
+        <WalletButton width="100%" height="56px" label="Sign in to host" />
+    ) : (
+        <Button
+            variant="tactilePrimary"
+            width="100%"
+            height="56px"
+            fontSize="md"
+            fontWeight="bold"
+            borderRadius="16px"
+            isLoading={isAuthenticating}
+            loadingText="Signing in…"
+            spinner={<Spinner size="md" color="white" />}
+            onClick={requestAuthentication}
+        >
+            Sign in to host
+        </Button>
+    );
 
     return (
         <VStack
@@ -638,10 +769,14 @@ const GameSettingLeftSide: React.FC = () => {
                         fontWeight="extrabold"
                         color="text.primary"
                     >
-                        Host a Table
+                        {isTournamentMode
+                            ? 'Host a Tournament'
+                            : 'Host a Table'}
                     </Heading>
-                    <Text fontSize="sm" color="gray.500" mt={1}>
-                        Set the stakes. Invite your friends.
+                    <Text fontSize="sm" color="text.muted" mt={1}>
+                        {isTournamentMode
+                            ? 'Set the format. Invite your players.'
+                            : 'Set the stakes. Invite your friends.'}
                     </Text>
                 </Box>
                 <Button
@@ -653,861 +788,1184 @@ const GameSettingLeftSide: React.FC = () => {
                     fontWeight={{ base: 'semibold', md: 'bold' }}
                     fontSize={{ base: 'xs', md: 'sm' }}
                     onClick={handleJoinPublicGame}
-                    leftIcon={<Icon as={FaUsers} boxSize={{ base: 3.5, md: 4 }} />}
-                    rightIcon={<Icon as={FaArrowRight} boxSize={{ base: 2.5, md: 3 }} />}
+                    leftIcon={
+                        <Icon as={FaUsers} boxSize={{ base: 3.5, md: 4 }} />
+                    }
+                    rightIcon={
+                        <Icon
+                            as={FaArrowRight}
+                            boxSize={{ base: 2.5, md: 3 }}
+                        />
+                    }
                     flexShrink={0}
                 >
                     Join Game
                 </Button>
             </Flex>
 
-            {/* Mode Chooser — always visible; the page's primary decision. */}
-            <Box width="100%" mb={4}>
-                <ModeChooser
-                    selectedMode={mode}
-                    onSelect={handleModeSelect}
-                />
-            </Box>
-
-            {mode !== null && (
-                <>
-            {/* Modular settings — each row is its own micro-card */}
-            <VStack spacing={3} align="stretch" width="100%">
-                <SectionCard>
-                    <Flex
-                        justifyContent="space-between"
-                        alignItems="center"
-                    >
-                        <VStack spacing={0.5} align="flex-start" pr={3}>
-                            <Text
-                                fontWeight="bold"
-                                fontSize="md"
-                                color="text.primary"
-                            >
-                                List publicly
-                            </Text>
-                            <Text fontSize="xs" color="gray.500">
-                                Public tables appear in the lobby. Off keeps it invite-only.
-                            </Text>
-                        </VStack>
-                        <Switch
-                            isChecked={isPublicGame}
-                            onChange={(e) => setIsPublicGame(e.target.checked)}
-                            colorScheme="green"
-                            size="lg"
-                            flexShrink={0}
-                        />
-                    </Flex>
-                </SectionCard>
-
-                <SectionCard>
-                    <Flex
-                        justifyContent="space-between"
-                        alignItems="center"
-                        gap={3}
-                    >
-                        <HStack spacing={2} align="center" minW={0}>
-                            <Text
-                                fontWeight="bold"
-                                fontSize="md"
-                                color="text.primary"
-                                whiteSpace="nowrap"
-                            >
-                                Variant
-                            </Text>
-                            <InfoDot label="Texas Hold'em is the default. Tap to change." />
-                        </HStack>
-                        <Menu placement="bottom-end" autoSelect={false}>
-                            <MenuButton
-                                as={Button}
-                                variant="unstyled"
-                                rightIcon={
-                                    <Icon
-                                        as={FiChevronDown}
-                                        color="gray.500"
-                                        _dark={{ color: 'gray.400' }}
-                                        boxSize="14px"
-                                    />
-                                }
-                                height="36px"
-                                px={3}
-                                borderRadius="full"
-                                borderWidth="1px"
-                                borderColor="border.lightGray"
-                                _dark={{ borderColor: 'whiteAlpha.200' }}
-                                bg="transparent"
-                                fontSize="sm"
-                                fontWeight="semibold"
-                                color="text.primary"
-                                display="inline-flex"
-                                alignItems="center"
-                                transition="border-color 80ms ease, background-color 80ms ease"
-                                _hover={{ borderColor: accent.color }}
-                                _active={{
-                                    bg: accent.soft,
-                                    borderColor: accent.color,
-                                }}
-                            >
-                                {selectedGameMode}
-                            </MenuButton>
-                            <MenuList
-                                minW="180px"
-                                py={1}
-                                borderRadius="12px"
-                                boxShadow="0 8px 24px rgba(0,0,0,0.12)"
-                                bg={menuListBg}
-                                borderColor={menuListBorder}
-                            >
-                                {gameModes.map((m) => (
-                                    <MenuItem
-                                        key={m.name}
-                                        onClick={() =>
-                                            !m.disabled &&
-                                            setSelectedGameMode(m.name)
-                                        }
-                                        isDisabled={m.disabled}
-                                        fontSize="sm"
-                                        fontWeight={
-                                            selectedGameMode === m.name
-                                                ? 'bold'
-                                                : 'medium'
-                                        }
-                                        color={
-                                            selectedGameMode === m.name
-                                                ? accent.color
-                                                : 'text.primary'
-                                        }
-                                        bg="transparent"
-                                        _hover={{ bg: accent.soft }}
-                                        _focus={{ bg: accent.soft }}
-                                        _active={{ bg: accent.soft }}
-                                    >
-                                        {m.name}
-                                    </MenuItem>
-                                ))}
-                            </MenuList>
-                        </Menu>
-                    </Flex>
-                    {selectedGameModeDescription && (
-                        <Text
-                            fontSize="xs"
-                            color="gray.500"
-                            mt={2}
-                            textAlign="right"
-                        >
-                            {selectedGameModeDescription}
-                        </Text>
-                    )}
-                </SectionCard>
-
-                <SectionCard>
-                <Flex
-                    justifyContent="space-between"
-                    alignItems={{ base: 'flex-start', sm: 'center' }}
-                    flexDirection={{ base: 'column', sm: 'row' }}
-                    gap={4}
+            {/* Table vs Tournament type switcher */}
+            <HStack
+                width="100%"
+                spacing={1.5}
+                mb={4}
+                bg={typeSwitcherBg}
+                borderRadius="14px"
+                p="4px"
+            >
+                <Button
+                    flex={1}
+                    size="sm"
+                    height="42px"
+                    borderRadius="10px"
+                    variant="unstyled"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    gap={2}
+                    fontWeight={isTournamentMode ? 'medium' : 'bold'}
+                    fontSize="sm"
+                    bg={isTournamentMode ? 'transparent' : activeTabBg}
+                    color={isTournamentMode ? 'text.muted' : cashTextColor}
+                    boxShadow={
+                        isTournamentMode ? 'none' : '0 1px 2px rgba(0,0,0,0.12)'
+                    }
+                    borderWidth="1.5px"
+                    borderColor={
+                        isTournamentMode ? 'transparent' : 'brand.green'
+                    }
+                    transition="color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, border-color 120ms ease"
+                    _hover={isTournamentMode ? { color: 'text.primary' } : {}}
+                    _active={{}}
+                    onClick={() => setIsTournamentMode(false)}
                 >
-                    <HStack spacing={2} align="center" mt={{ base: 3, sm: 0 }}>
-                        <Text
-                            fontWeight="bold"
-                            fontSize="md"
-                            color="text.primary"
-                        >
-                            Blinds
-                        </Text>
-                        <InfoDot
-                            label={
-                                mode === 'real'
-                                    ? 'Blinds are in chips. Amounts shown in USDC. Min 5/10 • 1 chip = $0.01 USDC.'
-                                    : 'Blinds must be whole-chip amounts.'
-                            }
+                    <Icon
+                        as={FaCoins}
+                        boxSize={3.5}
+                        color={isTournamentMode ? 'inherit' : 'brand.green'}
+                    />
+                    Cash Table
+                </Button>
+                <Button
+                    flex={1}
+                    size="sm"
+                    height="42px"
+                    borderRadius="10px"
+                    variant="unstyled"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    gap={2}
+                    fontWeight={isTournamentMode ? 'bold' : 'medium'}
+                    fontSize="sm"
+                    bg={isTournamentMode ? activeTabBg : 'transparent'}
+                    color={
+                        isTournamentMode ? tournamentTextColor : 'text.muted'
+                    }
+                    boxShadow={
+                        isTournamentMode ? '0 1px 2px rgba(0,0,0,0.12)' : 'none'
+                    }
+                    borderWidth="1.5px"
+                    borderColor={
+                        isTournamentMode ? 'brand.yellow' : 'transparent'
+                    }
+                    transition="color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, border-color 120ms ease"
+                    _hover={isTournamentMode ? {} : { color: 'text.primary' }}
+                    _active={{}}
+                    onClick={() => setIsTournamentMode(true)}
+                >
+                    <Icon
+                        as={FaTrophy}
+                        boxSize={3.5}
+                        color={isTournamentMode ? 'brand.yellow' : 'inherit'}
+                    />
+                    Tournament
+                </Button>
+            </HStack>
+
+            {isTournamentMode ? (
+                <CreateTournamentForm
+                    onSubmit={handleCreateTournament}
+                    isSubmitting={creating}
+                    authGate={isSignedIn ? undefined : signInGate}
+                />
+            ) : (
+                <>
+                    {/* Mode Chooser — always visible; the page's primary decision. */}
+                    <Box width="100%" mb={4}>
+                        <ModeChooser
+                            selectedMode={mode}
+                            onSelect={handleModeSelect}
                         />
-                    </HStack>
-                    <Flex
-                        width="100%"
-                        flexDirection="column"
-                        alignItems="flex-end"
-                    >
-                        {/* Stake presets — Crypto only; Free Play uses raw chip values */}
-                        {mode === 'real' && (
-                        <HStack
-                            spacing={2}
-                            mb={2}
-                            justifyContent="flex-end"
-                            flexWrap="wrap"
-                        >
-                            {STAKE_PRESETS.map((preset) => {
-                                const isActive =
-                                    smallBlind === preset.sb &&
-                                    bigBlind === preset.bb;
-                                return (
-                                    <Button
-                                        key={preset.name}
-                                        onClick={() => {
-                                            setSmallBlind(preset.sb);
-                                            setBigBlind(preset.bb);
-                                        }}
-                                        variant="unstyled"
-                                        height="32px"
-                                        px={4}
-                                        borderRadius="full"
-                                        bg={isActive ? accent.color : 'transparent'}
-                                        border="1.5px solid"
-                                        borderColor={accent.color}
-                                        boxShadow={
-                                            isActive
-                                                ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 ${accent.edge}`
-                                                : `0 1.5px 0 ${accent.edge}`
-                                        }
-                                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease"
-                                        _hover={
-                                            isActive
-                                                ? { bg: accent.color }
-                                                : { bg: accent.soft }
-                                        }
-                                        _active={{
-                                            transform: 'translateY(1.5px)',
-                                            boxShadow: isActive
-                                                ? `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${accent.edge}`
-                                                : `0 0 0 ${accent.edge}`,
-                                        }}
+                    </Box>
+
+                    {mode !== null && (
+                        <>
+                            {/* Modular settings — each row is its own micro-card */}
+                            <VStack spacing={3} align="stretch" width="100%">
+                                <SectionCard>
+                                    <Flex
+                                        justifyContent="space-between"
+                                        alignItems="center"
                                     >
-                                        <HStack spacing={1.5} align="baseline">
+                                        <VStack
+                                            spacing={0.5}
+                                            align="flex-start"
+                                            pr={3}
+                                        >
+                                            <Text
+                                                fontWeight="bold"
+                                                fontSize="md"
+                                                color="text.primary"
+                                            >
+                                                List publicly
+                                            </Text>
                                             <Text
                                                 fontSize="xs"
-                                                fontWeight="semibold"
-                                                lineHeight={1}
-                                                color={isActive ? 'white' : accent.color}
+                                                color="gray.500"
                                             >
-                                                {preset.name}
+                                                Public tables appear in the
+                                                lobby. Off keeps it invite-only.
                                             </Text>
-                                            <Text
-                                                fontSize="11px"
-                                                fontWeight="medium"
-                                                lineHeight={1}
-                                                color={
-                                                    isActive
-                                                        ? 'whiteAlpha.800'
-                                                        : accent.color
-                                                }
-                                                sx={{
-                                                    fontVariantNumeric:
-                                                        'tabular-nums',
-                                                }}
-                                            >
-                                                {preset.sb}/{preset.bb}
-                                            </Text>
-                                        </HStack>
-                                    </Button>
-                                );
-                            })}
-                        </HStack>
-                        )}
-                        <HStack
-                            spacing={{ base: 3, md: 4 }}
-                            alignItems="flex-start"
-                            width="100%"
-                            justifyContent="flex-end"
-                        >
-                            {/* Small Blind */}
-                            <Box position="relative" width={blindInputWidth}>
-                                <Text
-                                    fontSize="11px"
-                                    fontWeight="bold"
-                                    color={accent.color}
-                                    letterSpacing="wide"
-                                    position="absolute"
-                                    top="-2"
-                                    left="3"
-                                    px="1.5"
-                                    zIndex={10}
-                                    py="0.5"
-                                    borderRadius="full"
-                                >
-                                    SB
-                                </Text>
-                                <Input
-                                    type="text"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    value={smallBlindStr}
-                                    onChange={(e) => {
-                                        const raw = e.target.value;
-                                        if (/[.,]/.test(raw)) {
-                                            toast.warning(
-                                                'Whole chips only',
-                                                "Blinds can't be split into decimals.",
-                                                3000,
-                                                'blinds-no-decimal'
-                                            );
-                                        }
-                                        const digits = raw.replace(/\D/g, '');
-                                        setSmallBlindStr(
-                                            digits === '' ? '' : String(Number(digits))
-                                        );
-                                    }}
-                                    bg="input.white"
-                                    borderWidth="1px"
-                                    borderColor="border.lightGray"
-                                    borderRadius="14px"
-                                    width={blindInputWidth}
-                                    height={{ base: '52px', md: '56px' }}
-                                    textAlign="right"
-                                    pr={4}
-                                    fontWeight="semibold"
-                                    fontSize="md"
-                                    color="text.primary"
-                                    _hover={{
-                                        borderColor: 'gray.300',
-                                    }}
-                                    _focus={{
-                                        borderColor: accent.color,
-                                        boxShadow: `0 0 0 2px ${accent.ring}`,
-                                    }}
-                                />
-                                {mode === 'real' && (
-                                    <Tooltip
-                                        label={`${formatUsdc(smallBlindUsdc)} USDC`}
-                                        isDisabled={
-                                            `${formatUsdc(smallBlindUsdc)} USDC`
-                                                .length <= 12
-                                        }
-                                        hasArrow
-                                        placement="top"
-                                    >
-                                        <Flex
-                                            mt={1}
-                                            width="full"
-                                            maxW={blindInputWidth}
-                                            fontSize="xs"
-                                            color="text.gray600"
-                                            fontWeight="medium"
-                                            justifyContent="flex-end"
-                                            alignItems="center"
-                                            gap={1.5}
-                                            pr={1.5}
-                                            lineHeight="short"
-                                            overflow="hidden"
-                                        >
-                                            <Image
-                                                src={usdcLogoUrl}
-                                                alt="USDC"
-                                                boxSize="14px"
-                                                loading="lazy"
-                                                flexShrink={0}
-                                            />
-                                            <Text
-                                                as="span"
-                                                color="inherit"
-                                                isTruncated
-                                            >
-                                                {formatUsdc(smallBlindUsdc)}{' '}
-                                                USDC
-                                            </Text>
-                                        </Flex>
-                                    </Tooltip>
-                                )}
-                            </Box>
-                            <Text
-                                color="gray.400"
-                                _dark={{ color: 'gray.500' }}
-                                fontSize="xl"
-                                fontWeight="light"
-                                pt={2}
-                            >
-                                /
-                            </Text>
-                            {/* Big Blind */}
-                            <Box position="relative" width={blindInputWidth}>
-                                <Text
-                                    fontSize="11px"
-                                    fontWeight="bold"
-                                    color={accent.color}
-                                    letterSpacing="wide"
-                                    position="absolute"
-                                    top="-2"
-                                    left="3"
-                                    px="1.5"
-                                    zIndex={10}
-                                    py="0.5"
-                                    borderRadius="full"
-                                >
-                                    BB
-                                </Text>
-                                <Input
-                                    type="text"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    value={bigBlindStr}
-                                    onChange={(e) => {
-                                        const raw = e.target.value;
-                                        if (/[.,]/.test(raw)) {
-                                            toast.warning(
-                                                'Whole chips only',
-                                                "Blinds can't be split into decimals.",
-                                                3000,
-                                                'blinds-no-decimal'
-                                            );
-                                        }
-                                        const digits = raw.replace(/\D/g, '');
-                                        setBigBlindStr(
-                                            digits === '' ? '' : String(Number(digits))
-                                        );
-                                    }}
-                                    bg="input.white"
-                                    borderWidth="1px"
-                                    borderColor="border.lightGray"
-                                    borderRadius="14px"
-                                    width={blindInputWidth}
-                                    height={{ base: '52px', md: '56px' }}
-                                    textAlign="right"
-                                    pr={4}
-                                    fontWeight="semibold"
-                                    fontSize="md"
-                                    color="text.primary"
-                                    _hover={{
-                                        borderColor: 'gray.300',
-                                    }}
-                                    _focus={{
-                                        borderColor: accent.color,
-                                        boxShadow: `0 0 0 2px ${accent.ring}`,
-                                    }}
-                                />
-                                {mode === 'real' && (
-                                    <Tooltip
-                                        label={`${formatUsdc(bigBlindUsdc)} USDC`}
-                                        isDisabled={
-                                            `${formatUsdc(bigBlindUsdc)} USDC`
-                                                .length <= 12
-                                        }
-                                        hasArrow
-                                        placement="top"
-                                    >
-                                        <Flex
-                                            mt={1}
-                                            width="full"
-                                            maxW={blindInputWidth}
-                                            fontSize="xs"
-                                            color="text.gray600"
-                                            fontWeight="medium"
-                                            justifyContent="flex-end"
-                                            alignItems="center"
-                                            gap={1.5}
-                                            pr={1.5}
-                                            lineHeight="short"
-                                            overflow="hidden"
-                                        >
-                                            <Image
-                                                src={usdcLogoUrl}
-                                                alt="USDC"
-                                                boxSize="14px"
-                                                loading="lazy"
-                                                flexShrink={0}
-                                            />
-                                            <Text
-                                                as="span"
-                                                color="inherit"
-                                                isTruncated
-                                            >
-                                                {formatUsdc(bigBlindUsdc)} USDC
-                                            </Text>
-                                        </Flex>
-                                    </Tooltip>
-                                )}
-                            </Box>
-                        </HStack>
-                        {blindsErrorMessage && (
-                            <Flex mt={2} align="center" gap={1.5}>
-                                <Icon
-                                    as={FaInfoCircle}
-                                    color="brand.pink"
-                                    boxSize={3.5}
-                                />
-                                <Text
-                                    fontSize="sm"
-                                    color="brand.pink"
-                                    fontWeight="medium"
-                                    lineHeight="short"
-                                >
-                                    {blindsErrorMessage}
-                                </Text>
-                            </Flex>
-                        )}
-                        {mode === 'real' && (
-                            <Flex
-                                mt={2}
-                                width="100%"
-                                justifyContent="flex-end"
-                                alignItems="center"
-                                gap={2}
-                                fontSize="xs"
-                                fontWeight="medium"
-                                color="text.gray600"
-                                lineHeight="short"
-                                whiteSpace="nowrap"
-                                _dark={{
-                                    fontWeight: 'semibold',
-                                }}
-                            >
-                                <Text as="span" color="inherit">
-                                    1 chip = {formatUsdc(usdcPerChip)} USDC •
-                                    Min 5/10
-                                </Text>
-                            </Flex>
-                        )}
-                    </Flex>
-                </Flex>
-                </SectionCard>
+                                        </VStack>
+                                        <Switch
+                                            isChecked={isPublicGame}
+                                            onChange={(e) =>
+                                                setIsPublicGame(
+                                                    e.target.checked
+                                                )
+                                            }
+                                            colorScheme="green"
+                                            size="lg"
+                                            flexShrink={0}
+                                        />
+                                    </Flex>
+                                </SectionCard>
 
-                {/* Network Section - Only for Crypto */}
-                {mode === 'real' && (
-                    <SectionCard>
-                        <Box>
-                            <Flex
-                                alignItems="center"
-                                justifyContent="space-between"
-                                mb={4}
-                            >
-                                <HStack spacing={2} align="center">
-                                    <Text
-                                        fontWeight="bold"
-                                        fontSize="md"
-                                        color="text.primary"
+                                <SectionCard>
+                                    <Flex
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        gap={3}
                                     >
-                                        Network
-                                    </Text>
-                                    <InfoDot label="Select the blockchain network for your crypto game." />
-                                </HStack>
-                                {selectedNetwork === 'base-sepolia' && (
-                                    <Link
-                                        href="/free-tokens"
-                                        isExternal
-                                        _hover={{
-                                            textDecoration: 'none',
-                                        }}
-                                    >
-                                        <Flex
+                                        <HStack
+                                            spacing={2}
                                             align="center"
-                                            gap={2}
-                                            bg="rgba(54, 163, 123, 0.08)"
-                                            _dark={{
-                                                bg: 'rgba(54, 163, 123, 0.12)',
-                                                borderColor:
-                                                    'rgba(54, 163, 123, 0.25)',
-                                            }}
-                                            borderRadius="full"
-                                            pl={2}
-                                            pr={3}
-                                            py={1.5}
-                                            borderWidth="1px"
-                                            borderColor="rgba(54, 163, 123, 0.15)"
-                                            cursor="pointer"
-                                            transition="all 0.2s ease"
-                                            _hover={{
-                                                bg: 'rgba(54, 163, 123, 0.14)',
-                                                borderColor:
-                                                    'rgba(54, 163, 123, 0.3)',
-                                                _dark: {
-                                                    bg: 'rgba(54, 163, 123, 0.18)',
-                                                    borderColor:
-                                                        'rgba(54, 163, 123, 0.35)',
-                                                },
-                                            }}
+                                            minW={0}
                                         >
-                                            <Flex
-                                                align="center"
-                                                justify="center"
-                                                bg="brand.green"
-                                                borderRadius="full"
-                                                boxSize="22px"
-                                                flexShrink={0}
-                                            >
-                                                <Icon
-                                                    as={FiGift}
-                                                    color="white"
-                                                    boxSize="12px"
-                                                />
-                                            </Flex>
                                             <Text
-                                                fontSize="sm"
-                                                fontWeight="semibold"
-                                                color="brand.green"
-                                                _dark={{
-                                                    color: 'green.300',
-                                                }}
+                                                fontWeight="bold"
+                                                fontSize="md"
+                                                color="text.primary"
                                                 whiteSpace="nowrap"
                                             >
-                                                Free tokens
+                                                Variant
                                             </Text>
-                                            <Icon
-                                                as={FaExternalLinkAlt}
-                                                color="brand.green"
+                                            <InfoDot label="Texas Hold'em is the default. Tap to change." />
+                                        </HStack>
+                                        <Menu
+                                            placement="bottom-end"
+                                            autoSelect={false}
+                                        >
+                                            <MenuButton
+                                                as={Button}
+                                                variant="unstyled"
+                                                rightIcon={
+                                                    <Icon
+                                                        as={FiChevronDown}
+                                                        color="gray.500"
+                                                        _dark={{
+                                                            color: 'gray.400',
+                                                        }}
+                                                        boxSize="14px"
+                                                    />
+                                                }
+                                                height="36px"
+                                                px={3}
+                                                borderRadius="full"
+                                                borderWidth="1px"
+                                                borderColor="border.lightGray"
                                                 _dark={{
-                                                    color: 'green.300',
+                                                    borderColor:
+                                                        'whiteAlpha.200',
                                                 }}
-                                                boxSize="10px"
-                                                flexShrink={0}
+                                                bg="transparent"
+                                                fontSize="sm"
+                                                fontWeight="semibold"
+                                                color="text.primary"
+                                                display="inline-flex"
+                                                alignItems="center"
+                                                transition="border-color 80ms ease, background-color 80ms ease"
+                                                _hover={{
+                                                    borderColor: accent.color,
+                                                }}
+                                                _active={{
+                                                    bg: accent.soft,
+                                                    borderColor: accent.color,
+                                                }}
+                                            >
+                                                {selectedGameMode}
+                                            </MenuButton>
+                                            <MenuList
+                                                minW="180px"
+                                                py={1}
+                                                borderRadius="12px"
+                                                boxShadow="0 8px 24px rgba(0,0,0,0.12)"
+                                                bg={menuListBg}
+                                                borderColor={menuListBorder}
+                                            >
+                                                {gameModes.map((m) => (
+                                                    <MenuItem
+                                                        key={m.name}
+                                                        onClick={() =>
+                                                            !m.disabled &&
+                                                            setSelectedGameMode(
+                                                                m.name
+                                                            )
+                                                        }
+                                                        isDisabled={m.disabled}
+                                                        fontSize="sm"
+                                                        fontWeight={
+                                                            selectedGameMode ===
+                                                            m.name
+                                                                ? 'bold'
+                                                                : 'medium'
+                                                        }
+                                                        color={
+                                                            selectedGameMode ===
+                                                            m.name
+                                                                ? accent.color
+                                                                : 'text.primary'
+                                                        }
+                                                        bg="transparent"
+                                                        _hover={{
+                                                            bg: accent.soft,
+                                                        }}
+                                                        _focus={{
+                                                            bg: accent.soft,
+                                                        }}
+                                                        _active={{
+                                                            bg: accent.soft,
+                                                        }}
+                                                    >
+                                                        {m.name}
+                                                    </MenuItem>
+                                                ))}
+                                            </MenuList>
+                                        </Menu>
+                                    </Flex>
+                                    {selectedGameModeDescription && (
+                                        <Text
+                                            fontSize="xs"
+                                            color="gray.500"
+                                            mt={2}
+                                            textAlign="right"
+                                        >
+                                            {selectedGameModeDescription}
+                                        </Text>
+                                    )}
+                                </SectionCard>
+
+                                <SectionCard>
+                                    <Flex
+                                        justifyContent="space-between"
+                                        alignItems={{
+                                            base: 'flex-start',
+                                            sm: 'center',
+                                        }}
+                                        flexDirection={{
+                                            base: 'column',
+                                            sm: 'row',
+                                        }}
+                                        gap={4}
+                                    >
+                                        <HStack
+                                            spacing={2}
+                                            align="center"
+                                            mt={{ base: 3, sm: 0 }}
+                                        >
+                                            <Text
+                                                fontWeight="bold"
+                                                fontSize="md"
+                                                color="text.primary"
+                                            >
+                                                Blinds
+                                            </Text>
+                                            <InfoDot
+                                                label={
+                                                    mode === 'real'
+                                                        ? 'Blinds are in chips. Amounts shown in USDC. Min 5/10 • 1 chip = $0.01 USDC.'
+                                                        : 'Blinds must be whole-chip amounts.'
+                                                }
                                             />
+                                        </HStack>
+                                        <Flex
+                                            width="100%"
+                                            flexDirection="column"
+                                            alignItems="flex-end"
+                                        >
+                                            {/* Stake presets — Crypto only; Free Play uses raw chip values */}
+                                            {mode === 'real' && (
+                                                <HStack
+                                                    spacing={2}
+                                                    mb={2}
+                                                    justifyContent="flex-end"
+                                                    flexWrap="wrap"
+                                                >
+                                                    {STAKE_PRESETS.map(
+                                                        (preset) => {
+                                                            const isActive =
+                                                                smallBlind ===
+                                                                    preset.sb &&
+                                                                bigBlind ===
+                                                                    preset.bb;
+                                                            return (
+                                                                <Button
+                                                                    key={
+                                                                        preset.name
+                                                                    }
+                                                                    onClick={() => {
+                                                                        setSmallBlind(
+                                                                            preset.sb
+                                                                        );
+                                                                        setBigBlind(
+                                                                            preset.bb
+                                                                        );
+                                                                    }}
+                                                                    variant="unstyled"
+                                                                    height="32px"
+                                                                    px={4}
+                                                                    borderRadius="full"
+                                                                    bg={
+                                                                        isActive
+                                                                            ? accent.color
+                                                                            : 'transparent'
+                                                                    }
+                                                                    border="1.5px solid"
+                                                                    borderColor={
+                                                                        accent.color
+                                                                    }
+                                                                    boxShadow={
+                                                                        isActive
+                                                                            ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 1.5px 0 ${accent.edge}`
+                                                                            : `0 1.5px 0 ${accent.edge}`
+                                                                    }
+                                                                    transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, border-color 80ms ease"
+                                                                    _hover={
+                                                                        isActive
+                                                                            ? {
+                                                                                  bg: accent.color,
+                                                                              }
+                                                                            : {
+                                                                                  bg: accent.soft,
+                                                                              }
+                                                                    }
+                                                                    _active={{
+                                                                        transform:
+                                                                            'translateY(1.5px)',
+                                                                        boxShadow:
+                                                                            isActive
+                                                                                ? `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${accent.edge}`
+                                                                                : `0 0 0 ${accent.edge}`,
+                                                                    }}
+                                                                >
+                                                                    <HStack
+                                                                        spacing={
+                                                                            1.5
+                                                                        }
+                                                                        align="baseline"
+                                                                    >
+                                                                        <Text
+                                                                            fontSize="xs"
+                                                                            fontWeight="semibold"
+                                                                            lineHeight={
+                                                                                1
+                                                                            }
+                                                                            color={
+                                                                                isActive
+                                                                                    ? 'white'
+                                                                                    : accent.color
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                preset.name
+                                                                            }
+                                                                        </Text>
+                                                                        <Text
+                                                                            fontSize="11px"
+                                                                            fontWeight="medium"
+                                                                            lineHeight={
+                                                                                1
+                                                                            }
+                                                                            color={
+                                                                                isActive
+                                                                                    ? 'whiteAlpha.800'
+                                                                                    : accent.color
+                                                                            }
+                                                                            sx={{
+                                                                                fontVariantNumeric:
+                                                                                    'tabular-nums',
+                                                                            }}
+                                                                        >
+                                                                            {
+                                                                                preset.sb
+                                                                            }
+                                                                            /
+                                                                            {
+                                                                                preset.bb
+                                                                            }
+                                                                        </Text>
+                                                                    </HStack>
+                                                                </Button>
+                                                            );
+                                                        }
+                                                    )}
+                                                </HStack>
+                                            )}
+                                            <HStack
+                                                spacing={{ base: 3, md: 4 }}
+                                                alignItems="flex-start"
+                                                width="100%"
+                                                justifyContent="flex-end"
+                                            >
+                                                {/* Small Blind */}
+                                                <Box
+                                                    position="relative"
+                                                    width={blindInputWidth}
+                                                >
+                                                    <Text
+                                                        fontSize="11px"
+                                                        fontWeight="bold"
+                                                        color={accent.color}
+                                                        letterSpacing="wide"
+                                                        position="absolute"
+                                                        top="-2"
+                                                        left="3"
+                                                        px="1.5"
+                                                        zIndex={10}
+                                                        py="0.5"
+                                                        borderRadius="full"
+                                                    >
+                                                        SB
+                                                    </Text>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        pattern="[0-9]*"
+                                                        value={smallBlindStr}
+                                                        onChange={(e) => {
+                                                            const raw =
+                                                                e.target.value;
+                                                            if (
+                                                                /[.,]/.test(raw)
+                                                            ) {
+                                                                toast.warning(
+                                                                    'Whole chips only',
+                                                                    "Blinds can't be split into decimals.",
+                                                                    3000,
+                                                                    'blinds-no-decimal'
+                                                                );
+                                                            }
+                                                            const digits =
+                                                                raw.replace(
+                                                                    /\D/g,
+                                                                    ''
+                                                                );
+                                                            setSmallBlindStr(
+                                                                digits === ''
+                                                                    ? ''
+                                                                    : String(
+                                                                          Number(
+                                                                              digits
+                                                                          )
+                                                                      )
+                                                            );
+                                                        }}
+                                                        bg="input.white"
+                                                        borderWidth="1px"
+                                                        borderColor="border.lightGray"
+                                                        borderRadius="14px"
+                                                        width={blindInputWidth}
+                                                        height={{
+                                                            base: '52px',
+                                                            md: '56px',
+                                                        }}
+                                                        textAlign="right"
+                                                        pr={4}
+                                                        fontWeight="semibold"
+                                                        fontSize="md"
+                                                        color="text.primary"
+                                                        _hover={{
+                                                            borderColor:
+                                                                'gray.300',
+                                                        }}
+                                                        _focus={{
+                                                            borderColor:
+                                                                accent.color,
+                                                            boxShadow: `0 0 0 2px ${accent.ring}`,
+                                                        }}
+                                                    />
+                                                    {mode === 'real' && (
+                                                        <Tooltip
+                                                            label={`${formatUsdc(smallBlindUsdc)} USDC`}
+                                                            isDisabled={
+                                                                `${formatUsdc(smallBlindUsdc)} USDC`
+                                                                    .length <=
+                                                                12
+                                                            }
+                                                            hasArrow
+                                                            placement="top"
+                                                        >
+                                                            <Flex
+                                                                mt={1}
+                                                                width="full"
+                                                                maxW={
+                                                                    blindInputWidth
+                                                                }
+                                                                fontSize="xs"
+                                                                color="text.gray600"
+                                                                fontWeight="medium"
+                                                                justifyContent="flex-end"
+                                                                alignItems="center"
+                                                                gap={1.5}
+                                                                pr={1.5}
+                                                                lineHeight="short"
+                                                                overflow="hidden"
+                                                            >
+                                                                <Image
+                                                                    src={
+                                                                        usdcLogoUrl
+                                                                    }
+                                                                    alt="USDC"
+                                                                    boxSize="14px"
+                                                                    loading="lazy"
+                                                                    flexShrink={
+                                                                        0
+                                                                    }
+                                                                />
+                                                                <Text
+                                                                    as="span"
+                                                                    color="inherit"
+                                                                    isTruncated
+                                                                >
+                                                                    {formatUsdc(
+                                                                        smallBlindUsdc
+                                                                    )}{' '}
+                                                                    USDC
+                                                                </Text>
+                                                            </Flex>
+                                                        </Tooltip>
+                                                    )}
+                                                </Box>
+                                                <Text
+                                                    color="gray.400"
+                                                    _dark={{
+                                                        color: 'gray.500',
+                                                    }}
+                                                    fontSize="xl"
+                                                    fontWeight="light"
+                                                    pt={2}
+                                                >
+                                                    /
+                                                </Text>
+                                                {/* Big Blind */}
+                                                <Box
+                                                    position="relative"
+                                                    width={blindInputWidth}
+                                                >
+                                                    <Text
+                                                        fontSize="11px"
+                                                        fontWeight="bold"
+                                                        color={accent.color}
+                                                        letterSpacing="wide"
+                                                        position="absolute"
+                                                        top="-2"
+                                                        left="3"
+                                                        px="1.5"
+                                                        zIndex={10}
+                                                        py="0.5"
+                                                        borderRadius="full"
+                                                    >
+                                                        BB
+                                                    </Text>
+                                                    <Input
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        pattern="[0-9]*"
+                                                        value={bigBlindStr}
+                                                        onChange={(e) => {
+                                                            const raw =
+                                                                e.target.value;
+                                                            if (
+                                                                /[.,]/.test(raw)
+                                                            ) {
+                                                                toast.warning(
+                                                                    'Whole chips only',
+                                                                    "Blinds can't be split into decimals.",
+                                                                    3000,
+                                                                    'blinds-no-decimal'
+                                                                );
+                                                            }
+                                                            const digits =
+                                                                raw.replace(
+                                                                    /\D/g,
+                                                                    ''
+                                                                );
+                                                            setBigBlindStr(
+                                                                digits === ''
+                                                                    ? ''
+                                                                    : String(
+                                                                          Number(
+                                                                              digits
+                                                                          )
+                                                                      )
+                                                            );
+                                                        }}
+                                                        bg="input.white"
+                                                        borderWidth="1px"
+                                                        borderColor="border.lightGray"
+                                                        borderRadius="14px"
+                                                        width={blindInputWidth}
+                                                        height={{
+                                                            base: '52px',
+                                                            md: '56px',
+                                                        }}
+                                                        textAlign="right"
+                                                        pr={4}
+                                                        fontWeight="semibold"
+                                                        fontSize="md"
+                                                        color="text.primary"
+                                                        _hover={{
+                                                            borderColor:
+                                                                'gray.300',
+                                                        }}
+                                                        _focus={{
+                                                            borderColor:
+                                                                accent.color,
+                                                            boxShadow: `0 0 0 2px ${accent.ring}`,
+                                                        }}
+                                                    />
+                                                    {mode === 'real' && (
+                                                        <Tooltip
+                                                            label={`${formatUsdc(bigBlindUsdc)} USDC`}
+                                                            isDisabled={
+                                                                `${formatUsdc(bigBlindUsdc)} USDC`
+                                                                    .length <=
+                                                                12
+                                                            }
+                                                            hasArrow
+                                                            placement="top"
+                                                        >
+                                                            <Flex
+                                                                mt={1}
+                                                                width="full"
+                                                                maxW={
+                                                                    blindInputWidth
+                                                                }
+                                                                fontSize="xs"
+                                                                color="text.gray600"
+                                                                fontWeight="medium"
+                                                                justifyContent="flex-end"
+                                                                alignItems="center"
+                                                                gap={1.5}
+                                                                pr={1.5}
+                                                                lineHeight="short"
+                                                                overflow="hidden"
+                                                            >
+                                                                <Image
+                                                                    src={
+                                                                        usdcLogoUrl
+                                                                    }
+                                                                    alt="USDC"
+                                                                    boxSize="14px"
+                                                                    loading="lazy"
+                                                                    flexShrink={
+                                                                        0
+                                                                    }
+                                                                />
+                                                                <Text
+                                                                    as="span"
+                                                                    color="inherit"
+                                                                    isTruncated
+                                                                >
+                                                                    {formatUsdc(
+                                                                        bigBlindUsdc
+                                                                    )}{' '}
+                                                                    USDC
+                                                                </Text>
+                                                            </Flex>
+                                                        </Tooltip>
+                                                    )}
+                                                </Box>
+                                            </HStack>
+                                            {blindsErrorMessage && (
+                                                <Flex
+                                                    mt={2}
+                                                    align="center"
+                                                    gap={1.5}
+                                                >
+                                                    <Icon
+                                                        as={FaInfoCircle}
+                                                        color="brand.pink"
+                                                        boxSize={3.5}
+                                                    />
+                                                    <Text
+                                                        fontSize="sm"
+                                                        color="brand.pink"
+                                                        fontWeight="medium"
+                                                        lineHeight="short"
+                                                    >
+                                                        {blindsErrorMessage}
+                                                    </Text>
+                                                </Flex>
+                                            )}
+                                            {mode === 'real' && (
+                                                <Flex
+                                                    mt={2}
+                                                    width="100%"
+                                                    justifyContent="flex-end"
+                                                    alignItems="center"
+                                                    gap={2}
+                                                    fontSize="xs"
+                                                    fontWeight="medium"
+                                                    color="text.gray600"
+                                                    lineHeight="short"
+                                                    whiteSpace="nowrap"
+                                                    _dark={{
+                                                        fontWeight: 'semibold',
+                                                    }}
+                                                >
+                                                    <Text
+                                                        as="span"
+                                                        color="inherit"
+                                                    >
+                                                        1 chip ={' '}
+                                                        {formatUsdc(
+                                                            usdcPerChip
+                                                        )}{' '}
+                                                        USDC • Min 5/10
+                                                    </Text>
+                                                </Flex>
+                                            )}
                                         </Flex>
-                                    </Link>
+                                    </Flex>
+                                </SectionCard>
+
+                                {/* Network Section - Only for Crypto */}
+                                {mode === 'real' && (
+                                    <SectionCard>
+                                        <Box>
+                                            <Flex
+                                                alignItems="center"
+                                                justifyContent="space-between"
+                                                mb={4}
+                                            >
+                                                <HStack
+                                                    spacing={2}
+                                                    align="center"
+                                                >
+                                                    <Text
+                                                        fontWeight="bold"
+                                                        fontSize="md"
+                                                        color="text.primary"
+                                                    >
+                                                        Network
+                                                    </Text>
+                                                    <InfoDot label="Select the blockchain network for your crypto game." />
+                                                </HStack>
+                                                {selectedNetwork ===
+                                                    'base-sepolia' && (
+                                                    <Link
+                                                        href="/free-tokens"
+                                                        isExternal
+                                                        _hover={{
+                                                            textDecoration:
+                                                                'none',
+                                                        }}
+                                                    >
+                                                        <Flex
+                                                            align="center"
+                                                            gap={2}
+                                                            bg="rgba(54, 163, 123, 0.08)"
+                                                            _dark={{
+                                                                bg: 'rgba(54, 163, 123, 0.12)',
+                                                                borderColor:
+                                                                    'rgba(54, 163, 123, 0.25)',
+                                                            }}
+                                                            borderRadius="full"
+                                                            pl={2}
+                                                            pr={3}
+                                                            py={1.5}
+                                                            borderWidth="1px"
+                                                            borderColor="rgba(54, 163, 123, 0.15)"
+                                                            cursor="pointer"
+                                                            transition="all 0.2s ease"
+                                                            _hover={{
+                                                                bg: 'rgba(54, 163, 123, 0.14)',
+                                                                borderColor:
+                                                                    'rgba(54, 163, 123, 0.3)',
+                                                                _dark: {
+                                                                    bg: 'rgba(54, 163, 123, 0.18)',
+                                                                    borderColor:
+                                                                        'rgba(54, 163, 123, 0.35)',
+                                                                },
+                                                            }}
+                                                        >
+                                                            <Flex
+                                                                align="center"
+                                                                justify="center"
+                                                                bg="brand.green"
+                                                                borderRadius="full"
+                                                                boxSize="22px"
+                                                                flexShrink={0}
+                                                            >
+                                                                <Icon
+                                                                    as={FiGift}
+                                                                    color="white"
+                                                                    boxSize="12px"
+                                                                />
+                                                            </Flex>
+                                                            <Text
+                                                                fontSize="sm"
+                                                                fontWeight="semibold"
+                                                                color="brand.green"
+                                                                _dark={{
+                                                                    color: 'green.300',
+                                                                }}
+                                                                whiteSpace="nowrap"
+                                                            >
+                                                                Free tokens
+                                                            </Text>
+                                                            <Icon
+                                                                as={
+                                                                    FaExternalLinkAlt
+                                                                }
+                                                                color="brand.green"
+                                                                _dark={{
+                                                                    color: 'green.300',
+                                                                }}
+                                                                boxSize="10px"
+                                                                flexShrink={0}
+                                                            />
+                                                        </Flex>
+                                                    </Link>
+                                                )}
+                                            </Flex>
+                                            <Flex
+                                                gap={3}
+                                                flexWrap="wrap"
+                                                justifyContent={{
+                                                    base: 'center',
+                                                    sm: 'flex-start',
+                                                }}
+                                            >
+                                                {enabledNetworks.map(
+                                                    (network) => (
+                                                        <NetworkCard
+                                                            key={
+                                                                network.chainId
+                                                            }
+                                                            name={network.name}
+                                                            image={
+                                                                network.image
+                                                            }
+                                                            badge={
+                                                                network.badge
+                                                            }
+                                                            isSelected={
+                                                                selectedNetwork ===
+                                                                network.chainId
+                                                            }
+                                                            onClick={() =>
+                                                                setSelectedNetwork(
+                                                                    network.chainId
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !enabledChainIds.includes(
+                                                                    network.chainId
+                                                                )
+                                                            }
+                                                        />
+                                                    )
+                                                )}
+                                            </Flex>
+                                        </Box>
+                                    </SectionCard>
                                 )}
-                            </Flex>
+                            </VStack>
+
+                            {/* Cloudflare Verification */}
                             <Flex
-                                gap={3}
-                                flexWrap="wrap"
-                                justifyContent={{
-                                    base: 'center',
-                                    sm: 'flex-start',
-                                }}
+                                alignItems="center"
+                                justifyContent="center"
+                                py={2}
+                                position="relative"
                             >
-                                {enabledNetworks.map((network) => (
-                                    <NetworkCard
-                                        key={network.chainId}
-                                        name={network.name}
-                                        image={network.image}
-                                        badge={network.badge}
-                                        isSelected={
-                                            selectedNetwork === network.chainId
+                                {/* Turnstile widget — always mounted, off-layout to prevent shift */}
+                                {isTurnstileConfigured && (
+                                    <Box
+                                        position="absolute"
+                                        opacity={0}
+                                        h={0}
+                                        overflow="hidden"
+                                        aria-hidden="true"
+                                    >
+                                        <Turnstile
+                                            sitekey={turnstileSiteKey}
+                                            onSuccess={(token: string) => {
+                                                setTurnstileToken(token);
+                                                setTurnstileError(false);
+                                            }}
+                                            onExpire={() => {
+                                                setTurnstileToken(null);
+                                            }}
+                                            onError={() => {
+                                                setTurnstileError(true);
+                                                setTurnstileToken(null);
+                                            }}
+                                            theme="light"
+                                            size="normal"
+                                            retry="auto"
+                                            refreshExpired="auto"
+                                            retryInterval={3000}
+                                        />
+                                    </Box>
+                                )}
+
+                                {/* Status pill — consistent height in both states */}
+                                <Tooltip
+                                    label="We run a quick bot check. The button unlocks automatically when it finishes."
+                                    isDisabled={!isCloudflareVerifying}
+                                    hasArrow
+                                    placement="top"
+                                >
+                                    <Box
+                                        role="status"
+                                        aria-live="polite"
+                                        bg="card.white"
+                                        borderRadius="full"
+                                        px={isCloudflareVerifying ? 4 : 3}
+                                        py={2}
+                                        borderWidth="1px"
+                                        borderColor={
+                                            isCloudflareVerifying
+                                                ? 'border.lightGray'
+                                                : 'rgba(0, 0, 0, 0.06)'
                                         }
-                                        onClick={() =>
-                                            setSelectedNetwork(network.chainId)
+                                        boxShadow={
+                                            isCloudflareVerifying
+                                                ? 'sm'
+                                                : 'none'
                                         }
-                                        disabled={!enabledChainIds.includes(network.chainId)}
-                                    />
-                                ))}
+                                        display="flex"
+                                        alignItems="center"
+                                        gap={2}
+                                        transition="all 0.3s ease"
+                                    >
+                                        {isCloudflareVerifying ? (
+                                            <>
+                                                <Spinner
+                                                    size="sm"
+                                                    color="brand.green"
+                                                />
+                                                <Text
+                                                    fontSize="sm"
+                                                    color="gray.600"
+                                                    _dark={{
+                                                        color: 'gray.300',
+                                                    }}
+                                                >
+                                                    Verifying with Cloudflare…
+                                                </Text>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Icon
+                                                    as={FaCheckCircle}
+                                                    color={
+                                                        turnstileError
+                                                            ? 'brand.yellow'
+                                                            : 'brand.green'
+                                                    }
+                                                    boxSize={4}
+                                                />
+                                                <Text
+                                                    fontSize="sm"
+                                                    color={
+                                                        turnstileError
+                                                            ? 'brand.yellow'
+                                                            : 'gray.500'
+                                                    }
+                                                    _dark={
+                                                        turnstileError
+                                                            ? undefined
+                                                            : {
+                                                                  color: 'gray.300',
+                                                              }
+                                                    }
+                                                >
+                                                    {turnstileError
+                                                        ? 'Verification unavailable — you can still create'
+                                                        : isTurnstileConfigured
+                                                          ? 'Verified by Cloudflare'
+                                                          : 'Verified locally'}
+                                                </Text>
+                                            </>
+                                        )}
+                                    </Box>
+                                </Tooltip>
                             </Flex>
 
-                        </Box>
-                    </SectionCard>
-                )}
-            </VStack>
-
-            {/* Cloudflare Verification */}
-            <Flex
-                alignItems="center"
-                justifyContent="center"
-                py={2}
-                position="relative"
-            >
-                {/* Turnstile widget — always mounted, off-layout to prevent shift */}
-                {isTurnstileConfigured && (
-                    <Box
-                        position="absolute"
-                        opacity={0}
-                        h={0}
-                        overflow="hidden"
-                        aria-hidden="true"
-                    >
-                        <Turnstile
-                            sitekey={turnstileSiteKey}
-                            onSuccess={(token: string) => {
-                                setTurnstileToken(token);
-                                setTurnstileError(false);
-                            }}
-                            onExpire={() => {
-                                setTurnstileToken(null);
-                            }}
-                            onError={() => {
-                                setTurnstileError(true);
-                                setTurnstileToken(null);
-                            }}
-                            theme="light"
-                            size="normal"
-                            retry="auto"
-                            refreshExpired="auto"
-                            retryInterval={3000}
-                        />
-                    </Box>
-                )}
-
-                {/* Status pill — consistent height in both states */}
-                <Tooltip
-                    label="We run a quick bot check. The button unlocks automatically when it finishes."
-                    isDisabled={!isCloudflareVerifying}
-                    hasArrow
-                    placement="top"
-                >
-                    <Box
-                        role="status"
-                        aria-live="polite"
-                        bg="card.white"
-                        borderRadius="full"
-                        px={isCloudflareVerifying ? 4 : 3}
-                        py={2}
-                        borderWidth="1px"
-                        borderColor={
-                            isCloudflareVerifying
-                                ? 'border.lightGray'
-                                : 'rgba(0, 0, 0, 0.06)'
-                        }
-                        boxShadow={isCloudflareVerifying ? 'sm' : 'none'}
-                        display="flex"
-                        alignItems="center"
-                        gap={2}
-                        transition="all 0.3s ease"
-                    >
-                        {isCloudflareVerifying ? (
-                            <>
-                                <Spinner size="sm" color="brand.green" />
-                                <Text
-                                    fontSize="sm"
-                                    color="gray.600"
-                                    _dark={{ color: 'gray.300' }}
-                                >
-                                    Verifying with Cloudflare…
-                                </Text>
-                            </>
-                        ) : (
-                            <>
-                                <Icon
-                                    as={FaCheckCircle}
-                                    color={
-                                        turnstileError
-                                            ? 'brand.yellow'
-                                            : 'brand.green'
-                                    }
-                                    boxSize={4}
-                                />
-                                <Text
-                                    fontSize="sm"
-                                    color={
-                                        turnstileError
-                                            ? 'brand.yellow'
-                                            : 'gray.500'
-                                    }
-                                    _dark={
-                                        turnstileError
-                                            ? undefined
-                                            : { color: 'gray.300' }
-                                    }
-                                >
-                                    {turnstileError
-                                        ? 'Verification unavailable — you can still create'
-                                        : isTurnstileConfigured
-                                          ? 'Verified by Cloudflare'
-                                          : 'Verified locally'}
-                                </Text>
-                            </>
-                        )}
-                    </Box>
-                </Tooltip>
-            </Flex>
-
-            {/* Create Game CTA */}
-            {mode === 'real' && !isCryptoEnabled ? (
-                <Box width="100%" maxW="480px">
-                    <Flex direction="column" align="center" gap={3} py={2}>
-                        <Text
-                            fontSize="sm"
-                            color="text.gray600"
-                            textAlign="center"
-                        >
-                            Crypto games coming soon — we&apos;re working
-                            tirelessly. Follow us for updates.
-                        </Text>
-                        <HStack spacing={3}>
-                            <Link
-                                href="https://x.com/stacked_poker"
-                                isExternal
-                            >
-                                <SocialIconButton
-                                    tone="x"
-                                    label="X"
-                                    chipSize="sm"
-                                />
-                            </Link>
-                            <Link
-                                href="https://discord.gg/xdaC5gRP4E"
-                                isExternal
-                            >
-                                <SocialIconButton
-                                    tone="discord"
-                                    label="Discord"
-                                    chipSize="sm"
-                                />
-                            </Link>
-                        </HStack>
-                    </Flex>
-                </Box>
-            ) : mode === 'real' && (!address || !isAuthenticated) ? (
-                <Box width="100%" maxW="480px">
-                    <Flex direction="column" align="center" gap={3} py={2}>
-                        <Text
-                            fontSize="sm"
-                            color="text.gray600"
-                            textAlign="center"
-                        >
-                            {!address
-                                ? 'Sign in with your wallet to create a crypto game.'
-                                : isAuthenticating
-                                  ? 'Check your wallet to sign the message…'
-                                  : 'Sign the message in your wallet to continue.'}
-                        </Text>
-                        <Flex width="100%" gap={3}>
-                            {!address ? (
-                                <WalletButton
-                                    width="100%"
-                                    height="56px"
-                                    label="Sign In"
-                                    chain={CHAIN_CONFIG[selectedNetwork]?.chain}
-                                />
+                            {/* Create Game CTA */}
+                            {mode === 'real' && !isCryptoEnabled ? (
+                                <Box width="100%" maxW="480px">
+                                    <Flex
+                                        direction="column"
+                                        align="center"
+                                        gap={3}
+                                        py={2}
+                                    >
+                                        <Text
+                                            fontSize="sm"
+                                            color="text.gray600"
+                                            textAlign="center"
+                                        >
+                                            Crypto games coming soon —
+                                            we&apos;re working tirelessly.
+                                            Follow us for updates.
+                                        </Text>
+                                        <HStack spacing={3}>
+                                            <Link
+                                                href="https://x.com/stacked_poker"
+                                                isExternal
+                                            >
+                                                <SocialIconButton
+                                                    tone="x"
+                                                    label="X"
+                                                    chipSize="sm"
+                                                />
+                                            </Link>
+                                            <Link
+                                                href="https://discord.gg/xdaC5gRP4E"
+                                                isExternal
+                                            >
+                                                <SocialIconButton
+                                                    tone="discord"
+                                                    label="Discord"
+                                                    chipSize="sm"
+                                                />
+                                            </Link>
+                                        </HStack>
+                                    </Flex>
+                                </Box>
+                            ) : mode === 'real' &&
+                              (!address || !isAuthenticated) ? (
+                                <Box width="100%" maxW="480px">
+                                    <Flex
+                                        direction="column"
+                                        align="center"
+                                        gap={3}
+                                        py={2}
+                                    >
+                                        <Text
+                                            fontSize="sm"
+                                            color="text.gray600"
+                                            textAlign="center"
+                                        >
+                                            {!address
+                                                ? 'Sign in with your wallet to create a crypto game.'
+                                                : isAuthenticating
+                                                  ? 'Check your wallet to sign the message…'
+                                                  : 'Sign the message in your wallet to continue.'}
+                                        </Text>
+                                        <Flex width="100%" gap={3}>
+                                            {!address ? (
+                                                <WalletButton
+                                                    width="100%"
+                                                    height="56px"
+                                                    label="Sign In"
+                                                    chain={
+                                                        CHAIN_CONFIG[
+                                                            selectedNetwork
+                                                        ]?.chain
+                                                    }
+                                                />
+                                            ) : (
+                                                <>
+                                                    <Button
+                                                        variant="tactilePrimary"
+                                                        flex="1"
+                                                        height="56px"
+                                                        fontWeight="bold"
+                                                        borderRadius="16px"
+                                                        onClick={
+                                                            requestAuthentication
+                                                        }
+                                                        isLoading={
+                                                            isAuthenticating
+                                                        }
+                                                        loadingText="Waiting…"
+                                                    >
+                                                        Finish Sign-In
+                                                    </Button>
+                                                    <Button
+                                                        variant="tactileDestructive"
+                                                        flex="1"
+                                                        height="56px"
+                                                        borderRadius="16px"
+                                                        onClick={
+                                                            handleDisconnectWallet
+                                                        }
+                                                    >
+                                                        Disconnect
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </Flex>
+                                    </Flex>
+                                </Box>
+                            ) : mode === 'real' && !isSignedIn ? (
+                                <Box width="100%" maxW="480px">
+                                    {signInGate}
+                                </Box>
                             ) : (
-                                <>
-                                    <Button
-                                        variant="tactilePrimary"
-                                        flex="1"
-                                        height="56px"
-                                        fontWeight="bold"
-                                        borderRadius="16px"
-                                        onClick={requestAuthentication}
-                                        isLoading={isAuthenticating}
-                                        loadingText="Waiting…"
-                                    >
-                                        Finish Sign-In
-                                    </Button>
-                                    <Button
-                                        variant="tactileDestructive"
-                                        flex="1"
-                                        height="56px"
-                                        borderRadius="16px"
-                                        onClick={handleDisconnectWallet}
-                                    >
-                                        Disconnect
-                                    </Button>
-                                </>
+                                <Tooltip
+                                    label="Waiting for Cloudflare verification to finish…"
+                                    isDisabled={!isCloudflareVerifying}
+                                    hasArrow
+                                    placement="top"
+                                >
+                                    <Box width="100%" maxW="480px">
+                                        <Button
+                                            variant="tactilePrimary"
+                                            data-testid="create-game-btn"
+                                            onClick={handleCreateGame}
+                                            size="lg"
+                                            height="56px"
+                                            width="100%"
+                                            fontSize="md"
+                                            borderRadius="16px"
+                                            isLoading={isLoading}
+                                            loadingText={rotatingCreateLabel}
+                                            spinner={
+                                                <Spinner
+                                                    size="md"
+                                                    color="white"
+                                                />
+                                            }
+                                            isDisabled={
+                                                !isFormValid ||
+                                                !isCloudflareReady ||
+                                                isLoading
+                                            }
+                                        >
+                                            Create Game
+                                        </Button>
+                                    </Box>
+                                </Tooltip>
                             )}
-                        </Flex>
-                    </Flex>
-                </Box>
-            ) : (
-                <Tooltip
-                    label="Waiting for Cloudflare verification to finish…"
-                    isDisabled={!isCloudflareVerifying}
-                    hasArrow
-                    placement="top"
-                >
-                    <Box width="100%" maxW="480px">
-                        <Button
-                            variant="tactilePrimary"
-                            data-testid="create-game-btn"
-                            onClick={handleCreateGame}
-                            size="lg"
-                            height="56px"
-                            width="100%"
-                            fontSize="md"
-                            borderRadius="16px"
-                            isLoading={isLoading}
-                            loadingText={rotatingCreateLabel}
-                            spinner={<Spinner size="md" color="white" />}
-                            isDisabled={
-                                !isFormValid || !isCloudflareReady || isLoading
-                            }
-                        >
-                            Create Game
-                        </Button>
-                    </Box>
-                </Tooltip>
-            )}
+                        </>
+                    )}
                 </>
             )}
         </VStack>

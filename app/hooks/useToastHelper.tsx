@@ -8,11 +8,9 @@ import {
     showCustomToast,
     buildBannerRender,
 } from '../utils/toastConfig';
-import ConnectionLostToast from '../components/Toasts/ConnectionLostToast';
+import ReconnectingToast from '../components/Toasts/ReconnectingToast';
 import DepositSuccessToast from '../components/Toasts/DepositSuccessToast';
 import {
-    CONNECTION_LOST_CONTAINER_STYLE,
-    CONNECTION_LOST_TOAST_POSITION,
     TOAST_BANNER_CONTAINER_STYLE,
     TOAST_BANNER_ID,
     TOAST_BANNER_POSITION,
@@ -59,14 +57,31 @@ const useToastHelper = () => {
     const info = (title: string, description?: string, duration?: number, id?: string) =>
         showBanner('info', title, description, duration, id);
 
-    const connectionLost = (duration?: number | null, id?: string) => {
-        if (id && toast.isActive(id)) return;
+    const connectionLost = (
+        opts: {
+            duration?: number | null;
+            id?: string;
+            onReconnectNow?: () => void;
+            terminal?: boolean;
+        } = {}
+    ) => {
+        const { duration = null, id, onReconnectNow, terminal = false } = opts;
+        // The terminal banner replaces an active reconnecting one with the same id,
+        // so don't bail out when it's already showing.
+        if (id && !terminal && toast.isActive(id)) return;
+        if (id && toast.isActive(id)) toast.close(id);
         showCustomToast(toast, {
             id,
-            duration: duration ?? null, // null = persist until closed
-            position: CONNECTION_LOST_TOAST_POSITION,
-            containerStyle: CONNECTION_LOST_CONTAINER_STYLE,
-            render: ({ onClose }) => <ConnectionLostToast onClose={onClose} />,
+            duration, // null = persist until closed
+            position: TOAST_BANNER_POSITION,
+            containerStyle: TOAST_BANNER_CONTAINER_STYLE,
+            render: ({ onClose }) => (
+                <ReconnectingToast
+                    onClose={onClose}
+                    onReconnectNow={onReconnectNow}
+                    terminal={terminal}
+                />
+            ),
         });
     };
 

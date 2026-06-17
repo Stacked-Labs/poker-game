@@ -32,7 +32,7 @@ import {
     formatRelativeTime,
     formatUsdc,
 } from './formatters';
-import { chainDisplayName } from '@/app/hooks/useExplorerUrl';
+import ChainBadge from '../../../ChainBadge';
 import type { OnchainPlayer } from '@/app/hooks/useOnchainTableSnapshot';
 import { useEmergencyWithdraw } from '@/app/hooks/useEmergencyWithdraw';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -139,49 +139,10 @@ const IdentitySection = ({
     contractExplorerUrl: string | null;
     creatorExplorerUrl: string | null;
 }) => {
-    const display = chainDisplayName(chainName);
-    const isTestnet = chainName?.toLowerCase().includes('sepolia');
-
     return (
         <Box px={{ base: 3.5, md: 4 }} py={{ base: 3, md: 3.5 }}>
             <Flex direction="column" gap={2}>
-                {display && (
-                    <HStack
-                        spacing={1.5}
-                        bg={
-                            isTestnet
-                                ? 'rgba(237, 137, 54, 0.12)'
-                                : 'rgba(0, 82, 255, 0.10)'
-                        }
-                        _dark={{
-                            bg: isTestnet
-                                ? 'rgba(237, 137, 54, 0.18)'
-                                : 'rgba(0, 82, 255, 0.22)',
-                        }}
-                        borderRadius="full"
-                        px={2}
-                        py={0.5}
-                        w="fit-content"
-                    >
-                        <Image
-                            src="/networkLogos/base-logo.png"
-                            alt="Base"
-                            boxSize="11px"
-                        />
-                        <Text
-                            fontSize="2xs"
-                            fontWeight="bold"
-                            letterSpacing="0.04em"
-                            textTransform="uppercase"
-                            color={isTestnet ? 'orange.700' : '#0052FF'}
-                            _dark={{
-                                color: isTestnet ? 'orange.200' : '#7AA2FF',
-                            }}
-                        >
-                            {display}
-                        </Text>
-                    </HStack>
-                )}
+                {chainName && <ChainBadge chain={chainName} size="sm" />}
                 <HStack spacing={2}>
                     <Icon
                         as={FiShield}

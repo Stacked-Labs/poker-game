@@ -24,6 +24,7 @@ import {
 } from './types';
 import type { PublicGame } from './types';
 import { useRelativeTime } from './useRelativeTime';
+import ChainBadge from '../ChainBadge';
 
 const dotPulse = keyframes`
     0%, 100% { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.55); }
@@ -45,16 +46,6 @@ function shortenName(name: string): string {
     return name;
 }
 
-function getChainLogo(chain: string): string | null {
-    const c = chain.toLowerCase();
-    if (c === 'base' || c === 'base sepolia' || c === 'base-sepolia')
-        return '/networkLogos/base-square.svg';
-    if (c === 'arbitrum') return '/networkLogos/arbitrum-logo.png';
-    if (c === 'optimism') return '/networkLogos/optimism-logo.png';
-    if (c === 'solana') return '/networkLogos/solana-logo.png';
-    return null;
-}
-
 export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCardProps) {
     const rowHover = useColorModeValue(
         'rgba(39, 117, 202, 0.04)',
@@ -66,8 +57,6 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
     );
     const relTime = useRelativeTime(game.created_at);
     const hot = isHot(game);
-    const chainName = game.is_crypto ? (game.chain ?? 'Base') : null;
-    const chainLogo = chainName ? getChainLogo(chainName) : null;
 
     return (
         <HStack
@@ -130,20 +119,18 @@ export default function PublicGameCard({ game, ruleColor, isLast }: PublicGameCa
                     mt={0.5}
                     flexWrap="wrap"
                 >
-                    {chainLogo && chainName && (
-                        <Image
-                            src={chainLogo}
-                            alt=""
-                            w={{ base: '12px', md: '14px' }}
-                            h={{ base: '12px', md: '14px' }}
-                            objectFit="contain"
-                            loading="lazy"
-                            flexShrink={0}
-                            borderRadius="3px"
+                    {game.is_crypto ? (
+                        <ChainBadge
+                            chain={game.chain ?? 'base'}
+                            size="sm"
+                            variant="symbol"
                         />
+                    ) : (
+                        <Text as="span" color="text.muted">
+                            Play money
+                        </Text>
                     )}
                     <Text as="span" color="text.muted">
-                        {chainName ?? 'Play money'}
                         {' · '}
                         {game.is_active ? 'Running' : 'Open'}
                     </Text>

@@ -1,10 +1,24 @@
 # Stacked Poker — Claude Instructions
 
-Onchain poker app. **Next.js 14 (App Router)** · **Chakra UI v2.8** · **Zustand** · **thirdweb v5** · **SIWE auth** · **Base / USDC** · WebSockets for live game state.
+Onchain poker app. **Next.js 15 (App Router)** · **React 18** · **Chakra UI v2.8** · **Zustand** · **thirdweb v5** · **SIWE auth** · **Base / USDC** · WebSockets for live game state.
 
 Primary user is a crypto-native player; we also onboard traditional poker players. Onchain settlement is the differentiator.
 
 For full product context: `PRODUCT.md`. For our visual system: `DESIGN.md`. Both live at the repo root.
+
+---
+
+## Working principles
+
+How to approach any task here — bias toward caution over speed. For trivial changes, use judgment. (These are guidelines; the hard gate is *Build & quality* below + CI.)
+
+**Think before coding.** State your assumptions. If the request is ambiguous, ask instead of guessing — name what's unclear. Forks worth a question here: which surface (`/table/[id]` is strict *product*; the lobby and marketing get *brand* room), which color mode, or whether a flow touches USDC/auth. If a simpler approach exists, say so before building the complex one.
+
+**Simplicity first.** Ship the minimum that solves the task — no speculative props, abstractions, or "configurability" nobody asked for. Reach for an existing theme token, Chakra component, or hook before adding anything, and never a new dependency for what Chakra/thirdweb/Zustand already do. If 200 lines could be 50, rewrite it.
+
+**Surgical changes.** Every changed line should trace to the request. Don't reformat, rename, or "improve" adjacent components, and never edit a shared `theme.ts` token to fix one component (see the CHAKRA rule below). Match the surrounding style even if you'd do it differently. Remove only the imports/vars your change orphaned; if you spot unrelated dead code or a wrong token, mention it — don't fix it silently.
+
+**Verify, don't assert.** "Done" is a checkable outcome, not a vibe — meet the bar in *Build & quality* (build passes, lint clean, works in light *and* dark, tested in a browser). A passing type-check doesn't prove a feature works. Fixing a bug? Reproduce it first, then confirm the repro is gone.
 
 ---
 
@@ -89,23 +103,31 @@ Read `PRODUCT.md` and `DESIGN.md` before generating new visuals — they encode 
 ## Build & quality
 
 ```
-npm run dev          # local dev
-npm run lint         # eslint
-npm run build        # production build (run before merging)
-npm run format       # prettier
+npm run dev            # local dev
+npm run lint           # eslint --fix
+npm run build          # production build (run before merging)
+npm run format         # prettier
+npm run test:e2e       # Playwright — full suite (incl. crypto flows)
+npm run test:e2e:free  # Playwright — free/non-crypto only, fast iteration
+npm run storybook      # component workbench (port 6006)
 ```
 
-Before declaring UI work done: build passes, lint clean, feature tested in a browser (use Claude-in-Chrome MCP if available). Type-checks alone don't validate features.
+Before declaring UI work done: build passes, lint clean, feature tested in a browser (use Claude-in-Chrome MCP if available) in **both light and dark mode**. Type-checks alone don't validate features. Perf-sensitive work: `npm run lighthouse:desktop` / `:mobile`.
 
 ---
 
 ## Conventions that bite if you forget
 
 - **Chakra v2, not v3.** Don't use `createSystem` / `defineConfig` / `data-theme`.
+- **Server vs Client.** Server Components by default; add `'use client'` only for interactivity, hooks, or browser APIs — the most-violated App Router boundary.
 - **Toasts** go through `useToastHelper`, not `useToast` directly.
 - **Auth state** comes from `AuthContext` — don't read wallet state directly when you need authenticated identity.
 - **Game state** flows through the WebSocket provider + Zustand stores. Do not fetch game state via REST.
+- **Spectator trust boundary.** WebSocket game state is owner-scoped — never surface opponents' hole cards or owner-gated ledger/pending data to an unauthenticated or spectator client. Confirm `AuthContext` before any game mutation.
 - **USDC** is per-chain — read from `app/thirdwebclient.ts`, never hardcode.
+- **Chips vs USDC.** Buy-ins are chips; `CHIPS_PER_USDC = 100` (`app/components/TakeSeatModal.tsx`). For external (EOA) wallets, check Base native-gas sufficiency before a deposit/seat tx; in-app sponsored wallets skip this.
+- **Analytics never throws.** Go through `app/lib/analytics.ts` (safe no-op until `initAnalytics()`); tracking must never break gameplay.
+- **CSP whitelist.** Vendor domains (thirdweb / WalletConnect / Coinbase / PostHog) are allowed in `next.config.js`; update it when adding an SDK or embed, or requests get blocked.
 - **Comments**: default to none. Identifiers should carry meaning. Only comment hidden constraints.
 - **No backwards-compat shims** for code we own. Delete dead code; don't leave `// removed` markers.
 

@@ -8,9 +8,12 @@ import PublicGamesHero from '../components/PublicGames/PublicGamesHero';
 import PublicGamesGrid from '../components/PublicGames/PublicGamesGrid';
 import EmptyState from '../components/PublicGames/EmptyState';
 import FilterRail from '../components/PublicGames/FilterRail';
-import FormatTabs, { isGameFormat, type GameFormat } from '../components/PublicGames/FormatTabs';
-import TournamentsPlaceholder from '../components/PublicGames/TournamentsPlaceholder';
-import { getPublicGames } from '../hooks/server_actions';
+import FormatTabs, {
+    isGameFormat,
+    type GameFormat,
+} from '../components/PublicGames/FormatTabs';
+import TournamentsList from '../components/PublicGames/TournamentsList';
+import { getPublicGames, listTournaments } from '../hooks/server_actions';
 import type {
     PublicGame,
     FilterValue,
@@ -18,7 +21,11 @@ import type {
     SortKey,
     SortConfig,
 } from '../components/PublicGames/types';
-import { PAGE_SIZE, sortKeyToParam, stakeTier } from '../components/PublicGames/types';
+import {
+    PAGE_SIZE,
+    sortKeyToParam,
+    stakeTier,
+} from '../components/PublicGames/types';
 
 const PublicPageInner = () => {
     const [games, setGames] = useState<PublicGame[]>([]);
@@ -29,7 +36,13 @@ const PublicPageInner = () => {
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<FilterValue>('all');
     const [stake, setStake] = useState<StakeFilterValue>('all');
-    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'seats', direction: 'desc' });
+    const [sortConfig, setSortConfig] = useState<SortConfig>({
+        key: 'seats',
+        direction: 'desc',
+    });
+    const [tournamentCount, setTournamentCount] = useState<number | undefined>(
+        undefined
+    );
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -44,7 +57,9 @@ const PublicPageInner = () => {
             if (next === 'cash') params.delete('format');
             else params.set('format', next);
             const qs = params.toString();
-            router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+            router.replace(qs ? `${pathname}?${qs}` : pathname, {
+                scroll: false,
+            });
         },
         [router, pathname, searchParams]
     );
@@ -72,7 +87,8 @@ const PublicPageInner = () => {
                 }
             })
             .catch(() => {
-                if (!cancelled) setError('Unable to load games. Please try again.');
+                if (!cancelled)
+                    setError('Unable to load games. Please try again.');
             })
             .finally(() => {
                 if (!cancelled) {
@@ -80,8 +96,29 @@ const PublicPageInner = () => {
                     setHasLoadedOnce(true);
                 }
             });
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+        };
     }, [filter, sortByParam, sortConfig.direction]);
+
+    // Count of open + live tournaments, for the Tournaments tab badge.
+    useEffect(() => {
+        let cancelled = false;
+        listTournaments()
+            .then((data) => {
+                if (cancelled) return;
+                const open = (data?.tournaments ?? []).filter(
+                    (t) => t.status !== 'completed' && t.status !== 'cancelled'
+                ).length;
+                setTournamentCount(open);
+            })
+            .catch(() => {
+                /* leave the badge hidden on failure */
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const visibleGames = useMemo(() => {
         if (stake === 'all' || filter === 'free') return games;
@@ -91,7 +128,8 @@ const PublicPageInner = () => {
     const handleSortChange = (key: SortKey) => {
         setSortConfig((prev) => ({
             key,
-            direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+            direction:
+                prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
         }));
     };
 
@@ -125,18 +163,25 @@ const PublicPageInner = () => {
         <Flex direction="column" minH="100vh" bg="card.lightGray">
             <Box pt={{ base: 20, md: 24 }} pb={{ base: 10, md: 16 }}>
                 <Container maxW="container.xl" px={{ base: 3, md: 6, lg: 8 }}>
-                    <VStack spacing={{ base: 6, md: 8 }} w="full" align="stretch">
-                        <PublicGamesHero
-                            games={visibleGames}
-                            totalCount={hasLoadedOnce ? totalCount : null}
-                        />
+                    <VStack
+                        spacing={{ base: 6, md: 8 }}
+                        w="full"
+                        align="stretch"
+                    >
+                        <PublicGamesHero />
 
-                        <FormatTabs format={format} onChange={handleFormatChange} />
+                        <FormatTabs
+                            format={format}
+                            onChange={handleFormatChange}
+                            tournamentCount={tournamentCount}
+                        />
 
                         {format === 'cash' ? (
                             <>
                                 <FilterRail
-                                    totalCount={hasLoadedOnce ? totalCount ?? 0 : null}
+                                    totalCount={
+                                        hasLoadedOnce ? (totalCount ?? 0) : null
+                                    }
                                     filter={filter}
                                     onFilterChange={setFilter}
                                     stake={stake}
@@ -147,7 +192,10 @@ const PublicPageInner = () => {
                                     {isLoading ? (
                                         <EmptyState variant="loading" />
                                     ) : error ? (
-                                        <EmptyState variant="error" onRetry={handleRetry} />
+                                        <EmptyState
+                                            variant="error"
+                                            onRetry={handleRetry}
+                                        />
                                     ) : visibleGames.length === 0 ? (
                                         <EmptyState variant="empty" />
                                     ) : (
@@ -155,7 +203,9 @@ const PublicPageInner = () => {
                                             games={visibleGames}
                                             sortConfig={sortConfig}
                                             onSortChange={handleSortChange}
-                                            hasMore={games.length < (totalCount ?? 0)}
+                                            hasMore={
+                                                games.length < (totalCount ?? 0)
+                                            }
                                             isLoadingMore={isLoadingMore}
                                             onLoadMore={handleLoadMore}
                                         />
@@ -163,7 +213,7 @@ const PublicPageInner = () => {
                                 </Box>
                             </>
                         ) : (
-                            <TournamentsPlaceholder />
+                            <TournamentsList />
                         )}
                     </VStack>
                 </Container>

@@ -16,7 +16,7 @@ import {
     Icon,
     useMediaQuery,
 } from '@chakra-ui/react';
-import { MdArrowForward, MdCheck } from 'react-icons/md';
+import { MdArrowForward, MdCheck, MdEmojiEvents } from 'react-icons/md';
 import WalletButton from '@/app/components/WalletButton';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 import NewsletterSuccessModal from './NewsletterSuccessModal';
@@ -98,9 +98,16 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
         setShowPlayOptions(true);
     };
 
+    const [isHostingTournament, setIsHostingTournament] = useState(false);
+
     const handleCreateGame = () => {
         setIsCreating(true);
         router.push('/create-game');
+    };
+
+    const handleHostTournament = () => {
+        setIsHostingTournament(true);
+        router.push('/create-game?type=tournament');
     };
 
     const handleJoinGame = () => {
@@ -214,9 +221,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                 opacity={0.04}
                 transform="translate(-40%, 30%)"
                 animation={
-                    allowMotion
-                        ? `${pulse} 7s ease-in-out 2s infinite`
-                        : 'none'
+                    allowMotion ? `${pulse} 7s ease-in-out 2s infinite` : 'none'
                 }
                 zIndex={0}
             />
@@ -372,37 +377,6 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                             >
                                 Host a game. Invite the crew.
                             </Text>
-
-                            <HStack spacing={2} flexWrap="wrap" justify="center">
-                                {['NO SIGNUP', 'BUILT ON BASE'].map((label) => (
-                                    <HStack
-                                        key={label}
-                                        spacing={1.5}
-                                        bg="rgba(54, 163, 123, 0.06)"
-                                        border="1px solid"
-                                        borderColor="rgba(54, 163, 123, 0.12)"
-                                        borderRadius="full"
-                                        px={3}
-                                        py={1}
-                                    >
-                                        <Box
-                                            w="5px"
-                                            h="5px"
-                                            bg="brand.green"
-                                            borderRadius="full"
-                                        />
-                                        <Text
-                                            fontSize="2xs"
-                                            color="text.muted"
-                                            fontWeight="bold"
-                                            letterSpacing="0.08em"
-                                            textTransform="uppercase"
-                                        >
-                                            {label}
-                                        </Text>
-                                    </HStack>
-                                ))}
-                            </HStack>
                         </VStack>
                     </MotionBox>
 
@@ -455,48 +429,103 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                             damping: 22,
                                         }}
                                     >
-                                        <HStack spacing={2.5} width="100%">
+                                        <VStack spacing={2} width="100%">
+                                            <HStack spacing={2.5} width="100%">
+                                                <Button
+                                                    variant="tactilePrimary"
+                                                    flex={1}
+                                                    height="48px"
+                                                    fontSize={{
+                                                        base: 'sm',
+                                                        md: 'md',
+                                                    }}
+                                                    onClick={handleCreateGame}
+                                                    isLoading={isCreating}
+                                                    loadingText="Creating"
+                                                    spinner={
+                                                        <Spinner
+                                                            size="sm"
+                                                            color="white"
+                                                        />
+                                                    }
+                                                >
+                                                    CREATE
+                                                </Button>
+                                                <Button
+                                                    variant="tactileOutline"
+                                                    flex={1}
+                                                    height="48px"
+                                                    fontSize={{
+                                                        base: 'sm',
+                                                        md: 'md',
+                                                    }}
+                                                    onClick={handleJoinGame}
+                                                    isLoading={isJoining}
+                                                    loadingText="Joining"
+                                                    spinner={
+                                                        <Spinner
+                                                            size="sm"
+                                                            color="brand.green"
+                                                        />
+                                                    }
+                                                >
+                                                    JOIN
+                                                </Button>
+                                            </HStack>
                                             <Button
-                                                variant="tactilePrimary"
-                                                flex={1}
-                                                height="48px"
-                                                fontSize={{
-                                                    base: 'sm',
-                                                    md: 'md',
+                                                width="100%"
+                                                height="46px"
+                                                fontSize="sm"
+                                                fontWeight="bold"
+                                                variant="unstyled"
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                gap={2}
+                                                color="brand.yellowDark"
+                                                _dark={{
+                                                    color: 'brand.yellow',
                                                 }}
-                                                onClick={handleCreateGame}
-                                                isLoading={isCreating}
-                                                loadingText="Creating"
+                                                bg="transparent"
+                                                borderRadius="12px"
+                                                border="2px solid"
+                                                borderColor="brand.yellow"
+                                                boxShadow="0 2px 0 #B78900"
+                                                leftIcon={
+                                                    <Icon
+                                                        as={MdEmojiEvents}
+                                                        boxSize="20px"
+                                                    />
+                                                }
+                                                transition="background-color 120ms ease, box-shadow 80ms ease, transform 80ms ease, color 120ms ease, border-color 120ms ease"
+                                                _hover={{
+                                                    bg: 'rgba(253,197,29,0.12)',
+                                                    borderColor:
+                                                        'brand.yellowDark',
+                                                    color: 'brand.yellowDark',
+                                                }}
+                                                _active={{
+                                                    bg: 'rgba(253,197,29,0.18)',
+                                                    borderColor:
+                                                        'brand.yellowDark',
+                                                    color: 'brand.yellowDark',
+                                                    transform:
+                                                        'translateY(2px)',
+                                                    boxShadow: '0 0 0 #B78900',
+                                                }}
+                                                onClick={handleHostTournament}
+                                                isLoading={isHostingTournament}
+                                                loadingText="Opening…"
                                                 spinner={
                                                     <Spinner
-                                                        size="sm"
-                                                        color="white"
+                                                        size="xs"
+                                                        color="brand.yellow"
                                                     />
                                                 }
                                             >
-                                                CREATE
+                                                Host a Tournament
                                             </Button>
-                                            <Button
-                                                variant="tactileOutline"
-                                                flex={1}
-                                                height="48px"
-                                                fontSize={{
-                                                    base: 'sm',
-                                                    md: 'md',
-                                                }}
-                                                onClick={handleJoinGame}
-                                                isLoading={isJoining}
-                                                loadingText="Joining"
-                                                spinner={
-                                                    <Spinner
-                                                        size="sm"
-                                                        color="brand.green"
-                                                    />
-                                                }
-                                            >
-                                                JOIN
-                                            </Button>
-                                        </HStack>
+                                        </VStack>
                                     </MotionBox>
                                 )}
                             </AnimatePresence>
@@ -666,24 +695,24 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                             width="100%"
                             pt={{ base: 0, md: 1 }}
                         >
-                                <Link
-                                    href="https://x.com/stacked_poker"
-                                    isExternal
-                                >
-                                    <SocialIconButton tone="x" chipSize="lg" />
-                                </Link>
-                                <Link
-                                    href="https://discord.gg/xdaC5gRP4E"
-                                    isExternal
-                                >
-                                    <SocialIconButton tone="discord" chipSize="lg" />
-                                </Link>
-                                <Link
-                                    href="https://t.me/stackedpoker"
-                                    isExternal
-                                >
-                                    <SocialIconButton tone="telegram" chipSize="lg" />
-                                </Link>
+                            <Link href="https://x.com/stacked_poker" isExternal>
+                                <SocialIconButton tone="x" chipSize="lg" />
+                            </Link>
+                            <Link
+                                href="https://discord.gg/xdaC5gRP4E"
+                                isExternal
+                            >
+                                <SocialIconButton
+                                    tone="discord"
+                                    chipSize="lg"
+                                />
+                            </Link>
+                            <Link href="https://t.me/stackedpoker" isExternal>
+                                <SocialIconButton
+                                    tone="telegram"
+                                    chipSize="lg"
+                                />
+                            </Link>
                         </Flex>
                     </MotionBox>
                 </Stack>

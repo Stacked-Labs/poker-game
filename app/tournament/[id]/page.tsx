@@ -504,12 +504,17 @@ export default function TournamentPage() {
     };
 
     const handleFundAndOpen = async () => {
-        const ok = await fundAndOpen();
-        if (ok) {
-            toast.success('Guarantee funded — registration is open!');
-            resyncAfterOnchainAction();
-        } else {
-            toast.error('Could not fund guarantee', 'Please try again.');
+        setActionLoading(true);
+        try {
+            const ok = await fundAndOpen();
+            if (ok) {
+                toast.success('Guarantee funded — registration is open!');
+                resyncAfterOnchainAction();
+            } else {
+                toast.error('Could not fund guarantee', 'Please try again.');
+            }
+        } finally {
+            setActionLoading(false);
         }
     };
 

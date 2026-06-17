@@ -1,0 +1,12 @@
+# Netlify build configuration (version-controlled so it's reproducible —
+# previously NODE_VERSION lived only in the Netlify UI).
+#
+# Build command / publish dir / plugins stay configured in the Netlify UI.
+# This file only pins the build *environment*.
+[build.environment]
+  # Solana packages pulled in via thirdweb require Node >=20.18.0; Node 18 is EOL.
+  NODE_VERSION = "20.18.0"
+
+  # Next 15 production build OOMs at Netlify's default ~2 GB heap once the
+  # thirdweb/@solana + Storybook dependency tree is included. Raise the limit.
+  NODE_OPTIONS = "--max-old-space-size=4096"

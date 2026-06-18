@@ -645,9 +645,19 @@ export interface Tournament {
     chart_url?: string;
 }
 
-export async function listTournaments(): Promise<{ tournaments: Tournament[] }> {
+export async function listTournaments(opts?: {
+    limit?: number;
+    offset?: number;
+}): Promise<{ tournaments: Tournament[]; total_count: number }> {
     isBackendUrlValid();
-    const res = await fetch(`${backendUrl}/api/tournaments`, { method: 'GET' });
+    const params = new URLSearchParams();
+    if (opts?.limit != null) params.set('limit', String(opts.limit));
+    if (opts?.offset != null) params.set('offset', String(opts.offset));
+    const qs = params.toString();
+    const res = await fetch(
+        `${backendUrl}/api/tournaments${qs ? `?${qs}` : ''}`,
+        { method: 'GET' }
+    );
     if (!res.ok) throw new Error(`listTournaments: ${res.statusText}`);
     return res.json();
 }

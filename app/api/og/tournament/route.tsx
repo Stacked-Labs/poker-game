@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
 import { getTournament } from '../../../hooks/server_actions';
 import {
+    getEntriesLine,
     getStatusDescriptor,
     getTournamentMoney,
     isFreePlay,
@@ -13,7 +14,7 @@ export const runtime = 'edge';
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const BAND_HEIGHT = 280;
+const BAND_HEIGHT = 200;
 
 // Warm light brand palette — kept in sync with app/theme.ts brand tokens so the
 // share card matches the home/create/table previews.
@@ -23,28 +24,51 @@ const GREEN = '#36A37B';
 const GREEN_DARK = '#2A8463';
 const YELLOW_DARK = '#B78900';
 const MUTED = '#6B7488';
+const BASE_BLUE = '#0052FF'; // brand.base — the Base square logomark
 
 // Status pill styling per tone (light surface).
-const STATUS_STYLE: Record<StatusTone, { bg: string; border: string; fg: string }> = {
+const STATUS_STYLE: Record<
+    StatusTone,
+    { bg: string; border: string; fg: string }
+> = {
     open: { bg: 'rgba(54,163,123,0.12)', border: GREEN, fg: GREEN_DARK },
     live: { bg: 'rgba(54,163,123,0.12)', border: GREEN, fg: GREEN_DARK },
     refund: { bg: 'rgba(253,197,29,0.16)', border: '#FDC51D', fg: YELLOW_DARK },
-    done: { bg: 'rgba(51,68,121,0.10)', border: 'rgba(51,68,121,0.35)', fg: NAVY_SOFT },
-    cancelled: { bg: 'rgba(235,11,92,0.10)', border: 'rgba(235,11,92,0.45)', fg: '#C00A4D' },
-    setup: { bg: 'rgba(51,68,121,0.10)', border: 'rgba(51,68,121,0.35)', fg: NAVY_SOFT },
+    done: {
+        bg: 'rgba(51,68,121,0.10)',
+        border: 'rgba(51,68,121,0.35)',
+        fg: NAVY_SOFT,
+    },
+    cancelled: {
+        bg: 'rgba(235,11,92,0.10)',
+        border: 'rgba(235,11,92,0.45)',
+        fg: '#C00A4D',
+    },
+    setup: {
+        bg: 'rgba(51,68,121,0.10)',
+        border: 'rgba(51,68,121,0.35)',
+        fg: NAVY_SOFT,
+    },
 };
 
-const MAX_NAME_LENGTH = 54;
+// Single-line cap at the 56px name size — keeps long Host names from wrapping to a
+// second line and colliding with the money block below.
+const MAX_NAME_LENGTH = 38;
 
 export async function GET(req: NextRequest) {
     const id = parseInt(req.nextUrl.searchParams.get('id') || '', 10);
     const origin = req.nextUrl.origin;
     const logoUrl = `${origin}/IconLogo.png`;
     const usdcLogoUrl = `${origin}/usdc-logo.png`;
-    const baseLogoUrl = `${origin}/networkLogos/base-logo.png`;
+    // House felt banner shown when a Host hasn't uploaded their own.
+    const defaultBannerUrl = `${origin}/previews/tournament-og-default.png`;
 
     let name = 'Tournament';
-    let money: TournamentMoneyDisplay = { label: 'Buy-in', value: '$0', usdc: true };
+    let money: TournamentMoneyDisplay = {
+        label: 'Buy-in',
+        value: '$0',
+        usdc: true,
+    };
     let statusLabel = 'Open';
     let statusTone: StatusTone = 'open';
     let entries = '';
@@ -60,15 +84,14 @@ export async function GET(req: NextRequest) {
             const status = getStatusDescriptor(t.status);
             statusLabel = status.label;
             statusTone = status.tone;
-            const showCount = t.status === 'registration' || t.status === 'pending';
-            entries = showCount
-                ? `${(t.registered_count ?? 0).toLocaleString()} / ${t.max_entries.toLocaleString()} registered`
-                : `${(t.registered_count ?? 0).toLocaleString()} ${(t.registered_count ?? 0) === 1 ? 'entry' : 'entries'}`;
+            entries = getEntriesLine(t);
             bannerUrl = t.banner_url || undefined;
         } catch {
             // Backend lookup failed — fall through to the generic placeholder.
         }
     }
+
+    const bannerSrc = bannerUrl || defaultBannerUrl;
 
     const displayName =
         name.length > MAX_NAME_LENGTH
@@ -85,11 +108,12 @@ export async function GET(req: NextRequest) {
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    background: 'linear-gradient(150deg, #FAF9F6 0%, #ECEEF5 100%)',
+                    background:
+                        'linear-gradient(150deg, #FAF9F6 0%, #ECEEF5 100%)',
                     fontFamily: 'sans-serif',
                 }}
             >
-                {/* Banner band (top) */}
+                {/* Banner band (top) — Host's uploaded banner, or the house felt default */}
                 <div
                     style={{
                         position: 'relative',
@@ -100,42 +124,19 @@ export async function GET(req: NextRequest) {
                         borderBottom: '1px solid rgba(11,20,48,0.08)',
                     }}
                 >
-                    {bannerUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                            src={bannerUrl}
-                            alt=""
-                            width={WIDTH}
-                            height={BAND_HEIGHT}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                objectPosition: 'center',
-                            }}
-                        />
-                    ) : (
-                        <div
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background:
-                                    'linear-gradient(135deg, #334479 0%, #0B1430 100%)',
-                            }}
-                        >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src={logoUrl}
-                                alt=""
-                                width={120}
-                                height={120}
-                                style={{ objectFit: 'contain', opacity: 0.9 }}
-                            />
-                        </div>
-                    )}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={bannerSrc}
+                        alt=""
+                        width={WIDTH}
+                        height={BAND_HEIGHT}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
+                        }}
+                    />
 
                     {/* Soft fade into the panel for a seamless seam */}
                     <div
@@ -158,7 +159,7 @@ export async function GET(req: NextRequest) {
                         flex: 1,
                         display: 'flex',
                         flexDirection: 'column',
-                        padding: '32px 60px 44px',
+                        padding: '34px 60px 46px',
                     }}
                 >
                     {/* Header: lockup + status pill */}
@@ -169,7 +170,13 @@ export async function GET(req: NextRequest) {
                             justifyContent: 'space-between',
                         }}
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 14,
+                            }}
+                        >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src={logoUrl}
@@ -217,9 +224,9 @@ export async function GET(req: NextRequest) {
                     {/* Tournament name */}
                     <span
                         style={{
-                            marginTop: 26,
+                            marginTop: 24,
                             color: NAVY,
-                            fontSize: 60,
+                            fontSize: 56,
                             fontWeight: 800,
                             letterSpacing: '-0.015em',
                             lineHeight: 1.04,
@@ -238,7 +245,13 @@ export async function GET(req: NextRequest) {
                         }}
                     >
                         {/* Money */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 6,
+                            }}
+                        >
                             <span
                                 style={{
                                     color: MUTED,
@@ -250,7 +263,13 @@ export async function GET(req: NextRequest) {
                             >
                                 {money.label}
                             </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 14,
+                                }}
+                            >
                                 {money.usdc && (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img
@@ -286,6 +305,36 @@ export async function GET(req: NextRequest) {
                                     </span>
                                 )}
                             </div>
+                            {/* Secondary buy-in, shown only under a pool/guarantee hero */}
+                            {money.buyIn && (
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'baseline',
+                                        gap: 8,
+                                        marginTop: 10,
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            color: MUTED,
+                                            fontSize: 26,
+                                            fontWeight: 700,
+                                        }}
+                                    >
+                                        Buy-in
+                                    </span>
+                                    <span
+                                        style={{
+                                            color: NAVY,
+                                            fontSize: 26,
+                                            fontWeight: 800,
+                                        }}
+                                    >
+                                        {money.buyIn}
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Meta + trust badges */}
@@ -308,8 +357,14 @@ export async function GET(req: NextRequest) {
                                     {entries}
                                 </span>
                             )}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <Badge iconUrl={baseLogoUrl} label="On Base" />
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 12,
+                                }}
+                            >
+                                <Badge square label="On Base" />
                                 <Badge iconUrl={usdcLogoUrl} label="USDC" />
                             </div>
                         </div>
@@ -328,7 +383,18 @@ export async function GET(req: NextRequest) {
     );
 }
 
-function Badge({ iconUrl, label }: { iconUrl: string; label: string }) {
+// `square` renders the Base logomark — a solid blue rounded square — instead of an
+// icon image. Satori can't reliably rasterize the on-disk Base SVG (and it ships the
+// wrong blue), so the mark is drawn directly at the brand Base color.
+function Badge({
+    iconUrl,
+    label,
+    square,
+}: {
+    iconUrl?: string;
+    label: string;
+    square?: boolean;
+}) {
     return (
         <div
             style={{
@@ -342,15 +408,29 @@ function Badge({ iconUrl, label }: { iconUrl: string; label: string }) {
                 boxShadow: '0 1px 3px rgba(11,20,48,0.06)',
             }}
         >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-                src={iconUrl}
-                alt=""
-                width={24}
-                height={24}
-                style={{ objectFit: 'contain' }}
-            />
-            <span style={{ color: NAVY, fontSize: 22, fontWeight: 700 }}>{label}</span>
+            {square ? (
+                <div
+                    style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 5,
+                        background: BASE_BLUE,
+                        display: 'flex',
+                    }}
+                />
+            ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={iconUrl}
+                    alt=""
+                    width={24}
+                    height={24}
+                    style={{ objectFit: 'contain' }}
+                />
+            )}
+            <span style={{ color: NAVY, fontSize: 22, fontWeight: 700 }}>
+                {label}
+            </span>
         </div>
     );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import React from 'react';
 import { getTournament } from '../../hooks/server_actions';
 import {
+    getEntriesLine,
     getStatusDescriptor,
     getTournamentMoney,
     isFreePlay,
@@ -23,9 +24,10 @@ export async function generateMetadata({
         const money = getTournamentMoney(t);
         const { label: statusLabel } = getStatusDescriptor(t.status);
         const name =
-            t.name || (isFreePlay(t) ? 'Free-play tournament' : 'No-limit Hold’em');
+            t.name ||
+            (isFreePlay(t) ? 'Free-play tournament' : 'No-limit Hold’em');
         const title = `${name} — Stacked Poker`;
-        const entries = `${t.registered_count ?? 0}${t.max_entries ? `/${t.max_entries}` : ''} entries`;
+        const entries = getEntriesLine(t);
         const moneyLine = money.suffix
             ? `${money.value} ${money.suffix}`
             : money.value;
@@ -67,7 +69,12 @@ export async function generateMetadata({
                 siteName: 'Stacked Poker',
                 type: 'website',
                 images: [
-                    { url: FALLBACK_IMAGE, width: 1200, height: 630, alt: title },
+                    {
+                        url: FALLBACK_IMAGE,
+                        width: 1200,
+                        height: 630,
+                        alt: title,
+                    },
                 ],
             },
             twitter: {

@@ -8,7 +8,10 @@ import type { Tournament } from '../../hooks/server_actions';
 // different scale (chips), so these helpers live apart from types.ts on purpose.
 const MICRO = 1_000_000;
 
-export function formatUsdc(micro: number, opts: { decimals?: number } = {}): string {
+export function formatUsdc(
+    micro: number,
+    opts: { decimals?: number } = {}
+): string {
     const value = (micro ?? 0) / MICRO;
     const decimals = opts.decimals ?? (Number.isInteger(value) ? 0 : 2);
     return value.toLocaleString(undefined, {
@@ -62,6 +65,10 @@ export interface TournamentMoneyDisplay {
     value: string;
     usdc: boolean;
     suffix?: string;
+    // The entry buy-in, surfaced as a secondary line only when the hero value is a
+    // pool/guarantee (so it isn't a redundant echo of the hero). Undefined for the
+    // buy-in hero itself and for Free Play.
+    buyIn?: string;
 }
 
 // Lead with the prize pool / guarantee, then the buy-in — same precedence used
@@ -69,12 +76,15 @@ export interface TournamentMoneyDisplay {
 // agree with what the card itself shows.
 export function getTournamentMoney(t: Tournament): TournamentMoneyDisplay {
     if (isFreePlay(t)) return { label: 'Entry', value: 'Free', usdc: false };
+    const buyIn =
+        t.buy_in_usdc > 0 ? `$${formatUsdc(t.buy_in_usdc)}` : undefined;
     if (t.guarantee_usdc > 0) {
         return {
             label: 'Guaranteed pool',
             value: `$${formatUsdc(t.guarantee_usdc, { decimals: t.guarantee_usdc < 5_000_000 ? 2 : 0 })}`,
             suffix: 'GTD',
             usdc: true,
+            buyIn,
         };
     }
     if (t.prize_pool_usdc > 0) {
@@ -82,9 +92,29 @@ export function getTournamentMoney(t: Tournament): TournamentMoneyDisplay {
             label: 'Prize pool',
             value: `$${formatUsdc(t.prize_pool_usdc, { decimals: t.prize_pool_usdc < 5_000_000 ? 2 : 0 })}`,
             usdc: true,
+            buyIn,
         };
     }
-    return { label: 'Buy-in', value: `$${formatUsdc(t.buy_in_usdc)}`, usdc: true };
+    return {
+        label: 'Buy-in',
+        value: `$${formatUsdc(t.buy_in_usdc)}`,
+        usdc: true,
+    };
+}
+
+// Entry/registration count line shared by the OG card and share metadata so they
+// never disagree. While registration is open we show progress toward the cap
+// ("47 / 200 registered"); once running/finished the cap is irrelevant, so we show
+// the plain field size ("1,342 entries") rather than a misleading "1342 / 100".
+export function getEntriesLine(t: Tournament): string {
+    const count = t.registered_count ?? 0;
+    const showProgress =
+        (t.status === 'registration' || t.status === 'pending') &&
+        t.max_entries > 0;
+    if (showProgress) {
+        return `${count.toLocaleString()} / ${t.max_entries.toLocaleString()} registered`;
+    }
+    return `${count.toLocaleString()} ${count === 1 ? 'entry' : 'entries'}`;
 }
 
 export function formatTournamentStart(iso: string): string {
@@ -112,10 +142,19 @@ export function formatCountdown(diffMs: number): string {
     return 'under a minute';
 }
 
-export type StatusTone = 'open' | 'live' | 'done' | 'cancelled' | 'setup' | 'refund';
+export type StatusTone =
+    | 'open'
+    | 'live'
+    | 'done'
+    | 'cancelled'
+    | 'setup'
+    | 'refund';
 
 // Recreational-friendly labels for the backend's free-form status string.
-export function getStatusDescriptor(status: string): { label: string; tone: StatusTone } {
+export function getStatusDescriptor(status: string): {
+    label: string;
+    tone: StatusTone;
+} {
     switch (status) {
         case 'registration':
             return { label: 'Registering', tone: 'open' };
@@ -129,11 +168,17 @@ export function getStatusDescriptor(status: string): { label: string; tone: Stat
             return { label: 'Not open yet', tone: 'setup' };
         case 'emergency_refund':
             return { label: 'Refunds open', tone: 'refund' };
-        default:
+        default: {
+            // Unmapped backend status: humanize it so a raw token like
+            // "seating_break" never leaks onto a public share card as "Seating_break".
+            const words = status ? status.replace(/_/g, ' ').trim() : '';
             return {
-                label: status ? status[0].toUpperCase() + status.slice(1) : 'Unknown',
+                label: words
+                    ? words[0].toUpperCase() + words.slice(1)
+                    : 'Unknown',
                 tone: 'setup',
             };
+        }
     }
 }
 

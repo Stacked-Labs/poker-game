@@ -12,6 +12,16 @@ export interface PublicGame {
     contract_address?: string;
 }
 
+// Once a tournament starts, the server spawns tables named
+// `tournament-{id}-table-{n}` that show up in /api/public-games alongside cash
+// tables. They belong under the Tournaments tab, not the Cash games list, so the
+// lobby filters them out. Same convention as WebSocketProvider.tsx / Table.tsx.
+const TOURNAMENT_TABLE_RE = /^tournament-(\d+)-table-(\d+)$/;
+
+export function isTournamentTable(name: string): boolean {
+    return TOURNAMENT_TABLE_RE.test(name);
+}
+
 export const BASESCAN_URL = 'https://basescan.org/address';
 
 export const USDC_BLUE = '#2775CA';

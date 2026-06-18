@@ -3,20 +3,16 @@
 import { useEffect, useState } from 'react';
 import { listTournaments, type Tournament } from '../../hooks/server_actions';
 
-// Tournaments worth showing on the broadcast: open for registration or already
-// playing. Completed/cancelled are dropped. Live events sort first, then the
-// soonest upcoming — so the billboard always leads with the most relevant action.
-const SHOWCASE_STATUSES = new Set([
-    'registration',
-    'late_registration',
-    'pending',
-    'running',
-]);
-
-const LIVE_STATUSES = new Set(['running', 'late_registration']);
+// Tournaments worth showing on the broadcast: open for registration, or already
+// running (which also covers the late-registration window — the lobby derives
+// that from a running tournament, not a separate status). 'pending' is excluded:
+// the lobby keeps not-yet-open events private, so showing one would point a
+// viewer at something they can't register for. Live events sort first, then the
+// soonest upcoming.
+const SHOWCASE_STATUSES = new Set(['registration', 'running']);
 
 function rank(t: Tournament): number {
-    return LIVE_STATUSES.has(t.status) ? 0 : 1;
+    return t.status === 'running' ? 0 : 1;
 }
 
 // The stream runs for hours; re-poll so a freshly scheduled or just-started

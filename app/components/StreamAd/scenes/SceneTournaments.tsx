@@ -11,10 +11,8 @@ import {
 } from '../../PublicGames/tournamentFormat';
 import type { Tournament } from '../../../hooks/server_actions';
 
-const LIVE_STATUSES = new Set(['running', 'late_registration']);
-
 function isLive(t: Tournament): boolean {
-    return LIVE_STATUSES.has(t.status);
+    return t.status === 'running';
 }
 
 // Right-hand label: "Live now" for in-progress events, otherwise the start time
@@ -61,6 +59,7 @@ const TournamentRow = ({ t }: { t: Tournament }) => {
                     color="brand.navy"
                     fontWeight={600}
                     fontSize="clamp(0.74rem, 0.95vw, 0.92rem)"
+                    noOfLines={1}
                 >
                     {buyInLabel(t)}
                     {gtd ? ` · $${formatUsdcAuto(t.guarantee_usdc)} GTD` : ''}
@@ -173,8 +172,17 @@ const TournamentInvite = () => (
 // host-your-own value prop when nothing's on the schedule. The card is the only
 // place real data appears; the copy column is brand-stable either way.
 export default function SceneTournaments() {
-    const { tournaments } = useShowcaseTournaments(3);
+    const { tournaments, loaded } = useShowcaseTournaments(3);
     const hasEvents = tournaments.length > 0;
+    const anyOpen = tournaments.some((t) => t.status === 'registration');
+
+    // Lead badge tracks what the board actually shows, so it never says
+    // "Open for registration" over a board of live-only events.
+    const leadBadge = !hasEvents
+        ? 'Host your own'
+        : anyOpen
+          ? 'Open for registration'
+          : 'Live now';
 
     return (
         <Flex h="100%" align="center" justify="space-between" gap="clamp(20px, 3vw, 56px)" minH={0}>
@@ -194,11 +202,7 @@ export default function SceneTournaments() {
                         USDC, every hand settles on Base, and you can withdraw yourself any time.
                     </>
                 }
-                badges={
-                    hasEvents
-                        ? ['Open for registration', 'USDC on Base', 'Free Play too']
-                        : ['Host your own', 'USDC on Base', 'Free Play too']
-                }
+                badges={[leadBadge, 'USDC on Base', 'Free Play too']}
                 badgeTone="green"
             />
 
@@ -210,7 +214,13 @@ export default function SceneTournaments() {
                 justify="center"
                 display={{ base: 'none', sm: 'flex' }}
             >
-                {hasEvents ? <TournamentBoard tournaments={tournaments} /> : <TournamentInvite />}
+                {/* Hold the card until the first fetch settles, so we don't flash
+                    the value-prop and then pop to a real board mid-scene. */}
+                {!loaded ? null : hasEvents ? (
+                    <TournamentBoard tournaments={tournaments} />
+                ) : (
+                    <TournamentInvite />
+                )}
             </Flex>
         </Flex>
     );

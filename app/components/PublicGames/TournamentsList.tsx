@@ -1,13 +1,10 @@
 'use client';
 
 import {
-    Box,
     Button,
     Flex,
-    FormControl,
-    FormLabel,
     HStack,
-    Input,
+    Image,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -18,45 +15,31 @@ import {
     SimpleGrid,
     Spinner,
     Text,
-    useColorModeValue,
     VStack,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { useRouter } from 'next/navigation';
 import useToastHelper from '../../hooks/useToastHelper';
-import { friendlyMessage } from '../../utils/toastErrors';
 import {
     getMyTournamentRegistrations,
     getTournamentLeaderboard,
     listTournaments,
-    registerForTournament,
     type Tournament,
     unregisterFromTournament,
 } from '../../hooks/server_actions';
 import { formatUsdc } from './tournamentFormat';
+import { USDC_BLUE, USDC_LOGO } from './types';
 import { useFundTournamentGuarantee } from '../../hooks/useFundTournamentGuarantee';
 import { useRegisterForTournament } from '../../hooks/useRegisterForTournament';
 import { usePendingTournamentTxs } from '../../hooks/usePendingTournamentTxs';
 import { CHAIN_CONFIG } from '../../thirdwebclient';
 import { useTournamentReminderStore } from '../../stores/tournamentReminders';
 import RegistrationConfirmationModal from '../Tournament/RegistrationConfirmationModal';
+import TournamentRegisterModal from '../Tournament/TournamentRegisterModal';
 import TournamentLobbyCard from './TournamentLobbyCard';
 import TournamentsEmptyState from './TournamentsEmptyState';
-
-// Minimal keccak256 via SubtleCrypto is not available for keccak.
-// We derive it by encoding the string as UTF-8 and producing a deterministic
-// hex via SHA-256 as the password hash sent to the backend.
-// The backend stores this verbatim and compares on registration.
-// For on-chain verification the frontend would call the contract directly using
-// the ThirdWeb SDK; the backend hash is used only for server-side gating.
-async function hashPasswordCode(code: string): Promise<string> {
-    const enc = new TextEncoder().encode(code);
-    const digest = await crypto.subtle.digest('SHA-256', enc);
-    return Array.from(new Uint8Array(digest))
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join('');
-}
+import { PAGE_SIZE } from './types';
 
 // Lobby ordering: lead with the most actionable tournaments. Registering (join
 // now) first, then live (watch / late-reg), then upcoming, then finished and
@@ -129,7 +112,9 @@ function compareLobbyTournaments(
 
 export default function TournamentsList() {
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [registeredIds, setRegisteredIds] = useState<Set<number>>(new Set());
     const [finishPos, setFinishPos] = useState<Record<number, number>>({});
@@ -146,18 +131,12 @@ export default function TournamentsList() {
 
     const openCreate = () => router.push('/create-game?type=tournament');
 
-    // Password registration state
-    const [pendingRegId, setPendingRegId] = useState<number | null>(null);
-    const [passwordCode, setPasswordCode] = useState('');
-    const [passwordLoading, setPasswordLoading] = useState(false);
-    const passwordInputRef = useRef<HTMLInputElement>(null);
-
     const [goToTableLoadingId, setGoToTableLoadingId] = useState<number | null>(
         null
     );
     const [fundingTournament, setFundingTournament] =
         useState<Tournament | null>(null);
-    const [cryptoRegisterTournament, setCryptoRegisterTournament] =
+    const [registerTournament, setRegisterTournament] =
         useState<Tournament | null>(null);
     const [cryptoUnregisterTournament, setCryptoUnregisterTournament] =
         useState<Tournament | null>(null);
@@ -218,12 +197,13 @@ export default function TournamentsList() {
         setIsLoading(true);
         try {
             const [tournamentsData, regsData] = await Promise.all([
-                listTournaments(),
+                listTournaments({ limit: PAGE_SIZE, offset: 0 }),
                 myWalletRef.current
                     ? getMyTournamentRegistrations()
                     : Promise.resolve({ tournament_ids: [], finish_pos: {} }),
             ]);
             setTournaments(tournamentsData.tournaments ?? []);
+            setTotalCount(tournamentsData.total_count ?? 0);
             setRegisteredIds(new Set(regsData.tournament_ids));
             setFinishPos(regsData.finish_pos ?? {});
         } catch {
@@ -232,6 +212,30 @@ export default function TournamentsList() {
             setIsLoading(false);
         }
     }, []); // wallet + toast accessed via refs — intentionally excluded from deps
+
+    const handleLoadMore = async () => {
+        setIsLoadingMore(true);
+        try {
+            const data = await listTournaments({
+                limit: PAGE_SIZE,
+                offset: tournaments.length,
+            });
+            // De-dupe by id: a tournament whose status changed between pages could
+            // shift ranks and reappear; keep the first (freshest) copy.
+            setTournaments((prev) => {
+                const seen = new Set(prev.map((t) => t.id));
+                return [
+                    ...prev,
+                    ...(data.tournaments ?? []).filter((t) => !seen.has(t.id)),
+                ];
+            });
+            setTotalCount(data.total_count ?? 0);
+        } catch {
+            toastRef.current.error('Failed to load more tournaments');
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
 
     useEffect(() => {
         load();
@@ -249,6 +253,8 @@ export default function TournamentsList() {
 
     const isCryptoTournament = (t: Tournament) => !!t.contract_address;
 
+    // Every register path (crypto / Free Play, public / password-gated) runs
+    // through the one shared modal, which owns the on-chain or server register.
     const handleRegister = async (id: number) => {
         if (!myWallet) {
             toast.warning('Connect your wallet first');
@@ -256,64 +262,7 @@ export default function TournamentsList() {
         }
         const t = tournaments.find((x) => x.id === id);
         if (!t) return;
-        if (isCryptoTournament(t)) {
-            setCryptoRegisterTournament(t);
-            return;
-        }
-        // Password-protected free-play tournament: show inline password modal.
-        if (t.is_private && !t.contract_address) {
-            setPendingRegId(id);
-            setPasswordCode('');
-            return;
-        }
-        await doRegister(id);
-    };
-
-    const doRegister = async (id: number, passwordCodeHash?: string) => {
-        setActionLoading(true);
-        try {
-            await registerForTournament(
-                id,
-                passwordCodeHash ? { passwordCodeHash } : undefined
-            );
-            setRegisteredIds((prev) => {
-                const n = new Set(Array.from(prev));
-                n.add(id);
-                return n;
-            });
-            const justRegistered = tournaments.find((t) => t.id === id) ?? null;
-            // Upsert (not replace) so other already-registered tournaments stay on
-            // the banner; the provider poll reconciles the full set shortly after.
-            useTournamentReminderStore
-                .getState()
-                .upsertTournament(justRegistered ?? undefined);
-            setConfirmTour(justRegistered);
-        } catch (e: unknown) {
-            const { title, description } = friendlyMessage(e, {
-                title: 'Could not register',
-                description: 'Please try again.',
-            });
-            toast.error(title, description);
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handlePasswordSubmit = async () => {
-        if (!pendingRegId) return;
-        if (!passwordCode.trim()) {
-            toast.warning('Enter the tournament password');
-            return;
-        }
-        setPasswordLoading(true);
-        try {
-            const hash = await hashPasswordCode(passwordCode.trim());
-            await doRegister(pendingRegId, hash);
-            setPendingRegId(null);
-            setPasswordCode('');
-        } finally {
-            setPasswordLoading(false);
-        }
+        setRegisterTournament(t);
     };
 
     const handleUnregister = async (id: number) => {
@@ -388,31 +337,47 @@ export default function TournamentsList() {
             ) : visibleTournaments.length === 0 ? (
                 <TournamentsEmptyState onCreate={openCreate} />
             ) : (
-                <SimpleGrid
-                    columns={{ base: 1, sm: 2, lg: 3 }}
-                    spacing={{ base: 3, md: 4 }}
-                >
-                    {visibleTournaments.map((t, index) => (
-                        <TournamentLobbyCard
-                            key={t.id}
-                            index={index}
-                            tournament={t}
-                            myWallet={myWallet}
-                            onRegister={handleRegister}
-                            onUnregister={handleUnregister}
-                            onGoToTable={handleGoToTable}
-                            onViewOverview={handleViewOverview}
-                            onFundGuarantee={handleFundGuarantee}
-                            onCardClick={handleViewOverview}
-                            registeredIds={registeredIds}
-                            isEliminated={(finishPos[t.id] ?? 0) > 0}
-                            isLoading={actionLoading}
-                            isGoingToTable={goToTableLoadingId === t.id}
-                            pendingTx={getPendingTx(t.id)}
-                            explorerUrl={pendingExplorerUrl}
-                        />
-                    ))}
-                </SimpleGrid>
+                <>
+                    <SimpleGrid
+                        columns={{ base: 1, sm: 2, lg: 3 }}
+                        spacing={{ base: 3, md: 4 }}
+                    >
+                        {visibleTournaments.map((t, index) => (
+                            <TournamentLobbyCard
+                                key={t.id}
+                                index={index}
+                                tournament={t}
+                                myWallet={myWallet}
+                                onRegister={handleRegister}
+                                onUnregister={handleUnregister}
+                                onGoToTable={handleGoToTable}
+                                onViewOverview={handleViewOverview}
+                                onFundGuarantee={handleFundGuarantee}
+                                onCardClick={handleViewOverview}
+                                registeredIds={registeredIds}
+                                isEliminated={(finishPos[t.id] ?? 0) > 0}
+                                isLoading={actionLoading}
+                                isGoingToTable={goToTableLoadingId === t.id}
+                                pendingTx={getPendingTx(t.id)}
+                                explorerUrl={pendingExplorerUrl}
+                            />
+                        ))}
+                    </SimpleGrid>
+
+                    {tournaments.length < totalCount && (
+                        <Flex justify="center" pt={2}>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleLoadMore}
+                                isLoading={isLoadingMore}
+                                loadingText="Loading…"
+                            >
+                                Load more
+                            </Button>
+                        </Flex>
+                    )}
+                </>
             )}
 
             <FundGuaranteeModal
@@ -424,9 +389,9 @@ export default function TournamentsList() {
                 }}
             />
 
-            <CryptoRegisterModal
-                tournament={cryptoRegisterTournament}
-                onClose={() => setCryptoRegisterTournament(null)}
+            <TournamentRegisterModal
+                tournament={registerTournament}
+                onClose={() => setRegisterTournament(null)}
                 onSuccess={(id, txHash) => {
                     setRegisteredIds((prev) => {
                         const n = new Set(Array.from(prev));
@@ -440,15 +405,15 @@ export default function TournamentsList() {
                         .getState()
                         .upsertTournament(justRegistered ?? undefined);
                     setConfirmTour(justRegistered);
-                    if (txHash && cryptoRegisterTournament?.chain) {
+                    if (txHash && registerTournament?.chain) {
                         addPendingTx({
                             tournamentId: id,
                             txHash,
                             type: 'register',
-                            chainName: cryptoRegisterTournament.chain,
+                            chainName: registerTournament.chain,
                         });
                     }
-                    setCryptoRegisterTournament(null);
+                    setRegisterTournament(null);
                 }}
             />
 
@@ -473,59 +438,6 @@ export default function TournamentsList() {
                 }}
             />
 
-            {/* Password entry modal */}
-            <Modal
-                isOpen={pendingRegId !== null}
-                onClose={() => setPendingRegId(null)}
-                isCentered
-                initialFocusRef={passwordInputRef}
-            >
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Tournament Password</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <FormControl>
-                            <FormLabel fontSize="sm">
-                                Enter the access code to register
-                            </FormLabel>
-                            <Input
-                                ref={passwordInputRef}
-                                size="sm"
-                                type="password"
-                                placeholder="Access code"
-                                value={passwordCode}
-                                onChange={(e) =>
-                                    setPasswordCode(e.target.value)
-                                }
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter')
-                                        handlePasswordSubmit();
-                                }}
-                            />
-                        </FormControl>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button
-                            variant="ghost"
-                            mr={3}
-                            size="sm"
-                            onClick={() => setPendingRegId(null)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            colorScheme="green"
-                            size="sm"
-                            isLoading={passwordLoading}
-                            onClick={handlePasswordSubmit}
-                        >
-                            Register
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
-
             {confirmTour && (
                 <RegistrationConfirmationModal
                     tournament={confirmTour}
@@ -545,7 +457,7 @@ interface FundGuaranteeModalProps {
     onSuccess: () => void;
 }
 
-function FundGuaranteeModal({
+export function FundGuaranteeModal({
     tournament: t,
     onClose,
     onSuccess,
@@ -583,10 +495,31 @@ function FundGuaranteeModal({
 
     return (
         <Modal isOpen={!!t} onClose={handleClose} isCentered>
-            <ModalOverlay />
-            <ModalContent>
-                <ModalHeader>Fund Guarantee</ModalHeader>
-                <ModalCloseButton />
+            <ModalOverlay
+                bg="rgba(11, 20, 48, 0.6)"
+                backdropFilter="blur(6px)"
+            />
+            <ModalContent
+                bg="card.white"
+                color="text.primary"
+                borderRadius="16px"
+                mx={4}
+                boxShadow="card.lift"
+            >
+                <ModalHeader
+                    fontSize="xl"
+                    fontWeight={800}
+                    letterSpacing="-0.02em"
+                    color="text.primary"
+                    pb={2}
+                >
+                    Fund Guarantee
+                </ModalHeader>
+                <ModalCloseButton
+                    color="text.secondary"
+                    borderRadius="full"
+                    _hover={{ bg: 'card.lightGray', color: 'text.primary' }}
+                />
                 <ModalBody>
                     <VStack spacing={4} py={2}>
                         <Text
@@ -598,14 +531,30 @@ function FundGuaranteeModal({
                             unused amount is returned to you when the tournament
                             starts.
                         </Text>
-                        <Text
-                            fontSize="2xl"
-                            fontWeight="bold"
-                            color="brand.green"
-                        >
-                            ${formatUsdc(t?.guarantee_usdc ?? 0, { decimals: (t?.guarantee_usdc ?? 0) < 5_000_000 ? 2 : 0 })}{' '}
-                            USDC GTD
-                        </Text>
+                        <HStack spacing={2} align="center">
+                            <Image
+                                src={USDC_LOGO}
+                                alt=""
+                                boxSize="28px"
+                                flexShrink={0}
+                            />
+                            <Text
+                                fontSize="2xl"
+                                fontWeight="bold"
+                                color={USDC_BLUE}
+                                lineHeight={1}
+                                sx={{ fontVariantNumeric: 'tabular-nums' }}
+                            >
+                                ${formatUsdc(t?.guarantee_usdc ?? 0, { decimals: (t?.guarantee_usdc ?? 0) < 5_000_000 ? 2 : 0 })}
+                            </Text>
+                            <Text
+                                fontSize="md"
+                                fontWeight="semibold"
+                                color="text.muted"
+                            >
+                                USDC GTD
+                            </Text>
+                        </HStack>
                         {status === 'error' && error && (
                             <Text
                                 fontSize="xs"
@@ -617,308 +566,30 @@ function FundGuaranteeModal({
                         )}
                     </VStack>
                 </ModalBody>
-                <ModalFooter>
-                    <Button
-                        variant="ghost"
-                        mr={3}
-                        onClick={handleClose}
-                        size="sm"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        colorScheme="green"
-                        size="sm"
-                        isLoading={isLoading}
-                        loadingText={statusLabel[status] ?? 'Processing…'}
-                        isDisabled={status === 'success'}
-                        onClick={handleFund}
-                    >
-                        Approve &amp; Fund $
-                        {formatUsdc(t?.guarantee_usdc ?? 0, { decimals: (t?.guarantee_usdc ?? 0) < 5_000_000 ? 2 : 0 })} GTD
-                    </Button>
-                </ModalFooter>
-            </ModalContent>
-        </Modal>
-    );
-}
-
-// ─── Filter Tab ──────────────────────────────────────────────────────────────
-
-// ─── TxStep — reusable visual step indicator ─────────────────────────────────
-
-type TxStepState = 'pending' | 'active' | 'done' | 'error';
-
-function TxStep({
-    stepNum,
-    label,
-    sublabel,
-    state,
-    isLast,
-}: {
-    stepNum: number;
-    label: string;
-    sublabel?: string;
-    state: TxStepState;
-    isLast: boolean;
-}) {
-    const pendingBg = useColorModeValue('gray.100', 'whiteAlpha.100');
-    const pendingNumColor = useColorModeValue('gray.500', 'whiteAlpha.500');
-    const lineColor = useColorModeValue('gray.200', 'whiteAlpha.200');
-
-    const circleBg =
-        state === 'pending'
-            ? pendingBg
-            : state === 'error'
-              ? 'red.500'
-              : 'brand.green';
-
-    const labelColor =
-        state === 'pending'
-            ? 'text.secondary'
-            : state === 'error'
-              ? 'red.400'
-              : 'text.primary';
-
-    return (
-        <HStack align="flex-start" spacing={3}>
-            <VStack spacing={0} flexShrink={0} align="center" w="28px">
-                <Flex
-                    w="28px"
-                    h="28px"
-                    borderRadius="full"
-                    bg={circleBg}
-                    align="center"
-                    justify="center"
-                    flexShrink={0}
-                    transition="background 200ms ease"
-                >
-                    {state === 'active' ? (
-                        <Spinner size="xs" color="white" speed="0.9s" />
-                    ) : state === 'done' ? (
-                        <Text
-                            fontSize="xs"
-                            color="white"
-                            fontWeight="bold"
-                            lineHeight={1}
+                <ModalFooter pt={2}>
+                    <VStack w="full" spacing={2.5}>
+                        <Button
+                            variant="tactilePrimary"
+                            w="full"
+                            minH="48px"
+                            isLoading={isLoading}
+                            loadingText={statusLabel[status] ?? 'Processing…'}
+                            isDisabled={status === 'success'}
+                            onClick={handleFund}
                         >
-                            ✓
-                        </Text>
-                    ) : state === 'error' ? (
-                        <Text
-                            fontSize="xs"
-                            color="white"
-                            fontWeight="bold"
-                            lineHeight={1}
+                            Approve &amp; Fund $
+                            {formatUsdc(t?.guarantee_usdc ?? 0, { decimals: (t?.guarantee_usdc ?? 0) < 5_000_000 ? 2 : 0 })} GTD
+                        </Button>
+                        <Button
+                            variant="tactileGhost"
+                            w="full"
+                            minH="44px"
+                            isDisabled={isLoading}
+                            onClick={handleClose}
                         >
-                            ✕
-                        </Text>
-                    ) : (
-                        <Text
-                            fontSize="xs"
-                            color={pendingNumColor}
-                            fontWeight="semibold"
-                            lineHeight={1}
-                        >
-                            {stepNum}
-                        </Text>
-                    )}
-                </Flex>
-                {!isLast && (
-                    <Box w="2px" flex={1} minH="20px" bg={lineColor} mt="2px" />
-                )}
-            </VStack>
-            <VStack
-                align="start"
-                spacing={0.5}
-                pb={isLast ? 0 : 5}
-                pt="5px"
-                minW={0}
-            >
-                <Text
-                    fontSize="sm"
-                    fontWeight={state === 'active' ? 'semibold' : 'normal'}
-                    color={labelColor}
-                    transition="color 200ms ease"
-                >
-                    {label}
-                </Text>
-                {sublabel && (
-                    <Text fontSize="xs" color="text.secondary">
-                        {sublabel}
-                    </Text>
-                )}
-            </VStack>
-        </HStack>
-    );
-}
-
-// ─── CryptoRegisterModal ──────────────────────────────────────────────────────
-
-interface CryptoRegisterModalProps {
-    tournament: Tournament | null;
-    onClose: () => void;
-    onSuccess: (id: number, txHash?: string) => void;
-}
-
-function CryptoRegisterModal({
-    tournament: t,
-    onClose,
-    onSuccess,
-}: CryptoRegisterModalProps) {
-    const { register, status, error, isLoading, reset } =
-        useRegisterForTournament(t ?? undefined);
-    const toast = useToastHelper();
-    const [passwordCode, setPasswordCode] = useState('');
-    const lastProgressRef = useRef<'approving' | 'registering' | null>(null);
-
-    useEffect(() => {
-        if (status === 'approving' || status === 'registering') {
-            lastProgressRef.current = status;
-        }
-    }, [status]);
-
-    const handleClose = () => {
-        reset();
-        setPasswordCode('');
-        lastProgressRef.current = null;
-        onClose();
-    };
-
-    const handleRegister = async () => {
-        if (!t) return;
-        const code = t.is_private ? passwordCode.trim() : undefined;
-        if (t.is_private && !code) {
-            toast.warning('Enter the tournament password');
-            return;
-        }
-        const { ok, txHash } = await register(code);
-        if (ok) {
-            // The confirmation modal (opened via onSuccess) is the single success
-            // surface now, so no toast here would double up the "you're in" moment.
-            onSuccess(t.id, txHash);
-        }
-    };
-
-    const buyInDisplay = t ? `$${(t.buy_in_usdc / 1_000_000).toFixed(2)}` : '';
-    const showStepper = status !== 'idle';
-
-    let step1State: TxStepState = 'pending';
-    let step2State: TxStepState = 'pending';
-
-    if (status === 'approving') {
-        step1State = 'active';
-    } else if (status === 'registering') {
-        step1State = 'done';
-        step2State = 'active';
-    } else if (status === 'success') {
-        step1State = 'done';
-        step2State = 'done';
-    } else if (status === 'error') {
-        if (lastProgressRef.current === 'registering') {
-            step1State = 'done';
-            step2State = 'error';
-        } else {
-            step1State = 'error';
-        }
-    }
-
-    return (
-        <Modal isOpen={!!t} onClose={handleClose} isCentered size="sm">
-            <ModalOverlay />
-            <ModalContent>
-                <ModalHeader>Register for Tournament</ModalHeader>
-                <ModalCloseButton />
-                <ModalBody pb={2}>
-                    <VStack spacing={4} align="stretch">
-                        {t?.is_private && !showStepper && (
-                            <FormControl>
-                                <FormLabel fontSize="sm">
-                                    Tournament password
-                                </FormLabel>
-                                <Input
-                                    size="sm"
-                                    placeholder="Enter password"
-                                    value={passwordCode}
-                                    onChange={(e) =>
-                                        setPasswordCode(e.target.value)
-                                    }
-                                    isDisabled={isLoading}
-                                />
-                            </FormControl>
-                        )}
-
-                        {!showStepper && (
-                            <Text fontSize="sm" color="text.secondary">
-                                Buy-in:{' '}
-                                <Text
-                                    as="span"
-                                    fontWeight="bold"
-                                    color="brand.green"
-                                >
-                                    {buyInDisplay} USDC
-                                </Text>{' '}
-                                will be transferred on registration. Requires
-                                two wallet confirmations.
-                            </Text>
-                        )}
-
-                        {showStepper && (
-                            <VStack align="stretch" spacing={0} pt={1}>
-                                <TxStep
-                                    stepNum={1}
-                                    label="Approve USDC spend"
-                                    sublabel={
-                                        step1State === 'active'
-                                            ? 'Check your wallet…'
-                                            : undefined
-                                    }
-                                    state={step1State}
-                                    isLast={false}
-                                />
-                                <TxStep
-                                    stepNum={2}
-                                    label="Register on-chain"
-                                    sublabel={
-                                        step2State === 'active'
-                                            ? 'Check your wallet…'
-                                            : undefined
-                                    }
-                                    state={step2State}
-                                    isLast={true}
-                                />
-                            </VStack>
-                        )}
-
-                        {error && (
-                            <Text fontSize="xs" color="red.400">
-                                {error}
-                            </Text>
-                        )}
+                            Cancel
+                        </Button>
                     </VStack>
-                </ModalBody>
-                <ModalFooter gap={2}>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleClose}
-                        isDisabled={isLoading}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        size="sm"
-                        colorScheme="green"
-                        onClick={handleRegister}
-                        isLoading={isLoading}
-                        loadingText={
-                            status === 'approving'
-                                ? 'Approving…'
-                                : 'Registering…'
-                        }
-                    >
-                        {status === 'error' ? 'Retry' : 'Approve & Register'}
-                    </Button>
                 </ModalFooter>
             </ModalContent>
         </Modal>
@@ -933,7 +604,7 @@ interface CryptoUnregisterModalProps {
     onSuccess: (id: number, txHash?: string) => void;
 }
 
-function CryptoUnregisterModal({
+export function CryptoUnregisterModal({
     tournament: t,
     onClose,
     onSuccess,
@@ -958,10 +629,31 @@ function CryptoUnregisterModal({
 
     return (
         <Modal isOpen={!!t} onClose={handleClose} isCentered size="sm">
-            <ModalOverlay />
-            <ModalContent>
-                <ModalHeader>Unregister from Tournament</ModalHeader>
-                <ModalCloseButton />
+            <ModalOverlay
+                bg="rgba(11, 20, 48, 0.6)"
+                backdropFilter="blur(6px)"
+            />
+            <ModalContent
+                bg="card.white"
+                color="text.primary"
+                borderRadius="16px"
+                mx={4}
+                boxShadow="card.lift"
+            >
+                <ModalHeader
+                    fontSize="xl"
+                    fontWeight={800}
+                    letterSpacing="-0.02em"
+                    color="text.primary"
+                    pb={2}
+                >
+                    Unregister from Tournament
+                </ModalHeader>
+                <ModalCloseButton
+                    color="text.secondary"
+                    borderRadius="full"
+                    _hover={{ bg: 'card.lightGray', color: 'text.primary' }}
+                />
                 <ModalBody pb={2}>
                     <VStack spacing={2} align="stretch">
                         <Text fontSize="sm">
@@ -975,24 +667,28 @@ function CryptoUnregisterModal({
                         )}
                     </VStack>
                 </ModalBody>
-                <ModalFooter gap={2}>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleClose}
-                        isDisabled={isLoading}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        size="sm"
-                        colorScheme="red"
-                        onClick={handleUnregister}
-                        isLoading={isLoading}
-                        loadingText="Unregistering…"
-                    >
-                        Confirm Unregister
-                    </Button>
+                <ModalFooter pt={2}>
+                    <VStack w="full" spacing={2.5}>
+                        <Button
+                            variant="tactileDestructive"
+                            w="full"
+                            minH="48px"
+                            onClick={handleUnregister}
+                            isLoading={isLoading}
+                            loadingText="Unregistering…"
+                        >
+                            Confirm Unregister
+                        </Button>
+                        <Button
+                            variant="tactileGhost"
+                            w="full"
+                            minH="44px"
+                            onClick={handleClose}
+                            isDisabled={isLoading}
+                        >
+                            Cancel
+                        </Button>
+                    </VStack>
                 </ModalFooter>
             </ModalContent>
         </Modal>

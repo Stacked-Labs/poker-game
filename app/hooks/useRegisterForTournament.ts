@@ -105,6 +105,13 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
     const reenter = useCallback(async (passwordCodeHash?: string): Promise<{ ok: boolean; txHash?: string; error?: string }> => {
         if (!tournament) return { ok: false, error: 'No tournament' };
 
+        // In-flight guard: don't start a second re-entry tx while one is running
+        // (mirrors register()), so a double-fire can't trigger a second on-chain
+        // buy-in on a real-money re-entry.
+        if (status === 'approving' || status === 'registering') {
+            return { ok: false, error: 'Re-entry already in progress' };
+        }
+
         if (!isCrypto) {
             try {
                 setStatus('registering');
@@ -157,7 +164,7 @@ export function useRegisterForTournament(tournament: Tournament | undefined): Us
             setError(msg); setStatus('error');
             return { ok: false, error: msg };
         }
-    }, [tournament, isCrypto, account, sendOnChain]);
+    }, [tournament, isCrypto, account, sendOnChain, status]);
 
     const unregister = useCallback(async (): Promise<{ ok: boolean; txHash?: string; error?: string }> => {
         if (!tournament) return { ok: false, error: 'No tournament' };

@@ -1,21 +1,6 @@
 'use client';
 
-import {
-    Button,
-    Flex,
-    FormControl,
-    FormLabel,
-    Input,
-    Modal,
-    ModalBody,
-    ModalCloseButton,
-    ModalContent,
-    ModalFooter,
-    ModalHeader,
-    ModalOverlay,
-    Spinner,
-    Text,
-} from '@chakra-ui/react';
+import { Flex, Spinner, Text } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useActiveAccount } from 'thirdweb/react';
@@ -43,14 +28,7 @@ import TournamentDetail, {
     type CommunityLinkValues,
 } from '../../components/Tournament/TournamentDetail';
 import RegistrationConfirmationModal from '../../components/Tournament/RegistrationConfirmationModal';
-
-async function hashPasswordCode(code: string): Promise<string> {
-    const enc = new TextEncoder().encode(code);
-    const digest = await crypto.subtle.digest('SHA-256', enc);
-    return Array.from(new Uint8Array(digest))
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join('');
-}
+import TournamentRegisterModal from '../../components/Tournament/TournamentRegisterModal';
 
 export default function TournamentPage() {
     const params = useParams();
@@ -71,30 +49,24 @@ export default function TournamentPage() {
     // Rest-break state from the same /clock fetch — lets the structure sheet
     // highlight the live break row on the detail page (no live socket here).
     const [onBreak, setOnBreak] = useState(false);
-    const [pendingPasscode, setPendingPasscode] = useState<{
-        isReentry: boolean;
-    } | null>(null);
+    // Drives the shared registration modal (open + register vs re-enter).
+    const [regModal, setRegModal] = useState<{ isReentry: boolean } | null>(
+        null
+    );
     // Drives the "You're in." confirmation after a successful register/re-entry.
     const [confirm, setConfirm] = useState<{ isReentry: boolean } | null>(null);
-    const [passcode, setPasscode] = useState('');
-    const [passcodeLoading, setPasscodeLoading] = useState(false);
-    const passcodeInputRef = useRef<HTMLInputElement>(null);
     // After an on-chain register/unregister the DB lags by the indexer sync, so the
     // server's "am I registered" answer is briefly stale. This holds the optimistic
     // value (true after register, false after unregister) and stops load() from
     // flipping the button back until the server agrees. null = no pending action.
     const optimisticRegRef = useRef<boolean | null>(null);
 
-    const {
-        register: registerOnChain,
-        reenter: reenterOnChain,
-        unregister: unregisterOnChain,
-        status: registerStatus,
-    } = useRegisterForTournament(tournament ?? undefined);
-    const isActionLoading =
-        actionLoading ||
-        registerStatus === 'approving' ||
-        registerStatus === 'registering';
+    // Register / re-enter now run inside the shared modal; the page keeps this
+    // hook only for unregister.
+    const { unregister: unregisterOnChain } = useRegisterForTournament(
+        tournament ?? undefined
+    );
+    const isActionLoading = actionLoading;
 
     const {
         pendingRake,
@@ -258,78 +230,38 @@ export default function TournamentPage() {
         );
     };
 
-    const handleRegister = async (isReentry = false) => {
+    const handleRegister = (isReentry = false) => {
         if (!myWallet) {
             toast.warning('Connect wallet to register');
             return;
         }
-        // Private tournaments require the access code. Free-play tournaments are
-        // gated server-side at /register; crypto tournaments use the code to fetch
-        // an operator permit before the on-chain register() call. Both paths
-        // flow the hashed code through doRegister.
-        if (tournament?.is_private) {
-            setPendingPasscode({ isReentry });
-            setPasscode('');
-            return;
-        }
-        await doRegister(isReentry);
+        // The shared modal owns the full flow: password entry + hashing, the
+        // on-chain (or Free Play server) register, and the two-step tx indicator.
+        setRegModal({ isReentry });
     };
 
-    const doRegister = async (isReentry = false, passwordCode?: string) => {
-        setActionLoading(true);
-        try {
-            const result = isReentry
-                ? await reenterOnChain(passwordCode)
-                : await registerOnChain(passwordCode);
-            if (!result.ok) {
-                const { title, description } = friendlyMessage(result.error, {
-                    title: isReentry
-                        ? 'Could not re-enter'
-                        : 'Could not register',
-                    description: 'Please try again.',
-                });
-                toast.error(title, description);
-            } else {
-                if (isReentry) {
-                    setPlayers((prev) =>
-                        prev.map((p) =>
-                            myWallet &&
-                            p.wallet.toLowerCase() === myWallet.toLowerCase()
-                                ? {
-                                      ...p,
-                                      finish_pos: 0,
-                                      bullet_number: (p.bullet_number ?? 1) + 1,
-                                  }
-                                : p
-                        )
-                    );
-                } else {
-                    setIsRegistered(true);
-                    optimisticRegRef.current = true;
-                }
-                setConfirm({ isReentry });
-                resyncAfterOnchainAction();
-            }
-        } finally {
-            setActionLoading(false);
+    // Reconcile local state after the shared modal reports a successful entry.
+    const handleRegisterSuccess = (isReentry: boolean) => {
+        if (isReentry) {
+            setPlayers((prev) =>
+                prev.map((p) =>
+                    myWallet &&
+                    p.wallet.toLowerCase() === myWallet.toLowerCase()
+                        ? {
+                              ...p,
+                              finish_pos: 0,
+                              bullet_number: (p.bullet_number ?? 1) + 1,
+                          }
+                        : p
+                )
+            );
+        } else {
+            setIsRegistered(true);
+            optimisticRegRef.current = true;
         }
-    };
-
-    const handlePasscodeSubmit = async () => {
-        if (!pendingPasscode) return;
-        if (!passcode.trim()) {
-            toast.warning('Enter the tournament password');
-            return;
-        }
-        setPasscodeLoading(true);
-        try {
-            const hash = await hashPasswordCode(passcode.trim());
-            await doRegister(pendingPasscode.isReentry, hash);
-            setPendingPasscode(null);
-            setPasscode('');
-        } finally {
-            setPasscodeLoading(false);
-        }
+        setConfirm({ isReentry });
+        resyncAfterOnchainAction();
+        setRegModal(null);
     };
 
     const handleUnregister = async () => {
@@ -555,11 +487,6 @@ export default function TournamentPage() {
                 blindLevel={blindLevel}
                 onBreak={onBreak}
                 actionLoading={isActionLoading}
-                actionLabel={
-                    registerStatus === 'approving'
-                        ? 'Approving…'
-                        : 'Registering…'
-                }
                 goToTableLoading={goToTableLoading}
                 hostRakeUsdc={pendingRake == null ? null : Number(pendingRake)}
                 rakeClaiming={claiming}
@@ -610,55 +537,14 @@ export default function TournamentPage() {
                 onUploadImage={handleUploadImage}
             />
 
-            <Modal
-                isOpen={pendingPasscode !== null}
-                onClose={() => setPendingPasscode(null)}
-                isCentered
-                initialFocusRef={passcodeInputRef}
-            >
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Tournament Password</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <FormControl>
-                            <FormLabel fontSize="sm">
-                                Enter the access code to register
-                            </FormLabel>
-                            <Input
-                                ref={passcodeInputRef}
-                                size="sm"
-                                type="password"
-                                placeholder="Access code"
-                                value={passcode}
-                                onChange={(e) => setPasscode(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter')
-                                        handlePasscodeSubmit();
-                                }}
-                            />
-                        </FormControl>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button
-                            variant="ghost"
-                            mr={3}
-                            size="sm"
-                            onClick={() => setPendingPasscode(null)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            colorScheme="green"
-                            size="sm"
-                            isLoading={passcodeLoading}
-                            onClick={handlePasscodeSubmit}
-                        >
-                            Register
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <TournamentRegisterModal
+                tournament={regModal ? tournament : null}
+                isReentry={regModal?.isReentry ?? false}
+                onClose={() => setRegModal(null)}
+                onSuccess={() =>
+                    handleRegisterSuccess(regModal?.isReentry ?? false)
+                }
+            />
 
             {confirm && tournament && (
                 <RegistrationConfirmationModal

@@ -1322,6 +1322,17 @@ export default function TournamentDetail({
                                                 unclaimed={unclaimed}
                                                 onClaimPrize={onClaimPrize}
                                             />
+                                        ) : (t.status === 'cancelled' ||
+                                              t.status ===
+                                                  'emergency_refund') &&
+                                          !freePlay &&
+                                          t.contract_address ? (
+                                            <RefundPanel
+                                                status={t.status}
+                                                refund={refund}
+                                                myWallet={myWallet}
+                                                onClaimRefund={onClaimRefund}
+                                            />
                                         ) : (
                                             <PrimaryActions
                                                 status={t.status}
@@ -1345,20 +1356,6 @@ export default function TournamentDetail({
                                             />
                                         )}
                                     </Flex>
-
-                                    {/* Terminal-state strip — cancelled / emergency refund only.
-                                    Completed payout status is now inline in the row above. */}
-                                    {(t.status === 'cancelled' ||
-                                        t.status === 'emergency_refund') &&
-                                        !freePlay &&
-                                        t.contract_address && (
-                                            <RefundPanel
-                                                status={t.status}
-                                                refund={refund}
-                                                myWallet={myWallet}
-                                                onClaimRefund={onClaimRefund}
-                                            />
-                                        )}
 
                                     {/* Host controls — host-only, folded into the main
                                 card instead of a separate panel below. */}

@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import confetti from 'canvas-confetti';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { FaTrophy } from 'react-icons/fa6';
 import { FiArrowRight, FiExternalLink, FiRotateCcw } from 'react-icons/fi';
@@ -249,6 +250,7 @@ function WinCard({
     prefersReducedMotion: boolean;
     onClose?: () => void;
 }) {
+    const router = useRouter();
     const hasPrize = !isFreePlay && prizeUsdc > 0;
 
     // Color mode tokens — light gets a warm cream, dark keeps deep navy
@@ -258,8 +260,6 @@ function WinCard({
     const settleBg      = useColorModeValue('rgba(11,20,48,0.04)',   'rgba(255,255,255,0.04)');
     const settleBorder  = useColorModeValue('rgba(11,20,48,0.08)',   'rgba(255,255,255,0.07)');
     const settleTextFg  = useColorModeValue('gray.500',              'rgba(255,255,255,0.38)');
-    const linkFg        = useColorModeValue('gray.400',              'rgba(255,255,255,0.3)');
-    const linkHoverFg   = useColorModeValue('gray.700',              'rgba(255,255,255,0.65)');
     const freePlayFg    = useColorModeValue('gray.400',              'rgba(255,255,255,0.35)');
     const radialGlow    = useColorModeValue(
         'radial-gradient(ellipse at 50% 0%, rgba(253,197,29,0.14) 0%, transparent 65%)',
@@ -480,28 +480,30 @@ function WinCard({
                         size="md"
                         w="full"
                         minH="46px"
-                        onClick={onClose}
+                        onClick={() => { router.push(`/tournament/${tournamentId}`); onClose?.(); }}
                     >
                         View standings
                     </Button>
 
                     <Box
-                        as="a"
-                        href={`/tournament/${tournamentId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        display="inline-flex"
-                        alignItems="center"
-                        gap="5px"
+                        as="button"
+                        type="button"
+                        onClick={onClose}
                         fontSize="xs"
                         fontWeight="semibold"
-                        color={linkFg}
+                        color="text.secondary"
                         py={1.5}
+                        px={3}
+                        borderRadius="8px"
                         transition="color 150ms ease"
-                        _hover={{ color: linkHoverFg }}
+                        _hover={{ color: 'text.primary' }}
+                        _focusVisible={{
+                            outline: 'none',
+                            boxShadow: '0 0 0 2px rgba(54,163,123,0.4)',
+                        }}
+                        alignSelf="center"
                     >
-                        View tournament details
-                        <Icon as={FiArrowRight} boxSize="12px" />
+                        Close
                     </Box>
                 </VStack>
             </VStack>
@@ -725,7 +727,7 @@ function BustCard({
                 {/* Footer actions */}
                 <VStack spacing={1} mt={reentry ? 0 : 1}>
                     <Button
-                        variant={reentry ? 'tactileGhost' : 'tactileOutline'}
+                        variant={reentry ? 'tactileGhost' : 'tactileNeutral'}
                         size="sm"
                         w="full"
                         minH="42px"

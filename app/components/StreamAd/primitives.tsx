@@ -387,8 +387,8 @@ export const LiveTag = () => (
 // ── Persistent chrome ───────────────────────────────────────────────────────
 
 // Scene order accents: hero (pink), host (yellow), instant (green), leaderboard
-// (podium gold), create (purple).
-const SEGMENT_ACCENTS = ['brand.pink', 'brand.yellow', 'brand.green', '#FFD700', 'purple.500'];
+// (podium gold), create (purple), tournaments (green).
+const SEGMENT_ACCENTS = ['brand.pink', 'brand.yellow', 'brand.green', '#FFD700', 'purple.500', 'brand.green'];
 
 export const ProgressSegments = () => (
     <HStack spacing="clamp(5px, 0.5vw, 8px)">

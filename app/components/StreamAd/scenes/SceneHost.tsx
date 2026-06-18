@@ -67,7 +67,7 @@ const EarningsCard = () => (
     </StageCard>
 );
 
-// Scene B — Host to Earn: the 25% rake share pitch.
+// Scene B — Host to Earn: the 25%-of-the-platform-fee host share pitch.
 export default function SceneHost() {
     return (
         <Flex h="100%" align="center" justify="space-between" gap="clamp(20px, 3vw, 56px)" minH={0}>
@@ -80,7 +80,7 @@ export default function SceneHost() {
                         <br />
                         Keep <Highlight color="brand.yellowDark">25%</Highlight>
                         <br />
-                        of the rake.
+                        of the fee.
                     </>
                 }
                 sub={
@@ -89,7 +89,7 @@ export default function SceneHost() {
                         credited on-chain, hand by hand. You don&apos;t even have to play.
                     </>
                 }
-                badges={['25% of every rake', 'Paid per hand', '0% deploy fee']}
+                badges={['25% of the platform fee', 'Paid per hand', 'No deploy cost']}
                 badgeTone="yellow"
             />
 

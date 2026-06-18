@@ -6,7 +6,7 @@ import { keyframes } from '@emotion/react';
 // not JS/rAF: the stream worker runs headful Chromium under Xvfb where rAF is
 // throttled but CSS animation still composites frames.
 
-export const SCENE_COUNT = 5;
+export const SCENE_COUNT = 6;
 export const SCENE_SECS = 12;
 export const CYCLE_SECS = SCENE_COUNT * SCENE_SECS;
 

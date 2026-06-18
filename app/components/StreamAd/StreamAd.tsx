@@ -8,12 +8,13 @@ import SceneHero from './scenes/SceneHero';
 import SceneHost from './scenes/SceneHost';
 import SceneInstant from './scenes/SceneInstant';
 import SceneLeaderboard from './scenes/SceneLeaderboard';
+import SceneTournaments from './scenes/SceneTournaments';
 
 // Hidden single-viewport (100vw x 100vh, no scroll) broadcast frame for the 24/7
 // stream — the billboard Twitch/Kick viewers see when no real games are live. It
-// rotates five full-screen scenes on a 60s CSS-only loop (hero, host-to-earn,
-// instant play, leaderboard, create-your-game) under persistent chrome: top bar,
-// LIVE badge, scene progress, and a scannable QR card.
+// rotates six full-screen scenes on a CSS-only loop (hero, host-to-earn, instant
+// play, leaderboard, create-your-game, tournaments) under persistent chrome: top
+// bar, LIVE badge, scene progress, and a scannable QR card.
 //
 // The frame is locked to the homepage's light look (bg.default light gradient,
 // dark navy inks, white cards) regardless of color mode, so the broadcast always
@@ -24,7 +25,7 @@ import SceneLeaderboard from './scenes/SceneLeaderboard';
 // CSS animation still composites frames. Scene rotation and progress segments
 // share the same delay scheme (see streamAdMotion.ts).
 
-const SCENES = [SceneHero, SceneHost, SceneInstant, SceneLeaderboard, SceneCreate];
+const SCENES = [SceneHero, SceneHost, SceneInstant, SceneLeaderboard, SceneCreate, SceneTournaments];
 
 export default function StreamAd() {
     return (

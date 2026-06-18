@@ -39,6 +39,7 @@ import RegistrationConfirmationModal from '../Tournament/RegistrationConfirmatio
 import TournamentRegisterModal from '../Tournament/TournamentRegisterModal';
 import TournamentLobbyCard from './TournamentLobbyCard';
 import TournamentsEmptyState from './TournamentsEmptyState';
+import { PAGE_SIZE } from './types';
 
 // Lobby ordering: lead with the most actionable tournaments. Registering (join
 // now) first, then live (watch / late-reg), then upcoming, then finished and
@@ -111,7 +112,9 @@ function compareLobbyTournaments(
 
 export default function TournamentsList() {
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [registeredIds, setRegisteredIds] = useState<Set<number>>(new Set());
     const [finishPos, setFinishPos] = useState<Record<number, number>>({});
@@ -194,12 +197,13 @@ export default function TournamentsList() {
         setIsLoading(true);
         try {
             const [tournamentsData, regsData] = await Promise.all([
-                listTournaments(),
+                listTournaments({ limit: PAGE_SIZE, offset: 0 }),
                 myWalletRef.current
                     ? getMyTournamentRegistrations()
                     : Promise.resolve({ tournament_ids: [], finish_pos: {} }),
             ]);
             setTournaments(tournamentsData.tournaments ?? []);
+            setTotalCount(tournamentsData.total_count ?? 0);
             setRegisteredIds(new Set(regsData.tournament_ids));
             setFinishPos(regsData.finish_pos ?? {});
         } catch {
@@ -208,6 +212,30 @@ export default function TournamentsList() {
             setIsLoading(false);
         }
     }, []); // wallet + toast accessed via refs — intentionally excluded from deps
+
+    const handleLoadMore = async () => {
+        setIsLoadingMore(true);
+        try {
+            const data = await listTournaments({
+                limit: PAGE_SIZE,
+                offset: tournaments.length,
+            });
+            // De-dupe by id: a tournament whose status changed between pages could
+            // shift ranks and reappear; keep the first (freshest) copy.
+            setTournaments((prev) => {
+                const seen = new Set(prev.map((t) => t.id));
+                return [
+                    ...prev,
+                    ...(data.tournaments ?? []).filter((t) => !seen.has(t.id)),
+                ];
+            });
+            setTotalCount(data.total_count ?? 0);
+        } catch {
+            toastRef.current.error('Failed to load more tournaments');
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
 
     useEffect(() => {
         load();
@@ -309,31 +337,47 @@ export default function TournamentsList() {
             ) : visibleTournaments.length === 0 ? (
                 <TournamentsEmptyState onCreate={openCreate} />
             ) : (
-                <SimpleGrid
-                    columns={{ base: 1, sm: 2, lg: 3 }}
-                    spacing={{ base: 3, md: 4 }}
-                >
-                    {visibleTournaments.map((t, index) => (
-                        <TournamentLobbyCard
-                            key={t.id}
-                            index={index}
-                            tournament={t}
-                            myWallet={myWallet}
-                            onRegister={handleRegister}
-                            onUnregister={handleUnregister}
-                            onGoToTable={handleGoToTable}
-                            onViewOverview={handleViewOverview}
-                            onFundGuarantee={handleFundGuarantee}
-                            onCardClick={handleViewOverview}
-                            registeredIds={registeredIds}
-                            isEliminated={(finishPos[t.id] ?? 0) > 0}
-                            isLoading={actionLoading}
-                            isGoingToTable={goToTableLoadingId === t.id}
-                            pendingTx={getPendingTx(t.id)}
-                            explorerUrl={pendingExplorerUrl}
-                        />
-                    ))}
-                </SimpleGrid>
+                <>
+                    <SimpleGrid
+                        columns={{ base: 1, sm: 2, lg: 3 }}
+                        spacing={{ base: 3, md: 4 }}
+                    >
+                        {visibleTournaments.map((t, index) => (
+                            <TournamentLobbyCard
+                                key={t.id}
+                                index={index}
+                                tournament={t}
+                                myWallet={myWallet}
+                                onRegister={handleRegister}
+                                onUnregister={handleUnregister}
+                                onGoToTable={handleGoToTable}
+                                onViewOverview={handleViewOverview}
+                                onFundGuarantee={handleFundGuarantee}
+                                onCardClick={handleViewOverview}
+                                registeredIds={registeredIds}
+                                isEliminated={(finishPos[t.id] ?? 0) > 0}
+                                isLoading={actionLoading}
+                                isGoingToTable={goToTableLoadingId === t.id}
+                                pendingTx={getPendingTx(t.id)}
+                                explorerUrl={pendingExplorerUrl}
+                            />
+                        ))}
+                    </SimpleGrid>
+
+                    {tournaments.length < totalCount && (
+                        <Flex justify="center" pt={2}>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleLoadMore}
+                                isLoading={isLoadingMore}
+                                loadingText="Loading…"
+                            >
+                                Load more
+                            </Button>
+                        </Flex>
+                    )}
+                </>
             )}
 
             <FundGuaranteeModal

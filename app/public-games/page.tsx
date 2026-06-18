@@ -1,7 +1,14 @@
 'use client';
 
 import { Flex, Box, Container, VStack } from '@chakra-ui/react';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    Suspense,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Footer from '../components/HomePage/Footer';
 import PublicGamesHero from '../components/PublicGames/PublicGamesHero';
@@ -23,6 +30,7 @@ import type {
 } from '../components/PublicGames/types';
 import {
     PAGE_SIZE,
+    isTournamentTable,
     sortKeyToParam,
     stakeTier,
 } from '../components/PublicGames/types';
@@ -43,6 +51,7 @@ const PublicPageInner = () => {
     const [tournamentCount, setTournamentCount] = useState<number | undefined>(
         undefined
     );
+    const autoLoadedFrom = useRef(-1);
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -70,6 +79,7 @@ const PublicPageInner = () => {
         let cancelled = false;
         setIsLoading(true);
         setError(null);
+        autoLoadedFrom.current = -1;
         getPublicGames({
             sortBy: sortByParam,
             order: sortConfig.direction,
@@ -120,10 +130,24 @@ const PublicPageInner = () => {
         };
     }, []);
 
+    // Tournament tables live under the Tournaments tab — keep them out of the
+    // cash list, where they'd show as un-joinable mid-tournament rows.
+    const cashGames = useMemo(
+        () => games.filter((g) => !isTournamentTable(g.name)),
+        [games]
+    );
+
     const visibleGames = useMemo(() => {
-        if (stake === 'all' || filter === 'free') return games;
-        return games.filter((g) => g.is_crypto && stakeTier(g) === stake);
-    }, [games, stake, filter]);
+        if (stake === 'all' || filter === 'free') return cashGames;
+        return cashGames.filter((g) => g.is_crypto && stakeTier(g) === stake);
+    }, [cashGames, stake, filter]);
+
+    // Discount tournament tables we've filtered from the loaded page so the
+    // "N tables live" count and the load-more gate track the cash list.
+    const filteredOut = games.length - cashGames.length;
+    const cashTotalCount =
+        totalCount === null ? null : Math.max(0, totalCount - filteredOut);
+    const hasMore = games.length < (totalCount ?? 0);
 
     const handleSortChange = (key: SortKey) => {
         setSortConfig((prev) => ({
@@ -153,6 +177,22 @@ const PublicPageInner = () => {
         }
     };
 
+    // A full page of /api/public-games can be entirely tournament tables (they
+    // sort high while a multi-table tournament runs), leaving the cash list
+    // empty with cash games still waiting on later pages. Pull the next page so
+    // the empty state never traps the user with no Load More affordance.
+    // autoLoadedFrom guards against looping if a page returns no new rows while
+    // the server still reports more (e.g. a table closed mid-pagination).
+    useEffect(() => {
+        if (isLoading || isLoadingMore) return;
+        if (visibleGames.length > 0 || !hasMore) return;
+        if (autoLoadedFrom.current === games.length) return;
+        autoLoadedFrom.current = games.length;
+        handleLoadMore();
+        // handleLoadMore is stable enough here — it only reads the values in deps.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoading, isLoadingMore, visibleGames.length, hasMore, games.length]);
+
     const handleRetry = () => {
         setSortConfig({ key: 'seats', direction: 'desc' });
         setFilter('all');
@@ -180,7 +220,9 @@ const PublicPageInner = () => {
                             <>
                                 <FilterRail
                                     totalCount={
-                                        hasLoadedOnce ? (totalCount ?? 0) : null
+                                        hasLoadedOnce
+                                            ? (cashTotalCount ?? 0)
+                                            : null
                                     }
                                     filter={filter}
                                     onFilterChange={setFilter}
@@ -197,15 +239,21 @@ const PublicPageInner = () => {
                                             onRetry={handleRetry}
                                         />
                                     ) : visibleGames.length === 0 ? (
-                                        <EmptyState variant="empty" />
+                                        // No visible cash games yet — but if more
+                                        // pages are pending (e.g. this page was all
+                                        // tournament tables) the auto-loader is
+                                        // fetching them, so show loading, not empty.
+                                        hasMore || isLoadingMore ? (
+                                            <EmptyState variant="loading" />
+                                        ) : (
+                                            <EmptyState variant="empty" />
+                                        )
                                     ) : (
                                         <PublicGamesGrid
                                             games={visibleGames}
                                             sortConfig={sortConfig}
                                             onSortChange={handleSortChange}
-                                            hasMore={
-                                                games.length < (totalCount ?? 0)
-                                            }
+                                            hasMore={hasMore}
                                             isLoadingMore={isLoadingMore}
                                             onLoadMore={handleLoadMore}
                                         />

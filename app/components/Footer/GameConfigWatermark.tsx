@@ -79,6 +79,20 @@ const GameConfigWatermark = () => {
     const tournament = useMemo(() => {
         if (!tMeta) return null;
         const clock = live?.clock;
+        // Prefer the host's linked X handle (matched off the live standings by
+        // wallet) over the bare address — same identity the standings show.
+        const hostEntry = tMeta.hostWallet
+            ? live?.leaderboard?.find(
+                  (p) =>
+                      p.wallet?.toLowerCase() ===
+                      tMeta.hostWallet.toLowerCase()
+              )
+            : null;
+        const hostLabel = hostEntry?.xUsername
+            ? `@${hostEntry.xUsername}`
+            : tMeta.hostWallet
+              ? shortAddr(tMeta.hostWallet)
+              : null;
         const lvl = clock
             ? {
                   levelNumber: clock.levelNumber,
@@ -122,12 +136,12 @@ const GameConfigWatermark = () => {
             playersLine,
             freePlay: tMeta.isFreePlay,
             chain: tMeta.isFreePlay ? undefined : tMeta.chain,
-            hostLabel: tMeta.hostWallet ? shortAddr(tMeta.hostWallet) : null,
+            hostLabel,
             hostExplorerUrl: tMeta.hostWallet
                 ? explorerAddressUrl(tMeta.chain, tMeta.hostWallet)
                 : null,
         };
-    }, [tMeta, live?.clock, live?.playersActive, compact]);
+    }, [tMeta, live?.clock, live?.playersActive, live?.leaderboard, compact]);
 
     const cashConfigText = useMemo(() => {
         if (!config) return null;

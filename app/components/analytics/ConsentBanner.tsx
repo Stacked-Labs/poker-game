@@ -73,7 +73,7 @@ export function ConsentBanner() {
                         left: '50%',
                         transform: 'translateX(-50%)',
                         marginBottom: '16px',
-                        zIndex: 1500,
+                        zIndex: 1200,
                         pointerEvents: 'auto',
                         maxWidth: 'calc(100vw - 24px)',
                     }}
@@ -106,6 +106,7 @@ export function ConsentBanner() {
                             fontSize="xs"
                             fontWeight={700}
                             color="text.primary"
+                            minW={0}
                             whiteSpace="nowrap"
                             overflow="hidden"
                             textOverflow="ellipsis"
@@ -125,9 +126,9 @@ export function ConsentBanner() {
                             {...AllowButtonProps}
                             onClick={() => choose('granted')}
                             size="xs"
-                            h="26px"
+                            h="32px"
                             borderRadius="full"
-                            px={3}
+                            px={3.5}
                             flexShrink={0}
                         >
                             <Text

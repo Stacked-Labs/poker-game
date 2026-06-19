@@ -77,6 +77,7 @@ import {
     TournamentDefaultCover,
 } from '../PublicGames/tournamentDefaults';
 import { placesPaid, projectedPrizePoolUsdc } from '../PublicGames/payouts';
+import { shortenAddress } from '@/app/utils/address';
 
 // LeaderboardPlayer now lives in app/interfaces (shared with the live-tournament
 // state slice). Re-exported here so existing `from './TournamentDetail'` imports
@@ -211,9 +212,7 @@ function explorerBase(chain?: string): string {
         : 'https://sepolia.basescan.org';
 }
 
-function shortAddr(a: string): string {
-    return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '';
-}
+const shortAddr = shortenAddress;
 
 // Pull a display handle out of a host's X/Twitter community URL, if present.
 function xHandle(url?: string): string | null {
@@ -2283,9 +2282,13 @@ function HostPanel({
     const exposure = Math.max(0, t.guarantee_usdc - buyInsCollected);
     // The host's projected take: 25% of the platform fee (fee_bps of every
     // buy-in), mirroring Tournament.sol's HOST_SHARE_BPS. Grows as the field
-    // fills; an estimate until the entry count locks at start.
+    // fills; an estimate until the entry count locks at start. Fee then share
+    // (not one triple product) keeps every intermediate within safe-integer range.
+    const projectedPlatformFee = Math.floor(
+        (buyInsCollected * t.fee_bps) / 10_000
+    );
     const projectedHostFee = Math.floor(
-        (buyInsCollected * t.fee_bps * HOST_FEE_SHARE_BPS) / 1e8
+        (projectedPlatformFee * HOST_FEE_SHARE_BPS) / 10_000
     );
 
     return (

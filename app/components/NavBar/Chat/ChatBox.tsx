@@ -438,6 +438,7 @@ const Chatbox = ({
                             msg.name,
                             msg.address
                         );
+                        const authorColor = getColorForUsername(authorLabel);
                         return (
                             <Box
                                 data-testid="chat-message"
@@ -483,7 +484,7 @@ const Chatbox = ({
                                     )}
                                     <Text
                                         as="span"
-                                        color={getColorForUsername(authorLabel)}
+                                        color={authorColor}
                                         fontWeight="bold"
                                         mr={2}
                                     >
@@ -500,9 +501,7 @@ const Chatbox = ({
                                             username={msg.name}
                                             address={msg.address}
                                             chain={tableChain}
-                                            color={getColorForUsername(
-                                                authorLabel
-                                            )}
+                                            color={authorColor}
                                             fontWeight="bold"
                                         />
                                         {':'}

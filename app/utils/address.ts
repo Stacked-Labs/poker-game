@@ -17,6 +17,9 @@ export function shortenAddress(addr?: string | null): string {
 // head/tail against the full address, so we can re-shorten it our way and link it.
 function isShortenedWalletOf(name: string, address?: string | null): boolean {
     if (!address || !name.toLowerCase().startsWith('0x')) return false;
+    // Name is the wallet itself, in full.
+    if (name.toLowerCase() === address.toLowerCase()) return true;
+    // ...or already shortened by the backend (either ellipsis style).
     const sep = name.includes('…') ? '…' : name.includes('...') ? '...' : '';
     if (!sep) return false;
     const [head, tail] = name.split(sep);

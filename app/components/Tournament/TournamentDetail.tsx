@@ -83,6 +83,10 @@ import { placesPaid } from '../PublicGames/payouts';
 // (page.tsx, stories) keep working.
 export type { LeaderboardPlayer };
 
+// The host keeps 25% of the platform fee (Tournament.sol HOST_SHARE_BPS = 2500);
+// the platform keeps the rest. Used to project the host's take during signup.
+const HOST_FEE_SHARE_BPS = 2500;
+
 export interface RefundState {
     loading?: boolean;
     alreadyClaimed?: boolean;
@@ -2237,11 +2241,25 @@ function HostPanel({
         'rgba(253, 197, 29, 0.14)'
     );
     const hostTagFg = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    const statBorder = useColorModeValue(
+        'rgba(11, 20, 48, 0.10)',
+        'rgba(255, 255, 255, 0.10)'
+    );
+    const statBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.02)',
+        'rgba(255, 255, 255, 0.02)'
+    );
     const needsFunding =
         t.status === 'pending' && t.guarantee_usdc > 0 && !!t.contract_address;
     // What the host still covers if buy-ins fall short of the guarantee.
     const buyInsCollected = registeredCount * t.buy_in_usdc;
     const exposure = Math.max(0, t.guarantee_usdc - buyInsCollected);
+    // The host's projected take: 25% of the platform fee (fee_bps of every
+    // buy-in), mirroring Tournament.sol's HOST_SHARE_BPS. Grows as the field
+    // fills; an estimate until the entry count locks at start.
+    const projectedHostFee = Math.floor(
+        (buyInsCollected * t.fee_bps * HOST_FEE_SHARE_BPS) / 1e8
+    );
 
     return (
         <VStack align="stretch" spacing={3}>
@@ -2292,25 +2310,77 @@ function HostPanel({
                 </VStack>
             )}
 
-            {!freePlay &&
-                t.guarantee_usdc > 0 &&
-                t.status === 'registration' && (
-                    <Stat label="Your current exposure">
-                        <HStack spacing={1}>
-                            <Image src={USDC_LOGO} alt="" boxSize="14px" />
-                            <Text
-                                fontWeight="bold"
-                                color={USDC_BLUE}
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                ${formatUsdc(exposure)}
+            {!freePlay && t.status === 'registration' && (
+                <Flex
+                    direction={{ base: 'column', sm: 'row' }}
+                    gap={2.5}
+                    align="stretch"
+                >
+                    {t.guarantee_usdc > 0 && (
+                        <Box
+                            flex="1"
+                            minW={0}
+                            p={3}
+                            bg={statBg}
+                            borderWidth="1px"
+                            borderColor={statBorder}
+                            borderRadius="12px"
+                        >
+                            <Stat label="On the hook for">
+                                <HStack spacing={1}>
+                                    <Image
+                                        src={USDC_LOGO}
+                                        alt=""
+                                        boxSize="14px"
+                                    />
+                                    <Text
+                                        fontWeight="bold"
+                                        fontSize="md"
+                                        color={USDC_BLUE}
+                                        sx={{
+                                            fontVariantNumeric: 'tabular-nums',
+                                        }}
+                                    >
+                                        ${formatUsdcAuto(exposure)}
+                                    </Text>
+                                </HStack>
+                            </Stat>
+                            <Text fontSize="2xs" color="text.muted" mt={1}>
+                                Your top-up if no one else joins. Shrinks with
+                                every buy-in.
                             </Text>
-                            <Text fontSize="xs" color="text.muted">
-                                covered if no one else joins
-                            </Text>
-                        </HStack>
-                    </Stat>
-                )}
+                        </Box>
+                    )}
+                    <Box
+                        flex="1"
+                        minW={0}
+                        p={3}
+                        bg={statBg}
+                        borderWidth="1px"
+                        borderColor={statBorder}
+                        borderRadius="12px"
+                    >
+                        <Stat label="You earn so far">
+                            <HStack spacing={1}>
+                                <Image src={USDC_LOGO} alt="" boxSize="14px" />
+                                <Text
+                                    fontWeight="bold"
+                                    fontSize="md"
+                                    color={USDC_BLUE}
+                                    sx={{
+                                        fontVariantNumeric: 'tabular-nums',
+                                    }}
+                                >
+                                    ${formatUsdcAuto(projectedHostFee)}
+                                </Text>
+                            </HStack>
+                        </Stat>
+                        <Text fontSize="2xs" color="text.muted" mt={1}>
+                            Your 25% of the platform fee. Grows with every entry.
+                        </Text>
+                    </Box>
+                </Flex>
+            )}
 
             {t.status === 'completed' && !freePlay && (
                 <HStack justify="space-between" flexWrap="wrap" gap={3}>

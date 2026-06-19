@@ -1780,6 +1780,18 @@ function MoneyHero({
         value = `$${formatUsdcAuto(finalPrizePoolUsdc as number)}`;
         suffix = undefined;
     }
+    if (
+        !freePlay &&
+        t.status === 'running' &&
+        (finalPrizePoolUsdc ?? 0) > t.guarantee_usdc
+    ) {
+        // Underway: entries are locked, so the pool is realized, not projected.
+        // When it cleared the guarantee, lead with the real figure (matching the
+        // payout ladder) instead of the now-stale GTD floor.
+        label = 'Prize pool';
+        value = `$${formatUsdcAuto(finalPrizePoolUsdc as number)}`;
+        suffix = undefined;
+    }
     if (t.status === 'completed' && (finalPrizePoolUsdc ?? 0) > 0) {
         // Once settled, lead with the full prize pool that was paid out — the
         // realized figure (sum of every payout), not the guarantee or the stale

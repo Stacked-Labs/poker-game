@@ -15,6 +15,10 @@ export function shortenAddress(addr?: string | null): string {
 // X handle, and any spectator (poker-server Client.GetDisplayName → ShortWallet,
 // "0x1a2b...3c4d"). Detect that (either ellipsis style) by matching the visible
 // head/tail against the full address, so we can re-shorten it our way and link it.
+// KNOWN LIMITATION: this mirrors poker-server's ShortWallet format. The robust fix
+// (server sends an empty username for wallet-only players + a seatDisplayName helper)
+// is tracked as a backend refactor; until then a server format change must keep this
+// in sync. See the poker-server tournament-identity refactor issue.
 function isShortenedWalletOf(name: string, address?: string | null): boolean {
     if (!address || !name.toLowerCase().startsWith('0x')) return false;
     // Name is the wallet itself, in full.

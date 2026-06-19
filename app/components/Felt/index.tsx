@@ -4,6 +4,7 @@ import Pot from './Pot';
 import CommunityCards from './CommunityCards';
 import AnteChip from './AnteChip';
 import DualBoardCommunityCards from './DualBoardCommunityCards';
+import RunItTwiceWaiting from './RunItTwiceWaiting';
 import GameStatusBanner from '../GameStatusBanner';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 
@@ -42,6 +43,7 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
                 <CommunityCards activePotIndex={activePotIndex} />
             )}
             <AnteChip />
+            <RunItTwiceWaiting />
             <GameStatusBanner />
         </Flex>
     );

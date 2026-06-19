@@ -102,6 +102,7 @@ const RunItTwicePrompt = () => {
                         color="white"
                         onClick={() => socket && sendRITVote(socket, true)}
                         isDisabled={!socket || hasSubmittedVote}
+                        data-testid="rit-vote-yes"
                     >
                         Yes
                     </Button>
@@ -111,6 +112,7 @@ const RunItTwicePrompt = () => {
                         color="white"
                         onClick={() => socket && sendRITVote(socket, false)}
                         isDisabled={!socket || hasSubmittedVote}
+                        data-testid="rit-vote-no"
                     >
                         No
                     </Button>

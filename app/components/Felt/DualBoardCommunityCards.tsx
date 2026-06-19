@@ -9,6 +9,7 @@ import type { Card, Pot } from '@/app/interfaces';
 
 type BoardRowProps = {
     label: string;
+    testId: string;
     cards: Card[];
     winningSet: Set<number>;
     // Positions (0–4) that were already known before the runout — skip flip animation.
@@ -18,13 +19,14 @@ type BoardRowProps = {
 
 const BoardRow = ({
     label,
+    testId,
     cards,
     winningSet,
     preExistingIndices,
     onFlipStart,
 }: BoardRowProps) => {
     return (
-        <VStack spacing={1} width="100%">
+        <VStack spacing={1} width="100%" data-testid={testId}>
             <Text
                 color="whiteAlpha.900"
                 fontSize={{ base: '10px', md: '11px' }}
@@ -126,9 +128,14 @@ const DualBoardCommunityCards = ({
     if (!board1.some(Boolean) && !board2.some(Boolean)) return null;
 
     return (
-        <VStack spacing={{ base: 1.5, md: 2 }} align="center">
+        <VStack
+            spacing={{ base: 1.5, md: 2 }}
+            align="center"
+            data-testid="dual-board-community"
+        >
             <BoardRow
                 label="Board 1"
+                testId="rit-board-1"
                 cards={board1}
                 winningSet={winningSetBoard1}
                 preExistingIndices={preExistingIndices}
@@ -136,6 +143,7 @@ const DualBoardCommunityCards = ({
             />
             <BoardRow
                 label="Board 2"
+                testId="rit-board-2"
                 cards={board2}
                 winningSet={winningSetBoard2}
                 preExistingIndices={preExistingIndices}

@@ -411,6 +411,7 @@ export function SocketProvider(props: SocketProviderProps) {
 
                         const newMessage: Message = {
                             name: eventData.username,
+                            address: eventData.address,
                             message: eventData.message,
                             timestamp: eventData.timestamp,
                             isSeated: eventData.is_seated ?? false,

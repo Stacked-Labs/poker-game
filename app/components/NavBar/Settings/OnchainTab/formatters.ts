@@ -22,11 +22,7 @@ export function chipsToUsdc(chips: bigint): bigint {
     return chips * BigInt(10_000);
 }
 
-export function truncateAddress(addr: string | undefined | null): string {
-    if (!addr) return '';
-    if (addr.length <= 12) return addr;
-    return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
+export { shortenAddress as truncateAddress } from '@/app/utils/address';
 
 export function truncateHash(hash: string | undefined | null): string {
     if (!hash) return '';

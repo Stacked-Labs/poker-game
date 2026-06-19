@@ -31,6 +31,7 @@ import EmotePicker from './EmotePicker';
 import { FiEye, FiEyeOff, FiVolume2, FiVolumeX } from 'react-icons/fi';
 import { MdEventSeat } from 'react-icons/md';
 import { getColorForUsername } from '@/app/utils/chatColors';
+import { playerDisplayName } from '@/app/utils/address';
 
 const ChatScroller = forwardRef<
     HTMLDivElement,
@@ -431,6 +432,10 @@ const Chatbox = ({
                             emotesByName,
                             emotesByNameLower
                         );
+                        const authorLabel = playerDisplayName(
+                            msg.name,
+                            msg.address
+                        );
                         return (
                             <Box
                                 data-testid="chat-message"
@@ -476,7 +481,7 @@ const Chatbox = ({
                                     )}
                                     <Text
                                         as="span"
-                                        color={getColorForUsername(msg.name)}
+                                        color={getColorForUsername(authorLabel)}
                                         fontWeight="bold"
                                         mr={2}
                                     >
@@ -489,7 +494,7 @@ const Chatbox = ({
                                                 display="inline"
                                             />
                                         )}
-                                        {msg.name}:
+                                        {authorLabel}:
                                     </Text>
                                     <MessageRenderer tokens={tokens} />
                                 </Text>

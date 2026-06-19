@@ -48,6 +48,7 @@ import type { Emote } from '@/app/stores/emotes';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { useRabbitHuntStore } from '@/app/stores/rabbitHunt';
 import { buildSeatReactionMessage } from '@/app/utils/seatReaction';
+import { playerDisplayName } from '@/app/utils/address';
 import EmotePicker from './NavBar/Chat/EmotePicker';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import {
@@ -1561,7 +1562,10 @@ const TakenSeatButton = ({
                                                                 },
                                                         }}
                                                     >
-                                                        {player.username}
+                                                        {playerDisplayName(
+                                                            player.username,
+                                                            player.address
+                                                        )}
                                                     </Text>
                                                 </motion.div>
                                             )}

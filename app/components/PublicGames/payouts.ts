@@ -76,6 +76,26 @@ export function defaultPayouts(entrants: number): PayoutTier[] {
     ];
 }
 
+/**
+ * Provisional prize pool while registration is open. The backend only freezes
+ * prize_pool_usdc at start (it arrives as 0/absent before then), so the client
+ * mirrors the contract/coordinator pool math from the live field —
+ * gross = entries · buyIn, pool = (gross − rake) floored at the guarantee — so
+ * projected payouts grow with entries and correctly overtake the guarantee once
+ * buy-ins exceed it, instead of staying pinned to the GTD. All micro-USDC; this
+ * matches the value the API later returns once the tournament is running.
+ */
+export function projectedPrizePoolUsdc(
+    entrants: number,
+    buyInMicro: number,
+    feeBps: number,
+    guaranteeMicro: number
+): number {
+    const gross = Math.max(0, entrants) * buyInMicro;
+    const rake = Math.floor((gross * feeBps) / 10_000);
+    return Math.max(gross - rake, guaranteeMicro);
+}
+
 /** Number of paid finishing positions for a field size. */
 export function placesPaid(entrants: number): number {
     const tiers = defaultPayouts(entrants);

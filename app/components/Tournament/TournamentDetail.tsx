@@ -76,7 +76,7 @@ import {
     TournamentDefaultAvatar,
     TournamentDefaultCover,
 } from '../PublicGames/tournamentDefaults';
-import { placesPaid } from '../PublicGames/payouts';
+import { placesPaid, projectedPrizePoolUsdc } from '../PublicGames/payouts';
 
 // LeaderboardPlayer now lives in app/interfaces (shared with the live-tournament
 // state slice). Re-exported here so existing `from './TournamentDetail'` imports
@@ -882,10 +882,6 @@ export default function TournamentDetail({
         t.status === 'completed'
             ? players.reduce((sum, p) => sum + (p.prize_usdc ?? 0), 0)
             : 0;
-    const effectivePrizePool =
-        settledPrizePool > 0
-            ? settledPrizePool
-            : Math.max(t.prize_pool_usdc ?? 0, t.guarantee_usdc ?? 0);
 
     const actualPaidPlaces =
         t.status === 'completed'
@@ -900,6 +896,24 @@ export default function TournamentDetail({
         }
         return players.length || registeredCount;
     })();
+
+    // Before start, prize_pool_usdc isn't frozen yet (the API sends 0), so a plain
+    // max() against it would pin the projection to the guarantee. Mirror the
+    // coordinator's pool math from the live field instead, so projected payouts
+    // grow with entries and overtake the guarantee once buy-ins exceed it.
+    const projecting =
+        t.status === 'registration' || t.status === 'pending';
+    const effectivePrizePool =
+        settledPrizePool > 0
+            ? settledPrizePool
+            : projecting
+              ? projectedPrizePoolUsdc(
+                    effectiveEntrants,
+                    t.buy_in_usdc,
+                    t.fee_bps,
+                    t.guarantee_usdc ?? 0
+                )
+              : Math.max(t.prize_pool_usdc ?? 0, t.guarantee_usdc ?? 0);
 
     const payoutsEl = showPayouts ? (
         <PayoutLadder
@@ -1753,6 +1767,19 @@ function MoneyHero({
     } else if (t.prize_pool_usdc > 0) {
         label = 'Prize pool';
         value = `$${formatUsdcAuto(t.prize_pool_usdc)}`;
+    }
+    // Registration/pending: once the live field's projected pool overtakes the
+    // guarantee floor, lead with the bigger projected number instead of a now-stale
+    // GTD, keeping the hero in step with the projected payout ladder.
+    if (
+        !freePlay &&
+        (t.status === 'registration' || t.status === 'pending') &&
+        t.guarantee_usdc > 0 &&
+        (finalPrizePoolUsdc ?? 0) > t.guarantee_usdc
+    ) {
+        label = 'Projected pool';
+        value = `$${formatUsdcAuto(finalPrizePoolUsdc as number)}`;
+        suffix = undefined;
     }
     if (t.status === 'completed' && (finalPrizePoolUsdc ?? 0) > 0) {
         // Once settled, lead with the full prize pool that was paid out — the

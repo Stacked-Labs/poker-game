@@ -38,3 +38,27 @@ export function playerDisplayName(
     if (address) return shortenAddress(address);
     return name;
 }
+
+// Classifies a player's identity so callers can both label and link it: an X
+// handle links to the profile, a wallet (bare or backend-shortened) links to the
+// block explorer, and a chosen nickname links nowhere. Pure — URL building lives
+// in the link layer so this stays free of chain/explorer config.
+export type PlayerIdentity =
+    | { kind: 'x'; handle: string; label: string }
+    | { kind: 'wallet'; address: string; label: string }
+    | { kind: 'name'; label: string };
+
+export function resolvePlayerIdentity(
+    username?: string | null,
+    address?: string | null
+): PlayerIdentity {
+    const name = (username ?? '').trim();
+    if (name.startsWith('@')) {
+        return { kind: 'x', handle: name.slice(1), label: name };
+    }
+    const label = playerDisplayName(username, address);
+    if (address && label === shortenAddress(address)) {
+        return { kind: 'wallet', address, label };
+    }
+    return { kind: 'name', label };
+}

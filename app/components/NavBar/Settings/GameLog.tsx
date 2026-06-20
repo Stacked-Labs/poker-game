@@ -1470,7 +1470,10 @@ const GameLog = () => {
                                 >
                                     {formatTime(event.timestamp)}
                                 </Text>
-                                <Text
+                                {/* Box (not Text) — several event rows return block
+                                    content (Box/Text) for RIT boards and showdowns,
+                                    which is invalid nested inside a <p>. */}
+                                <Box
                                     color="text.primary"
                                     wordBreak="break-word"
                                     fontSize={{ base: 'sm', md: 'sm' }}
@@ -1480,7 +1483,7 @@ const GameLog = () => {
                                     pr={1}
                                 >
                                     {formatLogMessage(event)}
-                                </Text>
+                                </Box>
                             </HStack>
                         </Box>
                     ))}

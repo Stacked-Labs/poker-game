@@ -22,11 +22,17 @@ export default defineConfig({
         port: 3000,
         env: { NEXT_PUBLIC_E2E: 'true' },
         reuseExistingServer: true,
+        // A cold `next dev` boot + first-route compile can exceed the 60s default.
+        timeout: 180_000,
     },
     projects: [
         {
             name: 'free',
             testDir: './e2e/free',
+            // The RIT all-in flow is long: create + two seats + a full hand + the
+            // post-runout next-hand wait, on top of `next dev` lazy compilation.
+            // 120s is too tight for it; give the free suite real headroom.
+            timeout: 240_000,
             use: { ...devices['Desktop Chrome'] },
         },
         {

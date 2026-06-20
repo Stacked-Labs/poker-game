@@ -20,7 +20,9 @@ interface GameEventsContextType {
     refreshEvents: () => Promise<void>;
 }
 
-const GameEventsContext = createContext<GameEventsContextType | undefined>(
+// Exported as the testing/Storybook seam — story files provide a stubbed value
+// directly, mirroring how AppContext/SocketContext/SoundContext are consumed in stories.
+export const GameEventsContext = createContext<GameEventsContextType | undefined>(
     undefined
 );
 

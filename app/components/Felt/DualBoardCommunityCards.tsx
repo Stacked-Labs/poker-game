@@ -1,76 +1,17 @@
 'use client';
 
 import React, { useCallback, useContext, useMemo } from 'react';
-import { Box, Flex, Text, VStack } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useSound } from '@/app/contexts/SoundProvider';
 import CardComponent from '../Card';
 import type { Card, Pot } from '@/app/interfaces';
 
-type BoardRowProps = {
-    label: string;
-    testId: string;
-    cards: Card[];
-    winningSet: Set<number>;
-    // Positions (0–4) that were already known before the runout — skip flip animation.
-    preExistingIndices: Set<number>;
-    onFlipStart: () => void;
-};
-
-const BoardRow = ({
-    label,
-    testId,
-    cards,
-    winningSet,
-    preExistingIndices,
-    onFlipStart,
-}: BoardRowProps) => {
-    return (
-        <VStack spacing={1} width="100%" data-testid={testId}>
-            <Text
-                color="whiteAlpha.900"
-                fontSize={{ base: '10px', md: '11px' }}
-                fontWeight="bold"
-                textTransform="uppercase"
-                letterSpacing="0.05em"
-            >
-                {label}
-            </Text>
-            <Flex gap={{ base: 1, md: 1.5 }} justify="center">
-                {[0, 1, 2, 3, 4].map((idx) => {
-                    const cardVal = cards?.[idx];
-                    const hasCard = Boolean(cardVal);
-
-                    if (hasCard) {
-                        const cardNum = Number(cardVal);
-                        return (
-                            <Box key={`${label}-card-${idx}`} width={{ base: '9.5vw', md: '44px' }} maxW="44px">
-                                <CardComponent
-                                    card={cardVal}
-                                    placeholder={false}
-                                    folded={false}
-                                    highlighted={winningSet.has(cardNum)}
-                                    skipAnimation={preExistingIndices.has(idx)}
-                                    onFlipStart={preExistingIndices.has(idx) ? undefined : onFlipStart}
-                                />
-                            </Box>
-                        );
-                    }
-
-                    return (
-                        <Box key={`${label}-placeholder-${idx}`} width={{ base: '9.5vw', md: '44px' }} maxW="44px">
-                            <CardComponent
-                                card="placeholder"
-                                placeholder={true}
-                                folded={false}
-                            />
-                        </Box>
-                    );
-                })}
-            </Flex>
-        </VStack>
-    );
-};
+// Two boards share the single community-card slot. Instead of two full rows (which forces
+// the cards tiny), board 2 is dealt IN FRONT of board 1, dropped down by ~half a card:
+// it covers board 1's lower *suit* area but never a top-left rank, so both boards stay
+// readable while the pair occupies ~1.5 card-heights — letting the cards stay large.
+const BOARD2_DROP = 0.52; // board 2's top, as a fraction of a card's height
 
 const getWinningSetForPot = (
     pots: Pot[] | undefined,
@@ -94,6 +35,59 @@ const getWinningSetForPot = (
     return set;
 };
 
+type BoardLayerProps = {
+    testId: string;
+    cards: Card[];
+    winningSet: Set<number>;
+    preExistingIndices: Set<number>;
+    onFlipStart: () => void;
+};
+
+// One five-card board. Cards flex to fill the width, so they match the single-board scale.
+const BoardLayer = ({
+    testId,
+    cards,
+    winningSet,
+    preExistingIndices,
+    onFlipStart,
+}: BoardLayerProps) => (
+    <Flex
+        data-testid={testId}
+        gap={{ base: 1, md: 1.5, lg: 2 }}
+        width="100%"
+        justify="center"
+    >
+        {[0, 1, 2, 3, 4].map((idx) => {
+            const cardVal = cards?.[idx];
+            const hasCard = Boolean(cardVal);
+            return (
+                <Box key={`${testId}-${idx}`} flex="1 1 0" minW={0} maxW="16%">
+                    {hasCard ? (
+                        <CardComponent
+                            card={cardVal}
+                            placeholder={false}
+                            folded={false}
+                            highlighted={winningSet.has(Number(cardVal))}
+                            skipAnimation={preExistingIndices.has(idx)}
+                            onFlipStart={
+                                preExistingIndices.has(idx)
+                                    ? undefined
+                                    : onFlipStart
+                            }
+                        />
+                    ) : (
+                        <CardComponent
+                            card="placeholder"
+                            placeholder={true}
+                            folded={false}
+                        />
+                    )}
+                </Box>
+            );
+        })}
+    </Flex>
+);
+
 const DualBoardCommunityCards = ({
     activePotIndex,
 }: {
@@ -103,10 +97,16 @@ const DualBoardCommunityCards = ({
     const { play } = useSound();
     const playCardFlip = useCallback(() => play('card_flip'), [play]);
     const game = appState.game;
-    const board1 = useMemo(() => game?.ritBoard1Cards ?? [], [game?.ritBoard1Cards]);
-    const board2 = useMemo(() => game?.ritBoard2Cards ?? [], [game?.ritBoard2Cards]);
+    const board1 = useMemo(
+        () => game?.ritBoard1Cards ?? [],
+        [game?.ritBoard1Cards]
+    );
+    const board2 = useMemo(
+        () => game?.ritBoard2Cards ?? [],
+        [game?.ritBoard2Cards]
+    );
 
-    // Positions that were visible before the runout — shown without flip animation.
+    // Positions visible before the runout — shown without a flip animation.
     const preExistingIndices = useMemo(() => {
         const set = new Set<number>();
         (game?.ritPreExistingCards ?? []).forEach((card, i) => {
@@ -128,28 +128,44 @@ const DualBoardCommunityCards = ({
     if (!board1.some(Boolean) && !board2.some(Boolean)) return null;
 
     return (
-        <VStack
-            spacing={{ base: 1.5, md: 2 }}
-            align="center"
+        <Box
             data-testid="dual-board-community"
+            width="100%"
+            position="relative"
+            // Board 1 sits exactly where the single community row sits (in flow); board 2
+            // is absolute and cascades into the open felt below it, so the pot above and
+            // the felt's central composition stay put.
         >
-            <BoardRow
-                label="Board 1"
-                testId="rit-board-1"
-                cards={board1}
-                winningSet={winningSetBoard1}
-                preExistingIndices={preExistingIndices}
-                onFlipStart={playCardFlip}
-            />
-            <BoardRow
-                label="Board 2"
-                testId="rit-board-2"
-                cards={board2}
-                winningSet={winningSetBoard2}
-                preExistingIndices={preExistingIndices}
-                onFlipStart={playCardFlip}
-            />
-        </VStack>
+            {/* Board 1 — behind, in flow (defines the block height). */}
+            <Box position="relative" zIndex={1}>
+                <BoardLayer
+                    testId="rit-board-1"
+                    cards={board1}
+                    winningSet={winningSetBoard1}
+                    preExistingIndices={preExistingIndices}
+                    onFlipStart={playCardFlip}
+                />
+            </Box>
+
+            {/* Board 2 — in front, dropped down over board 1's lower (suit) area. The
+                upward shadow lifts it off board 1 so the layering reads clearly. */}
+            <Box
+                position="absolute"
+                left={0}
+                right={0}
+                top={`${BOARD2_DROP * 100}%`}
+                zIndex={2}
+                sx={{ filter: 'drop-shadow(0 -4px 10px rgba(0,0,0,0.45))' }}
+            >
+                <BoardLayer
+                    testId="rit-board-2"
+                    cards={board2}
+                    winningSet={winningSetBoard2}
+                    preExistingIndices={preExistingIndices}
+                    onFlipStart={playCardFlip}
+                />
+            </Box>
+        </Box>
     );
 };
 

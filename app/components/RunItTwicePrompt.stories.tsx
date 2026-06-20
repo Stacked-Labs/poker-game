@@ -45,11 +45,27 @@ function makeVotingGame(over: Partial<Game>): Game {
 // A truthy socket stub keeps the buttons enabled; clicks are no-ops in the story.
 const socketStub = { readyState: 1, send: () => undefined } as unknown as WebSocket;
 
+// Mimics the real footer slot: felt above, a transparent bottom action bar that is the
+// container-query context the ActionButtons size against, content right-aligned.
 function Frame({ children }: { children: React.ReactNode }) {
     return (
         <SocketContext.Provider value={socketStub}>
-            <Box bg="#0b1430" minH="260px" p={6} display="grid" placeItems="center">
-                {children}
+            <Box position="relative" minH="320px" bg="#1c4a33" overflow="hidden">
+                <Box
+                    position="absolute"
+                    bottom="10px"
+                    left={0}
+                    right={0}
+                    h="78px"
+                    px={4}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="flex-end"
+                    bg="rgba(8,14,30,0.55)"
+                    sx={{ containerType: 'inline-size' }}
+                >
+                    {children}
+                </Box>
             </Box>
         </SocketContext.Provider>
     );

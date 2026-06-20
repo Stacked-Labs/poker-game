@@ -163,7 +163,9 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                                     }}
                                                     color={'white'}
                                                 >
-                                                    {format(game.pots[index].amount)}
+                                                    {format(
+                                                        game.pots[index].amount
+                                                    )}
                                                 </Text>
                                             </Text>
                                         </Box>
@@ -192,7 +194,10 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                             {format(pot.amount)}
                                         </Text>
                                         {ritActive && (
-                                            <Text
+                                            <Flex
+                                                gap={1}
+                                                align="center"
+                                                lineHeight={1}
                                                 fontSize={{
                                                     xl: '10px',
                                                     lg: '9px',
@@ -200,12 +205,29 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                                     base: '7px',
                                                 }}
                                                 fontWeight="bold"
-                                                color="whiteAlpha.900"
-                                                textAlign="center"
                                                 whiteSpace="nowrap"
                                             >
-                                                1/2: {format(remainder)} | 2/2: {format(halfAmount)}
-                                            </Text>
+                                                {/* B1/B2 text markers (not color alone)
+                                                    tie each half to its board. */}
+                                                <Text
+                                                    as="span"
+                                                    color="green.200"
+                                                >
+                                                    B1 {format(remainder)}
+                                                </Text>
+                                                <Text
+                                                    as="span"
+                                                    color="whiteAlpha.500"
+                                                >
+                                                    ·
+                                                </Text>
+                                                <Text
+                                                    as="span"
+                                                    color="blue.200"
+                                                >
+                                                    B2 {format(halfAmount)}
+                                                </Text>
+                                            </Flex>
                                         )}
                                     </Flex>
                                 )}
@@ -281,7 +303,13 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                         transform="translateX(-50%)"
                         fontSize={{ base: '8px', md: '10px' }}
                         fontWeight="bold"
-                        color={ritPhase === 2 ? 'green.200' : ritPhase === 3 ? 'blue.200' : 'yellow.200'}
+                        color={
+                            ritPhase === 2
+                                ? 'green.200'
+                                : ritPhase === 3
+                                  ? 'blue.200'
+                                  : 'yellow.200'
+                        }
                         whiteSpace="nowrap"
                     >
                         {boardEvalLabel}

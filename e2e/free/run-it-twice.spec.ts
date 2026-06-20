@@ -43,13 +43,29 @@ test('RIT toggle defaults ON for a cash game and is owner-only', async ({
 
 // Drive whoever is acting all-in via the raise box → "All In" preset → confirm.
 async function goAllIn(page: Page) {
+    // Open the raise box by testid. On desktop the footer chip's accessible name
+    // carries its hotkey ("r Raise"), so a /^(Raise|Bet)$/ name match never hits.
     await page
-        .getByRole('button', { name: /^(Raise|Bet)$/ })
+        .locator('[data-testid="action-raise"], [data-testid="action-bet"]')
         .first()
         .click();
-    await page.getByRole('button', { name: 'All In' }).click();
+    // Wait for the box, then max the bet via the All In preset (visible instance only —
+    // the box renders portrait + landscape copies).
     await page
-        .getByTestId('raise-action-button-mobile')
+        .getByTestId('raise-input')
+        .first()
+        .waitFor({ state: 'visible', timeout: 5_000 });
+    await page
+        .locator('button:visible', { hasText: /^All In$/ })
+        .first()
+        .click();
+    // Submit. The confirm chip's real testid is action-raise/action-bet — ActionButton
+    // derives it from its label and ignores any passed testid — scoped to the raise
+    // action group (same selector the passing raise.spec.ts uses).
+    await page
+        .locator(
+            '.raise-action-buttons-group [data-testid="action-raise"], .raise-action-buttons-group [data-testid="action-bet"]'
+        )
         .first()
         .click();
 }
@@ -73,6 +89,14 @@ test('All-in preflop → both vote yes → two boards run and hand completes', a
     await clickCheckOrCall(second.actor); // call the all-in
 
     // Both all-in players are prompted to run it twice — both agree.
+    // Capture the vote prompt in the real footer before voting (design reference).
+    await owner
+        .getByTestId('rit-vote-yes')
+        .waitFor({ state: 'visible', timeout: 15_000 });
+    await owner.screenshot({
+        path: 'e2e-artifacts/rit-vote-prompt-footer.png',
+        fullPage: false,
+    });
     for (const p of [owner, player]) {
         const yes = p.getByTestId('rit-vote-yes');
         await yes.waitFor({ state: 'visible', timeout: 15_000 });
@@ -86,10 +110,24 @@ test('All-in preflop → both vote yes → two boards run and hand completes', a
     await expect(owner.getByTestId('rit-board-1')).toBeVisible();
     await expect(owner.getByTestId('rit-board-2')).toBeVisible();
 
-    // The hand concludes and a fresh hand begins.
+    // Capture the real table render of the two boards in the live felt — used to
+    // evaluate how the dual board fits the tight on-table space.
+    await owner.screenshot({
+        path: 'e2e-artifacts/rit-two-boards-table.png',
+        fullPage: false,
+    });
+
+    // The runout concludes and the hand resolves. After a heads-up all-in this is
+    // either a fresh hand (both players survived the split) or an idle table (a player
+    // busted on the boards) — accept either terminal state, not the in-progress runout.
     await owner
-        .locator('[data-testid="game-stage"][data-stage="preflop"]')
-        .waitFor({ timeout: 45_000 });
+        .locator(
+            '[data-testid="game-stage"][data-stage="preflop"], [data-testid="game-stage"][data-stage="waiting"]'
+        )
+        .first()
+        // 'attached', not 'visible' — the idle (busted) felt renders the waiting
+        // game-stage element hidden, while a fresh hand renders it visible.
+        .waitFor({ state: 'attached', timeout: 60_000 });
 
     await ctxOwner.close();
     await ctxPlayer.close();
@@ -116,10 +154,16 @@ test('Vote NO falls back to a single board', async ({ browser }) => {
 
     await expect(owner.getByTestId('dual-board-community')).toHaveCount(0);
 
-    // Hand still completes and a new hand starts.
+    // Single-board runout concludes and the hand resolves — a fresh hand (both survived)
+    // or an idle table (a player busted on the single board). Accept either.
     await owner
-        .locator('[data-testid="game-stage"][data-stage="preflop"]')
-        .waitFor({ timeout: 45_000 });
+        .locator(
+            '[data-testid="game-stage"][data-stage="preflop"], [data-testid="game-stage"][data-stage="waiting"]'
+        )
+        .first()
+        // 'attached', not 'visible' — the idle (busted) felt renders the waiting
+        // game-stage element hidden, while a fresh hand renders it visible.
+        .waitFor({ state: 'attached', timeout: 60_000 });
 
     await ctxOwner.close();
     await ctxPlayer.close();

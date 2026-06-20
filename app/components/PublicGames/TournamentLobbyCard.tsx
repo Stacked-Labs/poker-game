@@ -36,6 +36,9 @@ import {
 export interface TournamentLobbyCardProps {
     tournament: Tournament;
     myWallet?: string;
+    /** Whether the viewer has a verified (SIWE) session. When false, the
+     * register CTA becomes a "Sign in to register" prompt. */
+    isSignedIn?: boolean;
     onRegister: (id: number) => void;
     onUnregister: (id: number) => void;
     onGoToTable: (id: number) => void;
@@ -69,6 +72,7 @@ const dotPulse = keyframes`
 export default function TournamentLobbyCard({
     tournament: t,
     myWallet,
+    isSignedIn = true,
     onRegister,
     onUnregister,
     onGoToTable,
@@ -480,7 +484,11 @@ export default function TournamentLobbyCard({
                         isLoading={isLoading}
                         onClick={() => onRegister(t.id)}
                     >
-                        {freePlay ? 'Join' : 'Register'}
+                        {!isSignedIn
+                            ? 'Sign in to register'
+                            : freePlay
+                              ? 'Join'
+                              : 'Register'}
                     </ActionButton>
                 )}
                 {canLateRegister && (
@@ -489,7 +497,7 @@ export default function TournamentLobbyCard({
                         isLoading={isLoading}
                         onClick={() => onRegister(t.id)}
                     >
-                        Late register
+                        {!isSignedIn ? 'Sign in to register' : 'Late register'}
                     </ActionButton>
                 )}
                 {canUnregister && (

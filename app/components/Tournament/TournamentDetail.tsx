@@ -76,12 +76,17 @@ import {
     TournamentDefaultAvatar,
     TournamentDefaultCover,
 } from '../PublicGames/tournamentDefaults';
-import { placesPaid } from '../PublicGames/payouts';
+import { placesPaid, projectedPrizePoolUsdc } from '../PublicGames/payouts';
+import { shortenAddress } from '@/app/utils/address';
 
 // LeaderboardPlayer now lives in app/interfaces (shared with the live-tournament
 // state slice). Re-exported here so existing `from './TournamentDetail'` imports
 // (page.tsx, stories) keep working.
 export type { LeaderboardPlayer };
+
+// The host keeps 25% of the platform fee (Tournament.sol HOST_SHARE_BPS = 2500);
+// the platform keeps the rest. Used to project the host's take during signup.
+const HOST_FEE_SHARE_BPS = 2500;
 
 export interface RefundState {
     loading?: boolean;
@@ -123,6 +128,9 @@ export interface TournamentDetailProps {
      *  window (before anyone is seated). Empty once it starts. */
     registrants?: LeaderboardPlayer[];
     myWallet?: string;
+    /** Whether the viewer has a verified (SIWE) session. When false, the
+     * register / late-register / re-enter CTAs become a sign-in prompt. */
+    isSignedIn?: boolean;
     isRegistered?: boolean;
     blindLevel?: number | null;
     /** True while the tournament is on a scheduled rest break (from /clock). */
@@ -207,9 +215,7 @@ function explorerBase(chain?: string): string {
         : 'https://sepolia.basescan.org';
 }
 
-function shortAddr(a: string): string {
-    return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '';
-}
+const shortAddr = shortenAddress;
 
 // Pull a display handle out of a host's X/Twitter community URL, if present.
 function xHandle(url?: string): string | null {
@@ -605,6 +611,7 @@ export default function TournamentDetail({
     players,
     registrants = [],
     myWallet,
+    isSignedIn = true,
     isRegistered = false,
     blindLevel = null,
     onBreak = false,
@@ -878,10 +885,6 @@ export default function TournamentDetail({
         t.status === 'completed'
             ? players.reduce((sum, p) => sum + (p.prize_usdc ?? 0), 0)
             : 0;
-    const effectivePrizePool =
-        settledPrizePool > 0
-            ? settledPrizePool
-            : Math.max(t.prize_pool_usdc ?? 0, t.guarantee_usdc ?? 0);
 
     const actualPaidPlaces =
         t.status === 'completed'
@@ -896,6 +899,24 @@ export default function TournamentDetail({
         }
         return players.length || registeredCount;
     })();
+
+    // Before start, prize_pool_usdc isn't frozen yet (the API sends 0), so a plain
+    // max() against it would pin the projection to the guarantee. Mirror the
+    // coordinator's pool math from the live field instead, so projected payouts
+    // grow with entries and overtake the guarantee once buy-ins exceed it.
+    const projecting =
+        t.status === 'registration' || t.status === 'pending';
+    const effectivePrizePool =
+        settledPrizePool > 0
+            ? settledPrizePool
+            : projecting
+              ? projectedPrizePoolUsdc(
+                    effectiveEntrants,
+                    t.buy_in_usdc,
+                    t.fee_bps,
+                    t.guarantee_usdc ?? 0
+                )
+              : Math.max(t.prize_pool_usdc ?? 0, t.guarantee_usdc ?? 0);
 
     const payoutsEl = showPayouts ? (
         <PayoutLadder
@@ -1344,6 +1365,7 @@ export default function TournamentDetail({
                                                 canReenter={canReenter}
                                                 freePlay={freePlay}
                                                 myWallet={myWallet}
+                                                isSignedIn={isSignedIn}
                                                 actionLoading={actionLoading}
                                                 actionLabel={actionLabel}
                                                 goToTableLoading={goToTableLoading}
@@ -1750,6 +1772,31 @@ function MoneyHero({
         label = 'Prize pool';
         value = `$${formatUsdcAuto(t.prize_pool_usdc)}`;
     }
+    // Registration/pending: once the live field's projected pool overtakes the
+    // guarantee floor, lead with the bigger projected number instead of a now-stale
+    // GTD, keeping the hero in step with the projected payout ladder.
+    if (
+        !freePlay &&
+        (t.status === 'registration' || t.status === 'pending') &&
+        t.guarantee_usdc > 0 &&
+        (finalPrizePoolUsdc ?? 0) > t.guarantee_usdc
+    ) {
+        label = 'Projected pool';
+        value = `$${formatUsdcAuto(finalPrizePoolUsdc as number)}`;
+        suffix = undefined;
+    }
+    if (
+        !freePlay &&
+        t.status === 'running' &&
+        (finalPrizePoolUsdc ?? 0) > t.guarantee_usdc
+    ) {
+        // Underway: entries are locked, so the pool is realized, not projected.
+        // When it cleared the guarantee, lead with the real figure (matching the
+        // payout ladder) instead of the now-stale GTD floor.
+        label = 'Prize pool';
+        value = `$${formatUsdcAuto(finalPrizePoolUsdc as number)}`;
+        suffix = undefined;
+    }
     if (t.status === 'completed' && (finalPrizePoolUsdc ?? 0) > 0) {
         // Once settled, lead with the full prize pool that was paid out — the
         // realized figure (sum of every payout), not the guarantee or the stale
@@ -2069,6 +2116,7 @@ function PrimaryActions({
     canReenter,
     freePlay,
     myWallet,
+    isSignedIn = true,
     actionLoading,
     actionLabel,
     goToTableLoading,
@@ -2088,6 +2136,7 @@ function PrimaryActions({
     canReenter: boolean;
     freePlay: boolean;
     myWallet?: string;
+    isSignedIn?: boolean;
     actionLoading: boolean;
     actionLabel?: string;
     goToTableLoading: boolean;
@@ -2111,11 +2160,13 @@ function PrimaryActions({
                 loadingText={actionLabel ?? 'Joining…'}
                 onClick={() => onRegister?.(false)}
             >
-                {canLateReg
-                    ? 'Late register'
-                    : freePlay
-                      ? 'Join tournament'
-                      : 'Register'}
+                {!isSignedIn
+                    ? 'Sign in to register'
+                    : canLateReg
+                      ? 'Late register'
+                      : freePlay
+                        ? 'Join tournament'
+                        : 'Register'}
             </Button>
         );
     }
@@ -2145,7 +2196,11 @@ function PrimaryActions({
                 loadingText={actionLabel ?? 'Re-entering…'}
                 onClick={() => onRegister?.(true)}
             >
-                Re-enter {!freePlay && `for $${formatUsdc(buyInUsdc)}`}
+                {!isSignedIn ? (
+                    'Sign in to re-enter'
+                ) : (
+                    <>Re-enter {!freePlay && `for $${formatUsdc(buyInUsdc)}`}</>
+                )}
             </Button>
         );
     }
@@ -2237,11 +2292,29 @@ function HostPanel({
         'rgba(253, 197, 29, 0.14)'
     );
     const hostTagFg = useColorModeValue('brand.yellowDark', 'brand.yellow');
+    const statBorder = useColorModeValue(
+        'rgba(11, 20, 48, 0.10)',
+        'rgba(255, 255, 255, 0.10)'
+    );
+    const statBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.02)',
+        'rgba(255, 255, 255, 0.02)'
+    );
     const needsFunding =
         t.status === 'pending' && t.guarantee_usdc > 0 && !!t.contract_address;
     // What the host still covers if buy-ins fall short of the guarantee.
     const buyInsCollected = registeredCount * t.buy_in_usdc;
     const exposure = Math.max(0, t.guarantee_usdc - buyInsCollected);
+    // The host's projected take: 25% of the platform fee (fee_bps of every
+    // buy-in), mirroring Tournament.sol's HOST_SHARE_BPS. Grows as the field
+    // fills; an estimate until the entry count locks at start. Fee then share
+    // (not one triple product) keeps every intermediate within safe-integer range.
+    const projectedPlatformFee = Math.floor(
+        (buyInsCollected * t.fee_bps) / 10_000
+    );
+    const projectedHostFee = Math.floor(
+        (projectedPlatformFee * HOST_FEE_SHARE_BPS) / 10_000
+    );
 
     return (
         <VStack align="stretch" spacing={3}>
@@ -2292,25 +2365,77 @@ function HostPanel({
                 </VStack>
             )}
 
-            {!freePlay &&
-                t.guarantee_usdc > 0 &&
-                t.status === 'registration' && (
-                    <Stat label="Your current exposure">
-                        <HStack spacing={1}>
-                            <Image src={USDC_LOGO} alt="" boxSize="14px" />
-                            <Text
-                                fontWeight="bold"
-                                color={USDC_BLUE}
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                ${formatUsdc(exposure)}
+            {!freePlay && t.status === 'registration' && (
+                <Flex
+                    direction={{ base: 'column', sm: 'row' }}
+                    gap={2.5}
+                    align="stretch"
+                >
+                    {t.guarantee_usdc > 0 && (
+                        <Box
+                            flex="1"
+                            minW={0}
+                            p={3}
+                            bg={statBg}
+                            borderWidth="1px"
+                            borderColor={statBorder}
+                            borderRadius="12px"
+                        >
+                            <Stat label="On the hook for">
+                                <HStack spacing={1}>
+                                    <Image
+                                        src={USDC_LOGO}
+                                        alt=""
+                                        boxSize="14px"
+                                    />
+                                    <Text
+                                        fontWeight="bold"
+                                        fontSize="md"
+                                        color={USDC_BLUE}
+                                        sx={{
+                                            fontVariantNumeric: 'tabular-nums',
+                                        }}
+                                    >
+                                        ${formatUsdcAuto(exposure)}
+                                    </Text>
+                                </HStack>
+                            </Stat>
+                            <Text fontSize="2xs" color="text.muted" mt={1}>
+                                Your top-up if no one else joins. Shrinks with
+                                every buy-in.
                             </Text>
-                            <Text fontSize="xs" color="text.muted">
-                                covered if no one else joins
-                            </Text>
-                        </HStack>
-                    </Stat>
-                )}
+                        </Box>
+                    )}
+                    <Box
+                        flex="1"
+                        minW={0}
+                        p={3}
+                        bg={statBg}
+                        borderWidth="1px"
+                        borderColor={statBorder}
+                        borderRadius="12px"
+                    >
+                        <Stat label="You earn so far">
+                            <HStack spacing={1}>
+                                <Image src={USDC_LOGO} alt="" boxSize="14px" />
+                                <Text
+                                    fontWeight="bold"
+                                    fontSize="md"
+                                    color={USDC_BLUE}
+                                    sx={{
+                                        fontVariantNumeric: 'tabular-nums',
+                                    }}
+                                >
+                                    ${formatUsdcAuto(projectedHostFee)}
+                                </Text>
+                            </HStack>
+                        </Stat>
+                        <Text fontSize="2xs" color="text.muted" mt={1}>
+                            Your 25% of the platform fee. Grows with every entry.
+                        </Text>
+                    </Box>
+                </Flex>
+            )}
 
             {t.status === 'completed' && !freePlay && (
                 <HStack justify="space-between" flexWrap="wrap" gap={3}>

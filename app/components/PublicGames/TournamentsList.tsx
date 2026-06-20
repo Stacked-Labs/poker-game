@@ -33,6 +33,7 @@ import { USDC_BLUE, USDC_LOGO } from './types';
 import { useFundTournamentGuarantee } from '../../hooks/useFundTournamentGuarantee';
 import { useRegisterForTournament } from '../../hooks/useRegisterForTournament';
 import { usePendingTournamentTxs } from '../../hooks/usePendingTournamentTxs';
+import { useSignInPrompt } from '../../hooks/useSignInPrompt';
 import { CHAIN_CONFIG } from '../../thirdwebclient';
 import { useTournamentReminderStore } from '../../stores/tournamentReminders';
 import RegistrationConfirmationModal from '../Tournament/RegistrationConfirmationModal';
@@ -127,6 +128,7 @@ export default function TournamentsList() {
     const myWallet = account?.address;
     const myWalletRef = useRef(myWallet);
     myWalletRef.current = myWallet;
+    const { isSignedIn, promptSignIn } = useSignInPrompt();
     const router = useRouter();
 
     const openCreate = () => router.push('/create-game?type=tournament');
@@ -256,8 +258,10 @@ export default function TournamentsList() {
     // Every register path (crypto / Free Play, public / password-gated) runs
     // through the one shared modal, which owns the on-chain or server register.
     const handleRegister = async (id: number) => {
-        if (!myWallet) {
-            toast.warning('Connect your wallet first');
+        // Not signed in → take them straight through the sign-in flow (connect
+        // + SIWE) rather than dead-ending on a "connect your wallet" toast.
+        if (!isSignedIn) {
+            promptSignIn();
             return;
         }
         const t = tournaments.find((x) => x.id === id);
@@ -348,6 +352,7 @@ export default function TournamentsList() {
                                 index={index}
                                 tournament={t}
                                 myWallet={myWallet}
+                                isSignedIn={isSignedIn}
                                 onRegister={handleRegister}
                                 onUnregister={handleUnregister}
                                 onGoToTable={handleGoToTable}

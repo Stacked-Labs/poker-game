@@ -22,6 +22,7 @@ import { PiMedalFill, PiTrophyFill } from 'react-icons/pi';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     formatUsdc,
+    formatUsdcCompact,
     HIDE_X_SCROLLBAR_SX,
     ordinal,
 } from '../PublicGames/tournamentFormat';
@@ -38,6 +39,10 @@ const PODIUM_METAL: Record<number, string> = {
     2: '#9AA3B5', // silver
     3: '#C4824A', // bronze
 };
+
+// Below this projected top prize we keep the registration view share-only: a
+// shifting sub-$5 pool isn't worth headlining as a dollar figure yet.
+const MIN_PROJECTED_PRIZE_MICRO = 5_000_000;
 
 // Faint accent for the in-row "prize size" bar, widest at 1st and tapering down.
 const SHARE_BAR: Record<number, string> = {
@@ -174,6 +179,13 @@ function PayoutLadder({
     // Widest prize anchors the in-row "share size" bars.
     const maxPercent = tiers.length ? tiers[0].percent : 1;
 
+    // While the per-place ladder stays %-only during registration, a single
+    // projected top-prize headline gives the field a concrete number to chase.
+    // Gated under ~$5 so a near-empty pool never headlines a token amount.
+    const topPrize = amounts.get(1) ?? 0;
+    const showProjectedTopPrize =
+        projected && !isFreePlay && topPrize >= MIN_PROJECTED_PRIZE_MICRO;
+
     const content = (
         <>
             <Flex
@@ -207,6 +219,49 @@ function PayoutLadder({
                     {projected ? 'Projected' : 'Locked'}
                 </Box>
             </Flex>
+
+            {showProjectedTopPrize && (
+                <Flex
+                    mx={bare ? 0 : { base: 4, md: 6 }}
+                    mb={3}
+                    px={3}
+                    py={2.5}
+                    align="center"
+                    gap={3}
+                    bg={goldWash}
+                    borderRadius="10px"
+                >
+                    <RankBadge
+                        place={1}
+                        reduced={!!prefersReducedMotion}
+                        delayMs={80}
+                        size={26}
+                    />
+                    <Box minW={0}>
+                        <Text
+                            fontSize="2xs"
+                            fontWeight="bold"
+                            color="text.muted"
+                            textTransform="uppercase"
+                            letterSpacing="0.06em"
+                        >
+                            Projected top prize
+                        </Text>
+                        <HStack spacing={1.5} align="center">
+                            <Image src={USDC_LOGO} alt="" boxSize="17px" />
+                            <Text
+                                fontWeight="bold"
+                                fontSize="lg"
+                                lineHeight="1.2"
+                                color={USDC_BLUE}
+                                sx={{ fontVariantNumeric: 'tabular-nums' }}
+                            >
+                                ~${formatUsdcCompact(topPrize)}
+                            </Text>
+                        </HStack>
+                    </Box>
+                </Flex>
+            )}
 
             <Box
                 overflowX="auto"

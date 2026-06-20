@@ -24,6 +24,7 @@ import { FaMedal, FaXTwitter } from 'react-icons/fa6';
 import { FiExternalLink, FiCopy, FiCheck } from 'react-icons/fi';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { TOAST_BANNER_DURATION_SHORT_MS } from '@/app/utils/toastDefaults';
+import { shortenAddress } from '@/app/utils/address';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
 import { getTier } from './tierUtils';
@@ -60,8 +61,7 @@ const LeaderboardTable = ({
     currentAddress?: string;
     total?: number;
 }) => {
-    const truncateAddress = (addr: string) =>
-        `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+    const truncateAddress = shortenAddress;
 
     const normalizedCurrent = currentAddress?.toLowerCase();
     const currentEntry = data.find(

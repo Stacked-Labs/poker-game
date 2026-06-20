@@ -23,6 +23,7 @@ export type Card = string | number;
 
 export type Message = {
     name: string;
+    address?: string; // full wallet of the author, for consistent shortening + explorer links
     message: string;
     timestamp: string;
     isSeated: boolean;

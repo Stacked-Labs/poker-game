@@ -48,6 +48,8 @@ import type { Emote } from '@/app/stores/emotes';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { useRabbitHuntStore } from '@/app/stores/rabbitHunt';
 import { buildSeatReactionMessage } from '@/app/utils/seatReaction';
+import { playerDisplayName } from '@/app/utils/address';
+import { playerIdentityHref } from './PlayerNameLink';
 import EmotePicker from './NavBar/Chat/EmotePicker';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import {
@@ -360,6 +362,12 @@ const TakenSeatButton = ({
     const { format, mode: displayMode } = useFormatAmount();
 
     const isCrypto = appState.game?.config?.crypto === true;
+    // X profile for @handles, block explorer for wallet identities; null otherwise.
+    const seatNameHref = playerIdentityHref(
+        player.username,
+        player.address,
+        appState.game?.config?.chain
+    );
     const cycleDisplayMode = useCallback(() => {
         const order: DisplayMode[] = isCrypto
             ? ['chips', 'bb', 'usdc']
@@ -1560,8 +1568,29 @@ const TakenSeatButton = ({
                                                                         '11px',
                                                                 },
                                                         }}
+                                                        {...(seatNameHref
+                                                            ? {
+                                                                  as: 'a',
+                                                                  href: seatNameHref,
+                                                                  target: '_blank',
+                                                                  rel: 'noopener noreferrer',
+                                                                  onClick: (
+                                                                      e: React.MouseEvent
+                                                                  ) =>
+                                                                      e.stopPropagation(),
+                                                                  _hover: {
+                                                                      textDecoration:
+                                                                          'underline',
+                                                                      textUnderlineOffset:
+                                                                          '2px',
+                                                                  },
+                                                              }
+                                                            : {})}
                                                     >
-                                                        {player.username}
+                                                        {playerDisplayName(
+                                                            player.username,
+                                                            player.address
+                                                        )}
                                                     </Text>
                                                 </motion.div>
                                             )}

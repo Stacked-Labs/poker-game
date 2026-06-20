@@ -34,6 +34,7 @@ import {
     parseSeatReactionMessage,
 } from '@/app/utils/seatReaction';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { shouldReconnectForAuthUpgrade } from '@/app/lib/wsReconnect';
 
 /*
 WebSocket context creates a single connection to the server per client.
@@ -128,11 +129,15 @@ export function SocketProvider(props: SocketProviderProps) {
     const disconnectedAtRef = useRef<number | null>(null);
     const connectionLostShownRef = useRef(false);
     const winSoundPlayedRef = useRef(false);
-    const { isAuthenticated, userAddress } = useAuth();
-    const authRef = useRef({ isAuthenticated, address: userAddress });
+    const { isAuthenticated, sessionWallet } = useAuth();
+    // The auth-upgrade reconnect is keyed on the COOKIE identity (sessionWallet), never the
+    // connected wallet — see shouldReconnectForAuthUpgrade. Keying it on the thirdweb-connected
+    // address made AutoConnect address jitter tear the socket down on a loop, silently blanking
+    // the action footer.
+    const authRef = useRef({ isAuthenticated, sessionWallet });
     const authStateAtConnectRef = useRef({
         isAuthenticated: false,
-        address: null as string | null,
+        sessionWallet: null as string | null,
     });
 
     const {
@@ -182,8 +187,8 @@ export function SocketProvider(props: SocketProviderProps) {
     }, [appState]);
 
     useEffect(() => {
-        authRef.current = { isAuthenticated, address: userAddress };
-    }, [isAuthenticated, userAddress]);
+        authRef.current = { isAuthenticated, sessionWallet };
+    }, [isAuthenticated, sessionWallet]);
 
     const getReconnectDelay = useCallback((attempt: number) => {
         const baseDelay = 1000;
@@ -264,7 +269,7 @@ export function SocketProvider(props: SocketProviderProps) {
                 isConnectingRef.current = false;
                 authStateAtConnectRef.current = {
                     isAuthenticated: authRef.current.isAuthenticated,
-                    address: authRef.current.address,
+                    sessionWallet: authRef.current.sessionWallet ?? null,
                 };
                 const wasReconnecting = isReconnectingRef.current;
                 const disconnectedAt = disconnectedAtRef.current;
@@ -1138,17 +1143,34 @@ export function SocketProvider(props: SocketProviderProps) {
     }, [connectWebSocket]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
-        if (!socketRef.current || !isAuthenticated || !userAddress) return;
+        // Only act on an OPEN socket: authStateAtConnectRef is captured in onopen, so while the
+        // socket is still CONNECTING it holds a stale snapshot. Calling forceReconnect here would
+        // close the socket mid-handshake (a 1006 "closed before established"), and the immediate
+        // retry gets swallowed by the isConnectingRef guard — stranding the client until an
+        // incidental visibilitychange reconnects it. When the socket finishes opening, onopen
+        // captures the now-current auth state and this effect re-evaluates cleanly.
+        if (
+            !socketRef.current ||
+            socketRef.current.readyState !== WebSocket.OPEN ||
+            !isAuthenticated
+        )
+            return;
 
-        const authAtConnect = authStateAtConnectRef.current;
-        const needsAuthRefresh =
-            !authAtConnect.isAuthenticated ||
-            authAtConnect.address !== userAddress;
+        const needsAuthRefresh = shouldReconnectForAuthUpgrade(
+            authStateAtConnectRef.current,
+            { isAuthenticated, sessionWallet }
+        );
 
         if (needsAuthRefresh) {
+            debugLog(
+                '[WebSocket] auth-upgrade reconnect',
+                authStateAtConnectRef.current,
+                '→',
+                { isAuthenticated, sessionWallet }
+            );
             forceReconnect('Auth state updated');
         }
-    }, [forceReconnect, isAuthenticated, userAddress]);
+    }, [forceReconnect, isAuthenticated, sessionWallet, debugLog]);
 
     // Detect isAuthenticated transitioning from true → false (wallet disconnect / logout).
     // The effect above early-returns when !isAuthenticated, so without this separate effect

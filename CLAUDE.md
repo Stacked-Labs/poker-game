@@ -107,12 +107,23 @@ npm run dev            # local dev
 npm run lint           # eslint --fix
 npm run build          # production build (run before merging)
 npm run format         # prettier
+npm test               # Vitest — unit + component tests (run before merging; CI runs this)
+npm run test:watch     # Vitest in watch mode
 npm run test:e2e       # Playwright — full suite (incl. crypto flows)
 npm run test:e2e:free  # Playwright — free/non-crypto only, fast iteration
 npm run storybook      # component workbench (port 6006)
 ```
 
 Before declaring UI work done: build passes, lint clean, feature tested in a browser (use Claude-in-Chrome MCP if available) in **both light and dark mode**. Type-checks alone don't validate features. Perf-sensitive work: `npm run lighthouse:desktop` / `:mobile`.
+
+### Vitest unit & component tests
+
+`npm test` (config: `vitest.config.ts`) runs two flavours, colocated with the code as `*.test.ts(x)`:
+
+- **Pure-logic** — `*.test.ts`, run on the `node` environment. Default to this: extract timing/event-ordering or branching decisions into a pure function and table-test it (see `app/lib/walletSession.ts` + `app/lib/wsReconnect.ts` and their tests). This is the cheap, high-signal layer and the right home for "this class of bug must never come back".
+- **Component** — `*.test.tsx`, run on `jsdom` via `@vitejs/plugin-react` + React Testing Library, with jest-dom matchers from `vitest.setup.ts`. Use only when you must assert what actually renders (e.g. `app/components/Footer/index.test.tsx` proves the action footer's visibility gate). Mock heavy children/contexts to keep the test on the unit under test, not its whole dependency tree.
+
+Storybook (`*.stories.tsx`) is for visual review and is separate from Vitest — see the `storybook-testing` skill.
 
 ---
 

@@ -335,6 +335,17 @@ const CARD_FAN_ANGLE = 4; // degrees each card rotates outward (try 5–15)
 const CARD_FAN_SPREAD = 0; // px horizontal offset from center (try 0–8)
 const CARD_FAN_OVERLAP = -20; // % negative margin to overlap cards (try -15 to 0)
 
+type TakenSeatButtonProps = {
+    player: Player;
+    visualSeatId?: number;
+    isCurrentTurn: boolean;
+    isWinner: boolean;
+    isRevealed: boolean;
+    winnings: number;
+    activePotIndex: number | null;
+    equity: number | null;
+};
+
 const TakenSeatButton = ({
     player,
     visualSeatId,
@@ -344,16 +355,7 @@ const TakenSeatButton = ({
     winnings,
     activePotIndex,
     equity,
-}: {
-    player: Player;
-    visualSeatId?: number;
-    isCurrentTurn: boolean;
-    isWinner: boolean;
-    isRevealed: boolean;
-    winnings: number;
-    activePotIndex: number | null;
-    equity: number | null;
-}) => {
+}: TakenSeatButtonProps) => {
     const { appState, dispatch } = useContext(AppContext);
     const socket = useContext(SocketContext);
     const { play, stop } = useSound();
@@ -1677,4 +1679,58 @@ const TakenSeatButton = ({
     );
 };
 
-export default TakenSeatButton;
+// Table re-renders (and rebuilds every player object from the WS JSON) on every
+// push, so a shallow memo would never skip — player is always a new reference.
+// This value-based comparator skips a seat's re-render unless a field it actually
+// renders changed. Safe because players are rebuilt from JSON (no in-place
+// mutation a value-compare could miss). Game-level state read via context still
+// re-renders consumers regardless of this comparator.
+function seatPropsEqual(
+    a: TakenSeatButtonProps,
+    b: TakenSeatButtonProps
+): boolean {
+    if (
+        a.visualSeatId !== b.visualSeatId ||
+        a.isCurrentTurn !== b.isCurrentTurn ||
+        a.isWinner !== b.isWinner ||
+        a.isRevealed !== b.isRevealed ||
+        a.winnings !== b.winnings ||
+        a.activePotIndex !== b.activePotIndex ||
+        a.equity !== b.equity
+    ) {
+        return false;
+    }
+
+    const p = a.player;
+    const n = b.player;
+    if (
+        p.uuid !== n.uuid ||
+        p.username !== n.username ||
+        p.profileImageUrl !== n.profileImageUrl ||
+        p.address !== n.address ||
+        p.position !== n.position ||
+        p.seatID !== n.seatID ||
+        p.stack !== n.stack ||
+        p.bet !== n.bet ||
+        p.called !== n.called ||
+        p.in !== n.in ||
+        p.ready !== n.ready ||
+        p.readyNextHand !== n.readyNextHand ||
+        p.isOnline !== n.isOnline ||
+        p.leaveAfterHand !== n.leaveAfterHand ||
+        p.sitOutNextHand !== n.sitOutNextHand ||
+        p.timeBankMs !== n.timeBankMs
+    ) {
+        return false;
+    }
+
+    const pc = p.cards;
+    const nc = n.cards;
+    if (pc.length !== nc.length) return false;
+    for (let i = 0; i < pc.length; i++) {
+        if (Number(pc[i]) !== Number(nc[i])) return false;
+    }
+    return true;
+}
+
+export default React.memo(TakenSeatButton, seatPropsEqual);

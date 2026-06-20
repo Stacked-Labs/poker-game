@@ -241,7 +241,15 @@ export default function TournamentsList() {
         load();
     }, [load]);
 
+    // load() already fetches registrations for the wallet present at mount.
+    // Only refetch when the wallet actually changes afterwards (connect/swap),
+    // so we don't duplicate the initial registrations request.
+    const didInitialRegLoadRef = useRef(false);
     useEffect(() => {
+        if (!didInitialRegLoadRef.current) {
+            didInitialRegLoadRef.current = true;
+            return;
+        }
         if (!myWallet) return;
         getMyTournamentRegistrations()
             .then((data) => {

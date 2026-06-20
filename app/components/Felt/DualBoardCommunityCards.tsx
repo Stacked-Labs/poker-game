@@ -9,9 +9,19 @@ import type { Card, Pot } from '@/app/interfaces';
 
 // Two boards share the single community-card slot. Instead of two full rows (which forces
 // the cards tiny), board 2 is dealt IN FRONT of board 1, dropped down by ~half a card:
-// it covers board 1's lower *suit* area but never a top-left rank, so both boards stay
-// readable while the pair occupies ~1.5 card-heights — letting the cards stay large.
+// it covers board 1's big centre pip but never the top-left index (rank + corner suit),
+// so both boards stay readable while the pair occupies ~1.5 card-heights — cards stay big.
 const BOARD2_DROP = 0.52; // board 2's top, as a fraction of a card's height
+
+// Board 2 is also nudged to the RIGHT so its columns don't sit exactly under board 1's —
+// the diagonal offset reads as a deck fanned forward, not one card clipped in half, and
+// is more dynamic than a straight vertical stack. Kept small so board 2 still clears the
+// slot's right edge.
+const BOARD2_TRANSFORM = {
+    base: 'translateX(6px)',
+    md: 'translateX(10px)',
+    lg: 'translateX(14px)',
+};
 
 const getWinningSetForPot = (
     pots: Pot[] | undefined,
@@ -147,15 +157,19 @@ const DualBoardCommunityCards = ({
                 />
             </Box>
 
-            {/* Board 2 — in front, dropped down over board 1's lower (suit) area. The
-                upward shadow lifts it off board 1 so the layering reads clearly. */}
+            {/* Board 2 — in front, dropped down over board 1's centre and nudged right. A
+                tight contact shadow at the seam plus a softer cast lifts it off board 1, so
+                board 1 reads as tucked BEHIND rather than clipped in half. */}
             <Box
                 position="absolute"
                 left={0}
                 right={0}
                 top={`${BOARD2_DROP * 100}%`}
+                transform={BOARD2_TRANSFORM}
                 zIndex={2}
-                sx={{ filter: 'drop-shadow(0 -4px 10px rgba(0,0,0,0.45))' }}
+                sx={{
+                    filter: 'drop-shadow(0 -2px 3px rgba(0,0,0,0.6)) drop-shadow(0 -5px 12px rgba(0,0,0,0.4))',
+                }}
             >
                 <BoardLayer
                     testId="rit-board-2"

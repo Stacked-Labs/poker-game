@@ -3,12 +3,16 @@ import React, { useContext } from 'react';
 import Pot from './Pot';
 import CommunityCards from './CommunityCards';
 import AnteChip from './AnteChip';
+import DualBoardCommunityCards from './DualBoardCommunityCards';
+import RunItTwiceWaiting from './RunItTwiceWaiting';
 import GameStatusBanner from '../GameStatusBanner';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 
 const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
     const { appState } = useContext(AppContext);
     const game = appState.game;
+    const ritPhase = game?.ritPhase ?? 0;
+    const showDualBoard = ritPhase >= 2;
     const stageLabel = game?.running
         ? game.stage === 2
             ? 'preflop'
@@ -33,8 +37,13 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
             gap={{ base: 1, md: 2, lg: 3 }}
         >
             <Pot activePotIndex={activePotIndex} />
-            <CommunityCards activePotIndex={activePotIndex} />
+            {showDualBoard ? (
+                <DualBoardCommunityCards activePotIndex={activePotIndex} />
+            ) : (
+                <CommunityCards activePotIndex={activePotIndex} />
+            )}
             <AnteChip />
+            <RunItTwiceWaiting />
             <GameStatusBanner />
         </Flex>
     );

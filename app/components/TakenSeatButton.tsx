@@ -999,6 +999,8 @@ const TakenSeatButton = ({
                             // - It's the current user AND they have actual cards (so they can see their folded cards dimmed, but not after board clear), OR
                             // - It's showdown AND player has revealed cards (backend sends real values for showdown participants), OR
                             // - This player is the winner (so their cards remain visible even if they win by fold)
+                            // During RIT voting opponents keep card value [0,0] from the server so they
+                            // render as face-down backs — the player can see cards exist without seeing values.
                             const shouldRenderCards =
                                 appState.game.running &&
                                 Number(player.cards[0]) !== -1 &&

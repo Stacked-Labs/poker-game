@@ -128,6 +128,9 @@ export interface TournamentDetailProps {
      *  window (before anyone is seated). Empty once it starts. */
     registrants?: LeaderboardPlayer[];
     myWallet?: string;
+    /** Whether the viewer has a verified (SIWE) session. When false, the
+     * register / late-register / re-enter CTAs become a sign-in prompt. */
+    isSignedIn?: boolean;
     isRegistered?: boolean;
     blindLevel?: number | null;
     /** True while the tournament is on a scheduled rest break (from /clock). */
@@ -608,6 +611,7 @@ export default function TournamentDetail({
     players,
     registrants = [],
     myWallet,
+    isSignedIn = true,
     isRegistered = false,
     blindLevel = null,
     onBreak = false,
@@ -1361,6 +1365,7 @@ export default function TournamentDetail({
                                                 canReenter={canReenter}
                                                 freePlay={freePlay}
                                                 myWallet={myWallet}
+                                                isSignedIn={isSignedIn}
                                                 actionLoading={actionLoading}
                                                 actionLabel={actionLabel}
                                                 goToTableLoading={goToTableLoading}
@@ -2111,6 +2116,7 @@ function PrimaryActions({
     canReenter,
     freePlay,
     myWallet,
+    isSignedIn = true,
     actionLoading,
     actionLabel,
     goToTableLoading,
@@ -2130,6 +2136,7 @@ function PrimaryActions({
     canReenter: boolean;
     freePlay: boolean;
     myWallet?: string;
+    isSignedIn?: boolean;
     actionLoading: boolean;
     actionLabel?: string;
     goToTableLoading: boolean;
@@ -2153,11 +2160,13 @@ function PrimaryActions({
                 loadingText={actionLabel ?? 'Joining…'}
                 onClick={() => onRegister?.(false)}
             >
-                {canLateReg
-                    ? 'Late register'
-                    : freePlay
-                      ? 'Join tournament'
-                      : 'Register'}
+                {!isSignedIn
+                    ? 'Sign in to register'
+                    : canLateReg
+                      ? 'Late register'
+                      : freePlay
+                        ? 'Join tournament'
+                        : 'Register'}
             </Button>
         );
     }
@@ -2187,7 +2196,11 @@ function PrimaryActions({
                 loadingText={actionLabel ?? 'Re-entering…'}
                 onClick={() => onRegister?.(true)}
             >
-                Re-enter {!freePlay && `for $${formatUsdc(buyInUsdc)}`}
+                {!isSignedIn ? (
+                    'Sign in to re-enter'
+                ) : (
+                    <>Re-enter {!freePlay && `for $${formatUsdc(buyInUsdc)}`}</>
+                )}
             </Button>
         );
     }

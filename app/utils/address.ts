@@ -10,46 +10,24 @@ export function shortenAddress(addr?: string | null): string {
     return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-// True when `name` is itself a pre-shortened form of `address`. The backend hands
-// some surfaces a wallet as the display name — tournament players without a linked
-// X handle, and any spectator (poker-server Client.GetDisplayName → ShortWallet,
-// "0x1a2b...3c4d"). Detect that (either ellipsis style) by matching the visible
-// head/tail against the full address, so we can re-shorten it our way and link it.
-// KNOWN LIMITATION: this mirrors poker-server's ShortWallet format. The robust fix
-// (server sends an empty username for wallet-only players + a seatDisplayName helper)
-// is tracked as a backend refactor; until then a server format change must keep this
-// in sync. See the poker-server tournament-identity refactor issue.
-function isShortenedWalletOf(name: string, address?: string | null): boolean {
-    if (!address || !name.toLowerCase().startsWith('0x')) return false;
-    // Name is the wallet itself, in full.
-    if (name.toLowerCase() === address.toLowerCase()) return true;
-    // ...or already shortened by the backend (either ellipsis style).
-    const sep = name.includes('…') ? '…' : name.includes('...') ? '...' : '';
-    if (!sep) return false;
-    const [head, tail] = name.split(sep);
-    if (!head || !tail) return false;
-    const a = address.toLowerCase();
-    return a.startsWith(head.toLowerCase()) && a.endsWith(tail.toLowerCase());
-}
-
-// The label to show for a player/author given the backend's display name and full
-// wallet. Real identities — @handles and chosen nicknames — pass through untouched;
-// a bare wallet (or a name the backend already shortened) renders as our canonical
-// short form. The full `address` is kept by callers for explorer links.
+// The label to show for a player/author. The backend sends a real identity — an
+// @handle or a chosen nickname — or an EMPTY username for a wallet-only player,
+// always paired with the full `address`. So real names pass through untouched and an
+// empty name renders as our canonical short wallet; callers keep `address` for links.
 export function playerDisplayName(
     username?: string | null,
     address?: string | null
 ): string {
     const name = (username ?? '').trim();
-    if (name && !isShortenedWalletOf(name, address)) return name;
+    if (name) return name;
     if (address) return shortenAddress(address);
-    return name;
+    return '';
 }
 
-// Classifies a player's identity so callers can both label and link it: an X
-// handle links to the profile, a wallet (bare or backend-shortened) links to the
-// block explorer, and a chosen nickname links nowhere. Pure — URL building lives
-// in the link layer so this stays free of chain/explorer config.
+// Classifies a player's identity so callers can both label and link it: an X handle
+// links to the profile, a wallet (empty username + an address) links to the block
+// explorer, and a chosen nickname links nowhere. Pure — URL building lives in the link
+// layer so this stays free of chain/explorer config.
 export type PlayerIdentity =
     | { kind: 'x'; handle: string; label: string }
     | { kind: 'wallet'; address: string; label: string }
@@ -63,9 +41,11 @@ export function resolvePlayerIdentity(
     if (name.startsWith('@')) {
         return { kind: 'x', handle: name.slice(1), label: name };
     }
-    const label = playerDisplayName(username, address);
-    if (address && label === shortenAddress(address)) {
-        return { kind: 'wallet', address, label };
+    if (name) {
+        return { kind: 'name', label: name };
     }
-    return { kind: 'name', label };
+    if (address) {
+        return { kind: 'wallet', address, label: shortenAddress(address) };
+    }
+    return { kind: 'name', label: '' };
 }

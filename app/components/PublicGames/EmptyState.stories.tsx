@@ -16,3 +16,4 @@ type Story = StoryObj<typeof meta>;
 export const Loading: Story = { args: { variant: 'loading' } };
 export const Error: Story = { args: { variant: 'error', onRetry: () => alert('Retrying...') } };
 export const NoGames: Story = { args: { variant: 'empty' } };
+export const Filtered: Story = { args: { variant: 'filtered', onClear: () => alert('Clearing filters...') } };

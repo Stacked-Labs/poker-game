@@ -32,16 +32,6 @@ const MotionStack = motion(Stack);
 const MotionFlex = motion(Flex);
 
 // Animations
-const pulse = keyframes`
-    0%, 100% {
-        opacity: 0.15;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.25;
-        transform: scale(1.05);
-    }
-`;
 
 const swapPrimary = keyframes`
     0%, 45% { opacity: 1; transform: translateY(0); }
@@ -177,10 +167,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                     md: 'blur(120px)',
                     lg: 'blur(140px)',
                 }}
-                opacity={0.5}
-                animation={
-                    allowMotion ? `${pulse} 5s ease-in-out infinite` : 'none'
-                }
+                opacity={0.3}
                 zIndex={0}
             />
 
@@ -198,11 +185,6 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                 }}
                 opacity={0.06}
                 transform="translate(30%, 20%)"
-                animation={
-                    allowMotion
-                        ? `${pulse} 6s ease-in-out 1.5s infinite`
-                        : 'none'
-                }
                 zIndex={0}
             />
 
@@ -220,9 +202,6 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                 }}
                 opacity={0.04}
                 transform="translate(-40%, 30%)"
-                animation={
-                    allowMotion ? `${pulse} 7s ease-in-out 2s infinite` : 'none'
-                }
                 zIndex={0}
             />
 
@@ -371,11 +350,12 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                         <VStack spacing={3}>
                             <Text
                                 fontSize={{ base: 'md', md: 'lg' }}
-                                color="text.gray600"
-                                lineHeight={1.6}
+                                color="text.secondary"
+                                lineHeight={1.55}
                                 fontWeight="medium"
                             >
-                                Host a game. Invite the crew.
+                                Real USDC, settled straight to your wallet on
+                                Base.
                             </Text>
                         </VStack>
                     </MotionBox>
@@ -393,6 +373,14 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                 delay: 0.5,
                             }}
                         >
+                            <Box
+                                width="100%"
+                                minH={{ base: '104px', md: '108px' }}
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems="stretch"
+                            >
                             <AnimatePresence mode="wait">
                                 {!showPlayOptions ? (
                                     <MotionBox
@@ -529,6 +517,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                     </MotionBox>
                                 )}
                             </AnimatePresence>
+                            </Box>
 
                             {account && isPortrait ? (
                                 <Box

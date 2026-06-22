@@ -46,6 +46,9 @@ const colors = {
         yellowDark: '#B78900',
         yellowEdge: '#8A6A00',
         base: '#0052FF',
+        usdc: '#2775CA',
+        usdcDark: '#1C5A99',
+        usdcEdge: '#164A7F',
         telegram: '#0088CC',
         telegramDark: '#0077B5',
         telegramEdge: '#006A9D',
@@ -70,9 +73,8 @@ const semanticTokens = {
     colors: {
         // Background colors
         'bg.default': {
-            default:
-                'linear-gradient(to top, rgb(237, 237, 237) 45%,rgb(238, 238, 238) 100%)',
-            _dark: 'linear-gradient(to bottom,rgb(25, 25, 25) 50%,rgb(25, 25, 25) 100%)',
+            default: 'linear-gradient(to top, #ECEEF5 45%, #F0F1F7 100%)',
+            _dark: '#191414',
         },
         'bg.surface': {
             default: 'legacy.grayDark',
@@ -98,6 +100,12 @@ const semanticTokens = {
             default: '#D8D8DD',
             _dark: '#141418',
         },
+        // App ground behind all content (html/body + pre-render scrim). Mode-aware:
+        // Cold Light in light, Ink Deep in dark — retires the dark-by-default backdrop.
+        'bg.appGround': {
+            default: 'brand.lightGray',
+            _dark: 'legacy.grayDarkest',
+        },
 
         // Text colors
         'text.primary': {
@@ -112,23 +120,27 @@ const semanticTokens = {
             default: 'white',
             _dark: 'brand.lightGray',
         },
+        // Warm navy-slate muted ramp. Replaces the cool Chakra gray.500/600/700
+        // ramp, which DESIGN.md flags as debt: "text warms toward Penthouse
+        // Midnight, never gray.700 cool gray." Values verified >= 4.5:1 (AA)
+        // against their grounds in both modes.
         'text.gray600': {
-            default: 'gray.600',
-            _dark: 'gray.400',
+            default: '#4C5470',
+            _dark: '#AEB4C4',
         },
         'text.muted': {
-            default: 'gray.500',
-            _dark: 'gray.400',
+            default: '#5E6680',
+            _dark: '#9CA2B4',
         },
         'text.gray700': {
-            default: 'gray.700',
-            _dark: 'gray.500',
+            default: '#3A435E',
+            _dark: '#C2C7D4',
         },
 
         // Button states
         'btn.border': {
-            default: '#ffffff',
-            _dark: '#ffffff',
+            default: '#FAF8F4',
+            _dark: '#FAF8F4',
         },
         'btn.selected': {
             default: 'legacy.btnSelected',
@@ -166,6 +178,74 @@ const semanticTokens = {
             default: 'rgba(54, 163, 123, 0.30)',
             _dark: 'rgba(54, 163, 123, 0.40)',
         },
+
+        // Chip-Yellow tint family — soft stakes / warning surfaces
+        'bg.yellowSubtle': {
+            default: 'rgba(253, 197, 29, 0.10)',
+            _dark: 'rgba(253, 197, 29, 0.14)',
+        },
+        'bg.yellowTint': {
+            default: 'rgba(253, 197, 29, 0.16)',
+            _dark: 'rgba(253, 197, 29, 0.22)',
+        },
+        'border.yellowSubtle': {
+            default: 'rgba(253, 197, 29, 0.22)',
+            _dark: 'rgba(253, 197, 29, 0.30)',
+        },
+
+        // USDC-blue tint family — stablecoin chips / badges
+        'bg.usdcSubtle': {
+            default: 'rgba(39, 117, 202, 0.08)',
+            _dark: 'rgba(39, 117, 202, 0.14)',
+        },
+        'bg.usdcTint': {
+            default: 'rgba(39, 117, 202, 0.14)',
+            _dark: 'rgba(39, 117, 202, 0.20)',
+        },
+        'border.usdcSubtle': {
+            default: 'rgba(39, 117, 202, 0.22)',
+            _dark: 'rgba(39, 117, 202, 0.32)',
+        },
+
+        // Velvet-Navy tint — soft secondary grounds
+        'bg.navyTint': {
+            default: 'rgba(51, 68, 121, 0.06)',
+            _dark: 'rgba(255, 255, 255, 0.05)',
+        },
+        'border.navyTint': {
+            default: 'rgba(51, 68, 121, 0.14)',
+            _dark: 'rgba(255, 255, 255, 0.10)',
+        },
+
+        // Neutral meta-pill ground — the chip reinvented 11x across the lobby
+        'bg.pillNeutral': {
+            default: 'rgba(11, 20, 48, 0.06)',
+            _dark: 'rgba(255, 255, 255, 0.08)',
+        },
+        'border.pillNeutral': {
+            default: 'rgba(11, 20, 48, 0.10)',
+            _dark: 'rgba(255, 255, 255, 0.12)',
+        },
+
+        // HOT — the one saturated warm-orange mark per row (lobby "HOT" pill).
+        // Promoted from inline hex now the pattern repeats per hot table.
+        'bg.hotSubtle': {
+            default: 'rgba(229, 90, 30, 0.12)',
+            _dark: 'rgba(229, 90, 30, 0.22)',
+        },
+        'text.hot': {
+            // Deepened from #E55A1E so HOT text clears AA 4.5:1 on bg.hotSubtle.
+            default: '#C2410C',
+            _dark: '#FFB48A',
+        },
+
+        // Tier identity ramp — replaces off-brand AI-lavender (#A78BFA) on the leaderboard.
+        // Placeholder values; the leaderboard bold pass tunes and verifies them.
+        'tier.diamond': { default: '#5E86B0', _dark: '#9BC0E0' },
+        'tier.gold': { default: 'brand.yellowDark', _dark: 'brand.yellow' },
+        'tier.silver': { default: '#7C8699', _dark: '#AEB6C6' },
+        'tier.bronze': { default: '#A8703F', _dark: '#C2885A' },
+        'tier.iron': { default: '#5F6470', _dark: '#878B96' },
 
         // Felt Table — a card-room "felt" surface (newsletter, future seat-pickers)
         // Penthouse-Midnight ground in both modes; the felt is the room, not the color.
@@ -322,6 +402,11 @@ const semanticTokens = {
             default: '0 14px 36px rgba(11, 20, 48, 0.16)',
             _dark: '0 14px 36px rgba(0, 0, 0, 0.55)',
         },
+        // Single focus ring — one recipe for every interactive control
+        'focus.ring': {
+            default: '0 0 0 3px rgba(54, 163, 123, 0.35)',
+            _dark: '0 0 0 3px rgba(54, 163, 123, 0.45)',
+        },
     },
 };
 
@@ -340,7 +425,8 @@ const fontWeights = {
     medium: 600,
     semibold: 600,
     bold: 700,
-    extrabold: 700,
+    extrabold: 800,
+    black: 900,
 };
 
 // ============================================
@@ -349,10 +435,10 @@ const fontWeights = {
 const styles = {
     global: {
         html: {
-            backgroundColor: 'legacy.grayDarkest',
+            backgroundColor: 'bg.appGround',
         },
         body: {
-            backgroundColor: 'legacy.grayDarkest',
+            backgroundColor: 'bg.appGround',
             color: 'text.primary',
             fontFamily: 'body',
             overflowY: 'auto',
@@ -362,8 +448,18 @@ const styles = {
                 top: 0,
                 bottom: 0,
                 width: '100%',
-                background: 'bg.charcoal',
+                background: 'bg.appGround',
                 zIndex: -1,
+            },
+        },
+        // Reduced-motion safety net — honor the OS setting app-wide. Components
+        // can still opt into finer control via Chakra's usePrefersReducedMotion.
+        '@media (prefers-reduced-motion: reduce)': {
+            '*, *::before, *::after': {
+                animationDuration: '0.01ms !important',
+                animationIterationCount: '1 !important',
+                transitionDuration: '0.01ms !important',
+                scrollBehavior: 'auto !important',
             },
         },
     },
@@ -1093,22 +1189,26 @@ const radii = {
 
 const shadows = {
     default: '0px 0px 8px 0px rgba(0, 0, 0, 0.15)',
-    // Premium layered shadows
-    glass: '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-    'glass-hover':
-        '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
-    'glass-active':
-        '0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06)',
-    'glow-green':
-        '0 0 20px rgba(54, 163, 123, 0.4), 0 0 60px rgba(54, 163, 123, 0.15)',
-    'glow-pink':
-        '0 0 20px rgba(235, 11, 92, 0.4), 0 0 60px rgba(235, 11, 92, 0.15)',
-    'glow-yellow':
-        '0 0 20px rgba(253, 197, 29, 0.4), 0 0 60px rgba(253, 197, 29, 0.15)',
-    'btn-premium':
-        '0 4px 14px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-    'btn-premium-hover':
-        '0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+    // Legacy glassmorphic / colored-glow / premium-button shadow tokens were
+    // removed here: zero consumers, and DESIGN.md schedules them as debt
+    // (No-Glow Rule, glass = legacy). The structural shadows that replace them
+    // live as semantic tokens above: card.hero, card.lift, card.liftHover.
+};
+
+// Motion vocabulary — shared easings/durations so components stop re-declaring
+// inline curves. `settle` is ease-out-expo (deceleration, no overshoot);
+// DESIGN.md bans bounce/elastic. `snap` is the tactile press curve.
+// Exposed as CSS vars: var(--chakra-transition-easing-settle|snap),
+// var(--chakra-transition-duration-snap|settle).
+const transition = {
+    easing: {
+        settle: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        snap: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    },
+    duration: {
+        snap: '80ms',
+        settle: '220ms',
+    },
 };
 
 // ============================================
@@ -1124,5 +1224,6 @@ export const theme = extendTheme({
     components,
     radii,
     shadows,
+    transition,
     config,
 });

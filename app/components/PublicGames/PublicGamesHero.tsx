@@ -31,7 +31,7 @@ export default function PublicGamesHero() {
                         lineHeight={1.45}
                         maxW="56ch"
                     >
-                        USDC poker on Base. Hosted by players, settled on-chain
+                        USDC poker on Base. Hosted by players, settled onchain
                         in under 5 seconds.
                     </Text>
                 </VStack>

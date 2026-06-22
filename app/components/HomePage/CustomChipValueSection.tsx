@@ -13,7 +13,12 @@ import { motion, useReducedMotion } from 'framer-motion';
 
 const MotionVStack = motion(VStack);
 
-const USDC_BLUE = '#2775CA';
+// USDC-blue text that clears AA 4.5:1 on both grounds: darker token on the
+// light page, a lighter shade on the near-black dark page.
+const usdcText = {
+    color: 'brand.usdcDark',
+    _dark: { color: '#5BA8E8' },
+};
 
 type Stake = {
     blinds: string;
@@ -34,8 +39,11 @@ const CustomChipValueSection = () => {
         prefersReducedMotion
             ? {}
             : {
-                  initial: { opacity: 0, y: 24 },
-                  whileInView: { opacity: 1, y: 0 },
+                  // Slide-only entrance: opacity stays 1 so content is never gated
+                  // invisible if the in-view reveal doesn't fire (fast scroll, JS
+                  // hiccup, headless capture). Robustness over a fade.
+                  initial: { y: 24 },
+                  whileInView: { y: 0 },
                   viewport: { once: true, amount: 0.35 },
                   transition: { duration: 0.6, ease: 'easeOut', delay },
               };
@@ -95,7 +103,7 @@ const CustomChipValueSection = () => {
                         lineHeight={1}
                     >
                         1 chip ={' '}
-                        <Box as="span" color={USDC_BLUE}>
+                        <Box as="span" {...usdcText}>
                             0.01
                         </Box>{' '}
                         <Box
@@ -118,7 +126,7 @@ const CustomChipValueSection = () => {
                         </Box>
                         <Box
                             as="span"
-                            color={USDC_BLUE}
+                            {...usdcText}
                             fontSize={{ base: '2xl', md: '5xl', lg: '6xl' }}
                             fontWeight="bold"
                             letterSpacing="0.02em"
@@ -197,7 +205,7 @@ const CustomChipValueSection = () => {
                                         </Text>
                                     </HStack>
                                     <Text
-                                        color={USDC_BLUE}
+                                        {...usdcText}
                                         fontWeight="semibold"
                                         fontSize={{ base: 'sm', md: 'md' }}
                                         sx={{ fontVariantNumeric: "tabular-nums" }}

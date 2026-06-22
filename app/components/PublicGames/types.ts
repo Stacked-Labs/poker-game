@@ -10,6 +10,11 @@ export interface PublicGame {
     is_active: boolean;
     created_at: string;
     contract_address?: string;
+    // The Host who opened the table (gameCreator on-chain). Optional until the
+    // backend adds it to /api/public-games (Stacked-Labs/poker-server#318); the
+    // card renders the host when present and falls back cleanly when absent.
+    host_wallet?: string;
+    host_username?: string;
 }
 
 // Once a tournament starts, the server spawns tables named
@@ -28,6 +33,7 @@ export const USDC_BLUE = '#2775CA';
 export const USDC_LOGO = '/usdc-logo.png';
 export const CHIPS_PER_USDC = 100;
 
+import { playerDisplayName } from '@/app/utils/address';
 export { shortenAddress as truncateAddress } from '@/app/utils/address';
 
 export const PAGE_SIZE = 20;
@@ -41,6 +47,18 @@ export function stakeTier(game: PublicGame): StakeTier | null {
     if (usdBB < 0.5) return 'micro';
     if (usdBB < 2) return 'mid';
     return 'high';
+}
+
+export const STAKE_TIER_LABEL: Record<StakeTier, string> = {
+    micro: 'Micro',
+    mid: 'Mid',
+    high: 'High',
+};
+
+// The Host's display label: a chosen handle/nickname, else a shortened wallet,
+// else '' (caller hides the host slot). Lights up when the backend ships #318.
+export function hostLabel(game: PublicGame): string {
+    return playerDisplayName(game.host_username, game.host_wallet);
 }
 
 export function blindsLabel(game: PublicGame): string {

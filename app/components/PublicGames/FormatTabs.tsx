@@ -6,7 +6,6 @@ import {
     Flex,
     HStack,
     Text,
-    useColorModeValue,
 } from '@chakra-ui/react';
 
 export type GameFormat = 'cash' | 'tournaments';
@@ -28,11 +27,6 @@ const FORMATS: ReadonlyArray<{ id: GameFormat; label: string }> = [
 ];
 
 export default function FormatTabs({ format, onChange, tournamentCount }: FormatTabsProps) {
-    const ruleColor = useColorModeValue(
-        'rgba(11, 20, 48, 0.10)',
-        'rgba(255, 255, 255, 0.10)'
-    );
-
     const tabRefs = useRef<Array<HTMLDivElement | null>>([]);
 
     const badgeFor = (
@@ -69,7 +63,7 @@ export default function FormatTabs({ format, onChange, tournamentCount }: Format
             role="tablist"
             aria-label="Game format"
             borderBottom="1px solid"
-            borderColor={ruleColor}
+            borderColor="border.pillNeutral"
             gap={{ base: 5, md: 7 }}
         >
             {FORMATS.map((item, index) => (
@@ -102,14 +96,6 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
     ref
 ) {
     const accent = 'brand.green';
-    const neutralBadgeBg = useColorModeValue(
-        'rgba(11, 20, 48, 0.06)',
-        'rgba(255, 255, 255, 0.08)'
-    );
-    const accentBadgeBg = useColorModeValue(
-        'rgba(54, 163, 123, 0.10)',
-        'rgba(54, 163, 123, 0.18)'
-    );
     const isAccent = badge?.tone === 'accent';
 
     return (
@@ -146,7 +132,7 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
                 </Text>
                 {badge && (
                     <Box
-                        bg={isAccent ? accentBadgeBg : neutralBadgeBg}
+                        bg={isAccent ? 'bg.greenTint' : 'bg.pillNeutral'}
                         color={isAccent ? accent : 'text.muted'}
                         fontSize="2xs"
                         fontWeight="bold"

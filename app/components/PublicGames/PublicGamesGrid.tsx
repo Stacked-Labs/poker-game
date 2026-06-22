@@ -1,16 +1,7 @@
 'use client';
 
-import {
-    Box,
-    Button,
-    Flex,
-    useColorModeValue,
-} from '@chakra-ui/react';
-import type {
-    PublicGame,
-    SortKey,
-    SortConfig,
-} from './types';
+import { Box, Button, useColorModeValue } from '@chakra-ui/react';
+import type { PublicGame, SortKey, SortConfig } from './types';
 import PublicGameCard from './PublicGameCard';
 import SortHeader from './SortHeader';
 
@@ -23,6 +14,9 @@ interface PublicGamesGridProps {
     onLoadMore: () => void;
 }
 
+// The list body of the lobby panel: the desktop column header, the rows, and a
+// Load-More footer. The enclosing panel (page.tsx) owns the card chrome + the
+// docked filter rail, so this renders flush inside it.
 export default function PublicGamesGrid({
     games,
     sortConfig,
@@ -34,62 +28,44 @@ export default function PublicGamesGrid({
     const ruleColor = useColorModeValue('rgba(11, 20, 48, 0.06)', 'rgba(255, 255, 255, 0.06)');
 
     return (
-        <Flex direction="column" w="full" gap={{ base: 5, md: 6 }}>
-            {/* List panel */}
-            <Box
-                bg="card.white"
-                borderRadius="20px"
-                boxShadow="card.lift"
-                overflow="hidden"
-            >
-                <SortHeader sortConfig={sortConfig} onSortChange={onSortChange} ruleColor={ruleColor} />
-                {games.map((g, i) => (
-                    <PublicGameCard
-                        key={g.name}
-                        game={g}
-                        ruleColor={ruleColor}
-                        isLast={i === games.length - 1}
-                    />
-                ))}
-            </Box>
+        <Box w="full">
+            <SortHeader sortConfig={sortConfig} onSortChange={onSortChange} ruleColor={ruleColor} />
+            {games.map((g, i) => (
+                <PublicGameCard
+                    key={g.name}
+                    game={g}
+                    ruleColor={ruleColor}
+                    isLast={i === games.length - 1}
+                />
+            ))}
 
             {hasMore && (
-                <Flex justify="center">
+                <Box borderTop="1px solid" borderColor={ruleColor}>
                     <Button
                         variant="unstyled"
                         onClick={onLoadMore}
                         isLoading={isLoadingMore}
                         loadingText="Loading…"
-                        bg="card.white"
-                        color="text.primary"
-                        boxShadow="card.lift"
-                        borderRadius="full"
-                        h="36px"
-                        px={6}
+                        w="full"
+                        h="48px"
+                        borderRadius={0}
                         fontSize="xs"
                         fontWeight="bold"
                         letterSpacing="0.08em"
                         textTransform="uppercase"
+                        color="text.secondary"
                         display="inline-flex"
                         alignItems="center"
                         justifyContent="center"
-                        transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease, color 80ms ease"
-                        _hover={{
-                            color: 'brand.green',
-                            bg: 'bg.greenSubtle',
-                        }}
-                        _active={{
-                            color: 'brand.greenDark',
-                            bg: 'bg.greenTint',
-                            transform: 'translateY(1px)',
-                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
-                        }}
-                        _focusVisible={{ boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)' }}
+                        transition="background-color 120ms ease, color 120ms ease"
+                        _hover={{ color: 'brand.green', bg: 'bg.greenSubtle' }}
+                        _active={{ color: 'brand.greenDark', bg: 'bg.greenTint' }}
+                        _focusVisible={{ boxShadow: 'focus.ring' }}
                     >
                         Load more tables
                     </Button>
-                </Flex>
+                </Box>
             )}
-        </Flex>
+        </Box>
     );
 }

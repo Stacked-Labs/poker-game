@@ -14,7 +14,6 @@ import FloatingDecor from './components/HomePage/FloatingDecor';
 import { Metadata } from 'next';
 import BroadcastMotion from './components/HomePage/BroadcastMotion';
 import BackToTopButton from './components/HomePage/BackToTopButton';
-import CoinGecko from './components/HomePage/CoinGeckoClient';
 
 export const metadata: Metadata = {
     title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',
@@ -57,13 +56,12 @@ interface HomePageProps {
 }
 
 const HomePage = async ({ searchParams }: HomePageProps) => {
-    // Lighter "broadcast mode" (?broadcast=1) for the 24/7 livestream worker: skip the
-    // price ticker + autoplay video + hero animations so the homepage renders stably in
-    // headless software-GL Chromium. Normal visitors (no param) are unaffected.
+    // Lighter "broadcast mode" (?broadcast=1) for the 24/7 livestream worker: skip
+    // autoplay video + hero animations so the homepage renders stably in headless
+    // software-GL Chromium. Normal visitors (no param) are unaffected.
     const isBroadcast = (await searchParams)?.broadcast === '1';
     const content = (
         <>
-            {!isBroadcast && <CoinGecko />}
             <Box w="100vw">
                 <VStack spacing={0} align="stretch" height={'fit-content'}>
                     <Flex

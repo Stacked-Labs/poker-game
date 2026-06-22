@@ -22,6 +22,7 @@ type Step = {
     title: string;
     body: string;
     color: string;
+    colorHover: string;
     rotate: string;
     tintRgba: string;
 };
@@ -32,6 +33,7 @@ const STEPS: Step[] = [
         title: 'Jump in instantly',
         body: 'Use what you have: Google, Discord, or your wallet. Or play free as a guest. No signup, no email, no nothing.',
         color: 'brand.green',
+        colorHover: 'brand.greenDark',
         rotate: '-3deg',
         tintRgba: 'rgba(54, 163, 123, 0.06)',
     },
@@ -40,6 +42,7 @@ const STEPS: Step[] = [
         title: 'Host your table',
         body: 'Spin up a private room. Set the blinds, choose the game speed, and control exactly who sits down. Your rules.',
         color: 'brand.navy',
+        colorHover: 'brand.darkNavy',
         rotate: '2deg',
         tintRgba: 'rgba(51, 68, 121, 0.06)',
     },
@@ -48,6 +51,7 @@ const STEPS: Step[] = [
         title: 'Share and play',
         body: 'Drop the link in your group chat. Friends join instantly on any browser or device. No app store downloads, ever.',
         color: 'brand.pink',
+        colorHover: 'brand.pinkDark',
         rotate: '-2deg',
         tintRgba: 'rgba(235, 11, 92, 0.05)',
     },
@@ -99,10 +103,8 @@ const StepRow = ({
                     sx={{ fontVariantNumeric: "tabular-nums" }}
                     transform={`rotate(${step.rotate})`}
                     transformOrigin="center"
-                    transition="transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                    _groupHover={{
-                        transform: `rotate(${step.rotate}) scale(1.06)`,
-                    }}
+                    transition="color 0.2s ease"
+                    _groupHover={{ color: step.colorHover }}
                 >
                     {String(step.n).padStart(2, '0')}
                 </Text>
@@ -286,16 +288,10 @@ const FeaturesSection = ({ isBroadcast = false }: FeaturesSectionProps) => {
                                 base: 'rotate(0deg)',
                                 md: 'rotate(-1.5deg)',
                             }}
-                            transition="transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                            transition="filter 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             filter="drop-shadow(0 22px 40px rgba(11, 20, 48, 0.18)) drop-shadow(0 8px 16px rgba(11, 20, 48, 0.10))"
                             _dark={{
                                 filter: 'drop-shadow(0 22px 40px rgba(0, 0, 0, 0.55)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4))',
-                            }}
-                            _hover={{
-                                transform: {
-                                    base: 'translateY(-4px)',
-                                    md: 'rotate(-1.5deg) translateY(-4px)',
-                                },
                             }}
                         >
                             <Box

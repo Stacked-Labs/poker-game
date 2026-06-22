@@ -64,11 +64,6 @@ const fadeUp = keyframes`
     to   { opacity: 1; transform: none; }
 `;
 
-const dotPulse = keyframes`
-    0%, 100% { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.5); }
-    50%      { box-shadow: 0 0 0 4px rgba(54, 163, 123, 0); }
-`;
-
 export default function TournamentLobbyCard({
     tournament: t,
     myWallet,
@@ -90,10 +85,6 @@ export default function TournamentLobbyCard({
     const prefersReducedMotion = usePrefersReducedMotion();
 
     const cardBg = useColorModeValue('white', 'card.darkNavy');
-    const standardBorder = useColorModeValue(
-        'rgba(11, 20, 48, 0.08)',
-        'rgba(255, 255, 255, 0.08)'
-    );
     const yellowText = useColorModeValue('brand.yellowDark', 'brand.yellow');
 
     const now = new Date();
@@ -177,7 +168,7 @@ export default function TournamentLobbyCard({
             as="article"
             bg={cardBg}
             borderWidth="1px"
-            borderColor={standardBorder}
+            borderColor="border.pillNeutral"
             borderRadius="14px"
             boxShadow="card.lift"
             overflow="hidden"
@@ -606,16 +597,12 @@ function ActionButton({
 }
 
 function FreeTag() {
-    const freeBg = useColorModeValue(
-        'rgba(11, 20, 48, 0.06)',
-        'rgba(255, 255, 255, 0.08)'
-    );
     return (
         <Text
             px={1.5}
             py="2px"
             borderRadius="full"
-            bg={freeBg}
+            bg="bg.pillNeutral"
             fontSize="2xs"
             fontWeight="bold"
             letterSpacing="0.06em"
@@ -629,17 +616,13 @@ function FreeTag() {
 }
 
 function PrivatePill() {
-    const bg = useColorModeValue(
-        'rgba(11, 20, 48, 0.06)',
-        'rgba(255, 255, 255, 0.08)'
-    );
     return (
         <HStack
             spacing={1}
             px={1.5}
             py="2px"
             borderRadius="full"
-            bg={bg}
+            bg="bg.pillNeutral"
             flexShrink={0}
         >
             <Icon as={FiLock} boxSize="9px" color="text.muted" />
@@ -657,40 +640,25 @@ function PrivatePill() {
 }
 
 function StatusPill({ status }: { status: string }) {
-    const prefersReducedMotion = usePrefersReducedMotion();
     const { label, tone } = getStatusDescriptor(status);
 
-    const neutralBg = useColorModeValue(
-        'rgba(11, 20, 48, 0.06)',
-        'rgba(255, 255, 255, 0.08)'
-    );
-    const greenBg = useColorModeValue(
-        'rgba(54, 163, 123, 0.10)',
-        'rgba(54, 163, 123, 0.18)'
-    );
-    const yellowBg = useColorModeValue(
-        'rgba(253, 197, 29, 0.16)',
-        'rgba(253, 197, 29, 0.22)'
-    );
     const yellowFg = useColorModeValue('brand.yellowDark', 'brand.yellow');
 
     const styles = {
         open: {
-            bg: greenBg,
+            bg: 'bg.greenTint',
             fg: 'brand.green',
             dot: 'brand.green',
-            pulse: false,
         },
         live: {
-            bg: neutralBg,
+            bg: 'bg.pillNeutral',
             fg: 'text.primary',
             dot: 'brand.green',
-            pulse: true,
         },
-        done: { bg: neutralBg, fg: 'text.muted', dot: null, pulse: false },
-        cancelled: { bg: neutralBg, fg: 'text.muted', dot: null, pulse: false },
-        setup: { bg: neutralBg, fg: 'text.muted', dot: null, pulse: false },
-        refund: { bg: yellowBg, fg: yellowFg, dot: yellowFg, pulse: false },
+        done: { bg: 'bg.pillNeutral', fg: 'text.muted', dot: null },
+        cancelled: { bg: 'bg.pillNeutral', fg: 'text.muted', dot: null },
+        setup: { bg: 'bg.pillNeutral', fg: 'text.muted', dot: null },
+        refund: { bg: 'bg.yellowTint', fg: yellowFg, dot: yellowFg },
     }[tone];
 
     return (
@@ -708,11 +676,6 @@ function StatusPill({ status }: { status: string }) {
                     h="7px"
                     borderRadius="full"
                     bg={styles.dot}
-                    animation={
-                        styles.pulse && !prefersReducedMotion
-                            ? `${dotPulse} 2s ease-in-out infinite`
-                            : undefined
-                    }
                     aria-hidden
                 />
             )}
@@ -739,15 +702,6 @@ function PlayerStatePill({
     isRegistered: boolean;
     isEliminated: boolean;
 }) {
-    const greenBg = useColorModeValue(
-        'rgba(54, 163, 123, 0.10)',
-        'rgba(54, 163, 123, 0.18)'
-    );
-    const neutralBg = useColorModeValue(
-        'rgba(11, 20, 48, 0.06)',
-        'rgba(255, 255, 255, 0.08)'
-    );
-
     if (!isRegistered) return null;
 
     let content: {
@@ -758,21 +712,21 @@ function PlayerStatePill({
     } | null = null;
     if (status === 'registration') {
         content = {
-            bg: greenBg,
+            bg: 'bg.greenTint',
             fg: 'brand.green',
             icon: true,
             label: 'Registered',
         };
     } else if (status === 'running' && !isEliminated) {
         content = {
-            bg: greenBg,
+            bg: 'bg.greenTint',
             fg: 'brand.green',
             icon: true,
             label: 'You’re in',
         };
     } else if (status === 'running' && isEliminated) {
         content = {
-            bg: neutralBg,
+            bg: 'bg.pillNeutral',
             fg: 'text.muted',
             icon: false,
             label: 'Eliminated',

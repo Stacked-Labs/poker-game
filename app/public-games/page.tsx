@@ -52,6 +52,8 @@ const PublicPageInner = () => {
         undefined
     );
     const autoLoadedFrom = useRef(-1);
+    const autoLoadCount = useRef(0);
+    const [reloadNonce, setReloadNonce] = useState(0);
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -80,6 +82,7 @@ const PublicPageInner = () => {
         setIsLoading(true);
         setError(null);
         autoLoadedFrom.current = -1;
+        autoLoadCount.current = 0;
         getPublicGames({
             sortBy: sortByParam,
             order: sortConfig.direction,
@@ -109,7 +112,7 @@ const PublicPageInner = () => {
         return () => {
             cancelled = true;
         };
-    }, [filter, sortByParam, sortConfig.direction]);
+    }, [filter, sortByParam, sortConfig.direction, reloadNonce]);
 
     // Count of open + live tournaments, for the Tournaments tab badge.
     useEffect(() => {
@@ -187,14 +190,22 @@ const PublicPageInner = () => {
         if (isLoading || isLoadingMore) return;
         if (visibleGames.length > 0 || !hasMore) return;
         if (autoLoadedFrom.current === games.length) return;
+        // Safety cap: a long run of tournament-only pages shouldn't silently
+        // paginate the entire table list looking for cash games.
+        if (autoLoadCount.current >= 10) return;
         autoLoadedFrom.current = games.length;
+        autoLoadCount.current += 1;
         handleLoadMore();
         // handleLoadMore is stable enough here — it only reads the values in deps.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoading, isLoadingMore, visibleGames.length, hasMore, games.length]);
 
+    // Retry the fetch without throwing away the user's filters/sort.
     const handleRetry = () => {
-        setSortConfig({ key: 'seats', direction: 'desc' });
+        setReloadNonce((n) => n + 1);
+    };
+
+    const handleClearFilters = () => {
         setFilter('all');
         setStake('all');
     };
@@ -217,9 +228,17 @@ const PublicPageInner = () => {
                         />
 
                         {format === 'cash' ? (
-                            <>
+                            // One elevated panel: the filter rail docks onto its lip
+                            // and stays put while the body swaps loading/empty/rows.
+                            <Box
+                                w="full"
+                                bg="card.white"
+                                borderRadius="20px"
+                                boxShadow="card.lift"
+                                overflow="hidden"
+                            >
                                 <FilterRail
-                                    totalCount={
+                                    count={
                                         hasLoadedOnce
                                             ? (cashTotalCount ?? 0)
                                             : null
@@ -228,9 +247,11 @@ const PublicPageInner = () => {
                                     onFilterChange={setFilter}
                                     stake={stake}
                                     onStakeChange={setStake}
+                                    sortConfig={sortConfig}
+                                    onSortChange={handleSortChange}
                                 />
 
-                                <Box minH={{ base: '420px', md: '520px' }}>
+                                <Box minH={{ base: '360px', md: '440px' }}>
                                     {isLoading ? (
                                         <EmptyState variant="loading" />
                                     ) : error ? (
@@ -245,6 +266,15 @@ const PublicPageInner = () => {
                                         // fetching them, so show loading, not empty.
                                         hasMore || isLoadingMore ? (
                                             <EmptyState variant="loading" />
+                                        ) : filter !== 'all' || stake !== 'all' ? (
+                                            // A filter is active (e.g. USDC with no
+                                            // crypto tables live) — the server-scoped
+                                            // fetch can't see the other tables, so this
+                                            // is "filtered", not a dead empty lobby.
+                                            <EmptyState
+                                                variant="filtered"
+                                                onClear={handleClearFilters}
+                                            />
                                         ) : (
                                             <EmptyState variant="empty" />
                                         )
@@ -259,7 +289,7 @@ const PublicPageInner = () => {
                                         />
                                     )}
                                 </Box>
-                            </>
+                            </Box>
                         ) : (
                             <TournamentsList />
                         )}

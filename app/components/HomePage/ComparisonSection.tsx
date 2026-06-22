@@ -23,7 +23,7 @@ const rows = [
     },
     {
         old: 'Wait days for withdrawals.',
-        stacked: 'Settle to your wallet, on-chain.',
+        stacked: 'Settle to your wallet, onchain.',
     },
     {
         old: 'Trust the operator with your bankroll.',

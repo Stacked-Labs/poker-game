@@ -112,18 +112,28 @@ export default function TournamentHeroBand({
                         Tournaments open now
                     </Text>
                 </HStack>
-                <Button
-                    variant="link"
-                    size="sm"
-                    rightIcon={<Icon as={FiArrowRight} boxSize="14px" />}
-                    color="text.secondary"
-                    fontWeight="semibold"
+                <Box
+                    as="button"
+                    type="button"
                     onClick={onSeeAll}
+                    display="inline-flex"
+                    alignItems="center"
+                    gap={1}
+                    flexShrink={0}
+                    bg="transparent"
+                    px={1}
+                    py={0.5}
+                    borderRadius="6px"
+                    fontSize="sm"
+                    fontWeight="semibold"
+                    color="text.secondary"
+                    transition="color 140ms ease"
                     _hover={{ color: 'brand.green' }}
-                    _focusVisible={{ boxShadow: 'focus.ring', borderRadius: '6px' }}
+                    _focusVisible={{ boxShadow: 'focus.ring', outline: 'none' }}
                 >
                     See all
-                </Button>
+                    <Icon as={FiArrowRight} boxSize="14px" />
+                </Box>
             </Flex>
 
             <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} spacing={{ base: 3, md: 4 }}>

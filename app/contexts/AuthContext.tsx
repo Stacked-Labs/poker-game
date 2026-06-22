@@ -168,10 +168,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         checkAuthentication();
 
-        // Check auth status periodically while wallet is connected
-        const interval = setInterval(checkAuthentication, 5000);
+        // Backstop poll while the tab is visible. SIWE completion and WS
+        // reconnect are the primary auth signals; this just catches expiry.
+        // Skipped when hidden (no point polling a background tab) and re-checks
+        // immediately when the tab becomes visible again so a returning user
+        // never waits a full interval.
+        const POLL_INTERVAL_MS = 30000;
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'visible') checkAuthentication();
+        }, POLL_INTERVAL_MS);
 
-        return () => clearInterval(interval);
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') checkAuthentication();
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener(
+                'visibilitychange',
+                onVisibilityChange
+            );
+        };
     }, [checkAuthentication]);
 
     // Fetch X status when authenticated

@@ -36,32 +36,46 @@ class SoundManager {
     private pendingUnlock: Promise<void> | null = null;
 
     /**
-     * Initialize the AudioContext and preload all sound files.
-     * Call this once when the app starts.
+     * Synchronously create the AudioContext + gain node if they don't exist
+     * yet. Kept separate from preloading so it can run inside a user-gesture
+     * handler (iOS requires the context to be created/resumed in-gesture).
+     * Returns true if a usable context is available.
+     */
+    private ensureContext(): boolean {
+        if (this.audioContext) return true;
+
+        // Create AudioContext (with webkit prefix for older Safari)
+        const AudioContextClass =
+            window.AudioContext ||
+            (
+                window as typeof window & {
+                    webkitAudioContext?: typeof AudioContext;
+                }
+            ).webkitAudioContext;
+
+        if (!AudioContextClass) {
+            console.warn('Web Audio API not supported');
+            return false;
+        }
+
+        this.audioContext = new AudioContextClass();
+
+        // Create a gain node for volume control
+        this.gainNode = this.audioContext.createGain();
+        this.gainNode.connect(this.audioContext.destination);
+        return true;
+    }
+
+    /**
+     * Initialize the AudioContext and preload all sound files. Idempotent and
+     * safe to call from a user gesture; the network preload runs asynchronously
+     * and does not block the gesture-time unlock.
      */
     async init(): Promise<void> {
         if (this.isInitialized) return;
 
         try {
-            // Create AudioContext (with webkit prefix for older Safari)
-            const AudioContextClass =
-                window.AudioContext ||
-                (
-                    window as typeof window & {
-                        webkitAudioContext?: typeof AudioContext;
-                    }
-                ).webkitAudioContext;
-
-            if (!AudioContextClass) {
-                console.warn('Web Audio API not supported');
-                return;
-            }
-
-            this.audioContext = new AudioContextClass();
-
-            // Create a gain node for volume control
-            this.gainNode = this.audioContext.createGain();
-            this.gainNode.connect(this.audioContext.destination);
+            if (!this.ensureContext()) return;
 
             // Preload all sound files
             await this.preloadSounds();
@@ -106,7 +120,9 @@ class SoundManager {
      * This resumes the AudioContext if it was suspended.
      */
     async unlock(): Promise<void> {
-        if (this.isUnlocked || !this.audioContext) return;
+        if (this.isUnlocked) return;
+        // Create the context now (in-gesture) if init() hasn't run yet.
+        if (!this.ensureContext() || !this.audioContext) return;
 
         // Prevent multiple unlock attempts
         if (this.pendingUnlock) {

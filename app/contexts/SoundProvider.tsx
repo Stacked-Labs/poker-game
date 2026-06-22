@@ -24,27 +24,21 @@ type SoundProviderProps = {
 
 export function SoundProvider({ children }: SoundProviderProps) {
     const { appState } = useContext(AppContext);
-    const isInitializedRef = useRef(false);
     const lastSeenMsgKeyRef = useRef<string | null>(null);
+    const volumeRef = useRef(appState.volume);
 
-    // Initialize the sound manager on mount
-    useEffect(() => {
-        if (isInitializedRef.current) return;
-        isInitializedRef.current = true;
-
-        soundManager.init().catch((error) => {
-            console.error('Failed to initialize sound manager:', error);
-        });
-
-        return () => {
-            // Don't dispose on unmount - singleton should persist
-        };
-    }, []);
-
-    // Handle iOS audio unlock on first user interaction
+    // Defer AudioContext creation + sound preload (~358KB of mp3 fetch/decode)
+    // until the first user gesture. Browser autoplay policy blocks any sound
+    // before a gesture anyway, so nothing is audible earlier — this just keeps
+    // the audio work off initial page load (it ran on every route before).
     useEffect(() => {
         const unlock = () => {
-            soundManager.unlock();
+            // Unlock synchronously inside the gesture (iOS requires this), then
+            // re-apply the saved volume (the volume effect ran as a no-op before
+            // the gain node existed), then kick off the async mp3 preload.
+            void soundManager.unlock();
+            soundManager.setVolume(volumeRef.current);
+            void soundManager.init();
             document.removeEventListener('touchstart', unlock);
             document.removeEventListener('touchend', unlock);
             document.removeEventListener('click', unlock);
@@ -61,8 +55,10 @@ export function SoundProvider({ children }: SoundProviderProps) {
         };
     }, []);
 
-    // Update volume when app volume changes
+    // Update volume when app volume changes (no-op until the sound manager is
+    // initialized on first gesture; the unlock handler applies the latest value).
     useEffect(() => {
+        volumeRef.current = appState.volume;
         soundManager.setVolume(appState.volume);
     }, [appState.volume]);
 

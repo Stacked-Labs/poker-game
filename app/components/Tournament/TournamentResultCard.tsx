@@ -13,7 +13,6 @@ import {
     usePrefersReducedMotion,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import confetti from 'canvas-confetti';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { FaTrophy } from 'react-icons/fa6';
@@ -150,45 +149,56 @@ export default function TournamentResultCard(props: TournamentResultCardProps) {
         prefersReducedMotion || prizeUsdc === 0 || isLargeUsdc(prizeUsdc);
     const animatedPrize = useCountUp(prizeUsdc, 480, 1300, skipCountUp);
 
-    // Confetti on mount
+    // Confetti on mount (canvas-confetti is imported lazily so it stays out of
+    // the route's initial bundle)
     useEffect(() => {
         if (prefersReducedMotion) return;
+        if (!isWin && !cashed) return;
 
-        if (isWin) {
-            const opts = {
-                colors: ['#FDC51D', '#B78900', '#ffffff', '#36A37B', '#ffb347'],
-                gravity: 0.88,
-                ticks: 230,
-                scalar: 1.1,
-                disableForReducedMotion: true,
-            };
-            confetti({ ...opts, particleCount: 95, angle: 58, spread: 62, origin: { x: 0.08, y: 0.68 }, startVelocity: 52 });
-            confetti({ ...opts, particleCount: 95, angle: 122, spread: 62, origin: { x: 0.92, y: 0.68 }, startVelocity: 52 });
-            const t = setTimeout(() => confetti({
-                ...opts,
-                particleCount: 55,
-                spread: 90,
-                origin: { x: 0.5, y: 0.18 },
-                startVelocity: 16,
-                gravity: 1.15,
-                ticks: 170,
-            }), 480);
-            return () => clearTimeout(t);
-        }
+        let cancelled = false;
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-        if (cashed) {
-            confetti({
-                particleCount: 42,
-                spread: 52,
-                origin: { x: 0.5, y: 0.38 },
-                colors: ['#36A37B', '#2775CA', '#ffffff', '#36A37B', '#a8e6cf'],
-                startVelocity: 22,
-                gravity: 1.0,
-                ticks: 140,
-                scalar: 0.9,
-                disableForReducedMotion: true,
-            });
-        }
+        void import('canvas-confetti').then(({ default: confetti }) => {
+            if (cancelled) return;
+
+            if (isWin) {
+                const opts = {
+                    colors: ['#FDC51D', '#B78900', '#ffffff', '#36A37B', '#ffb347'],
+                    gravity: 0.88,
+                    ticks: 230,
+                    scalar: 1.1,
+                    disableForReducedMotion: true,
+                };
+                confetti({ ...opts, particleCount: 95, angle: 58, spread: 62, origin: { x: 0.08, y: 0.68 }, startVelocity: 52 });
+                confetti({ ...opts, particleCount: 95, angle: 122, spread: 62, origin: { x: 0.92, y: 0.68 }, startVelocity: 52 });
+                timeoutId = setTimeout(() => confetti({
+                    ...opts,
+                    particleCount: 55,
+                    spread: 90,
+                    origin: { x: 0.5, y: 0.18 },
+                    startVelocity: 16,
+                    gravity: 1.15,
+                    ticks: 170,
+                }), 480);
+            } else if (cashed) {
+                confetti({
+                    particleCount: 42,
+                    spread: 52,
+                    origin: { x: 0.5, y: 0.38 },
+                    colors: ['#36A37B', '#2775CA', '#ffffff', '#36A37B', '#a8e6cf'],
+                    startVelocity: 22,
+                    gravity: 1.0,
+                    ticks: 140,
+                    scalar: 0.9,
+                    disableForReducedMotion: true,
+                });
+            }
+        });
+
+        return () => {
+            cancelled = true;
+            if (timeoutId) clearTimeout(timeoutId);
+        };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

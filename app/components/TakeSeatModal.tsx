@@ -46,7 +46,7 @@ import { useConnectX } from '@/app/hooks/useConnectX';
 import BuyInPresets from './TakeSeat/BuyInPresets';
 import StakesChip from './TakeSeat/StakesChip';
 import { readLastBuyIn, writeLastBuyIn } from '@/app/lib/takeSeat/lastBuyIn';
-import TopUpModal from './TopUp/TopUpModal';
+import TopUpModal from './TopUp/LazyTopUpModal';
 import { useIsMiniApp } from '@/app/hooks/useIsMiniApp';
 import { isTestnetOnly } from '@/app/thirdwebclient';
 

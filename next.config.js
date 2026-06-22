@@ -50,6 +50,16 @@ const connectSrc = [
 ];
 
 const nextConfig = {
+    // Rewrites barrel imports (e.g. `import { Box } from '@chakra-ui/react'`)
+    // to direct module paths so unused exports tree-shake out of the bundle.
+    experimental: {
+        optimizePackageImports: [
+            '@chakra-ui/react',
+            '@chakra-ui/next-js',
+            'react-icons',
+            'framer-motion',
+        ],
+    },
     async headers() {
         return [
             {
@@ -114,6 +124,7 @@ const nextConfig = {
         NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     },
     images: {
+        formats: ['image/avif', 'image/webp'],
         remotePatterns: [
             {
                 protocol: 'https',

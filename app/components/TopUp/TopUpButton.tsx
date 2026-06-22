@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button, type ButtonProps, useDisclosure } from '@chakra-ui/react';
-import TopUpModal from './TopUpModal';
+import TopUpModal from './LazyTopUpModal';
 import { useIsMiniApp } from '@/app/hooks/useIsMiniApp';
 import { isTestnetOnly } from '@/app/thirdwebclient';
 

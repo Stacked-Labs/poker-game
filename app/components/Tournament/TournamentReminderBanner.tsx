@@ -16,6 +16,7 @@ import {
     PopoverContent,
     PopoverTrigger,
     Text,
+    useBreakpointValue,
     VStack,
 } from '@chakra-ui/react';
 import { MdClose } from 'react-icons/md';
@@ -27,9 +28,10 @@ import {
 } from '../../stores/tournamentReminders';
 import TournamentCountdownDisplay from './TournamentCountdownDisplay';
 
-// Sticky reminder strip. Adaptive surface: warm paper in light mode, penthouse
-// felt in dark, so it belongs to whichever room the player is in. The countdown
-// chip carries the visual weight; text uses mode-flipping text.* tokens.
+// Tournament reminder strip — pinned to the top under the nav on desktop, to the
+// bottom on mobile. Adaptive surface: warm paper in light mode, penthouse felt in
+// dark, so it belongs to whichever room the player is in. The countdown chip
+// carries the visual weight; text uses mode-flipping text.* tokens.
 export default function TournamentReminderBanner() {
     const router = useRouter();
     const pathname = usePathname();
@@ -46,6 +48,12 @@ export default function TournamentReminderBanner() {
         (s) => s.suppressedSeated
     );
     const dismiss = useTournamentReminderStore((s) => s.dismiss);
+
+    // The "+N more" popover opens away from the strip: down from the top bar on
+    // desktop, up from the bottom strip on mobile.
+    const popoverPlacement =
+        useBreakpointValue({ base: 'top-end', md: 'bottom-end' } as const) ??
+        'top-end';
 
     const eligible = useMemo(
         () =>
@@ -81,14 +89,18 @@ export default function TournamentReminderBanner() {
 
     return (
         <Box
-            position="sticky"
-            bottom={0}
+            // Desktop pins it to the top under the fixed 76px nav where it's
+            // impossible to miss; mobile keeps the bottom strip within thumb reach.
+            position={{ base: 'sticky', md: 'fixed' }}
+            top={{ base: 'auto', md: '76px' }}
+            bottom={{ base: 0, md: 'auto' }}
             left={0}
             right={0}
-            zIndex={40}
+            zIndex={{ base: 40, md: 90 }}
             bg="reminder.surface"
-            borderTopWidth="1px"
-            borderTopColor="reminder.border"
+            borderTopWidth={{ base: '1px', md: 0 }}
+            borderBottomWidth={{ base: 0, md: '1px' }}
+            borderColor="reminder.border"
             boxShadow="card.lift"
             px={{ base: 3, md: 5 }}
             py={{ base: 2.5, md: 3 }}
@@ -154,7 +166,7 @@ export default function TournamentReminderBanner() {
                     flex={{ md: '0 0 auto' }}
                 >
                     {remainderCount > 0 && (
-                        <Popover placement="top-end" isLazy>
+                        <Popover placement={popoverPlacement} isLazy>
                             <PopoverTrigger>
                                 <Button
                                     variant="unstyled"

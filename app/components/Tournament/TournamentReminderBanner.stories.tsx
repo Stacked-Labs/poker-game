@@ -41,10 +41,10 @@ const makeDecorator = (tournaments: Tournament[]) => {
             }
         >
             <Box position="relative" minH="320px" bg="bg.default">
-                <Box p={6}>
+                <Box p={6} pt="92px">
                     <Text fontSize="sm" color="text.muted">
-                        App content. The reminder strip sticks to the bottom of
-                        the shell.
+                        App content. The reminder strip pins to the top under the
+                        nav on desktop, and to the bottom on mobile.
                     </Text>
                 </Box>
                 <StoreSeeder tournaments={tournaments}>

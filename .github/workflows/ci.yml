@@ -46,6 +46,24 @@ jobs:
           NEXT_PUBLIC_POSTHOG_KEY: ${{ vars.NEXT_PUBLIC_POSTHOG_KEY || '' }}
           NEXT_PUBLIC_POSTHOG_HOST: ${{ vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com' }}
 
+  test:
+    name: Unit & component tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        # Vitest (node + jsdom). Non-watch; exits non-zero on failure.
+        run: npm test
+
   lint:
     name: Lint (advisory)
     runs-on: ubuntu-latest

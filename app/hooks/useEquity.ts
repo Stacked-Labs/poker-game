@@ -27,7 +27,7 @@ export function useEquity(): EquityMap | null {
     //  - No winners determined yet (once winningPlayerNums is populated, hide equity)
     //  - At least 2 players still in with both hole cards visible
     const calculationInput = useMemo(() => {
-        if (!game || !game.running || game.betting) {
+        if (!game || !game.running || game.betting || game.ritPhase === 1) {
             return null;
         }
 

@@ -48,6 +48,8 @@ import type { Emote } from '@/app/stores/emotes';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { useRabbitHuntStore } from '@/app/stores/rabbitHunt';
 import { buildSeatReactionMessage } from '@/app/utils/seatReaction';
+import { playerDisplayName } from '@/app/utils/address';
+import { playerIdentityHref } from './PlayerNameLink';
 import EmotePicker from './NavBar/Chat/EmotePicker';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import {
@@ -362,6 +364,12 @@ const TakenSeatButton = ({
     const { format, mode: displayMode } = useFormatAmount();
 
     const isCrypto = appState.game?.config?.crypto === true;
+    // X profile for @handles, block explorer for wallet identities; null otherwise.
+    const seatNameHref = playerIdentityHref(
+        player.username,
+        player.address,
+        appState.game?.config?.chain
+    );
     const cycleDisplayMode = useCallback(() => {
         const order: DisplayMode[] = isCrypto
             ? ['chips', 'bb', 'usdc']
@@ -993,6 +1001,8 @@ const TakenSeatButton = ({
                             // - It's the current user AND they have actual cards (so they can see their folded cards dimmed, but not after board clear), OR
                             // - It's showdown AND player has revealed cards (backend sends real values for showdown participants), OR
                             // - This player is the winner (so their cards remain visible even if they win by fold)
+                            // During RIT voting opponents keep card value [0,0] from the server so they
+                            // render as face-down backs — the player can see cards exist without seeing values.
                             const shouldRenderCards =
                                 appState.game.running &&
                                 Number(player.cards[0]) !== -1 &&
@@ -1562,8 +1572,29 @@ const TakenSeatButton = ({
                                                                         '11px',
                                                                 },
                                                         }}
+                                                        {...(seatNameHref
+                                                            ? {
+                                                                  as: 'a',
+                                                                  href: seatNameHref,
+                                                                  target: '_blank',
+                                                                  rel: 'noopener noreferrer',
+                                                                  onClick: (
+                                                                      e: React.MouseEvent
+                                                                  ) =>
+                                                                      e.stopPropagation(),
+                                                                  _hover: {
+                                                                      textDecoration:
+                                                                          'underline',
+                                                                      textUnderlineOffset:
+                                                                          '2px',
+                                                                  },
+                                                              }
+                                                            : {})}
                                                     >
-                                                        {player.username}
+                                                        {playerDisplayName(
+                                                            player.username,
+                                                            player.address
+                                                        )}
                                                     </Text>
                                                 </motion.div>
                                             )}

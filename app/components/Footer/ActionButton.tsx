@@ -12,6 +12,12 @@ interface ActionButtonProps {
     className?: string;
     queued?: boolean;
     queueMode?: boolean;
+    // Override the derived `action-<text>` testid (e.g. the RIT vote buttons reuse this
+    // component but keep their own rit-vote-* hooks).
+    testId?: string;
+    // Subtle outline rendering — transparent fill, tone-colored border + text (used by
+    // the RIT vote buttons so YES/NO read quieter than the solid Raise/Call/Fold).
+    outline?: boolean;
 }
 
 const ActionButton = ({
@@ -23,6 +29,8 @@ const ActionButton = ({
     className = '',
     queued = false,
     queueMode = false,
+    testId,
+    outline = false,
 }: ActionButtonProps) => {
     // Tactile palette per tone — solid fill + matching darker shade for press
     // and an edge color for the chip's bottom rim. Brand tokens, no hex leaks.
@@ -64,14 +72,15 @@ const ActionButton = ({
         : {};
 
     // Derive a testid from the button text: "Call (50)" → "action-call", "Bet" → "action-bet"
-    const actionTestId = `action-${text.split(/[\s(]/)[0].toLowerCase()}`;
+    const actionTestId = testId ?? `action-${text.split(/[\s(]/)[0].toLowerCase()}`;
 
     return (
         <Button
             data-testid={actionTestId}
-            bg={t.bg}
-            color={t.text}
-            border="none"
+            bg={outline ? 'transparent' : t.bg}
+            color={outline ? t.bg : t.text}
+            border={outline ? '2px solid' : 'none'}
+            borderColor={outline ? t.bg : undefined}
             textTransform={'uppercase'}
             onClick={clickHandler}
             isDisabled={isDisabled}
@@ -81,17 +90,27 @@ const ActionButton = ({
             zIndex={10}
             cursor="pointer"
             overflow="hidden"
-            boxShadow={`inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 ${t.edge}`}
+            boxShadow={
+                outline
+                    ? `0 2px 0 ${t.edge}`
+                    : `inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 ${t.edge}`
+            }
             transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
-            _hover={{ bg: t.bg }}
+            _hover={outline ? { bg: 'whiteAlpha.100' } : { bg: t.bg }}
             _active={
                 queueMode
                     ? undefined
-                    : {
-                          bg: t.press,
-                          transform: 'translateY(2px)',
-                          boxShadow: `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${t.edge}`,
-                      }
+                    : outline
+                      ? {
+                            bg: 'whiteAlpha.200',
+                            transform: 'translateY(2px)',
+                            boxShadow: `0 0 0 ${t.edge}`,
+                        }
+                      : {
+                            bg: t.press,
+                            transform: 'translateY(2px)',
+                            boxShadow: `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${t.edge}`,
+                        }
             }
             className={`action-button ${text.toLowerCase()}-button ${className}`.trim()}
             data-queue-mode={queueMode ? 'true' : undefined}

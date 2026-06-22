@@ -28,10 +28,7 @@ export const USDC_BLUE = '#2775CA';
 export const USDC_LOGO = '/usdc-logo.png';
 export const CHIPS_PER_USDC = 100;
 
-export function truncateAddress(address: string): string {
-    if (address.length <= 12) return address;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
+export { shortenAddress as truncateAddress } from '@/app/utils/address';
 
 export const PAGE_SIZE = 20;
 

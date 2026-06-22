@@ -231,6 +231,9 @@ const PublicPageInner = () => {
                             // One elevated panel: the filter rail docks onto its lip
                             // and stays put while the body swaps loading/empty/rows.
                             <Box
+                                role="tabpanel"
+                                id="format-panel-cash"
+                                aria-labelledby="format-tab-cash"
                                 w="full"
                                 bg="card.white"
                                 borderRadius="20px"
@@ -291,7 +294,13 @@ const PublicPageInner = () => {
                                 </Box>
                             </Box>
                         ) : (
-                            <TournamentsList />
+                            <Box
+                                role="tabpanel"
+                                id="format-panel-tournaments"
+                                aria-labelledby="format-tab-tournaments"
+                            >
+                                <TournamentsList />
+                            </Box>
                         )}
                     </VStack>
                 </Container>

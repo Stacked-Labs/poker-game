@@ -30,6 +30,14 @@ export default function EmptyState({ variant, onRetry, onClear }: EmptyStateProp
     const prefersReducedMotion = usePrefersReducedMotion();
     const skeletonSpeed = prefersReducedMotion ? 0 : 1.4;
     const iconBg = useColorModeValue('rgba(54, 163, 123, 0.10)', 'rgba(54, 163, 123, 0.18)');
+    // Soft, on-surface shimmer. Chakra's default (gray.100->gray.400 light /
+    // gray.800->gray.600 dark) reads as hard, too-dark boxes; these translucent
+    // tokens ride whatever panel they sit on and stay mode-correct in both themes.
+    const sk = {
+        speed: skeletonSpeed,
+        startColor: 'bg.pillNeutral',
+        endColor: 'border.pillNeutral',
+    } as const;
 
     if (variant === 'loading') {
         // Mirrors PublicGameCard's column rhythm (dot · stakes · identity · seats ·
@@ -47,19 +55,31 @@ export default function EmptyState({ variant, onRetry, onClear }: EmptyStateProp
                         borderBottom={i === NAME_WIDTHS.length - 1 ? 'none' : '1px solid'}
                         borderColor={ruleColor}
                     >
-                        <Skeleton boxSize="10px" borderRadius="full" speed={skeletonSpeed} flexShrink={0} />
+                        <Skeleton boxSize="10px" borderRadius="full" flexShrink={0} {...sk} />
                         {/* stakes (desktop) */}
                         <Box flex="1.4" display={{ base: 'none', md: 'block' }}>
-                            <Skeleton h="14px" w="88px" borderRadius="6px" speed={skeletonSpeed} />
+                            <Skeleton h="14px" w="88px" borderRadius="6px" {...sk} />
                         </Box>
-                        {/* identity (both) */}
-                        <Box flex={{ base: '1', md: '2.2' }} minW={0}>
-                            <Skeleton h="13px" w={nameW} borderRadius="6px" speed={skeletonSpeed} />
-                            <Skeleton h="9px" w="30%" borderRadius="6px" speed={skeletonSpeed} mt={2} />
-                        </Box>
+                        {/* identity (both) — leading host avatar + name/meta lines */}
+                        <HStack
+                            flex={{ base: '1', md: '2.2' }}
+                            minW={0}
+                            spacing={{ base: 1.5, md: 2.5 }}
+                        >
+                            <Skeleton
+                                boxSize={{ base: '16px', md: '28px' }}
+                                borderRadius="full"
+                                flexShrink={0}
+                                {...sk}
+                            />
+                            <Box minW={0} flex={1}>
+                                <Skeleton h="13px" w={nameW} borderRadius="6px" {...sk} />
+                                <Skeleton h="9px" w="30%" borderRadius="6px" mt={2} {...sk} />
+                            </Box>
+                        </HStack>
                         {/* seats (desktop) */}
                         <Box flex="1.2" display={{ base: 'none', md: 'block' }}>
-                            <Skeleton h="12px" w="72px" borderRadius="6px" speed={skeletonSpeed} />
+                            <Skeleton h="12px" w="72px" borderRadius="6px" {...sk} />
                         </Box>
                         {/* age (desktop) */}
                         <Skeleton
@@ -67,13 +87,13 @@ export default function EmptyState({ variant, onRetry, onClear }: EmptyStateProp
                             h="10px"
                             w="30px"
                             borderRadius="6px"
-                            speed={skeletonSpeed}
                             flexShrink={0}
+                            {...sk}
                         />
                         {/* seats + age (mobile) */}
                         <VStack display={{ base: 'flex', md: 'none' }} align="end" spacing={2} flexShrink={0}>
-                            <Skeleton h="12px" w="46px" borderRadius="6px" speed={skeletonSpeed} />
-                            <Skeleton h="8px" w="26px" borderRadius="6px" speed={skeletonSpeed} />
+                            <Skeleton h="12px" w="46px" borderRadius="6px" {...sk} />
+                            <Skeleton h="8px" w="26px" borderRadius="6px" {...sk} />
                         </VStack>
                     </HStack>
                 ))}
@@ -199,7 +219,7 @@ export default function EmptyState({ variant, onRetry, onClear }: EmptyStateProp
                 minH="44px"
                 px={6}
             >
-                Host a Table
+                Host a table
             </Button>
         </Flex>
     );

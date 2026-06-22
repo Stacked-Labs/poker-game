@@ -13,7 +13,7 @@ import {
     VStack,
     useColorModeValue,
 } from '@chakra-ui/react';
-import { FiExternalLink, FiEye, FiUser } from 'react-icons/fi';
+import { FiExternalLink, FiEye } from 'react-icons/fi';
 import {
     BASESCAN_URL,
     STAKE_TIER_LABEL,
@@ -28,6 +28,7 @@ import type { PublicGame } from './types';
 import { useRelativeTime } from './useRelativeTime';
 import StatePill from './StatePill';
 import ChainBadge from '../ChainBadge';
+import PlayerAvatar from '../PlayerAvatar';
 
 interface PublicGameCardProps {
     game: PublicGame;
@@ -205,32 +206,51 @@ function TierChip({ tier }: { tier: 'micro' | 'mid' | 'high' }) {
 // Who's running the table. Leads with the Host (handle or shortened wallet) when
 // the backend provides it (poker-server#318); until then it falls back to the
 // table name. The raw table id always stays available, demoted into the meta row.
+// A small circular host avatar — the Host's X picture when we have it, otherwise
+// a deterministic wallet blockie, otherwise colored initials (PlayerAvatar's own
+// cascade). Reused at the table and on the leaderboard; a hairline ring keeps a
+// white profile photo from dissolving into the card.
+function HostAvatar({
+    game,
+    size,
+    initialsFontSize,
+}: {
+    game: PublicGame;
+    size: string;
+    initialsFontSize: string;
+}) {
+    return (
+        <Box position="relative" boxSize={size} flexShrink={0}>
+            <Box position="absolute" inset={0} borderRadius="full" overflow="hidden">
+                <PlayerAvatar
+                    profileImageUrl={game.host_profile_image_url}
+                    address={game.host_wallet}
+                    username={game.host_username || hostLabel(game)}
+                    initialsFontSize={initialsFontSize}
+                />
+            </Box>
+            <Box
+                position="absolute"
+                inset={0}
+                borderRadius="full"
+                pointerEvents="none"
+                boxShadow="inset 0 0 0 1px rgba(11, 20, 48, 0.08)"
+                _dark={{ boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.10)' }}
+            />
+        </Box>
+    );
+}
+
 function TableIdentity({ game }: { game: PublicGame }) {
     const host = hostLabel(game);
     const hot = isHot(game);
     return (
-        <VStack align="start" spacing={0.5} minW={0}>
-            <HStack spacing={1.5} maxW="100%" minW={0}>
-                {host ? (
-                    <>
-                        <Icon
-                            as={FiUser}
-                            boxSize="12px"
-                            color="text.muted"
-                            flexShrink={0}
-                        />
-                        <Text
-                            fontWeight="semibold"
-                            color="text.primary"
-                            noOfLines={1}
-                            fontSize="sm"
-                            minW={0}
-                            letterSpacing="-0.01em"
-                        >
-                            {host}
-                        </Text>
-                    </>
-                ) : (
+        <HStack spacing={2.5} align="center" minW={0}>
+            {host && (
+                <HostAvatar game={game} size="28px" initialsFontSize="10px" />
+            )}
+            <VStack align="start" spacing={0.5} minW={0}>
+                <HStack spacing={1.5} maxW="100%" minW={0}>
                     <Text
                         fontWeight="semibold"
                         color="text.primary"
@@ -239,32 +259,32 @@ function TableIdentity({ game }: { game: PublicGame }) {
                         minW={0}
                         letterSpacing="-0.01em"
                     >
-                        {shortenName(game.name)}
+                        {host || shortenName(game.name)}
                     </Text>
-                )}
-                {hot && <HotPill />}
-                <ContractLink game={game} />
-            </HStack>
-            <Flex
-                align="center"
-                gap={1.5}
-                fontSize="2xs"
-                color="text.muted"
-                flexWrap="wrap"
-            >
-                {game.is_crypto ? (
-                    <ChainBadge
-                        chain={game.chain ?? 'base'}
-                        size="sm"
-                        variant="symbol"
-                    />
-                ) : (
-                    <Text as="span" color="text.muted">
-                        Play money
-                    </Text>
-                )}
-            </Flex>
-        </VStack>
+                    {hot && <HotPill />}
+                    <ContractLink game={game} />
+                </HStack>
+                <Flex
+                    align="center"
+                    gap={1.5}
+                    fontSize="2xs"
+                    color="text.muted"
+                    flexWrap="wrap"
+                >
+                    {game.is_crypto ? (
+                        <ChainBadge
+                            chain={game.chain ?? 'base'}
+                            size="sm"
+                            variant="symbol"
+                        />
+                    ) : (
+                        <Text as="span" color="text.muted">
+                            Play money
+                        </Text>
+                    )}
+                </Flex>
+            </VStack>
+        </HStack>
     );
 }
 
@@ -280,8 +300,8 @@ function MobileIdentity({ game }: { game: PublicGame }) {
             minW={0}
         >
             {host ? (
-                <HStack spacing={1} minW={0}>
-                    <Icon as={FiUser} boxSize="10px" flexShrink={0} />
+                <HStack spacing={1.5} minW={0}>
+                    <HostAvatar game={game} size="16px" initialsFontSize="7px" />
                     <Text as="span" color="text.secondary" noOfLines={1} minW={0}>
                         {host}
                     </Text>

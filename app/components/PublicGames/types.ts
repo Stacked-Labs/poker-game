@@ -15,6 +15,9 @@ export interface PublicGame {
     // card renders the host when present and falls back cleanly when absent.
     host_wallet?: string;
     host_username?: string;
+    // X/profile picture for the Host's avatar. When absent, PlayerAvatar derives
+    // a deterministic blockie from host_wallet, then colored initials.
+    host_profile_image_url?: string;
 }
 
 // Once a tournament starts, the server spawns tables named

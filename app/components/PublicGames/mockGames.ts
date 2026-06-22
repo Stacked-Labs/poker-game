@@ -38,6 +38,8 @@ export const MOCK_GAMES: PublicGame[] = [
         contract_address: '0xfa04e1d9c8b3f1b0b8e01a25c9d4568b0c2c445b',
         created_at: minutesAgo(95),
         host_username: '@degenmike',
+        host_wallet: '0x7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f',
+        host_profile_image_url: 'https://i.pravatar.cc/80?img=12',
     }),
     make('sunday-grinders', {
         is_crypto: true,

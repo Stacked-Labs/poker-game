@@ -18,10 +18,10 @@ export default function PublicGamesHero() {
                     <Heading
                         as="h1"
                         fontWeight="extrabold"
-                        letterSpacing="-0.025em"
+                        letterSpacing="-0.02em"
                         color="text.primary"
                         lineHeight={1.05}
-                        sx={{ fontSize: 'clamp(1.625rem, 6.5vw, 2.125rem)' }}
+                        sx={{ fontSize: 'clamp(1.625rem, 6.5vw, 2.375rem)' }}
                     >
                         Live tables
                     </Heading>
@@ -29,10 +29,10 @@ export default function PublicGamesHero() {
                         color="text.secondary"
                         fontSize={{ base: 'sm', sm: 'md' }}
                         lineHeight={1.45}
-                        maxW="56ch"
+                        maxW="60ch"
                     >
-                        USDC poker on Base. Hosted by players, settled onchain
-                        in under 5 seconds.
+                        USDC poker on Base. Cash tables and tournaments, hosted
+                        by players and settled onchain in under 5 seconds.
                     </Text>
                 </VStack>
                 <Button
@@ -47,7 +47,7 @@ export default function PublicGamesHero() {
                     w={{ base: 'full', md: 'auto' }}
                     flexShrink={0}
                 >
-                    Host a Table
+                    Host a table
                 </Button>
             </Flex>
         </VStack>

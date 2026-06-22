@@ -3,7 +3,7 @@
 import { Box, Flex, Text, type ResponsiveValue } from '@chakra-ui/react';
 import { blo } from 'blo';
 import React, { useEffect, useMemo, useState } from 'react';
-import { getColorForUsername } from '@/app/utils/chatColors';
+import { avatarColorForName } from '@/app/utils/avatarColors';
 
 type PlayerAvatarProps = {
     profileImageUrl?: string | null;
@@ -76,20 +76,20 @@ function PlayerAvatar({
         );
     }
 
-    const color = getColorForUsername(username);
+    const { bg, fg } = avatarColorForName(username);
     return (
         <Flex
             width="100%"
             height="100%"
             borderRadius="4px"
-            bg={`${color}40`}
+            bg={bg}
             alignItems="center"
             justifyContent="center"
         >
             <Text
                 fontSize={initialsFontSize}
                 fontWeight="bold"
-                color={color}
+                color={fg}
                 lineHeight="1"
                 userSelect="none"
                 sx={initialsSx}

@@ -20,7 +20,12 @@ import FormatTabs, {
     type GameFormat,
 } from '../components/PublicGames/FormatTabs';
 import TournamentsList from '../components/PublicGames/TournamentsList';
-import { getPublicGames, listTournaments } from '../hooks/server_actions';
+import TournamentHeroBand from '../components/PublicGames/TournamentHeroBand';
+import {
+    getPublicGames,
+    listTournaments,
+    type Tournament,
+} from '../hooks/server_actions';
 import type {
     PublicGame,
     FilterValue,
@@ -48,6 +53,7 @@ const PublicPageInner = () => {
         key: 'seats',
         direction: 'desc',
     });
+    const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [tournamentCount, setTournamentCount] = useState<number | undefined>(
         undefined
     );
@@ -114,19 +120,22 @@ const PublicPageInner = () => {
         };
     }, [filter, sortByParam, sortConfig.direction, reloadNonce]);
 
-    // Count of open + live tournaments, for the Tournaments tab badge.
+    // One tournaments fetch feeds both the tab badge count and the hero band —
+    // no second request, no count drift between the two surfaces.
     useEffect(() => {
         let cancelled = false;
         listTournaments()
             .then((data) => {
                 if (cancelled) return;
-                const open = (data?.tournaments ?? []).filter(
+                const list = data?.tournaments ?? [];
+                setTournaments(list);
+                const open = list.filter(
                     (t) => t.status !== 'completed' && t.status !== 'cancelled'
                 ).length;
                 setTournamentCount(open);
             })
             .catch(() => {
-                /* leave the badge hidden on failure */
+                /* leave the badge hidden + band empty on failure */
             });
         return () => {
             cancelled = true;
@@ -228,8 +237,18 @@ const PublicPageInner = () => {
                         />
 
                         {format === 'cash' ? (
-                            // One elevated panel: the filter rail docks onto its lip
-                            // and stays put while the body swaps loading/empty/rows.
+                          <>
+                            {/* The growth bet, surfaced on the default view. Hides
+                                itself when nothing is fillable. */}
+                            <TournamentHeroBand
+                                tournaments={tournaments}
+                                onSeeAll={() =>
+                                    handleFormatChange('tournaments')
+                                }
+                            />
+
+                            {/* One elevated panel: the filter rail docks onto its lip
+                                and stays put while the body swaps loading/empty/rows. */}
                             <Box
                                 role="tabpanel"
                                 id="format-panel-cash"
@@ -293,6 +312,7 @@ const PublicPageInner = () => {
                                     )}
                                 </Box>
                             </Box>
+                          </>
                         ) : (
                             <Box
                                 role="tabpanel"

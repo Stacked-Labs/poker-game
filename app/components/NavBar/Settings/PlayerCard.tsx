@@ -7,6 +7,7 @@ import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { useContext } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { shortenAddress } from '@/app/utils/address';
+import { buildExplorerUrls } from '@/app/hooks/useExplorerUrl';
 import ExternalLink from '@/app/components/ExternalLink';
 import PlayerAvatar from '@/app/components/PlayerAvatar';
 
@@ -36,6 +37,12 @@ const PlayerCard = ({
     const { appState } = useContext(AppContext);
     const { format, mode } = useFormatAmount();
     const isCrypto = Boolean(appState.game?.config?.crypto);
+    // Tournament tables are built non-crypto on the server, so `config.crypto` is
+    // false even for paid tournaments. Without this fallback the wallet identity is
+    // never shown and we render the raw session UUID instead (issue #570).
+    const isTournament = Boolean(appState.game?.config?.tournament);
+    const showWalletIdentity = isCrypto || isTournament;
+    const chain = appState.game?.config?.chain;
     const isXVerified = player.username?.startsWith('@');
     const formattedBuyIn = mode === 'chips'
         ? `${format(player.buyIn)} chips`
@@ -46,8 +53,8 @@ const PlayerCard = ({
     const truncatedAddress = player.address
         ? shortenAddress(player.address)
         : null;
-    const baseScanUrl = player.address
-        ? `https://sepolia.basescan.org/address/${player.address}`
+    const explorerUrl = player.address
+        ? buildExplorerUrls(chain).address(player.address)
         : null;
     const xProfileUrl = isXVerified
         ? `https://x.com/${player.username?.replace(/^@/, '')}`
@@ -186,19 +193,33 @@ const PlayerCard = ({
                     alignItems="center"
                 >
                     {/* ID / address */}
-                    {isCrypto && truncatedAddress && baseScanUrl ? (
-                        <ExternalLink
-                            href={baseScanUrl}
-                            iconSize="9px"
-                            bg="card.lightGray"
-                            px={2}
-                            py={0.5}
-                            borderRadius="6px"
-                            fontSize="2xs"
-                            fontWeight="medium"
-                        >
-                            {truncatedAddress}
-                        </ExternalLink>
+                    {showWalletIdentity && truncatedAddress ? (
+                        explorerUrl ? (
+                            <ExternalLink
+                                href={explorerUrl}
+                                iconSize="9px"
+                                bg="card.lightGray"
+                                px={2}
+                                py={0.5}
+                                borderRadius="6px"
+                                fontSize="2xs"
+                                fontWeight="medium"
+                            >
+                                {truncatedAddress}
+                            </ExternalLink>
+                        ) : (
+                            <Badge
+                                bg="card.lightGray"
+                                color="text.secondary"
+                                px={2}
+                                py={0.5}
+                                borderRadius="6px"
+                                fontSize="2xs"
+                                fontWeight="medium"
+                            >
+                                {truncatedAddress}
+                            </Badge>
+                        )
                     ) : (
                         <Badge
                             bg="card.lightGray"

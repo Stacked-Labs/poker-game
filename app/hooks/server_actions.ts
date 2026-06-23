@@ -1385,6 +1385,43 @@ export async function addToSBTWhitelist(
     }
 }
 
+// ── Waitlist announcements (admin) ──────────────────────────────────────────
+
+// Returns the number of non-suppressed waitlist subscribers — i.e. the real
+// recipient count for a "send to all" blast.
+export async function getWaitlistCount(): Promise<number> {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/waitlist`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Waitlist count fetch failed: ${response.statusText}`);
+    const data = await response.json();
+    return typeof data.total_count === 'number' ? data.total_count : 0;
+}
+
+// Sends a pre-rendered HTML announcement to the waitlist. Pass `testEmail` to
+// deliver a single preview to that address; omit it to blast every subscriber.
+// The backend injects the per-recipient unsubscribe link + CAN-SPAM footer.
+export async function sendWaitlistAnnounce(payload: {
+    subject: string;
+    html: string;
+    testEmail?: string;
+}): Promise<{ success: boolean; sent: number; total?: number; test?: boolean }> {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/waitlist/announce`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data.error ?? `Announce failed: ${response.statusText}`);
+    }
+    return data;
+}
+
 export async function fetchTableLedger(tableName: string) {
     isBackendUrlValid();
 

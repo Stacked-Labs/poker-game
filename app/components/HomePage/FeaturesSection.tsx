@@ -31,7 +31,7 @@ const STEPS: Step[] = [
     {
         n: 1,
         title: 'Jump in instantly',
-        body: 'Sign in with Google, Discord, or your wallet — or play free as a guest. No signup.',
+        body: 'Sign in with Google, Discord, or your wallet. Or play free as a guest. No signup.',
         color: 'brand.green',
         colorHover: 'brand.greenDark',
         rotate: '-3deg',
@@ -49,7 +49,7 @@ const STEPS: Step[] = [
     {
         n: 3,
         title: 'Share and play',
-        body: 'Drop the link in your group chat — friends join on any browser, no app to download.',
+        body: 'Drop the link in your group chat. Friends join on any browser, no app to download.',
         color: 'brand.pink',
         colorHover: 'brand.pinkDark',
         rotate: '-2deg',

@@ -836,6 +836,7 @@ const components = {
                 border: 'none',
                 outline: 'none',
                 boxShadow: 'none',
+                borderRadius: 'md',
                 transition:
                     'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), color 120ms ease, background-color 120ms ease',
                 _hover: {
@@ -845,11 +846,18 @@ const components = {
                     outline: 'none',
                     boxShadow: 'none',
                 },
+                // Mouse focus stays ring-less; keyboard focus must be visible
+                // (WCAG 2.4.7). _focusVisible is declared after _focus so its
+                // :focus-visible rule wins source-order when both match.
                 _focus: {
                     border: 'none',
                     outline: 'none',
                     boxShadow: 'none',
                     bg: 'none',
+                },
+                _focusVisible: {
+                    outline: 'none',
+                    boxShadow: 'focus.ring',
                 },
                 _active: {
                     color: 'brand.pinkDark',

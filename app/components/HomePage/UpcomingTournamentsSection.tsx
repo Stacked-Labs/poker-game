@@ -95,13 +95,26 @@ const dotPulse = keyframes`
     50%      { box-shadow: 0 0 0 4px rgba(54, 163, 123, 0); }
 `;
 
-const UpcomingTournamentsSection = () => {
+interface UpcomingTournamentsSectionProps {
+    // Server-fetched list for SSR / first paint, so crawlers and social unfurls
+    // see real tournament cards instead of a client-only skeleton. The client
+    // still refreshes and personalizes after mount. `null` means the server
+    // fetch timed out or failed (distinct from an empty list): seed no cards and
+    // let the client refetch, falling back to the skeleton meanwhile.
+    initialTournaments?: Tournament[] | null;
+}
+
+const UpcomingTournamentsSection = ({
+    initialTournaments,
+}: UpcomingTournamentsSectionProps) => {
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
     const account = useActiveAccount();
     const myWallet = account?.address;
     const { isSignedIn } = useSignInPrompt();
-    const [tournaments, setTournaments] = useState<Tournament[] | null>(null);
+    const [tournaments, setTournaments] = useState<Tournament[] | null>(() =>
+        initialTournaments ? selectTournaments(initialTournaments) : null
+    );
     const [errored, setErrored] = useState(false);
     const [registeredIds, setRegisteredIds] = useState<Set<number>>(new Set());
     const [finishPos, setFinishPos] = useState<Record<number, number>>({});
@@ -114,12 +127,16 @@ const UpcomingTournamentsSection = () => {
                 setTournaments(selectTournaments(data?.tournaments ?? []));
             })
             .catch(() => {
-                if (!cancelled) setErrored(true);
+                // A failed client refresh must not wipe SSR-rendered cards —
+                // only fall back to the empty/host prompt if we never had data.
+                if (!cancelled && initialTournaments == null) setErrored(true);
             });
         return () => {
             cancelled = true;
         };
-    }, []);
+        // initialTournaments is SSR-stable (passed once), so this effectively
+        // runs once on mount and refreshes the server-rendered list.
+    }, [initialTournaments]);
 
     // Mirror the tournaments lobby: surface the signed-in player's own
     // registration / finish state on each card. Only fetch once a wallet is
@@ -174,7 +191,7 @@ const UpcomingTournamentsSection = () => {
         <Box
             as="section"
             id="upcoming-tournaments"
-            py={{ base: 16, md: 24 }}
+            py={{ base: 8, md: 14 }}
             width="100%"
             position="relative"
         >
@@ -185,7 +202,7 @@ const UpcomingTournamentsSection = () => {
                         justify="space-between"
                         align={{ base: 'start', md: 'end' }}
                         gap={4}
-                        mb={{ base: 8, md: 10 }}
+                        mb={{ base: 5, md: 10 }}
                     >
                         <VStack align="start" spacing={3}>
                             <HStack
@@ -335,7 +352,7 @@ function EmptyState() {
                     color="text.primary"
                     letterSpacing="-0.02em"
                 >
-                    No tournaments on the clock — yet.
+                    No tournaments on the clock yet.
                 </Heading>
                 <Text
                     fontSize={{ base: 'sm', md: 'md' }}

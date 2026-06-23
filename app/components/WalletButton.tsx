@@ -21,7 +21,7 @@ interface WalletButtonProps {
     height?: string;
     className?: string;
     label?: string;
-    variant?: 'default' | 'link' | 'hero';
+    variant?: 'default' | 'link' | 'hero' | 'cta';
     /** When set, ConnectButton will prompt "Switch Network" if the wallet is on a different chain. */
     chain?: Chain;
 }
@@ -111,6 +111,29 @@ const WalletButton: React.FC<WalletButtonProps> = ({
                   ...(height && { height, minHeight: height }),
               }
             : undefined;
+
+    // Eye-catching "Sign In" CTA: mirrors the site's primary `tactilePrimary`
+    // button (solid brand green, white label, the same raised tactile shadow) so
+    // signing in is the loudest action in the navbar. Only the logged-out connect
+    // button gets this treatment; once connected, the details/balance chip falls
+    // back to the neutral default below so it doesn't shout an already-done action.
+    const ctaConnectStyle: React.CSSProperties = {
+        background: theme.colors.brand.green,
+        border: 'none',
+        borderRadius: '12px',
+        color: 'white',
+        fontSize: '15px',
+        fontWeight: 700,
+        letterSpacing: '0.02em',
+        height: height ?? '48px',
+        minHeight: height ?? '48px',
+        paddingInline: '20px',
+        width: width ?? 'auto',
+        minWidth: 'unset',
+        lineHeight: 1,
+        whiteSpace: 'nowrap',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #22674E',
+    };
 
     const heroDetailsStyle: React.CSSProperties | null =
         variant === 'hero'
@@ -203,16 +226,19 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             connectButton={{
                 label: label,
                 className: className,
-                style: {
-                    ...defaultButtonStyle,
-                    ...sizeOverrideStyle,
-                    borderRadius:
-                        variant === 'link'
-                            ? '0'
-                            : variant === 'hero'
-                              ? '16px'
-                              : theme.radii.md,
-                },
+                style:
+                    variant === 'cta'
+                        ? ctaConnectStyle
+                        : {
+                              ...defaultButtonStyle,
+                              ...sizeOverrideStyle,
+                              borderRadius:
+                                  variant === 'link'
+                                      ? '0'
+                                      : variant === 'hero'
+                                        ? '16px'
+                                        : theme.radii.md,
+                          },
             }}
             connectModal={{
                 showThirdwebBranding: false,

@@ -109,7 +109,7 @@ const HostToEarnSection = () => {
                         opacity={0.85}
                     >
                         Anyone can host. Run a table and keep a quarter of the
-                        4% platform fee — about 1% of every pot, credited per
+                        4% platform fee, about 1% of every pot, credited per
                         hand.
                     </Text>
                 </MotionVStack>

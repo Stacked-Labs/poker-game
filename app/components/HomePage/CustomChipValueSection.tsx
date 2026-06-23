@@ -154,7 +154,7 @@ const CustomChipValueSection = () => {
                         lineHeight="tall"
                         pt={{ base: 0, md: 3 }}
                     >
-                        No volatility — a 100-chip stack is $1.00 at buy-in, at
+                        No volatility. A 100-chip stack is $1.00 at buy-in, at
                         showdown, at cashout.
                     </Text>
 

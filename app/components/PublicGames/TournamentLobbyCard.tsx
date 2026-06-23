@@ -766,7 +766,10 @@ function LateRegNotice({ closeIso }: { closeIso: string }) {
 
     let label: string;
     if (!countdown.ready) {
-        label = `Late registration closes ${formatTournamentStart(closeIso)}`;
+        // Pre-mount placeholder: the localized close time would differ between
+        // the server (UTC) and the visitor's browser, so show a timezone-free
+        // line until the countdown takes over a frame later.
+        label = 'Late registration open';
     } else if (countdown.isPast) {
         label = 'Late registration closing now';
     } else {
@@ -798,21 +801,29 @@ function Timing({
 }) {
     const countdown = useCountdown(startIso);
 
+    // formatTournamentStart() is timezone/locale-dependent, so it must only run
+    // after mount — otherwise the SSR string (server timezone) and the first
+    // client render (browser timezone) disagree and React reports a hydration
+    // mismatch. Pre-mount we show timezone-free placeholders; the live countdown
+    // and absolute dates fill in a frame later.
     let label: string;
     if (showCountdown) {
         label = countdown.ready
             ? countdown.isPast
                 ? 'Starting now'
                 : `Starts in ${countdown.label}`
-            : `Starts ${formatTournamentStart(startIso)}`;
+            : 'Starting soon';
     } else if (status === 'running') {
         label = 'In progress';
     } else if (status === 'completed') {
-        label = endIso ? `Ended ${formatTournamentStart(endIso)}` : 'Completed';
+        label =
+            countdown.mounted && endIso
+                ? `Ended ${formatTournamentStart(endIso)}`
+                : 'Completed';
     } else if (status === 'cancelled') {
         label = 'Cancelled';
     } else {
-        label = formatTournamentStart(startIso);
+        label = countdown.mounted ? formatTournamentStart(startIso) : 'Scheduled';
     }
 
     return (

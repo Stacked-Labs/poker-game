@@ -15,11 +15,13 @@ import {
     PopoverBody,
     PopoverContent,
     PopoverTrigger,
+    Stack,
     Text,
     useBreakpointValue,
     VStack,
 } from '@chakra-ui/react';
 import { MdClose } from 'react-icons/md';
+import { RiVipCrownLine } from 'react-icons/ri';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     selectEligibleReminders,
@@ -103,14 +105,14 @@ export default function TournamentReminderBanner() {
             borderColor="reminder.border"
             boxShadow="card.lift"
             px={{ base: 3, md: 5 }}
-            py={{ base: 2.5, md: 3 }}
+            py={{ base: 2, md: 2 }}
             role="region"
             aria-label="Tournament reminder"
         >
             <Flex
                 direction={{ base: 'column', md: 'row' }}
                 align={{ base: 'stretch', md: 'center' }}
-                gap={{ base: 2.5, md: 5 }}
+                gap={{ base: 2, md: 5 }}
                 maxW="container.xl"
                 mx="auto"
             >
@@ -123,24 +125,41 @@ export default function TournamentReminderBanner() {
                     minW={0}
                     flex={{ md: '1 1 auto' }}
                 >
-                    <VStack spacing={1.5} align="start" minW={0}>
-                        <Text
-                            fontSize={{ base: 'sm', md: 'md' }}
-                            fontWeight="extrabold"
-                            color="text.primary"
-                            lineHeight={1.1}
-                            letterSpacing="-0.01em"
-                            noOfLines={1}
-                            wordBreak="break-word"
-                        >
-                            {mostUrgent.name}
-                        </Text>
+                    {/* Inline on desktop (name · chip on one row — half the
+                        height); stacked on mobile so long names don't crush the
+                        chip. */}
+                    <Stack
+                        direction={{ base: 'column', md: 'row' }}
+                        spacing={{ base: 1.5, md: 3 }}
+                        align={{ base: 'start', md: 'center' }}
+                        minW={0}
+                    >
+                        <HStack spacing={2} align="center" minW={0}>
+                            <Icon
+                                as={RiVipCrownLine}
+                                boxSize="18px"
+                                color="text.secondary"
+                                flexShrink={0}
+                                aria-hidden
+                            />
+                            <Text
+                                fontSize={{ base: 'sm', md: 'md' }}
+                                fontWeight="extrabold"
+                                color="text.primary"
+                                lineHeight={1.1}
+                                letterSpacing="-0.01em"
+                                noOfLines={1}
+                                wordBreak="break-word"
+                            >
+                                {mostUrgent.name}
+                            </Text>
+                        </HStack>
                         <TournamentCountdownDisplay
                             scheduledStartAt={mostUrgent.scheduledStartAt}
                             lateRegCloseAt={mostUrgent.lateRegCloseAt}
                             size="md"
                         />
-                    </VStack>
+                    </Stack>
 
                     <IconButton
                         variant="tactileGhost"

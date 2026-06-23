@@ -151,7 +151,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
             alignItems="center"
             height="100%"
             width="100%"
-            pt={{ base: '110px', md: '130px', lg: 0 }}
+            pt={{ base: '88px', md: '130px', lg: 0 }}
             pb={{ base: '40px', lg: 0 }}
             px={{ base: 3, md: 4 }}
         >
@@ -186,6 +186,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                 opacity={0.06}
                 transform="translate(30%, 20%)"
                 zIndex={0}
+                display={{ base: 'none', md: 'block' }}
             />
 
             {/* Tertiary chip-yellow wash for depth */}
@@ -203,6 +204,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                 opacity={0.04}
                 transform="translate(-40%, 30%)"
                 zIndex={0}
+                display={{ base: 'none', md: 'block' }}
             />
 
             {/* Main Card Container */}
@@ -235,7 +237,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                     width="100%"
                     className="home-card-content"
                     alignItems="center"
-                    py={{ base: 5, md: 7, lg: 8 }}
+                    py={{ base: 4, md: 7, lg: 8 }}
                     px={{ base: 5, sm: 8, md: 10, lg: 12 }}
                     position="relative"
                     zIndex={1}
@@ -354,8 +356,8 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                 lineHeight={1.55}
                                 fontWeight="medium"
                             >
-                                Real USDC, settled straight to your wallet on
-                                Base.
+                                Real-money Texas Hold&apos;em with friends. Buy
+                                in with USDC, cash out anytime.
                             </Text>
                         </VStack>
                     </MotionBox>
@@ -365,7 +367,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                         <MotionStack
                             gap={{ base: 2, md: 2.5 }}
                             width="100%"
-                            maxW={{ base: '100%', sm: '320px' }}
+                            maxW={{ base: '100%', sm: '360px' }}
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{
@@ -396,7 +398,8 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                             variant="tactilePrimary"
                                             height="48px"
                                             width="100%"
-                                            fontSize={{ base: 'md', md: 'lg' }}
+                                            fontSize={{ base: 'md', md: 'xl' }}
+                                            letterSpacing="0.02em"
                                             onClick={handlePlayNow}
                                         >
                                             PLAY NOW
@@ -546,6 +549,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                         spacing={3}
                         width="100%"
                         maxW={{ base: '100%', sm: '320px' }}
+                        mt={{ base: 4, md: 6 }}
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards`}
                     >
                         {isSubscribed ? (
@@ -609,7 +613,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                     transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                     pl={4}
                                     pr="5px"
-                                    height="46px"
+                                    height="42px"
                                     align="center"
                                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.04)"
                                     _focusWithin={{
@@ -667,8 +671,10 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                         )}
                     </VStack>
 
-                    {/* Social Links */}
+                    {/* Social Links — footer already carries these, so hide
+                        on mobile to keep the hero card short. */}
                     <MotionBox
+                        display={{ base: 'none', md: 'block' }}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{

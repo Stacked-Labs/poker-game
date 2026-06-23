@@ -29,14 +29,6 @@ const rows = [
         old: 'Trust the operator with your bankroll.',
         stacked: 'Smart contract holds the chips.',
     },
-    {
-        old: 'Volatile token of the week.',
-        stacked: 'USDC. Always $1.',
-    },
-    {
-        old: 'Download an app from 2018.',
-        stacked: 'Open a link. Any device.',
-    }
 ];
 
 const ComparisonSection = () => {
@@ -61,14 +53,14 @@ const ComparisonSection = () => {
     return (
         <Box
             as="section"
-            py={{ base: 10, md: 14 }}
+            py={{ base: 6, md: 14 }}
             width="100%"
             position="relative"
         >
             <Container maxW="container.lg" position="relative" zIndex={1}>
-                <MotionBox {...fadeUp(0)} mb={{ base: 10, md: 14 }} textAlign="center">
+                <MotionBox {...fadeUp(0)} mb={{ base: 5, md: 14 }} textAlign="center">
                     <Heading
-                        fontSize={{ base: '3xl', md: '5xl' }}
+                        fontSize={{ base: '2xl', md: '5xl' }}
                         fontWeight="extrabold"
                         letterSpacing="-0.03em"
                         color="text.primary"
@@ -121,7 +113,7 @@ const ComparisonSection = () => {
                     </Grid>
                 </MotionBox>
 
-                <VStack spacing={3} align="stretch">
+                <VStack spacing={{ base: 2, md: 3 }} align="stretch">
                     {rows.map((row, i) => (
                         <MotionBox key={i} {...fadeUp(0.12 + i * 0.06)}>
                             <Grid
@@ -136,7 +128,7 @@ const ComparisonSection = () => {
                                 <GridItem
                                     bg="rgba(235, 11, 92, 0.03)"
                                     px={5}
-                                    py={4}
+                                    py={{ base: 3, md: 4 }}
                                     borderRight={{ base: 'none', md: '1px solid' }}
                                     borderBottom={{ base: '1px solid', md: 'none' }}
                                     borderColor="border.lightGray"
@@ -184,7 +176,7 @@ const ComparisonSection = () => {
                                 <GridItem
                                     bg="rgba(54, 163, 123, 0.04)"
                                     px={5}
-                                    py={4}
+                                    py={{ base: 3, md: 4 }}
                                 >
                                     <Text
                                         display={{ base: 'block', md: 'none' }}

@@ -4,10 +4,10 @@ import CommunitySection from './components/HomePage/CommunitySection';
 import FeaturesSection from './components/HomePage/FeaturesSection';
 import HostToEarnSection from './components/HomePage/HostToEarnSection';
 import UpcomingTournamentsSection from './components/HomePage/UpcomingTournamentsSection';
-import NewsletterSection from './components/HomePage/NewsletterSection';
 import YourTableVaultSection from './components/HomePage/YourTableVaultSection';
 import CustomChipValueSection from './components/HomePage/CustomChipValueSection';
 import FAQSection from './components/HomePage/FAQSection';
+import FinalCtaSection from './components/HomePage/FinalCtaSection';
 import ComparisonSection from './components/HomePage/ComparisonSection';
 import Footer from './components/HomePage/Footer';
 import FloatingDecor from './components/HomePage/FloatingDecor';
@@ -80,13 +80,13 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
                         <Box position="relative" zIndex={1}>
                             <UpcomingTournamentsSection />
                             <CommunitySection />
-                            <ComparisonSection />
                             <FeaturesSection isBroadcast={isBroadcast} />
+                            <ComparisonSection />
                             <HostToEarnSection />
                             <CustomChipValueSection />
                             <YourTableVaultSection />
                             <FAQSection />
-                            <NewsletterSection />
+                            <FinalCtaSection />
                             <Footer />
                         </Box>
                     </Box>

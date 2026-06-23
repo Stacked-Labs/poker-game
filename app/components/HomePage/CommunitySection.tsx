@@ -94,6 +94,10 @@ const CommunitySection = () => {
             py={{ base: 10, md: 14 }}
             width="100%"
             position="relative"
+            // Desktop-only: on mobile/tablet this section's beats are owned
+            // elsewhere (Features = how-to-play, Vault = the 24h self-withdraw
+            // trust row), so it would only repeat them on a small screen.
+            display={{ base: 'none', lg: 'block' }}
         >
             {/* Big spade watermark — section signature */}
             <Box

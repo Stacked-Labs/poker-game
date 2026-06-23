@@ -3,6 +3,7 @@
 import {
     Badge,
     Box,
+    Button,
     Container,
     Heading,
     HStack,
@@ -15,6 +16,7 @@ import {
     useBreakpointValue,
     VStack,
 } from '@chakra-ui/react';
+import Link from 'next/link';
 import { MdArrowUpward, MdLockOpen, MdRocketLaunch } from 'react-icons/md';
 import { FaCoins } from 'react-icons/fa';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -47,7 +49,7 @@ const HostToEarnSection = () => {
         <Box
             as="section"
             id="host-to-earn"
-            py={{ base: 10, md: 14 }}
+            py={{ base: 6, md: 14 }}
             width="100%"
             position="relative"
         >
@@ -74,7 +76,7 @@ const HostToEarnSection = () => {
                 <MotionVStack
                     spacing={5}
                     textAlign="center"
-                    mb={{ base: 10, md: 12 }}
+                    mb={{ base: 5, md: 12 }}
                     {...getFadeUpMotion(0)}
                 >
                     {/* Wordmark — typographic only, no pill, no rotation */}
@@ -106,18 +108,17 @@ const HostToEarnSection = () => {
                         lineHeight="tall"
                         opacity={0.85}
                     >
-                        Anyone can host. On every real-money hand at a table
-                        you run, you keep a quarter of the 4% platform fee,
-                        about 1% of every pot, credited onchain, hand by hand.
-                        Run a public game, earn while the room plays.
+                        Anyone can host. Run a table and keep a quarter of the
+                        4% platform fee — about 1% of every pot, credited per
+                        hand.
                     </Text>
                 </MotionVStack>
 
-                <VStack spacing={{ base: 20, md: 28 }} align="stretch">
+                <VStack spacing={{ base: 10, md: 28 }} align="stretch">
                     {/* Row 1: Earnings card LEFT, pitch RIGHT */}
                     <SimpleGrid
                         columns={{ base: 1, lg: 2 }}
-                        spacing={{ base: 12, lg: 24 }}
+                        spacing={{ base: 8, lg: 24 }}
                         alignItems="center"
                     >
                         <MotionBox {...getFadeUpMotion(0.1)}>
@@ -127,6 +128,7 @@ const HostToEarnSection = () => {
                         <MotionVStack
                             align="start"
                             spacing={6}
+                            display={{ base: 'none', lg: 'flex' }}
                             {...getFadeUpMotion(0.2)}
                         >
                             <Badge
@@ -254,7 +256,7 @@ const HostToEarnSection = () => {
                     {/* Row 2: pitch LEFT, setup card RIGHT */}
                     <SimpleGrid
                         columns={{ base: 1, lg: 2 }}
-                        spacing={{ base: 12, lg: 24 }}
+                        spacing={{ base: 8, lg: 24 }}
                         alignItems="center"
                     >
                         <MotionVStack
@@ -330,6 +332,7 @@ const HostToEarnSection = () => {
                                 border="1px solid"
                                 borderColor="border.yellowSubtle"
                                 position="relative"
+                                display={{ base: 'none', lg: 'block' }}
                             >
                                 <VStack align="start" spacing={3}>
                                     <HStack spacing={2.5} align="center">
@@ -363,11 +366,35 @@ const HostToEarnSection = () => {
 
                         <MotionBox
                             order={{ base: 1, lg: 2 }}
+                            display={{ base: 'none', lg: 'block' }}
                             {...getFadeUpMotion(0.1)}
                         >
                             <SetupCard />
                         </MotionBox>
                     </SimpleGrid>
+
+                    <MotionBox
+                        {...getFadeUpMotion(0.1)}
+                        textAlign="center"
+                        pt={{ base: 2, md: 4 }}
+                    >
+                        <Button
+                            as={Link}
+                            href="/create-game"
+                            variant="tactilePrimary"
+                            height={{ base: '52px', md: '56px' }}
+                            px={8}
+                            fontSize={{ base: 'md', md: 'lg' }}
+                            leftIcon={
+                                <Icon as={MdRocketLaunch} boxSize="20px" />
+                            }
+                        >
+                            Host a table
+                        </Button>
+                        <Text mt={3} fontSize="sm" color="text.muted">
+                            Free to deploy. Earn from the first hand.
+                        </Text>
+                    </MotionBox>
                 </VStack>
             </Container>
         </Box>
@@ -483,7 +510,12 @@ const EarningsCard = () => (
                 <Text color="brand.darkNavy">Withdraw to wallet</Text>
             </HStack>
 
-            <VStack align="stretch" spacing={2} pt={2}>
+            <VStack
+                align="stretch"
+                spacing={2}
+                pt={2}
+                display={{ base: 'none', md: 'flex' }}
+            >
                 <Text
                     fontSize="2xs"
                     color="text.secondary"

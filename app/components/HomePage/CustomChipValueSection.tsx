@@ -52,7 +52,7 @@ const CustomChipValueSection = () => {
         <Box
             as="section"
             id="chip-value"
-            py={{ base: 10, md: 14 }}
+            py={{ base: 6, md: 14 }}
             width="100%"
             position="relative"
         >
@@ -79,7 +79,7 @@ const CustomChipValueSection = () => {
 
             <Container maxW="container.lg" position="relative" zIndex={1}>
                 <MotionVStack
-                    spacing={5}
+                    spacing={{ base: 3, md: 5 }}
                     align={{ base: 'start', md: 'center' }}
                     textAlign={{ base: 'left', md: 'center' }}
                     {...fadeUp(0)}
@@ -141,6 +141,7 @@ const CustomChipValueSection = () => {
                         color="text.secondary"
                         letterSpacing="0.18em"
                         textTransform="uppercase"
+                        display={{ base: 'none', md: 'block' }}
                     >
                         Always.
                     </Text>
@@ -151,14 +152,14 @@ const CustomChipValueSection = () => {
                         fontWeight="medium"
                         maxW="2xl"
                         lineHeight="tall"
-                        pt={3}
+                        pt={{ base: 0, md: 3 }}
                     >
-                        No volatility. No conversion games. A 100-chip stack is
-                        $1.00 at buy-in, at showdown, at withdrawal.
+                        No volatility — a 100-chip stack is $1.00 at buy-in, at
+                        showdown, at cashout.
                     </Text>
 
                     <Box
-                        pt={{ base: 8, md: 12 }}
+                        pt={{ base: 5, md: 12 }}
                         w="100%"
                         maxW="lg"
                         mx={{ base: 0, md: 'auto' }}

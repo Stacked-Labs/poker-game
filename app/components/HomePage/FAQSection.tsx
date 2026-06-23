@@ -57,30 +57,6 @@ const FAQSection = () => {
                 </>
             );
         }
-        if (faq.question === 'Where can I learn more?') {
-            return (
-                <>
-                    You can find our roadmap, game rules, and technical
-                    architecture in our{' '}
-                    <Link
-                        href="https://docs.stackedpoker.io/"
-                        isExternal
-                        textDecoration="none"
-                        fontWeight="semibold"
-                        color="brand.green"
-                        borderBottom="1px solid"
-                        borderColor="brand.green"
-                        _hover={{
-                            color: 'brand.pink',
-                            borderColor: 'brand.pink',
-                        }}
-                    >
-                        documentation
-                    </Link>
-                    .
-                </>
-            );
-        }
         return faq.answer;
     };
 
@@ -88,13 +64,14 @@ const FAQSection = () => {
         <Box
             as="section"
             id="faq"
-            py={{ base: 10, md: 14 }}
+            py={{ base: 8, md: 14 }}
             w="100%"
             position="relative"
         >
-            {/* Big ? watermark — section signature */}
+            {/* Big ? watermark — section signature (desktop only) */}
             <Box
                 aria-hidden="true"
+                display={{ base: 'none', md: 'block' }}
                 position="absolute"
                 bottom={{ base: '-60px', md: '-120px' }}
                 right={{ base: '-30px', md: '-30px', lg: '-10px' }}
@@ -113,7 +90,7 @@ const FAQSection = () => {
             <Container maxW="container.lg" position="relative" zIndex={1}>
                 <MotionVStack
                     align="start"
-                    spacing={{ base: 8, md: 12 }}
+                    spacing={{ base: 5, md: 12 }}
                     {...fadeUp(0)}
                 >
                     <VStack align="start" spacing={3}>
@@ -128,7 +105,7 @@ const FAQSection = () => {
                         </Text>
                         <Heading
                             as="h2"
-                            fontSize={{ base: '4xl', md: '6xl', lg: '7xl' }}
+                            fontSize={{ base: '3xl', md: '6xl', lg: '7xl' }}
                             fontWeight="black"
                             color="text.primary"
                             letterSpacing="-0.03em"
@@ -167,7 +144,7 @@ const FAQSection = () => {
                                                 <h3>
                                                     <AccordionButton
                                                         py={{
-                                                            base: 5,
+                                                            base: 4,
                                                             md: 6,
                                                         }}
                                                         px={0}

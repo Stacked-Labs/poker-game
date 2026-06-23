@@ -59,7 +59,7 @@ function ShuffleProofCard() {
                         letterSpacing="0.22em"
                         textTransform="uppercase"
                     >
-                        Shuffle · Off-chain
+                        Shuffle
                     </Text>
                     <HStack spacing={1.5} align="center">
                         <Box
@@ -149,7 +149,7 @@ function ShuffleProofCard() {
                         textTransform="uppercase"
                         mb={2}
                     >
-                        Shuffle proof
+                        The shuffle
                     </Text>
                     <Text
                         fontSize={{ base: 'lg', md: 'xl' }}
@@ -158,7 +158,7 @@ function ShuffleProofCard() {
                         letterSpacing="-0.01em"
                         mb={2}
                     >
-                        A provably fair, verifiable shuffle.
+                        A fresh shuffle, every hand.
                     </Text>
                     <Text
                         color="text.secondary"
@@ -166,18 +166,14 @@ function ShuffleProofCard() {
                         fontWeight="medium"
                         lineHeight="tall"
                     >
-                        Every deck is reseeded from hardware-grade randomness,
-                        the same kind that secures your wallet. No predictable
-                        seeds, no insider math.
+                        Every hand draws a brand-new deck order from a fresh
+                        random seed. No two hands play out the same.
                     </Text>
                 </Box>
                 <VStack align="stretch" spacing={2.5}>
                     {[
                         { label: 'Unpredictable', sub: 'New order every hand' },
-                        {
-                            label: 'Verifiable',
-                            sub: 'Anyone can check the outcome',
-                        },
+                        { label: 'Fair deal', sub: 'No peeking, no stacking' },
                     ].map((row) => (
                         <HStack key={row.label} spacing={3} align="center">
                             <Box
@@ -309,6 +305,10 @@ function ContractReceipt() {
                             label: 'Settlement',
                             sub: 'Onchain when the hand ends',
                         },
+                        {
+                            label: 'Self-withdraw',
+                            sub: 'Pull your own funds from the table contract after 24h if settlement ever stalls',
+                        },
                     ].map((row) => (
                         <HStack key={row.label} spacing={3} align="center">
                             <Box
@@ -355,7 +355,7 @@ function ContractReceipt() {
             <Box
                 p={{ base: 5, md: 6 }}
                 flex={1}
-                display="flex"
+                display={{ base: 'none', md: 'flex' }}
                 flexDirection="column"
                 gap={{ base: 5, md: 6 }}
             >
@@ -413,14 +413,14 @@ const YourTableVaultSection = () => {
         <Box
             as="section"
             id="under-the-hood"
-            py={{ base: 10, md: 14 }}
+            py={{ base: 8, md: 14 }}
             width="100%"
             position="relative"
         >
             <Container maxW="container.lg" position="relative" zIndex={1}>
                 <MotionVStack
                     align="start"
-                    spacing={{ base: 8, md: 10 }}
+                    spacing={{ base: 6, md: 10 }}
                     {...fadeUp(0)}
                 >
                     <Text
@@ -430,19 +430,19 @@ const YourTableVaultSection = () => {
                         letterSpacing="0.22em"
                         textTransform="uppercase"
                     >
-                        Under the hood
+                        Your money, onchain
                     </Text>
 
                     <Heading
                         as="h2"
-                        fontSize={{ base: '4xl', md: '6xl', lg: '7xl' }}
+                        fontSize={{ base: '3xl', md: '6xl', lg: '7xl' }}
                         fontWeight="black"
                         color="text.primary"
                         letterSpacing="-0.03em"
                         lineHeight={0.95}
                         maxW="4xl"
                     >
-                        Engine deals. Contract pays.
+                        We deal. The contract pays.
                     </Heading>
 
                     <Text
@@ -452,17 +452,16 @@ const YourTableVaultSection = () => {
                         maxW="2xl"
                         fontWeight="medium"
                     >
-                        Speed where it matters. Trust where it counts. The game
-                        runs in real time on our engine. Every dollar lives in
-                        a smart contract on Base. We deal the cards. The
-                        contract holds the cash.
+                        We run the table. A smart contract on Base holds the cash
+                        and pays the winner.
                     </Text>
 
-                    {/* Engine / Contract split */}
+                    {/* Engine / Contract split — desktop only; on mobile the
+                        ContractReceipt panel below carries the custody story. */}
                     <Box
                         w="100%"
                         pt={{ base: 4, md: 6 }}
-                        display="grid"
+                        display={{ base: 'none', md: 'grid' }}
                         gridTemplateColumns={{
                             base: '1fr',
                             md: '1fr auto 1fr',
@@ -495,16 +494,7 @@ const YourTableVaultSection = () => {
                                     letterSpacing="0.22em"
                                     textTransform="uppercase"
                                 >
-                                    Engine · Off-chain
-                                </Text>
-                                <Text
-                                    fontFamily="mono"
-                                    fontSize="2xs"
-                                    color="brand.navy"
-                                    _dark={{ color: 'rgba(180, 195, 235, 0.7)' }}
-                                    opacity={0.7}
-                                >
-                                    {'// off-chain'}
+                                    The game
                                 </Text>
                             </HStack>
                             <Text
@@ -522,7 +512,7 @@ const YourTableVaultSection = () => {
                                 fontWeight="medium"
                                 lineHeight="tall"
                             >
-                                Shuffle, deal, pot math. Real-time.
+                                Cards, betting, and pots, in real time.
                             </Text>
                         </Box>
 
@@ -544,7 +534,7 @@ const YourTableVaultSection = () => {
                                 mb={2}
                                 whiteSpace="nowrap"
                             >
-                                state →
+                                settles →
                             </Text>
                             <Box w="80px" h="1px" bg="border.lightGray" />
                         </Box>
@@ -562,7 +552,7 @@ const YourTableVaultSection = () => {
                                 textTransform="uppercase"
                                 mb={1}
                             >
-                                state ↓
+                                settles ↓
                             </Text>
                             <Box w="1px" h="28px" bg="border.lightGray" />
                         </Box>
@@ -587,14 +577,6 @@ const YourTableVaultSection = () => {
                                     textTransform="uppercase"
                                 >
                                     Contract · Base
-                                </Text>
-                                <Text
-                                    fontFamily="mono"
-                                    fontSize="2xs"
-                                    color="brand.green"
-                                    opacity={0.7}
-                                >
-                                    {'// onchain'}
                                 </Text>
                             </HStack>
                             <Text
@@ -622,9 +604,13 @@ const YourTableVaultSection = () => {
                         columns={{ base: 1, md: 2 }}
                         spacing={{ base: 5, md: 6 }}
                         w="100%"
-                        pt={{ base: 4, md: 6 }}
+                        pt={{ base: 0, md: 6 }}
                     >
-                        <ShuffleProofCard />
+                        {/* Shuffle/fairness card is a desktop flourish; mobile
+                            leads with the custody receipt (the trust payload). */}
+                        <Box display={{ base: 'none', md: 'block' }}>
+                            <ShuffleProofCard />
+                        </Box>
                         <ContractReceipt />
                     </SimpleGrid>
 
@@ -633,6 +619,7 @@ const YourTableVaultSection = () => {
                         pt={{ base: 6, md: 8 }}
                         borderTop="1px solid"
                         borderColor="border.lightGray"
+                        display={{ base: 'none', md: 'block' }}
                     >
                         <Text
                             fontSize={{ base: 'md', md: 'lg' }}

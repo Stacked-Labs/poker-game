@@ -1,4 +1,8 @@
-import posthog from 'posthog-js';
+import type { PostHog } from 'posthog-js';
+
+// posthog-js (~40KB gzipped) is loaded lazily on init so it stays out of the
+// initial shared chunk. Every export below no-ops until `posthog` is assigned.
+let posthog: PostHog | null = null;
 
 export type AnalyticsEvent =
     | 'wallet_connect_clicked'
@@ -32,6 +36,9 @@ export function getConsent(): ConsentState {
 export function setConsent(value: 'granted' | 'declined') {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(CONSENT_KEY, value);
+    // If posthog hasn't loaded yet, the stored consent is applied in init's
+    // `loaded` callback below.
+    if (!posthog) return;
     if (value === 'granted') {
         posthog.opt_in_capturing();
     } else {
@@ -41,43 +48,53 @@ export function setConsent(value: 'granted' | 'declined') {
 
 let initialized = false;
 
-export function initAnalytics() {
+export async function initAnalytics() {
     if (initialized || typeof window === 'undefined') return;
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     const host =
         process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com';
     if (!key) return;
-
-    posthog.init(key, {
-        api_host: host,
-        capture_pageview: false,
-        capture_pageleave: true,
-        autocapture: true,
-        persistence: 'localStorage+cookie',
-        opt_out_capturing_by_default: true,
-        session_recording: {
-            maskAllInputs: true,
-        },
-        loaded: (ph) => {
-            const consent = getConsent();
-            if (consent === 'granted') ph.opt_in_capturing();
-            if (process.env.NODE_ENV === 'development') ph.debug();
-        },
-    });
-
+    // Set early so a concurrent caller can't trigger a second dynamic import.
     initialized = true;
+
+    try {
+        const { default: ph } = await import('posthog-js');
+        posthog = ph;
+        posthog.init(key, {
+            api_host: host,
+            capture_pageview: false,
+            capture_pageleave: true,
+            autocapture: true,
+            persistence: 'localStorage+cookie',
+            opt_out_capturing_by_default: true,
+            session_recording: {
+                maskAllInputs: true,
+            },
+            loaded: (loaded) => {
+                const consent = getConsent();
+                if (consent === 'granted') loaded.opt_in_capturing();
+                if (process.env.NODE_ENV === 'development') loaded.debug();
+            },
+        });
+    } catch {
+        // Analytics must never break the app. On any failure (chunk load or
+        // init), null the instance so every export stays a no-op, and allow a
+        // future init attempt.
+        posthog = null;
+        initialized = false;
+    }
 }
 
 export function identifyUser(
     walletAddress: string,
     props?: Record<string, unknown>
 ) {
-    if (!initialized) return;
+    if (!posthog) return;
     posthog.identify(walletAddress.toLowerCase(), props);
 }
 
 export function resetUser() {
-    if (!initialized) return;
+    if (!posthog) return;
     posthog.reset();
 }
 
@@ -86,12 +103,12 @@ export function setSuperProps(props: {
     network?: AnalyticsNetwork;
     [k: string]: unknown;
 }) {
-    if (!initialized) return;
+    if (!posthog) return;
     posthog.register(props);
 }
 
 export function track(event: AnalyticsEvent, props?: Record<string, unknown>) {
-    if (!initialized) return;
+    if (!posthog) return;
     posthog.capture(event, props);
 }
 
@@ -100,12 +117,12 @@ export function trackSampled(
     rate: number,
     props?: Record<string, unknown>
 ) {
-    if (!initialized) return;
+    if (!posthog) return;
     if (Math.random() >= rate) return;
     posthog.capture(event, { ...props, sampled_rate: rate });
 }
 
 export function trackPageview(path: string) {
-    if (!initialized) return;
+    if (!posthog) return;
     posthog.capture('$pageview', { $current_url: path });
 }

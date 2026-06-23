@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Container } from '@chakra-ui/react';
 import { useActiveAccount } from 'thirdweb/react';
-import confetti from 'canvas-confetti';
 import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
 import { checkSBTEligibility, claimSBT, getSBTInfo, type SBTInfo } from '@/app/hooks/server_actions';
@@ -12,12 +11,13 @@ import { friendlyMessage } from '@/app/utils/toastErrors';
 import ClaimCard from './components/ClaimCard';
 import { track } from '@/app/utils/analytics';
 
-const fireConfetti = () => {
+const fireConfetti = async () => {
     const reduced =
         typeof window !== 'undefined' &&
         window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (reduced) return;
 
+    const { default: confetti } = await import('canvas-confetti');
     const colors = ['#FDC51D', '#36A37B', '#EB0B5C', '#FFFFFF'];
     const defaults = { startVelocity: 38, spread: 70, ticks: 90, gravity: 0.9, colors };
 

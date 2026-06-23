@@ -229,6 +229,17 @@ export function sendToggleAutoAccept(socket: WebSocket, enabled: boolean) {
     }
 }
 
+export function sendRITVote(socket: WebSocket, vote: boolean) {
+    sendWebSocketMessage(socket, { action: 'rit-vote', vote });
+}
+
+export function sendUpdateRunItTwice(socket: WebSocket, enabled: boolean) {
+    sendWebSocketMessage(socket, {
+        action: 'update-run-it-twice',
+        enabled,
+    });
+}
+
 // Initialize/confirm an HTTP session so cookies are set before subsequent requests
 export async function initSession() {
     isBackendUrlValid();
@@ -322,7 +333,16 @@ export async function authenticateUser(
     return await response.json();
 }
 
-export async function isAuth() {
+// Authoritative session identity from the server. `address` is the wallet the SIWE JWT cookie
+// is bound to — the source of truth for "who am I authenticated as", independent of whatever
+// wallet thirdweb currently has connected. Returns address: null when not authenticated.
+export interface AuthStatus {
+    isAuth: boolean;
+    address: string | null;
+    sessionType: string | null;
+}
+
+export async function getAuthStatus(): Promise<AuthStatus> {
     isBackendUrlValid();
 
     const response = await fetch(`${backendUrl}/isAuth`, {
@@ -339,7 +359,19 @@ export async function isAuth() {
 
     const data = await response.json();
 
-    return data.isAuth;
+    return {
+        isAuth: Boolean(data.isAuth),
+        address:
+            typeof data.address === 'string' && data.address
+                ? data.address
+                : null,
+        sessionType:
+            typeof data.sessionType === 'string' ? data.sessionType : null,
+    };
+}
+
+export async function isAuth() {
+    return (await getAuthStatus()).isAuth;
 }
 
 export async function isTableExisting(table: string) {

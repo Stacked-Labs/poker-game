@@ -3,6 +3,7 @@ import HomeSection from './components/HomePage/HomeSection';
 import CommunitySection from './components/HomePage/CommunitySection';
 import FeaturesSection from './components/HomePage/FeaturesSection';
 import HostToEarnSection from './components/HomePage/HostToEarnSection';
+import UpcomingTournamentsSection from './components/HomePage/UpcomingTournamentsSection';
 import NewsletterSection from './components/HomePage/NewsletterSection';
 import YourTableVaultSection from './components/HomePage/YourTableVaultSection';
 import CustomChipValueSection from './components/HomePage/CustomChipValueSection';
@@ -79,6 +80,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
                     >
                         <FloatingDecor scale="page" />
                         <Box position="relative" zIndex={1}>
+                            <UpcomingTournamentsSection />
                             <CommunitySection />
                             <ComparisonSection />
                             <FeaturesSection isBroadcast={isBroadcast} />

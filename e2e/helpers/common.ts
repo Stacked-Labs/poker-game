@@ -1,18 +1,63 @@
-import type { Page } from '@playwright/test';
+import type { Page, BrowserContext } from '@playwright/test';
 
-/** Dismiss the lobby banner if it appears. */
+/**
+ * Pre-seed the analytics-consent choice so the ConsentBanner never mounts.
+ * The banner is a fixed, bottom-center overlay (zIndex 1200) that otherwise
+ * intercepts clicks on the lower seats. Seeding via an init script is
+ * deterministic — no dismiss race against its mount/exit animation.
+ */
+export async function seedConsentDismissed(context: BrowserContext) {
+    await context.addInitScript(() => {
+        try {
+            window.localStorage.setItem(
+                'stacked_analytics_consent',
+                'declined'
+            );
+        } catch {
+            /* storage unavailable — banner dismissal is best-effort */
+        }
+    });
+}
+
+/**
+ * Dismiss the "Lobby / Waiting for players" modal.
+ *
+ * It opens by default (`defaultIsOpen`) and only auto-closes once a second player
+ * is seated — but it's a centered Chakra modal that overlays the lower seats, so a
+ * joining player can't click their seat until it's gone (a deadlock: they can't
+ * become the 2nd player while it blocks them). It can also mount a beat after
+ * navigation (socket sync), and renders as portrait + landscape instances, so the
+ * old 1200ms single-shot fast-path lost the race intermittently. Wait for it,
+ * close every instance, and confirm the overlay is gone before returning.
+ */
 export async function dismissLobbyBanner(page: Page) {
-    const closeBtn = page.getByTestId('lobby-banner-close').first();
+    const closeBtns = page.getByTestId('lobby-banner-close');
     try {
-        // Fast-path: if the banner does not appear shortly, continue immediately.
-        const visible = await closeBtn.isVisible({ timeout: 1200 });
-        if (!visible) return;
-
-        await closeBtn.click({ timeout: 2000 });
-        // Best effort: don't fail setup if animation/state is slightly delayed.
-        await closeBtn.waitFor({ state: 'hidden', timeout: 2000 });
+        // Wait for it to mount (attached, not visible) — the DOM-first of the
+        // portrait/landscape pair may be the CSS-hidden one, but the click-all +
+        // Escape loop below still clears the visible instance. If it never mounts,
+        // the table isn't in the waiting state — continue.
+        await closeBtns.first().waitFor({ state: 'attached', timeout: 5000 });
     } catch {
-        // Banner never appeared — continue
+        return;
+    }
+    for (let attempt = 0; attempt < 4; attempt++) {
+        const n = await closeBtns.count();
+        for (let i = 0; i < n; i++) {
+            await closeBtns
+                .nth(i)
+                .click({ timeout: 2000 })
+                .catch(() => {});
+        }
+        const gone = await page
+            .locator('.chakra-modal__content-container')
+            .first()
+            .waitFor({ state: 'hidden', timeout: 2000 })
+            .then(() => true)
+            .catch(() => false);
+        if (gone) return;
+        // Fallback: a modal that survived the click responds to Escape.
+        await page.keyboard.press('Escape').catch(() => {});
     }
 }
 
@@ -34,9 +79,7 @@ export async function startGame(owner: Page) {
  * Read data-queue-mode from the first visible fold button.
  * Returns null (acting — no attribute), "true" (queue mode), or "missing" (not found).
  */
-async function getQueueMode(
-    page: Page
-): Promise<null | 'true' | 'missing'> {
+async function getQueueMode(page: Page): Promise<null | 'true' | 'missing'> {
     const fold = page.locator('[data-testid="action-fold"]').first();
     try {
         if (!(await fold.isVisible())) return 'missing';
@@ -69,10 +112,8 @@ export async function getActingPlayer(
         const aIsActing = aQueue === null; // null = attribute absent = my turn
         const bIsActing = bQueue === null;
 
-        if (aIsActing && !bIsActing)
-            return { actor: pageA, opponent: pageB };
-        if (bIsActing && !aIsActing)
-            return { actor: pageB, opponent: pageA };
+        if (aIsActing && !bIsActing) return { actor: pageA, opponent: pageB };
+        if (bIsActing && !aIsActing) return { actor: pageB, opponent: pageA };
 
         // Both acting (state still hydrating) or neither visible yet — retry
         await pageA.waitForTimeout(300);
@@ -92,24 +133,40 @@ export async function clickCheckOrCall(page: Page) {
 }
 
 /**
+ * Owner creates a Free Play game and lands on its table; returns the table URL.
+ * Waits for create-game-btn to mount before clicking and uses a 60s nav budget — a
+ * cold `next dev` compile of /create-game + /table/[id] blows past a 30s window.
+ */
+export async function createFreeGame(owner: Page): Promise<string> {
+    await owner.goto('/create-game');
+    // The page opens with no mode selected; the form (and create-game-btn) only
+    // renders once Free Play or Real Money is picked.
+    await owner.getByRole('radio', { name: 'Free Play' }).click();
+    const createBtn = owner.getByTestId('create-game-btn');
+    await createBtn.waitFor({ state: 'visible', timeout: 60_000 });
+    await createBtn.click();
+    await owner.waitForURL(/\/table\/.+/, { timeout: 60_000 });
+    const tableUrl = owner.url();
+    await dismissLobbyBanner(owner);
+    return tableUrl;
+}
+
+/**
  * Create a free game with two seated players (owner on seat 1, player on seat 2).
  * Returns the pages and contexts for cleanup.
  */
-export async function setupFreeGameTwoPlayers(browser: import('@playwright/test').Browser) {
+export async function setupFreeGameTwoPlayers(
+    browser: import('@playwright/test').Browser
+) {
     const ctxOwner = await browser.newContext();
     const ctxPlayer = await browser.newContext();
+    await seedConsentDismissed(ctxOwner);
+    await seedConsentDismissed(ctxPlayer);
     const owner = await ctxOwner.newPage();
     const player = await ctxPlayer.newPage();
 
     // Owner creates game and sits seat 1
-    await owner.goto('/create-game');
-    // The page now opens with no mode selected; the rest of the form (and
-    // create-game-btn) only renders once Free Play or Real Money is picked.
-    await owner.getByRole('radio', { name: 'Free Play' }).click();
-    await owner.getByTestId('create-game-btn').click();
-    await owner.waitForURL(/\/table\/.+/, { timeout: 30_000 });
-    const tableUrl = owner.url();
-    await dismissLobbyBanner(owner);
+    const tableUrl = await createFreeGame(owner);
 
     await owner.getByTestId('empty-seat-1').waitFor({ timeout: 10_000 });
     await owner.getByTestId('empty-seat-1').click();
@@ -164,9 +221,7 @@ export async function setupCryptoGameTwoPlayers(
         .getByTestId('empty-seat-1')
         .waitFor({ timeout: 10_000 });
     await cryptoPlayerA.getByTestId('empty-seat-1').click();
-    await cryptoPlayerA
-        .getByTestId('buy-in-input')
-        .waitFor({ timeout: 5_000 });
+    await cryptoPlayerA.getByTestId('buy-in-input').waitFor({ timeout: 5_000 });
     await cryptoPlayerA.getByTestId('buy-in-input').clear();
     await cryptoPlayerA.getByTestId('buy-in-input').fill(buyIn);
     await cryptoPlayerA.getByTestId('join-table-btn').click();
@@ -183,38 +238,38 @@ export async function setupCryptoGameTwoPlayers(
         .getByTestId('empty-seat-2')
         .waitFor({ timeout: 10_000 });
     await cryptoPlayerB.getByTestId('empty-seat-2').click();
-    await cryptoPlayerB
-        .getByTestId('buy-in-input')
-        .waitFor({ timeout: 5_000 });
+    await cryptoPlayerB.getByTestId('buy-in-input').waitFor({ timeout: 5_000 });
     await cryptoPlayerB.getByTestId('buy-in-input').clear();
     await cryptoPlayerB.getByTestId('buy-in-input').fill(buyIn);
     await cryptoPlayerB.getByTestId('join-table-btn').click();
 
-    await cryptoPlayerA.getByTestId('taken-seat-2').waitFor({ timeout: chainTimeout });
-    await cryptoPlayerB.getByTestId('taken-seat-1').waitFor({ timeout: 30_000 });
+    await cryptoPlayerA
+        .getByTestId('taken-seat-2')
+        .waitFor({ timeout: chainTimeout });
+    await cryptoPlayerB
+        .getByTestId('taken-seat-1')
+        .waitFor({ timeout: 30_000 });
 }
 
 /**
  * Create a free game with three seated players.
  * Returns the pages and contexts for cleanup.
  */
-export async function setupFreeGameThreePlayers(browser: import('@playwright/test').Browser) {
+export async function setupFreeGameThreePlayers(
+    browser: import('@playwright/test').Browser
+) {
     const ctxOwner = await browser.newContext();
     const ctxPlayer2 = await browser.newContext();
     const ctxPlayer3 = await browser.newContext();
+    await seedConsentDismissed(ctxOwner);
+    await seedConsentDismissed(ctxPlayer2);
+    await seedConsentDismissed(ctxPlayer3);
     const owner = await ctxOwner.newPage();
     const player2 = await ctxPlayer2.newPage();
     const player3 = await ctxPlayer3.newPage();
 
     // Owner creates game and sits seat 1
-    await owner.goto('/create-game');
-    // The page now opens with no mode selected; the rest of the form (and
-    // create-game-btn) only renders once Free Play or Real Money is picked.
-    await owner.getByRole('radio', { name: 'Free Play' }).click();
-    await owner.getByTestId('create-game-btn').click();
-    await owner.waitForURL(/\/table\/.+/, { timeout: 30_000 });
-    const tableUrl = owner.url();
-    await dismissLobbyBanner(owner);
+    const tableUrl = await createFreeGame(owner);
 
     await owner.getByTestId('empty-seat-1').waitFor({ timeout: 10_000 });
     await owner.getByTestId('empty-seat-1').click();
@@ -241,7 +296,10 @@ export async function setupFreeGameThreePlayers(browser: import('@playwright/tes
     await player3.goto(tableUrl);
     await dismissLobbyBanner(player3);
     // Wait for table hydration/socket sync before targeting a specific empty seat.
-    await player3.locator('[data-testid^="empty-seat-"]').first().waitFor({ timeout: 30_000 });
+    await player3
+        .locator('[data-testid^="empty-seat-"]')
+        .first()
+        .waitFor({ timeout: 30_000 });
     await player3.getByTestId('empty-seat-3').waitFor({ timeout: 30_000 });
     await player3.getByTestId('empty-seat-3').click();
     await player3.getByTestId('username-input').fill('Player3');
@@ -270,43 +328,57 @@ export async function setupCryptoGameThreePlayers(
     // PlayerA creates crypto game and deposits to seat 1
     await cryptoPlayerA.goto(`/create-game?e2e_pk=${pkA}`);
     await cryptoPlayerA.getByRole('radio', { name: 'Real Money' }).click();
-    await cryptoPlayerA.getByTestId('create-game-btn').waitFor({ timeout: 60_000 });
+    await cryptoPlayerA
+        .getByTestId('create-game-btn')
+        .waitFor({ timeout: 60_000 });
     await cryptoPlayerA.getByTestId('create-game-btn').click();
     await cryptoPlayerA.waitForURL(/\/table\/.+/, { timeout: 60_000 });
     const tableUrl = cryptoPlayerA.url();
     await dismissLobbyBanner(cryptoPlayerA);
 
-    await cryptoPlayerA.getByTestId('empty-seat-1').waitFor({ timeout: 10_000 });
+    await cryptoPlayerA
+        .getByTestId('empty-seat-1')
+        .waitFor({ timeout: 10_000 });
     await cryptoPlayerA.getByTestId('empty-seat-1').click();
     await cryptoPlayerA.getByTestId('buy-in-input').waitFor({ timeout: 5_000 });
     await cryptoPlayerA.getByTestId('buy-in-input').clear();
     await cryptoPlayerA.getByTestId('buy-in-input').fill(buyIn);
     await cryptoPlayerA.getByTestId('join-table-btn').click();
-    await cryptoPlayerA.getByTestId('taken-seat-1').waitFor({ timeout: chainTimeout });
+    await cryptoPlayerA
+        .getByTestId('taken-seat-1')
+        .waitFor({ timeout: chainTimeout });
 
     const tablePath = new URL(tableUrl).pathname;
 
     // PlayerB deposits to seat 2
     await cryptoPlayerB.goto(`${tablePath}?e2e_pk=${pkB}`);
     await dismissLobbyBanner(cryptoPlayerB);
-    await cryptoPlayerB.getByTestId('empty-seat-2').waitFor({ timeout: 10_000 });
+    await cryptoPlayerB
+        .getByTestId('empty-seat-2')
+        .waitFor({ timeout: 10_000 });
     await cryptoPlayerB.getByTestId('empty-seat-2').click();
     await cryptoPlayerB.getByTestId('buy-in-input').waitFor({ timeout: 5_000 });
     await cryptoPlayerB.getByTestId('buy-in-input').clear();
     await cryptoPlayerB.getByTestId('buy-in-input').fill(buyIn);
     await cryptoPlayerB.getByTestId('join-table-btn').click();
-    await cryptoPlayerA.getByTestId('taken-seat-2').waitFor({ timeout: chainTimeout });
+    await cryptoPlayerA
+        .getByTestId('taken-seat-2')
+        .waitFor({ timeout: chainTimeout });
 
     // PlayerC deposits to seat 3
     await cryptoPlayerC.goto(`${tablePath}?e2e_pk=${pkC}`);
     await dismissLobbyBanner(cryptoPlayerC);
-    await cryptoPlayerC.getByTestId('empty-seat-3').waitFor({ timeout: 10_000 });
+    await cryptoPlayerC
+        .getByTestId('empty-seat-3')
+        .waitFor({ timeout: 10_000 });
     await cryptoPlayerC.getByTestId('empty-seat-3').click();
     await cryptoPlayerC.getByTestId('buy-in-input').waitFor({ timeout: 5_000 });
     await cryptoPlayerC.getByTestId('buy-in-input').clear();
     await cryptoPlayerC.getByTestId('buy-in-input').fill(buyIn);
     await cryptoPlayerC.getByTestId('join-table-btn').click();
-    await cryptoPlayerA.getByTestId('taken-seat-3').waitFor({ timeout: chainTimeout });
+    await cryptoPlayerA
+        .getByTestId('taken-seat-3')
+        .waitFor({ timeout: chainTimeout });
 }
 
 /** Open the Settings modal and switch to a tab by name. */
@@ -327,11 +399,17 @@ export async function endHandByFolding(pages: Page[], foldCount = 2) {
         // eslint-disable-next-line no-constant-condition
         while (true) {
             if (Date.now() > deadline)
-                throw new Error('endHandByFolding: no fold button appeared within 30 s');
+                throw new Error(
+                    'endHandByFolding: no fold button appeared within 30 s'
+                );
             // Check all pages in parallel — isVisible() is instant (no timeout)
             const visible = await Promise.all(
                 pages.map((p) =>
-                    p.locator(selector).first().isVisible().catch(() => false)
+                    p
+                        .locator(selector)
+                        .first()
+                        .isVisible()
+                        .catch(() => false)
                 )
             );
             const idx = visible.findIndex(Boolean);
@@ -346,7 +424,10 @@ export async function endHandByFolding(pages: Page[], foldCount = 2) {
                     .catch(() => false);
                 if (modalVisible) {
                     await foldAnyway.click();
-                    await foldAnyway.waitFor({ state: 'hidden', timeout: 5_000 });
+                    await foldAnyway.waitFor({
+                        state: 'hidden',
+                        timeout: 5_000,
+                    });
                 } else {
                     await btn.waitFor({ state: 'hidden', timeout: 5_000 });
                 }
@@ -373,12 +454,17 @@ export async function playHandToCompletion3Players(
         await new Promise((r) => setTimeout(r, 500));
         while (Date.now() < deadline) {
             for (const page of pages) {
-                const fold = page.locator('[data-testid="action-fold"]').first();
+                const fold = page
+                    .locator('[data-testid="action-fold"]')
+                    .first();
                 try {
                     if (!(await fold.isVisible({ timeout: 200 }))) continue;
-                    const queueMode = await fold.getAttribute('data-queue-mode', {
-                        timeout: 200,
-                    });
+                    const queueMode = await fold.getAttribute(
+                        'data-queue-mode',
+                        {
+                            timeout: 200,
+                        }
+                    );
                     if (queueMode !== null) continue; // queue mode = not this player's turn
                     await clickCheckOrCall(page);
                     return true;

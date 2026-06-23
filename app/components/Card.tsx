@@ -157,11 +157,11 @@ const SVGCardFace = ({
                 {rank}
             </text>
 
-            {/* Suit under rank — centered in left column */}
+            {/* Suit under rank — bolder corner pip, centered in the left column */}
             <text
-                x="4.2"
-                y="14"
-                fontSize="7"
+                x="4.4"
+                y="15"
+                fontSize="9"
                 fill={suitInfo.color}
                 fontFamily="serif"
                 textAnchor="middle"
@@ -169,11 +169,11 @@ const SVGCardFace = ({
                 {suitInfo.symbol}
             </text>
 
-            {/* Large suit — centered */}
+            {/* Large suit — dominant center pip */}
             <text
-                x="13.5"
-                y="20"
-                fontSize="18"
+                x="13"
+                y="22"
+                fontSize="22"
                 fill={suitInfo.color}
                 fontFamily="serif"
                 textAnchor="middle"

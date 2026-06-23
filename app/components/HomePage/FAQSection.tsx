@@ -51,7 +51,7 @@ const FAQSection = () => {
                             borderColor: 'brand.pink',
                         }}
                     >
-                        here
+                        Join our Discord
                     </Link>
                     .
                 </>
@@ -61,7 +61,7 @@ const FAQSection = () => {
             return (
                 <>
                     You can find our roadmap, game rules, and technical
-                    architecture in the docs{' '}
+                    architecture in our{' '}
                     <Link
                         href="https://docs.stackedpoker.io/"
                         isExternal
@@ -75,7 +75,7 @@ const FAQSection = () => {
                             borderColor: 'brand.pink',
                         }}
                     >
-                        here
+                        documentation
                     </Link>
                     .
                 </>

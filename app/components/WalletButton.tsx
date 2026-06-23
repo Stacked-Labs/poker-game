@@ -14,6 +14,7 @@ import {
 } from '@/app/thirdwebclient';
 import { useColorMode } from '@chakra-ui/react';
 import { theme } from '@/app/theme';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 interface WalletButtonProps {
     width?: string;
@@ -155,6 +156,12 @@ const WalletButton: React.FC<WalletButtonProps> = ({
     const enforcedChain =
         activeWallet?.id === 'inApp' ? undefined : requiredChain;
 
+    // A deliberate "Disconnect Wallet" click ends the SIWE session too — otherwise the JWT
+    // cookie would outlive the wallet the user just disconnected (a stale session on a shared
+    // browser). thirdweb fires this ONLY for the in-modal disconnect, not for AutoConnect
+    // failures or transient drops, so it never strands a table-balanced / reconnecting player.
+    const { logout } = useAuth();
+
     return (
         <ConnectButton
             client={client}
@@ -162,6 +169,9 @@ const WalletButton: React.FC<WalletButtonProps> = ({
             chains={enabledChains}
             wallets={wallets}
             supportedTokens={supportedTokens}
+            onDisconnect={() => {
+                void logout();
+            }}
             detailsButton={{
                 style: heroDetailsStyle ?? {
                     ...defaultButtonStyle,

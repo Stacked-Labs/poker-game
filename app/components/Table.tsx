@@ -13,6 +13,7 @@ import { isTableExisting } from '../hooks/server_actions';
 import useToastHelper from '../hooks/useToastHelper';
 import { useRouter } from 'next/navigation';
 import { useEquity } from '../hooks/useEquity';
+import { useWakeLock } from '../hooks/useWakeLock';
 import SessionPointsBadge from './NavBar/SessionPointsBadge';
 import TournamentLiveController from './Tournament/TournamentLiveController';
 
@@ -108,6 +109,14 @@ const Table = ({ tableId }: { tableId: string }) => {
     const toast = useToastHelper();
     const equityMap = useEquity();
     const [, setTableStatus] = useState<'checking' | 'success'>('checking');
+
+    // Keep the phone screen awake while the player is seated at this table —
+    // poker is turn-based, so the screen would otherwise dim mid-hand.
+    const isSeatedAtTable = Boolean(
+        appState.clientID &&
+            appState.game?.players?.some((p) => p.uuid === appState.clientID)
+    );
+    useWakeLock(isSeatedAtTable);
 
     const clearPotHighlightTimers = () => {
         potHighlightTimeouts.current.forEach((timeout) => {
@@ -263,6 +272,20 @@ const Table = ({ tableId }: { tableId: string }) => {
     };
 
     const isPlayerWinner = (player: Player): boolean => {
+        // During RIT board reveals, show the current board's winner before chips move.
+        const ritPhase = appState.game?.ritPhase ?? 0;
+        if (ritPhase === 2) {
+            // RITPhaseBoard1: highlight board 1 winners
+            return (appState.game?.ritBoard1Pots ?? []).some((pot) =>
+                pot.winningPlayerNums?.includes(player.position)
+            );
+        }
+        if (ritPhase === 3) {
+            // RITPhaseBoard2: highlight board 2 winners
+            return (appState.game?.ritBoard2Pots ?? []).some((pot) =>
+                pot.winningPlayerNums?.includes(player.position)
+            );
+        }
         return winningPlayers.some((winner) => winner.uuid === player.uuid);
     };
 

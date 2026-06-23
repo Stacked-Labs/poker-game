@@ -20,6 +20,10 @@ import {
     ModalOverlay,
     Select,
     SimpleGrid,
+    Slider,
+    SliderFilledTrack,
+    SliderThumb,
+    SliderTrack,
     Spinner,
     Switch,
     Table,
@@ -268,6 +272,73 @@ function accentInput(accent: Accent) {
     } as const;
 }
 
+// Discrete 0–10 / 1–10 picker for the re-entry controls (late-reg window length
+// and max re-entries). A slider reads as "how long / how many" at a glance and
+// stays compact as the range grows, with a live value badge on the right.
+function LevelSlider({
+    value,
+    min,
+    max,
+    onChange,
+    accent,
+    idleTrackBg,
+    ariaLabel,
+    formatValue,
+}: {
+    value: number;
+    min: number;
+    max: number;
+    onChange: (v: number) => void;
+    accent: Accent;
+    idleTrackBg: string;
+    ariaLabel: string;
+    formatValue: (v: number) => string;
+}) {
+    return (
+        <HStack spacing={4} align="center">
+            <Slider
+                aria-label={ariaLabel}
+                value={value}
+                min={min}
+                max={max}
+                step={1}
+                onChange={onChange}
+                focusThumbOnChange={false}
+                flex="1"
+                py={2}
+            >
+                <SliderTrack bg={idleTrackBg} h="6px" borderRadius="full">
+                    <SliderFilledTrack bg={accent.color} />
+                </SliderTrack>
+                <SliderThumb
+                    boxSize="22px"
+                    bg={accent.color}
+                    border="2px solid"
+                    borderColor="white"
+                    boxShadow="0 1px 4px rgba(0,0,0,0.25)"
+                    _focusVisible={{
+                        boxShadow: `0 1px 4px rgba(0,0,0,0.25), 0 0 0 4px ${accent.ring}`,
+                    }}
+                />
+            </Slider>
+            <Box
+                minW="84px"
+                textAlign="center"
+                py={2}
+                px={3}
+                borderRadius="12px"
+                bg={accent.soft}
+                color={accent.color}
+                fontWeight="bold"
+                fontSize="sm"
+                aria-hidden
+            >
+                {formatValue(value)}
+            </Box>
+        </HStack>
+    );
+}
+
 const MIN_PER_LEVEL: Record<
     CreateTournamentFormValues['blindStructure'],
     number
@@ -322,12 +393,10 @@ const BLIND_OPTIONS: {
         icon: FaLayerGroup,
     },
 ];
-const LATE_REG_OPTIONS = [
-    { value: 0, label: 'Off' },
-    { value: 1, label: '1 level' },
-    { value: 2, label: '2 levels' },
-    { value: 3, label: '3 levels' },
-];
+// Late reg and re-entries both top out at 10 — the on-chain contract caps
+// reEntryCap at 10, and the server clamps late_reg_levels to 10.
+const LATE_REG_MAX = 10;
+const REENTRY_MAX = 10;
 
 const NETWORK_OPTIONS: {
     value: 'base' | 'base-sepolia';
@@ -1719,51 +1788,20 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                         <FieldLabel hint="A grace window after the start where players can still join with a full stack. Re-entries (in Advanced) use this same window.">
                             Late registration
                         </FieldLabel>
-                        <SimpleGrid columns={4} spacing={2}>
-                            {LATE_REG_OPTIONS.map((o) => {
-                                const active = lateRegLevels === o.value;
-                                return (
-                                    <Box
-                                        key={o.value}
-                                        as="button"
-                                        type="button"
-                                        onClick={() =>
-                                            setLateRegLevels(o.value)
-                                        }
-                                        py={2.5}
-                                        borderRadius="12px"
-                                        borderWidth="1.5px"
-                                        fontSize="sm"
-                                        fontWeight="semibold"
-                                        textAlign="center"
-                                        bg={active ? accent.soft : chipIdleBg}
-                                        color={
-                                            active
-                                                ? accent.color
-                                                : 'text.secondary'
-                                        }
-                                        borderColor={
-                                            active
-                                                ? accent.color
-                                                : 'transparent'
-                                        }
-                                        transition="background-color 120ms ease, color 120ms ease, border-color 120ms ease"
-                                        _hover={
-                                            active
-                                                ? {}
-                                                : { color: 'text.primary' }
-                                        }
-                                        _focusVisible={{
-                                            outline: '2px solid',
-                                            outlineColor: accent.color,
-                                            outlineOffset: '2px',
-                                        }}
-                                    >
-                                        {o.label}
-                                    </Box>
-                                );
-                            })}
-                        </SimpleGrid>
+                        <LevelSlider
+                            value={lateRegLevels}
+                            min={0}
+                            max={LATE_REG_MAX}
+                            onChange={setLateRegLevels}
+                            accent={accent}
+                            idleTrackBg={chipIdleBg}
+                            ariaLabel="Late registration levels"
+                            formatValue={(v) =>
+                                v === 0
+                                    ? 'Off'
+                                    : `${v} level${v === 1 ? '' : 's'}`
+                            }
+                        />
                         <Text mt={2} fontSize="xs" color="text.muted">
                             {lateRegLevels > 0
                                 ? `Latecomers can join with a full stack for ~${lateRegMins} min after the start, then the field locks.`
@@ -2034,21 +2072,23 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                         {reentryAllowed && lateRegLevels > 0 && (
                             <Box>
                                 <FieldLabel>Max re-entries</FieldLabel>
-                                <Select
-                                    {...inputProps}
+                                <LevelSlider
                                     value={reentryMax}
-                                    onChange={(e) =>
-                                        setReentryMax(
-                                            parseInt(e.target.value, 10)
-                                        )
+                                    // Share late reg's 0–10 range so the default
+                                    // (1) rests at 10% with a sliver of fill,
+                                    // not jammed at the left edge — but a player
+                                    // can never re-enter fewer than once while
+                                    // re-entries are on, so clamp the floor to 1.
+                                    min={0}
+                                    max={REENTRY_MAX}
+                                    onChange={(v) =>
+                                        setReentryMax(Math.max(1, v))
                                     }
-                                    height="48px"
-                                    icon={<FiChevronDown />}
-                                >
-                                    <option value={1}>1</option>
-                                    <option value={2}>2</option>
-                                    <option value={3}>3</option>
-                                </Select>
+                                    accent={accent}
+                                    idleTrackBg={chipIdleBg}
+                                    ariaLabel="Max re-entries per player"
+                                    formatValue={(v) => `${v}×`}
+                                />
                             </Box>
                         )}
 

@@ -6,12 +6,18 @@ import React, {
     ReactNode,
     useEffect,
     useState,
-    useRef,
     useCallback,
 } from 'react';
-import { useActiveAccount } from 'thirdweb/react';
-import { isAuth } from '../hooks/server_actions';
+import {
+    useActiveAccount,
+    useActiveWalletConnectionStatus,
+} from 'thirdweb/react';
+import { getAuthStatus } from '../hooks/server_actions';
 import { useWalletAuth } from '../hooks/useWalletAuth';
+import {
+    reconcileWalletSession,
+    type WalletSessionDecision,
+} from '../lib/walletSession';
 
 const DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
 
@@ -25,11 +31,19 @@ interface AuthContextProps {
     isAuthenticated: boolean;
     isAuthenticating: boolean;
     userAddress: string | null;
+    /** Wallet the SIWE cookie is bound to (server truth), independent of the connected wallet. */
+    sessionWallet: string | null;
     lastAuthenticatedAddress: string | null;
+    /** True when the connected wallet differs from the session wallet (switch in progress). */
+    walletMismatch: boolean;
+    /** Reconciled relationship between the session cookie and the connected wallet. */
+    walletSessionStatus: WalletSessionDecision['status'];
     xUsername: string | null;
     xProfileImageUrl: string | null;
     xStatusChecked: boolean;
     requestAuthentication: () => void;
+    /** Explicit, user-initiated logout (e.g. "Disconnect Wallet"): clears the SIWE session. */
+    logout: () => Promise<void>;
     refreshAuthStatus: () => Promise<void>;
     refreshXStatus: () => Promise<void>;
 }
@@ -38,11 +52,15 @@ export const AuthContext = createContext<AuthContextProps>({
     isAuthenticated: false,
     isAuthenticating: false,
     userAddress: null,
+    sessionWallet: null,
     lastAuthenticatedAddress: null,
+    walletMismatch: false,
+    walletSessionStatus: 'unauthenticated',
     xUsername: null,
     xProfileImageUrl: null,
     xStatusChecked: false,
     requestAuthentication: () => {},
+    logout: async () => {},
     refreshAuthStatus: async () => {},
     refreshXStatus: async () => {},
 });
@@ -55,34 +73,40 @@ type AuthProviderProps = {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const account = useActiveAccount();
+    const connectionStatus = useActiveWalletConnectionStatus();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    // Track the address that was last successfully authenticated (JWT address)
-    const [lastAuthenticatedAddress, setLastAuthenticatedAddress] = useState<string | null>(null);
-    const previousAddressRef = useRef<string | null>(null);
+    // The wallet the SIWE JWT cookie is bound to — server truth, NOT derived from the connected
+    // wallet. This is the anchor every mismatch/logout decision compares against.
+    const [sessionWallet, setSessionWallet] = useState<string | null>(null);
 
     // X account state
     const [xUsername, setXUsername] = useState<string | null>(null);
     const [xProfileImageUrl, setXProfileImageUrl] = useState<string | null>(null);
     const [xStatusChecked, setXStatusChecked] = useState(false);
 
-    // Define checkAuthentication first (needed by refreshAuthStatus)
+    // Define checkAuthentication first (needed by refreshAuthStatus).
+    // Crucially this does NOT gate on account?.address: the auth cookie can be valid while
+    // thirdweb has not (re)hydrated the wallet (table-balancing reload, fresh tab from "My
+    // table", a transient wallet blip). Gating on the connected wallet is exactly what made the
+    // UI report "logged out" while the WebSocket was still authenticated by the cookie.
     const checkAuthentication = useCallback(async () => {
-        if (!account?.address) {
-            setIsAuthenticated(false);
-            return;
-        }
-
         try {
-            const authenticated = await isAuth();
-            setIsAuthenticated(authenticated);
-            // If authenticated, store this address as the last authenticated address
-            if (authenticated) {
-                setLastAuthenticatedAddress(account.address);
-            }
-            if (DEBUG) console.log('Auth status:', authenticated, 'Address:', account.address);
+            const status = await getAuthStatus();
+            setIsAuthenticated(status.isAuth);
+            setSessionWallet(status.isAuth ? status.address : null);
+            if (DEBUG)
+                console.log(
+                    '[AuthContext] session:',
+                    status.isAuth,
+                    'sessionWallet:',
+                    status.address,
+                    'connected:',
+                    account?.address ?? null
+                );
         } catch (error) {
             console.error('Error checking authentication:', error);
-            setIsAuthenticated(false);
+            // A failed probe is NOT proof of logout — don't tear down a possibly-valid session
+            // on a network blip. Leave the last known state in place.
         }
     }, [account?.address]);
 
@@ -123,6 +147,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await checkAuthentication();
     }, [checkAuthentication]);
 
+    // Explicit, user-initiated logout. Distinct from a wallet *disconnect* (which we keep the
+    // session through, so a table-balancing reload / blip doesn't strand the player): this is
+    // only called on a deliberate "Disconnect Wallet" action. Clears local state immediately so
+    // the WebSocket downgrades to spectator, then clears the cookie server-side.
+    const logout = useCallback(async () => {
+        setIsAuthenticated(false);
+        setSessionWallet(null);
+        try {
+            await logoutUser();
+        } catch (err) {
+            console.error('[AuthContext] logout failed:', err);
+        }
+    }, []);
+
     // Handle wallet authentication - runs once at provider level
     // Pass refreshAuthStatus so it's called immediately after SIWE success (Case 2)
     const { isAuthenticating, requestAuthentication } = useWalletAuth(refreshAuthStatus);
@@ -130,10 +168,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         checkAuthentication();
 
-        // Check auth status periodically while wallet is connected
-        const interval = setInterval(checkAuthentication, 5000);
+        // Backstop poll while the tab is visible. SIWE completion and WS
+        // reconnect are the primary auth signals; this just catches expiry.
+        // Skipped when hidden (no point polling a background tab) and re-checks
+        // immediately when the tab becomes visible again so a returning user
+        // never waits a full interval.
+        const POLL_INTERVAL_MS = 30000;
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'visible') checkAuthentication();
+        }, POLL_INTERVAL_MS);
 
-        return () => clearInterval(interval);
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') checkAuthentication();
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener(
+                'visibilitychange',
+                onVisibilityChange
+            );
+        };
     }, [checkAuthentication]);
 
     // Fetch X status when authenticated
@@ -160,55 +216,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     }, [refreshXStatus]);
 
-    // Case 1: Detect wallet swap - if wallet changes after auth, logout old session
+    // Single, timing-independent reconciliation between the session cookie (server truth) and
+    // the connected wallet. Replaces the old transition-watching swap/disconnect effect, which
+    // (a) missed in-wallet account switches when `lastAuthenticatedAddress` wasn't set yet, and
+    // (b) cleared a valid JWT on transient wallet blips. We re-derive the decision on every
+    // input change rather than trying to catch the X→Y transition.
+    const decision = reconcileWalletSession({
+        sessionWallet,
+        connectedWallet: account?.address ?? null,
+        connectionStatus,
+    });
+    const walletMismatch = decision.status === 'mismatch';
+    // Stable primitive so the effect fires once per distinct mismatch, not every render.
+    const mismatchKey = walletMismatch
+        ? `${decision.sessionWallet}->${decision.connectedWallet}`
+        : null;
+
     useEffect(() => {
-        const currentAddress = account?.address || null;
-        const prevAddress = previousAddressRef.current;
-
-        // Wallet disconnected (had an address, now has none)
-        if (prevAddress && !currentAddress && lastAuthenticatedAddress) {
-            if (DEBUG) console.log('[AuthContext] Wallet disconnected - logging out session for', lastAuthenticatedAddress);
-            logoutUser().then(() => {
-                setIsAuthenticated(false);
-                setLastAuthenticatedAddress(null);
-            }).catch((err) => {
-                console.error('[AuthContext] Error logging out after wallet disconnect:', err);
-                setIsAuthenticated(false);
-                setLastAuthenticatedAddress(null);
+        if (!mismatchKey) return;
+        // SECURITY: the cookie is bound to the session wallet but a DIFFERENT wallet is now
+        // active (e.g. the user switched accounts inside Rabby/MetaMask). Two steps:
+        // 1. Optimistically drop the local session NOW so the WebSocket downgrades to spectator
+        //    immediately and nothing can be done as the old wallet during the /logout round-trip.
+        //    (If /logout fails, the 5s checkAuthentication re-reads the cookie and we retry.)
+        // 2. Clear the cookie server-side, then re-run SIWE for the newly-connected wallet.
+        if (DEBUG)
+            console.log('[AuthContext] wallet mismatch', mismatchKey, '→ logging out old session');
+        setIsAuthenticated(false);
+        setSessionWallet(null);
+        logoutUser()
+            .catch((err) =>
+                console.error('[AuthContext] Error logging out on mismatch:', err)
+            )
+            .finally(() => {
+                requestAuthentication();
             });
-        }
-
-        // Wallet changed
-        if (prevAddress && currentAddress && prevAddress !== currentAddress) {
-            if (DEBUG) console.log('[AuthContext] Wallet changed from', prevAddress, 'to', currentAddress);
-
-            // If we were authenticated with the old wallet, we need to logout
-            // because the JWT is still bound to the old wallet address
-            if (lastAuthenticatedAddress && lastAuthenticatedAddress !== currentAddress) {
-                if (DEBUG) console.log('[AuthContext] Wallet swap detected - logging out old session');
-                logoutUser().then(() => {
-                    setIsAuthenticated(false);
-                    setLastAuthenticatedAddress(null);
-                    // Request authentication with the new wallet
-                    requestAuthentication();
-                }).catch((err) => {
-                    console.error('[AuthContext] Error logging out after wallet swap:', err);
-                });
-            }
-        }
-
-        previousAddressRef.current = currentAddress;
-    }, [account?.address, lastAuthenticatedAddress, requestAuthentication]);
+    }, [mismatchKey, requestAuthentication]);
 
     const value: AuthContextProps = {
         isAuthenticated,
         isAuthenticating,
         userAddress: account?.address || null,
-        lastAuthenticatedAddress,
+        sessionWallet,
+        // The wallet our session is actually authenticated as (server truth). Consumers that
+        // gate actions on "is the active wallet the one I'm signed in as" compare against this.
+        lastAuthenticatedAddress: sessionWallet,
+        walletMismatch,
+        walletSessionStatus: decision.status,
         xUsername,
         xProfileImageUrl,
         xStatusChecked,
         requestAuthentication,
+        logout,
         refreshAuthStatus,
         refreshXStatus,
     };

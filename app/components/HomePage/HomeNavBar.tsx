@@ -24,6 +24,7 @@ import {
     RiGamepadLine,
     RiGlobalLine,
     RiTrophyLine,
+    RiVipCrownLine,
     RiBookOpenLine,
     RiExternalLinkLine,
     RiChat3Line,
@@ -70,6 +71,14 @@ const HomeNavBar: React.FC = () => {
                 variant="navLink"
             >
                 Leaderboard
+            </Button>
+            <Button
+                as="a"
+                href="/public-games?format=tournaments"
+                aria-label="Tournaments"
+                variant="navLink"
+            >
+                Tournaments
             </Button>
             <Button
                 as="a"
@@ -408,6 +417,51 @@ const HomeNavBar: React.FC = () => {
                                     }}
                                 >
                                     Leaderboard
+                                </Button>
+                                <Button
+                                    as="a"
+                                    href="/public-games?format=tournaments"
+                                    onClick={onClose}
+                                    leftIcon={
+                                        <Icon
+                                            as={RiVipCrownLine}
+                                            boxSize={5}
+                                        />
+                                    }
+                                    variant="ghost"
+                                    justifyContent="flex-start"
+                                    height="44px"
+                                    px={3}
+                                    borderRadius="12px"
+                                    fontWeight="semibold"
+                                    fontSize="sm"
+                                    color="text.primary"
+                                    bg="transparent"
+                                    border="none"
+                                    transition={TACTILE_TRANSITION}
+                                    _hover={{
+                                        bg: 'rgba(54, 163, 123, 0.10)',
+                                        color: 'brand.green',
+                                    }}
+                                    _active={{
+                                        bg: 'rgba(54, 163, 123, 0.16)',
+                                        transform: 'translateY(1px)',
+                                        boxShadow:
+                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
+                                    }}
+                                    _dark={{
+                                        _hover: {
+                                            bg: 'rgba(54, 163, 123, 0.16)',
+                                        },
+                                        _active: {
+                                            bg: 'rgba(54, 163, 123, 0.22)',
+                                            transform: 'translateY(1px)',
+                                            boxShadow:
+                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
+                                        },
+                                    }}
+                                >
+                                    Tournaments
                                 </Button>
                             </VStack>
                         </Box>

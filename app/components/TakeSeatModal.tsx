@@ -46,7 +46,12 @@ import { useConnectX } from '@/app/hooks/useConnectX';
 import BuyInPresets from './TakeSeat/BuyInPresets';
 import StakesChip from './TakeSeat/StakesChip';
 import { readLastBuyIn, writeLastBuyIn } from '@/app/lib/takeSeat/lastBuyIn';
-import TopUpModal from './TopUp/TopUpModal';
+import {
+    readLastUsername,
+    writeLastUsername,
+    USERNAME_MAX_LENGTH,
+} from '@/app/lib/takeSeat/lastUsername';
+import TopUpModal from './TopUp/LazyTopUpModal';
 import { useIsMiniApp } from '@/app/hooks/useIsMiniApp';
 import { isTestnetOnly } from '@/app/thirdwebclient';
 
@@ -75,7 +80,6 @@ const variants = {
     initial: { scale: 1, rotate: 0 },
 };
 
-const USERNAME_MAX_LENGTH = 9;
 const CHIPS_PER_USDC = 100;
 
 const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
@@ -131,6 +135,13 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     const [inputUnit, setInputUnit] = useState<'chips' | 'usdc'>(
         isCryptoGame ? 'usdc' : 'chips'
     );
+
+    // Free games let players pick a one-off username. Each time the modal opens,
+    // prefill the last name they actually joined with (and drop any unsaved edits
+    // from a previous open). Crypto/X games use wallet/X identity instead.
+    useEffect(() => {
+        if (isOpen) setName(readLastUsername() ?? '');
+    }, [isOpen]);
 
     const { error, deposit } = useToastHelper();
     const needsWalletSignIn = isCryptoGame && (!address || !isAuthenticated);
@@ -426,6 +437,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         newPlayer(socket, effectiveName);
         takeSeat(socket, effectiveName, seatId, buyInValue);
         writeLastBuyIn(tableKey, buyInValue);
+        if (!xUsername) writeLastUsername(effectiveName);
         appStore.dispatch({ type: 'setUsername', payload: effectiveName });
         appStore.dispatch({ type: 'setSeatRequested', payload: seatId });
         currentUser.setCurrentUser({ name: effectiveName, seatId });
@@ -1068,6 +1080,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                                     <Input
                                                         data-testid="username-input"
                                                         placeholder="Pick a username"
+                                                        value={name}
                                                         onChange={(e) =>
                                                             setName(e.target.value)
                                                         }

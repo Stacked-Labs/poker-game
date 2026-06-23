@@ -1,6 +1,6 @@
 import './globals.css';
 import { Providers } from './providers';
-import { Libre_Barcode_39_Text, Poppins, Teko } from 'next/font/google';
+import { Poppins, Teko } from 'next/font/google';
 import HomeNavBar from './components/HomePage/HomeNavBar';
 import PointsActivityFeed from './components/PointsActivityFeed';
 import ServiceStatusBanner from './components/ServiceStatusBanner';
@@ -22,19 +22,13 @@ const teko = Teko({
     variable: '--font-teko',
 });
 
-const libreBarcode = Libre_Barcode_39_Text({
-    subsets: ['latin'],
-    weight: '400',
-    display: 'swap',
-    variable: '--font-barcode',
-});
-
 // Next 15 changed the default to uncached. Restore Next 14 behavior app-wide so
 // SSR fetches don't hammer the backend on every request. Per-route overrides as
 // needed.
 export const fetchCache = 'default-cache';
 
 export const metadata: Metadata = {
+    metadataBase: new URL('https://stackedpoker.io'),
     other: {
         'base:app_id': '697e0df32aafa0bc9ad8a2b7',
         'fc:miniapp': JSON.stringify({
@@ -77,6 +71,11 @@ const jsonLd = {
             '@type': 'ImageObject',
             url: 'https://stackedpoker.io/IconMain.png',
         },
+        sameAs: [
+            'https://x.com/stacked_poker',
+            'https://discord.gg/xdaC5gRP4E',
+            'https://t.me/stackedpoker',
+        ],
     },
 };
 
@@ -103,7 +102,7 @@ export default function RootLayout({
                 />
             </head>
             <body
-                className={`${poppins.className} ${poppins.variable} ${libreBarcode.variable} ${teko.variable}`}
+                className={`${poppins.className} ${poppins.variable} ${teko.variable}`}
             >
                 <Providers>
                     <ServiceStatusBanner />

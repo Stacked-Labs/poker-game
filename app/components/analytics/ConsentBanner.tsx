@@ -34,17 +34,21 @@ const AllowButtonProps = {
     _focus: { color: 'white' },
 } as const;
 
+// x: '-50%' keeps the translateX(-50%) recenter as part of Framer's composed
+// transform. Without it, animating y/scale generates a transform that overrides
+// the inline translateX(-50%), pushing the pill off-center (most visible on
+// mobile, where it spans nearly the full width).
 const motionProps = {
-    initial: { opacity: 0, y: 14, scale: 0.96 },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    exit: { opacity: 0, y: 6, scale: 0.96 },
+    initial: { opacity: 0, y: 14, scale: 0.96, x: '-50%' },
+    animate: { opacity: 1, y: 0, scale: 1, x: '-50%' },
+    exit: { opacity: 0, y: 6, scale: 0.96, x: '-50%' },
     transition: { type: 'spring' as const, stiffness: 380, damping: 24 },
 };
 
 const reducedMotionProps = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
+    initial: { opacity: 0, x: '-50%' },
+    animate: { opacity: 1, x: '-50%' },
+    exit: { opacity: 0, x: '-50%' },
     transition: { duration: 0.18 },
 };
 

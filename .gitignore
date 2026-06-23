@@ -53,3 +53,6 @@ next-env.d.ts
 .codex/*
 !.codex/skills/
 !.codex/skills/**
+
+# e2e screenshot artifacts (design references, not source)
+e2e-artifacts/

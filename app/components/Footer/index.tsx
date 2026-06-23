@@ -47,9 +47,15 @@ const Footer = () => {
         (owesBB || waitingForBB || appState.blindObligation);
 
     const isActuallyAway = Boolean(
+        localPlayer && localPlayer.stack > 0 && !localPlayer.ready
+    );
+
+    const isRITVotingPromptEligible = Boolean(
         localPlayer &&
-        localPlayer.stack > 0 &&
-        !localPlayer.ready
+            (appState.game?.ritPhase ?? 0) === 1 &&
+            (appState.game?.ritEligiblePlayers ?? []).includes(
+                localPlayer.position
+            )
     );
 
     const socketConnected = Boolean(socket);
@@ -98,7 +104,7 @@ const Footer = () => {
         socketConnected &&
         appState.game &&
         appState.game.running &&
-        !appState.game.betting == false &&
+        (appState.game.betting || isRITVotingPromptEligible) &&
         !isSpectator() &&
         !hasBlindObligation &&
         isInHand;

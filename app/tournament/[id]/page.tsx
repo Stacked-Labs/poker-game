@@ -14,6 +14,7 @@ import {
 } from '../../hooks/server_actions';
 import type { Tournament } from '../../hooks/server_actions';
 import { useRegisterForTournament } from '../../hooks/useRegisterForTournament';
+import { useSignInPrompt } from '../../hooks/useSignInPrompt';
 import useToastHelper from '../../hooks/useToastHelper';
 import { friendlyError, friendlyMessage } from '../../utils/toastErrors';
 import { useClaimHostRake } from '../../hooks/useClaimHostRake';
@@ -36,6 +37,7 @@ export default function TournamentPage() {
     const router = useRouter();
     const account = useActiveAccount();
     const myWallet = account?.address;
+    const { isSignedIn, promptSignIn } = useSignInPrompt();
     const toast = useToastHelper();
 
     const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -231,8 +233,10 @@ export default function TournamentPage() {
     };
 
     const handleRegister = (isReentry = false) => {
-        if (!myWallet) {
-            toast.warning('Connect wallet to register');
+        // Not signed in → run the sign-in flow (connect + SIWE) in one tap
+        // instead of dead-ending on a "connect wallet" toast.
+        if (!isSignedIn) {
+            promptSignIn();
             return;
         }
         // The shared modal owns the full flow: password entry + hashing, the
@@ -483,6 +487,7 @@ export default function TournamentPage() {
                 players={players}
                 registrants={registrants}
                 myWallet={myWallet}
+                isSignedIn={isSignedIn}
                 isRegistered={isRegistered}
                 blindLevel={blindLevel}
                 onBreak={onBreak}

@@ -48,6 +48,8 @@ import type { Emote } from '@/app/stores/emotes';
 import { useSeatReactionsStore } from '@/app/stores/seatReactions';
 import { useRabbitHuntStore } from '@/app/stores/rabbitHunt';
 import { buildSeatReactionMessage } from '@/app/utils/seatReaction';
+import { playerDisplayName } from '@/app/utils/address';
+import { playerIdentityHref } from './PlayerNameLink';
 import EmotePicker from './NavBar/Chat/EmotePicker';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import {
@@ -335,6 +337,17 @@ const CARD_FAN_ANGLE = 4; // degrees each card rotates outward (try 5–15)
 const CARD_FAN_SPREAD = 0; // px horizontal offset from center (try 0–8)
 const CARD_FAN_OVERLAP = -20; // % negative margin to overlap cards (try -15 to 0)
 
+type TakenSeatButtonProps = {
+    player: Player;
+    visualSeatId?: number;
+    isCurrentTurn: boolean;
+    isWinner: boolean;
+    isRevealed: boolean;
+    winnings: number;
+    activePotIndex: number | null;
+    equity: number | null;
+};
+
 const TakenSeatButton = ({
     player,
     visualSeatId,
@@ -344,22 +357,19 @@ const TakenSeatButton = ({
     winnings,
     activePotIndex,
     equity,
-}: {
-    player: Player;
-    visualSeatId?: number;
-    isCurrentTurn: boolean;
-    isWinner: boolean;
-    isRevealed: boolean;
-    winnings: number;
-    activePotIndex: number | null;
-    equity: number | null;
-}) => {
+}: TakenSeatButtonProps) => {
     const { appState, dispatch } = useContext(AppContext);
     const socket = useContext(SocketContext);
     const { play, stop } = useSound();
     const { format, mode: displayMode } = useFormatAmount();
 
     const isCrypto = appState.game?.config?.crypto === true;
+    // X profile for @handles, block explorer for wallet identities; null otherwise.
+    const seatNameHref = playerIdentityHref(
+        player.username,
+        player.address,
+        appState.game?.config?.chain
+    );
     const cycleDisplayMode = useCallback(() => {
         const order: DisplayMode[] = isCrypto
             ? ['chips', 'bb', 'usdc']
@@ -991,6 +1001,8 @@ const TakenSeatButton = ({
                             // - It's the current user AND they have actual cards (so they can see their folded cards dimmed, but not after board clear), OR
                             // - It's showdown AND player has revealed cards (backend sends real values for showdown participants), OR
                             // - This player is the winner (so their cards remain visible even if they win by fold)
+                            // During RIT voting opponents keep card value [0,0] from the server so they
+                            // render as face-down backs — the player can see cards exist without seeing values.
                             const shouldRenderCards =
                                 appState.game.running &&
                                 Number(player.cards[0]) !== -1 &&
@@ -1560,8 +1572,29 @@ const TakenSeatButton = ({
                                                                         '11px',
                                                                 },
                                                         }}
+                                                        {...(seatNameHref
+                                                            ? {
+                                                                  as: 'a',
+                                                                  href: seatNameHref,
+                                                                  target: '_blank',
+                                                                  rel: 'noopener noreferrer',
+                                                                  onClick: (
+                                                                      e: React.MouseEvent
+                                                                  ) =>
+                                                                      e.stopPropagation(),
+                                                                  _hover: {
+                                                                      textDecoration:
+                                                                          'underline',
+                                                                      textUnderlineOffset:
+                                                                          '2px',
+                                                                  },
+                                                              }
+                                                            : {})}
                                                     >
-                                                        {player.username}
+                                                        {playerDisplayName(
+                                                            player.username,
+                                                            player.address
+                                                        )}
                                                     </Text>
                                                 </motion.div>
                                             )}
@@ -1677,4 +1710,58 @@ const TakenSeatButton = ({
     );
 };
 
-export default TakenSeatButton;
+// Table re-renders (and rebuilds every player object from the WS JSON) on every
+// push, so a shallow memo would never skip — player is always a new reference.
+// This value-based comparator skips a seat's re-render unless a field it actually
+// renders changed. Safe because players are rebuilt from JSON (no in-place
+// mutation a value-compare could miss). Game-level state read via context still
+// re-renders consumers regardless of this comparator.
+function seatPropsEqual(
+    a: TakenSeatButtonProps,
+    b: TakenSeatButtonProps
+): boolean {
+    if (
+        a.visualSeatId !== b.visualSeatId ||
+        a.isCurrentTurn !== b.isCurrentTurn ||
+        a.isWinner !== b.isWinner ||
+        a.isRevealed !== b.isRevealed ||
+        a.winnings !== b.winnings ||
+        a.activePotIndex !== b.activePotIndex ||
+        a.equity !== b.equity
+    ) {
+        return false;
+    }
+
+    const p = a.player;
+    const n = b.player;
+    if (
+        p.uuid !== n.uuid ||
+        p.username !== n.username ||
+        p.profileImageUrl !== n.profileImageUrl ||
+        p.address !== n.address ||
+        p.position !== n.position ||
+        p.seatID !== n.seatID ||
+        p.stack !== n.stack ||
+        p.bet !== n.bet ||
+        p.called !== n.called ||
+        p.in !== n.in ||
+        p.ready !== n.ready ||
+        p.readyNextHand !== n.readyNextHand ||
+        p.isOnline !== n.isOnline ||
+        p.leaveAfterHand !== n.leaveAfterHand ||
+        p.sitOutNextHand !== n.sitOutNextHand ||
+        p.timeBankMs !== n.timeBankMs
+    ) {
+        return false;
+    }
+
+    const pc = p.cards;
+    const nc = n.cards;
+    if (pc.length !== nc.length) return false;
+    for (let i = 0; i < pc.length; i++) {
+        if (Number(pc[i]) !== Number(nc[i])) return false;
+    }
+    return true;
+}
+
+export default React.memo(TakenSeatButton, seatPropsEqual);

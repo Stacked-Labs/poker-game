@@ -31,6 +31,8 @@ import EmotePicker from './EmotePicker';
 import { FiEye, FiEyeOff, FiVolume2, FiVolumeX } from 'react-icons/fi';
 import { MdEventSeat } from 'react-icons/md';
 import { getColorForUsername } from '@/app/utils/chatColors';
+import { playerDisplayName } from '@/app/utils/address';
+import PlayerNameLink from '@/app/components/PlayerNameLink';
 
 const ChatScroller = forwardRef<
     HTMLDivElement,
@@ -61,6 +63,7 @@ const Chatbox = ({
     const [message, setMessage] = useState<string>('');
     const { appState, dispatch } = useContext(AppContext);
     const { username, clientID } = appState;
+    const tableChain = appState.game?.config?.chain;
     const [spectatorCount, setSpectatorCount] = useState<number>(0);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const virtuosoRef = useRef<VirtuosoHandle | null>(null);
@@ -431,6 +434,11 @@ const Chatbox = ({
                             emotesByName,
                             emotesByNameLower
                         );
+                        const authorLabel = playerDisplayName(
+                            msg.name,
+                            msg.address
+                        );
+                        const authorColor = getColorForUsername(authorLabel);
                         return (
                             <Box
                                 data-testid="chat-message"
@@ -476,7 +484,7 @@ const Chatbox = ({
                                     )}
                                     <Text
                                         as="span"
-                                        color={getColorForUsername(msg.name)}
+                                        color={authorColor}
                                         fontWeight="bold"
                                         mr={2}
                                     >
@@ -489,7 +497,14 @@ const Chatbox = ({
                                                 display="inline"
                                             />
                                         )}
-                                        {msg.name}:
+                                        <PlayerNameLink
+                                            username={msg.name}
+                                            address={msg.address}
+                                            chain={tableChain}
+                                            color={authorColor}
+                                            fontWeight="bold"
+                                        />
+                                        {':'}
                                     </Text>
                                     <MessageRenderer tokens={tokens} />
                                 </Text>

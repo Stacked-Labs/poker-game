@@ -12,7 +12,7 @@ import {
 import { BridgeWidget, darkTheme, lightTheme } from 'thirdweb/react';
 import { client, MAINNET_CHAIN, MAINNET_USDC_ADDRESS } from '@/app/thirdwebclient';
 
-interface TopUpModalProps {
+export interface TopUpModalProps {
     isOpen: boolean;
     onClose: () => void;
     /**

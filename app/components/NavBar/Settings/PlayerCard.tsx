@@ -6,6 +6,7 @@ import { FiExternalLink } from 'react-icons/fi';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import { useContext } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
+import { shortenAddress } from '@/app/utils/address';
 import ExternalLink from '@/app/components/ExternalLink';
 import PlayerAvatar from '@/app/components/PlayerAvatar';
 
@@ -43,7 +44,7 @@ const PlayerCard = ({
     const displayName = player.username || player.uuid.substring(0, 8);
 
     const truncatedAddress = player.address
-        ? `${player.address.substring(0, 6)}...${player.address.substring(player.address.length - 4)}`
+        ? shortenAddress(player.address)
         : null;
     const baseScanUrl = player.address
         ? `https://sepolia.basescan.org/address/${player.address}`

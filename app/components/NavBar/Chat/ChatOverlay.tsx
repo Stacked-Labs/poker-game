@@ -9,10 +9,12 @@ import { tokenizeMessage } from '@/app/utils/chatTokenizer';
 import { useEmotesData } from '@/app/hooks/useEmotesData';
 import MessageRenderer from './MessageRenderer';
 import { getColorForUsername } from '@/app/utils/chatColors';
+import { playerDisplayName } from '@/app/utils/address';
 
 type OverlayMessage = {
     id: number;
     name: string;
+    address?: string;
     message: string;
     isSeated: boolean;
 };
@@ -65,6 +67,7 @@ const ChatOverlay = () => {
             ...newMessages.map((message, idx) => ({
                 id: startIndex + idx,
                 name: message.name,
+                address: message.address,
                 message: message.message,
                 isSeated: message.isSeated,
             })),
@@ -123,7 +126,11 @@ const ChatOverlay = () => {
                 justifyContent="flex-end"
             >
                 {items.map((item) => {
-                    const userColor = getColorForUsername(item.name);
+                    // Wallet-only authors arrive with an empty name + a full address;
+                    // resolve the same way ChatBox does so the shortened wallet shows
+                    // instead of a blank "  :" in tournaments.
+                    const label = playerDisplayName(item.name, item.address);
+                    const userColor = getColorForUsername(label);
                     return (
                         <Box
                             key={item.id}
@@ -161,7 +168,7 @@ const ChatOverlay = () => {
                                             aria-label="seated"
                                         />
                                     )}
-                                    {item.name}:
+                                    {label}:
                                 </Text>
                                 <MessageRenderer
                                     tokens={tokenizeMessage(

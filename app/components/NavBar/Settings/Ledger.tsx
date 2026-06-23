@@ -29,6 +29,7 @@ import { fetchTableLedger } from '@/app/hooks/server_actions';
 import { LedgerResponse, LedgerEntry } from '@/app/interfaces';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import PlayerNameLink from '@/app/components/PlayerNameLink';
+import { resolvePlayerIdentity, shortenAddress } from '@/app/utils/address';
 
 interface PlayerSession {
     uuid: string;
@@ -49,6 +50,29 @@ interface FinancialEvent {
     type: 'buy-in' | 'buy-out' | 'kicked';
     amount: number;
 }
+
+const truncateUuid = (uuid: string) => {
+    if (uuid.length <= 8) return uuid;
+    return `${uuid.substring(0, 4)}...${uuid.substring(uuid.length - 4)}`;
+};
+
+// Secondary identifier shown beneath the player's name. When the name line already
+// resolves to the wallet (wallet-only player) we suppress it; for an @handle/nickname
+// in a crypto/tournament context we show the wallet beneath instead of the raw session
+// UUID (issue #570). Everything else (free play, or a tournament with no wallet) keeps
+// the session UUID as a stable per-seat identifier.
+const secondaryIdLabel = (
+    session: PlayerSession,
+    showWallet: boolean
+): string | null => {
+    const identity = resolvePlayerIdentity(
+        session.username,
+        showWallet ? session.address : undefined
+    );
+    if (identity.kind === 'wallet') return null;
+    if (showWallet && session.address) return shortenAddress(session.address);
+    return truncateUuid(session.uuid);
+};
 
 // ─── Animations ──────────────────────────────────────────────────────────
 const pulseDot = keyframes`
@@ -301,14 +325,18 @@ const MobileSessionCard = ({
     onToggle,
     formatCurrency,
     formatTime,
-    truncateUuid,
+    secondaryId,
+    showWallet,
+    chain,
 }: {
     session: PlayerSession;
     expanded: boolean;
     onToggle: () => void;
     formatCurrency: (n: number) => string;
     formatTime: (ts: string) => string;
-    truncateUuid: (uuid: string) => string;
+    secondaryId: string | null;
+    showWallet: boolean;
+    chain?: string | null;
 }) => {
     const hasTx = session.transactions.length > 0;
     const cashOutDisplay =
@@ -343,17 +371,21 @@ const MobileSessionCard = ({
                         <Stack spacing={0} minW={0}>
                             <PlayerNameLink
                                 username={session.username}
+                                address={showWallet ? session.address : undefined}
+                                chain={chain}
                                 fontWeight={700}
                                 color="text.primary"
                                 fontSize="sm"
                             />
-                            <Text
-                                fontSize="2xs"
-                                color="text.muted"
-                                fontFamily="mono"
-                            >
-                                {truncateUuid(session.uuid)}
-                            </Text>
+                            {secondaryId && (
+                                <Text
+                                    fontSize="2xs"
+                                    color="text.muted"
+                                    fontFamily="mono"
+                                >
+                                    {secondaryId}
+                                </Text>
+                            )}
                         </Stack>
                     </HStack>
                     <NetCell net={session.net} formatCurrency={formatCurrency} />
@@ -658,10 +690,13 @@ const Ledger = () => {
         });
     };
 
-    const truncateUuid = (uuid: string) => {
-        if (uuid.length <= 8) return uuid;
-        return `${uuid.substring(0, 4)}...${uuid.substring(uuid.length - 4)}`;
-    };
+    // Tournament tables are built non-crypto on the server, so `config.crypto` is
+    // false even for paid tournaments — fall back to the tournament flag so wallet
+    // identities resolve instead of the raw session UUID (issue #570).
+    const showWallet =
+        Boolean(appState.game?.config?.crypto) ||
+        Boolean(appState.game?.config?.tournament);
+    const chain = appState.game?.config?.chain;
 
     const formatTime = (timestamp: string) => {
         return new Date(timestamp).toLocaleString('en-US', {
@@ -755,7 +790,9 @@ const Ledger = () => {
                             onToggle={() => toggleRow(session.uuid)}
                             formatCurrency={formatCurrency}
                             formatTime={formatTime}
-                            truncateUuid={truncateUuid}
+                            secondaryId={secondaryIdLabel(session, showWallet)}
+                            showWallet={showWallet}
+                            chain={chain}
                         />
                     ))}
                 </Stack>
@@ -921,19 +958,32 @@ const Ledger = () => {
                                                     <Stack spacing={0}>
                                                         <PlayerNameLink
                                                             username={session.username}
+                                                            address={
+                                                                showWallet
+                                                                    ? session.address
+                                                                    : undefined
+                                                            }
+                                                            chain={chain}
                                                             fontWeight={700}
                                                             color="text.primary"
                                                             fontSize="sm"
                                                         />
-                                                        <Text
-                                                            fontSize="2xs"
-                                                            color="text.muted"
-                                                            fontFamily="mono"
-                                                        >
-                                                            {truncateUuid(
-                                                                session.uuid
-                                                            )}
-                                                        </Text>
+                                                        {(() => {
+                                                            const secondaryId =
+                                                                secondaryIdLabel(
+                                                                    session,
+                                                                    showWallet
+                                                                );
+                                                            return secondaryId ? (
+                                                                <Text
+                                                                    fontSize="2xs"
+                                                                    color="text.muted"
+                                                                    fontFamily="mono"
+                                                                >
+                                                                    {secondaryId}
+                                                                </Text>
+                                                            ) : null;
+                                                        })()}
                                                     </Stack>
                                                 </HStack>
                                             </Td>

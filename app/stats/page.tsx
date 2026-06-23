@@ -43,6 +43,7 @@ import { StatsTab } from '../components/Stats/StatsTab';
 import { TablesTab } from '../components/Stats/TablesTab';
 import { HealthTab } from '../components/Stats/HealthTab';
 import { WhitelistTab } from '../components/Stats/WhitelistTab';
+import { WaitlistTab } from '../components/Stats/WaitlistTab';
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 
@@ -343,6 +344,7 @@ export default function AdminStatsPage() {
                         { label: 'Tables',    accent: 'brand.pink',    edge: '#950839' },
                         { label: 'Health',    accent: 'brand.navy',    edge: '#1B2754' },
                         { label: 'Whitelist', accent: 'brand.yellow',  edge: '#B78900' },
+                        { label: 'Email',     accent: 'brand.green',   edge: '#22674E' },
                     ].map(({ label, accent, edge }) => (
                         <Tab
                             key={label}
@@ -432,6 +434,11 @@ export default function AdminStatsPage() {
                             setWlAdding={setWlAdding}
                             loadWhitelist={loadWhitelist}
                         />
+                    </TabPanel>
+
+                    {/* ── Email tab ── */}
+                    <TabPanel px={0} py={0}>
+                        <WaitlistTab />
                     </TabPanel>
 
                 </TabPanels>

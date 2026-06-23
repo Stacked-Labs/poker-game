@@ -68,12 +68,15 @@ function byMostRecentlyFinished(a: Tournament, b: Tournament): number {
     return eb - ea;
 }
 
-// Up to MAX_CARDS cards: open/live first (most participants), then recently
-// finished as filler so the row is always full when any tournament exists.
+// Up to MAX_CARDS cards. With zero genuinely upcoming/live events we return
+// nothing so the section shows the "host your own" prompt rather than a row of
+// purely finished tournaments. With at least one upcoming event, recently
+// finished tournaments backfill the remaining slots so the row stays full.
 function selectTournaments(all: Tournament[]): Tournament[] {
     const upcoming = all
         .filter((t) => UPCOMING_STATUSES.has(t.status))
         .sort(byMostParticipants);
+    if (upcoming.length === 0) return [];
     const selected = upcoming.slice(0, MAX_CARDS);
     if (selected.length < MAX_CARDS) {
         const finished = all

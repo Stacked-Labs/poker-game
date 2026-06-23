@@ -18,7 +18,7 @@ import { keyframes } from '@emotion/react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { FiArrowRight } from 'react-icons/fi';
+import { FiArrowRight, FiAward } from 'react-icons/fi';
 import { useActiveAccount } from 'thirdweb/react';
 import {
     getMyTournamentRegistrations,
@@ -172,7 +172,8 @@ const UpcomingTournamentsSection = ({
     // A backend hiccup shouldn't leave a dead section on the marketing page —
     // fall back to the same "host your own" prompt the empty state uses.
     const isLoading = tournaments === null && !errored;
-    const isEmpty = errored || (tournaments !== null && tournaments.length === 0);
+    const isEmpty =
+        errored || (tournaments !== null && tournaments.length === 0);
 
     const fadeUp = prefersReducedMotion
         ? {}
@@ -264,13 +265,38 @@ const UpcomingTournamentsSection = ({
                         </VStack>
 
                         {!isEmpty && (
+                            // Gold "chip" pill — gold is the brand's tournament /
+                            // celebratory tone, so this reads as eye-catching and
+                            // distinct from the green table CTAs while sharing the
+                            // rounded chip silhouette of the navbar's Browse Tables.
                             <Button
                                 as="a"
                                 href="/public-games?format=tournaments"
-                                variant="tactileOutline"
                                 size="md"
-                                rightIcon={<Icon as={FiArrowRight} />}
                                 flexShrink={0}
+                                borderRadius="full"
+                                fontWeight={700}
+                                letterSpacing="0.02em"
+                                color="brand.yellowDark"
+                                bg="rgba(253, 197, 29, 0.12)"
+                                border="2px solid"
+                                borderColor="brand.yellow"
+                                boxShadow="0 2px 0 #8A6A00"
+                                leftIcon={<Icon as={FiAward} />}
+                                rightIcon={<Icon as={FiArrowRight} />}
+                                _dark={{
+                                    color: 'brand.yellow',
+                                    bg: 'rgba(253, 197, 29, 0.10)',
+                                }}
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 120ms ease, border-color 120ms ease"
+                                _hover={{
+                                    bg: 'rgba(253, 197, 29, 0.20)',
+                                    borderColor: 'brand.yellowDark',
+                                }}
+                                _active={{
+                                    transform: 'translateY(2px)',
+                                    boxShadow: '0 0 0 #8A6A00',
+                                }}
                             >
                                 All tournaments
                             </Button>
@@ -312,7 +338,10 @@ const UpcomingTournamentsSection = ({
 
 function LoadingGrid() {
     return (
-        <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} spacing={{ base: 3, md: 4 }}>
+        <SimpleGrid
+            columns={{ base: 1, sm: 2, lg: 3 }}
+            spacing={{ base: 3, md: 4 }}
+        >
             {[0, 1, 2].map((i) => (
                 <Skeleton
                     key={i}
@@ -360,8 +389,8 @@ function EmptyState() {
                     maxW="md"
                     lineHeight="tall"
                 >
-                    Be the host. Spin up your own tournament, set the buy-in, and
-                    put a time on the board.
+                    Be the host. Spin up your own tournament, set the buy-in,
+                    and put a time on the board.
                 </Text>
             </VStack>
             <Button

@@ -20,6 +20,8 @@ How to approach any task here — bias toward caution over speed. For trivial ch
 
 **Verify, don't assert.** "Done" is a checkable outcome, not a vibe — meet the bar in *Build & quality* (build passes, lint clean, works in light *and* dark, tested in a browser). A passing type-check doesn't prove a feature works. Fixing a bug? Reproduce it first, then confirm the repro is gone.
 
+**Open PRs into develop branches(or dev).** If we ask(and only if we ask) u to open a PR for the current feature/fix branch -> never open into main(unless develop or dev is missing from the repo)
+
 ---
 
 ## Design Context (summary — full version in PRODUCT.md)

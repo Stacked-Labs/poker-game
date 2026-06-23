@@ -25,6 +25,11 @@ import {
     ordinal,
     useCountdown,
 } from '../PublicGames/tournamentFormat';
+import ShareResultButton from './ShareResultButton';
+import {
+    buildTournamentShareText,
+    buildTournamentShareUrl,
+} from './tournamentShare';
 
 // ── Keyframes ────────────────────────────────────────────────────────────────
 
@@ -226,6 +231,7 @@ export default function TournamentResultCard(props: TournamentResultCardProps) {
             placesPaid={placesPaid}
             isFreePlay={isFreePlay}
             cashed={cashed}
+            tournamentName={tournamentName}
             tournamentId={tournamentId}
             reentry={reentry}
             reentering={reentering}
@@ -495,6 +501,18 @@ function WinCard({
                         View standings
                     </Button>
 
+                    <ShareResultButton
+                        shareText={buildTournamentShareText({
+                            kind: 'win',
+                            position: 1,
+                            fieldSize,
+                            prizeUsdc,
+                            isFreePlay,
+                            tournamentName,
+                        })}
+                        shareUrl={buildTournamentShareUrl(tournamentId)}
+                    />
+
                     <Box
                         as="button"
                         type="button"
@@ -530,6 +548,7 @@ function BustCard({
     placesPaid,
     isFreePlay,
     cashed,
+    tournamentName,
     tournamentId,
     reentry,
     reentering,
@@ -544,6 +563,7 @@ function BustCard({
     placesPaid: number;
     isFreePlay: boolean;
     cashed: boolean;
+    tournamentName: string;
     tournamentId: number;
     reentry?: ReentryOffer;
     reentering: boolean;
@@ -735,7 +755,19 @@ function BustCard({
                 )}
 
                 {/* Footer actions */}
-                <VStack spacing={1} mt={reentry ? 0 : 1}>
+                <VStack spacing={2} mt={reentry ? 0 : 1}>
+                    <ShareResultButton
+                        variant={reentry ? 'tactileGhost' : 'tactileNeutral'}
+                        shareText={buildTournamentShareText({
+                            kind: 'bust',
+                            position,
+                            fieldSize,
+                            prizeUsdc,
+                            isFreePlay,
+                            tournamentName,
+                        })}
+                        shareUrl={buildTournamentShareUrl(tournamentId)}
+                    />
                     <Button
                         variant={reentry ? 'tactileGhost' : 'tactileNeutral'}
                         size="sm"

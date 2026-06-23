@@ -7,6 +7,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint --fix",
+        "lint:copy": "node scripts/check-copy.mjs",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:e2e": "playwright test",

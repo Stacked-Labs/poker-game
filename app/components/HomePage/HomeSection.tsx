@@ -216,10 +216,10 @@ const HomeSection = ({ isBroadcast = false }: HomeSectionProps) => {
                 left={0}
                 right={0}
                 height={{ base: '120px', md: '180px' }}
-                bgGradient="linear(to-b, rgba(237, 237, 237, 0), rgba(237, 237, 237, 1))"
+                bgGradient="linear(to-b, rgba(236, 238, 245, 0), rgba(236, 238, 245, 1))"
                 _dark={{
                     bgGradient:
-                        'linear(to-b, rgba(25, 25, 25, 0), rgba(25, 25, 25, 1))',
+                        'linear(to-b, rgba(25, 20, 20, 0), rgba(25, 20, 20, 1))',
                 }}
                 pointerEvents="none"
                 zIndex={4}

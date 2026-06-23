@@ -13,7 +13,12 @@ import { motion, useReducedMotion } from 'framer-motion';
 
 const MotionVStack = motion(VStack);
 
-const USDC_BLUE = '#2775CA';
+// USDC-blue text that clears AA 4.5:1 on both grounds: darker token on the
+// light page, a lighter shade on the near-black dark page.
+const usdcText = {
+    color: 'brand.usdcDark',
+    _dark: { color: '#5BA8E8' },
+};
 
 type Stake = {
     blinds: string;
@@ -34,8 +39,11 @@ const CustomChipValueSection = () => {
         prefersReducedMotion
             ? {}
             : {
-                  initial: { opacity: 0, y: 24 },
-                  whileInView: { opacity: 1, y: 0 },
+                  // Slide-only entrance: opacity stays 1 so content is never gated
+                  // invisible if the in-view reveal doesn't fire (fast scroll, JS
+                  // hiccup, headless capture). Robustness over a fade.
+                  initial: { y: 24 },
+                  whileInView: { y: 0 },
                   viewport: { once: true, amount: 0.35 },
                   transition: { duration: 0.6, ease: 'easeOut', delay },
               };
@@ -44,7 +52,7 @@ const CustomChipValueSection = () => {
         <Box
             as="section"
             id="chip-value"
-            py={{ base: 10, md: 14 }}
+            py={{ base: 6, md: 14 }}
             width="100%"
             position="relative"
         >
@@ -71,7 +79,7 @@ const CustomChipValueSection = () => {
 
             <Container maxW="container.lg" position="relative" zIndex={1}>
                 <MotionVStack
-                    spacing={5}
+                    spacing={{ base: 3, md: 5 }}
                     align={{ base: 'start', md: 'center' }}
                     textAlign={{ base: 'left', md: 'center' }}
                     {...fadeUp(0)}
@@ -95,7 +103,7 @@ const CustomChipValueSection = () => {
                         lineHeight={1}
                     >
                         1 chip ={' '}
-                        <Box as="span" color={USDC_BLUE}>
+                        <Box as="span" {...usdcText}>
                             0.01
                         </Box>{' '}
                         <Box
@@ -118,7 +126,7 @@ const CustomChipValueSection = () => {
                         </Box>
                         <Box
                             as="span"
-                            color={USDC_BLUE}
+                            {...usdcText}
                             fontSize={{ base: '2xl', md: '5xl', lg: '6xl' }}
                             fontWeight="bold"
                             letterSpacing="0.02em"
@@ -133,6 +141,7 @@ const CustomChipValueSection = () => {
                         color="text.secondary"
                         letterSpacing="0.18em"
                         textTransform="uppercase"
+                        display={{ base: 'none', md: 'block' }}
                     >
                         Always.
                     </Text>
@@ -143,14 +152,14 @@ const CustomChipValueSection = () => {
                         fontWeight="medium"
                         maxW="2xl"
                         lineHeight="tall"
-                        pt={3}
+                        pt={{ base: 0, md: 3 }}
                     >
-                        No volatility. No conversion games. A 100-chip stack is
-                        $1.00 at buy-in, at showdown, at withdrawal.
+                        No volatility. A 100-chip stack is $1.00 at buy-in, at
+                        showdown, at cashout.
                     </Text>
 
                     <Box
-                        pt={{ base: 8, md: 12 }}
+                        pt={{ base: 5, md: 12 }}
                         w="100%"
                         maxW="lg"
                         mx={{ base: 0, md: 'auto' }}
@@ -197,7 +206,7 @@ const CustomChipValueSection = () => {
                                         </Text>
                                     </HStack>
                                     <Text
-                                        color={USDC_BLUE}
+                                        {...usdcText}
                                         fontWeight="semibold"
                                         fontSize={{ base: 'sm', md: 'md' }}
                                         sx={{ fontVariantNumeric: "tabular-nums" }}

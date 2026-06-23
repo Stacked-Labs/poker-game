@@ -680,6 +680,9 @@ export interface Tournament {
 export async function listTournaments(opts?: {
     limit?: number;
     offset?: number;
+    // Server-side ISR cache window in seconds, for the homepage SSR fetch. Omit
+    // to keep the default (uncached) behaviour the lobby's client calls rely on.
+    revalidate?: number;
 }): Promise<{ tournaments: Tournament[]; total_count: number }> {
     isBackendUrlValid();
     const params = new URLSearchParams();
@@ -688,7 +691,12 @@ export async function listTournaments(opts?: {
     const qs = params.toString();
     const res = await fetch(
         `${backendUrl}/api/tournaments${qs ? `?${qs}` : ''}`,
-        { method: 'GET' }
+        {
+            method: 'GET',
+            ...(opts?.revalidate != null
+                ? { next: { revalidate: opts.revalidate } }
+                : {}),
+        }
     );
     if (!res.ok) throw new Error(`listTournaments: ${res.statusText}`);
     return res.json();

@@ -20,6 +20,11 @@ export function useCountdown(targetIso: string, tickMs = 30_000) {
     const diffMs = ready ? target - (now as number) : 0;
 
     return {
+        // `mounted` is true once the client has run its effect, regardless of
+        // whether the target ISO is valid. Use it to gate timezone/locale-
+        // dependent absolute-time text (formatTournamentStart) so the server and
+        // the first client render emit identical output and don't hydrate-mismatch.
+        mounted: now !== null,
         ready,
         diffMs,
         isPast: ready && diffMs <= 0,

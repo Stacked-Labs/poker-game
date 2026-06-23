@@ -1,25 +1,103 @@
 'use client';
 
 import Link from 'next/link';
-import { Flex, VStack, Text, Button, Spinner } from '@chakra-ui/react';
-import { FiPlus } from 'react-icons/fi';
+import {
+    Box,
+    Flex,
+    HStack,
+    Icon,
+    Skeleton,
+    Text,
+    Button,
+    VStack,
+    useColorModeValue,
+    usePrefersReducedMotion,
+} from '@chakra-ui/react';
+import { FiPlus, FiUsers, FiFilter } from 'react-icons/fi';
 
 interface EmptyStateProps {
-    variant: 'loading' | 'error' | 'empty';
+    variant: 'loading' | 'error' | 'empty' | 'filtered';
     onRetry?: () => void;
+    onClear?: () => void;
 }
 
-export default function EmptyState({ variant, onRetry }: EmptyStateProps) {
+// Vary the name-bar widths a touch so the skeleton reads as real rows, not a
+// perfectly uniform grid.
+const NAME_WIDTHS = ['44%', '38%', '50%', '35%', '46%', '40%'];
+
+export default function EmptyState({ variant, onRetry, onClear }: EmptyStateProps) {
+    const ruleColor = useColorModeValue('rgba(11, 20, 48, 0.06)', 'rgba(255, 255, 255, 0.06)');
+    const prefersReducedMotion = usePrefersReducedMotion();
+    const skeletonSpeed = prefersReducedMotion ? 0 : 1.4;
+    const iconBg = useColorModeValue('rgba(54, 163, 123, 0.10)', 'rgba(54, 163, 123, 0.18)');
+    // Soft, on-surface shimmer. Chakra's default (gray.100->gray.400 light /
+    // gray.800->gray.600 dark) reads as hard, too-dark boxes; these translucent
+    // tokens ride whatever panel they sit on and stay mode-correct in both themes.
+    const sk = {
+        speed: skeletonSpeed,
+        startColor: 'bg.pillNeutral',
+        endColor: 'border.pillNeutral',
+    } as const;
+
     if (variant === 'loading') {
+        // Mirrors PublicGameCard's column rhythm (dot · stakes · identity · seats ·
+        // age) so the list doesn't jump when real rows arrive.
         return (
-            <Flex w="full" justify="center" align="center" py={{ base: 12, md: 16 }} px={4}>
-                <VStack spacing={4}>
-                    <Spinner size="lg" color="brand.green" thickness="3px" />
-                    <Text color="text.secondary" fontSize="sm" fontWeight="semibold" textAlign="center">
-                        Loading public games…
-                    </Text>
-                </VStack>
-            </Flex>
+            <Box w="full" aria-busy="true" aria-label="Loading public games">
+                {NAME_WIDTHS.map((nameW, i) => (
+                    <HStack
+                        key={i}
+                        px={{ base: 3, md: 6 }}
+                        py={{ base: 3, md: 3.5 }}
+                        spacing={{ base: 3, md: 4 }}
+                        minH={{ base: '68px', md: 'auto' }}
+                        align="center"
+                        borderBottom={i === NAME_WIDTHS.length - 1 ? 'none' : '1px solid'}
+                        borderColor={ruleColor}
+                    >
+                        <Skeleton boxSize="10px" borderRadius="full" flexShrink={0} {...sk} />
+                        {/* stakes (desktop) */}
+                        <Box flex="1.4" display={{ base: 'none', md: 'block' }}>
+                            <Skeleton h="14px" w="88px" borderRadius="6px" {...sk} />
+                        </Box>
+                        {/* identity (both) — leading host avatar + name/meta lines */}
+                        <HStack
+                            flex={{ base: '1', md: '2.2' }}
+                            minW={0}
+                            spacing={{ base: 1.5, md: 2.5 }}
+                        >
+                            <Skeleton
+                                boxSize={{ base: '16px', md: '28px' }}
+                                borderRadius="full"
+                                flexShrink={0}
+                                {...sk}
+                            />
+                            <Box minW={0} flex={1}>
+                                <Skeleton h="13px" w={nameW} borderRadius="6px" {...sk} />
+                                <Skeleton h="9px" w="30%" borderRadius="6px" mt={2} {...sk} />
+                            </Box>
+                        </HStack>
+                        {/* seats (desktop) */}
+                        <Box flex="1.2" display={{ base: 'none', md: 'block' }}>
+                            <Skeleton h="12px" w="72px" borderRadius="6px" {...sk} />
+                        </Box>
+                        {/* age (desktop) */}
+                        <Skeleton
+                            display={{ base: 'none', md: 'block' }}
+                            h="10px"
+                            w="30px"
+                            borderRadius="6px"
+                            flexShrink={0}
+                            {...sk}
+                        />
+                        {/* seats + age (mobile) */}
+                        <VStack display={{ base: 'flex', md: 'none' }} align="end" spacing={2} flexShrink={0}>
+                            <Skeleton h="12px" w="46px" borderRadius="6px" {...sk} />
+                            <Skeleton h="8px" w="26px" borderRadius="6px" {...sk} />
+                        </VStack>
+                    </HStack>
+                ))}
+            </Box>
         );
     }
 
@@ -32,12 +110,12 @@ export default function EmptyState({ variant, onRetry }: EmptyStateProps) {
                 py={{ base: 12, md: 16 }}
                 px={4}
                 gap={4}
+                textAlign="center"
             >
                 <Text
                     color="text.secondary"
                     fontSize={{ base: 'md', md: 'lg' }}
                     fontWeight="bold"
-                    textAlign="center"
                 >
                     Unable to load games. Please try again.
                 </Text>
@@ -54,6 +132,47 @@ export default function EmptyState({ variant, onRetry }: EmptyStateProps) {
         );
     }
 
+    if (variant === 'filtered') {
+        return (
+            <Flex
+                w="full"
+                direction="column"
+                align="center"
+                py={{ base: 12, md: 16 }}
+                px={4}
+                gap={4}
+                textAlign="center"
+            >
+                <Flex
+                    align="center"
+                    justify="center"
+                    boxSize="56px"
+                    borderRadius="full"
+                    bg={iconBg}
+                    aria-hidden
+                >
+                    <Icon as={FiFilter} boxSize="22px" color="brand.green" />
+                </Flex>
+                <Text fontSize={{ base: 'lg', md: 'xl' }} fontWeight="bold" color="text.primary">
+                    No tables match these filters
+                </Text>
+                <Text color="text.secondary" fontSize="sm" lineHeight={1.6} maxW="420px">
+                    Nothing live at this stake or type right now. Try a wider filter,
+                    or check back in a minute as new tables open.
+                </Text>
+                <Button
+                    onClick={onClear}
+                    variant="tactileNeutral"
+                    borderRadius="14px"
+                    minH="44px"
+                    px={6}
+                >
+                    Clear filters
+                </Button>
+            </Flex>
+        );
+    }
+
     return (
         <Flex
             w="full"
@@ -62,14 +181,34 @@ export default function EmptyState({ variant, onRetry }: EmptyStateProps) {
             py={{ base: 12, md: 16 }}
             px={4}
             gap={4}
+            textAlign="center"
         >
+            <Flex
+                align="center"
+                justify="center"
+                boxSize="56px"
+                borderRadius="full"
+                bg={iconBg}
+                aria-hidden
+            >
+                <Icon as={FiUsers} boxSize="24px" color="brand.green" />
+            </Flex>
+            <Text
+                fontSize={{ base: 'lg', md: 'xl' }}
+                fontWeight="bold"
+                color="text.primary"
+            >
+                No cash games running right now
+            </Text>
             <Text
                 color="text.secondary"
-                fontSize={{ base: 'md', md: 'lg' }}
-                fontWeight="bold"
-                textAlign="center"
+                fontSize="sm"
+                lineHeight={1.6}
+                maxW="440px"
             >
-                No public games right now.
+                Every table here is opened by a player, and every seat needs the
+                Host&apos;s approval. Start your own table, or check back in a minute,
+                new ones show up the moment a host opens one.
             </Text>
             <Button
                 as={Link}
@@ -80,7 +219,7 @@ export default function EmptyState({ variant, onRetry }: EmptyStateProps) {
                 minH="44px"
                 px={6}
             >
-                Create one
+                Host a table
             </Button>
         </Flex>
     );

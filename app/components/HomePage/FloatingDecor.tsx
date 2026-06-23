@@ -2,7 +2,7 @@
 
 import { Box, Icon, Text } from '@chakra-ui/react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { SiBitcoin, SiEthereum } from 'react-icons/si';
+import { GiToken } from 'react-icons/gi';
 import { type ReactNode } from 'react';
 
 type FloatingDecorProps = {
@@ -20,6 +20,8 @@ type DecorItem = {
     rotate: number;
     duration: number;
     delay?: number;
+    // shown in the lighter mobile pass — keep this set small
+    mobile?: boolean;
     render: ReactNode;
 };
 
@@ -46,22 +48,19 @@ const Suit = ({
     );
 };
 
-const EthIcon = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
+const ChipIcon = ({
+    color = 'brand.green',
+    size = 'md',
+}: {
+    color?: string;
+    size?: 'sm' | 'md' | 'lg';
+}) => {
     const sizeMap = {
-        sm: { base: '24px', md: '30px' },
-        md: { base: '32px', md: '40px' },
-        lg: { base: '44px', md: '56px' },
+        sm: { base: '26px', md: '32px' },
+        md: { base: '34px', md: '42px' },
+        lg: { base: '46px', md: '58px' },
     };
-    return <Icon as={SiEthereum} boxSize={sizeMap[size]} color="brand.navy" />;
-};
-
-const BtcIcon = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
-    const sizeMap = {
-        sm: { base: '24px', md: '30px' },
-        md: { base: '32px', md: '40px' },
-        lg: { base: '44px', md: '56px' },
-    };
-    return <Icon as={SiBitcoin} boxSize={sizeMap[size]} color="brand.yellow" />;
+    return <Icon as={GiToken} boxSize={sizeMap[size]} color={color} />;
 };
 
 const LogoImage = ({
@@ -88,15 +87,11 @@ const LogoImage = ({
     );
 };
 
-const BaseLogo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => (
-    <LogoImage src="/networkLogos/base-logo.png" size={size} />
-);
-
 const UsdcLogo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => (
     <LogoImage src="/usdc-logo.png" size={size} />
 );
 
-// Per-section items (legacy, kept for HomeSection)
+// Per-section items (legacy, kept for HomeSection). Suits, chips, USDC only.
 const SECTION_ITEMS: DecorItem[] = [
     {
         key: 'suit-spade',
@@ -107,6 +102,7 @@ const SECTION_ITEMS: DecorItem[] = [
         float: 6,
         rotate: 8,
         duration: 4.6,
+        mobile: true,
         render: <Suit glyph="♠" color="brand.navy" />,
     },
     {
@@ -118,6 +114,7 @@ const SECTION_ITEMS: DecorItem[] = [
         float: 6,
         rotate: -8,
         duration: 4.2,
+        mobile: true,
         render: <Suit glyph="♥" color="brand.pink" />,
     },
     {
@@ -140,40 +137,30 @@ const SECTION_ITEMS: DecorItem[] = [
         float: 7,
         rotate: -6,
         duration: 5.2,
+        mobile: true,
         render: <Suit glyph="♦" color="brand.yellow" />,
     },
     {
-        key: 'eth-icon',
+        key: 'chip-green',
         level: 2,
         top: '30%',
         left: '70%',
-        opacity: 0.25,
+        opacity: 0.22,
         float: 8,
         rotate: 6,
         duration: 5,
-        render: <EthIcon />,
+        render: <ChipIcon color="brand.green" />,
     },
     {
-        key: 'btc-icon',
+        key: 'chip-navy',
         level: 2,
         top: '48%',
         left: '86%',
-        opacity: 0.25,
+        opacity: 0.22,
         float: 7,
         rotate: -6,
         duration: 5.4,
-        render: <BtcIcon />,
-    },
-    {
-        key: 'base-logo',
-        level: 2,
-        top: '58%',
-        left: '28%',
-        opacity: 0.24,
-        float: 7,
-        rotate: 8,
-        duration: 5.6,
-        render: <BaseLogo />,
+        render: <ChipIcon color="brand.navy" />,
     },
     {
         key: 'usdc-logo',
@@ -190,63 +177,44 @@ const SECTION_ITEMS: DecorItem[] = [
 
 // Page-scale items — distributed across the whole post-hero region.
 // `top` is relative to the wrapper, which spans many viewports.
-// 24 items, ~2–3 visible per viewport. Mix of small/medium/large for rhythm.
+// Trimmed to ~14 items (~1–2 visible per viewport) to cut concurrent
+// motion loops. Suits, chips, and the USDC mark only — no volatile coins.
 const PAGE_ITEMS: DecorItem[] = [
     // 0–25%
-    { key: 'p-spade-1', level: 1, top: '2%', left: '8%', opacity: 0.22, float: 6, rotate: 8, duration: 4.8,
+    { key: 'p-spade-1', level: 1, top: '3%', left: '8%', opacity: 0.22, float: 6, rotate: 8, duration: 4.8, mobile: true,
       render: <Suit glyph="♠" color="brand.navy" /> },
-    { key: 'p-eth-1', level: 1, top: '6%', left: '72%', opacity: 0.18, float: 8, rotate: 6, duration: 5.2,
-      render: <EthIcon /> },
-    { key: 'p-usdc-1', level: 1, top: '10%', left: '22%', opacity: 0.20, float: 6, rotate: -6, duration: 5.6,
+    { key: 'p-usdc-1', level: 1, top: '9%', left: '78%', opacity: 0.20, float: 6, rotate: -6, duration: 5.6,
       render: <UsdcLogo size="lg" /> },
-    { key: 'p-heart-1', level: 1, top: '14%', left: '88%', opacity: 0.22, float: 6, rotate: -6, duration: 4.4,
+    { key: 'p-heart-1', level: 1, top: '16%', left: '22%', opacity: 0.22, float: 6, rotate: -6, duration: 4.4, mobile: true,
       render: <Suit glyph="♥" color="brand.pink" /> },
-    { key: 'p-club-1', level: 1, top: '18%', left: '12%', opacity: 0.22, float: 7, rotate: 6, duration: 4.6,
-      render: <Suit glyph="♣" color="brand.green" /> },
-    { key: 'p-btc-1', level: 1, top: '22%', left: '64%', opacity: 0.18, float: 7, rotate: -8, duration: 5.4,
-      render: <BtcIcon /> },
 
     // 25–50%
-    { key: 'p-base-1', level: 1, top: '27%', left: '86%', opacity: 0.20, float: 7, rotate: 8, duration: 5.6,
-      render: <BaseLogo /> },
-    { key: 'p-diamond-1', level: 1, top: '32%', left: '20%', opacity: 0.22, float: 7, rotate: -6, duration: 5.0,
+    { key: 'p-chip-1', level: 1, top: '27%', left: '86%', opacity: 0.22, float: 7, rotate: 8, duration: 5.6,
+      render: <ChipIcon color="brand.green" /> },
+    { key: 'p-diamond-1', level: 1, top: '34%', left: '14%', opacity: 0.22, float: 7, rotate: -6, duration: 5.0, mobile: true,
       render: <Suit glyph="♦" color="brand.yellow" size="lg" /> },
-    { key: 'p-spade-2', level: 1, top: '37%', left: '74%', opacity: 0.22, float: 6, rotate: 6, duration: 4.4,
-      render: <Suit glyph="♠" color="brand.navy" size="sm" /> },
-    { key: 'p-usdc-2', level: 1, top: '42%', left: '10%', opacity: 0.20, float: 6, rotate: -6, duration: 5.8,
-      render: <UsdcLogo /> },
-    { key: 'p-eth-2', level: 1, top: '46%', left: '88%', opacity: 0.18, float: 8, rotate: -6, duration: 5.4,
-      render: <EthIcon size="lg" /> },
-    { key: 'p-heart-2', level: 1, top: '50%', left: '36%', opacity: 0.22, float: 6, rotate: 8, duration: 4.6,
-      render: <Suit glyph="♥" color="brand.pink" /> },
+    { key: 'p-club-1', level: 1, top: '44%', left: '80%', opacity: 0.22, float: 6, rotate: 6, duration: 4.4,
+      render: <Suit glyph="♣" color="brand.green" /> },
 
     // 50–75%
-    { key: 'p-club-2', level: 1, top: '54%', left: '78%', opacity: 0.22, float: 7, rotate: 8, duration: 4.8,
-      render: <Suit glyph="♣" color="brand.green" size="sm" /> },
-    { key: 'p-btc-2', level: 1, top: '58%', left: '14%', opacity: 0.18, float: 7, rotate: 6, duration: 5.2,
-      render: <BtcIcon /> },
-    { key: 'p-base-2', level: 1, top: '62%', left: '60%', opacity: 0.20, float: 7, rotate: -8, duration: 5.8,
-      render: <BaseLogo size="sm" /> },
-    { key: 'p-diamond-2', level: 1, top: '66%', left: '88%', opacity: 0.22, float: 7, rotate: -6, duration: 5.0,
-      render: <Suit glyph="♦" color="brand.yellow" /> },
-    { key: 'p-spade-3', level: 1, top: '70%', left: '24%', opacity: 0.22, float: 6, rotate: 6, duration: 4.4,
+    { key: 'p-usdc-2', level: 1, top: '53%', left: '12%', opacity: 0.20, float: 6, rotate: -6, duration: 5.8, mobile: true,
+      render: <UsdcLogo /> },
+    { key: 'p-chip-2', level: 1, top: '60%', left: '70%', opacity: 0.22, float: 7, rotate: -8, duration: 5.4,
+      render: <ChipIcon color="brand.navy" size="sm" /> },
+    { key: 'p-spade-2', level: 1, top: '68%', left: '24%', opacity: 0.22, float: 6, rotate: 6, duration: 4.4,
       render: <Suit glyph="♠" color="brand.navy" /> },
-    { key: 'p-usdc-3', level: 1, top: '74%', left: '70%', opacity: 0.20, float: 6, rotate: -6, duration: 5.8,
-      render: <UsdcLogo size="sm" /> },
 
     // 75–100%
-    { key: 'p-heart-3', level: 1, top: '78%', left: '10%', opacity: 0.22, float: 6, rotate: -6, duration: 4.4,
+    { key: 'p-heart-2', level: 1, top: '77%', left: '84%', opacity: 0.22, float: 6, rotate: -6, duration: 4.4, mobile: true,
       render: <Suit glyph="♥" color="brand.pink" size="lg" /> },
-    { key: 'p-eth-3', level: 1, top: '82%', left: '46%', opacity: 0.18, float: 8, rotate: 6, duration: 5.2,
-      render: <EthIcon size="sm" /> },
-    { key: 'p-base-3', level: 1, top: '86%', left: '84%', opacity: 0.20, float: 7, rotate: 8, duration: 5.6,
-      render: <BaseLogo /> },
-    { key: 'p-club-3', level: 1, top: '90%', left: '20%', opacity: 0.22, float: 7, rotate: 8, duration: 4.8,
-      render: <Suit glyph="♣" color="brand.green" /> },
-    { key: 'p-btc-3', level: 1, top: '94%', left: '70%', opacity: 0.18, float: 7, rotate: -8, duration: 5.4,
-      render: <BtcIcon size="sm" /> },
-    { key: 'p-diamond-3', level: 1, top: '97%', left: '38%', opacity: 0.22, float: 7, rotate: -6, duration: 5.0,
+    { key: 'p-diamond-2', level: 1, top: '84%', left: '16%', opacity: 0.22, float: 7, rotate: -6, duration: 5.0,
       render: <Suit glyph="♦" color="brand.yellow" size="sm" /> },
+    { key: 'p-club-2', level: 1, top: '90%', left: '68%', opacity: 0.22, float: 7, rotate: 8, duration: 4.8,
+      render: <Suit glyph="♣" color="brand.green" /> },
+    { key: 'p-chip-3', level: 1, top: '95%', left: '30%', opacity: 0.22, float: 7, rotate: -8, duration: 5.4,
+      render: <ChipIcon color="brand.yellow" size="sm" /> },
+    { key: 'p-usdc-3', level: 1, top: '97%', left: '82%', opacity: 0.20, float: 6, rotate: -6, duration: 5.8,
+      render: <UsdcLogo size="sm" /> },
 ];
 
 const FloatingDecor = ({
@@ -257,17 +225,18 @@ const FloatingDecor = ({
     const levelMap = { minimal: 1, light: 2, dense: 3 };
     const level = levelMap[density];
 
-    const items = scale === 'page'
-        ? PAGE_ITEMS
-        : SECTION_ITEMS.filter((item) => item.level <= level);
+    const items =
+        scale === 'page'
+            ? PAGE_ITEMS
+            : SECTION_ITEMS.filter((item) => item.level <= level);
 
     return (
         <Box
+            aria-hidden="true"
             position="absolute"
             inset={0}
             pointerEvents="none"
             zIndex={0}
-            display={{ base: 'none', md: 'block' }}
         >
             {items.map((item) => (
                 <MotionBox
@@ -277,6 +246,13 @@ const FloatingDecor = ({
                     left={item.left}
                     opacity={item.opacity ?? 0.25}
                     transform="translate(-50%, -50%)"
+                    // Personality layer renders everywhere; mobile gets a
+                    // lighter subset to keep the floating-glyph count low.
+                    display={
+                        item.mobile
+                            ? { base: 'block', md: 'block' }
+                            : { base: 'none', md: 'block' }
+                    }
                     animate={
                         prefersReducedMotion
                             ? undefined

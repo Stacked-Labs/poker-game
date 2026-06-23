@@ -26,13 +26,13 @@ const makeGame = (name: string, overrides?: Partial<PublicGame>): PublicGame => 
 });
 
 const mixedGames: PublicGame[] = [
-    makeGame('high-roller-vault', { is_crypto: true, small_blind: 200, big_blind: 500, player_count: 6, max_players: 6, spectator_count: 4, contract_address: '0xfa04e1d9c8b3f1b0b8e01a25c9d4568b0c2c445b' }),
-    makeGame('sunday-grinders', { is_crypto: true, small_blind: 100, big_blind: 200, player_count: 5, spectator_count: 12, contract_address: '0x9f8e7d6c5b4a3210fedcba9876543210fedcba98' }),
+    makeGame('high-roller-vault', { is_crypto: true, small_blind: 200, big_blind: 500, player_count: 6, max_players: 6, spectator_count: 4, contract_address: '0xfa04e1d9c8b3f1b0b8e01a25c9d4568b0c2c445b', host_username: '@degenmike' }),
+    makeGame('sunday-grinders', { is_crypto: true, small_blind: 100, big_blind: 200, player_count: 5, spectator_count: 12, contract_address: '0x9f8e7d6c5b4a3210fedcba9876543210fedcba98', host_username: 'tableboss.eth' }),
     makeGame('penny-pushers', { is_crypto: true, small_blind: 10, big_blind: 25, player_count: 3, max_players: 6, spectator_count: 1, contract_address: '0x1234567890abcdef1234567890abcdef12345678' }),
-    makeGame('free-roll-9pm', { player_count: 4, is_active: false, created_at: new Date(Date.now() - 3 * 60 * 1000).toISOString() }),
+    makeGame('free-roll-9pm', { player_count: 4, is_active: false, created_at: new Date(Date.now() - 3 * 60 * 1000).toISOString(), host_username: 'mia' }),
     makeGame('home-game-friday', { small_blind: 25, big_blind: 50, player_count: 2, max_players: 6, is_active: false }),
     makeGame('whales-only', { is_crypto: true, small_blind: 500, big_blind: 1000, player_count: 4, max_players: 6, spectator_count: 22, contract_address: '0xdeadbeef00112233445566778899aabbccddeeff' }),
-    makeGame('late-night-degen', { is_crypto: true, small_blind: 50, big_blind: 100, player_count: 8, spectator_count: 7, contract_address: '0xabc123def456789012345678901234567890abcd' }),
+    makeGame('late-night-degen', { is_crypto: true, small_blind: 50, big_blind: 100, player_count: 8, spectator_count: 7, contract_address: '0xabc123def456789012345678901234567890abcd', host_wallet: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b' }),
     makeGame('practice-table', { small_blind: 5, big_blind: 10, player_count: 0, max_players: 6, spectator_count: 0, is_active: false }),
 ];
 
@@ -69,23 +69,30 @@ function InteractiveGrid({ games, hasMore = false, isLoadingMore = false }: Inte
     return (
         <Box bg="card.lightGray" minH="100vh" py={{ base: 6, md: 10 }}>
             <Container maxW="container.xl" px={{ base: 3, md: 6, lg: 8 }}>
-                <Box mb={{ base: 5, md: 6 }}>
+                <Box
+                    bg="card.white"
+                    borderRadius="20px"
+                    boxShadow="card.lift"
+                    overflow="hidden"
+                >
                     <FilterRail
-                        totalCount={games.length}
+                        count={filtered.length}
                         filter={filter}
                         onFilterChange={setFilter}
                         stake={stake}
                         onStakeChange={setStake}
+                        sortConfig={sortConfig}
+                        onSortChange={handleSort}
+                    />
+                    <PublicGamesGrid
+                        games={filtered}
+                        sortConfig={sortConfig}
+                        onSortChange={handleSort}
+                        hasMore={hasMore}
+                        isLoadingMore={isLoadingMore}
+                        onLoadMore={() => {}}
                     />
                 </Box>
-                <PublicGamesGrid
-                    games={filtered}
-                    sortConfig={sortConfig}
-                    onSortChange={handleSort}
-                    hasMore={hasMore}
-                    isLoadingMore={isLoadingMore}
-                    onLoadMore={() => {}}
-                />
             </Container>
         </Box>
     );

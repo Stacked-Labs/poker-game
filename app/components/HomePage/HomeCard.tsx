@@ -32,16 +32,6 @@ const MotionStack = motion(Stack);
 const MotionFlex = motion(Flex);
 
 // Animations
-const pulse = keyframes`
-    0%, 100% {
-        opacity: 0.15;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.25;
-        transform: scale(1.05);
-    }
-`;
 
 const swapPrimary = keyframes`
     0%, 45% { opacity: 1; transform: translateY(0); }
@@ -161,7 +151,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
             alignItems="center"
             height="100%"
             width="100%"
-            pt={{ base: '110px', md: '130px', lg: 0 }}
+            pt={{ base: '88px', md: '130px', lg: 0 }}
             pb={{ base: '40px', lg: 0 }}
             px={{ base: 3, md: 4 }}
         >
@@ -177,10 +167,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                     md: 'blur(120px)',
                     lg: 'blur(140px)',
                 }}
-                opacity={0.5}
-                animation={
-                    allowMotion ? `${pulse} 5s ease-in-out infinite` : 'none'
-                }
+                opacity={0.3}
                 zIndex={0}
             />
 
@@ -198,12 +185,8 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                 }}
                 opacity={0.06}
                 transform="translate(30%, 20%)"
-                animation={
-                    allowMotion
-                        ? `${pulse} 6s ease-in-out 1.5s infinite`
-                        : 'none'
-                }
                 zIndex={0}
+                display={{ base: 'none', md: 'block' }}
             />
 
             {/* Tertiary chip-yellow wash for depth */}
@@ -220,10 +203,8 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                 }}
                 opacity={0.04}
                 transform="translate(-40%, 30%)"
-                animation={
-                    allowMotion ? `${pulse} 7s ease-in-out 2s infinite` : 'none'
-                }
                 zIndex={0}
+                display={{ base: 'none', md: 'block' }}
             />
 
             {/* Main Card Container */}
@@ -256,7 +237,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                     width="100%"
                     className="home-card-content"
                     alignItems="center"
-                    py={{ base: 5, md: 7, lg: 8 }}
+                    py={{ base: 4, md: 7, lg: 8 }}
                     px={{ base: 5, sm: 8, md: 10, lg: 12 }}
                     position="relative"
                     zIndex={1}
@@ -371,11 +352,12 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                         <VStack spacing={3}>
                             <Text
                                 fontSize={{ base: 'md', md: 'lg' }}
-                                color="text.gray600"
-                                lineHeight={1.6}
+                                color="text.secondary"
+                                lineHeight={1.55}
                                 fontWeight="medium"
                             >
-                                Host a game. Invite the crew.
+                                Real-money Texas Hold&apos;em with friends. Buy
+                                in with USDC, cash out anytime.
                             </Text>
                         </VStack>
                     </MotionBox>
@@ -385,7 +367,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                         <MotionStack
                             gap={{ base: 2, md: 2.5 }}
                             width="100%"
-                            maxW={{ base: '100%', sm: '320px' }}
+                            maxW={{ base: '100%', sm: '360px' }}
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{
@@ -393,6 +375,14 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                 delay: 0.5,
                             }}
                         >
+                            <Box
+                                width="100%"
+                                minH={{ base: '104px', md: '108px' }}
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems="stretch"
+                            >
                             <AnimatePresence mode="wait">
                                 {!showPlayOptions ? (
                                     <MotionBox
@@ -408,7 +398,8 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                             variant="tactilePrimary"
                                             height="48px"
                                             width="100%"
-                                            fontSize={{ base: 'md', md: 'lg' }}
+                                            fontSize={{ base: 'md', md: 'xl' }}
+                                            letterSpacing="0.02em"
                                             onClick={handlePlayNow}
                                         >
                                             PLAY NOW
@@ -529,6 +520,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                     </MotionBox>
                                 )}
                             </AnimatePresence>
+                            </Box>
 
                             {account && isPortrait ? (
                                 <Box
@@ -557,6 +549,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                         spacing={3}
                         width="100%"
                         maxW={{ base: '100%', sm: '320px' }}
+                        mt={{ base: 4, md: 6 }}
                         animation={`${slideUp} 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards`}
                     >
                         {isSubscribed ? (
@@ -620,7 +613,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                                     transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                                     pl={4}
                                     pr="5px"
-                                    height="46px"
+                                    height="42px"
                                     align="center"
                                     boxShadow="0 2px 8px rgba(0, 0, 0, 0.04)"
                                     _focusWithin={{
@@ -678,8 +671,10 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                         )}
                     </VStack>
 
-                    {/* Social Links */}
+                    {/* Social Links — footer already carries these, so hide
+                        on mobile to keep the hero card short. */}
                     <MotionBox
+                        display={{ base: 'none', md: 'block' }}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{

@@ -18,8 +18,7 @@ import {
     useBreakpointValue,
 } from '@chakra-ui/react';
 import { Image } from '@chakra-ui/next-js';
-import { MdCheckCircle, MdFlashOn } from 'react-icons/md';
-import { SiThirdweb } from 'react-icons/si';
+import { MdCheckCircle, MdFlashOn, MdLockOutline } from 'react-icons/md';
 import { FaDiscord, FaApple } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { RiTwitterXLine } from 'react-icons/ri';
@@ -37,8 +36,8 @@ const CommunitySection = () => {
     const getFadeUpMotion = (delay = 0) =>
         shouldAnimate
             ? {
-                  initial: { opacity: 0, y: 22 },
-                  whileInView: { opacity: 1, y: 0 },
+                  initial: { y: 22 },
+                  whileInView: { y: 0 },
                   viewport: { once: true, amount: 0.35 },
                   transition: {
                       type: 'spring',
@@ -95,6 +94,10 @@ const CommunitySection = () => {
             py={{ base: 10, md: 14 }}
             width="100%"
             position="relative"
+            // Desktop-only: on mobile/tablet this section's beats are owned
+            // elsewhere (Features = how-to-play, Vault = the 24h self-withdraw
+            // trust row), so it would only repeat them on a small screen.
+            display={{ base: 'none', lg: 'block' }}
         >
             {/* Big spade watermark — section signature */}
             <Box
@@ -159,7 +162,6 @@ const CommunitySection = () => {
                             py={{ base: 1, md: 1.5 }}
                             borderRadius="full"
                             transform="rotate(-2deg)"
-                            boxShadow="0 6px 16px rgba(54, 163, 123, 0.35)"
                         >
                             is Back
                         </Box>
@@ -321,8 +323,8 @@ const CommunitySection = () => {
                             {...getFadeUpMotion(0.2)}
                         >
                             <Badge
-                                bg="rgba(133, 93, 205, 0.08)"
-                                color="purple.600"
+                                bg="bg.greenTint"
+                                color="brand.green"
                                 variant="subtle"
                                 px={4}
                                 py={2}
@@ -334,10 +336,10 @@ const CommunitySection = () => {
                                 fontWeight="bold"
                                 letterSpacing="widest"
                                 border="1px solid"
-                                borderColor="rgba(133, 93, 205, 0.18)"
+                                borderColor="border.greenSubtle"
                             >
-                                <Icon as={SiThirdweb} mr={2} fontSize="sm" />
-                                POWERED BY THIRDWEB
+                                <Icon as={MdFlashOn} mr={2} fontSize="sm" />
+                                ONE-TAP SIGN-IN
                             </Badge>
                             <Heading
                                 fontSize={{ base: '3xl', md: '4xl' }}
@@ -354,7 +356,7 @@ const CommunitySection = () => {
                             >
                                 Sign in with Google, Discord, X, or your wallet.
                                 Buy in with USDC on Base. Your stack lives in a
-                                smart contract — not our bank account.{' '}
+                                smart contract, not our bank account.{' '}
                                 <Text
                                     as="span"
                                     fontWeight="bold"
@@ -365,27 +367,50 @@ const CommunitySection = () => {
                             </Text>
 
                             <Box
-                                bg="purple.600"
+                                bg="card.felt"
                                 p={{ base: 6, md: 8 }}
                                 borderRadius="2xl"
                                 width="100%"
                                 border="1px solid"
-                                borderColor="rgba(255, 255, 255, 0.12)"
-                                boxShadow="0 12px 40px rgba(133, 93, 205, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)"
+                                borderColor="rgba(255, 255, 255, 0.08)"
+                                boxShadow="card.lift"
                             >
                                 <VStack align="start" spacing={4}>
-                                    <Text
-                                        fontWeight="bold"
-                                        fontSize="md"
-                                        color="white"
+                                    <HStack
+                                        spacing={2.5}
+                                        align="center"
+                                        bg="bg.greenTint"
+                                        border="1px solid"
+                                        borderColor="border.greenSubtle"
+                                        px={3}
+                                        py={1.5}
+                                        borderRadius="full"
                                     >
-                                        How it works:
-                                    </Text>
-                                    <Text fontSize="sm" color="brand.lightGray">
-                                        Sign in with your social account or
-                                        connect your Web3 wallet. Buy in with
-                                        USDC. Funds move directly on-chain. No
-                                        intermediary holds your bankroll.
+                                        <Icon
+                                            as={MdLockOutline}
+                                            color="brand.green"
+                                            fontSize="md"
+                                        />
+                                        <Text
+                                            fontWeight="bold"
+                                            fontSize="xs"
+                                            letterSpacing="wide"
+                                            textTransform="uppercase"
+                                            color="brand.green"
+                                        >
+                                            24-hour self-withdraw
+                                        </Text>
+                                    </HStack>
+                                    <Text
+                                        fontSize="sm"
+                                        color="rgba(236, 238, 245, 0.92)"
+                                        lineHeight="tall"
+                                    >
+                                        If settlement ever stalls, you don&apos;t
+                                        wait on us. Pull your own funds straight
+                                        from the table contract after 24 hours.
+                                        No ticket, no support queue, no
+                                        permission.
                                     </Text>
                                 </VStack>
                             </Box>
@@ -402,12 +427,11 @@ const CommunitySection = () => {
                                         borderColor="border.lightGray"
                                         boxShadow="default"
                                         spacing={2}
-                                        transition="all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                                        transition="background-color 0.12s ease, border-color 0.12s ease"
                                         cursor="default"
                                         _hover={{
-                                            transform: 'translateY(-2px)',
-                                            boxShadow: 'card.lift',
-                                            borderColor: 'rgba(133, 93, 205, 0.25)',
+                                            bg: 'bg.greenSubtle',
+                                            borderColor: 'border.greenSubtle',
                                         }}
                                     >
                                         <Flex
@@ -486,7 +510,7 @@ const CommunitySection = () => {
                             >
                                 <Image
                                     src="/homepage/thirdwebLogin.png"
-                                    alt="Thirdweb Login"
+                                    alt="One-tap sign-in"
                                     fill
                                     sizes="(max-width: 992px) 100vw, 520px"
                                     style={{ objectFit: 'contain', objectPosition: 'center' }}

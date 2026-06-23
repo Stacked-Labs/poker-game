@@ -22,6 +22,7 @@ type Step = {
     title: string;
     body: string;
     color: string;
+    colorHover: string;
     rotate: string;
     tintRgba: string;
 };
@@ -30,24 +31,27 @@ const STEPS: Step[] = [
     {
         n: 1,
         title: 'Jump in instantly',
-        body: 'Use what you have: Google, Discord, or your wallet. Or play free as a guest. No signup, no email, no nothing.',
+        body: 'Sign in with Google, Discord, or your wallet. Or play free as a guest. No signup.',
         color: 'brand.green',
+        colorHover: 'brand.greenDark',
         rotate: '-3deg',
         tintRgba: 'rgba(54, 163, 123, 0.06)',
     },
     {
         n: 2,
         title: 'Host your table',
-        body: 'Spin up a private room. Set the blinds, choose the game speed, and control exactly who sits down. Your rules.',
+        body: 'Spin up a private room: set the blinds, the speed, and who gets a seat.',
         color: 'brand.navy',
+        colorHover: 'brand.darkNavy',
         rotate: '2deg',
         tintRgba: 'rgba(51, 68, 121, 0.06)',
     },
     {
         n: 3,
         title: 'Share and play',
-        body: 'Drop the link in your group chat. Friends join instantly on any browser or device. No app store downloads, ever.',
+        body: 'Drop the link in your group chat. Friends join on any browser, no app to download.',
         color: 'brand.pink',
+        colorHover: 'brand.pinkDark',
         rotate: '-2deg',
         tintRgba: 'rgba(235, 11, 92, 0.05)',
     },
@@ -76,7 +80,7 @@ const StepRow = ({
         }}
     >
         <Box
-            py={{ base: 5, md: 6 }}
+            py={{ base: 3, md: 6 }}
             px={{ base: 2, md: 3 }}
             mx={{ base: -2, md: -3 }}
             borderBottom={last ? 'none' : '1px solid'}
@@ -91,18 +95,16 @@ const StepRow = ({
                     as="span"
                     display="inline-block"
                     color={step.color}
-                    fontSize={{ base: '6xl', md: '7xl', lg: '8xl' }}
+                    fontSize={{ base: '4xl', md: '7xl', lg: '8xl' }}
                     fontWeight="black"
                     lineHeight={0.9}
                     letterSpacing="-0.06em"
-                    minW={{ base: '78px', md: '110px', lg: '130px' }}
+                    minW={{ base: '52px', md: '110px', lg: '130px' }}
                     sx={{ fontVariantNumeric: "tabular-nums" }}
                     transform={`rotate(${step.rotate})`}
                     transformOrigin="center"
-                    transition="transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-                    _groupHover={{
-                        transform: `rotate(${step.rotate}) scale(1.06)`,
-                    }}
+                    transition="color 0.2s ease"
+                    _groupHover={{ color: step.colorHover }}
                 >
                     {String(step.n).padStart(2, '0')}
                 </Text>
@@ -238,14 +240,14 @@ const FeaturesSection = ({ isBroadcast = false }: FeaturesSectionProps) => {
             as="section"
             id="how-to-play"
             ref={sectionRef}
-            py={{ base: 10, md: 14 }}
+            py={{ base: 8, md: 14 }}
             width="100%"
             position="relative"
         >
             <Container maxW="container.xl" position="relative" zIndex={1}>
                 <SimpleGrid
                     columns={{ base: 1, lg: 2 }}
-                    spacing={{ base: 12, lg: 16 }}
+                    spacing={{ base: 6, lg: 16 }}
                     alignItems="center"
                 >
                     {/* Left: iPhone mockup with demo video */}
@@ -273,7 +275,7 @@ const FeaturesSection = ({ isBroadcast = false }: FeaturesSectionProps) => {
                             width="100%"
                             className="iphone-mockup"
                             maxW={{
-                                base: '272px',
+                                base: '208px',
                                 md: '336px',
                                 lg: '416px',
                             }}
@@ -286,16 +288,10 @@ const FeaturesSection = ({ isBroadcast = false }: FeaturesSectionProps) => {
                                 base: 'rotate(0deg)',
                                 md: 'rotate(-1.5deg)',
                             }}
-                            transition="transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+                            transition="filter 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
                             filter="drop-shadow(0 22px 40px rgba(11, 20, 48, 0.18)) drop-shadow(0 8px 16px rgba(11, 20, 48, 0.10))"
                             _dark={{
                                 filter: 'drop-shadow(0 22px 40px rgba(0, 0, 0, 0.55)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4))',
-                            }}
-                            _hover={{
-                                transform: {
-                                    base: 'translateY(-4px)',
-                                    md: 'rotate(-1.5deg) translateY(-4px)',
-                                },
                             }}
                         >
                             <Box
@@ -437,6 +433,7 @@ const FeaturesSection = ({ isBroadcast = false }: FeaturesSectionProps) => {
                             fontWeight="medium"
                             lineHeight="tall"
                             maxW="md"
+                            display={{ base: 'none', md: 'block' }}
                         >
                             No downloads. No updates. Just play.
                         </Text>

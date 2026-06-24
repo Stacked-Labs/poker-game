@@ -14,6 +14,7 @@ import {
     VStack,
     useColorModeValue,
     usePrefersReducedMotion,
+    useToken,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { FiCheck, FiClock, FiGlobe, FiLock } from 'react-icons/fi';
@@ -162,6 +163,13 @@ export default function TournamentLobbyCard({
 
     const ident = identityFor(t.metadata?.blind_structure as string | undefined);
     const accent = accentFor(t.metadata?.blind_structure as string | undefined);
+    // Tactile, speed-coded card: it rests on a thin accent "chip ledge" matching
+    // its speed (hyper/turbo/regular/deep), tints + brightens on hover, and sinks
+    // onto the surface on press, mirroring the tactile chip buttons.
+    const [liftShadow, liftHoverShadow] = useToken('shadows', [
+        'card.lift',
+        'card.liftHover',
+    ]);
     // Suit-mark ink, AA-tuned per mode (tournamentDefaults), applied as CSS pairs.
     const suitInk = {
         color: accent.inkLight,
@@ -190,13 +198,27 @@ export default function TournamentLobbyCard({
             borderWidth="1px"
             borderColor="border.pillNeutral"
             borderRadius="16px"
-            boxShadow="card.lift"
+            boxShadow={`${liftShadow}, 0 3px 0 ${accent.hue}`}
             overflow="hidden"
             cursor={onCardClick ? 'pointer' : undefined}
             onClick={onCardClick ? () => onCardClick(t.id) : undefined}
-            transition="border-color var(--chakra-transition-duration-settle, 220ms) var(--chakra-transition-easing-settle, ease-out)"
-            _hover={{ borderColor: 'brand.green' }}
-            _focusWithin={{ borderColor: 'brand.green' }}
+            transition="transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms ease, border-color 140ms ease"
+            _hover={{
+                borderColor: accent.hue,
+                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accent.hue}`,
+            }}
+            _active={
+                onCardClick
+                    ? {
+                          transform: 'translateY(3px)',
+                          boxShadow: `${liftHoverShadow}, 0 1px 0 ${accent.hue}`,
+                      }
+                    : undefined
+            }
+            _focusWithin={{
+                borderColor: accent.hue,
+                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accent.hue}, var(--chakra-shadows-focus-ring)`,
+            }}
             animation={
                 prefersReducedMotion
                     ? undefined

@@ -1,18 +1,22 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { type Chain, getContract, prepareContractCall } from 'thirdweb';
+import {
+    type Chain,
+    getContract,
+    prepareContractCall,
+    readContract,
+} from 'thirdweb';
 import { useActiveAccount } from 'thirdweb/react';
 import { approve, allowance } from 'thirdweb/extensions/erc20';
 import { client } from '../thirdwebclient';
 import { useChainBoundSend } from './useChainBoundSend';
-import { openTournamentRegistration } from './server_actions';
 
 export type FundGuaranteeStatus =
     | 'idle'
+    | 'checking'
     | 'approving'
     | 'depositing'
-    | 'opening'
     | 'success'
     | 'error';
 
@@ -37,10 +41,6 @@ export function useFundTournamentGuarantee(
 
     const sendOnChain = useChainBoundSend();
 
-    // Tracks that the on-chain deposit already confirmed for the current
-    // (tournament, amount) funding, so a retry after a backend failure skips the
-    // deposit and only re-runs openTournamentRegistration — never double-funding.
-    const depositedRef = useRef<string | null>(null);
     // In-flight guard: a concurrent second call returns early.
     const inFlightRef = useRef(false);
 
@@ -49,6 +49,16 @@ export function useFundTournamentGuarantee(
         setError(null);
     }, []);
 
+    // Deposits the host's guarantee on-chain. Registration is NOT opened here —
+    // the indexer emits HostFundingDeposited, and poker-server opens registration
+    // off the back of that event (with the scheduler as a fallback). So the host's
+    // browser only has to land the deposit; closing the tab afterwards no longer
+    // strands the tournament in "funding".
+    //
+    // The amount actually deposited is the SHORTFALL between the guarantee and what
+    // the contract already holds (read on-chain). That makes the action idempotent:
+    // a retry after a dropped tab — or a host returning to an already-funded
+    // tournament — deposits nothing instead of double-funding.
     const fundAndOpen = useCallback(async (): Promise<boolean> => {
         if (!account?.address || !contractAddress || !chain || !usdcAddress || !tournamentId) {
             setError('Missing required parameters');
@@ -59,55 +69,49 @@ export function useFundTournamentGuarantee(
         if (inFlightRef.current) return false;
         inFlightRef.current = true;
 
-        // A genuinely new funding (different tournament/contract/amount) invalidates
-        // any prior confirmed deposit.
-        const fundingKey = `${tournamentId}:${contractAddress}:${guaranteeAmountUsdc}`;
-        if (depositedRef.current !== fundingKey) {
-            depositedRef.current = null;
-        }
-
         try {
-            const amount = BigInt(guaranteeAmountUsdc);
+            const guarantee = BigInt(guaranteeAmountUsdc);
 
             const usdcContract = getContract({ client, chain, address: usdcAddress });
             const tournamentContract = getContract({ client, chain, address: contractAddress });
 
-            // Skip the deposit entirely on a retry where it already confirmed —
-            // re-depositing would double-fund the host.
-            if (depositedRef.current !== fundingKey) {
-                // Step 1: Approve USDC if needed
+            // Read what the contract already holds so we only top up the shortfall.
+            setStatus('checking');
+            const deposited = await readContract({
+                contract: tournamentContract,
+                method: 'function hostFundingDeposited() view returns (uint256)',
+                params: [],
+            });
+
+            const shortfall = deposited >= guarantee ? BigInt(0) : guarantee - deposited;
+
+            if (shortfall > BigInt(0)) {
+                // Approve only the shortfall if the current allowance can't cover it.
                 const currentAllowance = await allowance({
                     contract: usdcContract,
                     owner: account.address,
                     spender: contractAddress,
                 });
 
-                if (currentAllowance < amount) {
+                if (currentAllowance < shortfall) {
                     setStatus('approving');
                     await sendOnChain(chain, approve({
                         contract: usdcContract,
                         spender: contractAddress,
-                        amountWei: amount,
+                        amountWei: shortfall,
                     }));
                 }
 
-                // Step 2: Deposit guarantee into the tournament contract
                 setStatus('depositing');
                 await sendOnChain(chain, prepareContractCall({
                     contract: tournamentContract,
                     method: 'function depositHostFunding(uint256 amount)',
-                    params: [amount],
+                    params: [shortfall],
                 }));
-                depositedRef.current = fundingKey;
             }
 
-            // Step 3: Tell the backend to call openRegistration on-chain + update DB
-            setStatus('opening');
-            await openTournamentRegistration(tournamentId);
-
-            // Fully succeeded — clear the deposited flag so a future genuinely new
-            // funding starts clean.
-            depositedRef.current = null;
+            // Funded (or already was). The backend opens registration from the
+            // indexer's funding event — nothing more to do client-side.
             setStatus('success');
             return true;
         } catch (err) {

@@ -275,7 +275,7 @@ const FeaturesSection = ({ isBroadcast = false }: FeaturesSectionProps) => {
                             width="100%"
                             className="iphone-mockup"
                             maxW={{
-                                base: '208px',
+                                base: '240px',
                                 md: '336px',
                                 lg: '416px',
                             }}

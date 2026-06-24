@@ -275,7 +275,7 @@ function TableIdentity({ game }: { game: PublicGame }) {
                         <ChainBadge
                             chain={game.chain ?? 'base'}
                             size="sm"
-                            variant="symbol"
+                            variant="lockup"
                         />
                     ) : (
                         <Text as="span" color="text.muted">

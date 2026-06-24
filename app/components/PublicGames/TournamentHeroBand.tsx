@@ -12,17 +12,18 @@ import {
     VStack,
     useToken,
 } from '@chakra-ui/react';
-import { FiArrowRight, FiClock } from 'react-icons/fi';
+import { FiArrowRight } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import type { Tournament } from '../../hooks/server_actions';
-import { USDC_BLUE, USDC_LOGO } from './types';
+import { USDC_BLUE } from './types';
+import ChainBadge from '../ChainBadge';
 import {
     formatTournamentStart,
-    formatUsdc,
+    getTournamentMoney,
     isFreePlay as getIsFreePlay,
     useCountdown,
 } from './tournamentFormat';
-import { accentFor, TournamentDefaultAvatar } from './tournamentDefaults';
+import { accentFor, identityFor, TournamentDefaultAvatar } from './tournamentDefaults';
 
 interface TournamentHeroBandProps {
     tournaments: Tournament[];
@@ -167,36 +168,16 @@ function BandCard({ tournament: t }: { tournament: Tournament }) {
     const blindLabel = t.metadata?.blind_structure
         ? String(t.metadata.blind_structure)
         : 'turbo';
+    const ident = identityFor(t.metadata?.blind_structure as string | undefined);
+    const accent = accentFor(t.metadata?.blind_structure as string | undefined);
     // Tactile, speed-coded chip ledge matching the tournament's speed.
-    const accentHue = accentFor(blindLabel).hue;
     const [liftShadow, liftHoverShadow] = useToken('shadows', [
         'card.lift',
         'card.liftHover',
     ]);
     const countdown = useCountdown(t.scheduled_start_at);
-
-    const money = freePlay
-        ? { value: 'Free', usdc: false, suffix: undefined as string | undefined, label: 'Entry' }
-        : t.guarantee_usdc > 0
-          ? {
-                value: `$${formatUsdc(t.guarantee_usdc, { decimals: t.guarantee_usdc < 5_000_000 ? 2 : 0 })}`,
-                usdc: true,
-                suffix: 'GTD',
-                label: 'Guaranteed',
-            }
-          : t.prize_pool_usdc > 0
-            ? {
-                  value: `$${formatUsdc(t.prize_pool_usdc, { decimals: t.prize_pool_usdc < 5_000_000 ? 2 : 0 })}`,
-                  usdc: true,
-                  suffix: undefined,
-                  label: 'Prize pool',
-              }
-            : {
-                  value: `$${formatUsdc(t.buy_in_usdc)}`,
-                  usdc: true,
-                  suffix: undefined,
-                  label: 'Buy-in',
-              };
+    // Shared precedence with TournamentLobbyCard (one source of truth).
+    const money = getTournamentMoney(t);
 
     const reg = t.registered_count ?? 0;
     const max = t.max_entries ?? 0;
@@ -221,22 +202,22 @@ function BandCard({ tournament: t }: { tournament: Tournament }) {
             borderWidth="1px"
             borderColor="border.pillNeutral"
             borderRadius="14px"
-            boxShadow={`${liftShadow}, 0 3px 0 ${accentHue}`}
+            boxShadow={`${liftShadow}, 0 3px 0 ${accent.hue}`}
             p={4}
             cursor="pointer"
             onClick={go}
             transition="transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms ease, border-color 140ms ease"
             _hover={{
-                borderColor: accentHue,
-                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accentHue}`,
+                borderColor: accent.hue,
+                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accent.hue}`,
             }}
             _active={{
                 transform: 'translateY(3px)',
-                boxShadow: `${liftHoverShadow}, 0 1px 0 ${accentHue}`,
+                boxShadow: `${liftHoverShadow}, 0 1px 0 ${accent.hue}`,
             }}
             _focusWithin={{
-                borderColor: accentHue,
-                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accentHue}, var(--chakra-shadows-focus-ring)`,
+                borderColor: accent.hue,
+                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accent.hue}, var(--chakra-shadows-focus-ring)`,
             }}
             display="flex"
             flexDirection="column"
@@ -270,7 +251,26 @@ function BandCard({ tournament: t }: { tournament: Tournament }) {
                             (freePlay ? 'Free-play tournament' : 'No-limit Hold’em')}
                     </Text>
                     <HStack spacing={1.5} minW={0}>
-                        <Icon as={FiClock} boxSize="11px" color="text.muted" flexShrink={0} />
+                        <Text
+                            as="span"
+                            fontSize="2xs"
+                            fontWeight="bold"
+                            letterSpacing="0.02em"
+                            color={accent.inkLight}
+                            _dark={{ color: accent.inkDark }}
+                            flexShrink={0}
+                        >
+                            {ident.suit} {ident.label}
+                        </Text>
+                        <Box
+                            as="span"
+                            w="3px"
+                            h="3px"
+                            borderRadius="full"
+                            bg="text.muted"
+                            opacity={0.5}
+                            flexShrink={0}
+                        />
                         <Text
                             fontSize="2xs"
                             color="text.secondary"
@@ -298,7 +298,13 @@ function BandCard({ tournament: t }: { tournament: Tournament }) {
                         FREE
                     </Text>
                 ) : (
-                    <Image src={USDC_LOGO} alt="" boxSize="18px" flexShrink={0} />
+                    <Box flexShrink={0}>
+                        <ChainBadge
+                            chain={t.chain ?? 'base'}
+                            size="sm"
+                            variant="lockup"
+                        />
+                    </Box>
                 )}
             </HStack>
 
@@ -340,7 +346,7 @@ function BandCard({ tournament: t }: { tournament: Tournament }) {
                 </VStack>
                 <Button
                     size="sm"
-                    variant="tactilePrimary"
+                    variant={freePlay ? 'tactilePrimary' : 'tactileGold'}
                     minH="40px"
                     px={5}
                     flexShrink={0}
@@ -370,7 +376,7 @@ function BandCard({ tournament: t }: { tournament: Tournament }) {
                             w={`${ratio * 100}%`}
                             minW={reg > 0 ? '4px' : '0'}
                             borderRadius="full"
-                            bg={freePlay ? 'brand.green' : USDC_BLUE}
+                            bg="brand.green"
                             opacity={0.9}
                             transition="width 0.3s ease"
                         />

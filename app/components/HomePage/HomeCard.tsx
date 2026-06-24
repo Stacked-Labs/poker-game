@@ -155,59 +155,9 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
             pb={{ base: '40px', lg: 0 }}
             px={{ base: 3, md: 4 }}
         >
-            {/* Ambient brand glow — quiet, single-color emphasis on Neon Stake */}
-            <Box
-                position="absolute"
-                width={{ base: '300px', md: '400px', lg: '500px' }}
-                height={{ base: '300px', md: '400px', lg: '500px' }}
-                borderRadius="50%"
-                bg="brand.pink"
-                filter={{
-                    base: 'blur(100px)',
-                    md: 'blur(120px)',
-                    lg: 'blur(140px)',
-                }}
-                opacity={0.3}
-                zIndex={0}
-            />
-
-            {/* Secondary felt-green wash, low opacity */}
-            <Box
-                position="absolute"
-                width={{ base: '200px', md: '280px', lg: '350px' }}
-                height={{ base: '200px', md: '280px', lg: '350px' }}
-                borderRadius="50%"
-                bg="brand.green"
-                filter={{
-                    base: 'blur(80px)',
-                    md: 'blur(100px)',
-                    lg: 'blur(120px)',
-                }}
-                opacity={0.06}
-                transform="translate(30%, 20%)"
-                zIndex={0}
-                display={{ base: 'none', md: 'block' }}
-            />
-
-            {/* Tertiary chip-yellow wash for depth */}
-            <Box
-                position="absolute"
-                width={{ base: '120px', md: '180px', lg: '220px' }}
-                height={{ base: '120px', md: '180px', lg: '220px' }}
-                borderRadius="50%"
-                bg="brand.yellow"
-                filter={{
-                    base: 'blur(80px)',
-                    md: 'blur(100px)',
-                    lg: 'blur(120px)',
-                }}
-                opacity={0.04}
-                transform="translate(-40%, 30%)"
-                zIndex={0}
-                display={{ base: 'none', md: 'block' }}
-            />
-
-            {/* Main Card Container */}
+            {/* No ambient glow. The card wears the brand's tactile treatment:
+                an inset top highlight plus a hard bottom edge, so it reads as a
+                raised physical object, on-brand with the tactile buttons. */}
             <MotionFlex
                 position="relative"
                 borderRadius={{ base: '24px', md: '28px', lg: '32px' }}
@@ -217,27 +167,39 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                 minWidth={{ base: '280px', sm: '320px' }}
                 height="fit-content"
                 bg="card.heroBg"
-                boxShadow="card.hero"
+                boxShadow="inset 0 1px 0 rgba(255,255,255,0.9), 0 5px 0 #DCE0EC, 0 22px 48px rgba(11,20,48,0.16)"
+                _dark={{
+                    boxShadow:
+                        'inset 0 1px 0 rgba(255,255,255,0.08), 0 5px 0 rgba(0,0,0,0.85), 0 22px 48px rgba(0,0,0,0.55)',
+                }}
                 overflow="hidden"
                 border="1px solid"
                 borderColor="border.lightGray"
-                initial={allowMotion ? { opacity: 0, y: 30, scale: 0.96 } : false}
+                zIndex={1}
+                initial={
+                    allowMotion ? { opacity: 0, y: 30, scale: 0.96 } : false
+                }
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={
                     allowMotion
-                        ? { type: 'spring', stiffness: 200, damping: 20, mass: 1 }
+                        ? {
+                              type: 'spring',
+                              stiffness: 200,
+                              damping: 20,
+                              mass: 1,
+                          }
                         : { duration: 0 }
                 }
             >
                 {/* Content */}
                 <Stack
-                    gap={{ base: 2.5, md: 3 }}
+                    gap={{ base: 3, md: 3 }}
                     flex={1}
                     justifyContent="center"
                     width="100%"
                     className="home-card-content"
                     alignItems="center"
-                    py={{ base: 4, md: 7, lg: 8 }}
+                    py={{ base: 5, md: 7, lg: 8 }}
                     px={{ base: 5, sm: 8, md: 10, lg: 12 }}
                     position="relative"
                     zIndex={1}
@@ -255,7 +217,7 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                     >
                         <Heading
                             fontSize={{
-                                base: '2.5rem',
+                                base: '2.7rem',
                                 sm: '3rem',
                                 md: '3.25rem',
                                 lg: '3.5rem',
@@ -351,13 +313,13 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                     >
                         <VStack spacing={3}>
                             <Text
-                                fontSize={{ base: 'md', md: 'lg' }}
+                                fontSize={{ base: 'lg', md: 'lg' }}
                                 color="text.secondary"
                                 lineHeight={1.55}
                                 fontWeight="medium"
                             >
-                                Real-money Texas Hold&apos;em with friends. Buy
-                                in with USDC, cash out anytime.
+                                Deal your crew in. Real USDC, settled onchain
+                                every hand.
                             </Text>
                         </VStack>
                     </MotionBox>
@@ -377,149 +339,201 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
                         >
                             <Box
                                 width="100%"
-                                minH={{ base: '104px', md: '108px' }}
+                                minH={{ base: '60px', md: '62px' }}
                                 display="flex"
                                 flexDirection="column"
                                 justifyContent="center"
                                 alignItems="stretch"
                             >
-                            <AnimatePresence mode="wait">
-                                {!showPlayOptions ? (
-                                    <MotionBox
-                                        key="play-now"
-                                        initial={{ opacity: 1 }}
-                                        exit={{
-                                            opacity: 0,
-                                            scale: 0.95,
-                                            transition: { duration: 0.2 },
-                                        }}
-                                    >
-                                        <Button
-                                            variant="tactilePrimary"
-                                            height="48px"
-                                            width="100%"
-                                            fontSize={{ base: 'md', md: 'xl' }}
-                                            letterSpacing="0.02em"
-                                            onClick={handlePlayNow}
+                                <AnimatePresence mode="popLayout">
+                                    {!showPlayOptions ? (
+                                        <MotionBox
+                                            key="play-now"
+                                            initial={{ opacity: 1 }}
+                                            exit={{
+                                                opacity: 0,
+                                                scale: 0.95,
+                                                transition: {
+                                                    duration: 0.2,
+                                                },
+                                            }}
                                         >
-                                            PLAY NOW
-                                        </Button>
-                                    </MotionBox>
-                                ) : (
-                                    <MotionBox
-                                        key="play-options"
-                                        initial={{
-                                            opacity: 0,
-                                            y: 10,
-                                            scale: 0.97,
-                                        }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        transition={{
-                                            type: 'spring',
-                                            stiffness: 400,
-                                            damping: 22,
-                                        }}
-                                    >
-                                        <VStack spacing={2} width="100%">
-                                            <HStack spacing={2.5} width="100%">
-                                                <Button
-                                                    variant="tactilePrimary"
-                                                    flex={1}
-                                                    height="48px"
-                                                    fontSize={{
-                                                        base: 'sm',
-                                                        md: 'md',
-                                                    }}
-                                                    onClick={handleCreateGame}
-                                                    isLoading={isCreating}
-                                                    loadingText="Creating"
-                                                    spinner={
-                                                        <Spinner
-                                                            size="sm"
-                                                            color="white"
-                                                        />
-                                                    }
-                                                >
-                                                    CREATE
-                                                </Button>
-                                                <Button
-                                                    variant="tactileOutline"
-                                                    flex={1}
-                                                    height="48px"
-                                                    fontSize={{
-                                                        base: 'sm',
-                                                        md: 'md',
-                                                    }}
-                                                    onClick={handleJoinGame}
-                                                    isLoading={isJoining}
-                                                    loadingText="Joining"
-                                                    spinner={
-                                                        <Spinner
-                                                            size="sm"
-                                                            color="brand.green"
-                                                        />
-                                                    }
-                                                >
-                                                    JOIN
-                                                </Button>
-                                            </HStack>
                                             <Button
+                                                variant="tactilePrimary"
+                                                borderRadius="full"
+                                                height={{
+                                                    base: '60px',
+                                                    md: '62px',
+                                                }}
                                                 width="100%"
-                                                height="46px"
-                                                fontSize="sm"
-                                                fontWeight="bold"
-                                                variant="unstyled"
-                                                display="flex"
-                                                alignItems="center"
-                                                justifyContent="center"
-                                                gap={2}
-                                                color="brand.yellowDark"
-                                                _dark={{
-                                                    color: 'brand.yellow',
+                                                fontSize={{
+                                                    base: 'lg',
+                                                    md: 'xl',
                                                 }}
-                                                bg="transparent"
-                                                borderRadius="12px"
-                                                border="2px solid"
-                                                borderColor="brand.yellow"
-                                                boxShadow="0 2px 0 #B78900"
+                                                letterSpacing="0.01em"
+                                                onClick={handlePlayNow}
                                                 leftIcon={
-                                                    <Icon
-                                                        as={MdEmojiEvents}
-                                                        boxSize="20px"
-                                                    />
+                                                    <Box
+                                                        as="span"
+                                                        className="play-spade"
+                                                        fontSize="1.1em"
+                                                        lineHeight={1}
+                                                        mt="-2px"
+                                                        transition={
+                                                            allowMotion
+                                                                ? 'transform 160ms cubic-bezier(0.16, 1, 0.3, 1)'
+                                                                : 'none'
+                                                        }
+                                                    >
+                                                        ♠
+                                                    </Box>
                                                 }
-                                                transition="background-color 120ms ease, box-shadow 80ms ease, transform 80ms ease, color 120ms ease, border-color 120ms ease"
-                                                _hover={{
-                                                    bg: 'rgba(253,197,29,0.12)',
-                                                    borderColor:
-                                                        'brand.yellowDark',
-                                                    color: 'brand.yellowDark',
-                                                }}
-                                                _active={{
-                                                    bg: 'rgba(253,197,29,0.18)',
-                                                    borderColor:
-                                                        'brand.yellowDark',
-                                                    color: 'brand.yellowDark',
-                                                    transform:
-                                                        'translateY(2px)',
-                                                    boxShadow: '0 0 0 #B78900',
-                                                }}
-                                                onClick={handleHostTournament}
-                                                isLoading={isHostingTournament}
-                                                loadingText="Opening…"
-                                                spinner={
-                                                    <Spinner
-                                                        size="xs"
-                                                        color="brand.yellow"
-                                                    />
+                                                sx={
+                                                    allowMotion
+                                                        ? {
+                                                              '&:active .play-spade':
+                                                                  {
+                                                                      transform:
+                                                                          'translateX(4px) rotate(-10deg)',
+                                                                  },
+                                                          }
+                                                        : undefined
                                                 }
                                             >
-                                                Host a Tournament
+                                                Play now
                                             </Button>
-                                        </VStack>
-                                    </MotionBox>
-                                )}
-                            </AnimatePresence>
+                                        </MotionBox>
+                                    ) : (
+                                        <MotionBox
+                                            key="play-options"
+                                            initial={{
+                                                opacity: 0,
+                                                y: 10,
+                                                scale: 0.97,
+                                            }}
+                                            animate={{
+                                                opacity: 1,
+                                                y: 0,
+                                                scale: 1,
+                                            }}
+                                            transition={{
+                                                type: 'spring',
+                                                stiffness: 400,
+                                                damping: 22,
+                                            }}
+                                        >
+                                            <VStack spacing={2} width="100%">
+                                                <HStack
+                                                    spacing={2.5}
+                                                    width="100%"
+                                                >
+                                                    <Button
+                                                        variant="tactilePrimary"
+                                                        borderRadius="full"
+                                                        flex={1}
+                                                        height="48px"
+                                                        fontSize={{
+                                                            base: 'sm',
+                                                            md: 'md',
+                                                        }}
+                                                        onClick={
+                                                            handleCreateGame
+                                                        }
+                                                        isLoading={isCreating}
+                                                        loadingText="Creating"
+                                                        spinner={
+                                                            <Spinner
+                                                                size="sm"
+                                                                color="white"
+                                                            />
+                                                        }
+                                                    >
+                                                        CREATE
+                                                    </Button>
+                                                    <Button
+                                                        variant="tactileOutline"
+                                                        borderRadius="full"
+                                                        flex={1}
+                                                        height="48px"
+                                                        fontSize={{
+                                                            base: 'sm',
+                                                            md: 'md',
+                                                        }}
+                                                        onClick={handleJoinGame}
+                                                        isLoading={isJoining}
+                                                        loadingText="Joining"
+                                                        spinner={
+                                                            <Spinner
+                                                                size="sm"
+                                                                color="brand.green"
+                                                            />
+                                                        }
+                                                    >
+                                                        JOIN
+                                                    </Button>
+                                                </HStack>
+                                                <Button
+                                                    width="100%"
+                                                    height="46px"
+                                                    fontSize="sm"
+                                                    fontWeight="bold"
+                                                    variant="unstyled"
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                    gap={2}
+                                                    color="brand.yellowDark"
+                                                    _dark={{
+                                                        color: 'brand.yellow',
+                                                    }}
+                                                    bg="transparent"
+                                                    borderRadius="full"
+                                                    border="2px solid"
+                                                    borderColor="brand.yellow"
+                                                    boxShadow="0 2px 0 #B78900"
+                                                    leftIcon={
+                                                        <Icon
+                                                            as={MdEmojiEvents}
+                                                            boxSize="20px"
+                                                        />
+                                                    }
+                                                    transition="background-color 120ms ease, box-shadow 80ms ease, transform 80ms ease, color 120ms ease, border-color 120ms ease"
+                                                    _hover={{
+                                                        bg: 'rgba(253,197,29,0.12)',
+                                                        borderColor:
+                                                            'brand.yellowDark',
+                                                        color: 'brand.yellowDark',
+                                                    }}
+                                                    _active={{
+                                                        bg: 'rgba(253,197,29,0.18)',
+                                                        borderColor:
+                                                            'brand.yellowDark',
+                                                        color: 'brand.yellowDark',
+                                                        transform:
+                                                            'translateY(2px)',
+                                                        boxShadow:
+                                                            '0 0 0 #B78900',
+                                                    }}
+                                                    onClick={
+                                                        handleHostTournament
+                                                    }
+                                                    isLoading={
+                                                        isHostingTournament
+                                                    }
+                                                    loadingText="Opening…"
+                                                    spinner={
+                                                        <Spinner
+                                                            size="xs"
+                                                            color="brand.yellow"
+                                                        />
+                                                    }
+                                                >
+                                                    Host a Tournament
+                                                </Button>
+                                            </VStack>
+                                        </MotionBox>
+                                    )}
+                                </AnimatePresence>
                             </Box>
 
                             {account && isPortrait ? (

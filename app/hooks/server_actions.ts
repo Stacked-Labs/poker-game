@@ -785,15 +785,6 @@ export async function uploadTournamentBranding(
     return res.json();
 }
 
-export async function openTournamentRegistration(id: number): Promise<void> {
-    isBackendUrlValid();
-    const res = await fetch(`${backendUrl}/api/tournaments/${id}/open-registration`, {
-        method: 'POST',
-        credentials: 'include',
-    });
-    if (!res.ok) throw new Error(await res.text());
-}
-
 export async function registerForTournament(
     id: number,
     options?: { passwordCodeHash?: string },

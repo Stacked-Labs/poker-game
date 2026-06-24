@@ -39,7 +39,14 @@ import { useTournamentReminderStore } from '../../stores/tournamentReminders';
 import RegistrationConfirmationModal from '../Tournament/RegistrationConfirmationModal';
 import TournamentRegisterModal from '../Tournament/TournamentRegisterModal';
 import TournamentLobbyCard from './TournamentLobbyCard';
+import TournamentFilterRail, {
+    type PlayFilter,
+    type SpeedFilter,
+    type StatusFilter,
+    type TournamentSort,
+} from './TournamentFilterRail';
 import TournamentsEmptyState from './TournamentsEmptyState';
+import { normalizeTemplate } from './blindStructures';
 import { PAGE_SIZE } from './types';
 
 // Lobby ordering: lead with the most actionable tournaments. Registering (join
@@ -121,6 +128,12 @@ export default function TournamentsList() {
     const [finishPos, setFinishPos] = useState<Record<number, number>>({});
     // The just-registered tournament whose "You're in." confirmation is open.
     const [confirmTour, setConfirmTour] = useState<Tournament | null>(null);
+
+    // Filter + sort (the tab parity the cash lobby already has).
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+    const [playFilter, setPlayFilter] = useState<PlayFilter>('all');
+    const [speedFilter, setSpeedFilter] = useState<SpeedFilter>('all');
+    const [sortKey, setSortKey] = useState<TournamentSort>('soon');
     const toast = useToastHelper();
     const toastRef = useRef(toast);
     toastRef.current = toast;
@@ -190,6 +203,45 @@ export default function TournamentsList() {
             return true;
         })
         .sort((a, b) => compareLobbyTournaments(a, b, now));
+
+    const filtersActive =
+        statusFilter !== 'all' || playFilter !== 'all' || speedFilter !== 'all';
+    const clearFilters = () => {
+        setStatusFilter('all');
+        setPlayFilter('all');
+        setSpeedFilter('all');
+    };
+
+    const poolValue = (t: Tournament) =>
+        t.guarantee_usdc || t.prize_pool_usdc || 0;
+    const fillRatio = (t: Tournament) =>
+        t.max_entries > 0 ? (t.registered_count ?? 0) / t.max_entries : 0;
+
+    // visibleTournaments is already ranked by compareLobbyTournaments (the 'soon'
+    // default); only re-sort when another key is chosen.
+    const displayedTournaments = visibleTournaments
+        .filter((t) => {
+            if (statusFilter === 'open' && t.status !== 'registration')
+                return false;
+            if (statusFilter === 'live' && t.status !== 'running') return false;
+            if (playFilter === 'real' && (t.buy_in_usdc ?? 0) === 0) return false;
+            if (playFilter === 'free' && (t.buy_in_usdc ?? 0) !== 0) return false;
+            if (
+                speedFilter !== 'all' &&
+                normalizeTemplate(
+                    t.metadata?.blind_structure as string | undefined
+                ) !== speedFilter
+            )
+                return false;
+            return true;
+        })
+        .sort((a, b) => {
+            if (sortKey === 'gtd') return poolValue(b) - poolValue(a);
+            if (sortKey === 'filling') return fillRatio(b) - fillRatio(a);
+            if (sortKey === 'buyin')
+                return (a.buy_in_usdc ?? 0) - (b.buy_in_usdc ?? 0);
+            return 0;
+        });
 
     const handleViewOverview = (id: number) => {
         router.push(`/tournament/${id}`);
@@ -350,32 +402,65 @@ export default function TournamentsList() {
                 <TournamentsEmptyState onCreate={openCreate} />
             ) : (
                 <>
-                    <SimpleGrid
-                        columns={{ base: 1, sm: 2, lg: 3 }}
-                        spacing={{ base: 3, md: 4 }}
-                    >
-                        {visibleTournaments.map((t, index) => (
-                            <TournamentLobbyCard
-                                key={t.id}
-                                index={index}
-                                tournament={t}
-                                myWallet={myWallet}
-                                isSignedIn={isSignedIn}
-                                onRegister={handleRegister}
-                                onUnregister={handleUnregister}
-                                onGoToTable={handleGoToTable}
-                                onViewOverview={handleViewOverview}
-                                onFundGuarantee={handleFundGuarantee}
-                                onCardClick={handleViewOverview}
-                                registeredIds={registeredIds}
-                                isEliminated={(finishPos[t.id] ?? 0) > 0}
-                                isLoading={actionLoading}
-                                isGoingToTable={goToTableLoadingId === t.id}
-                                pendingTx={getPendingTx(t.id)}
-                                explorerUrl={pendingExplorerUrl}
-                            />
-                        ))}
-                    </SimpleGrid>
+                    <TournamentFilterRail
+                        status={statusFilter}
+                        onStatus={setStatusFilter}
+                        play={playFilter}
+                        onPlay={setPlayFilter}
+                        speed={speedFilter}
+                        onSpeed={setSpeedFilter}
+                        sort={sortKey}
+                        onSort={setSortKey}
+                        resultCount={displayedTournaments.length}
+                    />
+
+                    {displayedTournaments.length === 0 ? (
+                        <Flex direction="column" align="center" gap={3} py={10}>
+                            <Text
+                                fontSize="sm"
+                                color="text.secondary"
+                                textAlign="center"
+                            >
+                                No tournaments match these filters.
+                            </Text>
+                            {filtersActive && (
+                                <Button
+                                    variant="tactileOutline"
+                                    size="sm"
+                                    onClick={clearFilters}
+                                >
+                                    Clear filters
+                                </Button>
+                            )}
+                        </Flex>
+                    ) : (
+                        <SimpleGrid
+                            columns={{ base: 1, sm: 2, lg: 3 }}
+                            spacing={{ base: 3, md: 4 }}
+                        >
+                            {displayedTournaments.map((t, index) => (
+                                <TournamentLobbyCard
+                                    key={t.id}
+                                    index={index}
+                                    tournament={t}
+                                    myWallet={myWallet}
+                                    isSignedIn={isSignedIn}
+                                    onRegister={handleRegister}
+                                    onUnregister={handleUnregister}
+                                    onGoToTable={handleGoToTable}
+                                    onViewOverview={handleViewOverview}
+                                    onFundGuarantee={handleFundGuarantee}
+                                    onCardClick={handleViewOverview}
+                                    registeredIds={registeredIds}
+                                    isEliminated={(finishPos[t.id] ?? 0) > 0}
+                                    isLoading={actionLoading}
+                                    isGoingToTable={goToTableLoadingId === t.id}
+                                    pendingTx={getPendingTx(t.id)}
+                                    explorerUrl={pendingExplorerUrl}
+                                />
+                            ))}
+                        </SimpleGrid>
+                    )}
 
                     {tournaments.length < totalCount && (
                         <Flex justify="center" pt={2}>

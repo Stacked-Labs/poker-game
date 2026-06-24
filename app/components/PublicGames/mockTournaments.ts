@@ -67,6 +67,9 @@ export const realMoneyOpen = makeTournament({
     chain: 'base',
     contract_address: '0xC0ntract0000000000000000000000000000AA',
     metadata: { blind_structure: 'regular' },
+    x_url: 'https://x.com/stackedpoker',
+    discord_url: 'https://discord.gg/stacked',
+    telegram_url: 'https://t.me/stacked',
 });
 
 export const privateFreePlay = makeTournament({
@@ -190,6 +193,9 @@ export const brandedBannerLogo = makeTournament({
     metadata: { blind_structure: 'regular' },
     logo_url: '/IconLogo.png',
     banner_url: '/table-horizontal-green.webp',
+    x_url: 'https://x.com/degencollective',
+    telegram_url: 'https://t.me/degencollective',
+    website_url: 'https://degencollective.xyz',
 });
 
 // Banner + logo on a deep-stack event, starting soon.

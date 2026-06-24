@@ -73,7 +73,7 @@ interface TypeAccent {
     inkDark: string;
 }
 
-const TYPE_ACCENT: Record<TemplateName, TypeAccent> = {
+export const TYPE_ACCENT: Record<TemplateName, TypeAccent> = {
     hyper: {
         hue: '#EB0B5C',
         tintLight: 'rgba(235, 11, 92, 0.10)',
@@ -104,6 +104,12 @@ const TYPE_ACCENT: Record<TemplateName, TypeAccent> = {
         inkDark: '#7FB4E0',
     },
 };
+
+// The accent set for a tournament's speed (hyper/turbo/regular/deep), used for the
+// suit identity tint and the lobby card's tactile "chip ledge".
+export function accentFor(type?: string | null): TypeAccent {
+    return TYPE_ACCENT[normalizeTemplate(type)];
+}
 
 function clamp(n: number, lo: number, hi: number): number {
     return Math.min(hi, Math.max(lo, n));

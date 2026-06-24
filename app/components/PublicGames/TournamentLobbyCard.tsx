@@ -13,6 +13,7 @@ import {
     VStack,
     useColorModeValue,
     usePrefersReducedMotion,
+    useToken,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { FiCheck, FiClock, FiLock } from 'react-icons/fi';
@@ -29,6 +30,7 @@ import {
     useCountdown,
 } from './tournamentFormat';
 import {
+    accentFor,
     TournamentDefaultAvatar,
     TournamentDefaultCover,
 } from './tournamentDefaults';
@@ -125,6 +127,15 @@ export default function TournamentLobbyCard({
         ? String(t.metadata.blind_structure)
         : 'turbo';
 
+    // Tactile, speed-coded card: it rests on a thin accent "chip ledge" matching
+    // its speed (hyper/turbo/regular/deep), tints + brightens on hover, and sinks
+    // onto the surface on press, mirroring the tactile chip buttons.
+    const accentHue = accentFor(blindLabel).hue;
+    const [liftShadow, liftHoverShadow] = useToken('shadows', [
+        'card.lift',
+        'card.liftHover',
+    ]);
+
     const showCountdown = t.status === 'registration' || t.status === 'pending';
 
     // Lead with the prize pool / guarantee, then the buy-in. Every amount is in
@@ -170,17 +181,28 @@ export default function TournamentLobbyCard({
             borderWidth="1px"
             borderColor="border.pillNeutral"
             borderRadius="14px"
-            boxShadow="card.lift"
+            boxShadow={`${liftShadow}, 0 3px 0 ${accentHue}`}
             overflow="hidden"
             p={{ base: 4, md: 5 }}
             cursor={onCardClick ? 'pointer' : undefined}
             onClick={onCardClick ? () => onCardClick(t.id) : undefined}
-            transition="border-color 150ms ease, box-shadow 150ms ease"
+            transition="transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms ease, border-color 140ms ease"
             _hover={{
-                borderColor: 'brand.green',
-                boxShadow: 'card.liftHover',
+                borderColor: accentHue,
+                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accentHue}`,
             }}
-            _focusWithin={{ borderColor: 'brand.green' }}
+            _active={
+                onCardClick
+                    ? {
+                          transform: 'translateY(3px)',
+                          boxShadow: `${liftHoverShadow}, 0 1px 0 ${accentHue}`,
+                      }
+                    : undefined
+            }
+            _focusWithin={{
+                borderColor: accentHue,
+                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accentHue}, var(--chakra-shadows-focus-ring)`,
+            }}
             animation={
                 prefersReducedMotion
                     ? undefined

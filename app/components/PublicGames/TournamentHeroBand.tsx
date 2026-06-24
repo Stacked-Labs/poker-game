@@ -10,6 +10,7 @@ import {
     SimpleGrid,
     Text,
     VStack,
+    useToken,
 } from '@chakra-ui/react';
 import { FiArrowRight, FiClock } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
@@ -21,7 +22,7 @@ import {
     isFreePlay as getIsFreePlay,
     useCountdown,
 } from './tournamentFormat';
-import { TournamentDefaultAvatar } from './tournamentDefaults';
+import { accentFor, TournamentDefaultAvatar } from './tournamentDefaults';
 
 interface TournamentHeroBandProps {
     tournaments: Tournament[];
@@ -166,6 +167,12 @@ function BandCard({ tournament: t }: { tournament: Tournament }) {
     const blindLabel = t.metadata?.blind_structure
         ? String(t.metadata.blind_structure)
         : 'turbo';
+    // Tactile, speed-coded chip ledge matching the tournament's speed.
+    const accentHue = accentFor(blindLabel).hue;
+    const [liftShadow, liftHoverShadow] = useToken('shadows', [
+        'card.lift',
+        'card.liftHover',
+    ]);
     const countdown = useCountdown(t.scheduled_start_at);
 
     const money = freePlay
@@ -214,13 +221,23 @@ function BandCard({ tournament: t }: { tournament: Tournament }) {
             borderWidth="1px"
             borderColor="border.pillNeutral"
             borderRadius="14px"
-            boxShadow="card.lift"
+            boxShadow={`${liftShadow}, 0 3px 0 ${accentHue}`}
             p={4}
             cursor="pointer"
             onClick={go}
-            transition="border-color 150ms ease"
-            _hover={{ borderColor: 'brand.green' }}
-            _focusWithin={{ borderColor: 'brand.green' }}
+            transition="transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 140ms ease, border-color 140ms ease"
+            _hover={{
+                borderColor: accentHue,
+                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accentHue}`,
+            }}
+            _active={{
+                transform: 'translateY(3px)',
+                boxShadow: `${liftHoverShadow}, 0 1px 0 ${accentHue}`,
+            }}
+            _focusWithin={{
+                borderColor: accentHue,
+                boxShadow: `${liftHoverShadow}, 0 4px 0 ${accentHue}, var(--chakra-shadows-focus-ring)`,
+            }}
             display="flex"
             flexDirection="column"
             gap={3}

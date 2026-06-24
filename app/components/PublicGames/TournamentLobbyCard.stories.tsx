@@ -121,6 +121,36 @@ export const BrandedWithBanner: Story = {
     },
 };
 
+// Real money but no guarantee and no prize pool yet: the hero is the buy-in
+// itself (no "GTD"), and the projected payouts come from the live field.
+export const BuyInNoGuarantee: Story = {
+    args: {
+        tournament: {
+            ...realMoneyOpen,
+            id: 9904,
+            name: 'Nightly Twenty',
+            guarantee_usdc: 0,
+            prize_pool_usdc: 0,
+            buy_in_usdc: 20_000_000,
+            registered_count: 23,
+        },
+    },
+};
+
+// No cap on the field (unlimited entries): the fill bar is suppressed and the
+// field reads as a plain count + "Open field — no cap".
+export const UnlimitedField: Story = {
+    args: {
+        tournament: {
+            ...realMoneyOpen,
+            id: 9903,
+            name: 'The Big One',
+            max_entries: 0,
+            registered_count: 312,
+        },
+    },
+};
+
 // Host branding: logo only (no background uploaded).
 export const BrandedLogoOnly: Story = {
     args: {

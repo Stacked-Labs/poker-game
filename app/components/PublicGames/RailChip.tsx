@@ -1,6 +1,7 @@
 'use client';
 
 import { Box } from '@chakra-ui/react';
+import type { ReactNode } from 'react';
 
 type Tone = 'green' | 'usdc';
 
@@ -12,6 +13,8 @@ interface RailChipProps {
     onSelect: () => void;
     /** 'usdc' lights the active chip in USDC's brand blue (trust cue); else felt green. */
     tone?: Tone;
+    /** Optional leading node (e.g. a per-type-colored suit glyph) before the label. */
+    leftGlyph?: ReactNode;
 }
 
 const TONE: Record<
@@ -55,6 +58,7 @@ export default function RailChip({
     active,
     onSelect,
     tone = 'green',
+    leftGlyph,
 }: RailChipProps) {
     const t = TONE[tone];
     return (
@@ -69,7 +73,7 @@ export default function RailChip({
             flexShrink={0}
             whiteSpace="nowrap"
             px={3}
-            h={{ base: '40px', md: '34px' }}
+            h={{ base: '44px', md: '36px' }}
             borderRadius="full"
             fontSize="xs"
             fontWeight={active ? 'bold' : 'semibold'}
@@ -87,8 +91,12 @@ export default function RailChip({
             _dark={{
                 color: active ? t.colorDark : 'text.secondary',
                 boxShadow: active ? t.ringDark : 'none',
+                // Re-assert the focus ring inside the dark scope so it isn't lost
+                // to the boxShadow override above (source-order wins in Chakra v2).
+                _focusVisible: { boxShadow: 'focus.ring' },
             }}
         >
+            {leftGlyph}
             {label}
             {active && typeof count === 'number' && (
                 <Box

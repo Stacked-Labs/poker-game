@@ -59,6 +59,32 @@ export const Collapsed: Story = {
     },
 };
 
+// Detail-page "summary" mode: a plain-language title + four scannable facts, with
+// the full level table tucked behind "View all levels". Collapsed by default.
+export const Summary: Story = {
+    args: {
+        blindStructure: 'regular',
+        startingStack: 20_000,
+        lateRegLevels: 3,
+        currentLevel: null,
+        summary: true,
+        defaultOpen: false,
+    },
+};
+
+// Same summary card, but with the full ladder expanded (the "View all levels"
+// state) so the break rows + late-reg marker are visible at a glance.
+export const SummaryExpanded: Story = {
+    args: {
+        blindStructure: 'regular',
+        startingStack: 20_000,
+        lateRegLevels: 3,
+        currentLevel: null,
+        summary: true,
+        defaultOpen: true,
+    },
+};
+
 // ── Rest breaks ──────────────────────────────────────────────────────────
 
 // Regular: break after every 3rd level (60 min / 20-min levels) → rows 3, 6, 9…

@@ -1,311 +1,256 @@
----
-name: Stacked
-description: Onchain poker room. Real-money cash games settled in USDC on Base.
-colors:
-  penthouse-midnight: "#0B1430"
-  velvet-navy: "#334479"
-  neon-stake: "#EB0B5C"
-  felt-green: "#36A37B"
-  chip-yellow: "#FDC51D"
-  chip-yellow-deep: "#B78900"
-  cold-light: "#ECEEF5"
-  ash-charcoal: "#363535"
-  black-ash: "#262626"
-  ink: "#191414"
-  ink-deep: "#121212"
-  surface-night: "#171717"
-  letterbox-night: "#141418"
-  letterbox-day: "#D8D8DD"
-typography:
-  display:
-    fontFamily: "var(--font-poppins), system-ui, sans-serif"
-    fontSize: "clamp(2rem, 6vw, 4rem)"
-    fontWeight: 800
-    lineHeight: 1.05
-    letterSpacing: "-0.02em"
-  headline:
-    fontFamily: "var(--font-poppins), system-ui, sans-serif"
-    fontSize: "clamp(1.5rem, 3.5vw, 2.25rem)"
-    fontWeight: 700
-    lineHeight: 1.15
-    letterSpacing: "-0.02em"
-  title:
-    fontFamily: "var(--font-poppins), system-ui, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 700
-    lineHeight: 1.3
-    letterSpacing: "-0.01em"
-  body:
-    fontFamily: "var(--font-poppins), system-ui, sans-serif"
-    fontSize: "1rem"
-    fontWeight: 500
-    lineHeight: 1.5
-    letterSpacing: "normal"
-  label:
-    fontFamily: "var(--font-poppins), system-ui, sans-serif"
-    fontSize: "0.75rem"
-    fontWeight: 700
-    letterSpacing: "0.03em"
-rounded:
-  sm: "8px"
-  md: "10px"
-  lg: "12px"
-  xl: "14px"
-  '2xl': "16px"
-  pill: "9999px"
-spacing:
-  xs: "4px"
-  sm: "8px"
-  md: "16px"
-  lg: "24px"
-  xl: "32px"
-  '2xl': "48px"
-components:
-  button-primary:
-    backgroundColor: "{colors.surface-night}"
-    textColor: "{colors.cold-light}"
-    rounded: "{rounded.lg}"
-    padding: "12px 24px"
-  button-confirm:
-    backgroundColor: "{colors.felt-green}"
-    textColor: "#FFFFFF"
-    rounded: "{rounded.lg}"
-    padding: "12px 24px"
-  button-confirm-hover:
-    backgroundColor: "{colors.felt-green}"
-    textColor: "#FFFFFF"
-  button-action-raise:
-    backgroundColor: "{colors.velvet-navy}"
-    textColor: "#FFFFFF"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
-  button-ghost-link:
-    backgroundColor: "transparent"
-    textColor: "{colors.penthouse-midnight}"
-    rounded: "{rounded.sm}"
-    padding: "0"
-  input-default:
-    backgroundColor: "#FFFFFF"
-    textColor: "{colors.penthouse-midnight}"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
-  input-stake:
-    backgroundColor: "{colors.cold-light}"
-    textColor: "{colors.velvet-navy}"
-    rounded: "{rounded.lg}"
-    padding: "16px"
-  card-default:
-    backgroundColor: "#FFFFFF"
-    textColor: "{colors.penthouse-midnight}"
-    rounded: "{rounded.lg}"
-    padding: "16px"
-  card-hero:
-    backgroundColor: "#FFFFFF"
-    textColor: "{colors.penthouse-midnight}"
-    rounded: "{rounded.2xl}"
-    padding: "32px"
+# DESIGN.md — Stacked Visual System (poker-game)
+
+> **SCOPE BANNER.** This file governs **PIXELS** — color, type, elevation, motion, components — for the poker-game client. It does **not** govern voice, audience stance, terminology, or product claims. For those, the **Stacked-Consultant brand brain** (`../Stacked-Consultant/brand/`) is the single source of truth and **overrides this file on anything player-facing**. Every rule below is tagged **[TABLE]**, **[MARKETING]**, or **[BOTH]** so you always know where it applies.
+
 ---
 
-# Design System: Stacked
+## 0. How to use this doc
 
-## 1. Overview
+- **Scope tags.** `[TABLE]` = the live game surface (`/table/[id]`). `[MARKETING]` = the public homepage, lobby, and any marketing-adjacent surface. `[BOTH]` = the shared substrate (tokens, type, motion, a11y) that holds everywhere. If a rule is untagged, treat it as `[BOTH]`.
+- **The brand brain wins on voice/claims.** Copy, terminology ("platform fee" never "rake"; never "Banker"; Free Play vs. real-money), audience framing, and what we may or may not claim live in `../Stacked-Consultant/brand/` (`identity.md`, `voice-and-tone.md`, `visual-identity.md`). This file does not restate or override them. When in doubt about *words*, go there.
+- **The live light homepage wins over this doc for marketing.** Per `visual-identity.md`, the homepage's light look is the canonical reference for the marketing visual world. If a marketing asset and this doc ever disagree, sample the homepage and update this file — don't drift the asset.
+- **`theme.ts` wins over this doc for tokens.** Every hex and token name here is synced from `app/theme.ts`. If they diverge, `theme.ts` is right and this file is stale — fix the doc.
 
-**Creative North Star: "The Crypto Card Room"**
+---
 
-Stacked is an underground card room that happens to live onchain. The room is dark, warm, intimate. The felt is real. The money is USDC. The door speaks the language of people who already hold a wallet, not the language of people we're trying to convert. This is not a casino floor and it is not a fintech dashboard. It is a confident, lived-in room where the cards move fast and the settlement is invisible until you stand up.
+## 1. Two surfaces, two registers
 
-The aesthetic anchors on three tensions, held in balance: **product discipline at the table** (every pixel earns its place under decision pressure), **brand permission in the lobby** (personality, motion, and color carry weight), and **crypto-native fluency throughout** (wallets, USDC, Base, signing all spoken without translation). The room rejects what it isn't, on purpose: the polished WSOP corporate floor, the Uniswap-clone DEX dashboard, the gradient-mesh Web3 hero page, and the AI-rendered SaaS landing template all live somewhere else.
+Stacked is one product with two visual jobs. The mood that's right at the table is wrong in marketing, and vice versa. Don't apply one register everywhere.
 
-The current implementation carries some debt the strategic line will eventually retire: glassmorphic backdrop blurs, glow shadows, and gradient buttons exist in the codebase from earlier eras. They are documented honestly below, but they are not the system's future. New work should not extend them; existing instances are debt to remove.
+### 1a. `[TABLE]` — `/table/[id]` (the product)
 
-**Key Characteristics:**
-- **Light and dark modes are both first-class.** `initialColorMode` is `light`; semantic tokens carry full `{ default, _dark }` pairs. Every screen must be designed and reviewed in both modes before shipping. The brand mood ("warm, intimate, lived-in") applies to both — light warms toward Cold Light surfaces, dark warms toward Penthouse Midnight / Ink. Never cool fintech gray in either mode.
-- Mobile-first by usage. Primary players are on phones in landscape at the table, in portrait in the lobby.
-- Color is committed, not restrained: Penthouse Midnight + Velvet Navy + Cold Light carry the room across modes; Neon Stake is the rare pink accent that earns its appearances.
-- Typography is a single-family system (Poppins). Hierarchy through weight and scale, not type-pairing.
-- Motion is human, not robotic. Bets settle, chips have weight, deals have rhythm.
+The live game surface. **Strict product discipline**: every pixel earns its place under decision pressure. The crypto-fluent, intimate, **dark-mood-first-class** register lives here — wallets, USDC, Base, and onchain settlement are spoken without translation because this is where a seated player already is. Warm, lived-in, low-distraction. Light and dark are both first-class (`initialColorMode: 'light'`), but the table is the one place the dark, intimate mood is fully at home rather than reined in.
 
-## 2. Colors
+### 1b. `[MARKETING]` — `/` + lobby (the front door)
 
-The palette is a confident card-room set that works in both light and dark modes: deep navy for the ground, hot pink for action, felt green for affirmation, chip yellow for stakes, cold light for soft surfaces. Neutrals are warmed by ink and ash, never neutral-cool. Pure white and pure black are forbidden.
+The homepage, lobby, and marketing surfaces. **Recreational-first**: the default reader is a poker player who has never touched crypto. The **light look is mandatory** here — clean, calm, trustworthy, lots of breathing room, never crypto-dark / neon / "to the moon." The brand brain governs this surface's voice and feel; `visual-identity.md` makes the light look a firm, non-negotiable rule. Personality, motion, and color carry weight in the lobby, but inside the light register, not against it.
 
-### Primary
-- **Penthouse Midnight** (`#0B1430`): The ground of the room. Headers, hero backgrounds, primary text in light mode, deepest card surfaces. The color the table sits in.
-- **Velvet Navy** (`#334479`): Secondary ground. Action buttons (raise variant), secondary text, hover-into-color for confirmable buttons. Carries the room when Penthouse Midnight is too heavy.
+> This is the single biggest correction from the previous DESIGN.md: it applied the dark, crypto-native, "penthouse 3am" mood across the *whole* product including marketing. That collides with the brand brain. **Stop steering marketing dark.** Marketing is light-first, recreational-first, brand-brain-governed.
 
-### Secondary
-- **Neon Stake** (`#EB0B5C`): The signature accent. Used on focus rings, primary action confirmation, brand-surface highlights, and *only* the moments that are meant to be pink. Never decorative, never gradient-text, never a stripe.
-- **Felt Green** (`#36A37B`): The color of money in motion. Confirm/call/win states. Currently appears in `greenGradient` button and glow shadow; the glow is debt, the green is not.
+---
 
-### Tertiary
-- **Chip Yellow** (`#FDC51D`) / **Chip Yellow Deep** (`#B78900`): High-stakes / tournament / warning. Reserved for moments where the table itself is asking a question. Pairs with Chip Yellow Deep for hover and pressed states.
+## 2. Color — one token table
 
-### Neutral
-- **Cold Light** (`#ECEEF5`): The light surface of the room. Soft card grounds in light mode, secondary text in dark mode, low-contrast input grounds.
-- **Ash Charcoal** (`#363535`): Mid-dark warm gray. Input fields and chat row grounds in dark mode.
-- **Black Ash** (`#262626`): Deeper than charcoal but still warm. Chat row backgrounds, tertiary card surfaces.
-- **Ink** (`#191414`) / **Ink Deep** (`#121212`): The deepest two warm darks. Ink is body background; Ink Deep is the absolute floor (`<html>` and pre-render scrim).
-- **Surface Night** (`#171717`): The hero card inner background and the global body scrim. The most-used dark surface in the system.
-- **Letterbox Night** (`#141418`) / **Letterbox Day** (`#D8D8DD`): Side-bands when content doesn't fill the viewport. Slightly off from the main surface to keep the eye centered.
+There is **one** color vocabulary: the code token name from `app/theme.ts`. The poetic nickname is a secondary column for prose only. Do **not** invent a third set of names. Call sites use **semantic tokens** (`bg.*`, `text.*`, `card.*`, `chat.*`); reach for raw `brand.*` only inside `theme.ts`.
 
-### Named Rules
+### Brand colors (`colors.brand.*` in `theme.ts`)
 
-**The Neon Stake Rule.** The signature pink (`#EB0B5C`) is rare on purpose. Use it for: input focus rings, the brand mark, and the single most-important action in any view. Never on body text. Never as a gradient. Never on more than one element per screen.
+| Code token | Nickname | Hex | Mode | Allowed where | Surface |
+|---|---|---|---|---|---|
+| `brand.darkNavy` | Penthouse Midnight | `#0B1430` | both | The ground of the room: hero/felt grounds, primary text in light mode, deepest card surfaces | [BOTH] |
+| `brand.navy` | Velvet Navy | `#334479` | both | Secondary ground; raise-preset chips; secondary text; chat scroll thumb | [BOTH] |
+| `brand.navy.80` | Velvet Navy 80% | `rgba(51,68,121,.8)` | both | Translucent navy fills | [BOTH] |
+| `brand.pink` | Neon Stake | `#EB0B5C` | both | Signature accent — see Neon Stake Rule below. Focus rings on inputs, single most-important action, brand mark | [BOTH] |
+| `brand.pinkDark` | Neon Stake (pressed) | `#C00A4D` | both | Pressed/hover state of pink controls | [BOTH] |
+| `brand.pinkEdge` | Neon Stake (edge) | `#950839` | both | Bottom edge of `tactileDestructive` chip | [BOTH] |
+| `brand.green` | Felt Green | `#36A37B` | both | Money in motion: confirm/call/win, default brand CTA (`tactilePrimary`) | [BOTH] |
+| `brand.greenDark` | Felt Green (pressed) | `#2A8463` | both | Pressed state of green CTAs | [BOTH] |
+| `brand.greenEdge` | Felt Green (edge) | `#22674E` | both | Bottom edge of `tactilePrimary` / `tactileOutline` | [BOTH] |
+| `brand.yellow` | Chip Yellow | `#FDC51D` | both | High-stakes / tournament / celebratory (`tactileGold`), gold tier | [BOTH] |
+| `brand.yellowDark` | Chip Yellow Deep | `#B78900` | both | Pressed/hover gold; gold-tier text in light | [BOTH] |
+| `brand.yellowEdge` | Chip Yellow (edge) | `#8A6A00` | both | Bottom edge of `tactileGold` | [BOTH] |
+| `brand.lightGray` | Cold Light | `#ECEEF5` | both | Soft card grounds (light), input grounds, secondary text (dark), app ground (light) | [BOTH] |
+| `brand.base` | Base Blue | `#0052FF` | both | The Base network mark only | [BOTH] |
+| `brand.usdc` / `usdcDark` / `usdcEdge` | USDC Blue | `#2775CA` / `#1C5A99` / `#164A7F` | both | USDC chips/badges and their tactile edges | [BOTH] |
+| `brand.telegram` / `telegramDark` / `telegramEdge` | Telegram Blue | `#0088CC` / `#0077B5` / `#006A9D` | both | `tactileTelegram` community CTA only | [MARKETING] |
 
-**The No Pure Black/White Rule.** `#000` and `#fff` are forbidden. Every neutral is warmed: pure white belongs in incidental cases (button text on saturated grounds); pure black belongs nowhere. Reach for Penthouse Midnight, Ink, Ink Deep, or Cold Light instead.
+### Neutrals (warm — `colors.charcoal.*`, `colors.black.*`, `colors.legacy.*`)
 
-**The Warm-Neutrals Rule.** Both modes share a warm temperature, never cool fintech gray. In light mode, warm toward Cold Light (`#ECEEF5`) for soft grounds and white for primary cards; text warms toward Penthouse Midnight, never `gray.700` cool gray. In dark mode, Ash Charcoal and Black Ash carry mid-tones; Ink carries body; Penthouse Midnight carries hero. The legacy `gray.500/700` ramp is debt — treat as legacy, not target, in both modes.
+| Code token | Nickname | Hex | Allowed where |
+|---|---|---|---|
+| `charcoal.400` / `.600` | Ash Charcoal | `#363535` | Input fields, chat row grounds (dark mode) |
+| `charcoal.800` | Black Ash | `#262626` | Deeper chat rows, tertiary card surfaces (dark); default `Text` color |
+| `black.dark` / `legacy.grayDark` | Ink | `#191414` | Body background (dark) |
+| `legacy.grayDarkest` | Ink Deep | `#121212` | The absolute floor: `<html>` and pre-render scrim (dark) |
+| `legacy.grayLight` | Surface Night | `#212121` | Dark-mode card surfaces |
+| `bg.charcoal` (token) | Surface Night | `#171717` | Hero card inner background; default `Button` ground |
 
-## 3. Typography
+Letterbox bands and most surfaces are reached through **semantic tokens** (`bg.letterbox` → `#D8D8DD` light / `#141418` dark, etc.), not raw hex.
 
-**Display Font:** Poppins (with `system-ui, sans-serif` fallback)
-**Body Font:** Poppins (same family)
-**Label Font:** Poppins (uppercase + letter-spaced for stakes/labels)
+### Named color rules
 
-**Character:** A single-family system. Poppins is geometric, friendly, modern, and reads well at small sizes on mobile (the dominant context). Hierarchy is built through weight contrast (500 body / 700 heading / 800 display) and scale, not by introducing a serif or a display face. The system is intentionally one voice; if a screen needs more variation, the answer is scale and weight, not a second family.
+- **The Neon Stake Rule `[BOTH]`.** `brand.pink` (`#EB0B5C`) is rare on purpose. Default allowed uses: input focus rings, the brand mark, and the **single** most-important action per view. Never on body text, never as a gradient, never as a decorative stripe. **Documented, deliberate exceptions** (don't "fix" these): the `navLink` desktop-nav hover shifts to pink — the lobby-nav signature; and `themeButton` (the mode toggle) hovers to pink. Both are the one place pink is the nav-voice highlight. `tactileDestructive` uses a pink *outline* (never a solid pink fill).
+- **The No Pure Black / No Pure White Rule `[BOTH]`.** `#000` and `#fff` are forbidden as design colors. `white` is allowed only incidentally (button text on saturated fills). For darks, reach for Penthouse Midnight, Ink, or Ink Deep; for lights, Cold Light or `white` card grounds.
+- **The Warm-Neutrals Rule `[BOTH]`.** Both modes run warm, never cool fintech gray. The muted text ramp is the warm navy-slate `text.gray600` / `text.muted` / `text.gray700` tokens (verified AA against their grounds) — **not** Chakra's cool `gray.500/700`, which is legacy debt in both modes.
 
-### Hierarchy
+---
 
-- **Display** (800, `clamp(2rem, 6vw, 4rem)`, line-height 1.05, letter-spacing `-0.02em`): Hero headlines on `/` and marketing surfaces only. Never inside the table.
-- **Headline** (700, `clamp(1.5rem, 3.5vw, 2.25rem)`, line-height 1.15): Section headers in the lobby and stats. Tight letter-spacing.
-- **Title** (700, 1.25rem, line-height 1.3): Card titles, modal titles, secondary structure. Used heavily in `/leaderboard` and `/public-games`.
-- **Body** (500, 1rem, line-height 1.5): Default paragraph. Cap at 65–75ch on text-heavy surfaces (FAQ, stats explanations).
-- **Label** (700, 0.75rem, letter-spacing `0.03em`, often UPPERCASE): Action labels (CALL / RAISE / FOLD), stakes badges, table-side metadata.
+## 3. Typography `[BOTH]`
 
-### Named Rules
+**One family: Poppins** (`var(--font-poppins), system-ui, sans-serif`), for everything — display and body. Hierarchy comes from **weight and scale**, never a second family.
 
-**The One-Family Rule.** Poppins for everything. Hierarchy through weight and scale, never through a second family. If a screen feels flat, raise the weight delta or the size delta, not the family count.
+| Role | Weight | Size | Notes |
+|---|---|---|---|
+| Display | 800 | `clamp(2rem, 6vw, 4rem)`, lh 1.05, ls `-0.02em` | Hero headlines on `/` and marketing **[MARKETING]**. Never inside the table. |
+| Headline | 700 | `clamp(1.5rem, 3.5vw, 2.25rem)`, lh 1.15 | Lobby/stats section headers. |
+| Title | 700 | `1.25rem`, lh 1.3 | Card and modal titles. |
+| Body | 500 | `1rem`, lh 1.5 | Default paragraph; cap 65–75ch on text-heavy surfaces. |
+| Label | 700 | `0.75rem`, ls `0.03em`, often UPPERCASE | Action labels (CALL / RAISE / FOLD), stake badges, table metadata. |
 
-**The Tight-Headline Rule.** Headings carry letter-spacing `-0.02em`. The default Poppins tracking reads loose at scale; tight headings carry the confidence the brand wants.
+`fontWeights` in `theme.ts`: body/normal 500, medium/semibold 600, bold/heading 700, extrabold 800, black 900. `Heading` baseStyle carries `letterSpacing: -0.02em`.
 
-**The Mobile-First-Type Rule.** All display and headline sizes are `clamp()`-bound. Do not hard-code `font-size: 4rem` for a hero — phones are the primary surface, and a fixed-size hero will overflow.
+**Named rules.** *One-Family Rule* — Poppins only; if a screen feels flat, raise the weight or size delta, not the family count. *Tight-Headline Rule* — headings carry `-0.02em` tracking. *Mobile-First-Type Rule* — display and headline sizes are `clamp()`-bound; never hard-code a fixed hero size, phones are primary.
 
-## 4. Elevation
+> **Note `[BOTH]`.** The previous DESIGN.md's YAML frontmatter named these roles `display/headline/title/body/label` with exact pixel specs. Those specs are accurate and preserved above; the frontmatter block itself is dropped to keep one source per fact.
 
-The system uses a **hybrid**: tonal layering (warm-dark surfaces stacked on warm-dark grounds) is the default, with a small vocabulary of structural shadows reserved for hero cards and chat input focus. There is also a legacy vocabulary of glassmorphic and glow shadows that are debt, not target.
+---
 
-### Shadow Vocabulary
+## 4. Elevation `[BOTH]`
 
-- **default** (`0px 0px 8px 0px rgba(0, 0, 0, 0.15)`): Quiet ambient lift. Default Chakra component shadow. Use sparingly.
-- **card.hero** (light: `0 25px 80px rgba(0,0,0,0.12), 0 8px 32px rgba(0,0,0,0.08), 0 0 0 1px rgba(255,255,255,0.9)` / dark: `0 25px 80px rgba(0,0,0,0.5), 0 10px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05)`): The signature hero card lift on `/`. Layered, with a hairline outline. Reserved.
-- **chat.inputFocus** (`0 0 0 2px rgba(51, 68, 121, 0.2)`): Chat input focus ring. Velvet Navy, 2px, no blur. The minimum viable focus indicator for a chat field.
+Depth is **tonal-first**: stack warm-dark surfaces (Surface Night on Ink, Ink Deep below) rather than reaching for shadows. Surfaces separate by tone; shadows are a small, reserved vocabulary.
 
-### Legacy Shadow Vocabulary (debt; do not extend)
+### Shadow vocabulary (current — all live in `theme.ts`)
 
-- **glass / glass-hover / glass-active**: Layered ambient shadows with `inset 0 1px 0 rgba(255,255,255,X)` highlights. Glassmorphic. Mark as legacy.
-- **glow-green / glow-pink / glow-yellow** (`0 0 20px rgba(...,0.4), 0 0 60px rgba(...,0.15)`): Colored glows. PRODUCT.md anti-references explicitly forbid "glowing buttons." These exist in the theme; they are scheduled debt.
-- **btn-premium / btn-premium-hover**: Premium-button shadow stack. Legacy.
+| Token | Where | Value (abbrev.) |
+|---|---|---|
+| `shadows.default` | Quiet ambient lift; default Chakra component shadow. Use sparingly. | `0 0 8px rgba(0,0,0,.15)` |
+| `card.hero` (semantic) | Signature hero-card lift on `/`. Layered + hairline outline. Reserved. | light `0 25px 80px…, 0 0 0 1px rgba(255,255,255,.9)` / dark equivalent at `.05` hairline |
+| `card.lift` / `card.liftHover` (semantic) | Standard card lift + hover. Replaces the removed `glass` tokens. | `0 8px 24px` → `0 14px 36px`, mode-aware |
+| `focus.ring` (semantic) | The one focus-ring recipe for interactive controls. | `0 0 0 3px rgba(54,163,123,.35)` (green) |
+| `chat.inputFocus` (semantic) | Chat input focus ring — Velvet Navy, 2px, no blur. | `0 0 0 2px rgba(51,68,121,.2)` |
 
-### Named Rules
+### Removed debt (closed list — do not warn about these as if live)
 
-**The Tonal-First Rule.** Depth is built by stacking warm-dark surfaces (Surface Night on Ink, Ink Deep below), not by reaching for shadows. Surfaces do not need a shadow to feel separated from their ground if their tone differs.
+These tokens were **deleted** from `theme.ts` (zero consumers; see the comment at `shadows`, ~line 1200). They are gone, not lurking. Do not reintroduce them; do not write warnings implying they still exist:
 
-**The No-Glow Rule.** `glow-green`, `glow-pink`, `glow-yellow` exist in `theme.ts` from an earlier era. Do not add new uses. Existing uses are tracked as cleanup.
+- `glass` / `glass-hover` / `glass-active` — glassmorphic ambient stacks → replaced by `card.lift` / `card.liftHover`.
+- `glow-green` / `glow-pink` / `glow-yellow` — colored glows.
+- `btn-premium` / `btn-premium-hover` — premium-button shadow stack.
 
-**The Hairline-Outline Rule.** When a card needs *more* than tone — like the hero card — pair the shadow with a `0 0 0 1px` hairline of warm-white at low opacity. The hairline is what makes the lift feel architectural instead of fluffy.
+### Named rules
 
-## 5. Components
+- **Tonal-First Rule.** Build depth by stacking warm-dark tones first; reach for shadow only when tone can't separate two surfaces.
+- **No-Glow Rule.** No colored `boxShadow` glows (`0 0 20px rgba(...,.4)` etc.). Edge shadows and the structural tokens above only. (The old glow tokens are removed, per above.)
+- **Hairline-Outline Rule.** When a card needs more than tone (the hero card), pair the shadow with a `0 0 0 1px` warm-white hairline at low opacity — that's what makes the lift read architectural, not fluffy.
 
-### Buttons
+---
 
-The button system is built on the **tactile chip** mechanic: every CTA has a hairline top highlight, a colored bottom edge, and presses by sinking 1–2px while the edge collapses. Hover changes color or bg-tint only — never a lift, never a glow, never a scale. Snap easing (80ms) on transform, slightly slower (120ms) on color shifts. The full per-property recipe and the `Button.baseStyle` disabled/loading rule live in `.claude/CHAKRA.md` §10.
+## 5. Motion `[BOTH]`
 
-**Current Button variants** (in `app/theme.ts`):
+Motion is human, not robotic: bets settle, chips have weight, deals have rhythm. The shared vocabulary lives in `theme.ts → transition`, exposed as CSS vars (`var(--chakra-transition-easing-snap|settle)`, `…duration-snap|settle`):
 
-- **`tactilePrimary`** — solid Felt Green CTA (`brand.green` → `brand.greenDark` press, `brand.greenEdge` rim). The default brand action.
-- **`tactileOutline`** — Felt Green outlined secondary (2px border, transparent fill, 12% green tint on hover). Pairs with `tactilePrimary`.
-- **`tactileDestructive`** — Neon Stake outlined destructive (2px pink border, never solid pink fill).
-- **`tactileTelegram`** — solid Telegram blue, used on community CTAs and newsletter.
-- **`tactileChrome`** — mode-aware idle chip for clusters where multiple chrome buttons live together (NavBar settings/chat/away/leave/withdraw triggers, table chrome). Subtle dark-tint chip on cream / subtle light-tint chip on near-black via `_dark` inside the variant body.
-- **`tactileGhost`** — transparent in-card utility chrome (chat header X / sound / overlay-toggle, popover toggles). Fills `card.lightGray` on hover. Use this *inside* card surfaces where `tactileChrome`'s chip would compete with the content.
+- **`snap`** — `cubic-bezier(0.4, 0, 0.2, 1)`, `80ms`. The tactile press curve (transforms, edge collapse).
+- **`settle`** — `cubic-bezier(0.16, 1, 0.3, 1)` (ease-out-expo, deceleration, **no overshoot**), `220ms`. For arrivals and color shifts. **No bounce / elastic.**
 
-**Other variants in active use:**
+**Named rules.**
+- **Press-not-lift.** Hover never lifts (`translateY(-Npx)`) and never scales (`scale(1.0X)`); hover changes color, bg-tint, or border only. **Press** is the only animated affordance — `translateY(1–2px)` with the bottom edge collapsing.
+- **Reduced-motion.** `theme.ts` global styles honor `prefers-reduced-motion: reduce` app-wide (animations/transitions clamped to `0.01ms`). Chip, deal, and ambient motion must each have a toned-down path that **preserves causality** — the player still sees cause and effect, just without the flourish.
 
-- **`raiseActionButton`** — at-table raise preset chips (1/2 Pot, Pot, All In, +1/+5/+10). Smaller-edge tactile recipe (1px edge, `translateY(1px)` press) tuned for 28–40px chips on the felt.
-- **`navLink`** — desktop nav links (`HomeNavBar` `NavButtons`). Typography-only, transparent ground. The hover shifts to Neon Stake — this is the **one documented exception** to the otherwise reserved-pink rule, deliberately retained as the lobby-nav signature.
-- **`homeNav`** — mobile drawer nav rows. Tactile row recipe (no edge shadow, `translateY(1px)` press, soft inset indent), tone-tinted per section (green for Play, navy for Resources).
-- **`themeButton`** — the theme/mode toggle. Transparent, hover shifts text to Neon Stake.
+---
 
-**Toggle states (idle ↔ active).** Several chrome buttons toggle between an idle and an active state (Pause/Resume, Away/Back, Leave/Cancel-leave). Use `tactileChrome` for the idle state and inline a solid brand-tone tactile chip for the active state — see `app/components/NavBar/AwayButton.tsx` for the canonical pattern. Don't add a variant per tone permutation.
+## 6. Components
 
-**The state-aware action slot.** When a primary action becomes contextually unavailable (e.g., the Withdraw button in the settings card while the user is seated), prefer **replacing the action with the unblocking action** ("Leave seat") in the same slot rather than disabling-with-a-blur. The replacement button must mirror the source action's full state set — for Leave seat, that's `idle / queued / settlement-stuck`, matching the navbar `LeaveButton`. See `WithdrawBalanceCard.tsx` for the canonical implementation.
+All variants below are real and live in `app/theme.ts`. The full per-property button recipe, the `Button.baseStyle` disabled/loading rule, and the `<ExternalLink>` / `<PlayerNameLink>` / `<SocialIconButton>` recipes live in **`.claude/CHAKRA.md`** (§10–§11).
 
-**Linkouts.** External URLs use the shared `<ExternalLink>` component (see `.claude/CHAKRA.md` §11). In-app handle/identity links use `<PlayerNameLink>`. Iconified social CTAs use `<SocialIconButton tone="..." />`. Don't reinvent the recipes inline.
+### Buttons — the tactile chip mechanic `[BOTH]`
 
-### Inputs
+Every CTA is a **tactile chip**: hairline top highlight, colored bottom edge, presses by sinking 1–2px while the edge collapses. Hover changes color or bg-tint only — never a lift, glow, or scale. `snap` (80ms) on transform, slightly slower on color shifts.
 
-- **`white` variant:** White ground, 2px Cold Light border, 10px radius. Focus shifts border to Neon Stake plus a 1px Neon Stake outline. The default form field — used in newsletter, free tokens, and most modals.
-- **`takeSeatModal` variant:** Cold Light ground (becomes white on focus), 12px radius, 56px tall, 2px transparent border. Hover shifts border to Felt Green; focus to Neon Stake plus a Neon-Stake-tinted outer halo. The most expressive input in the system; lives in the take-seat flow.
-- **`settings` variant:** White ground, Cold Light border, 8px radius. Smaller and tighter than `white`. Same hover/focus pattern (Felt Green on hover, Neon Stake on focus).
-- **`outlined` (legacy):** Charcoal ground, gray border, used in older surfaces. Treat as legacy; new work should use `white` or `settings`.
+| Variant | Tag | What it is |
+|---|---|---|
+| `tactilePrimary` | [BOTH] | Solid Felt Green CTA (green → `greenDark` press, `greenEdge` rim). The default brand action. |
+| `tactileOutline` | [BOTH] | Felt Green outline secondary (2px border, transparent fill, 12% green tint hover). Pairs with primary. |
+| `tactileNeutral` | [BOTH] | Charcoal outline. Low-stakes secondary with no go/stop tone (e.g. "view results"). |
+| `tactileDestructive` | [BOTH] | Neon Stake **outline** destructive (2px pink border, never solid pink fill). |
+| `tactileTelegram` | [MARKETING] | Solid Telegram blue. Community / newsletter CTA. |
+| `tactileGold` | [BOTH] | Solid Chip Yellow celebratory CTA (tournament win), dark ink text. |
+| `tactileChrome` | [TABLE] | Mode-aware idle chip for table NavBar chrome clusters (settings/chat/away/leave). Dark-tint on cream / light-tint on near-black via inline `_dark`. |
+| `tactileChromeSolid` | [TABLE] | Same chrome chip with a fully opaque page-toned ground — for the portrait burger menu where chips float over felt with no container. |
+| `tactileGhost` | [TABLE] | Transparent in-card utility chrome (chat header X / sound / toggles). Fills `card.lightGray` on hover. Use inside card surfaces where `tactileChrome`'s chip would compete. |
+| `raiseActionButton` | [TABLE] | At-table raise presets (1/2 Pot, Pot, All In, +1/+5/+10). Smaller-edge tactile recipe (solid navy chip, ~1.5px edge, `translateY(1.5px)` press) tuned for 28–40px chips on the felt. |
+| `navLink` | [MARKETING] | Desktop nav links. Typography-only, transparent ground; hover shifts to Neon Stake — the **documented pink exception** (lobby-nav signature). |
+| `homeNav` | [MARKETING] | Mobile drawer nav rows. Tactile row recipe (soft inset, `translateX` hover nudge), tone-tinted per section. |
+| `themeButton` | [BOTH] | Mode toggle. Transparent, hover shifts text to Neon Stake (documented pink exception). |
+| `underlined` | [BOTH] | Text-link button: transparent, underlined, no edge. |
+| `base` / sizes | [BOTH] | Default charcoal pill; `sm`–`4xl` sizes. **Unknown/unset variants render as this charcoal pill** — there is no `link` variant; for a text link use `underlined` or `<ExternalLink>`. |
 
-### Cards
+**Toggle states (idle ↔ active) `[TABLE]`.** Chrome buttons that toggle (Pause/Resume, Away/Back, Leave/Cancel) use `tactileChrome` for idle and an inline solid-tone tactile chip for active — canonical pattern in `app/components/NavBar/AwayButton.tsx`. Don't add a variant per tone permutation.
 
-- **Default (`card.white` / `card.lightGray` / `card.darkNavy`):** Token-driven. White or Cold Light ground in light mode; Gray Light or Gray Dark in dark mode. Soft 8–12px radius. No shadow at rest.
-- **Hero (`card.heroBg` / `card.heroInnerBg`):** White ground in light mode; semi-transparent Surface Night (`rgba(23,23,23,0.8)`) in dark mode with a hairline outline. Carries the layered `card.hero` shadow. Reserved for the home hero.
-- **Internal padding:** `16px` (`spacing.md`) for default cards; `32px` (`spacing.xl`) for hero. No padding scale below `8px` for card interiors.
+**State-aware action slot `[TABLE]`.** When a primary action goes contextually unavailable (e.g. Withdraw while seated), **replace it with the unblocking action** ("Leave seat") in the same slot rather than disabling-with-blur, mirroring the source action's full state set. Canonical: `WithdrawBalanceCard.tsx`.
 
-### Chat surface
+### Inputs `[BOTH]`
 
-- **Row alternation:** Cold Light + white in light mode; Black Ash + Ash Charcoal in dark mode. Hover bumps the row by ~3% lightness.
-- **Border:** `rgba(0,0,0,0.08)` light / `rgba(255,255,255,0.15)` dark. Hairline.
-- **Scroll thumb:** Velvet Navy at 20% opacity light; warm-white at 25% dark. Hover thickens to 30/40%.
-- **Input focus:** `chat.inputFocus` ring described in Elevation.
+| Variant | What it is |
+|---|---|
+| `white` | White ground, 2px Cold Light border, 10px radius. Focus → Neon Stake border + 1px pink outline. Default form field (newsletter, modals). |
+| `takeSeatModal` | Cold Light ground (→ white on focus), 12px radius, 56px tall, 2px transparent border. Hover → Felt Green border; focus → Neon Stake + pink-tinted halo. The most expressive input; lives in the take-seat flow. |
+| `settings` | White ground, Cold Light border, 8px radius. Tighter than `white`; same hover (green) / focus (pink) pattern. |
+| `outlined` | **Legacy.** Charcoal ground, gray border. New work uses `white` or `settings`. |
 
-### Action labels (signature)
+### Cards `[BOTH]`
 
-The action label cluster (`CALL` / `BET` / `RAISE` / `ALL-IN`) is treated as a typographic component, not a button. Uses the **Label** type role: 12px Poppins 700, uppercase, letter-spaced `0.03em`. Currently appears as transient per-seat labels at the table.
+- **Default** (`card.white` / `card.lightGray` / `card.darkNavy`): token-driven. White or Cold Light (light) / Surface Night family (dark). Soft 8–12px radius. No shadow at rest — use `card.lift` only when a card must read raised.
+- **Hero** (`card.heroBg` / `card.heroInnerBg`) `[MARKETING]`: white (light) / `rgba(23,23,23,0.95)` (dark) with a hairline outline; carries `card.hero`. Reserved for the home hero.
+- **Felt** (`card.felt`): Penthouse Midnight ground in both modes — a card-room "felt" surface (newsletter, seat-pickers). The felt is the room, not a one-off color.
+- **Padding:** `16px` default cards; `32px` hero. No card-interior padding below `8px`.
 
-### Empty seat (signature)
+### The chip-pill pattern `[BOTH]`
 
-`emptySeat` button variant. 100% width, dashed `gray.400` border, gray text, font-size scales aggressively from `0.95rem` on mobile up to `2.3rem` on `lg`. The "sit down" affordance is *deliberately* loud at the table.
+The lobby's metadata chip is a reused pattern, not a per-instance hack. Tinted families live as semantic tokens — `bg.pillNeutral` / `border.pillNeutral` (neutral), plus tone variants `bg.greenTint`, `bg.yellowTint`, `bg.usdcTint`, `bg.navyTint`, and the single saturated `bg.hotSubtle` / `text.hot` "HOT" mark (one per row, max). Reach for these tokens; don't inline new pill hexes.
 
-### Named Rules
+### Chat surface `[TABLE]`
 
-**The Solid-Over-Gradient Rule.** Confirm and primary actions resolve to solid colors, not gradients. The legacy `greenGradient` variant is gone; all CTAs land on `tactilePrimary` (flat Felt Green).
+Row alternation (`chat.rowEven/Odd`, Cold Light + white light / Black Ash + Ash Charcoal dark; hover ~3% lighter), hairline `chat.border`, `chat.scrollThumb` (Velvet Navy 20% light / warm-white 25% dark, thickening on hover), and the `chat.inputFocus` ring.
 
-**The No-Lift Hover Rule.** Hover never uses `transform: translateY(-Npx)` or `scale(1.0X)`. Hover changes color, bg-tint, or border. **Press** is the only animated affordance — `translateY(1–2px)` with the bottom edge collapsing.
+### Signature table elements `[TABLE]`
 
-**The No-Glow Rule.** Hover never uses colored `boxShadow` glows (`0 0 20px rgba(...,0.4)` etc.). Edge shadows only. The legacy `glow-green` / `glow-pink` / `glow-yellow` shadow tokens exist in `theme.ts`; do not extend them.
+- **Action labels** (`CALL` / `BET` / `RAISE` / `ALL-IN`): a *typographic* component, not a button — the Label role (12px Poppins 700, uppercase, `0.03em`), transient per-seat at the table.
+- **Empty seat** (`emptySeat` consumer): full-width, dashed `gray.400` border, font scaling from `~0.95rem` (mobile) up to `2.3rem` (`lg`). The "sit down" affordance is deliberately loud.
 
-**The Solid-Over-Glass Rule.** `backdropFilter: blur(...)` is reserved for modal overlays only. The button overhaul retired all in-button blur usage; do not reintroduce it on chips or chrome.
+### Named component rules
 
-**The Disabled-Visual Rule.** A muted-but-clickable button uses `opacity: 0.85 → 1 on hover`. Never `filter: blur(...)` — it reads as broken UI. A truly disabled button uses `isDisabled` and lets `Button.baseStyle._disabled` (filter desaturate + `pointerEvents: none`) handle the visual.
+- **No-Lift Hover Rule `[BOTH]`** — hover never `translateY(-Npx)` or `scale`; press is the only animated affordance.
+- **Solid-Over-Gradient Rule `[BOTH]`** — confirm/primary actions resolve to solid color. The old `greenGradient` variant is gone; CTAs land on flat `tactilePrimary`.
+- **Solid-Over-Glass Rule `[BOTH]`** — `backdropFilter: blur(...)` is reserved for modal overlays only; no in-button blur on chips or chrome.
+- **Disabled-Visual Rule `[BOTH]`** — a muted-but-clickable button uses `opacity: .85 → 1` on hover, never `filter: blur`. A truly disabled button uses `isDisabled` and lets `Button.baseStyle._disabled` (filter desaturate + `pointerEvents: none`) own the visual.
+- **44pt Tap Rule `[BOTH]`** — tap targets in the table and primary lobby flows hit 44×44pt minimum on mobile. `raiseActionButton`'s 28px floor on `base` is a deliberate exception inside the known-zoomed table layout — don't propagate it.
 
-**The 44pt Tap Rule.** All tap targets in the table interface and primary lobby flows hit a 44×44pt minimum on mobile. The `raiseActionButton` minimum height of 28px on `base` is a deliberate exception inside a known-zoomed table layout — do not propagate that exception elsewhere.
+---
 
-## 6. Do's and Don'ts
+## 7. Do / Don't
 
-### Do:
+| Do | Don't | Tag |
+|---|---|---|
+| Use Poppins for all text; hierarchy from weight/scale | Introduce a second type family | [BOTH] |
+| Use semantic tokens (`bg.*`, `text.*`, `card.*`) at call sites | Introduce raw hex outside `theme.ts` | [BOTH] |
+| Reach for `brand.darkNavy` / `brand.navy` grounds; Cold Light for soft surfaces | Use `#000` or `#fff` as design colors | [BOTH] |
+| Reserve `brand.pink` for one key action, focus rings, the mark | Spread pink across a screen, or as gradient/stripe/body-text | [BOTH] |
+| Use `brand.green` for confirm/call/win, flat | Use gradient fills or gradient text (`background-clip: text`) | [BOTH] |
+| Build depth tonal-first; add `card.lift` only when needed | Add glow `boxShadow`, or reintroduce removed glass/glow/premium tokens | [BOTH] |
+| Pair a reserved shadow with a 1px hairline when a card must read architectural | Add glassmorphism — decorative `backdropFilter` blur outside modal overlays | [BOTH] |
+| Clamp display/headline sizes; carry `-0.02em` on headings | Hard-code a fixed hero font size | [BOTH] |
+| Design and review every change in **light and dark** | Bias dark-by-default; or steer **marketing** dark/crypto-native | [BOTH] / [MARKETING] |
+| Keep the marketing surface light, calm, recreational-first; sample the live homepage | Invent a separate darker/louder/"crypto" marketing skin | [MARKETING] |
+| Pair color with shape/icon/text for state (suit, action, stake tier) | Encode state by color alone | [BOTH] |
+| Ensure 44×44pt tap targets in table + primary lobby flows | Propagate the `raiseActionButton` 28px exception elsewhere | [BOTH] |
+| Respect `prefers-reduced-motion` with a causality-preserving path | Use side-stripe borders (`border-left` > 1px as colored accent) | [BOTH] |
+| Use `_dark={{}}` / `useColorModeValue()` on the component | Edit a shared semantic token in `theme.ts` to fix one component | [BOTH] |
 
-- **Do** use Poppins for all text. Hierarchy comes from weight (500 / 700 / 800) and scale, not from a second family.
-- **Do** reach for **Penthouse Midnight** and **Velvet Navy** as the room's grounds. Use **Cold Light** for soft surfaces in light mode.
-- **Do** reserve **Neon Stake** for the single most important action per screen, focus rings, and the brand mark.
-- **Do** use **Felt Green** for confirm / call / positive money states, flat (not gradient) for new variants.
-- **Do** build depth with tonal layering first. Reach for shadow only when tone alone can't do the job.
-- **Do** pair shadow with a 1px hairline outline (`rgba(255,255,255,0.05)` in dark) when a card needs to feel architectural.
-- **Do** clamp display and headline sizes. Mobile is the primary context.
-- **Do** carry letter-spacing `-0.02em` on headings.
-- **Do** use semantic tokens (`bg.*`, `text.*`, `card.*`, `chat.*`) at call sites; reach for raw `colors.brand.*` only inside theme definitions.
-- **Do** respect `prefers-reduced-motion`. Chip animations, deal animations, and ambient motion all need a toned-down path that preserves causality.
-- **Do** ensure 44×44pt tap targets in the table and primary lobby flows.
-- **Do** pair color with shape, icon, or text for state. Suit identity, action state, and stake tier are never color-only.
+> **Copy rules (em-dash bans, terminology, claims) are NOT in this file.** They live in the brand brain — `../Stacked-Consultant/brand/voice-and-tone.md`. This is a pixels doc; cede voice there.
 
-### Don't:
+---
 
-- **Don't** use `#000` or `#fff`. Every neutral is warmed (Penthouse Midnight, Ink, Ink Deep, Cold Light).
-- **Don't** introduce a second type family. Poppins, all weights, all sizes.
-- **Don't** add **glassmorphism** — backdrop blurs as a decorative effect. PRODUCT.md anti-references forbid it. Existing `backdropFilter` uses are debt.
-- **Don't** add **glowing buttons** — `glow-green`, `glow-pink`, `glow-yellow` shadows are explicitly anti-reference. Do not extend them. Existing uses are scheduled cleanup.
-- **Don't** use **gradient text** (`background-clip: text`). Single solid color, emphasis through weight or size.
-- **Don't** use **gradient meshes** or "Welcome to the Future" hero copy. PRODUCT.md anti-reference: Web3 hero-page slop.
-- **Don't** build the **hero-metric SaaS template** (big number, small label, gradient accent). PRODUCT.md anti-reference: AI-generated UI.
-- **Don't** use **identical card grids** — same-sized cards with icon + heading + text, repeated. PRODUCT.md anti-reference.
-- **Don't** use **side-stripe borders** (`border-left` greater than 1px as a colored accent). Cross-register absolute ban.
-- **Don't** use **em dashes** (`—`) in shipped copy. Commas, colons, semicolons, periods, parentheses.
-- **Don't** ship the **WSOP / PokerStars / ClubGG aesthetic**: stock-photo felt, glossy chip stacks, casino-floor red-and-gold, "professional" tone. PRODUCT.md anti-reference: corporate poker rooms.
-- **Don't** ship the **Uniswap-clone DEX dashboard aesthetic** — generic chart cards, swap gradients. PRODUCT.md anti-reference: generic crypto dashboards.
-- **Don't** ship "✨" or three-emoji headers or lavender-to-pink gradients. PRODUCT.md anti-reference: AI-generated UI.
-- **Don't** ship **Chuck-E-Cheese degen** — neon for neon's sake, comic-sans-energy fonts, screaming chrome. PRODUCT.md anti-reference.
-- **Don't** modify a shared semantic token in `app/theme.ts` to fix one component. Use `_dark={{}}` or `useColorModeValue()` directly. (Repo rule from `.claude/CHAKRA.md`.)
-- **Don't** introduce raw hex codes outside `theme.ts`. Use semantic tokens or `colors.brand.*`.
+## 8. Anti-references — do NOT look like
+
+The room rejects what it isn't, on purpose. These hold across both registers.
+
+- **Corporate poker rooms** (WSOP / PokerStars / ClubGG): stock-photo felt, glossy chip stacks, casino-floor red-and-gold, "professional" tone.
+- **Generic crypto dashboards** (Uniswap-clone DEX): chart cards, swap gradients, generic Web3 chrome.
+- **Web3 hero-page slop**: gradient meshes, glassmorphism, "Welcome to the Future" hero copy.
+- **AI-generated UI**: lavender-to-pink gradients, "✨" / three-emoji headers, the hero-metric SaaS template (big number, small label, gradient accent), identical repeating card grids.
+- **Chuck-E-Cheese degen**: neon for neon's sake, comic-sans energy, screaming chrome.
+
+For `[MARKETING]` specifically, the brand brain adds its own anti-references (no crypto-dark / neon / laser-eyes / "to the moon," no FOMO/countdown devices, no fake game data) — see `visual-identity.md` and `identity.md` → *anti-positioning*. Those govern; this list complements.
+
+---
+
+## 9. Pointers
+
+- **Voice, audience, terminology, claims →** `../Stacked-Consultant/brand/` (`identity.md`, `voice-and-tone.md`, `visual-identity.md`). **Single source of truth; overrides this file on anything player-facing.**
+- **Color tokens (source of truth) →** `app/theme.ts` (`colors.brand.*`, `semanticTokens`, `shadows`, `transition`).
+- **Chakra recipes (per-property button/input recipes, disabled rule, `<ExternalLink>` / `<PlayerNameLink>` / `<SocialIconButton>`) →** `.claude/CHAKRA.md` (§10–§11).
+- **Product / register context →** `PRODUCT.md` and `CLAUDE.md` at the repo root.
+
+---
+
+## 10. Last synced to `theme.ts`: 2026-06-23

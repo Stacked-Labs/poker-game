@@ -201,12 +201,19 @@ const CommunitySection = () => {
                                     alt="Poker lobby"
                                     fill
                                     sizes="(max-width: 992px) 100vw, 560px"
-                                    style={{ objectFit: 'contain', objectPosition: 'center' }}
+                                    style={{
+                                        objectFit: 'contain',
+                                        objectPosition: 'center',
+                                    }}
                                 />
                             </AspectRatio>
                         </MotionBox>
 
-                        <MotionVStack align="start" spacing={6} {...getFadeUpMotion(0.2)}>
+                        <MotionVStack
+                            align="start"
+                            spacing={6}
+                            {...getFadeUpMotion(0.2)}
+                        >
                             <Badge
                                 bg="bg.greenTint"
                                 color="brand.green"
@@ -347,7 +354,7 @@ const CommunitySection = () => {
                                 color="text.primary"
                                 letterSpacing="-0.02em"
                             >
-                                Real stakes. No custody risk.
+                                Real stakes. We never touch your funds.
                             </Heading>
                             <Text
                                 fontSize="lg"
@@ -362,12 +369,13 @@ const CommunitySection = () => {
                                     fontWeight="bold"
                                     color="text.primary"
                                 >
-                                    We can&apos;t freeze it. We can&apos;t touch it.
+                                    We can&apos;t freeze it. We can&apos;t touch
+                                    it.
                                 </Text>
                             </Text>
 
                             <Box
-                                bg="card.felt"
+                                bg="#1B1714"
                                 p={{ base: 6, md: 8 }}
                                 borderRadius="2xl"
                                 width="100%"
@@ -406,11 +414,11 @@ const CommunitySection = () => {
                                         color="rgba(236, 238, 245, 0.92)"
                                         lineHeight="tall"
                                     >
-                                        If settlement ever stalls, you don&apos;t
-                                        wait on us. Pull your own funds straight
-                                        from the table contract after 24 hours.
-                                        No ticket, no support queue, no
-                                        permission.
+                                        If settlement ever stalls, you
+                                        don&apos;t wait on us. Pull your own
+                                        funds straight from the table contract
+                                        after 24 hours. No ticket, no support
+                                        queue, no permission.
                                     </Text>
                                 </VStack>
                             </Box>
@@ -468,12 +476,15 @@ const CommunitySection = () => {
                                                     }
                                                 >
                                                     <Image
-                                                        src={option.icon as string}
+                                                        src={
+                                                            option.icon as string
+                                                        }
                                                         alt={option.name}
                                                         fill
                                                         sizes={`${option.boxSize ?? 24}px`}
                                                         style={{
-                                                            objectFit: 'contain',
+                                                            objectFit:
+                                                                'contain',
                                                         }}
                                                     />
                                                 </Box>
@@ -513,7 +524,10 @@ const CommunitySection = () => {
                                     alt="One-tap sign-in"
                                     fill
                                     sizes="(max-width: 992px) 100vw, 520px"
-                                    style={{ objectFit: 'contain', objectPosition: 'center' }}
+                                    style={{
+                                        objectFit: 'contain',
+                                        objectPosition: 'center',
+                                    }}
                                 />
                             </AspectRatio>
                         </MotionBox>

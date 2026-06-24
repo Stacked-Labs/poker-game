@@ -17,7 +17,7 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import Link from 'next/link';
-import { MdArrowUpward, MdLockOpen, MdRocketLaunch } from 'react-icons/md';
+import { MdArrowUpward, MdLockOpen } from 'react-icons/md';
 import { FaCoins } from 'react-icons/fa';
 import { motion, useReducedMotion } from 'framer-motion';
 import React from 'react';
@@ -173,14 +173,15 @@ const HostToEarnSection = () => {
                             >
                                 Run the table.
                                 <br />
-                                Take the cut.
+                                Earn your share.
                             </Heading>
                             <Text
                                 fontSize="lg"
                                 color="text.secondary"
                                 lineHeight="tall"
                             >
-                                You host the table. We take a cut. So do you:{' '}
+                                You host the table. We keep a small platform
+                                fee, and so do you:{' '}
                                 <Text
                                     as="span"
                                     fontWeight="bold"
@@ -203,7 +204,7 @@ const HostToEarnSection = () => {
                                         detail: 'Stacked covers the gas to spin up your table',
                                     },
                                     {
-                                        main: '0% custody risk',
+                                        main: '0% held by us',
                                         detail: 'earnings live in the table contract, not our account',
                                     },
                                 ].map((item) => (
@@ -281,7 +282,7 @@ const HostToEarnSection = () => {
                                 }}
                             >
                                 <Icon
-                                    as={MdRocketLaunch}
+                                    as={MdLockOpen}
                                     mr={1.5}
                                     fontSize="sm"
                                     color="brand.yellowDark"
@@ -305,7 +306,7 @@ const HostToEarnSection = () => {
                                 color="text.primary"
                                 letterSpacing="-0.02em"
                             >
-                                Three clicks. You&apos;re the house.
+                                Three clicks. The table&apos;s yours.
                             </Heading>
                             <Text
                                 fontSize="lg"
@@ -357,8 +358,8 @@ const HostToEarnSection = () => {
                                     >
                                         No approval queue. No staking
                                         requirement. No fee to deploy. The
-                                        marketplace is open. If you can
-                                        connect a wallet, you can run a table.
+                                        marketplace is open. If you can connect
+                                        a wallet, you can run a table.
                                     </Text>
                                 </VStack>
                             </Box>
@@ -382,14 +383,13 @@ const HostToEarnSection = () => {
                             as={Link}
                             href="/create-game"
                             variant="tactilePrimary"
+                            borderRadius="full"
                             height={{ base: '52px', md: '56px' }}
                             px={8}
                             fontSize={{ base: 'md', md: 'lg' }}
-                            leftIcon={
-                                <Icon as={MdRocketLaunch} boxSize="20px" />
-                            }
+                            leftIcon={<Icon as={FaCoins} boxSize="18px" />}
                         >
-                            Host a table
+                            Start hosting
                         </Button>
                         <Text mt={3} fontSize="sm" color="text.muted">
                             Free to deploy. Earn from the first hand.
@@ -426,11 +426,7 @@ const EarningsCard = () => (
                     >
                         Host earnings
                     </Text>
-                    <Text
-                        fontSize="sm"
-                        color="text.primary"
-                        fontWeight="bold"
-                    >
+                    <Text fontSize="sm" color="text.primary" fontWeight="bold">
                         Sunday Night Hold&apos;em
                     </Text>
                 </VStack>
@@ -489,25 +485,26 @@ const EarningsCard = () => (
                 </HStack>
             </VStack>
 
+            {/* Decorative (aria-hidden) — illustrates a host's earnings UI.
+                Styled on the tactileGold recipe so it reads as the same raised
+                physical object as the site's real buttons. */}
             <HStack
                 bg="brand.yellow"
-                color="brand.darkNavy"
-                _dark={{ color: 'brand.darkNavy' }}
+                color="#3D2C00"
                 fontSize="sm"
                 fontWeight="bold"
                 py={3}
                 px={4}
-                borderRadius="xl"
+                borderRadius="12px"
                 justify="center"
                 spacing={2}
                 userSelect="none"
                 cursor="default"
                 aria-hidden="true"
-                _hover={{ bg: 'brand.yellowDark' }}
-                transition="background 0.18s ease"
+                boxShadow="inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 0 #8A6A00"
             >
-                <Icon as={FaCoins} fontSize="md" color="brand.darkNavy" />
-                <Text color="brand.darkNavy">Withdraw to wallet</Text>
+                <Icon as={FaCoins} fontSize="md" color="#3D2C00" />
+                <Text color="#3D2C00">Withdraw to wallet</Text>
             </HStack>
 
             <VStack
@@ -530,11 +527,7 @@ const EarningsCard = () => (
                     { id: '2933', amt: '+$0.30' },
                     { id: '2932', amt: '+$0.24' },
                 ].map((row) => (
-                    <HStack
-                        key={row.id}
-                        justify="space-between"
-                        fontSize="sm"
-                    >
+                    <HStack key={row.id} justify="space-between" fontSize="sm">
                         <Text color="text.secondary">Hand #{row.id}</Text>
                         <Text color="text.primary" fontWeight="semibold">
                             {row.amt}
@@ -603,12 +596,7 @@ const SetupCard = () => {
 
                 <VStack align="stretch" spacing={3}>
                     {steps.map((step) => (
-                        <HStack
-                            key={step.n}
-                            spacing={4}
-                            align="start"
-                            py={2}
-                        >
+                        <HStack key={step.n} spacing={4} align="start" py={2}>
                             <Box
                                 w="32px"
                                 h="32px"

@@ -488,15 +488,15 @@ export function FundGuaranteeModal({
         );
 
     const statusLabel: Record<string, string> = {
+        checking: 'Checking funding…',
         approving: 'Approving USDC…',
         depositing: 'Depositing guarantee…',
-        opening: 'Opening registration…',
     };
 
     const handleFund = async () => {
         const ok = await fundAndOpen();
         if (ok) {
-            toast.success('Guarantee funded — registration is open!');
+            toast.success('Guarantee funded — registration opens shortly');
             onSuccess();
         }
     };

@@ -444,7 +444,7 @@ export default function TournamentPage() {
         try {
             const ok = await fundAndOpen();
             if (ok) {
-                toast.success('Guarantee funded — registration is open!');
+                toast.success('Guarantee funded — registration opens shortly');
                 resyncAfterOnchainAction();
             } else {
                 toast.error('Could not fund guarantee', 'Please try again.');

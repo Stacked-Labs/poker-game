@@ -60,6 +60,7 @@ import Footer from '../HomePage/Footer';
 import StructureSheet from './StructureSheet';
 import PayoutLadder, { RankBadge } from './PayoutLadder';
 import AboutPanel from './AboutPanel';
+import FreeTicketsPanel from './FreeTicketsPanel';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     formatTournamentStart,
@@ -1906,6 +1907,16 @@ export default function TournamentDetail({
                                                     onClaimHostEmergencyRefund
                                                 }
                                             />
+                                            {t.free_tickets_enabled && (
+                                                <>
+                                                    <Divider
+                                                        borderColor={border}
+                                                    />
+                                                    <FreeTicketsPanel
+                                                        tournamentId={t.id}
+                                                    />
+                                                </>
+                                            )}
                                         </>
                                     )}
                                 </VStack>

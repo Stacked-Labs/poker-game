@@ -101,6 +101,10 @@ export interface CreateTournamentFormValues {
     tableSize: number;
     reentryAllowed: boolean;
     reentryMax: number;
+    freeTicketsEnabled: boolean;
+    // '0' (or empty) means Infinite (still bounded by max seats).
+    freeSeatsTotal: string;
+    freeCodesPerClaimer: number;
     minPlayers: string;
     maxPlayers: string;
     scheduledAt: string;
@@ -786,6 +790,10 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     const [tableSize, setTableSize] = useState(9);
     const [reentryAllowed, setReentryAllowed] = useState(false);
     const [reentryMax, setReentryMax] = useState(1);
+    const [freeTicketsEnabled, setFreeTicketsEnabled] = useState(false);
+    const [freeSeatsCapped, setFreeSeatsCapped] = useState(true);
+    const [freeSeats, setFreeSeats] = useState('100');
+    const [freeCodesPerClaimer, setFreeCodesPerClaimer] = useState(3);
     const [minPlayers, setMinPlayers] = useState('2');
     const [maxPlayers, setMaxPlayers] = useState('9');
     const [capped, setCapped] = useState(true);
@@ -999,6 +1007,13 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
             tableSize,
             reentryAllowed: reentryAllowed && lateRegLevels > 0,
             reentryMax,
+            freeTicketsEnabled,
+            freeSeatsTotal: freeTicketsEnabled
+                ? freeSeatsCapped
+                    ? freeSeats
+                    : '0'
+                : '0',
+            freeCodesPerClaimer,
             minPlayers,
             // Empty string signals "no cap". The backend has no real unlimited
             // sentinel yet, so the consumer maps this to a large effective cap.
@@ -2092,6 +2107,112 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                     formatValue={(v) => `${v}×`}
                                 />
                             </Box>
+                        )}
+
+                        <Flex justify="space-between" align="center" gap={3}>
+                            <VStack align="stretch" spacing={0.5} pr={3}>
+                                <Text
+                                    fontSize="sm"
+                                    fontWeight="semibold"
+                                    color="text.secondary"
+                                >
+                                    🎟 Free Tickets
+                                </Text>
+                                <Text fontSize="xs" color="text.muted">
+                                    Hand out free first-entry tickets. Players
+                                    without one pay the normal buy-in.
+                                </Text>
+                            </VStack>
+                            <Switch
+                                isChecked={freeTicketsEnabled}
+                                onChange={(e) =>
+                                    setFreeTicketsEnabled(e.target.checked)
+                                }
+                                colorScheme={freePlay ? 'green' : 'blue'}
+                                size="lg"
+                                flexShrink={0}
+                            />
+                        </Flex>
+
+                        {freeTicketsEnabled && (
+                            <VStack align="stretch" spacing={4} pl={1}>
+                                <Box>
+                                    <Flex
+                                        justify="space-between"
+                                        align="center"
+                                        mb={1.5}
+                                    >
+                                        <Text
+                                            fontSize="sm"
+                                            fontWeight="semibold"
+                                            color="text.secondary"
+                                        >
+                                            Free entries cap
+                                        </Text>
+                                        <Flex align="center" gap={2}>
+                                            <Text
+                                                fontSize="xs"
+                                                color="text.muted"
+                                            >
+                                                Infinite
+                                            </Text>
+                                            <Switch
+                                                isChecked={!freeSeatsCapped}
+                                                onChange={(e) =>
+                                                    setFreeSeatsCapped(
+                                                        !e.target.checked
+                                                    )
+                                                }
+                                                colorScheme={
+                                                    freePlay ? 'green' : 'blue'
+                                                }
+                                                size="md"
+                                            />
+                                        </Flex>
+                                    </Flex>
+                                    {freeSeatsCapped ? (
+                                        <Input
+                                            {...inputProps}
+                                            type="number"
+                                            inputMode="numeric"
+                                            min={1}
+                                            value={freeSeats}
+                                            onChange={(e) =>
+                                                setFreeSeats(e.target.value)
+                                            }
+                                            placeholder="100"
+                                            height="48px"
+                                        />
+                                    ) : (
+                                        <Text
+                                            fontSize="xs"
+                                            color="text.muted"
+                                        >
+                                            Unlimited free entries, still capped
+                                            by the tournament&apos;s max seats.
+                                        </Text>
+                                    )}
+                                </Box>
+                                <Box>
+                                    <FieldLabel>
+                                        Share codes per claimer
+                                    </FieldLabel>
+                                    <LevelSlider
+                                        value={freeCodesPerClaimer}
+                                        min={0}
+                                        max={REENTRY_MAX}
+                                        onChange={(v) =>
+                                            setFreeCodesPerClaimer(
+                                                Math.max(1, v)
+                                            )
+                                        }
+                                        accent={accent}
+                                        idleTrackBg={chipIdleBg}
+                                        ariaLabel="Share codes handed to each claimer"
+                                        formatValue={(v) => `${v}`}
+                                    />
+                                </Box>
+                            </VStack>
                         )}
 
                         <Box>

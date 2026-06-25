@@ -24,6 +24,14 @@ import { AppContext } from '@/app/contexts/AppStoreProvider';
 // the full unabbreviated number.
 const PREFLOP_STAGE = 2;
 
+// Fluid in `cqw` (% of the felt query container width) so the ante chip scales
+// with the community cards and the pot pill instead of stepping at breakpoints.
+const ANTE_GAP = 'clamp(2px, 0.8cqw, 6px)';
+const ANTE_PX = 'clamp(6px, 2.4cqw, 14px)';
+const ANTE_PY = 'clamp(2px, 0.9cqw, 6px)';
+const ANTE_LABEL_FONT = 'clamp(7px, 1.5cqw, 12px)';
+const ANTE_AMOUNT_FONT = 'clamp(10px, 2.4cqw, 18px)';
+
 // 800 → "800", 24000 → "24K", 1500 → "1.5K", 2_000_000 → "2M". Antes double each
 // level, so deep stacks reach millions — keep the chip compact. Mirrors the
 // SessionPointsBadge formatter, extended past K.
@@ -63,9 +71,9 @@ const AnteChip = () => {
             transform="translate(-50%, -50%)"
             zIndex={6}
             align="center"
-            gap={{ base: 1, md: 1.5 }}
-            px={{ base: 2.5, md: 3 }}
-            py={{ base: 0.5, md: 1 }}
+            gap={ANTE_GAP}
+            px={ANTE_PX}
+            py={ANTE_PY}
             borderRadius="full"
             bg="brand.yellow"
             color="brand.navy"
@@ -83,7 +91,7 @@ const AnteChip = () => {
         >
             <Text
                 as="span"
-                fontSize={{ base: '8px', md: '9px' }}
+                fontSize={ANTE_LABEL_FONT}
                 fontWeight="bold"
                 letterSpacing="0.1em"
                 opacity={0.65}
@@ -94,7 +102,7 @@ const AnteChip = () => {
                 as="span"
                 fontWeight="bold"
                 variant="seatText"
-                fontSize={{ base: '10px', sm: '10px', md: '14px' }}
+                fontSize={ANTE_AMOUNT_FONT}
                 sx={{ fontVariantNumeric: 'tabular-nums' }}
             >
                 {compactChips(ante)}

@@ -11,14 +11,17 @@ import {
 import type { IconType } from 'react-icons';
 import type { SeatStatusKind } from '../lib/seatStatus';
 
-// Shared sizing tokens for the two seat-top badges (this chip + the
-// hand-strength tag in TakenSeatButton). Kept identical so both render at
-// matching heights at every breakpoint and orientation.
+// Shared sizing tokens for the two seat-top badges (this chip + the hand-strength
+// tag in TakenSeatButton), kept identical so both render at matching heights.
+// Fluid in `cqw` (% of the seat query container width) so they scale with the seat
+// at every resolution, matching the nameplate — one source of truth that replaces
+// the old breakpoint + orientation overrides. clamp() floors keep them legible on
+// small cells; ceilings cap them on very large monitors.
 export const SEAT_BADGE_STYLE = {
-    minH: { base: '16px', md: '20px' },
-    h: { base: '16px', md: '20px' },
-    fontSize: { base: '10px', md: '12px' },
-    px: { base: 1.5, md: 2 },
+    minH: 'clamp(13px, 10cqw, 26px)',
+    h: 'clamp(13px, 10cqw, 26px)',
+    fontSize: 'clamp(8px, 6.5cqw, 15px)',
+    px: 'clamp(3px, 2.5cqw, 8px)',
     py: 0,
     fontWeight: 'bold' as const,
     borderRadius: '6px',
@@ -29,29 +32,10 @@ export const SEAT_BADGE_STYLE = {
     letterSpacing: '0.01em',
 };
 
-export const SEAT_BADGE_PORTRAIT_SX = {
-    '@media (orientation: portrait)': {
-        minH: '14px',
-        h: '14px',
-        fontSize: '9px',
-        px: 1,
-        py: 0,
-        borderRadius: '5px',
-    },
-};
-
 export const SEAT_BADGE_ICON_STYLE = {
-    width: { base: '11px', md: '13px' },
-    height: { base: '11px', md: '13px' },
-    sx: {
-        '@media (orientation: portrait)': {
-            width: '10px',
-            height: '10px',
-        },
-    },
+    width: 'clamp(9px, 7cqw, 17px)',
+    height: 'clamp(9px, 7cqw, 17px)',
 };
-
-export const SEAT_BADGE_TOP_OFFSET = { base: -2, md: -2.5 };
 
 type StatusConfig = {
     label: string;
@@ -116,8 +100,9 @@ const SeatStatusChip = ({
     return (
         <Box
             position="absolute"
-            top={SEAT_BADGE_TOP_OFFSET}
+            top={0}
             right={0}
+            transform="translateY(-50%)"
             zIndex={5}
             pointerEvents="none"
         >
@@ -156,7 +141,6 @@ const StatusTag = ({
             gap={1}
             aria-label={config.label}
             boxShadow={config.boxShadow}
-            sx={SEAT_BADGE_PORTRAIT_SX}
         >
             <Icon
                 as={config.icon}

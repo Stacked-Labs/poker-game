@@ -17,11 +17,7 @@ import {
 } from '@chakra-ui/react';
 import { FiSmile } from 'react-icons/fi';
 import ConnectXPrompt from './ConnectXPrompt';
-import SeatStatusChip, {
-    SEAT_BADGE_STYLE,
-    SEAT_BADGE_PORTRAIT_SX,
-    SEAT_BADGE_TOP_OFFSET,
-} from './SeatStatusChip';
+import SeatStatusChip, { SEAT_BADGE_STYLE } from './SeatStatusChip';
 import { getSeatStatus } from '@/app/lib/seatStatus';
 import { keyframes } from '@emotion/react';
 import {
@@ -336,6 +332,50 @@ const TIME_BANK_COLOR = '#A78BFA';
 const CARD_FAN_ANGLE = 4; // degrees each card rotates outward (try 5–15)
 const CARD_FAN_SPREAD = 0; // px horizontal offset from center (try 0–8)
 const CARD_FAN_OVERLAP = -20; // % negative margin to overlap cards (try -15 to 0)
+
+// ── Fluid seat sizing ──
+// The seat cell scales fluidly with the table/viewport, and the hole cards are
+// already sized as a % of it (≈54% of the cell each). The player-info nameplate,
+// however, used fixed px + breakpoint tokens, so on large screens the cards grew
+// while the avatar/name/stack stayed small — the "player info too small vs the
+// cards" bug. We mark the seat root as a CSS container (`container-type:
+// inline-size`) and express every nameplate dimension in `cqw` (% of the seat
+// width) so the whole plate scales in lockstep with the cards at any resolution.
+// clamp() floors keep small cells legible; the generous ceilings only bite on
+// very large monitors. One source of truth replaces the old breakpoint +
+// orientation overrides (cqw already encodes viewport, orientation and seat count).
+const SEAT_AVATAR = 'clamp(32px, 30cqw, 104px)';
+const SEAT_INITIALS = 'clamp(12px, 12cqw, 44px)';
+const SEAT_TIMER_SECONDS = 'clamp(18px, 22cqw, 72px)';
+const SEAT_NAME_FONT = 'clamp(11px, 9.5cqw, 32px)';
+const SEAT_STACK_FONT = 'clamp(13px, 13cqw, 40px)';
+const SEAT_EMOTE_SIZE = 'clamp(18px, 17cqw, 58px)';
+const SEAT_EMOTE_FONT = 'clamp(12px, 11cqw, 34px)';
+const SEAT_HSTACK_GAP = 'clamp(2px, 1.5cqw, 8px)';
+const SEAT_HSTACK_PX = 'clamp(2px, 1.5cqw, 8px)';
+const SEAT_PLATE_PY = 'clamp(2px, 1.4cqw, 8px)';
+const SEAT_EQUITY_FONT = 'clamp(9px, 7cqw, 18px)';
+const SEAT_EQUITY_PX = 'clamp(3px, 3cqw, 9px)';
+const SEAT_EQUITY_PY = 'clamp(2px, 2cqw, 6px)';
+// Gentle upward nudge for the hole cards — ~10% of the earlier aggressive lift,
+// which had pulled the cards up into the dealer/blind chips. Recovers a little of
+// the "card hidden behind the plate" visibility without colliding with the bubbles.
+const SEAT_CARDS_OFFSET = 'clamp(-5px, -1.2cqw, -1px)';
+// Emote reaction popover — scale with the plate (was frozen at 24–38px, so it
+// shrank to a speck on large seats).
+const SEAT_REACTION_SIZE = 'clamp(22px, 24cqw, 80px)';
+const SEAT_REACTION_MAXW = 'clamp(50px, 56cqw, 170px)';
+const SEAT_REACTION_PAD = 'clamp(2px, 1.2cqw, 8px)';
+// Dealer button + bet/check bubbles that float around the seat — same container,
+// same fluid treatment so they don't shrink (relatively) on large tables.
+// Wide clamp range so size tracks the seat across the full span (small phone seat
+// ~110px → big-desktop seat ~365px). Narrow bounds made the pill floor-bound (too
+// big) on small screens and cap-bound (too small) on large high-res ones.
+const SEAT_DEALER_SIZE = 'clamp(15px, 14cqw, 54px)';
+const SEAT_DEALER_FONT = 'clamp(8px, 8cqw, 32px)';
+const SEAT_BUBBLE_FONT = 'clamp(8px, 8.5cqw, 38px)';
+const SEAT_BUBBLE_PX = 'clamp(3px, 4cqw, 18px)';
+const SEAT_BUBBLE_SLOT = 'clamp(36px, 38cqw, 140px)';
 
 type TakenSeatButtonProps = {
     player: Player;
@@ -754,14 +794,8 @@ const TakenSeatButton = ({
         appState.game.running && player.called && player.bet === 0;
     const showBetBubble = player.bet !== 0;
     const showActionBubble = showCheckBubble || showBetBubble;
-    const dealerBadgeBoxSize = { base: 4, md: 6, lg: 6, xl: 6, '2xl': 8 };
-    const actionBubbleSlotWidth = {
-        base: '56px',
-        md: '72px',
-        lg: '76px',
-        xl: '76px',
-        '2xl': '92px',
-    };
+    const dealerBadgeBoxSize = SEAT_DEALER_SIZE;
+    const actionBubbleSlotWidth = SEAT_BUBBLE_SLOT;
     const reverseDealerGroupInPortrait =
         seatId === 7 || seatId === 8 || seatId === 9 || seatId === 10;
     const reverseDealerGroupInLandscape = seatId === 8 || seatId === 9;
@@ -774,6 +808,9 @@ const TakenSeatButton = ({
             height={'100%'}
             minWidth={0}
             sx={{
+                // Establish the seat as a query container so every nameplate
+                // dimension below can scale in `cqw` (% of seat width).
+                containerType: 'inline-size',
                 '@media (orientation: portrait)': {
                     width: '90%',
                 },
@@ -822,6 +859,8 @@ const TakenSeatButton = ({
                             color="brand.navy"
                             width={dealerBadgeBoxSize}
                             height={dealerBadgeBoxSize}
+                            fontSize={SEAT_DEALER_FONT}
+                            lineHeight={1}
                             variant={'seatText'}
                             zIndex={3}
                             boxShadow="0 3px 0 #9ca3c2"
@@ -849,7 +888,7 @@ const TakenSeatButton = ({
                         >
                             <Text
                                 borderRadius="1.5rem"
-                                px={{ base: 2, md: 3 }}
+                                px={SEAT_BUBBLE_PX}
                                 py={0}
                                 width="fit-content"
                                 maxWidth="100%"
@@ -864,11 +903,7 @@ const TakenSeatButton = ({
                                 alignItems="center"
                                 justifyContent="center"
                                 variant={'seatText'}
-                                fontSize={{
-                                    base: '10px',
-                                    sm: '10px',
-                                    md: '14px',
-                                }}
+                                fontSize={SEAT_BUBBLE_FONT}
                                 zIndex={3}
                                 border={
                                     showBetBubble
@@ -899,9 +934,10 @@ const TakenSeatButton = ({
                 {!showDealerBadge && showCheckBubble && (
                     <Text
                         borderRadius="1.5rem"
-                        px={{ base: 2, md: 3 }}
+                        px={SEAT_BUBBLE_PX}
                         py={0}
                         w={'fit-content'}
+                        maxWidth="100%"
                         bg="rgba(255,255,255,0.2)"
                         fontWeight="bold"
                         color="white"
@@ -909,10 +945,11 @@ const TakenSeatButton = ({
                         alignItems="center"
                         justifyContent="center"
                         variant={'seatText'}
-                        fontSize={{ base: '10px', sm: '10px', md: '14px' }}
+                        fontSize={SEAT_BUBBLE_FONT}
                         zIndex={3}
                         border="1px solid rgba(255,255,255,0.3)"
                         animation={`${bubbleFadeIn} 0.25s ease-out`}
+                        noOfLines={1}
                     >
                         Check
                     </Text>
@@ -921,9 +958,10 @@ const TakenSeatButton = ({
                 {!showDealerBadge && showBetBubble && (
                     <Text
                         borderRadius="1.5rem"
-                        px={{ base: 2, md: 3 }}
+                        px={SEAT_BUBBLE_PX}
                         py={0}
                         w={'fit-content'}
+                        maxWidth="100%"
                         bg="brand.yellow"
                         fontWeight="bold"
                         color="brand.navy"
@@ -931,10 +969,11 @@ const TakenSeatButton = ({
                         alignItems="center"
                         justifyContent="center"
                         variant={'seatText'}
-                        fontSize={{ base: '10px', sm: '10px', md: '14px' }}
+                        fontSize={SEAT_BUBBLE_FONT}
                         zIndex={3}
                         boxShadow="0 3px 0 #c99500"
                         animation={`${bubbleFadeIn} 0.25s ease-out`}
+                        noOfLines={1}
                     >
                         {format(player.bet)}
                     </Text>
@@ -968,7 +1007,7 @@ const TakenSeatButton = ({
                     gap={0}
                     left="50%"
                     transform="translateX(-50%)"
-                    marginTop={{ base: 0, md: '12px' }}
+                    marginTop={SEAT_CARDS_OFFSET}
                 >
                     <AnimatePresence mode="wait">
                         {(() => {
@@ -1123,9 +1162,9 @@ const TakenSeatButton = ({
                                       : 'red.500'
                             }
                             color="white"
-                            fontSize={{ base: '9px', md: '13px' }}
-                            px={{ base: '4px', md: '7px' }}
-                            py={{ base: '2px', md: '4px' }}
+                            fontSize={SEAT_EQUITY_FONT}
+                            px={SEAT_EQUITY_PX}
+                            py={SEAT_EQUITY_PY}
                             display="flex"
                             alignItems="center"
                             justifyContent="center"
@@ -1136,15 +1175,6 @@ const TakenSeatButton = ({
                             fontWeight="bold"
                             borderRadius="full"
                             boxShadow="inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px rgba(0,0,0,0.4)"
-                            sx={{
-                                '@media (orientation: portrait)': {
-                                    fontSize: '12px',
-                                    px: '6px',
-                                    py: '3px',
-                                    top: '-7px',
-                                    right: '-8px',
-                                },
-                            }}
                         >
                             {equity}%
                         </Box>
@@ -1237,8 +1267,8 @@ const TakenSeatButton = ({
                         minWidth={0}
                         maxWidth={'100%'}
                         paddingX={0}
-                        paddingTop={{ base: 0.5, md: 1 }}
-                        paddingBottom={{ base: 0.5, md: 1 }}
+                        paddingTop={SEAT_PLATE_PY}
+                        paddingBottom={SEAT_PLATE_PY}
                         justifySelf={'flex-end'}
                         justifyContent={'center'}
                         alignItems={'flex-start'}
@@ -1258,12 +1288,6 @@ const TakenSeatButton = ({
                         }
                         aria-label={isSelfAway ? (player.readyNextHand ? 'Cancel rejoin' : 'Tap to rejoin') : undefined}
                         role={isSelfAway ? 'button' : undefined}
-                        sx={{
-                            '@media (orientation: portrait)': {
-                                paddingTop: 0.5,
-                                paddingBottom: 0.5,
-                            },
-                        }}
                         border="2px solid"
                         borderColor={
                             highlightVariant === 'active'
@@ -1283,9 +1307,9 @@ const TakenSeatButton = ({
                             <Tag
                                 {...SEAT_BADGE_STYLE}
                                 position="absolute"
-                                top={SEAT_BADGE_TOP_OFFSET}
+                                top={0}
                                 left={'50%'}
-                                transform={'translateX(-50%)'}
+                                transform={'translate(-50%, -50%)'}
                                 bg="brand.green"
                                 color="white"
                                 variant="solid"
@@ -1294,7 +1318,6 @@ const TakenSeatButton = ({
                                 pointerEvents="none"
                                 zIndex={4}
                                 boxShadow="0 0 16px rgba(54, 163, 123, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35)"
-                                sx={SEAT_BADGE_PORTRAIT_SX}
                             >
                                 {strengthLabel}
                             </Tag>
@@ -1327,25 +1350,16 @@ const TakenSeatButton = ({
                                                 : 'whiteAlpha.300'
                                         }
                                         borderRadius="4px"
-                                        padding={{ base: 0.5, md: 1 }}
+                                        padding={SEAT_REACTION_PAD}
                                         boxShadow="0 6px 16px rgba(0, 0, 0, 0.25)"
                                     >
                                         <Box
                                             as="img"
                                             src={seatReaction.emoteUrl}
                                             alt={seatReaction.emoteName}
-                                            height={{
-                                                base: '24px',
-                                                md: '38px',
-                                            }}
-                                            minWidth={{
-                                                base: '24px',
-                                                md: '42px',
-                                            }}
-                                            maxWidth={{
-                                                base: '50px',
-                                                md: '100px',
-                                            }}
+                                            height={SEAT_REACTION_SIZE}
+                                            minWidth={SEAT_REACTION_SIZE}
+                                            maxWidth={SEAT_REACTION_MAXW}
                                             width="auto"
                                             display="block"
                                             borderRadius="4px"
@@ -1358,24 +1372,18 @@ const TakenSeatButton = ({
                         </AnimatePresence>
                         <HStack
                             className="player-info-header"
-                            spacing={{ base: 1, md: 1.5 }}
+                            spacing={SEAT_HSTACK_GAP}
                             width="100%"
                             minWidth={0}
                             alignItems="center"
-                            px={{ base: 0.5, md: 1 }}
+                            px={SEAT_HSTACK_PX}
                         >
                             {/* Square avatar — blockie from address, or initials fallback, with timer overlay */}
                             <Box
                                 position="relative"
                                 flexShrink={0}
-                                width={{ base: '40px', md: '50px' }}
-                                height={{ base: '40px', md: '50px' }}
-                                sx={{
-                                    '@media (orientation: portrait)': {
-                                        width: '31px',
-                                        height: '31px',
-                                    },
-                                }}
+                                width={SEAT_AVATAR}
+                                height={SEAT_AVATAR}
                                 onMouseEnter={() =>
                                     canShowXPrompt &&
                                     !xPromptDismissed &&
@@ -1387,15 +1395,7 @@ const TakenSeatButton = ({
                                     profileImageUrl={player.profileImageUrl}
                                     address={player.address}
                                     username={player.username}
-                                    initialsFontSize={{
-                                        base: '14px',
-                                        md: '18px',
-                                    }}
-                                    initialsSx={{
-                                        '@media (orientation: portrait)': {
-                                            fontSize: '11px',
-                                        },
-                                    }}
+                                    initialsFontSize={SEAT_INITIALS}
                                 />
                                 {/* Connect X prompt — see ConnectXPrompt.stories.tsx for variants */}
                                 <ConnectXPrompt
@@ -1424,16 +1424,7 @@ const TakenSeatButton = ({
                                             pointerEvents="none"
                                         >
                                             <Text
-                                                fontSize={{
-                                                    base: '24px',
-                                                    md: '31px',
-                                                }}
-                                                sx={{
-                                                    '@media (orientation: portrait)':
-                                                        {
-                                                            fontSize: '19px',
-                                                        },
-                                                }}
+                                                fontSize={SEAT_TIMER_SECONDS}
                                                 fontWeight="900"
                                                 color={timerTextColor}
                                                 lineHeight="1"
@@ -1496,11 +1487,7 @@ const TakenSeatButton = ({
                                                     <Text
                                                         className="player-action-label"
                                                         variant="seatText"
-                                                        fontSize={{
-                                                            base: 'sm',
-                                                            md: 'md',
-                                                            lg: 'lg',
-                                                        }}
+                                                        fontSize={SEAT_NAME_FONT}
                                                         fontWeight={900}
                                                         letterSpacing="0.08em"
                                                         textTransform="uppercase"
@@ -1509,13 +1496,6 @@ const TakenSeatButton = ({
                                                         )}
                                                         isTruncated
                                                         lineHeight="1.2"
-                                                        sx={{
-                                                            '@media (orientation: portrait)':
-                                                                {
-                                                                    fontSize:
-                                                                        '11px',
-                                                                },
-                                                        }}
                                                     >
                                                         {actionLabelText(
                                                             actionLabel.action
@@ -1550,11 +1530,7 @@ const TakenSeatButton = ({
                                                     <Text
                                                         className="player-username"
                                                         variant="seatText"
-                                                        fontSize={{
-                                                            base: 'sm',
-                                                            md: 'md',
-                                                            lg: 'lg',
-                                                        }}
+                                                        fontSize={SEAT_NAME_FONT}
                                                         fontWeight="bold"
                                                         color={
                                                             isCurrentTurn ||
@@ -1565,13 +1541,6 @@ const TakenSeatButton = ({
                                                         cursor="pointer"
                                                         isTruncated
                                                         lineHeight="1.2"
-                                                        sx={{
-                                                            '@media (orientation: portrait)':
-                                                                {
-                                                                    fontSize:
-                                                                        '11px',
-                                                                },
-                                                        }}
                                                         {...(seatNameHref
                                                             ? {
                                                                   as: 'a',
@@ -1619,31 +1588,13 @@ const TakenSeatButton = ({
                                                 <IconButton
                                                     aria-label="Seat emotes"
                                                     icon={<FiSmile />}
-                                                    fontSize={{
-                                                        base: '18px',
-                                                        md: '20px',
-                                                    }}
+                                                    fontSize={SEAT_EMOTE_FONT}
                                                     variant="tactileGhost"
                                                     color={emoteIconColor}
-                                                    height={{
-                                                        base: '28px',
-                                                        md: '32px',
-                                                    }}
-                                                    width={{
-                                                        base: '28px',
-                                                        md: '32px',
-                                                    }}
+                                                    height={SEAT_EMOTE_SIZE}
+                                                    width={SEAT_EMOTE_SIZE}
                                                     minW="unset"
                                                     borderRadius="full"
-                                                    sx={{
-                                                        '@media (orientation: portrait)':
-                                                            {
-                                                                height: '14px',
-                                                                width: '14px',
-                                                                fontSize:
-                                                                    '11px',
-                                                            },
-                                                    }}
                                                     _hover={{
                                                         bg: emoteIconHoverBg,
                                                         color: emoteIconColor,
@@ -1658,19 +1609,9 @@ const TakenSeatButton = ({
                                     ) : (
                                         <Box
                                             aria-hidden
-                                            width={{ base: '28px', md: '32px' }}
-                                            height={{
-                                                base: '28px',
-                                                md: '32px',
-                                            }}
+                                            width={SEAT_EMOTE_SIZE}
+                                            height={SEAT_EMOTE_SIZE}
                                             flexShrink={0}
-                                            sx={{
-                                                '@media (orientation: portrait)':
-                                                    {
-                                                        width: '14px',
-                                                        height: '14px',
-                                                    },
-                                            }}
                                         />
                                     )}
                                 </Flex>
@@ -1684,20 +1625,11 @@ const TakenSeatButton = ({
                                     onClick={cycleDisplayMode}
                                     title="Click to change display format"
                                     userSelect="none"
-                                    sx={{
-                                        '@media (orientation: portrait)': {
-                                            fontSize: 'sm',
-                                        },
-                                    }}
                                 >
                                     <StackValue
                                         value={player.stack}
                                         color={stackColor}
-                                        fontSize={{
-                                            base: 'md',
-                                            md: 'lg',
-                                            lg: 'xl',
-                                        }}
+                                        fontSize={SEAT_STACK_FONT}
                                         formatValue={format}
                                     />
                                 </Flex>

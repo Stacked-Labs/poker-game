@@ -12,6 +12,7 @@ import {
     TabPanel,
 } from '@chakra-ui/react';
 import BoardTable from './BoardTable';
+import TopHostsBoard from './TopHostsBoard';
 import {
     getBoards,
     getBoard,
@@ -160,17 +161,29 @@ const StatsHub: React.FC<StatsHubProps> = ({ currentAddress }) => {
                 <TabPanels>
                     {boards.map((b) => (
                         <TabPanel key={b.id} px={0} py={0}>
-                            <BoardTable
-                                data={data[b.id] ?? null}
-                                loading={!!loading[b.id]}
-                                currentAddress={currentAddress}
-                                onLoadMore={() => loadMore(b.id)}
-                                loadingMore={!!loadingMore[b.id]}
-                            />
-                            {data[b.id]?.note && (data[b.id]?.rows.length ?? 0) > 0 && (
-                                <Text fontSize="2xs" color="text.secondary" textAlign="center" pt={3} opacity={0.7}>
-                                    {data[b.id]?.note}
-                                </Text>
+                            {b.id === 'top_hosts' ? (
+                                <TopHostsBoard
+                                    data={data[b.id] ?? null}
+                                    loading={!!loading[b.id]}
+                                    currentAddress={currentAddress}
+                                    onLoadMore={() => loadMore(b.id)}
+                                    loadingMore={!!loadingMore[b.id]}
+                                />
+                            ) : (
+                                <>
+                                    <BoardTable
+                                        data={data[b.id] ?? null}
+                                        loading={!!loading[b.id]}
+                                        currentAddress={currentAddress}
+                                        onLoadMore={() => loadMore(b.id)}
+                                        loadingMore={!!loadingMore[b.id]}
+                                    />
+                                    {data[b.id]?.note && (data[b.id]?.rows.length ?? 0) > 0 && (
+                                        <Text fontSize="2xs" color="text.secondary" textAlign="center" pt={3} opacity={0.7}>
+                                            {data[b.id]?.note}
+                                        </Text>
+                                    )}
+                                </>
                             )}
                         </TabPanel>
                     ))}

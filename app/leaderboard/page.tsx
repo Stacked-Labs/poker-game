@@ -6,6 +6,7 @@ import { keyframes } from '@emotion/react';
 import LeaderboardTable, { LeaderboardEntry } from '@/app/components/Leaderboard/LeaderboardTable';
 import PlayerCard from '@/app/components/Leaderboard/PlayerCard';
 import QuestsSection from '@/app/components/Leaderboard/QuestsSection';
+import PlayerSearch from '@/app/components/PlayerSearch';
 import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
 import { getLeaderboard, getPlayerStats, getReferralInfo } from '@/app/hooks/server_actions';
@@ -152,6 +153,9 @@ const LeaderboardPage: React.FC = () => {
                         <QuestsSection tablesCreated={stats.gamesCreated} />
                     </Box>
                     <Box flex="1" w="full">
+                        <Flex justify="flex-end" mb={3}>
+                            <PlayerSearch maxW={{ base: '100%', sm: '320px' }} />
+                        </Flex>
                         <LeaderboardTable
                             data={entries}
                             currentAddress={account?.address}

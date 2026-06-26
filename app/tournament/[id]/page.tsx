@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Flex, Spinner, Text } from '@chakra-ui/react';
+import { Box, Container, Flex, Spinner, Text } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useActiveAccount } from 'thirdweb/react';
@@ -31,6 +31,7 @@ import TournamentDetail, {
 import RegistrationConfirmationModal from '../../components/Tournament/RegistrationConfirmationModal';
 import TournamentRegisterModal from '../../components/Tournament/TournamentRegisterModal';
 import FriendInviteSection from '../../components/Tournament/FriendInviteSection';
+import TournamentInviteCard from '../../components/Tournament/TournamentInviteCard';
 
 export default function TournamentPage() {
     const params = useParams();
@@ -556,6 +557,14 @@ export default function TournamentPage() {
                     </Box>
                 </Flex>
             )}
+
+            {/* Invite to this tournament (§4 / #593): share-to-attribute card. */}
+            {tournament.status !== 'completed' &&
+                tournament.status !== 'cancelled' && (
+                    <Container maxW="container.lg" px={{ base: 3, md: 6 }} pb={6}>
+                        <TournamentInviteCard tournamentId={id} />
+                    </Container>
+                )}
 
             <TournamentRegisterModal
                 tournament={regModal ? tournament : null}

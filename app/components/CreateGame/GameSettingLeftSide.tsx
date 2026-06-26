@@ -671,6 +671,15 @@ const GameSettingLeftSide: React.FC = () => {
                 table_size: values.tableSize,
                 reentry_allowed: reentryAllowed,
                 reentry_max: reentryAllowed ? values.reentryMax : undefined,
+                // Free Tickets (Viral §3). free_seats_total is the cap (0 = Infinite,
+                // still bounded by max seats); independent of the re-entry setting.
+                free_tickets_enabled: values.freeTicketsEnabled,
+                free_seats_total: values.freeTicketsEnabled
+                    ? parseInt(values.freeSeatsTotal || '0', 10) || 0
+                    : undefined,
+                free_codes_per_claimer: values.freeTicketsEnabled
+                    ? values.freeCodesPerClaimer
+                    : undefined,
                 chain: values.freePlay ? undefined : values.chain,
                 // An access code makes the tournament private. Free-play
                 // tournaments are gated at the server /register endpoint; crypto

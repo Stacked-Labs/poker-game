@@ -858,6 +858,11 @@ export interface Tournament {
     registered_count?: number;
     reentry_allowed: boolean;
     reentry_max: number;
+    // Free Tickets (Viral §3). free_seats_total is the Host cap (0 = Infinite, bounded by
+    // max seats); free_codes_per_claimer is the bring-a-friend multiplier.
+    free_tickets_enabled?: boolean;
+    free_seats_total?: number;
+    free_codes_per_claimer?: number;
     started_at?: string;
     ended_at?: string;
     settlement_tx_hash?: string;
@@ -923,6 +928,9 @@ export async function createTournament(data: {
     chain?: string;
     is_private?: boolean;
     password_code_hash?: string;
+    free_tickets_enabled?: boolean;
+    free_seats_total?: number;
+    free_codes_per_claimer?: number;
 }): Promise<{ tournament: Tournament }> {
     isBackendUrlValid();
     const res = await fetch(`${backendUrl}/api/tournaments`, {
@@ -930,6 +938,90 @@ export async function createTournament(data: {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// ── Free Tickets (Viral §3) ──────────────────────────────────────────────────
+
+export interface FreeTicketCode {
+    id: number;
+    code: string;
+    code_type: 'public' | 'tagged' | 'friend';
+    source_tag: string | null;
+    max_claims: number | null;
+    claims_count: number;
+    claim_path: string;
+    share_url?: string;
+}
+
+export interface FreeTicketsPanelData {
+    enabled: boolean;
+    cap: number; // 0 = Infinite
+    infinite: boolean;
+    codes_per_claimer: number;
+    max_entries: number;
+    codes: FreeTicketCode[];
+    claimed: number;
+    registered: number;
+    played: number;
+    codes_in_circulation: number;
+}
+
+// getFreeTickets returns the owner-only Free Tickets panel (config + codes + counters).
+export async function getFreeTickets(id: number): Promise<FreeTicketsPanelData> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/free-tickets`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// updateFreeTickets updates the toggle / cap / multiplier (host-only).
+export async function updateFreeTickets(
+    id: number,
+    data: { enabled?: boolean; cap?: number; codes_per_claimer?: number }
+): Promise<void> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/free-tickets`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(await res.text());
+}
+
+// createFreeCode mints a channel-tagged tracking link (host-only).
+export async function createFreeCode(
+    id: number,
+    sourceTag: 'x' | 'discord' | 'tg' | 'custom'
+): Promise<{ code: FreeTicketCode }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/free-tickets/codes`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source_tag: sourceTag }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// redeemFreeEntry claims a free seat for the signed-in wallet (first buy-in waived).
+export async function redeemFreeEntry(
+    id: number,
+    code: string
+): Promise<{ ok: boolean; player_uuid: string }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/free-tickets/redeem`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();

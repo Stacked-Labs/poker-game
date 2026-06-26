@@ -1027,6 +1027,87 @@ export async function redeemFreeEntry(
     return res.json();
 }
 
+// Free-entry claim states (§3.5), surfaced by the public preview endpoint (§3.2).
+export type FreeEntryState =
+    | 'available'
+    | 'full'
+    | 'started'
+    | 'used'
+    | 'invalid'
+    | 'disabled';
+
+export interface FreeTicketPreview {
+    tournament: {
+        id: number;
+        name: string;
+        scheduled_start_at: string;
+        status: string;
+        buy_in_usdc: number;
+        guarantee_usdc: number;
+        prize_pool_usdc: number | null;
+        free_tickets_enabled: boolean;
+    };
+    free_entry: {
+        code: string;
+        state: FreeEntryState;
+        available: boolean;
+        claim_path?: string;
+    };
+}
+
+// getFreeTicketPreview returns the public, pre-sign-in claim state (§3.2). No auth.
+// A clean not-found / bad code resolves to null (the claim page shows "invalid"),
+// while a network/backend failure throws so the caller can show a distinct
+// "try again" state instead of mislabeling a good code as invalid.
+export async function getFreeTicketPreview(
+    id: number,
+    code?: string
+): Promise<FreeTicketPreview | null> {
+    isBackendUrlValid();
+    const qs = code ? `?c=${encodeURIComponent(code)}` : '';
+    const res = await fetch(
+        `${backendUrl}/api/tournaments/${id}/free-tickets/preview${qs}`,
+        { method: 'GET' }
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as FreeTicketPreview;
+}
+
+// Bring-a-friend invite codes (§3.3).
+export interface FriendCode {
+    id: number;
+    code: string;
+    code_type: string;
+    claim_path: string;
+    share_url?: string;
+    claimed: boolean;
+}
+export interface FriendCodesResponse {
+    enabled: boolean;
+    issued: number;
+    joined: number;
+    codes_per_claimer: number;
+    codes: FriendCode[];
+}
+
+// issueFriendCodes mints (idempotently) and returns the signed-in player's invite codes (§3.3).
+export async function issueFriendCodes(
+    id: number
+): Promise<FriendCodesResponse | null> {
+    isBackendUrlValid();
+    try {
+        const res = await fetch(
+            `${backendUrl}/api/tournaments/${id}/friend-codes`,
+            { method: 'POST', credentials: 'include' }
+        );
+        if (!res.ok) return null;
+        return (await res.json()) as FriendCodesResponse;
+    } catch (error) {
+        console.error('Unable to issue friend codes.', error);
+        return null;
+    }
+}
+
 // Host-only partial update of a tournament's cosmetic fields (description,
 // community links, branding image URLs). Only the provided fields are changed;
 // an empty string clears a link/branding value. Matches PATCH /api/tournaments/:id.

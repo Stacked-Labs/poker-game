@@ -30,6 +30,10 @@ const Felt = ({ activePotIndex }: { activePotIndex: number | null }) => {
             justifyContent={'center'}
             position={'relative'}
             sx={{
+                // Query container so the absolutely-positioned Pot / AnteChip can
+                // size in `cqw` (% of felt width) and scale with the community
+                // cards instead of stepping at viewport breakpoints.
+                containerType: 'inline-size',
                 '@media (orientation: portrait)': {
                     width: '90%',
                 },

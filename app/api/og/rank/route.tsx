@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
 import { getTier, TIER_EMOJI } from '../../../components/Leaderboard/tierUtils';
+import { isMomentType, momentBadge } from '../../../lib/moments';
 
 export const runtime = 'edge';
 
@@ -18,6 +19,12 @@ export async function GET(req: NextRequest) {
     const rank = Math.max(1, parseInt(sp.get('r') || '0', 10) || 1);
     const points = Math.max(0, parseInt(sp.get('p') || '0', 10) || 0);
     const total = Math.max(rank, parseInt(sp.get('t') || '0', 10) || rank);
+
+    // Optional Share-Moment ribbon (Viral §5 / #359): a celebratory banner stamped over the same
+    // status card for rank-up / new-tier / hands-milestone shares.
+    const mParam = sp.get('m');
+    const handsParam = parseInt(sp.get('hands') || '0', 10) || 0;
+    const momentBanner = isMomentType(mParam) ? momentBadge(mParam, handsParam) : null;
 
     const tier = getTier(rank, total);
     const suffix = ordinalSuffix(rank);
@@ -67,11 +74,49 @@ export async function GET(req: NextRequest) {
                     }}
                 />
 
+                {/* Share-Moment ribbon (top-center) — celebratory banner over the status card */}
+                {momentBanner && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            display: 'flex',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 18,
+                                padding: '18px 56px',
+                                borderRadius: '0 0 28px 28px',
+                                background: 'linear-gradient(90deg, #36A37B 0%, #2A8463 100%)',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                            }}
+                        >
+                            <span style={{ fontSize: 44 }}>🎉</span>
+                            <span
+                                style={{
+                                    color: '#ffffff',
+                                    fontSize: 52,
+                                    fontWeight: 900,
+                                    letterSpacing: '0.06em',
+                                }}
+                            >
+                                {momentBanner}
+                            </span>
+                        </div>
+                    </div>
+                )}
+
                 {/* Points pill (top-left) */}
                 <div
                     style={{
                         position: 'absolute',
-                        top: 36,
+                        top: momentBanner ? 110 : 36,
                         left: 40,
                         display: 'flex',
                         alignItems: 'baseline',
@@ -107,7 +152,7 @@ export async function GET(req: NextRequest) {
                 <div
                     style={{
                         position: 'absolute',
-                        top: 44,
+                        top: momentBanner ? 118 : 44,
                         right: 44,
                         display: 'flex',
                         alignItems: 'center',

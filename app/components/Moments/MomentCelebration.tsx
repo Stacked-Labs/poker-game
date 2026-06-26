@@ -18,7 +18,6 @@ import {
 } from '@chakra-ui/react';
 import { FaTimes } from 'react-icons/fa';
 import { FaXTwitter, FaTelegram } from 'react-icons/fa6';
-import useToastHelper from '@/app/hooks/useToastHelper';
 import {
     buildMomentOgUrl,
     buildMomentShareUrl,
@@ -27,10 +26,14 @@ import {
     type MomentParams,
 } from '@/app/lib/moments';
 
-// Celebratory Share-Moment prompt (Viral §5 / #358). A single, reusable, dismissable celebration:
-// the highest-emotion moments (won, ranked up, deep run) auto-open the modal; the quieter ones
-// (new tier, hands milestone) get an unobtrusive toast with a Share action instead — a reward, never
-// a nag. Pass a freshly-detected `moment` (or null); the component fires once per distinct moment.
+// Celebratory Share-Moment prompt (Viral §5 / #358). A single, reusable, dismissable celebration
+// that fires once per distinct moment. Two surfaces, picked so the prompt is always a reward and
+// never an interruption:
+//   • Auto-modal — only where it can't interrupt play: a completed-tournament win, and the status
+//     rank-up (which surfaces on the leaderboard, not at a live table).
+//   • Non-blocking Share chip — a small, dismissable affordance for the quiet moments (new tier,
+//     hands milestone) AND for a deep run, which fires mid-hand at a live final table where a
+//     focus-trapping modal would block gameplay. The chip opens the same share card on tap.
 
 function origin(): string {
     return typeof window !== 'undefined' && window.location?.origin
@@ -43,9 +46,9 @@ function momentSignature(m: MomentParams): string {
 }
 
 export default function MomentCelebration({ moment }: { moment: MomentParams | null }) {
-    const toast = useToastHelper();
     const [active, setActive] = useState<MomentParams | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [chipOpen, setChipOpen] = useState(false);
     const shownRef = useRef<string | null>(null);
 
     useEffect(() => {
@@ -54,14 +57,14 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
         if (shownRef.current === sig) return; // already surfaced this exact moment
         shownRef.current = sig;
 
-        if (isAutoPromptMoment(moment.type)) {
-            setActive(moment);
+        setActive(moment);
+        // Auto-open the full celebration only where it can't interrupt play. A deep run fires while
+        // the player is still seated at a live final table, so it (and the quiet moments) gets the
+        // non-blocking chip instead of a focus-trapping modal.
+        if (isAutoPromptMoment(moment.type) && moment.type !== 'deeprun') {
             setIsOpen(true);
         } else {
-            // Quiet share: a dismissable toast that opens the full card on demand.
-            const copy = momentCopy(moment);
-            toast.success(copy.heading, copy.sub);
-            setActive(moment);
+            setChipOpen(true);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [moment]);
@@ -75,9 +78,69 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(copy.shareText)}`;
 
     const close = () => setIsOpen(false);
+    const openFromChip = () => {
+        setChipOpen(false);
+        setIsOpen(true);
+    };
 
     return (
-        <Modal isOpen={isOpen} onClose={close} isCentered size="md">
+        <>
+            {/* Non-blocking quiet affordance: a small, dismissable chip that never traps focus or
+                covers the table — it just offers the share card on demand (deep run / tier / milestone). */}
+            {chipOpen && !isOpen && (
+                <Box
+                    position="fixed"
+                    zIndex={1400}
+                    bottom={{ base: 4, md: 6 }}
+                    left={{ base: 4, md: 'auto' }}
+                    right={{ base: 4, md: 6 }}
+                    maxW="sm"
+                    bg="card.white"
+                    _dark={{ bg: 'gray.800' }}
+                    borderRadius="14px"
+                    boxShadow="0 12px 32px rgba(0,0,0,0.22)"
+                    p={3}
+                >
+                    <HStack spacing={3} align="center">
+                        <Text fontSize="xl" aria-hidden>
+                            🎉
+                        </Text>
+                        <VStack align="start" spacing={0} flex={1} minW={0}>
+                            <Text color="text.primary" fontSize="sm" fontWeight={700} noOfLines={1}>
+                                {copy.heading}
+                            </Text>
+                            <Text color="text.secondary" fontSize="xs" noOfLines={1}>
+                                {copy.sub}
+                            </Text>
+                        </VStack>
+                        <Button
+                            size="sm"
+                            height="34px"
+                            borderRadius="9px"
+                            fontWeight={700}
+                            color="white"
+                            bg="brand.green"
+                            _hover={{ filter: 'brightness(0.95)' }}
+                            _active={{ filter: 'brightness(0.9)' }}
+                            onClick={openFromChip}
+                        >
+                            Share
+                        </Button>
+                        <IconButton
+                            aria-label="Dismiss"
+                            icon={<Icon as={FaTimes} boxSize="10px" />}
+                            size="xs"
+                            variant="ghost"
+                            onClick={() => setChipOpen(false)}
+                            color="text.secondary"
+                            borderRadius="full"
+                            _dark={{ color: 'whiteAlpha.700' }}
+                        />
+                    </HStack>
+                </Box>
+            )}
+
+            <Modal isOpen={isOpen} onClose={close} isCentered size="md">
             <ModalOverlay backdropFilter="blur(8px)" bg="rgba(11, 20, 48, 0.65)" />
             <ModalContent
                 bg="card.white"
@@ -167,5 +230,6 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
                 </ModalBody>
             </ModalContent>
         </Modal>
+        </>
     );
 }

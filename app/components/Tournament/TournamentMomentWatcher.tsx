@@ -53,14 +53,23 @@ export default function TournamentMomentWatcher({ tournamentId }: { tournamentId
             tournamentName: meta?.name,
             fieldSize: fieldSize || undefined,
             position: 1,
+            isFreePlay: meta?.isFreePlay,
         });
-    }, [address, myResult, tournamentId, meta?.name, fieldSize]);
+    }, [address, myResult, tournamentId, meta?.name, meta?.isFreePlay, fieldSize]);
 
     // Deep run — the field has shrunk to the final table while I'm still in it. Only celebrate when
     // the tournament actually had more than a final table to begin with.
     useEffect(() => {
         if (!address || playersActive == null || !iAmAlive) return;
-        if (meta && meta.registeredCount <= FINAL_TABLE_SIZE) return;
+        // The leaderboard's finish_pos only refreshes on the 15s poll, but playersActive updates
+        // instantly on each elimination — so a just-busted 10th-place finisher can briefly read
+        // iAmAlive=true with playersActive=9. The authoritative bust signal closes that window.
+        if (myResult?.kind === 'bust') return;
+        // Field-size gate: skip if the event never had more than a final table. Use the derived
+        // fieldSize (leaderboard length, falling back to registeredCount) rather than
+        // registeredCount alone — when registered_count is absent it is 0, and `0 <= 9` would
+        // otherwise silently eat a legit deep run in a full event.
+        if (fieldSize && fieldSize <= FINAL_TABLE_SIZE) return;
         if (playersActive > FINAL_TABLE_SIZE) return;
         const key = `moment:done:deeprun:${address}:${tournamentId}`;
         if (alreadyFired(key)) return;
@@ -74,9 +83,10 @@ export default function TournamentMomentWatcher({ tournamentId }: { tournamentId
                       tournamentId,
                       tournamentName: meta?.name,
                       fieldSize: fieldSize || undefined,
+                      isFreePlay: meta?.isFreePlay,
                   }
         );
-    }, [address, playersActive, iAmAlive, tournamentId, meta, fieldSize]);
+    }, [address, playersActive, iAmAlive, myResult, tournamentId, meta, fieldSize]);
 
     return <MomentCelebration moment={moment} />;
 }

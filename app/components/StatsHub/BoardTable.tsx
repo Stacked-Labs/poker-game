@@ -1,0 +1,124 @@
+'use client';
+
+import React from 'react';
+import { Box, Flex, VStack, Text, Button, Spinner, HStack } from '@chakra-ui/react';
+import BoardRow from './BoardRow';
+import type { BoardResponse } from '@/app/hooks/server_actions';
+
+export interface BoardTableProps {
+    data: BoardResponse | null;
+    loading: boolean;
+    currentAddress?: string;
+    onLoadMore?: () => void;
+    loadingMore?: boolean;
+    emptyText?: string;
+}
+
+// Generic ranked board: rows, your-position pinned, load-more pagination, and graceful
+// loading/empty/unavailable states. Shared by every Stats Hub tab.
+const BoardTable: React.FC<BoardTableProps> = ({
+    data,
+    loading,
+    currentAddress,
+    onLoadMore,
+    loadingMore,
+    emptyText,
+}) => {
+    const normalizedCurrent = currentAddress?.toLowerCase();
+    const rows = data?.rows ?? [];
+    const player = data?.player ?? null;
+    const total = data?.total ?? 0;
+    const hasMore = rows.length < total;
+
+    // Pin the player only when they're outside the visible page (in-page rows already highlight).
+    const playerInPage =
+        player != null && rows.some((r) => r.wallet.toLowerCase() === player.wallet.toLowerCase());
+    const showPinned = player != null && !playerInPage;
+
+    if (loading) {
+        return (
+            <Flex justify="center" align="center" py={16}>
+                <Spinner size="lg" color="brand.green" thickness="3px" speed="0.7s" />
+            </Flex>
+        );
+    }
+
+    return (
+        <Box width="100%">
+            <Box
+                width="100%"
+                bg="card.white"
+                borderRadius="24px"
+                boxShadow="0 14px 28px rgba(12, 21, 49, 0.08)"
+                _dark={{ boxShadow: '0 16px 30px rgba(0, 0, 0, 0.35)' }}
+                py={{ base: 2, md: 3 }}
+                px={{ base: 1, md: 2 }}
+            >
+                {data && !data.available && rows.length === 0 ? (
+                    <Flex justify="center" align="center" py={12} px={4}>
+                        <Text color="text.secondary" fontSize="sm" textAlign="center">
+                            {data.note || 'This board is coming soon.'}
+                        </Text>
+                    </Flex>
+                ) : rows.length === 0 ? (
+                    <Flex justify="center" align="center" py={10} px={4}>
+                        <Text color="text.secondary" fontSize="sm" textAlign="center">
+                            {emptyText || 'No players on this board yet.'}
+                        </Text>
+                    </Flex>
+                ) : (
+                    <VStack spacing={1} align="stretch">
+                        {rows.map((row) => (
+                            <BoardRow
+                                key={`${row.wallet}-${row.rank}`}
+                                row={row}
+                                isCurrent={row.wallet.toLowerCase() === normalizedCurrent}
+                            />
+                        ))}
+
+                        {hasMore && onLoadMore && (
+                            <Flex justify="center" py={3}>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    color="text.secondary"
+                                    isLoading={loadingMore}
+                                    onClick={onLoadMore}
+                                    _hover={{ bg: 'card.lightGray', _dark: { bg: 'legacy.grayDark' } }}
+                                >
+                                    Load more
+                                </Button>
+                            </Flex>
+                        )}
+                    </VStack>
+                )}
+            </Box>
+
+            {/* Sticky "your position" when the signed-in player is off the current page. */}
+            {showPinned && player && (
+                <Box
+                    position="sticky"
+                    bottom={3}
+                    mt={3}
+                    bg="card.white"
+                    borderRadius="16px"
+                    border="1px solid"
+                    borderColor="brand.green"
+                    boxShadow="0 8px 24px rgba(54, 163, 123, 0.18)"
+                    _dark={{ boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
+                    px={{ base: 1, md: 2 }}
+                    py={1}
+                >
+                    <HStack px={3} pt={2} pb={1}>
+                        <Text fontSize="2xs" fontWeight={800} letterSpacing="0.12em" color="brand.green" textTransform="uppercase">
+                            Your position
+                        </Text>
+                    </HStack>
+                    <BoardRow row={player} isCurrent pinned />
+                </Box>
+            )}
+        </Box>
+    );
+};
+
+export default BoardTable;

@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 import React from 'react';
 
 export const metadata: Metadata = {
-    title: 'Leaderboard - Stacked Poker',
+    title: 'Stats Hub - Stacked Poker',
     description:
-        'See the top poker players on Stacked Poker. Compete for the highest ranking on our global leaderboard and earn points every hand you play.',
+        'See the top poker players on Stacked across points, hands played, tournaments won, top hosts, and referrals. Compete on every board and climb the rankings.',
     icons: { icon: '/favicon.ico' },
     openGraph: {
-        title: 'Leaderboard - Stacked Poker',
+        title: 'Stats Hub - Stacked Poker',
         description:
-            'Climb the global poker rankings on Stacked. Earn points every hand and compete with players worldwide.',
+            'Climb the global poker rankings on Stacked — points, hands, tournaments won, top hosts, and referrals. Compete with players worldwide.',
         url: 'https://stackedpoker.io/leaderboard',
         siteName: 'Stacked Poker',
         images: [

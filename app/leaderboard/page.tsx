@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { Flex, Stack, Box } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import LeaderboardTable, { LeaderboardEntry } from '@/app/components/Leaderboard/LeaderboardTable';
+import type { LeaderboardEntry } from '@/app/components/Leaderboard/LeaderboardTable';
+import StatsHub from '@/app/components/StatsHub/StatsHub';
 import PlayerCard from '@/app/components/Leaderboard/PlayerCard';
 import QuestsSection from '@/app/components/Leaderboard/QuestsSection';
 import PlayerSearch from '@/app/components/PlayerSearch';
@@ -156,11 +157,7 @@ const LeaderboardPage: React.FC = () => {
                         <Flex justify="flex-end" mb={3}>
                             <PlayerSearch maxW={{ base: '100%', sm: '320px' }} />
                         </Flex>
-                        <LeaderboardTable
-                            data={entries}
-                            currentAddress={account?.address}
-                            total={total}
-                        />
+                        <StatsHub currentAddress={account?.address} />
                     </Box>
                 </Stack>
             </Flex>

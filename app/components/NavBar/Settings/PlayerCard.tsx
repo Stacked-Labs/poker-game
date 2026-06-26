@@ -48,7 +48,12 @@ const PlayerCard = ({
         ? `${format(player.buyIn)} chips`
         : format(player.buyIn);
 
-    const displayName = player.username || player.uuid.substring(0, 8);
+    // Prefer the X display name (#340) over the @handle; keep the existing
+    // handle / uuid fallback for unlinked players.
+    const displayName =
+        player.xDisplayName?.trim() ||
+        player.username ||
+        player.uuid.substring(0, 8);
 
     const truncatedAddress = player.address
         ? shortenAddress(player.address)

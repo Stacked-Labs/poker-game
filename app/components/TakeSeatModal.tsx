@@ -1010,7 +1010,11 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
                                             color="text.secondary"
                                             noOfLines={1}
                                         >
-                                            @{xUsername}
+                                            {playerDisplayName(
+                                                `@${xUsername}`,
+                                                null,
+                                                xDisplayName
+                                            )}
                                         </Text>
                                     </HStack>
                                 ) : (

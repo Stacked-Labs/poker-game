@@ -23,6 +23,7 @@ export type Card = string | number;
 
 export type Message = {
     name: string;
+    xDisplayName?: string; // X display name (#340) — preferred label over the @handle
     address?: string; // full wallet of the author, for consistent shortening + explorer links
     message: string;
     timestamp: string;
@@ -168,6 +169,7 @@ export type Player = {
     uuid: string;
     address: string; //Ethereum address which acts as uuid
     profileImageUrl?: string; // X (Twitter) profile image URL
+    xDisplayName?: string; // X display name (#340) — preferred label over the @handle
     position: number;
     seatID: number;
     ready: boolean;
@@ -282,6 +284,7 @@ export type FAQ = {
 export type PendingPlayer = {
     uuid: string;
     username: string;
+    xDisplayName?: string; // X display name (#340) — preferred label over the @handle
     seatId: number;
     buyIn: number;
     profileImageUrl?: string; // X (Twitter) profile image URL

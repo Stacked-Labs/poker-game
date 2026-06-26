@@ -41,6 +41,7 @@ interface PointsEvent {
     id: string;
     address: string;
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
     points: number;
     delta?: number;
@@ -85,6 +86,7 @@ function randomGap() {
 export interface PointsPillProps {
     address: string;
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
     points: number;
     delta?: number;
@@ -154,6 +156,7 @@ function PillFrame({
 export function PointsPill({
     address,
     xUsername,
+    xDisplayName,
     xProfileImageUrl,
     points,
     delta,
@@ -241,7 +244,8 @@ export function PointsPill({
                         >
                             {playerDisplayName(
                                 xUsername ? `@${xUsername}` : null,
-                                address
+                                address,
+                                xDisplayName
                             ) || truncate(address)}
                         </Text>
                         <Text
@@ -310,7 +314,7 @@ export default function PointsActivityFeed() {
         try {
             const res = await fetch(`${backendUrl}/api/leaderboard`);
             if (!res.ok) return;
-            const data: { leaderboard: { address: string; points: number; xUsername?: string | null; xProfileImageUrl?: string | null }[] } =
+            const data: { leaderboard: { address: string; points: number; xUsername?: string | null; xDisplayName?: string | null; xProfileImageUrl?: string | null }[] } =
                 await res.json();
 
             const liveEvents: PointsEvent[] = [];
@@ -327,6 +331,7 @@ export default function PointsActivityFeed() {
                         id: `${entry.address}-${Date.now()}`,
                         address: entry.address,
                         xUsername: entry.xUsername,
+                        xDisplayName: entry.xDisplayName,
                         xProfileImageUrl: entry.xProfileImageUrl,
                         points: entry.points,
                         delta: entry.points - prev,
@@ -338,6 +343,7 @@ export default function PointsActivityFeed() {
                         id: `${entry.address}-rank-${i + 1}`,
                         address: entry.address,
                         xUsername: entry.xUsername,
+                        xDisplayName: entry.xDisplayName,
                         xProfileImageUrl: entry.xProfileImageUrl,
                         points: entry.points,
                         rank: i + 1,
@@ -427,6 +433,7 @@ export default function PointsActivityFeed() {
             <PointsPill
                 address={current.address}
                 xUsername={current.xUsername}
+                xDisplayName={current.xDisplayName}
                 xProfileImageUrl={current.xProfileImageUrl}
                 points={current.points}
                 delta={current.delta}

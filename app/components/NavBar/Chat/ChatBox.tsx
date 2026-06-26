@@ -436,7 +436,8 @@ const Chatbox = ({
                         );
                         const authorLabel = playerDisplayName(
                             msg.name,
-                            msg.address
+                            msg.address,
+                            msg.xDisplayName
                         );
                         const authorColor = getColorForUsername(authorLabel);
                         return (
@@ -500,6 +501,7 @@ const Chatbox = ({
                                         <PlayerNameLink
                                             username={msg.name}
                                             address={msg.address}
+                                            displayName={msg.xDisplayName}
                                             chain={tableChain}
                                             color={authorColor}
                                             fontWeight="bold"

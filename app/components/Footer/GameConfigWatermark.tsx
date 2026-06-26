@@ -170,12 +170,28 @@ const GameConfigWatermark = () => {
 
     const cashHostLabel = useMemo(() => {
         if (!config) return null;
-        if (config.ownerAddress) return shortAddr(config.ownerAddress);
+        const players = appState.game?.players;
+        // Prefer the host's X display name (#340), then their @handle, matched off
+        // the seated players by wallet (crypto) or session (free play). Falls back to
+        // the bare wallet / session id when the host isn't seated or hasn't linked X.
+        if (config.ownerAddress) {
+            const owner = players?.find(
+                (p) =>
+                    p.address?.toLowerCase() ===
+                    config.ownerAddress?.toLowerCase()
+            );
+            return (
+                owner?.xDisplayName?.trim() ||
+                owner?.username?.trim() ||
+                shortAddr(config.ownerAddress)
+            );
+        }
         if (config.ownerSessionUUID) {
-            const ownerPlayer = appState.game?.players.find(
+            const owner = players?.find(
                 (p) => p.uuid === config.ownerSessionUUID
             );
-            if (ownerPlayer?.username) return ownerPlayer.username;
+            if (owner?.xDisplayName?.trim()) return owner.xDisplayName.trim();
+            if (owner?.username) return owner.username;
             const uid = config.ownerSessionUUID;
             return `${uid.slice(0, 4)}...${uid.slice(-4)}`;
         }

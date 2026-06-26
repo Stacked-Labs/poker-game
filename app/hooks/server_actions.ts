@@ -597,6 +597,108 @@ export async function getLeaderboard(address?: string): Promise<{
     }
 }
 
+// Multi-board leaderboards (Viral §2 / #349). One API serving the 5 Stats Hub boards. Mirrors the
+// poker-server boardResponse — value labels (e.g. "$4,812", "3,420") are formatted server-side so
+// the Stats Hub and the Top Hosts share card stay consistent.
+export type BoardId =
+    | 'points'
+    | 'hands'
+    | 'tournaments_won'
+    | 'top_hosts'
+    | 'referrals';
+
+export type BoardValueKind = 'points' | 'count' | 'usdc';
+
+export interface BoardMeta {
+    id: BoardId;
+    title: string;
+    icon: string;
+    value_kind: BoardValueKind;
+    real_money: boolean;
+    available: boolean;
+    note?: string;
+}
+
+export interface BoardRow {
+    rank: number;
+    wallet: string;
+    x_username?: string;
+    x_display_name?: string;
+    avatar_url?: string;
+    tier: string;
+    value: number;
+    value_label: string;
+    // Top Hosts carries { tables_hosted, tournaments_run }.
+    extra?: Record<string, number>;
+}
+
+export interface BoardResponse {
+    board: BoardId;
+    title: string;
+    icon: string;
+    value_kind: BoardValueKind;
+    page: number;
+    page_size: number;
+    total: number;
+    updated_at: string | null;
+    rows: BoardRow[];
+    player: BoardRow | null;
+    real_money: boolean;
+    available: boolean;
+    note?: string;
+}
+
+// getBoards returns the tab metadata for the Stats Hub tab strip.
+export async function getBoards(): Promise<BoardMeta[]> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/boards`, { method: 'GET' });
+        if (!response.ok) throw new Error(`Boards fetch failed: ${response.statusText}`);
+        const data = await response.json();
+        return (data.boards ?? []) as BoardMeta[];
+    } catch (error) {
+        console.error('Unable to fetch boards.', error);
+        return [];
+    }
+}
+
+// getBoard returns one ranked, paginated board page plus the caller's own position (when address
+// is supplied). Returns an empty, flagged page on failure so the hub can render a graceful shell.
+export async function getBoard(
+    board: BoardId,
+    opts: { page?: number; limit?: number; address?: string } = {}
+): Promise<BoardResponse> {
+    const empty: BoardResponse = {
+        board,
+        title: board,
+        icon: '',
+        value_kind: 'count',
+        page: opts.page ?? 1,
+        page_size: opts.limit ?? 50,
+        total: 0,
+        updated_at: null,
+        rows: [],
+        player: null,
+        real_money: false,
+        available: false,
+    };
+    isBackendUrlValid();
+    try {
+        const params = new URLSearchParams();
+        if (opts.page) params.set('page', String(opts.page));
+        if (opts.limit) params.set('limit', String(opts.limit));
+        if (opts.address) params.set('address', opts.address);
+        const qs = params.toString();
+        const url = `${backendUrl}/api/boards/${board}${qs ? `?${qs}` : ''}`;
+        const response = await fetch(url, { method: 'GET' });
+        if (!response.ok) throw new Error(`Board ${board} fetch failed: ${response.statusText}`);
+        return (await response.json()) as BoardResponse;
+    } catch (error) {
+        console.error(`Unable to fetch board ${board}.`, error);
+        return empty;
+    }
+}
+
 // Public player profile (Viral §1 / #343). Mirrors the poker-server payload.
 export interface PlayerProfileIdentity {
     wallet: string;

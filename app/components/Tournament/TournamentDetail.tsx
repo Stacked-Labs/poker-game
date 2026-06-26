@@ -1914,6 +1914,7 @@ export default function TournamentDetail({
                                                     />
                                                     <FreeTicketsPanel
                                                         tournamentId={t.id}
+                                                        rowBg={rowHover}
                                                     />
                                                 </>
                                             )}

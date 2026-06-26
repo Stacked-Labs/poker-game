@@ -858,23 +858,21 @@ export interface FreeTicketPreview {
 }
 
 // getFreeTicketPreview returns the public, pre-sign-in claim state (§3.2). No auth.
+// A clean not-found / bad code resolves to null (the claim page shows "invalid"),
+// while a network/backend failure throws so the caller can show a distinct
+// "try again" state instead of mislabeling a good code as invalid.
 export async function getFreeTicketPreview(
     id: number,
     code?: string
 ): Promise<FreeTicketPreview | null> {
     isBackendUrlValid();
-    try {
-        const qs = code ? `?c=${encodeURIComponent(code)}` : '';
-        const res = await fetch(
-            `${backendUrl}/api/tournaments/${id}/free-tickets/preview${qs}`,
-            { method: 'GET' }
-        );
-        if (!res.ok) return null;
-        return (await res.json()) as FreeTicketPreview;
-    } catch (error) {
-        console.error('Unable to fetch free-ticket preview.', error);
-        return null;
-    }
+    const qs = code ? `?c=${encodeURIComponent(code)}` : '';
+    const res = await fetch(
+        `${backendUrl}/api/tournaments/${id}/free-tickets/preview${qs}`,
+        { method: 'GET' }
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as FreeTicketPreview;
 }
 
 // Bring-a-friend invite codes (§3.3).

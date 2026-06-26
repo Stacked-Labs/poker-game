@@ -597,6 +597,101 @@ export async function getLeaderboard(address?: string): Promise<{
     }
 }
 
+// Public player profile (Viral §1 / #343). Mirrors the poker-server payload.
+export interface PlayerProfileIdentity {
+    wallet: string;
+    has_x: boolean;
+    x_username?: string;
+    x_display_name?: string;
+    avatar_url?: string;
+}
+export interface PlayerProfileStats {
+    hands_played: number;
+    tournaments_entered: number;
+    tournaments_won: number;
+    final_tables: number;
+    best_finish: number;
+    tournaments_hosted: number;
+    tables_hosted: number;
+    referrals: number;
+}
+export interface PlayerProfileRecentResult {
+    tournament_id: number;
+    name: string;
+    finish_position: number;
+    prize_usdc: number;
+    ended_at: string | null;
+}
+export interface PlayerProfileHosted {
+    tournament_id: number;
+    name: string;
+    status: string;
+    entrants: number;
+    ended_at: string | null;
+}
+export interface PlayerProfile {
+    address: string;
+    identity: PlayerProfileIdentity;
+    rank: number;
+    points: number;
+    tier: string;
+    referrals_count: number;
+    referral_multiplier: number;
+    stats: PlayerProfileStats;
+    host_earnings: { usdc: number; available: boolean; note?: string };
+    badges: { id?: string; label?: string; icon?: string }[];
+    recent: {
+        results: PlayerProfileRecentResult[];
+        hosted: PlayerProfileHosted[];
+    };
+}
+
+export async function getPlayerProfile(
+    address: string
+): Promise<PlayerProfile | null> {
+    isBackendUrlValid();
+    try {
+        const res = await fetch(
+            `${backendUrl}/api/players/${encodeURIComponent(address)}/profile`,
+            { method: 'GET' }
+        );
+        if (!res.ok) return null;
+        return (await res.json()) as PlayerProfile;
+    } catch (error) {
+        console.error('Unable to fetch player profile.', error);
+        return null;
+    }
+}
+
+// Player search (Viral §1 / #344).
+export interface PlayerSearchResult {
+    wallet: string;
+    x_username?: string;
+    x_display_name?: string;
+    avatar_url?: string;
+    rank: number;
+    tier: string;
+}
+export async function searchPlayers(
+    query: string
+): Promise<PlayerSearchResult[]> {
+    isBackendUrlValid();
+    const q = query.trim();
+    if (q.length < 2) return [];
+    try {
+        const res = await fetch(
+            `${backendUrl}/api/players/search?q=${encodeURIComponent(q)}`,
+            { method: 'GET' }
+        );
+        if (!res.ok) return [];
+        const data = (await res.json()) as { results?: PlayerSearchResult[] };
+        return data.results ?? [];
+    } catch (error) {
+        console.error('Unable to search players.', error);
+        return [];
+    }
+}
+
 export async function getPublicGames(params?: {
     sortBy?: string;
     order?: 'asc' | 'desc';

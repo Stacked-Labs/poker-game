@@ -3,6 +3,7 @@
 import { useTournamentLive } from '../../hooks/useTournamentLive';
 import TournamentResultModal from './TournamentResultModal';
 import TournamentTableMoveWatcher from './TournamentTableMoveWatcher';
+import TournamentMomentWatcher from './TournamentMomentWatcher';
 
 /**
  * Mounted at a tournament table. Drives the live-tournament state slice (clock,
@@ -21,6 +22,7 @@ export default function TournamentLiveController({
     return (
         <>
             <TournamentResultModal tournamentId={tournamentId} />
+            <TournamentMomentWatcher tournamentId={tournamentId} />
             <TournamentTableMoveWatcher
                 tournamentId={tournamentId}
                 currentTableNumber={tableNumber}

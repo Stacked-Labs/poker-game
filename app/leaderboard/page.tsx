@@ -10,6 +10,7 @@ import QuestsSection from '@/app/components/Leaderboard/QuestsSection';
 import PlayerSearch from '@/app/components/PlayerSearch';
 import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
+import StatusMomentWatcher from '@/app/components/Moments/StatusMomentWatcher';
 import { getLeaderboard, getPlayerStats, getReferralInfo } from '@/app/hooks/server_actions';
 import { useActiveAccount } from 'thirdweb/react';
 import type { UserStats } from '@/app/components/Leaderboard/StatsSection';
@@ -92,6 +93,15 @@ const LeaderboardPage: React.FC = () => {
             overflow="hidden"
         >
             <FloatingDecor density="light" />
+
+            {/* Share Moments (Viral §5 / #358): ranked-up / new-tier / hands-milestone celebrations */}
+            <StatusMomentWatcher
+                address={account?.address}
+                rank={playerEntry?.rank}
+                points={playerEntry?.points}
+                total={total}
+                handsPlayed={playerEntry?.handsPlayed}
+            />
 
             <Box
                 aria-hidden="true"

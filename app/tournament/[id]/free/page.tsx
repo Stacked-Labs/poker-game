@@ -21,7 +21,8 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
     const { id } = await params;
     const { c } = await searchParams;
-    const preview = await getFreeTicketPreview(Number(id), c);
+    // Metadata is best-effort: a backend hiccup must never break the page render.
+    const preview = await getFreeTicketPreview(Number(id), c).catch(() => null);
 
     const name = preview?.tournament.name ?? 'Tournament';
     const pool = preview
@@ -30,10 +31,10 @@ export async function generateMetadata({
               preview.tournament.guarantee_usdc ?? 0
           )
         : 0;
-    const title = `🎟 Free entry — ${name} on Stacked Poker`;
+    const title = `Free entry: ${name} on Stacked Poker`;
     const description = pool
-        ? `Your free entry into ${name} is applied — $${usdc(pool)} prize pool. No buy-in for your first bullet. On-chain poker on Base.`
-        : `Your free entry into ${name} is applied — claim your seat. On-chain poker on Base.`;
+        ? `Your free entry into ${name} is applied. $${usdc(pool)} prize pool, no buy-in for your first entry. Onchain poker on Base.`
+        : `Your free entry into ${name} is applied. Claim your seat. Onchain poker on Base.`;
 
     return {
         title,
@@ -52,7 +53,10 @@ export async function generateMetadata({
     };
 }
 
-export default async function FreeClaimPage({ params, searchParams }: PageProps) {
+export default async function FreeClaimPage({
+    params,
+    searchParams,
+}: PageProps) {
     const { id } = await params;
     const { c } = await searchParams;
     return <FreeClaimView id={Number(id)} code={c ?? ''} />;

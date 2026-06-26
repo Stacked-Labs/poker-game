@@ -2,21 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-    Box,
-    Button,
-    Container,
-    Flex,
-    HStack,
-    VStack,
-    Text,
-    Heading,
-    Spinner,
-    Checkbox,
-    Icon,
-    Badge,
-} from '@chakra-ui/react';
-import { FiGift, FiClock, FiCheckCircle } from 'react-icons/fi';
+import { Flex, Spinner } from '@chakra-ui/react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { usePushReminders } from '@/app/hooks/usePushReminders';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -26,65 +12,46 @@ import {
     type FreeTicketPreview,
 } from '@/app/hooks/server_actions';
 import WalletButton from '@/app/components/WalletButton';
+import FreeClaimScreen, {
+    type ClaimTerminalVariant,
+    type ReminderUi,
+} from './FreeClaimScreen';
 
-function usdc(base?: number | null): string {
-    return ((base ?? 0) / 1_000_000).toLocaleString('en-US', {
-        maximumFractionDigits: 0,
-    });
-}
-
-function formatStart(iso?: string): string {
-    if (!iso) return '';
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleString(undefined, {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
-}
-
-const STATE_COPY: Record<string, { title: string; body: string }> = {
-    full: {
-        title: 'This event is full',
-        body: 'Every free seat has been claimed. Keep an eye out for the next drop.',
-    },
-    started: {
-        title: 'Registration has closed',
-        body: 'This event has already started — free entry is no longer available.',
-    },
-    used: {
-        title: 'This invite was already used',
-        body: 'Each bring-a-friend code works once. Ask your host for the public link.',
-    },
-    invalid: {
-        title: 'This code isn’t valid',
-        body: 'Double-check the link, or ask whoever shared it for a fresh one.',
-    },
-    disabled: {
-        title: 'No free entry here',
-        body: 'This event isn’t offering free tickets.',
-    },
-};
-
-export default function FreeClaimView({ id, code }: { id: number; code: string }) {
+// Data container for the free-entry claim page: fetches the public preview,
+// reads auth + push state, and drives the redeem flow. All rendering lives in
+// the pure FreeClaimScreen so every state is reviewable in Storybook.
+export default function FreeClaimView({
+    id,
+    code,
+}: {
+    id: number;
+    code: string;
+}) {
     const router = useRouter();
     const { isAuthenticated } = useAuth();
-    const { isSupported, requestPermission } = usePushReminders();
+    const { isSupported, isIOSNonPWA, requestPermission } = usePushReminders();
     const { success, error } = useToastHelper();
 
     const [preview, setPreview] = useState<FreeTicketPreview | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loadState, setLoadState] = useState<'loading' | 'ok' | 'error'>(
+        'loading'
+    );
     const [claiming, setClaiming] = useState(false);
     const [claimed, setClaimed] = useState(false);
+    // Set when redeem fails in a way we can speak to plainly (already in / self-claim).
+    const [override, setOverride] = useState<ClaimTerminalVariant | null>(null);
     const [remindMe, setRemindMe] = useState(true);
 
     const load = useCallback(async () => {
-        const p = await getFreeTicketPreview(id, code);
-        setPreview(p);
-        setLoading(false);
+        setLoadState('loading');
+        try {
+            const p = await getFreeTicketPreview(id, code);
+            setPreview(p);
+            setLoadState('ok');
+        } catch {
+            // Network / backend failure — distinct from a genuinely invalid code.
+            setLoadState('error');
+        }
     }, [id, code]);
 
     useEffect(() => {
@@ -96,153 +63,83 @@ export default function FreeClaimView({ id, code }: { id: number; code: string }
         try {
             await redeemFreeEntry(id, code);
             setClaimed(true);
-            success('You’re in!', 'Your free seat is locked.');
+            success('You’re in', 'Your free seat is locked.');
             if (remindMe && isSupported) {
                 requestPermission().catch(() => {});
             }
         } catch (e) {
-            // The backend returns a friendly message (full / already-claimed / self-claim / …).
-            error('Couldn’t claim', e instanceof Error ? e.message : 'Please try again.');
-            load(); // refresh state (e.g. now full)
+            const msg = e instanceof Error ? e.message.toLowerCase() : '';
+            if (/already|registered|claimed/.test(msg)) {
+                setOverride('registered');
+            } else if (/own|self/.test(msg)) {
+                setOverride('self_claim');
+            } else {
+                error(
+                    'Couldn’t claim',
+                    e instanceof Error ? e.message : 'Please try again.'
+                );
+                load(); // refresh state (e.g. now full)
+            }
         } finally {
             setClaiming(false);
         }
     };
 
-    if (loading) {
+    if (loadState === 'loading') {
         return (
             <Flex justify="center" align="center" minH="70vh">
-                <Spinner size="lg" color="brand.green" />
+                <Spinner
+                    size="lg"
+                    color="brand.green"
+                    aria-label="Loading your free entry"
+                />
             </Flex>
         );
     }
 
+    const goToTournament = () => router.push(`/tournament/${id}`);
+
+    // Resolve which screen to show.
+    const status = claimed
+        ? 'success'
+        : override
+          ? override
+          : loadState === 'error'
+            ? 'error'
+            : !preview
+              ? 'invalid'
+              : preview.free_entry.state;
+
     const t = preview?.tournament;
-    const state = preview?.free_entry.state ?? 'invalid';
-    const pool = t ? Math.max(t.prize_pool_usdc ?? 0, t.guarantee_usdc ?? 0) : 0;
+    const tournament = t
+        ? {
+              name: t.name,
+              status: t.status,
+              scheduled_start_at: t.scheduled_start_at,
+              buy_in_usdc: t.buy_in_usdc,
+              guarantee_usdc: t.guarantee_usdc,
+              prize_pool_usdc: t.prize_pool_usdc,
+          }
+        : undefined;
 
-    // Terminal/unavailable states.
-    if (!preview || (state !== 'available' && !claimed)) {
-        const copy = STATE_COPY[state] ?? STATE_COPY.invalid;
-        return (
-            <Container maxW="container.sm" py={16}>
-                <VStack spacing={4} textAlign="center">
-                    <Text fontSize="5xl">🎟</Text>
-                    <Heading size="md" color="text.primary">
-                        {copy.title}
-                    </Heading>
-                    <Text color="text.secondary">{copy.body}</Text>
-                    {t && (
-                        <Button variant="outline" onClick={() => router.push(`/tournament/${id}`)}>
-                            View {t.name}
-                        </Button>
-                    )}
-                </VStack>
-            </Container>
-        );
-    }
+    const reminder: ReminderUi =
+        isSupported && !isIOSNonPWA
+            ? { mode: 'checkbox', checked: remindMe, onChange: setRemindMe }
+            : isIOSNonPWA
+              ? { mode: 'ios' }
+              : { mode: 'none' };
 
-    // Success state.
-    if (claimed) {
-        return (
-            <Container maxW="container.sm" py={16}>
-                <VStack spacing={5} textAlign="center">
-                    <Icon as={FiCheckCircle} boxSize={14} color="brand.green" />
-                    <Heading size="lg" color="text.primary">
-                        You’re in, free of charge
-                    </Heading>
-                    <Text color="text.secondary">
-                        Your seat in <b>{t?.name}</b> is locked. We’ll see you at the felt.
-                    </Text>
-                    <Button
-                        size="lg"
-                        colorScheme="green"
-                        onClick={() => router.push(`/tournament/${id}`)}
-                    >
-                        Go to the tournament
-                    </Button>
-                </VStack>
-            </Container>
-        );
-    }
-
-    // Available — the pre-sign-in / claim surface.
     return (
-        <Container maxW="container.sm" py={{ base: 8, md: 14 }}>
-            <VStack spacing={6} align="stretch">
-                <VStack spacing={2} textAlign="center">
-                    <Badge colorScheme="green" px={3} py={1} borderRadius="full">
-                        <HStack spacing={1.5}>
-                            <Icon as={FiGift} />
-                            <Text>Free entry applied</Text>
-                        </HStack>
-                    </Badge>
-                    <Heading size="lg" color="text.primary">
-                        {t?.name}
-                    </Heading>
-                    {t?.scheduled_start_at && (
-                        <HStack color="text.secondary" fontSize="sm">
-                            <Icon as={FiClock} />
-                            <Text>{formatStart(t.scheduled_start_at)}</Text>
-                        </HStack>
-                    )}
-                </VStack>
-
-                {/* Prize pool — the hook */}
-                <Box
-                    borderRadius="2xl"
-                    p={6}
-                    textAlign="center"
-                    bgGradient="linear(to-br, brand.green, brand.darkNavy)"
-                    color="white"
-                >
-                    <Text fontSize="xs" letterSpacing="widest" opacity={0.85}>
-                        PRIZE POOL
-                    </Text>
-                    <Heading size="2xl">${usdc(pool)}</Heading>
-                    <Text mt={1} fontSize="sm" opacity={0.9}>
-                        Your first bullet is on the house — no buy-in.
-                    </Text>
-                </Box>
-
-                {/* Re-buy clarity */}
-                <Text fontSize="sm" color="text.secondary" textAlign="center">
-                    Heads up: if you bust and want back in, a re-buy is a real USDC buy-in.
-                    Free entry covers your first bullet only.
-                </Text>
-
-                {/* Reminder opt-out (default ON) */}
-                {isSupported && (
-                    <Checkbox
-                        isChecked={remindMe}
-                        onChange={(e) => setRemindMe(e.target.checked)}
-                        colorScheme="green"
-                        alignSelf="center"
-                    >
-                        Remind me before it starts
-                    </Checkbox>
-                )}
-
-                {/* CTA */}
-                {isAuthenticated ? (
-                    <Button
-                        size="lg"
-                        colorScheme="green"
-                        onClick={onClaim}
-                        isLoading={claiming}
-                        loadingText="Locking your seat…"
-                    >
-                        Lock my free seat
-                    </Button>
-                ) : (
-                    <VStack spacing={2}>
-                        <Text fontSize="sm" color="text.secondary">
-                            One tap to sign in and lock your seat.
-                        </Text>
-                        <WalletButton />
-                    </VStack>
-                )}
-            </VStack>
-        </Container>
+        <FreeClaimScreen
+            status={status}
+            tournament={tournament}
+            isAuthenticated={isAuthenticated}
+            claiming={claiming}
+            reminder={reminder}
+            onClaim={onClaim}
+            walletSlot={<WalletButton />}
+            onView={goToTournament}
+            onRetry={load}
+        />
     );
 }

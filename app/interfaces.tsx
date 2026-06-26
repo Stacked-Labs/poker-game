@@ -88,8 +88,10 @@ export interface LeaderboardPlayer {
     prize_usdc?: number;
     // X identity from the tournament leaderboard payload (xUsername / xProfileImageUrl),
     // matching the global leaderboard convention. Optional — absent for players who
-    // have not linked an X account.
+    // have not linked an X account. xDisplayName is the warmer label preferred in render
+    // (#340); the @handle remains the x.com link target.
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
 }
 

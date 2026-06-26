@@ -19,7 +19,7 @@ import { FaWallet, FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
 import { FaMedal, FaXTwitter } from 'react-icons/fa6';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
-import { shortenAddress } from '@/app/utils/address';
+import { shortenAddress, playerDisplayName } from '@/app/utils/address';
 import WalletButton from '../WalletButton';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 import StatsSection from './StatsSection';
@@ -66,6 +66,7 @@ export interface PlayerCardViewProps {
     authState: PlayerAuthState;
     address?: string;
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
     rank?: number;
     points?: number;
@@ -99,6 +100,7 @@ interface PlayerCardProps {
     nextPoints?: number;
     total?: number;
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
 }
 
@@ -132,6 +134,7 @@ export function PlayerCardView({
     authState,
     address,
     xUsername,
+    xDisplayName,
     xProfileImageUrl,
     rank,
     points,
@@ -384,7 +387,11 @@ export function PlayerCardView({
                                 _hover={{ color: 'brand.green' }}
                                 transition="color 0.2s ease"
                             >
-                                {xUsername ? `@${xUsername}` : address ? truncateAddress(address) : ''}
+                                {playerDisplayName(
+                                    xUsername ? `@${xUsername}` : null,
+                                    address,
+                                    xDisplayName
+                                )}
                             </Text>
 
                             {xUsername ? (
@@ -557,17 +564,19 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     nextPoints,
     total = 0,
     xUsername,
+    xDisplayName,
     xProfileImageUrl,
 }) => {
     const account = useActiveAccount();
     const {
         isAuthenticated, isAuthenticating, requestAuthentication,
-        xUsername: authXUsername, xProfileImageUrl: authXProfileImageUrl, xStatusChecked,
+        xUsername: authXUsername, xDisplayName: authXDisplayName, xProfileImageUrl: authXProfileImageUrl, xStatusChecked,
     } = useAuth();
     const { connectX, disconnectX, isConnecting: isConnectingX, isDisconnecting: isDisconnectingX } =
         useConnectX();
 
     const effectiveXUsername = xStatusChecked ? authXUsername : (xUsername ?? null);
+    const effectiveXDisplayName = xStatusChecked ? authXDisplayName : (xDisplayName ?? null);
     const effectiveXProfileImageUrl = xStatusChecked ? authXProfileImageUrl : (xProfileImageUrl ?? null);
     const isConnected = !!account;
     const isFullyAuthenticated = isConnected && isAuthenticated;
@@ -600,6 +609,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             authState={authState}
             address={account?.address}
             xUsername={effectiveXUsername}
+            xDisplayName={effectiveXDisplayName}
             xProfileImageUrl={effectiveXProfileImageUrl}
             rank={rank}
             points={points}

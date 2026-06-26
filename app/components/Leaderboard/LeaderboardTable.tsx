@@ -24,7 +24,7 @@ import { FaMedal, FaXTwitter } from 'react-icons/fa6';
 import { FiExternalLink, FiCopy, FiCheck } from 'react-icons/fi';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { TOAST_BANNER_DURATION_SHORT_MS } from '@/app/utils/toastDefaults';
-import { shortenAddress } from '@/app/utils/address';
+import { shortenAddress, playerDisplayName } from '@/app/utils/address';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
 import { getTier } from './tierUtils';
@@ -43,6 +43,7 @@ export interface LeaderboardEntry {
     points: number;
     handsPlayed: number;
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
 }
 
@@ -233,7 +234,11 @@ const LeaderboardTable = ({
                                                         isTruncated
                                                         _hover={{ textDecoration: 'underline' }}
                                                     >
-                                                        @{entry.xUsername}
+                                                        {playerDisplayName(
+                                                            `@${entry.xUsername}`,
+                                                            entry.address,
+                                                            entry.xDisplayName
+                                                        )}
                                                     </Text>
                                                 </PopoverTrigger>
                                                 <WalletPopoverContent

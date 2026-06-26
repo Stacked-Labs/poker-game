@@ -11,6 +11,7 @@ import {
     useBreakpointValue,
 } from '@chakra-ui/react';
 import { FiUser } from 'react-icons/fi';
+import { playerDisplayName } from '@/app/utils/address';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import ChainBadge from '../ChainBadge';
@@ -88,11 +89,12 @@ const GameConfigWatermark = () => {
                       tMeta.hostWallet.toLowerCase()
               )
             : null;
-        const hostLabel = hostEntry?.xUsername
-            ? `@${hostEntry.xUsername}`
-            : tMeta.hostWallet
-              ? shortAddr(tMeta.hostWallet)
-              : null;
+        const hostLabel =
+            playerDisplayName(
+                hostEntry?.xUsername ? `@${hostEntry.xUsername}` : null,
+                tMeta.hostWallet,
+                hostEntry?.xDisplayName
+            ) || null;
         const lvl = clock
             ? {
                   levelNumber: clock.levelNumber,

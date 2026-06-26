@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { playerDisplayName } from '@/app/utils/address';
 import {
     Box,
     HStack,
@@ -238,7 +239,10 @@ export function PointsPill({
                             lineHeight={1.2}
                             noOfLines={1}
                         >
-                            {xUsername ? `@${xUsername}` : truncate(address)}
+                            {playerDisplayName(
+                                xUsername ? `@${xUsername}` : null,
+                                address
+                            ) || truncate(address)}
                         </Text>
                         <Text
                             fontSize="11px"

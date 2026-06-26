@@ -86,7 +86,7 @@ import {
     placesPaid,
     projectedPrizePoolUsdc,
 } from '../PublicGames/payouts';
-import { shortenAddress } from '@/app/utils/address';
+import { shortenAddress, playerDisplayName } from '@/app/utils/address';
 
 // LeaderboardPlayer now lives in app/interfaces (shared with the live-tournament
 // state slice). Re-exported here so existing `from './TournamentDetail'` imports
@@ -2180,7 +2180,11 @@ function RegistrantsPanel({
     const isHost = (r: LeaderboardPlayer) =>
         !!host && r.wallet?.toLowerCase() === host;
     const labelOf = (r: LeaderboardPlayer) =>
-        r.xUsername ? `@${r.xUsername}` : shortAddr(r.wallet);
+        playerDisplayName(
+            r.xUsername ? `@${r.xUsername}` : null,
+            r.wallet,
+            r.xDisplayName
+        ) || shortAddr(r.wallet);
 
     // Lead with you, so a registered player always sees themselves first.
     const ordered = me
@@ -2194,6 +2198,7 @@ function RegistrantsPanel({
         return r.xUsername ? (
             <PlayerNameLink
                 username={`@${r.xUsername}`}
+                displayName={r.xDisplayName}
                 fontSize="sm"
                 fontWeight={mine ? 'bold' : 'semibold'}
                 color={mine ? 'brand.green' : 'text.primary'}
@@ -3424,6 +3429,7 @@ function Standings({
                                                     {p.xUsername ? (
                                                         <PlayerNameLink
                                                             username={`@${p.xUsername}`}
+                                                            displayName={p.xDisplayName}
                                                             fontSize="sm"
                                                             fontWeight="semibold"
                                                             noOfLines={1}

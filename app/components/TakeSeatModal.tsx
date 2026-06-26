@@ -33,6 +33,7 @@ import { newPlayer, takeSeat } from '../hooks/server_actions';
 import { useCurrentUser } from '@/app/contexts/CurrentUserProvider';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { playerDisplayName } from '@/app/utils/address';
 import { track } from '@/app/utils/analytics';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -111,6 +112,7 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
         isAuthenticating,
         lastAuthenticatedAddress,
         xUsername,
+        xDisplayName,
         xProfileImageUrl,
     } = useAuth();
     const { connectX, isConnecting: isConnectingX } = useConnectX();
@@ -241,7 +243,10 @@ const TakeSeatModal = ({ isOpen, onClose, seatId }: TakeSeatModalProps) => {
     }, [isWithdrawSettlementPending, checkCanWithdraw]);
 
 
-    const effectiveName = !isCryptoGame && xUsername ? `@${xUsername}` : name;
+    const effectiveName =
+        !isCryptoGame && xUsername
+            ? playerDisplayName(`@${xUsername}`, null, xDisplayName)
+            : name;
     const isNameInvalid =
         !isCryptoGame &&
         !xUsername &&

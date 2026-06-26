@@ -10,16 +10,20 @@ export function shortenAddress(addr?: string | null): string {
     return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-// The label to show for a player/author. The backend sends a real identity — an
-// @handle or a chosen nickname — or an EMPTY username for a wallet-only player,
-// always paired with the full `address`. So real names pass through untouched and an
-// empty name renders as our canonical short wallet; callers keep `address` for links.
+// The label to show for a player/author. Fallback chain (#340): X display name →
+// @handle → short wallet. The display name (e.g. "Mike Dawson") is warmer than the
+// @handle for a recreational audience and is rendered as-is, never prefixed with "@".
+// `username` is the @handle (already including "@" by convention) or a chosen nickname,
+// or empty for a wallet-only player, always paired with the full `address` for links.
 export function playerDisplayName(
     username?: string | null,
-    address?: string | null
+    address?: string | null,
+    displayName?: string | null
 ): string {
+    const dn = (displayName ?? '').trim();
+    if (dn) return dn; // X display name — render as-is, no "@"
     const name = (username ?? '').trim();
-    if (name) return name;
+    if (name) return name; // @handle or nickname
     if (address) return shortenAddress(address);
     return '';
 }
@@ -35,11 +39,17 @@ export type PlayerIdentity =
 
 export function resolvePlayerIdentity(
     username?: string | null,
-    address?: string | null
+    address?: string | null,
+    displayName?: string | null
 ): PlayerIdentity {
+    const dn = (displayName ?? '').trim();
     const name = (username ?? '').trim();
+    // An X handle still links to x.com/<handle>, but the LABEL prefers the display name (#340).
     if (name.startsWith('@')) {
-        return { kind: 'x', handle: name.slice(1), label: name };
+        return { kind: 'x', handle: name.slice(1), label: dn || name };
+    }
+    if (dn) {
+        return { kind: 'name', label: dn };
     }
     if (name) {
         return { kind: 'name', label: name };

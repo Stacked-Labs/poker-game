@@ -146,6 +146,7 @@ const LeaderboardPage: React.FC = () => {
                             nextPoints={nextPoints}
                             total={total}
                             xUsername={playerEntry?.xUsername}
+                            xDisplayName={playerEntry?.xDisplayName}
                             xProfileImageUrl={playerEntry?.xProfileImageUrl}
                         />
                         <QuestsSection tablesCreated={stats.gamesCreated} />

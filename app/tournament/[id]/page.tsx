@@ -139,6 +139,7 @@ export default function TournamentPage() {
                                 uuid: string;
                                 wallet: string;
                                 xUsername?: string | null;
+                                xDisplayName?: string | null;
                                 xProfileImageUrl?: string | null;
                             },
                             i: number
@@ -149,6 +150,7 @@ export default function TournamentPage() {
                             finish_pos: 0,
                             table_index: -1,
                             xUsername: r.xUsername,
+                            xDisplayName: r.xDisplayName,
                             xProfileImageUrl: r.xProfileImageUrl,
                         })
                     )
@@ -167,6 +169,7 @@ export default function TournamentPage() {
                                 finish_position: number;
                                 prize_usdc: number;
                                 xUsername?: string | null;
+                                xDisplayName?: string | null;
                                 xProfileImageUrl?: string | null;
                             },
                             i: number
@@ -178,6 +181,7 @@ export default function TournamentPage() {
                             table_index: -1,
                             prize_usdc: r.prize_usdc,
                             xUsername: r.xUsername,
+                            xDisplayName: r.xDisplayName,
                             xProfileImageUrl: r.xProfileImageUrl,
                         })
                     )

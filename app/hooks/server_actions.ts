@@ -571,6 +571,7 @@ type LeaderboardPlayerEntry = {
     handsPlayed: number;
     rank: number;
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
 };
 

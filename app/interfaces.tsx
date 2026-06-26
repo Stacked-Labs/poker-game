@@ -23,6 +23,7 @@ export type Card = string | number;
 
 export type Message = {
     name: string;
+    xDisplayName?: string; // X display name (#340) — preferred label over the @handle
     address?: string; // full wallet of the author, for consistent shortening + explorer links
     message: string;
     timestamp: string;
@@ -88,8 +89,10 @@ export interface LeaderboardPlayer {
     prize_usdc?: number;
     // X identity from the tournament leaderboard payload (xUsername / xProfileImageUrl),
     // matching the global leaderboard convention. Optional — absent for players who
-    // have not linked an X account.
+    // have not linked an X account. xDisplayName is the warmer label preferred in render
+    // (#340); the @handle remains the x.com link target.
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
 }
 
@@ -166,6 +169,7 @@ export type Player = {
     uuid: string;
     address: string; //Ethereum address which acts as uuid
     profileImageUrl?: string; // X (Twitter) profile image URL
+    xDisplayName?: string; // X display name (#340) — preferred label over the @handle
     position: number;
     seatID: number;
     ready: boolean;
@@ -280,6 +284,7 @@ export type FAQ = {
 export type PendingPlayer = {
     uuid: string;
     username: string;
+    xDisplayName?: string; // X display name (#340) — preferred label over the @handle
     seatId: number;
     buyIn: number;
     profileImageUrl?: string; // X (Twitter) profile image URL

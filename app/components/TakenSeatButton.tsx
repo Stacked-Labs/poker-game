@@ -1562,7 +1562,8 @@ const TakenSeatButton = ({
                                                     >
                                                         {playerDisplayName(
                                                             player.username,
-                                                            player.address
+                                                            player.address,
+                                                            player.xDisplayName
                                                         )}
                                                     </Text>
                                                 </motion.div>

@@ -19,7 +19,7 @@ import { FaWallet, FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
 import { FaMedal, FaXTwitter } from 'react-icons/fa6';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
-import { shortenAddress, playerDisplayName } from '@/app/utils/address';
+import { playerDisplayName } from '@/app/utils/address';
 import WalletButton from '../WalletButton';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 import StatsSection from './StatsSection';
@@ -127,8 +127,6 @@ function CardBack({ style, accent }: { style?: React.CSSProperties; accent?: boo
         </Box>
     );
 }
-
-const truncateAddress = shortenAddress;
 
 export function PlayerCardView({
     authState,

@@ -1161,6 +1161,10 @@ export async function getPlayerStats(address: string): Promise<{
 
 export async function getReferralInfo(address: string): Promise<{
     count: number;
+    // Invited = friends linked to you; activated = those who took a real-money action (§4).
+    // Legacy backends only return `count` (== activated); both default to it when absent.
+    activated?: number;
+    invited?: number;
     multiplier: number;
     nextTier: { required: number; multiplier: number } | null;
     hasReferrer: boolean;
@@ -1179,6 +1183,56 @@ export async function getReferralInfo(address: string): Promise<{
     } catch (error) {
         console.error('Unable to fetch referral info.', error);
         return { count: 0, multiplier: 1.0, nextTier: { required: 5, multiplier: 1.1 }, hasReferrer: false, myCode: null };
+    }
+}
+
+// Records a referral link from a stamped tournament invite (§4 / #353). Referee = the signed-in
+// caller (cookie auth); precedence + self-referral are enforced server-side.
+export async function attributeReferral(input: {
+    referrerCode: string;
+    tournamentId?: number;
+    source?: 'free_seat' | 'invite_link' | 'code';
+}): Promise<{ success: boolean; message: string; referrerAddress?: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/referral/attribute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                referrerCode: input.referrerCode,
+                tournamentId: input.tournamentId != null ? String(input.tournamentId) : undefined,
+                source: input.source ?? 'invite_link',
+            }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to attribute referral.', error);
+        return { success: false, message: 'Network error' };
+    }
+}
+
+// Invited-vs-Activated tracking for the referrer's own view (§4 / #354). Status only.
+export async function getReferralStats(address: string): Promise<{
+    invited: number;
+    activated: number;
+    multiplier: number;
+    board_rank: number | null;
+    board_total?: number;
+}> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/referral/stats?address=${encodeURIComponent(address)}`,
+            { method: 'GET' }
+        );
+        if (!response.ok) {
+            throw new Error(`Referral stats fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch referral stats.', error);
+        return { invited: 0, activated: 0, multiplier: 1.0, board_rank: null };
     }
 }
 

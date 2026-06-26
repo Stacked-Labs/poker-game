@@ -9,6 +9,7 @@ import {
     type StatusTone,
     type TournamentMoneyDisplay,
 } from '../../../components/PublicGames/tournamentFormatPure';
+import { isMomentType, momentBadge } from '../../../lib/moments';
 
 export const runtime = 'edge';
 
@@ -57,6 +58,10 @@ const MAX_NAME_LENGTH = 38;
 
 export async function GET(req: NextRequest) {
     const id = parseInt(req.nextUrl.searchParams.get('id') || '', 10);
+    // Optional Share-Moment ribbon (Viral §5 / #359): "WINNER" / "DEEP RUN" stamped over the
+    // tournament card for a player's win / final-table share.
+    const mParam = req.nextUrl.searchParams.get('m');
+    const momentBanner = isMomentType(mParam) ? momentBadge(mParam) : null;
     const origin = req.nextUrl.origin;
     const logoUrl = `${origin}/IconLogo.png`;
     const usdcLogoUrl = `${origin}/usdc-logo.png`;
@@ -151,6 +156,37 @@ export async function GET(req: NextRequest) {
                                 'linear-gradient(to top, rgba(236,238,245,0.85) 0%, rgba(236,238,245,0) 100%)',
                         }}
                     />
+
+                    {/* Share-Moment ribbon — celebratory banner over the tournament banner band */}
+                    {momentBanner && (
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: 28,
+                                left: 28,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 16,
+                                padding: '16px 40px',
+                                borderRadius: 20,
+                                background:
+                                    'linear-gradient(90deg, #36A37B 0%, #2A8463 100%)',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                            }}
+                        >
+                            <span style={{ fontSize: 40 }}>🏆</span>
+                            <span
+                                style={{
+                                    color: '#ffffff',
+                                    fontSize: 48,
+                                    fontWeight: 900,
+                                    letterSpacing: '0.06em',
+                                }}
+                            >
+                                {momentBanner}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Info panel (bottom) */}

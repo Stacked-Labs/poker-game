@@ -9,18 +9,28 @@ import {
     Icon,
     Input,
     Progress,
+    Link,
+    Divider,
 } from '@chakra-ui/react';
 import { FaCheck, FaGift } from 'react-icons/fa';
+import { FiArrowRight } from 'react-icons/fi';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useActiveAccount } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { friendlyMessage } from '@/app/utils/toastErrors';
-import { registerReferral, setMyReferralCode } from '@/app/hooks/server_actions';
+import {
+    registerReferral,
+    setMyReferralCode,
+    getReferralStats,
+} from '@/app/hooks/server_actions';
 
 const MotionBox = motion(Box);
 
 interface ReferralInfo {
     count: number;
+    // Invited = friends linked to you; activated = those who took a real-money action (§4).
+    invited?: number;
+    activated?: number;
     multiplier: number;
     nextTier: { required: number; multiplier: number } | null;
     hasReferrer?: boolean;
@@ -43,7 +53,33 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const [settingCode, setSettingCode] = useState(false);
     const [showSetCode, setShowSetCode] = useState(false);
     const [localCode, setLocalCode] = useState<string | null>(null);
+    // Invited-vs-Activated tracking + Most Referrals board position (§4 / #356).
+    const [tracking, setTracking] = useState<{
+        invited: number;
+        activated: number;
+        boardRank: number | null;
+    } | null>(null);
     const toast = useToastHelper();
+
+    useEffect(() => {
+        let cancelled = false;
+        if (!account?.address) {
+            setTracking(null);
+            return;
+        }
+        getReferralStats(account.address).then((s) => {
+            if (!cancelled) {
+                setTracking({
+                    invited: s.invited,
+                    activated: s.activated,
+                    boardRank: s.board_rank,
+                });
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [account?.address]);
 
     // If a code arrives via URL param after mount, open the input automatically
     useEffect(() => {
@@ -123,6 +159,13 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
 
     const nextTarget = info.nextTier?.required ?? info.count;
     const progressPercent = nextTarget > 0 ? Math.min((info.count / nextTarget) * 100, 100) : 100;
+
+    // Invited vs Activated (§4): prefer the live tracking fetch, fall back to the passed referral
+    // info, then to the legacy activated `count`. Activated never exceeds invited.
+    const activatedCount = tracking?.activated ?? info.activated ?? info.count;
+    const invitedCount = Math.max(tracking?.invited ?? info.invited ?? activatedCount, activatedCount);
+    const boardRank = tracking?.boardRank ?? null;
+    const hasReferred = invitedCount > 0 || activatedCount > 0;
 
     return (
         <VStack spacing={3} width="100%" align="stretch">
@@ -295,6 +338,46 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                 </VStack>
             )}
 
+            {/* Your referrals — Invited vs Activated + Most Referrals board (§4 / #356) */}
+            {!referralLoading && hasReferred && (
+                <Box
+                    border="1px solid"
+                    borderColor="border.lightGray"
+                    _dark={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}
+                    borderRadius="12px"
+                    px={3}
+                    py={2.5}
+                >
+                    <HStack spacing={3} justify="center" align="center" flexWrap="wrap">
+                        <Stat label="Invited" value={invitedCount} />
+                        <Divider orientation="vertical" h="20px" />
+                        <Stat label="Activated" value={activatedCount} accent />
+                        <Divider orientation="vertical" h="20px" />
+                        <Stat label="Multiplier" value={`${info.multiplier}x`} />
+                    </HStack>
+                    <Text fontSize="2xs" color="text.secondary" textAlign="center" mt={1.5}>
+                        “Activated” = a friend who bought in or re-bought for real
+                    </Text>
+                    {boardRank != null && (
+                        <Link
+                            href="/leaderboard?board=referrals"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            gap={1}
+                            mt={1.5}
+                            fontSize="xs"
+                            fontWeight={600}
+                            color="brand.green"
+                            _hover={{ textDecoration: 'underline' }}
+                        >
+                            You’re #{boardRank} on the Most Referrals board
+                            <Icon as={FiArrowRight} boxSize="11px" />
+                        </Link>
+                    )}
+                </Box>
+            )}
+
             {/* Enter a friend's referral code — collapsible */}
             {!referralLoading && !alreadyReferred && (
                 <Box>
@@ -378,5 +461,24 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
         </VStack>
     );
 };
+
+function Stat({ label, value, accent }: { label: string; value: number | string; accent?: boolean }) {
+    return (
+        <VStack spacing={0} align="center" minW="56px">
+            <Text
+                fontSize="md"
+                fontWeight={800}
+                lineHeight={1.1}
+                color={accent ? 'brand.green' : 'text.primary'}
+                sx={{ fontVariantNumeric: 'tabular-nums' }}
+            >
+                {value}
+            </Text>
+            <Text fontSize="2xs" color="text.secondary" textTransform="uppercase" letterSpacing="0.04em">
+                {label}
+            </Text>
+        </VStack>
+    );
+}
 
 export default ReferralCodeSection;

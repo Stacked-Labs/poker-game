@@ -26,6 +26,7 @@ import {
     type FreeTicketPreview,
 } from '@/app/hooks/server_actions';
 import WalletButton from '@/app/components/WalletButton';
+import FriendInviteSection from '@/app/components/Tournament/FriendInviteSection';
 
 function usdc(base?: number | null): string {
     return ((base ?? 0) / 1_000_000).toLocaleString('en-US', {
@@ -161,6 +162,9 @@ export default function FreeClaimView({ id, code }: { id: number; code: string }
                     >
                         Go to the tournament
                     </Button>
+                    <Box w="full" pt={2}>
+                        <FriendInviteSection tournamentId={id} />
+                    </Box>
                 </VStack>
             </Container>
         );

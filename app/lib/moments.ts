@@ -36,6 +36,9 @@ export interface MomentParams {
     tournamentName?: string;
     position?: number;
     fieldSize?: number;
+    // Free Play tournaments carry no real-money buy-in — copy + crawler metadata must never imply
+    // stablecoin stakes for these (guardrail: never blur Free Play with real-money play).
+    isFreePlay?: boolean;
 }
 
 // The short uppercase ribbon stamped on the OG card.
@@ -61,18 +64,20 @@ export function momentCopy(p: MomentParams): {
     shareText: string;
 } {
     const where = p.tournamentName ? ` in ${p.tournamentName}` : '';
+    // Free Play events are play-money — tag them so a shared post never reads as a real-money cash.
+    const freeTag = p.isFreePlay ? ' (Free Play)' : '';
     switch (p.type) {
         case 'win':
             return {
                 heading: 'You took it down! 🏆',
-                sub: `1st place${p.fieldSize ? ` of ${p.fieldSize}` : ''}${where}.`,
-                shareText: `Took it down 🏆 1st${p.fieldSize ? ` of ${p.fieldSize}` : ''}${where} on @stacked_poker. On-chain poker on Base.`,
+                sub: `1st place${p.fieldSize ? ` of ${p.fieldSize}` : ''}${where}${freeTag}.`,
+                shareText: `Took it down 🏆 1st${p.fieldSize ? ` of ${p.fieldSize}` : ''}${where}${freeTag} on @stacked_poker. On-chain poker on Base.`,
             };
         case 'deeprun':
             return {
                 heading: 'Deep run! 🔥',
-                sub: `Final-table run${where}.`,
-                shareText: `Deep run 🔥 made the final table${where} on @stacked_poker. On-chain poker on Base.`,
+                sub: `Final-table run${where}${freeTag}.`,
+                shareText: `Deep run 🔥 made the final table${where}${freeTag} on @stacked_poker. On-chain poker on Base.`,
             };
         case 'rankup':
             return {
@@ -90,7 +95,7 @@ export function momentCopy(p: MomentParams): {
             return {
                 heading: 'Milestone reached! 🎉',
                 sub: p.hands ? `${p.hands.toLocaleString()} hands played.` : 'A new hands milestone.',
-                shareText: `${p.hands ? `${p.hands.toLocaleString()} hands` : 'Another milestone'} in on @stacked_poker. On-chain poker on Base. 🃏`,
+                shareText: `${p.hands ? `Just hit ${p.hands.toLocaleString()} hands` : 'Another milestone'} on @stacked_poker. On-chain poker on Base. 🃏`,
             };
     }
 }
@@ -127,6 +132,7 @@ export function buildMomentShareUrl(origin: string, p: MomentParams): string {
     if (p.tierLabel) q.set('tier', p.tierLabel);
     if (p.tournamentName) q.set('name', p.tournamentName);
     if (p.fieldSize != null) q.set('field', String(p.fieldSize));
+    if (p.isFreePlay) q.set('free', '1');
     return `${origin}/moment?${q.toString()}`;
 }
 
@@ -148,8 +154,13 @@ export function momentMeta(p: MomentParams): { title: string; description: strin
     const c = momentCopy(p);
     // Drop the trailing celebration emoji + spaces for the crawler title (keep ASCII punctuation).
     const plainHeading = c.heading.replace(/[^A-Za-z0-9!?. ]+$/, '').trim();
+    // Never assert a stablecoin buy-in for a Free Play moment — that would blur Free Play with
+    // real-money play on the most public surface (the X / Telegram unfurl description).
+    const tagline = p.isFreePlay
+        ? 'Free Play on Stacked — risk-free practice poker on Base.'
+        : 'On-chain poker on Base — stablecoin buy-ins, smart-contract custody.';
     return {
         title: `${plainHeading} — Stacked Poker`,
-        description: `${c.sub} On-chain poker on Base — stablecoin buy-ins, smart-contract custody.`,
+        description: `${c.sub} ${tagline}`,
     };
 }

@@ -47,6 +47,7 @@ function parseParams(sp: SearchParams): MomentParams | null {
         tournamentId: num(sp.id),
         tournamentName: one(sp.name),
         fieldSize: num(sp.field),
+        isFreePlay: one(sp.free) === '1',
     };
 }
 

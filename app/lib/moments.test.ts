@@ -8,6 +8,7 @@ import {
     buildMomentShareUrl,
     momentDestination,
     momentMeta,
+    momentCopy,
 } from './moments';
 
 // Share Moments (Viral §5). The model is pure so the OG route, the share page, and the prompt all
@@ -100,5 +101,38 @@ describe('momentMeta', () => {
         expect(title).toContain('Stacked Poker');
         expect(title.includes('🏆')).toBe(false);
         expect(description).toContain('On-chain poker on Base');
+        expect(description).toContain('stablecoin buy-ins');
+    });
+
+    it('never claims a stablecoin buy-in for a Free Play moment (no real-money blur)', () => {
+        const { description } = momentMeta({
+            type: 'win',
+            fieldSize: 50,
+            tournamentName: 'Free Play Warmup',
+            isFreePlay: true,
+        });
+        expect(description).not.toContain('stablecoin');
+        expect(description).toContain('Free Play');
+    });
+});
+
+describe('momentCopy', () => {
+    it('reads as clean English for the hands milestone (no "hands in on")', () => {
+        const { shareText } = momentCopy({ type: 'milestone', hands: 10000 });
+        expect(shareText).toContain('Just hit 10,000 hands on @stacked_poker');
+        expect(shareText).not.toContain('hands in on');
+    });
+
+    it('tags Free Play event shares so a play-money win never reads as a cash', () => {
+        expect(momentCopy({ type: 'win', fieldSize: 50, isFreePlay: true }).shareText).toContain('(Free Play)');
+        expect(momentCopy({ type: 'win', fieldSize: 50 }).shareText).not.toContain('Free Play');
+    });
+});
+
+describe('buildMomentShareUrl', () => {
+    it('flags Free Play so the share page can keep the crawler copy play-money', () => {
+        const url = buildMomentShareUrl(ORIGIN, { type: 'win', tournamentId: 5, isFreePlay: true });
+        expect(url).toContain('free=1');
+        expect(buildMomentShareUrl(ORIGIN, { type: 'win', tournamentId: 5 })).not.toContain('free=');
     });
 });

@@ -61,7 +61,10 @@ export async function GET(req: NextRequest) {
     // Optional Share-Moment ribbon (Viral §5 / #359): "WINNER" / "DEEP RUN" stamped over the
     // tournament card for a player's win / final-table share.
     const mParam = req.nextUrl.searchParams.get('m');
-    const momentBanner = isMomentType(mParam) ? momentBadge(mParam) : null;
+    const momentType = isMomentType(mParam) ? mParam : null;
+    const momentBanner = momentType ? momentBadge(momentType) : null;
+    // A deep run is explicitly NOT a win — stamp a 🔥, never a winner's trophy (honest-stats card).
+    const momentEmoji = momentType === 'deeprun' ? '🔥' : '🏆';
     const origin = req.nextUrl.origin;
     const logoUrl = `${origin}/IconLogo.png`;
     const usdcLogoUrl = `${origin}/usdc-logo.png`;
@@ -174,7 +177,7 @@ export async function GET(req: NextRequest) {
                                 boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
                             }}
                         >
-                            <span style={{ fontSize: 40 }}>🏆</span>
+                            <span style={{ fontSize: 40 }}>{momentEmoji}</span>
                             <span
                                 style={{
                                     color: '#ffffff',
@@ -233,28 +236,33 @@ export async function GET(req: NextRequest) {
                             </span>
                         </div>
 
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: '12px 26px',
-                                borderRadius: 40,
-                                background: status.bg,
-                                border: `2px solid ${status.border}`,
-                            }}
-                        >
-                            <span
+                        {/* The live status pill (Live / Registration / …) is suppressed on a
+                            Share-Moment card: a "WINNER" / "DEEP RUN" ribbon over a "Live" pill
+                            reads as a contradiction. The ribbon is the headline there. */}
+                        {!momentBanner && (
+                            <div
                                 style={{
-                                    fontSize: 24,
-                                    fontWeight: 800,
-                                    letterSpacing: '0.08em',
-                                    textTransform: 'uppercase',
-                                    color: status.fg,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '12px 26px',
+                                    borderRadius: 40,
+                                    background: status.bg,
+                                    border: `2px solid ${status.border}`,
                                 }}
                             >
-                                {statusLabel}
-                            </span>
-                        </div>
+                                <span
+                                    style={{
+                                        fontSize: 24,
+                                        fontWeight: 800,
+                                        letterSpacing: '0.08em',
+                                        textTransform: 'uppercase',
+                                        color: status.fg,
+                                    }}
+                                >
+                                    {statusLabel}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Tournament name */}

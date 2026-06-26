@@ -1,6 +1,6 @@
 'use client';
 
-import { Flex, Spinner, Text } from '@chakra-ui/react';
+import { Box, Flex, Spinner, Text } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useActiveAccount } from 'thirdweb/react';
@@ -30,6 +30,7 @@ import TournamentDetail, {
 } from '../../components/Tournament/TournamentDetail';
 import RegistrationConfirmationModal from '../../components/Tournament/RegistrationConfirmationModal';
 import TournamentRegisterModal from '../../components/Tournament/TournamentRegisterModal';
+import FriendInviteSection from '../../components/Tournament/FriendInviteSection';
 
 export default function TournamentPage() {
     const params = useParams();
@@ -545,6 +546,16 @@ export default function TournamentPage() {
                 onUpdateLinks={handleUpdateLinks}
                 onUploadImage={handleUploadImage}
             />
+
+            {/* Bring-a-friend (§3.3): registered entrants can invite friends into a free seat.
+                The section self-hides when the event has no free tickets. */}
+            {isRegistered && (
+                <Flex justify="center" px={{ base: 4, md: 6 }} pb={10}>
+                    <Box w="full" maxW="600px">
+                        <FriendInviteSection tournamentId={id} />
+                    </Box>
+                </Flex>
+            )}
 
             <TournamentRegisterModal
                 tournament={regModal ? tournament : null}

@@ -12,6 +12,7 @@ import {
     type FreeTicketPreview,
 } from '@/app/hooks/server_actions';
 import WalletButton from '@/app/components/WalletButton';
+import FriendInviteSection from '@/app/components/Tournament/FriendInviteSection';
 import FreeClaimScreen, {
     type ClaimTerminalVariant,
     type ReminderUi,
@@ -140,6 +141,7 @@ export default function FreeClaimView({
             walletSlot={<WalletButton />}
             onView={goToTournament}
             onRetry={load}
+            friendInviteSlot={<FriendInviteSection tournamentId={id} />}
         />
     );
 }

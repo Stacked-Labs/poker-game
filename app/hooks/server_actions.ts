@@ -1219,6 +1219,55 @@ export async function setMyReferralCode(
 }
 
 // ============================================================
+// Notification preferences API (Viral §6 / #362)
+// ============================================================
+
+export interface NotificationPreferences {
+    push_enabled: boolean;
+    events: { tournament_reminders?: boolean } & Record<string, boolean>;
+}
+
+// Reads the signed-in user's notification preferences (wallet from the auth cookie). Defaults to
+// everything on so an unauthenticated/offline read renders a sensible, non-alarming UI.
+export async function getNotificationPreferences(): Promise<NotificationPreferences> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/notifications/preferences`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            throw new Error(`Preferences fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch notification preferences.', error);
+        return { push_enabled: true, events: { tournament_reminders: true } };
+    }
+}
+
+// Updates notification preferences (partial). Returns the resolved state the server reports back.
+export async function updateNotificationPreferences(input: {
+    push_enabled?: boolean;
+    events?: Record<string, boolean>;
+}): Promise<NotificationPreferences | null> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/notifications/preferences`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(input),
+        });
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to update notification preferences.', error);
+        return null;
+    }
+}
+
+// ============================================================
 // Quest API
 // ============================================================
 

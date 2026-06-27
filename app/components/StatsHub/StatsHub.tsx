@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
     Box,
     Text,
@@ -87,20 +87,25 @@ const StatsHub: React.FC<StatsHubProps> = ({ currentAddress }) => {
         [data, currentAddress]
     );
 
-    // Load the active board (and re-load all loaded boards when the signed-in wallet changes).
+    // Load the active board, and refetch it when the signed-in wallet changes.
+    // One effect (not two) so the visible board is always (re)loaded after a wallet
+    // change: the previous split cleared `data` on address change but only reloaded on
+    // `activeBoard` change, so the default tab stayed empty on first load until the user
+    // switched tabs (the address resolves from undefined → wallet AFTER the first fetch).
     const activeBoard = boards[activeIndex]?.id;
+    const loadedAddrRef = useRef<string | undefined>(undefined);
     useEffect(() => {
-        if (activeBoard && data[activeBoard] === undefined) {
-            loadBoard(activeBoard);
+        if (!activeBoard) return;
+        const walletChanged = loadedAddrRef.current !== currentAddress;
+        if (walletChanged) {
+            loadedAddrRef.current = currentAddress;
+            setData({}); // every board's pinned "your position" is now stale
+            loadBoard(activeBoard); // refetch the visible board with the new wallet
+        } else if (data[activeBoard] === undefined) {
+            loadBoard(activeBoard); // first visit to this tab (cache miss)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeBoard]);
-
-    useEffect(() => {
-        // Wallet changed: invalidate so the active board refetches with the new "your position".
-        setData({});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentAddress]);
+    }, [activeBoard, currentAddress]);
 
     return (
         <Box width="100%">

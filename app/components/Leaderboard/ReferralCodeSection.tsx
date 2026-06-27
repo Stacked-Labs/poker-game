@@ -3,21 +3,28 @@
 import React, { useEffect, useState } from 'react';
 import {
     Box,
-    Text,
+    Button,
+    Flex,
     HStack,
-    VStack,
     Icon,
     Input,
+    Link,
     Progress,
+    Text,
+    VStack,
 } from '@chakra-ui/react';
-import { FaCheck, FaGift } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
+import { FaCheck } from 'react-icons/fa';
+import { FiCopy, FiUserPlus, FiZap } from 'react-icons/fi';
 import { useActiveAccount } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { friendlyMessage } from '@/app/utils/toastErrors';
 import { registerReferral, setMyReferralCode } from '@/app/hooks/server_actions';
+import { SocialIconButton } from '@/app/components/SocialIconButton';
+import TooltipOrPopover from '@/app/components/TooltipOrPopover';
 
 const MotionBox = motion(Box);
+const X_HANDLE = 'stacked_poker';
 
 interface ReferralInfo {
     count: number;
@@ -30,9 +37,11 @@ interface ReferralInfo {
 interface ReferralCodeSectionProps {
     referralInfo?: ReferralInfo;
     initialReferralCode?: string;
+    /** Render without the card panel (e.g. nested inside the leaderboard PlayerCard). */
+    bare?: boolean;
 }
 
-const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo, initialReferralCode }) => {
+const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo, initialReferralCode, bare }) => {
     const account = useActiveAccount();
     const [copied, setCopied] = useState(false);
     const [referralInput, setReferralInput] = useState(initialReferralCode ?? '');
@@ -45,7 +54,6 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const [localCode, setLocalCode] = useState<string | null>(null);
     const toast = useToastHelper();
 
-    // If a code arrives via URL param after mount, open the input automatically
     useEffect(() => {
         if (initialReferralCode && !referralInput) {
             setReferralInput(initialReferralCode);
@@ -58,15 +66,21 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const alreadyReferred = info.hasReferrer || submitted;
     const myCode = localCode ?? info.myCode ?? null;
 
+    const origin =
+        typeof window !== 'undefined' && window.location?.origin
+            ? window.location.origin
+            : 'https://stackedpoker.io';
+    const refUrl = myCode
+        ? `${origin}/leaderboard?referralCode=${encodeURIComponent(myCode)}`
+        : origin;
+    const shareText = 'Join me on Stacked. Onchain poker on Base.';
+    const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(refUrl)}&via=${X_HANDLE}`;
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(refUrl)}&text=${encodeURIComponent(shareText)}`;
+
     const handleCopy = async () => {
-         if (!myCode) return;
-        const origin =
-            typeof window !== 'undefined' && window.location?.origin
-                ? window.location.origin
-                : 'https://stackedpoker.io';
-        const referralUrl = `${origin}/leaderboard?referralCode=${encodeURIComponent(myCode)}`;
+        if (!myCode) return;
         try {
-            await navigator.clipboard.writeText(referralUrl);
+            await navigator.clipboard.writeText(refUrl);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch {
@@ -85,10 +99,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                 setLocalCode(code);
                 setShowSetCode(false);
             } else {
-                const { title, description } = friendlyMessage(result.message, {
-                    title: 'Could not set code',
-                    description: 'Please try a different code.',
-                });
+                const { title, description } = friendlyMessage(result.message, { title: 'Could not set code', description: 'Please try a different code.' });
                 toast.error(title, description);
             }
         } catch {
@@ -108,10 +119,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                 toast.success('Referral registered', 'Your bonus is now active.');
                 setSubmitted(true);
             } else {
-                const { title, description } = friendlyMessage(result.message, {
-                    title: 'Referral failed',
-                    description: 'Check the code and try again.',
-                });
+                const { title, description } = friendlyMessage(result.message, { title: 'Referral failed', description: 'Check the code and try again.' });
                 toast.error(title, description);
             }
         } catch {
@@ -124,163 +132,85 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const nextTarget = info.nextTier?.required ?? info.count;
     const progressPercent = nextTarget > 0 ? Math.min((info.count / nextTarget) * 100, 100) : 100;
 
-    return (
-        <VStack spacing={3} width="100%" align="stretch">
-            {/* My referral code — or "claim your code" */}
-            <HStack
-                spacing={2}
-                justify="center"
-                align="center"
-                border="1.5px dashed"
-                borderColor="border.lightGray"
-                _dark={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}
-                borderRadius="12px"
-                py={3}
-                px={4}
-            >
-                <Icon as={FaGift} color="text.secondary" boxSize={3} flexShrink={0} />
+    const panelProps = bare
+        ? { w: 'full' as const }
+        : {
+              bg: 'card.white',
+              border: '1px solid',
+              borderColor: 'border.felt',
+              borderRadius: '20px',
+              p: { base: 4, md: 5 },
+              h: 'full',
+          };
 
-                {myCode ? (
-                    <>
-                        <Text
-                            color="text.primary"
-                            fontFamily="mono"
-                            fontSize="sm"
-                            fontWeight={600}
-                            data-testid="referral-code"
+    return (
+        <Box {...panelProps}>
+            <Flex justify="space-between" align="center" mb={3} gap={2} flexWrap="wrap">
+                <HStack spacing={2}>
+                    <Text as="h2" fontSize="sm" fontWeight={800} color="text.primary">
+                        Invite players
+                    </Text>
+                    <HStack bg="bg.pillNeutral" borderRadius="full" px={2} py={0.5} spacing={1}>
+                        <Icon as={FiUserPlus} color="text.secondary" boxSize="11px" aria-hidden />
+                        <Text fontSize="2xs" fontWeight={700} color="text.secondary">
+                            {info.count} invited
+                        </Text>
+                    </HStack>
+                </HStack>
+                {!referralLoading && info.multiplier > 1 && (
+                    <TooltipOrPopover
+                        label="Your multiplier boosts every point you earn — play, host, quests, all of it. It's status, not money. Invite more friends to raise it."
+                        aria-label="About your multiplier"
+                    >
+                        <HStack bg="bg.greenTint" borderRadius="full" px={2.5} py={1} spacing={1}>
+                            <Icon as={FiZap} color="brand.green" boxSize="11px" aria-hidden />
+                            <Text fontSize="2xs" fontWeight={800} color="brand.green">
+                                {info.multiplier}x points
+                            </Text>
+                        </HStack>
+                    </TooltipOrPopover>
+                )}
+            </Flex>
+
+            <Text fontSize="xs" color="text.secondary" mb={3}>
+                Friends who join with your code climb with you.
+            </Text>
+
+            {myCode ? (
+                <VStack align="stretch" spacing={3}>
+                    {/* Share-first: the viral act is the share, not the multiplier. */}
+                    <HStack spacing={2}>
+                        <Button
+                            onClick={handleCopy}
+                            variant="tactilePrimary"
                             flex={1}
-                            textAlign="center"
+                            leftIcon={<Icon as={copied ? FaCheck : FiCopy} />}
+                            _focusVisible={{ boxShadow: 'focus.ring' }}
                         >
+                            {copied ? 'Copied' : 'Copy invite link'}
+                        </Button>
+                        <Link href={tweetUrl} isExternal _hover={{ textDecoration: 'none' }}>
+                            <SocialIconButton tone="x" tabIndex={-1} aria-label="Share on X" />
+                        </Link>
+                        <Link href={telegramUrl} isExternal _hover={{ textDecoration: 'none' }}>
+                            <SocialIconButton tone="telegram" tabIndex={-1} aria-label="Share on Telegram" />
+                        </Link>
+                    </HStack>
+
+                    <HStack bg="bg.pillNeutral" borderRadius="10px" px={3} py={2} justify="space-between">
+                        <Text fontFamily="mono" fontSize="sm" fontWeight={600} color="text.primary" data-testid="referral-code" noOfLines={1}>
                             {myCode}
                         </Text>
-                        <Text
-                            as="button"
-                            onClick={handleCopy}
-                            data-testid="copy-referral"
-                            fontSize="xs"
-                            color={copied ? 'brand.green' : 'text.secondary'}
-                            fontWeight="medium"
-                            textDecoration="underline"
-                            textDecorationColor={copied ? 'brand.green' : 'border.lightGray'}
-                            textUnderlineOffset="3px"
-                            cursor="pointer"
-                            transition="all 0.2s ease"
-                            _hover={{ color: 'brand.green' }}
-                            flexShrink={0}
-                        >
-                            {copied ? (
-                                <HStack spacing={1} as="span" display="inline-flex">
-                                    <Icon as={FaCheck} boxSize="10px" />
-                                    <span>Copied</span>
-                                </HStack>
-                            ) : (
-                                'Copy'
-                            )}
+                        <Text fontSize="2xs" color="text.muted">
+                            your code
                         </Text>
-                    </>
-                ) : (
-                    <Text
-                        as="button"
-                        onClick={() => setShowSetCode(!showSetCode)}
-                        fontSize="xs"
-                        color="text.secondary"
-                        textDecoration="underline"
-                        textDecorationColor="border.lightGray"
-                        textUnderlineOffset="3px"
-                        cursor="pointer"
-                        transition="color 0.2s ease"
-                        _hover={{ color: 'brand.green' }}
-                        flex={1}
-                        textAlign="center"
-                    >
-                        {referralLoading ? '…' : 'Set your referral code'}
-                    </Text>
-                )}
-            </HStack>
-
-            {/* Set code input — collapsible, only shown when no code yet */}
-            {!myCode && !referralLoading && (
-                <AnimatePresence>
-                    {showSetCode && (
-                        <MotionBox
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2, ease: 'easeInOut' }}
-                            overflow="hidden"
-                        >
-                            <HStack
-                                spacing={0}
-                                border="1.5px dashed"
-                                borderColor="border.lightGray"
-                                _dark={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}
-                                borderRadius="12px"
-                                px={3}
-                                py={2}
-                            >
-                                <Input
-                                    variant="unstyled"
-                                    placeholder="pick a code"
-                                    value={codeInput}
-                                    onChange={(e) => setCodeInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
-                                    fontFamily="mono"
-                                    fontSize="xs"
-                                    flex={1}
-                                    maxLength={20}
-                                    _placeholder={{ color: 'text.secondary', opacity: 0.5 }}
-                                />
-                                <Text
-                                    as="button"
-                                    onClick={handleSetCode}
-                                    fontSize="xs"
-                                    fontWeight="bold"
-                                    color={!codeInput.trim() || settingCode ? 'text.secondary' : 'brand.green'}
-                                    opacity={!codeInput.trim() || settingCode ? 0.4 : 1}
-                                    cursor={!codeInput.trim() || settingCode ? 'default' : 'pointer'}
-                                    transition="all 0.2s ease"
-                                    _hover={!codeInput.trim() || settingCode ? {} : { opacity: 0.7 }}
-                                    flexShrink={0}
-                                    ml={2}
-                                >
-                                    {settingCode ? '...' : 'Set'}
-                                </Text>
-                            </HStack>
-                            <Text fontSize="2xs" color="text.secondary" mt={1} px={1}>
-                                3–20 chars · letters, numbers, _ or - · set once, permanent
-                            </Text>
-                        </MotionBox>
-                    )}
-                </AnimatePresence>
-            )}
-
-            {/* Multiplier info */}
-            {!referralLoading && (
-                <VStack spacing={1.5} align="stretch">
-                    {info.multiplier > 1 && (
-                        <Text fontSize="xs" color="brand.green" fontWeight="semibold" textAlign="center">
-                            {info.nextTier
-                                ? `${info.multiplier}x bonus active`
-                                : `Max bonus active: ${info.multiplier}x on all points!`}
-                        </Text>
-                    )}
+                    </HStack>
 
                     {info.nextTier && (
-                        <VStack spacing={1} align="stretch">
-                            <HStack justify="space-between">
+                        <Box>
+                            <HStack justify="space-between" mb={1}>
                                 <Text fontSize="2xs" color="text.secondary">
-                                    {info.count}/{info.nextTier.required} referrals
-                                </Text>
-                                <Text
-                                    fontSize="2xs"
-                                    fontWeight="bold"
-                                    color="brand.green"
-                                    bg="rgba(54, 163, 123, 0.08)"
-                                    _dark={{ bg: 'rgba(54, 163, 123, 0.15)' }}
-                                    px={2}
-                                    py={0.5}
-                                    borderRadius="full"
-                                >
-                                    → {info.nextTier.multiplier}x
+                                    {info.count}/{info.nextTier.required} to {info.nextTier.multiplier}x
                                 </Text>
                             </HStack>
                             <Progress
@@ -290,31 +220,70 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                                 bg="border.lightGray"
                                 sx={{ '& > div': { bg: 'brand.green', borderRadius: 'full' } }}
                             />
-                        </VStack>
+                        </Box>
+                    )}
+                </VStack>
+            ) : (
+                <VStack align="stretch" spacing={2}>
+                    {!showSetCode ? (
+                        <Button
+                            onClick={() => setShowSetCode(true)}
+                            variant="tactileOutline"
+                            size="sm"
+                            isDisabled={referralLoading}
+                            _focusVisible={{ boxShadow: 'focus.ring' }}
+                        >
+                            {referralLoading ? '…' : 'Set your referral code'}
+                        </Button>
+                    ) : (
+                        <>
+                            <HStack
+                                bg="bg.pillNeutral"
+                                borderRadius="10px"
+                                px={3}
+                                py={1}
+                                spacing={2}
+                            >
+                                <Input
+                                    variant="unstyled"
+                                    placeholder="pick a code"
+                                    value={codeInput}
+                                    onChange={(e) => setCodeInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
+                                    fontFamily="mono"
+                                    fontSize="sm"
+                                    maxLength={20}
+                                    _placeholder={{ color: 'text.muted' }}
+                                />
+                                <Button
+                                    onClick={handleSetCode}
+                                    variant="tactilePrimary"
+                                    size="sm"
+                                    isDisabled={!codeInput.trim() || settingCode}
+                                    isLoading={settingCode}
+                                    _focusVisible={{ boxShadow: 'focus.ring' }}
+                                >
+                                    Set
+                                </Button>
+                            </HStack>
+                            <Text fontSize="2xs" color="text.muted">
+                                3–20 chars · letters, numbers, _ or - · set once, permanent
+                            </Text>
+                        </>
                     )}
                 </VStack>
             )}
 
-            {/* Enter a friend's referral code — collapsible */}
+            {/* Enter a friend's code */}
             {!referralLoading && !alreadyReferred && (
-                <Box>
-                    <Text
-                        as="button"
+                <Box mt={3}>
+                    <Button
                         onClick={() => setShowReferralInput(!showReferralInput)}
-                        fontSize="xs"
-                        color="text.secondary"
-                        textDecoration="underline"
-                        textDecorationColor="border.lightGray"
-                        textUnderlineOffset="3px"
-                        cursor="pointer"
-                        display="block"
-                        mx="auto"
-                        transition="color 0.2s ease"
-                        _hover={{ color: 'brand.green' }}
+                        variant="tactileGhost"
+                        size="sm"
+                        _focusVisible={{ boxShadow: 'focus.ring' }}
                     >
                         Have a referral code?
-                    </Text>
-
+                    </Button>
                     <AnimatePresence>
                         {showReferralInput && (
                             <MotionBox
@@ -324,41 +293,26 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                                 transition={{ duration: 0.2, ease: 'easeInOut' }}
                                 overflow="hidden"
                             >
-                                <HStack
-                                    spacing={0}
-                                    mt={3}
-                                    border="1.5px dashed"
-                                    borderColor="border.lightGray"
-                                    _dark={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}
-                                    borderRadius="12px"
-                                    px={3}
-                                    py={2}
-                                >
+                                <HStack bg="bg.pillNeutral" borderRadius="10px" px={3} py={1} spacing={2} mt={2}>
                                     <Input
                                         variant="unstyled"
                                         placeholder="Enter code"
                                         value={referralInput}
                                         onChange={(e) => setReferralInput(e.target.value)}
                                         fontFamily="mono"
-                                        fontSize="xs"
-                                        flex={1}
-                                        _placeholder={{ color: 'text.secondary', opacity: 0.5 }}
+                                        fontSize="sm"
+                                        _placeholder={{ color: 'text.muted' }}
                                     />
-                                    <Text
-                                        as="button"
+                                    <Button
                                         onClick={handleSubmitReferral}
-                                        fontSize="xs"
-                                        fontWeight="bold"
-                                        color={!referralInput.trim() || !account?.address ? 'text.secondary' : 'brand.green'}
-                                        opacity={!referralInput.trim() || !account?.address ? 0.4 : 1}
-                                        cursor={!referralInput.trim() || !account?.address ? 'default' : 'pointer'}
-                                        transition="all 0.2s ease"
-                                        _hover={!referralInput.trim() || !account?.address ? {} : { opacity: 0.7 }}
-                                        flexShrink={0}
-                                        ml={2}
+                                        variant="tactilePrimary"
+                                        size="sm"
+                                        isDisabled={!referralInput.trim() || !account?.address || submitting}
+                                        isLoading={submitting}
+                                        _focusVisible={{ boxShadow: 'focus.ring' }}
                                     >
-                                        {submitting ? '...' : 'Apply'}
-                                    </Text>
+                                        Apply
+                                    </Button>
                                 </HStack>
                             </MotionBox>
                         )}
@@ -366,16 +320,15 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                 </Box>
             )}
 
-            {/* Already referred confirmation */}
             {!referralLoading && alreadyReferred && (
-                <HStack justify="center" spacing={1.5}>
+                <HStack mt={3} spacing={1.5}>
                     <Icon as={FaCheck} color="brand.green" boxSize={3} />
                     <Text fontSize="xs" color="brand.green" fontWeight="medium">
                         Referral code applied
                     </Text>
                 </HStack>
             )}
-        </VStack>
+        </Box>
     );
 };
 

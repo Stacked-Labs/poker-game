@@ -89,8 +89,10 @@ describe('momentDestination', () => {
     it('sends event moments to the tournament', () => {
         expect(momentDestination({ type: 'win', tournamentId: 482 })).toBe('/tournament/482');
     });
-    it('sends status moments to the player home (leaderboard until profiles ship)', () => {
-        expect(momentDestination({ type: 'rankup', address: '0xabc' })).toBe('/leaderboard');
+    it('sends status moments with an address to the sharer profile (#345/#586)', () => {
+        expect(momentDestination({ type: 'rankup', address: '0xabc' })).toBe('/profile/0xabc');
+    });
+    it('falls back to the leaderboard for status moments with no address', () => {
         expect(momentDestination({ type: 'milestone' })).toBe('/leaderboard');
     });
 });

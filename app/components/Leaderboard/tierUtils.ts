@@ -1,3 +1,7 @@
+import type { IconType } from 'react-icons';
+import { FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
+import { FaMedal } from 'react-icons/fa6';
+
 export type Tier = {
     name: string;
     color: string;
@@ -25,3 +29,53 @@ export const TIER_EMOJI: Record<string, string> = {
     bronze:  '🥉',
     iron:    '🔩',
 };
+
+// The on-brand tier mark: a react-icon in the tier's semantic color, used across the
+// leaderboard PlayerCard, search, and profile so the surfaces share one visual language
+// (never the TIER_EMOJI glyphs, which render differently per platform).
+export const TIER_ICON: Record<string, IconType> = {
+    diamond: FaGem,
+    gold:    FaCrown,
+    silver:  FaMedal,
+    bronze:  FaAward,
+    iron:    FaBolt,
+};
+
+const TIER_LABEL: Record<string, string> = {
+    diamond: 'Diamond',
+    gold:    'Gold',
+    silver:  'Silver',
+    bronze:  'Bronze',
+    iron:    'Iron',
+};
+
+export interface TierInfo {
+    name: string;
+    /** Semantic color token (`tier.diamond` … `tier.iron`) — steel-blue diamond, not the stale lavender. */
+    token: string;
+    icon: IconType;
+    label: string;
+}
+
+// The profile/search payloads send `tier` as a string with no `total`, so getTier(rank, total)
+// can't be used. Resolve the string to its semantic color token + icon directly. Color comes
+// from the `tier.*` tokens, never getTier().color (which still returns the off-brand lavender).
+// An empty/unknown tier resolves to "Unranked" (neutral) — NEVER silently demoted to Iron,
+// which on a status surface would read as a real rank.
+export function tierFromString(tier: string | null | undefined): TierInfo {
+    const raw = (tier ?? '').toLowerCase();
+    if (!TIER_ICON[raw]) {
+        return {
+            name: 'unranked',
+            token: 'text.muted',
+            icon: FaBolt,
+            label: 'Unranked',
+        };
+    }
+    return {
+        name: raw,
+        token: `tier.${raw}`,
+        icon: TIER_ICON[raw],
+        label: TIER_LABEL[raw],
+    };
+}

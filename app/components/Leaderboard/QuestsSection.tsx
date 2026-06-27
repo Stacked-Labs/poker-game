@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Box,
     Button,
     Flex,
     HStack,
     Icon,
+    Progress,
     Spinner,
     Text,
     VStack,
@@ -14,6 +15,7 @@ import {
 import {
     FaArrowRight,
     FaCheck,
+    FaCheckDouble,
     FaDiscord,
     FaTelegram,
 } from 'react-icons/fa';
@@ -39,48 +41,16 @@ interface BrandPaint {
     color: string;
     tint: string;
     tintDark: string;
-    /** Darker shade for tactile press. */
     dark: string;
-    /** Edge color for the chip's bottom rim (tactile-tone Claim button). */
     edge: string;
 }
 
 const QUEST_BRAND: Record<string, BrandPaint> = {
-    follow_x: {
-        color: '#0A0B12',
-        tint: 'rgba(10, 11, 18, 0.06)',
-        tintDark: 'rgba(255, 255, 255, 0.10)',
-        dark: '#000000',
-        edge: '#000000',
-    },
-    create_table: {
-        color: '#36A37B',
-        tint: 'rgba(54, 163, 123, 0.10)',
-        tintDark: 'rgba(54, 163, 123, 0.18)',
-        dark: '#2A8463',
-        edge: '#22674E',
-    },
-    join_telegram: {
-        color: '#229ED9',
-        tint: 'rgba(34, 158, 217, 0.10)',
-        tintDark: 'rgba(34, 158, 217, 0.20)',
-        dark: '#1A86B8',
-        edge: '#136687',
-    },
-    join_discord: {
-        color: '#5865F2',
-        tint: 'rgba(88, 101, 242, 0.10)',
-        tintDark: 'rgba(88, 101, 242, 0.22)',
-        dark: '#4752D6',
-        edge: '#3F4ABF',
-    },
-    verify_sbt: {
-        color: '#FDC51D',
-        tint: 'rgba(253, 197, 29, 0.10)',
-        tintDark: 'rgba(253, 197, 29, 0.18)',
-        dark: '#D4A010',
-        edge: '#A07800',
-    },
+    follow_x: { color: '#0A0B12', tint: 'rgba(10, 11, 18, 0.06)', tintDark: 'rgba(255, 255, 255, 0.10)', dark: '#000000', edge: '#000000' },
+    create_table: { color: '#36A37B', tint: 'rgba(54, 163, 123, 0.10)', tintDark: 'rgba(54, 163, 123, 0.18)', dark: '#2A8463', edge: '#22674E' },
+    join_telegram: { color: '#229ED9', tint: 'rgba(34, 158, 217, 0.10)', tintDark: 'rgba(34, 158, 217, 0.20)', dark: '#1A86B8', edge: '#136687' },
+    join_discord: { color: '#5865F2', tint: 'rgba(88, 101, 242, 0.10)', tintDark: 'rgba(88, 101, 242, 0.22)', dark: '#4752D6', edge: '#3F4ABF' },
+    verify_sbt: { color: '#FDC51D', tint: 'rgba(253, 197, 29, 0.10)', tintDark: 'rgba(253, 197, 29, 0.18)', dark: '#D4A010', edge: '#A07800' },
 };
 
 const NEUTRAL_PAINT: BrandPaint = {
@@ -107,26 +77,13 @@ interface QuestRowProps {
     onClaim: (questId: string) => Promise<void> | void;
     isClaiming: boolean;
     isLast: boolean;
-    rowIndex: number;
 }
 
-const QuestRow: React.FC<QuestRowProps> = ({
-    quest,
-    isLocked,
-    onClaim,
-    isClaiming,
-    isLast,
-    rowIndex,
-}) => {
+const QuestRow: React.FC<QuestRowProps> = ({ quest, isLocked, onClaim, isClaiming, isLast }) => {
     const IconComponent = QUEST_ICONS[quest.id] ?? FaCheck;
     const isVerifySbt = quest.id === 'verify_sbt';
     const prereq = prereqLabel(quest);
     const paint = paintFor(quest);
-    const tilt = rowIndex % 2 === 0 ? -2 : 2;
-
-    const handle = () => {
-        onClaim(quest.id);
-    };
 
     const buttonLabel = isLocked
         ? 'Locked'
@@ -138,28 +95,21 @@ const QuestRow: React.FC<QuestRowProps> = ({
 
     return (
         <Box
-            py={3}
+            py={2.5}
             borderBottom={isLast ? undefined : '1px solid'}
             borderColor="border.lightGray"
             opacity={quest.completed ? 0.55 : 1}
             transition="background-color 0.15s ease"
+            borderRadius="8px"
             _hover={
                 quest.completed || isLocked
                     ? undefined
-                    : {
-                          bg: 'rgba(0, 0, 0, 0.02)',
-                          _dark: { bg: 'rgba(255, 255, 255, 0.02)' },
-                      }
+                    : { bg: 'bg.greenTint' }
             }
-            sx={{
-                '&:hover .quest-tile': {
-                    transform: `rotate(${tilt * 1.5}deg) translateY(-1px)`,
-                },
-            }}
         >
             <HStack spacing={3} align="center">
+                {/* Quiet brand-painted tile (tilt removed — fights the penthouse-calm register). */}
                 <Flex
-                    className="quest-tile"
                     w="34px"
                     h="34px"
                     borderRadius="7px"
@@ -168,42 +118,43 @@ const QuestRow: React.FC<QuestRowProps> = ({
                     align="center"
                     justify="center"
                     flexShrink={0}
-                    transform={`rotate(${tilt}deg)`}
-                    transition="transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)"
-                    boxShadow="inset 0 0 0 1px rgba(11, 20, 48, 0.04), 0 1px 2px rgba(11, 20, 48, 0.04)"
+                    boxShadow="inset 0 0 0 1px rgba(11, 20, 48, 0.04)"
                 >
                     <Icon
                         as={quest.completed ? FaCheck : IconComponent}
-                        color={
-                            quest.completed
-                                ? 'brand.green'
-                                : isLocked
-                                  ? 'text.secondary'
-                                  : paint.color
-                        }
-                        boxSize="20px"
+                        color={quest.completed ? 'brand.green' : isLocked ? 'text.secondary' : paint.color}
+                        boxSize="18px"
                     />
                 </Flex>
 
-                <VStack spacing={0} align="flex-start" flex={1} minW={0}>
-                    <Text
-                        fontSize="sm"
-                        fontWeight={700}
-                        color="text.primary"
-                        textDecoration={quest.completed ? 'line-through' : undefined}
-                    >
-                        {quest.title}
-                    </Text>
+                <VStack spacing={0.5} align="flex-start" flex={1} minW={0}>
+                    <HStack spacing={1.5}>
+                        <Text
+                            fontSize="sm"
+                            fontWeight={700}
+                            color="text.primary"
+                            textDecoration={quest.completed ? 'line-through' : undefined}
+                            noOfLines={1}
+                        >
+                            {quest.title}
+                        </Text>
+                        {isVerifySbt && (
+                            <Text
+                                fontSize="2xs"
+                                fontWeight={800}
+                                letterSpacing="0.04em"
+                                color="brand.yellowDark"
+                                _dark={{ color: 'brand.yellow' }}
+                                bg="bg.yellowTint"
+                                px={1.5}
+                                borderRadius="full"
+                                flexShrink={0}
+                            >
+                                NFT
+                            </Text>
+                        )}
+                    </HStack>
                     <HStack spacing={1.5} align="center">
-                        <Box
-                            w="6px"
-                            h="6px"
-                            borderRadius="full"
-                            bg={paint.color}
-                            opacity={isLocked ? 0.4 : 0.85}
-                            flexShrink={0}
-                            boxShadow="inset 0 0 0 1px rgba(255, 255, 255, 0.4)"
-                        />
                         <Text
                             fontSize="xs"
                             fontWeight={800}
@@ -222,11 +173,9 @@ const QuestRow: React.FC<QuestRowProps> = ({
 
                 {!quest.completed &&
                     (isLocked ? (
-                        // Locked state: neutral muted ghost — desaturated so it
-                        // doesn't read as "available".
                         <Button
                             size="sm"
-                            h="30px"
+                            h="32px"
                             px={3}
                             borderRadius="full"
                             variant="ghost"
@@ -242,14 +191,13 @@ const QuestRow: React.FC<QuestRowProps> = ({
                             Locked
                         </Button>
                     ) : (
-                        // Tactile-tone Claim — solid chip in the quest's brand color.
                         <Button
                             as={quest.actionUrl ? 'a' : undefined}
                             href={quest.actionUrl}
                             target={quest.actionUrl ? '_blank' : undefined}
                             rel={quest.actionUrl ? 'noopener noreferrer' : undefined}
                             size="sm"
-                            h="30px"
+                            h="32px"
                             px={3}
                             borderRadius="full"
                             color="white"
@@ -260,20 +208,13 @@ const QuestRow: React.FC<QuestRowProps> = ({
                             isDisabled={isClaiming || (isVerifySbt && !quest.hasNft)}
                             isLoading={isClaiming}
                             loadingText="…"
-                            onClick={handle}
+                            onClick={() => onClaim(quest.id)}
                             boxShadow={`inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 ${paint.edge}`}
                             transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 80ms ease"
                             _hover={{ bg: paint.color }}
-                            _active={{
-                                bg: paint.dark,
-                                transform: 'translateY(2px)',
-                                boxShadow: `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${paint.edge}`,
-                            }}
-                            rightIcon={
-                                quest.actionUrl ? (
-                                    <Icon as={FaArrowRight} boxSize="9px" />
-                                ) : undefined
-                            }
+                            _active={{ bg: paint.dark, transform: 'translateY(2px)', boxShadow: `inset 0 2px 4px rgba(0,0,0,0.18), 0 0 0 ${paint.edge}` }}
+                            _focusVisible={{ boxShadow: 'focus.ring' }}
+                            rightIcon={quest.actionUrl ? <Icon as={FaArrowRight} boxSize="9px" /> : undefined}
                         >
                             {buttonLabel}
                         </Button>
@@ -282,17 +223,12 @@ const QuestRow: React.FC<QuestRowProps> = ({
 
             {isVerifySbt && !quest.completed && !quest.hasNft && !isLocked && (
                 <Box mt={2} ml="46px">
-                    <Link
-                        href="/claim"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ textDecoration: 'none' }}
-                    >
+                    <Link href="/claim" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
                         <HStack spacing={1} display="inline-flex">
-                            <Text fontSize="xs" color="brand.yellow" fontWeight={600}>
+                            <Text fontSize="xs" color="brand.yellowDark" _dark={{ color: 'brand.yellow' }} fontWeight={600}>
                                 Claim your NFT badge
                             </Text>
-                            <Icon as={FaArrowRight} color="brand.yellow" boxSize="9px" />
+                            <Icon as={FaArrowRight} color="brand.yellowDark" _dark={{ color: 'brand.yellow' }} boxSize="9px" />
                         </HStack>
                     </Link>
                 </Box>
@@ -318,49 +254,88 @@ export const QuestsSectionView: React.FC<QuestsSectionViewProps> = ({
     isQuestLocked,
     onClaim,
 }) => {
+    const done = quests.filter((q) => q.completed).length;
+    const total = quests.length;
+    const allDone = total > 0 && done === total;
+
+    // Activation ladder: claimable easiest-first (lowest points), then locked, then done.
+    const sorted = useMemo(() => {
+        const rank = (q: QuestItem) => (q.completed ? 2 : isQuestLocked(q) ? 1 : 0);
+        return [...quests].sort((a, b) => rank(a) - rank(b) || a.points - b.points);
+    }, [quests, isQuestLocked]);
+
     return (
         <Box
             bg="card.white"
-            borderRadius="24px"
-            p={{ base: 5, md: 6 }}
-            boxShadow="0 14px 32px rgba(12, 21, 49, 0.1)"
-            _dark={{ boxShadow: '0 16px 30px rgba(0, 0, 0, 0.35)' }}
-            mt={4}
+            border="1px solid"
+            borderColor="border.felt"
+            borderRadius="20px"
+            p={{ base: 4, md: 5 }}
+            h="full"
         >
-            <Flex justify="space-between" align="baseline" mb={4}>
-                <Text fontSize="md" fontWeight={800} color="text.primary">
+            <Flex justify="space-between" align="center" mb={2}>
+                <Text as="h2" fontSize="sm" fontWeight={800} color="text.primary">
                     Quests
                 </Text>
-                <HStack spacing={1} align="baseline">
-                    <Text fontSize="lg" fontWeight={900} color="brand.green">
-                        +{totalQuestPoints.toLocaleString()}
-                    </Text>
-                    <Text
-                        fontSize="2xs"
-                        color="text.secondary"
-                        textTransform="uppercase"
-                        letterSpacing="0.06em"
-                    >
-                        earned
-                    </Text>
-                </HStack>
+                {total > 0 && (
+                    <HStack spacing={1.5} align="baseline">
+                        <Text fontSize="xs" color="text.secondary" fontWeight={600}>
+                            {done}/{total} done
+                        </Text>
+                        <Text
+                            fontSize="sm"
+                            fontWeight={900}
+                            color="brand.green"
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            +{totalQuestPoints.toLocaleString()}
+                        </Text>
+                    </HStack>
+                )}
             </Flex>
+
+            {total > 0 && (
+                <Progress
+                    value={(done / total) * 100}
+                    size="xs"
+                    borderRadius="full"
+                    bg="border.lightGray"
+                    mb={3}
+                    sx={{ '& > div': { bg: 'brand.green', borderRadius: 'full' } }}
+                    aria-label={`${done} of ${total} quests done`}
+                />
+            )}
 
             {loading && quests.length === 0 ? (
                 <Flex justify="center" py={6}>
                     <Spinner size="sm" color="brand.green" />
                 </Flex>
+            ) : allDone ? (
+                <HStack spacing={3} py={3} align="center">
+                    <Flex w="34px" h="34px" borderRadius="7px" bg="bg.greenTint" align="center" justify="center" flexShrink={0}>
+                        <Icon as={FaCheckDouble} color="brand.green" boxSize="16px" />
+                    </Flex>
+                    <VStack align="start" spacing={0}>
+                        <Text fontSize="sm" fontWeight={700} color="text.primary">
+                            All quests cleared · +{totalQuestPoints.toLocaleString()} pts
+                        </Text>
+                        <Link href="/create-game" style={{ textDecoration: 'none' }}>
+                            <Text fontSize="xs" color="brand.green" fontWeight={600}>
+                                Host a table to earn more →
+                            </Text>
+                        </Link>
+                    </VStack>
+                </HStack>
             ) : (
                 <Box>
-                    {quests.map((q, i) => (
+                    {sorted.map((q, i) => (
                         <QuestRow
                             key={q.id}
                             quest={q}
                             isLocked={isQuestLocked(q)}
                             onClaim={onClaim}
                             isClaiming={claimingId === q.id}
-                            isLast={i === quests.length - 1}
-                            rowIndex={i}
+                            isLast={i === sorted.length - 1}
                         />
                     ))}
                 </Box>

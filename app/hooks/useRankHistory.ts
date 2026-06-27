@@ -9,7 +9,11 @@ interface RankHistoryResult {
 
 export function useRankHistory(
     address: string | undefined,
-    currentRank: number | undefined
+    currentRank: number | undefined,
+    // Namespace the seen-marker per surface so two surfaces (leaderboard + profile hub)
+    // each get their own fire-once climb detection instead of the first to mount
+    // consuming it for both.
+    keyPrefix = 'leaderboard'
 ): RankHistoryResult {
     const [result, setResult] = useState<RankHistoryResult>({
         improved: false,
@@ -21,7 +25,7 @@ export function useRankHistory(
         if (!address || currentRank == null || didRun.current) return;
         didRun.current = true;
 
-        const key = `leaderboard:lastRank:${address.toLowerCase()}`;
+        const key = `${keyPrefix}:lastRank:${address.toLowerCase()}`;
         const stored = localStorage.getItem(key);
         const previousRank = stored ? parseInt(stored, 10) : null;
 
@@ -31,7 +35,7 @@ export function useRankHistory(
         if (previousRank !== null && currentRank < previousRank) {
             setResult({ improved: true, previousRank });
         }
-    }, [address, currentRank]);
+    }, [address, currentRank, keyPrefix]);
 
     return result;
 }

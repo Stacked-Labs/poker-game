@@ -2,6 +2,7 @@
 
 import {
     Button,
+    type ButtonProps,
     Icon,
     Menu,
     MenuButton,
@@ -13,14 +14,56 @@ import { FiShare2, FiCopy, FiChevronDown } from 'react-icons/fi';
 import { FaXTwitter, FaTelegram } from 'react-icons/fa6';
 import useToastHelper from '@/app/hooks/useToastHelper';
 
+const X_HANDLE = 'stacked_poker';
+
+function tierCase(tier?: string): string {
+    if (!tier) return '';
+    return tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase();
+}
+
+// Concrete, player-to-player share copy that harvests rank/tier — never generic filler.
+function shareText({
+    name,
+    tier,
+    rank,
+    isOwn,
+}: {
+    name?: string;
+    tier?: string;
+    rank?: number;
+    isOwn?: boolean;
+}): string {
+    const t = tierCase(tier);
+    const ranked = rank && rank > 0;
+    if (isOwn) {
+        return ranked && t
+            ? `I'm ${t}, rank #${rank} on Stacked. Your table, your money.`
+            : 'My profile on Stacked. Your table, your money.';
+    }
+    if (name) {
+        return ranked && t
+            ? `${name} is ${t}, rank #${rank} on Stacked.`
+            : `${name} on Stacked.`;
+    }
+    return 'A profile on Stacked. Your table, your money.';
+}
+
 // "Share my profile" (#347): copy link / X / Telegram. The shared link unfurls the per-profile
 // OG card (/api/og/profile) via the page's OpenGraph tags.
 export default function ProfileShareButton({
     address,
     name,
+    tier,
+    rank,
+    isOwn,
+    width,
 }: {
     address: string;
     name?: string;
+    tier?: string;
+    rank?: number;
+    isOwn?: boolean;
+    width?: ButtonProps['width'];
 }) {
     const { success } = useToastHelper();
 
@@ -28,16 +71,14 @@ export default function ProfileShareButton({
         typeof window !== 'undefined'
             ? `${window.location.origin}/profile/${address}`
             : `https://stackedpoker.io/profile/${address}`;
-    const text = name
-        ? `Check out ${name} on Stacked Poker`
-        : 'Check out my Stacked Poker profile';
-    const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    const text = shareText({ name, tier, rank, isOwn });
+    const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&via=${X_HANDLE}`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
 
     const copy = async () => {
         try {
             await navigator.clipboard.writeText(url);
-            success('Profile link copied', '');
+            success('Profile link copied');
         } catch {
             // Clipboard unavailable — the URL is visible in the address bar.
         }
@@ -47,10 +88,13 @@ export default function ProfileShareButton({
         <Menu placement="bottom-end">
             <MenuButton
                 as={Button}
+                variant="tactileNeutral"
                 size="sm"
-                variant="outline"
+                minH={{ base: '44px', md: '36px' }}
+                width={width}
                 leftIcon={<Icon as={FiShare2} />}
                 rightIcon={<Icon as={FiChevronDown} />}
+                _focusVisible={{ boxShadow: 'focus.ring' }}
                 flexShrink={0}
             >
                 Share

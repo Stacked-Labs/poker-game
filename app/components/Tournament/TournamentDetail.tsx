@@ -1014,14 +1014,19 @@ export default function TournamentDetail({
     // max() against it would pin the projection to the guarantee. Mirror the
     // coordinator's pool math from the live field instead, so projected payouts
     // grow with entries and overtake the guarantee once buy-ins exceed it.
+    //
+    // The pool grows with PAID buy-ins only — free-ticket seats are bodies in the field
+    // (they count toward places paid via effectiveEntrants) but put no money in the pool,
+    // so project over paid_entries. Fall back to the full field when the API omits it.
     const projecting =
         t.status === 'registration' || t.status === 'pending';
+    const effectivePaidEntrants = t.paid_entries ?? effectiveEntrants;
     const effectivePrizePool =
         settledPrizePool > 0
             ? settledPrizePool
             : projecting
               ? projectedPrizePoolUsdc(
-                    effectiveEntrants,
+                    effectivePaidEntrants,
                     t.buy_in_usdc,
                     t.fee_bps,
                     t.guarantee_usdc ?? 0
@@ -2994,8 +2999,9 @@ function HostPanel({
     );
     const needsFunding =
         t.status === 'pending' && t.guarantee_usdc > 0 && !!t.contract_address;
-    // What the host still covers if buy-ins fall short of the guarantee.
-    const buyInsCollected = registeredCount * t.buy_in_usdc;
+    // What the host still covers if buy-ins fall short of the guarantee. Free seats collect
+    // no buy-in, so exposure/fees track paid_entries — not the full registered field.
+    const buyInsCollected = (t.paid_entries ?? registeredCount) * t.buy_in_usdc;
     const exposure = Math.max(0, t.guarantee_usdc - buyInsCollected);
     // The host's projected take: 25% of the platform fee (fee_bps of every
     // buy-in), mirroring Tournament.sol's HOST_SHARE_BPS. Grows as the field

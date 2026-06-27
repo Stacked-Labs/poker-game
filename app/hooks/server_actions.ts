@@ -864,6 +864,10 @@ export interface Tournament {
     chain?: string;
     is_private: boolean;
     registered_count?: number;
+    // Buy-in bullets only (free seats excluded) — use this, not registered_count, to project
+    // the prize pool over real money. A free seat is a body in the field, not a dollar in the
+    // pool. Absent on list payloads; the detail endpoint populates it.
+    paid_entries?: number;
     reentry_allowed: boolean;
     reentry_max: number;
     // Free Tickets (Viral §3). free_seats_total is the Host cap (0 = Infinite, bounded by

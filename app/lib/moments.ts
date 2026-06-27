@@ -137,14 +137,14 @@ export function buildMomentShareUrl(origin: string, p: MomentParams): string {
 }
 
 // Where a real visitor who clicks the shared link should land. Event → the tournament; status →
-// the player's profile (falls back to the leaderboard until public profiles ship, #345).
+// the sharer's public profile (#345/#586), falling back to the leaderboard only when no address
+// is carried (so the §5 viral loop lands on the player who shared, not a generic board).
 export function momentDestination(p: MomentParams): string {
     if (isEventMoment(p.type) && p.tournamentId != null) {
         return `/tournament/${p.tournamentId}`;
     }
     if (p.address) {
-        // TODO(#345): point at /profile/[address] once public profiles land on dev.
-        return '/leaderboard';
+        return `/profile/${p.address}`;
     }
     return '/leaderboard';
 }

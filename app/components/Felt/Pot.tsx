@@ -17,6 +17,18 @@ const initialPot: PotType[] = [
     },
 ];
 
+// Fluid in `cqw` (% of the felt query container width) so the pot pill scales
+// with the community cards instead of stepping at viewport breakpoints — the same
+// fix applied to the seat plate. clamp() bounds keep it sane at the extremes.
+const POT_WIDTH = 'clamp(60px, 20cqw, 200px)';
+const POT_HEIGHT = 'clamp(22px, 6.5cqw, 60px)';
+const POT_MAIN_FONT = 'clamp(12px, 4.2cqw, 30px)';
+const POT_TOTAL_LABEL_FONT = 'clamp(9px, 2cqw, 15px)';
+const POT_TOTAL_AMOUNT_FONT = 'clamp(10px, 2.5cqw, 18px)';
+const POT_SIDE_FONT = 'clamp(9px, 1.8cqw, 13px)';
+const POT_RIT_FONT = 'clamp(7px, 1.4cqw, 11px)';
+const POT_BOARDLABEL_FONT = 'clamp(8px, 1.6cqw, 12px)';
+
 const pulsePotPrimary = keyframes`
   0% { box-shadow: 0 0 0 0 rgba(253, 197, 29, 0.45); }
   70% { box-shadow: 0 0 0 8px rgba(253, 197, 29, 0); }
@@ -86,18 +98,8 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                     backdropFilter: 'blur(2px)',
                     WebkitBackdropFilter: 'blur(2px)',
                 }}
-                width={{
-                    xl: '140px',
-                    lg: '115px',
-                    md: '90px',
-                    base: '64px',
-                }}
-                height={{
-                    xl: '36px',
-                    lg: '32px',
-                    md: '28px',
-                    base: '24px',
-                }}
+                width={POT_WIDTH}
+                height={POT_HEIGHT}
                 borderRadius={999}
                 justifyContent={'center'}
                 alignItems={'center'}
@@ -143,24 +145,16 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                             }}
                                         >
                                             <Text
-                                                fontSize={{
-                                                    xl: '14px',
-                                                    lg: '13px',
-                                                    md: '12px',
-                                                    base: '10px',
-                                                }}
+                                                fontSize={POT_TOTAL_LABEL_FONT}
                                                 color={'white'}
                                             >
                                                 total{' '}
                                                 <Text
                                                     as={'span'}
                                                     fontWeight={'medium'}
-                                                    fontSize={{
-                                                        xl: '17px',
-                                                        lg: '16px',
-                                                        md: '14px',
-                                                        base: '10px',
-                                                    }}
+                                                    fontSize={
+                                                        POT_TOTAL_AMOUNT_FONT
+                                                    }
                                                     color={'white'}
                                                 >
                                                     {format(
@@ -181,12 +175,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                         lineHeight={1}
                                     >
                                         <Text
-                                            fontSize={{
-                                                xl: '22px',
-                                                lg: '20px',
-                                                md: '16px',
-                                                base: '12px',
-                                            }}
+                                            fontSize={POT_MAIN_FONT}
                                             fontWeight="extrabold"
                                             color="white"
                                             textAlign="center"
@@ -198,12 +187,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                                 gap={1}
                                                 align="center"
                                                 lineHeight={1}
-                                                fontSize={{
-                                                    xl: '10px',
-                                                    lg: '9px',
-                                                    md: '8px',
-                                                    base: '7px',
-                                                }}
+                                                fontSize={POT_RIT_FONT}
                                                 fontWeight="bold"
                                                 whiteSpace="nowrap"
                                             >
@@ -278,10 +262,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                     key={`pot-${index}-${index}`}
                                 >
                                     <Text
-                                        fontSize={{
-                                            base: '9px',
-                                            lg: '11px',
-                                        }}
+                                        fontSize={POT_SIDE_FONT}
                                         fontWeight="bold"
                                         color="black"
                                         whiteSpace="nowrap"
@@ -301,7 +282,7 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                         top={{ base: '-18px', md: '-20px' }}
                         left="50%"
                         transform="translateX(-50%)"
-                        fontSize={{ base: '8px', md: '10px' }}
+                        fontSize={POT_BOARDLABEL_FONT}
                         fontWeight="bold"
                         color={
                             ritPhase === 2

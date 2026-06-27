@@ -3,6 +3,7 @@
 import {
     Badge,
     Box,
+    Button,
     Container,
     Heading,
     HStack,
@@ -15,19 +16,14 @@ import {
     useBreakpointValue,
     VStack,
 } from '@chakra-ui/react';
-import { keyframes } from '@emotion/react';
-import { MdArrowUpward, MdRocketLaunch } from 'react-icons/md';
+import Link from 'next/link';
+import { MdArrowUpward, MdLockOpen } from 'react-icons/md';
 import { FaCoins } from 'react-icons/fa';
 import { motion, useReducedMotion } from 'framer-motion';
 import React from 'react';
 
 const MotionBox = motion(Box);
 const MotionVStack = motion(VStack);
-
-const pulse = keyframes`
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.55; }
-`;
 
 const HostToEarnSection = () => {
     const prefersReducedMotion = useReducedMotion();
@@ -37,8 +33,8 @@ const HostToEarnSection = () => {
     const getFadeUpMotion = (delay = 0) =>
         shouldAnimate
             ? {
-                  initial: { opacity: 0, y: 22 },
-                  whileInView: { opacity: 1, y: 0 },
+                  initial: { y: 22 },
+                  whileInView: { y: 0 },
                   viewport: { once: true, amount: 0.35 },
                   transition: {
                       type: 'spring',
@@ -53,7 +49,7 @@ const HostToEarnSection = () => {
         <Box
             as="section"
             id="host-to-earn"
-            py={{ base: 16, md: 24 }}
+            py={{ base: 6, md: 14 }}
             width="100%"
             position="relative"
         >
@@ -80,7 +76,7 @@ const HostToEarnSection = () => {
                 <MotionVStack
                     spacing={5}
                     textAlign="center"
-                    mb={{ base: 10, md: 12 }}
+                    mb={{ base: 5, md: 12 }}
                     {...getFadeUpMotion(0)}
                 >
                     {/* Wordmark — typographic only, no pill, no rotation */}
@@ -95,12 +91,9 @@ const HostToEarnSection = () => {
                         Host to{' '}
                         <Text
                             as="span"
-                            color="brand.yellow"
-                            sx={{
-                                WebkitTextStroke: '0',
-                                textShadow:
-                                    '0 0 28px rgba(255, 199, 44, 0.45)',
-                            }}
+                            color="brand.yellowDark"
+                            fontWeight="extrabold"
+                            _dark={{ color: 'brand.yellow' }}
                         >
                             Earn.
                         </Text>
@@ -115,18 +108,17 @@ const HostToEarnSection = () => {
                         lineHeight="tall"
                         opacity={0.85}
                     >
-                        Anyone can host. On every real-money hand at a table
-                        you run, you keep a quarter of the platform fee — credited
-                        on-chain, hand by hand. Run a public game, earn while
-                        the room plays.
+                        Anyone can host. Run a table and keep a quarter of the
+                        4% platform fee, about 1% of every pot, credited per
+                        hand.
                     </Text>
                 </MotionVStack>
 
-                <VStack spacing={{ base: 20, md: 28 }} align="stretch">
+                <VStack spacing={{ base: 10, md: 28 }} align="stretch">
                     {/* Row 1: Earnings card LEFT, pitch RIGHT */}
                     <SimpleGrid
                         columns={{ base: 1, lg: 2 }}
-                        spacing={{ base: 12, lg: 24 }}
+                        spacing={{ base: 8, lg: 24 }}
                         alignItems="center"
                     >
                         <MotionBox {...getFadeUpMotion(0.1)}>
@@ -136,6 +128,7 @@ const HostToEarnSection = () => {
                         <MotionVStack
                             align="start"
                             spacing={6}
+                            display={{ base: 'none', lg: 'flex' }}
                             {...getFadeUpMotion(0.2)}
                         >
                             <Badge
@@ -166,7 +159,7 @@ const HostToEarnSection = () => {
                                     fontWeight="bold"
                                     letterSpacing="widest"
                                     textTransform="uppercase"
-                                    color="brand.yellowDark"
+                                    color="#6E5200"
                                     _dark={{ color: 'brand.yellow' }}
                                 >
                                     FROM EVERY HAND
@@ -180,36 +173,38 @@ const HostToEarnSection = () => {
                             >
                                 Run the table.
                                 <br />
-                                Take the cut.
+                                Earn your share.
                             </Heading>
                             <Text
                                 fontSize="lg"
                                 color="text.secondary"
                                 lineHeight="tall"
                             >
-                                You host the table. We take a cut. So do you —{' '}
+                                You host the table. We keep a small platform
+                                fee, and so do you:{' '}
                                 <Text
                                     as="span"
                                     fontWeight="bold"
                                     color="brand.yellowDark"
                                     _dark={{ color: 'brand.yellow' }}
                                 >
-                                    25% of the platform fee, credited per hand.
+                                    a quarter of the 4% platform fee, about 1%
+                                    of every pot, credited per hand.
                                 </Text>{' '}
                                 You don&apos;t even have to play.
                             </Text>
                             <List spacing={3} w="100%">
                                 {[
                                     {
-                                        main: '25% of the platform fee',
-                                        detail: 'credited per hand, not per session',
+                                        main: '~1% of every pot',
+                                        detail: 'a quarter of the 4% platform fee, credited per hand',
                                     },
                                     {
                                         main: '0% deploy fee',
                                         detail: 'Stacked covers the gas to spin up your table',
                                     },
                                     {
-                                        main: '0% custody risk',
+                                        main: '0% held by us',
                                         detail: 'earnings live in the table contract, not our account',
                                     },
                                 ].map((item) => (
@@ -262,7 +257,7 @@ const HostToEarnSection = () => {
                     {/* Row 2: pitch LEFT, setup card RIGHT */}
                     <SimpleGrid
                         columns={{ base: 1, lg: 2 }}
-                        spacing={{ base: 12, lg: 24 }}
+                        spacing={{ base: 8, lg: 24 }}
                         alignItems="center"
                     >
                         <MotionVStack
@@ -287,7 +282,7 @@ const HostToEarnSection = () => {
                                 }}
                             >
                                 <Icon
-                                    as={MdRocketLaunch}
+                                    as={MdLockOpen}
                                     mr={1.5}
                                     fontSize="sm"
                                     color="brand.yellowDark"
@@ -299,7 +294,7 @@ const HostToEarnSection = () => {
                                     fontWeight="bold"
                                     letterSpacing="widest"
                                     textTransform="uppercase"
-                                    color="brand.yellowDark"
+                                    color="#6E5200"
                                     _dark={{ color: 'brand.yellow' }}
                                 >
                                     ANYONE CAN HOST
@@ -311,7 +306,7 @@ const HostToEarnSection = () => {
                                 color="text.primary"
                                 letterSpacing="-0.02em"
                             >
-                                Three clicks. You&apos;re the house.
+                                Three clicks. The table&apos;s yours.
                             </Heading>
                             <Text
                                 fontSize="lg"
@@ -320,7 +315,7 @@ const HostToEarnSection = () => {
                             >
                                 Connect a wallet. Pick the stakes. Click create.
                                 Stacked sponsors the deployment, so your table
-                                goes live for free —{' '}
+                                goes live for free:{' '}
                                 <Text
                                     as="span"
                                     fontWeight="bold"
@@ -331,28 +326,31 @@ const HostToEarnSection = () => {
                             </Text>
 
                             <Box
-                                bg="rgba(255, 199, 44, 0.10)"
+                                bg="bg.yellowSubtle"
                                 p={{ base: 6, md: 8 }}
                                 borderRadius="2xl"
                                 width="100%"
                                 border="1px solid"
-                                borderColor="rgba(255, 199, 44, 0.22)"
-                                borderLeft="4px solid"
-                                borderLeftColor="brand.yellow"
+                                borderColor="border.yellowSubtle"
                                 position="relative"
-                                _dark={{
-                                    bg: 'rgba(255, 199, 44, 0.12)',
-                                    borderColor: 'rgba(255, 199, 44, 0.28)',
-                                }}
+                                display={{ base: 'none', lg: 'block' }}
                             >
                                 <VStack align="start" spacing={3}>
-                                    <Text
-                                        fontWeight="bold"
-                                        fontSize="md"
-                                        color="text.primary"
-                                    >
-                                        No application gates.
-                                    </Text>
+                                    <HStack spacing={2.5} align="center">
+                                        <Icon
+                                            as={MdLockOpen}
+                                            fontSize="lg"
+                                            color="brand.yellowDark"
+                                            _dark={{ color: 'brand.yellow' }}
+                                        />
+                                        <Text
+                                            fontWeight="bold"
+                                            fontSize="md"
+                                            color="text.primary"
+                                        >
+                                            No application gates.
+                                        </Text>
+                                    </HStack>
                                     <Text
                                         fontSize="sm"
                                         color="text.secondary"
@@ -360,8 +358,8 @@ const HostToEarnSection = () => {
                                     >
                                         No approval queue. No staking
                                         requirement. No fee to deploy. The
-                                        marketplace is open — if you can
-                                        connect a wallet, you can run a table.
+                                        marketplace is open. If you can connect
+                                        a wallet, you can run a table.
                                     </Text>
                                 </VStack>
                             </Box>
@@ -369,11 +367,34 @@ const HostToEarnSection = () => {
 
                         <MotionBox
                             order={{ base: 1, lg: 2 }}
+                            display={{ base: 'none', lg: 'block' }}
                             {...getFadeUpMotion(0.1)}
                         >
                             <SetupCard />
                         </MotionBox>
                     </SimpleGrid>
+
+                    <MotionBox
+                        {...getFadeUpMotion(0.1)}
+                        textAlign="center"
+                        pt={{ base: 2, md: 4 }}
+                    >
+                        <Button
+                            as={Link}
+                            href="/create-game"
+                            variant="tactilePrimary"
+                            borderRadius="full"
+                            height={{ base: '52px', md: '56px' }}
+                            px={8}
+                            fontSize={{ base: 'md', md: 'lg' }}
+                            leftIcon={<Icon as={FaCoins} boxSize="18px" />}
+                        >
+                            Start hosting
+                        </Button>
+                        <Text mt={3} fontSize="sm" color="text.muted">
+                            Free to deploy. Earn from the first hand.
+                        </Text>
+                    </MotionBox>
                 </VStack>
             </Container>
         </Box>
@@ -392,17 +413,7 @@ const EarningsCard = () => (
         mx="auto"
         position="relative"
         overflow="hidden"
-        transition="all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-        _hover={{ transform: 'translateY(-2px)', boxShadow: 'card.lift' }}
     >
-        <Box
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            h="3px"
-            bgGradient="linear(to-r, brand.yellow, brand.yellowDark)"
-        />
         <VStack align="stretch" spacing={5}>
             <HStack justify="space-between" align="start">
                 <VStack align="start" spacing={0.5}>
@@ -415,38 +426,27 @@ const EarningsCard = () => (
                     >
                         Host earnings
                     </Text>
-                    <Text
-                        fontSize="sm"
-                        color="text.primary"
-                        fontWeight="bold"
-                    >
+                    <Text fontSize="sm" color="text.primary" fontWeight="bold">
                         Sunday Night Hold&apos;em
                     </Text>
                 </VStack>
                 <HStack
                     spacing={1.5}
-                    bg="brand.pink"
+                    bg="bg.yellowSubtle"
                     px={2.5}
                     py={1}
                     borderRadius="full"
                     border="1px solid"
-                    borderColor="brand.pinkDark"
-                    boxShadow="0 4px 14px rgba(235, 11, 92, 0.35)"
+                    borderColor="border.yellowSubtle"
                 >
-                    <Box
-                        w={1.5}
-                        h={1.5}
-                        bg="white"
-                        borderRadius="full"
-                        animation={`${pulse} 1.6s ease-in-out infinite`}
-                    />
                     <Text
-                        color="white"
+                        color="#6E5200"
+                        _dark={{ color: 'brand.yellow' }}
                         fontSize="2xs"
                         fontWeight="bold"
                         letterSpacing="wider"
                     >
-                        LIVE
+                        EXAMPLE
                     </Text>
                 </HStack>
             </HStack>
@@ -485,27 +485,34 @@ const EarningsCard = () => (
                 </HStack>
             </VStack>
 
+            {/* Decorative (aria-hidden) — illustrates a host's earnings UI.
+                Styled on the tactileGold recipe so it reads as the same raised
+                physical object as the site's real buttons. */}
             <HStack
                 bg="brand.yellow"
-                color="white"
+                color="#3D2C00"
                 fontSize="sm"
                 fontWeight="bold"
                 py={3}
                 px={4}
-                borderRadius="xl"
+                borderRadius="12px"
                 justify="center"
                 spacing={2}
                 userSelect="none"
                 cursor="default"
                 aria-hidden="true"
-                _hover={{ bg: 'brand.yellowDark' }}
-                transition="background 0.18s ease"
+                boxShadow="inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 0 #8A6A00"
             >
-                <Icon as={FaCoins} fontSize="md" color="white" />
-                <Text color="white">Withdraw to wallet</Text>
+                <Icon as={FaCoins} fontSize="md" color="#3D2C00" />
+                <Text color="#3D2C00">Withdraw to wallet</Text>
             </HStack>
 
-            <VStack align="stretch" spacing={2} pt={2}>
+            <VStack
+                align="stretch"
+                spacing={2}
+                pt={2}
+                display={{ base: 'none', md: 'flex' }}
+            >
                 <Text
                     fontSize="2xs"
                     color="text.secondary"
@@ -520,11 +527,7 @@ const EarningsCard = () => (
                     { id: '2933', amt: '+$0.30' },
                     { id: '2932', amt: '+$0.24' },
                 ].map((row) => (
-                    <HStack
-                        key={row.id}
-                        justify="space-between"
-                        fontSize="sm"
-                    >
+                    <HStack key={row.id} justify="space-between" fontSize="sm">
                         <Text color="text.secondary">Hand #{row.id}</Text>
                         <Text color="text.primary" fontWeight="semibold">
                             {row.amt}
@@ -541,7 +544,7 @@ const SetupCard = () => {
         {
             n: '1',
             title: 'Connect wallet',
-            body: 'Any thirdweb wallet — or sign in with email.',
+            body: 'Any wallet, or sign in with email.',
         },
         {
             n: '2',
@@ -568,17 +571,7 @@ const SetupCard = () => {
             mx="auto"
             position="relative"
             overflow="hidden"
-            transition="all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-            _hover={{ transform: 'translateY(-2px)', boxShadow: 'card.lift' }}
         >
-            <Box
-                position="absolute"
-                top={0}
-                left={0}
-                right={0}
-                h="3px"
-                bgGradient="linear(to-r, brand.yellow, brand.yellowDark)"
-            />
             <VStack align="stretch" spacing={5}>
                 <HStack justify="space-between">
                     <Text
@@ -592,7 +585,7 @@ const SetupCard = () => {
                     </Text>
                     <Text
                         fontSize="2xs"
-                        color="brand.yellowDark"
+                        color="#6E5200"
                         fontWeight="bold"
                         letterSpacing="wider"
                         _dark={{ color: 'brand.yellow' }}
@@ -603,12 +596,7 @@ const SetupCard = () => {
 
                 <VStack align="stretch" spacing={3}>
                     {steps.map((step) => (
-                        <HStack
-                            key={step.n}
-                            spacing={4}
-                            align="start"
-                            py={2}
-                        >
+                        <HStack key={step.n} spacing={4} align="start" py={2}>
                             <Box
                                 w="32px"
                                 h="32px"
@@ -628,12 +616,7 @@ const SetupCard = () => {
                                 justifyContent="center"
                                 flexShrink={0}
                                 border={step.active ? 'none' : '1px solid'}
-                                borderColor="rgba(255, 199, 44, 0.30)"
-                                boxShadow={
-                                    step.active
-                                        ? '0 4px 12px rgba(255, 199, 44, 0.45)'
-                                        : 'none'
-                                }
+                                borderColor="border.yellowSubtle"
                             >
                                 <Text
                                     fontWeight="bold"

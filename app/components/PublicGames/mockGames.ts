@@ -37,6 +37,9 @@ export const MOCK_GAMES: PublicGame[] = [
         spectator_count: 14,
         contract_address: '0xfa04e1d9c8b3f1b0b8e01a25c9d4568b0c2c445b',
         created_at: minutesAgo(95),
+        host_username: '@degenmike',
+        host_wallet: '0x7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f',
+        host_profile_image_url: 'https://i.pravatar.cc/80?img=12',
     }),
     make('sunday-grinders', {
         is_crypto: true,
@@ -48,6 +51,7 @@ export const MOCK_GAMES: PublicGame[] = [
         spectator_count: 12,
         contract_address: '0x9f8e7d6c5b4a3210fedcba9876543210fedcba98',
         created_at: minutesAgo(40),
+        host_username: 'tableboss.eth',
     }),
     make('late-night-degen', {
         is_crypto: true,
@@ -59,6 +63,7 @@ export const MOCK_GAMES: PublicGame[] = [
         spectator_count: 7,
         contract_address: '0xabc123def456789012345678901234567890abcd',
         created_at: minutesAgo(22),
+        host_wallet: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b',
     }),
     make('penny-pushers', {
         is_crypto: true,

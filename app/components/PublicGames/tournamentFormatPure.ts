@@ -14,7 +14,11 @@ export function formatUsdc(
 ): string {
     const value = (micro ?? 0) / MICRO;
     const decimals = opts.decimals ?? (Number.isInteger(value) ? 0 : 2);
-    return value.toLocaleString(undefined, {
+    // Pin to en-US so the grouping separator is identical on the server and the
+    // client (these amounts render in SSR'd tournament cards; a locale-derived
+    // "1,000" vs "1.000" would otherwise hydrate-mismatch). USDC is a USD value,
+    // so en-US grouping is the right house style everywhere anyway.
+    return value.toLocaleString('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
     });
@@ -45,12 +49,12 @@ export function formatUsdcCompact(micro: number): string {
     const value = (micro ?? 0) / MICRO;
     if (value >= 1_000_000) {
         return `${(value / 1_000_000)
-            .toLocaleString(undefined, { maximumFractionDigits: 2 })
+            .toLocaleString('en-US', { maximumFractionDigits: 2 })
             .replace(/\.0+$/, '')}M`;
     }
     if (value >= COMPACT_USDC_THRESHOLD) {
         return `${(value / 1_000)
-            .toLocaleString(undefined, { maximumFractionDigits: 1 })
+            .toLocaleString('en-US', { maximumFractionDigits: 1 })
             .replace(/\.0$/, '')}k`;
     }
     return formatUsdc(micro);
@@ -112,9 +116,9 @@ export function getEntriesLine(t: Tournament): string {
         (t.status === 'registration' || t.status === 'pending') &&
         t.max_entries > 0;
     if (showProgress) {
-        return `${count.toLocaleString()} / ${t.max_entries.toLocaleString()} registered`;
+        return `${count.toLocaleString('en-US')} / ${t.max_entries.toLocaleString('en-US')} registered`;
     }
-    return `${count.toLocaleString()} ${count === 1 ? 'entry' : 'entries'}`;
+    return `${count.toLocaleString('en-US')} ${count === 1 ? 'entry' : 'entries'}`;
 }
 
 export function formatTournamentStart(iso: string): string {

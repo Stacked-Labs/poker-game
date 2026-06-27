@@ -22,7 +22,6 @@ import { PiMedalFill, PiTrophyFill } from 'react-icons/pi';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     formatUsdc,
-    formatUsdcCompact,
     HIDE_X_SCROLLBAR_SX,
     ordinal,
 } from '../PublicGames/tournamentFormat';
@@ -40,10 +39,6 @@ const PODIUM_METAL: Record<number, string> = {
     3: '#C4824A', // bronze
 };
 
-// Below this projected top prize we keep the registration view share-only: a
-// shifting sub-$5 pool isn't worth headlining as a dollar figure yet.
-const MIN_PROJECTED_PRIZE_MICRO = 5_000_000;
-
 // Faint accent for the in-row "prize size" bar, widest at 1st and tapering down.
 const SHARE_BAR: Record<number, string> = {
     1: 'rgba(253, 197, 29, 0.22)',
@@ -51,11 +46,9 @@ const SHARE_BAR: Record<number, string> = {
     3: 'rgba(205, 137, 78, 0.20)',
 };
 
-// Rows fade up in sequence; the trophy/medals give a springy little pop as they land.
-const rowFade = keyframes`
-    from { opacity: 0; transform: translateY(5px); }
-    to   { opacity: 1; transform: translateY(0); }
-`;
+// The trophy/medals give a springy little pop as they land. (Rows render
+// statically: a per-row opacity entrance previously left rows invisible at rest
+// on first paint / SSR / screenshots, hiding the page's most important data.)
 const medalPop = keyframes`
     0%   { transform: scale(0.4); opacity: 0; }
     60%  { transform: scale(1.18); opacity: 1; }
@@ -138,14 +131,14 @@ function PayoutLadder({
         'rgba(11, 20, 48, 0.06)',
         'rgba(255, 255, 255, 0.08)'
     );
-    // Subtle zebra for dense-row legibility; podium washes for the top three.
+    // Opaque-enough zebra for dense-row legibility; podium washes for the top three.
     const zebra = useColorModeValue(
-        'rgba(11, 20, 48, 0.025)',
-        'rgba(255, 255, 255, 0.025)'
+        'rgba(11, 20, 48, 0.04)',
+        'rgba(255, 255, 255, 0.05)'
     );
     const goldWash = useColorModeValue(
         'rgba(253, 197, 29, 0.12)',
-        'rgba(253, 197, 29, 0.14)'
+        'rgba(253, 197, 29, 0.11)'
     );
     const silverWash = useColorModeValue(
         'rgba(148, 163, 184, 0.14)',
@@ -173,18 +166,11 @@ function PayoutLadder({
     );
     const itmPct = entrants > 0 ? Math.round((paid / entrants) * 100) : 0;
     const projected = status === 'registration' || status === 'pending';
-    // Before the field locks, USDC amounts are noise (a shifting pool over a
-    // shifting count), so we show shares only. Concrete prizes appear at start.
-    const showPrize = !isFreePlay && !projected;
+    // Real-money ladders ALWAYS show a money column so there is a concrete prize
+    // to chase: an exact figure once locked, a "~$" estimate while projecting.
+    const showPrize = !isFreePlay;
     // Widest prize anchors the in-row "share size" bars.
     const maxPercent = tiers.length ? tiers[0].percent : 1;
-
-    // While the per-place ladder stays %-only during registration, a single
-    // projected top-prize headline gives the field a concrete number to chase.
-    // Gated under ~$5 so a near-empty pool never headlines a token amount.
-    const topPrize = amounts.get(1) ?? 0;
-    const showProjectedTopPrize =
-        projected && !isFreePlay && topPrize >= MIN_PROJECTED_PRIZE_MICRO;
 
     const content = (
         <>
@@ -220,49 +206,6 @@ function PayoutLadder({
                 </Box>
             </Flex>
 
-            {showProjectedTopPrize && (
-                <Flex
-                    mx={bare ? 0 : { base: 4, md: 6 }}
-                    mb={3}
-                    px={3}
-                    py={2.5}
-                    align="center"
-                    gap={3}
-                    bg={goldWash}
-                    borderRadius="10px"
-                >
-                    <RankBadge
-                        place={1}
-                        reduced={!!prefersReducedMotion}
-                        delayMs={80}
-                        size={26}
-                    />
-                    <Box minW={0}>
-                        <Text
-                            fontSize="2xs"
-                            fontWeight="bold"
-                            color="text.muted"
-                            textTransform="uppercase"
-                            letterSpacing="0.06em"
-                        >
-                            Projected top prize
-                        </Text>
-                        <HStack spacing={1.5} align="center">
-                            <Image src={USDC_LOGO} alt="" boxSize="17px" />
-                            <Text
-                                fontWeight="bold"
-                                fontSize="lg"
-                                lineHeight="1.2"
-                                color={USDC_BLUE}
-                                sx={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                                ~${formatUsdcCompact(topPrize)}
-                            </Text>
-                        </HStack>
-                    </Box>
-                </Flex>
-            )}
-
             <Box
                 overflowX="auto"
                 px={bare ? 0 : { base: 1, md: 2 }}
@@ -293,6 +236,7 @@ function PayoutLadder({
                                 highlightPosition != null &&
                                 highlightPosition >= t.min &&
                                 highlightPosition <= t.max;
+                            const amt = amounts.get(t.min) ?? 0;
                             const washColor = isYou
                                 ? youWash
                                 : podium === 1
@@ -318,12 +262,6 @@ function PayoutLadder({
                                         boxShadow: isYou
                                             ? `inset 3px 0 0 var(--chakra-colors-brand-green)`
                                             : undefined,
-                                        animation: prefersReducedMotion
-                                            ? undefined
-                                            : `${rowFade} 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) both`,
-                                        animationDelay: prefersReducedMotion
-                                            ? undefined
-                                            : `${i * 40}ms`,
                                     }}
                                 >
                                     <Td color="text.primary">
@@ -375,7 +313,7 @@ function PayoutLadder({
                                     </Td>
                                     <Td
                                         isNumeric
-                                        color="text.secondary"
+                                        color="text.primary"
                                         sx={{
                                             fontVariantNumeric: 'tabular-nums',
                                         }}
@@ -384,38 +322,51 @@ function PayoutLadder({
                                     </Td>
                                     {showPrize && (
                                         <Td isNumeric>
-                                            <HStack
-                                                justify="flex-end"
-                                                spacing={1}
-                                            >
-                                                <Image
-                                                    src={USDC_LOGO}
-                                                    alt=""
-                                                    boxSize={
-                                                        podium === 1
-                                                            ? '15px'
-                                                            : '13px'
-                                                    }
-                                                />
-                                                <Text
-                                                    fontWeight="bold"
-                                                    fontSize={
-                                                        podium === 1
-                                                            ? 'md'
-                                                            : 'sm'
-                                                    }
-                                                    color={USDC_BLUE}
-                                                    sx={{
-                                                        fontVariantNumeric:
-                                                            'tabular-nums',
-                                                    }}
+                                            {amt > 0 ? (
+                                                <HStack
+                                                    justify="flex-end"
+                                                    spacing={1}
                                                 >
-                                                    {formatUsdc(
-                                                        amounts.get(t.min) ?? 0
+                                                    {!projected && (
+                                                        <Image
+                                                            src={USDC_LOGO}
+                                                            alt=""
+                                                            boxSize={
+                                                                podium === 1
+                                                                    ? '15px'
+                                                                    : '13px'
+                                                            }
+                                                        />
                                                     )}
-                                                    {isRange ? ' ea' : ''}
-                                                </Text>
-                                            </HStack>
+                                                    <Text
+                                                        fontWeight={
+                                                            projected
+                                                                ? 'semibold'
+                                                                : 'bold'
+                                                        }
+                                                        fontSize={
+                                                            podium === 1
+                                                                ? 'md'
+                                                                : 'sm'
+                                                        }
+                                                        color={
+                                                            projected
+                                                                ? 'text.secondary'
+                                                                : USDC_BLUE
+                                                        }
+                                                        sx={{
+                                                            fontVariantNumeric:
+                                                                'tabular-nums',
+                                                        }}
+                                                    >
+                                                        {projected ? '~' : ''}$
+                                                        {formatUsdc(amt)}
+                                                        {isRange ? ' ea' : ''}
+                                                    </Text>
+                                                </HStack>
+                                            ) : (
+                                                <Text color="text.muted">—</Text>
+                                            )}
                                         </Td>
                                     )}
                                 </Tr>

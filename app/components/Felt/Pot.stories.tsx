@@ -49,6 +49,9 @@ function Felt({ children }: { children: React.ReactNode }) {
                 bg="rgba(0,0,0,0.25)"
                 borderRadius="120px"
                 border="1px solid rgba(255,255,255,0.08)"
+                // The pot sizes itself in `cqw`; mirror the felt query container
+                // so the isolated story renders it at a realistic size.
+                sx={{ containerType: 'inline-size' }}
             >
                 {children}
             </Box>

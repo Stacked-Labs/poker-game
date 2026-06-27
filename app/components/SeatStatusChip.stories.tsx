@@ -63,6 +63,9 @@ function SeatStandIn({ children }: { children: React.ReactNode }) {
             px={3}
             py={2}
             minW="180px"
+            // The chip sizes itself in `cqw`; mirror the seat's query container so
+            // the isolated story renders the badge at a realistic size.
+            sx={{ containerType: 'inline-size' }}
         >
             <Text color="gray.400" fontWeight="bold">
                 player_one

@@ -84,9 +84,6 @@ const ScrollIndicator = ({ isBroadcast = false }: ScrollIndicatorProps) => {
                     position="relative"
                     _hover={{
                         bg: 'brand.lightGray',
-                        transform: 'translateY(-2px)',
-                        boxShadow:
-                            '0 12px 28px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.7)',
                         filter: 'brightness(1.04)',
                     }}
                     _active={{
@@ -104,9 +101,6 @@ const ScrollIndicator = ({ isBroadcast = false }: ScrollIndicatorProps) => {
                             '0 8px 22px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
                         _hover: {
                             bg: 'bg.charcoal',
-                            transform: 'translateY(-2px)',
-                            boxShadow:
-                                '0 12px 28px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.14)',
                             filter: 'brightness(1.25)',
                         },
                     }}

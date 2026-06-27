@@ -18,7 +18,7 @@ import { keyframes } from '@emotion/react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { FiArrowRight } from 'react-icons/fi';
+import { FiArrowRight, FiAward } from 'react-icons/fi';
 import { useActiveAccount } from 'thirdweb/react';
 import {
     getMyTournamentRegistrations,
@@ -95,13 +95,26 @@ const dotPulse = keyframes`
     50%      { box-shadow: 0 0 0 4px rgba(54, 163, 123, 0); }
 `;
 
-const UpcomingTournamentsSection = () => {
+interface UpcomingTournamentsSectionProps {
+    // Server-fetched list for SSR / first paint, so crawlers and social unfurls
+    // see real tournament cards instead of a client-only skeleton. The client
+    // still refreshes and personalizes after mount. `null` means the server
+    // fetch timed out or failed (distinct from an empty list): seed no cards and
+    // let the client refetch, falling back to the skeleton meanwhile.
+    initialTournaments?: Tournament[] | null;
+}
+
+const UpcomingTournamentsSection = ({
+    initialTournaments,
+}: UpcomingTournamentsSectionProps) => {
     const router = useRouter();
     const prefersReducedMotion = useReducedMotion();
     const account = useActiveAccount();
     const myWallet = account?.address;
     const { isSignedIn } = useSignInPrompt();
-    const [tournaments, setTournaments] = useState<Tournament[] | null>(null);
+    const [tournaments, setTournaments] = useState<Tournament[] | null>(() =>
+        initialTournaments ? selectTournaments(initialTournaments) : null
+    );
     const [errored, setErrored] = useState(false);
     const [registeredIds, setRegisteredIds] = useState<Set<number>>(new Set());
     const [finishPos, setFinishPos] = useState<Record<number, number>>({});
@@ -114,12 +127,16 @@ const UpcomingTournamentsSection = () => {
                 setTournaments(selectTournaments(data?.tournaments ?? []));
             })
             .catch(() => {
-                if (!cancelled) setErrored(true);
+                // A failed client refresh must not wipe SSR-rendered cards —
+                // only fall back to the empty/host prompt if we never had data.
+                if (!cancelled && initialTournaments == null) setErrored(true);
             });
         return () => {
             cancelled = true;
         };
-    }, []);
+        // initialTournaments is SSR-stable (passed once), so this effectively
+        // runs once on mount and refreshes the server-rendered list.
+    }, [initialTournaments]);
 
     // Mirror the tournaments lobby: surface the signed-in player's own
     // registration / finish state on each card. Only fetch once a wallet is
@@ -155,7 +172,8 @@ const UpcomingTournamentsSection = () => {
     // A backend hiccup shouldn't leave a dead section on the marketing page —
     // fall back to the same "host your own" prompt the empty state uses.
     const isLoading = tournaments === null && !errored;
-    const isEmpty = errored || (tournaments !== null && tournaments.length === 0);
+    const isEmpty =
+        errored || (tournaments !== null && tournaments.length === 0);
 
     const fadeUp = prefersReducedMotion
         ? {}
@@ -174,7 +192,7 @@ const UpcomingTournamentsSection = () => {
         <Box
             as="section"
             id="upcoming-tournaments"
-            py={{ base: 16, md: 24 }}
+            py={{ base: 8, md: 14 }}
             width="100%"
             position="relative"
         >
@@ -185,7 +203,7 @@ const UpcomingTournamentsSection = () => {
                         justify="space-between"
                         align={{ base: 'start', md: 'end' }}
                         gap={4}
-                        mb={{ base: 8, md: 10 }}
+                        mb={{ base: 5, md: 10 }}
                     >
                         <VStack align="start" spacing={3}>
                             <HStack
@@ -247,13 +265,38 @@ const UpcomingTournamentsSection = () => {
                         </VStack>
 
                         {!isEmpty && (
+                            // Gold "chip" pill — gold is the brand's tournament /
+                            // celebratory tone, so this reads as eye-catching and
+                            // distinct from the green table CTAs while sharing the
+                            // rounded chip silhouette of the navbar's Browse Tables.
                             <Button
                                 as="a"
                                 href="/public-games?format=tournaments"
-                                variant="tactileOutline"
                                 size="md"
-                                rightIcon={<Icon as={FiArrowRight} />}
                                 flexShrink={0}
+                                borderRadius="full"
+                                fontWeight={700}
+                                letterSpacing="0.02em"
+                                color="brand.yellowDark"
+                                bg="rgba(253, 197, 29, 0.12)"
+                                border="2px solid"
+                                borderColor="brand.yellow"
+                                boxShadow="0 2px 0 #8A6A00"
+                                leftIcon={<Icon as={FiAward} />}
+                                rightIcon={<Icon as={FiArrowRight} />}
+                                _dark={{
+                                    color: 'brand.yellow',
+                                    bg: 'rgba(253, 197, 29, 0.10)',
+                                }}
+                                transition="transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 120ms ease, border-color 120ms ease"
+                                _hover={{
+                                    bg: 'rgba(253, 197, 29, 0.20)',
+                                    borderColor: 'brand.yellowDark',
+                                }}
+                                _active={{
+                                    transform: 'translateY(2px)',
+                                    boxShadow: '0 0 0 #8A6A00',
+                                }}
                             >
                                 All tournaments
                             </Button>
@@ -295,7 +338,10 @@ const UpcomingTournamentsSection = () => {
 
 function LoadingGrid() {
     return (
-        <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} spacing={{ base: 3, md: 4 }}>
+        <SimpleGrid
+            columns={{ base: 1, sm: 2, lg: 3 }}
+            spacing={{ base: 3, md: 4 }}
+        >
             {[0, 1, 2].map((i) => (
                 <Skeleton
                     key={i}
@@ -335,7 +381,7 @@ function EmptyState() {
                     color="text.primary"
                     letterSpacing="-0.02em"
                 >
-                    No tournaments on the clock — yet.
+                    No tournaments on the clock yet.
                 </Heading>
                 <Text
                     fontSize={{ base: 'sm', md: 'md' }}
@@ -343,8 +389,8 @@ function EmptyState() {
                     maxW="md"
                     lineHeight="tall"
                 >
-                    Be the host. Spin up your own tournament, set the buy-in, and
-                    put a time on the board.
+                    Be the host. Spin up your own tournament, set the buy-in,
+                    and put a time on the board.
                 </Text>
             </VStack>
             <Button

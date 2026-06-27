@@ -65,7 +65,7 @@ const Footer = () => {
                             maxW="280px"
                         >
                             The easiest way to play poker with friends, onchain.
-                            No downloads, no hassle — just pure poker action.
+                            No downloads, no hassle, just pure poker action.
                         </Text>
                         <HStack spacing={3} pt={1}>
                             <Link
@@ -251,7 +251,7 @@ const Footer = () => {
                             fontSize="xs"
                             letterSpacing="0.02em"
                         >
-                            Built with Thirdweb
+                            Built on Base
                         </Text>
                         <Text
                             color="text.muted"

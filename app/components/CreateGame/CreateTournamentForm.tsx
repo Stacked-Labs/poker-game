@@ -386,10 +386,12 @@ const BLIND_OPTIONS: {
     {
         value: 'deep',
         label: 'Deep',
-        color: USDC_BLUE,
-        tint: 'rgba(39,117,202,0.12)',
-        textLight: '#1F5FA3',
-        textDark: '#7FB4E0',
+        // Indigo, off the USDC-blue ramp (kept in lockstep with tournamentDefaults
+        // accentFor('deep')) so the money blue stays reserved for prize figures.
+        color: '#6D5DD3',
+        tint: 'rgba(109,93,211,0.12)',
+        textLight: '#4A3CA6',
+        textDark: '#B7ABF2',
         icon: FaLayerGroup,
     },
 ];

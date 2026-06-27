@@ -7,6 +7,7 @@ import {
     Flex,
     HStack,
     Icon,
+    SimpleGrid,
     Table,
     Tbody,
     Td,
@@ -117,6 +118,9 @@ export interface StructureSheetProps {
     defaultOpen?: boolean;
     /** Render without the card chrome (when embedded in another card/panel). */
     bare?: boolean;
+    /** Lobby/detail "ranked" view: a plain-language speed line + four scannable
+     *  facts up top, with the full level table tucked behind "View all levels". */
+    summary?: boolean;
 }
 
 function StructureSheet({
@@ -127,6 +131,7 @@ function StructureSheet({
     onBreak = false,
     defaultOpen = true,
     bare = false,
+    summary = false,
 }: StructureSheetProps) {
     const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: defaultOpen });
     const prefersReducedMotion = usePrefersReducedMotion();
@@ -159,6 +164,15 @@ function StructureSheet({
         'rgba(255, 255, 255, 0.05)'
     );
     const breakText = useColorModeValue('text.secondary', 'text.secondary');
+    // Tonal tiles for the summary facts (a layered inset, not another bordered card).
+    const tileBg = useColorModeValue(
+        'rgba(11, 20, 48, 0.03)',
+        'rgba(255, 255, 255, 0.04)'
+    );
+    const tileBorder = useColorModeValue(
+        'rgba(11, 20, 48, 0.06)',
+        'rgba(255, 255, 255, 0.07)'
+    );
 
     // The full static schedule is purely a function of the structure inputs, but
     // the <Collapse> keeps its children mounted while closed, so without this memo
@@ -190,8 +204,65 @@ function StructureSheet({
             ? currentLevel
             : null;
 
+    // Plain-language speed line + the four facts a player actually scans before
+    // sitting down. Commas, never em dashes (shipped-copy rule).
+    const dur = levelDurationMin(blindStructure);
+    const summaryFacts = [
+        { label: 'Level length', value: `${dur} min` },
+        { label: 'Starting stack', value: `${startBB} BB` },
+        {
+            label: 'Late-reg depth',
+            value: lateRegValid ? `~${closeBB} BB` : '—',
+        },
+        { label: 'Total levels', value: `${levels.length}` },
+    ];
+
     const content = (
         <>
+            {summary && (
+                <Box px={bare ? 0 : { base: 4, md: 6 }} pt={bare ? 0 : 4}>
+                    <Text
+                        fontWeight="bold"
+                        fontSize="md"
+                        color="text.primary"
+                    >
+                        Blind structure
+                    </Text>
+                    <SimpleGrid columns={2} spacing={2} mt={3}>
+                        {summaryFacts.map((f) => (
+                            <Box
+                                key={f.label}
+                                bg={tileBg}
+                                borderWidth="1px"
+                                borderColor={tileBorder}
+                                borderRadius="10px"
+                                px={3}
+                                py={2}
+                            >
+                                <Text
+                                    fontSize="2xs"
+                                    fontWeight="bold"
+                                    color="text.muted"
+                                    textTransform="uppercase"
+                                    letterSpacing="0.05em"
+                                >
+                                    {f.label}
+                                </Text>
+                                <Text
+                                    fontWeight="bold"
+                                    fontSize="sm"
+                                    color="text.primary"
+                                    mt="2px"
+                                    sx={{ fontVariantNumeric: 'tabular-nums' }}
+                                >
+                                    {f.value}
+                                </Text>
+                            </Box>
+                        ))}
+                    </SimpleGrid>
+                </Box>
+            )}
+
             <Flex
                 as="button"
                 type="button"
@@ -201,22 +272,48 @@ function StructureSheet({
                 justify="space-between"
                 gap={3}
                 px={bare ? 0 : { base: 4, md: 6 }}
-                pt={bare ? 0 : 4}
+                pt={summary ? 3 : bare ? 0 : 4}
                 pb={2}
+                mt={summary ? 3 : 0}
+                borderTopWidth={summary ? '1px' : 0}
+                borderColor={border}
                 textAlign="left"
+                aria-expanded={isOpen}
             >
                 <Box minW={0}>
-                    <Text fontWeight="bold" fontSize="md" color="text.primary">
-                        Blind structure
-                    </Text>
-                    <Text fontSize="xs" color="text.muted" noOfLines={1}>
-                        {templateLabel(blindStructure)} ·{' '}
-                        {levelDurationMin(blindStructure)}-min levels · start{' '}
-                        {startingStack.toLocaleString('en-US')} ({startBB} BB)
-                        {lateRegValid
-                            ? ` · late reg ends L${lateRegLevels} (~${closeBB} BB)`
-                            : ''}
-                    </Text>
+                    {summary ? (
+                        <Text
+                            fontWeight="semibold"
+                            fontSize="sm"
+                            color="text.secondary"
+                        >
+                            {isOpen ? 'Hide levels' : 'View all levels'}
+                        </Text>
+                    ) : (
+                        <>
+                            <Text
+                                fontWeight="bold"
+                                fontSize="md"
+                                color="text.primary"
+                            >
+                                Blind structure
+                            </Text>
+                            <Text
+                                fontSize="xs"
+                                color="text.muted"
+                                noOfLines={1}
+                            >
+                                {templateLabel(blindStructure)} ·{' '}
+                                {levelDurationMin(blindStructure)}-min levels ·
+                                start{' '}
+                                {startingStack.toLocaleString('en-US')} (
+                                {startBB} BB)
+                                {lateRegValid
+                                    ? ` · late reg ends L${lateRegLevels} (~${closeBB} BB)`
+                                    : ''}
+                            </Text>
+                        </>
+                    )}
                 </Box>
                 <Icon
                     as={FiChevronDown}

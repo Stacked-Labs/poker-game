@@ -27,6 +27,39 @@ describe('shouldReconnectForAuthUpgrade — legitimate upgrades', () => {
     });
 });
 
+describe('shouldReconnectForAuthUpgrade — issue #322: free seat survives sign-in', () => {
+    // A player who SAT DOWN at a free table before signing in keeps their seat when they sign in.
+    // The seat is preserved on the backend (BindWalletToSeatedFreePlayer at SIWE verify +
+    // TryReclaimSeat on reconnect), but ONLY if the frontend actually force-reconnects the socket
+    // so the server can upgrade/reclaim it. This decision is that trigger — if it stops firing on
+    // the spectator→authenticated transition, the seated free player is stranded as a spectator
+    // and "can't act" again.
+    it('seated free player signs in (spectator socket → cookie authenticated) → reconnect', () => {
+        expect(
+            shouldReconnectForAuthUpgrade(snap(false, null), snap(true, X))
+        ).toBe(true);
+    });
+
+    it('fires as soon as the cookie is authenticated, even before sessionWallet has resolved', () => {
+        // getAuthStatus() can report isAuth=true a beat before the address is populated. We must
+        // still reconnect immediately: the backend reclaims the seat via the wallet→UUID binding
+        // regardless of whether the client knows its own session wallet yet, so there is no reason
+        // to wait (waiting would leave the player on the stale spectator-phase socket).
+        expect(
+            shouldReconnectForAuthUpgrade(snap(false, null), snap(true, null))
+        ).toBe(true);
+        expect(
+            shouldReconnectForAuthUpgrade(snap(false, null), snap(true, ''))
+        ).toBe(true);
+    });
+
+    it('disconnecting the wallet afterwards does NOT fire here — losing the seat on disconnect is intended and owned by the separate downgrade effect', () => {
+        expect(
+            shouldReconnectForAuthUpgrade(snap(true, X), snap(false, null))
+        ).toBe(false);
+    });
+});
+
 describe('shouldReconnectForAuthUpgrade — must NOT reconnect (the silent-loop regression guards)', () => {
     it('steady authenticated, identical session → no reconnect', () => {
         expect(shouldReconnectForAuthUpgrade(snap(true, X), snap(true, X))).toBe(

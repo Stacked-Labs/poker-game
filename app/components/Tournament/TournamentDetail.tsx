@@ -44,7 +44,6 @@ import {
     FiGlobe,
     FiLink,
     FiShield,
-    FiUser,
     FiX,
 } from 'react-icons/fi';
 import { FaChartLine, FaDiscord, FaTelegram } from 'react-icons/fa';
@@ -76,7 +75,17 @@ import {
     TournamentDefaultAvatar,
     TournamentDefaultCover,
 } from '../PublicGames/tournamentDefaults';
-import { placesPaid, projectedPrizePoolUsdc } from '../PublicGames/payouts';
+import {
+    bbAtLateRegClose,
+    levelDurationMin,
+    startingBigBlinds,
+    templateLabel,
+} from '../PublicGames/blindStructures';
+import {
+    payoutForPosition,
+    placesPaid,
+    projectedPrizePoolUsdc,
+} from '../PublicGames/payouts';
 import { shortenAddress } from '@/app/utils/address';
 
 // LeaderboardPlayer now lives in app/interfaces (shared with the live-tournament
@@ -175,6 +184,12 @@ export interface TournamentDetailProps {
 const dotPulse = keyframes`
     0%, 100% { box-shadow: 0 0 0 0 rgba(54, 163, 123, 0.5); }
     50%      { box-shadow: 0 0 0 5px rgba(54, 163, 123, 0); }
+`;
+// Broadcast-style "live" pulse for the sticky action bar: a Neon Stake ring that
+// breathes outward, so a running tournament reads as on-air at a glance.
+const livePulseRed = keyframes`
+    0%, 100% { box-shadow: 0 0 0 0 rgba(235, 11, 92, 0.55); }
+    50%      { box-shadow: 0 0 0 6px rgba(235, 11, 92, 0); }
 `;
 // Progress bar grows from the left on mount; a soft highlight sweeps across it.
 const fillGrow = keyframes`
@@ -452,6 +467,25 @@ const LINK_FIELDS: {
     },
 ];
 
+// Labeled-chip styling for the co-branded "Presented by" row on the detail hero.
+// Tonal, not saturated brand-color pills: a hairline chip with a tone-tinted icon
+// and a plain-text action label. Chart stays out of Felt Green so it never
+// competes with the green Register CTA (the one action that owns that color).
+const SOCIAL_INK: Record<SocialTone, string> = {
+    x: 'text.primary',
+    discord: '#5865F2',
+    telegram: '#229ED9',
+    website: 'text.secondary',
+    chart: 'brand.navy',
+};
+const SOCIAL_ACTION: Record<SocialTone, string> = {
+    x: 'Follow',
+    discord: 'Discord',
+    telegram: 'Telegram',
+    website: 'Website',
+    chart: 'Chart',
+};
+
 // Host community link-outs (X, website, Discord, Telegram, and a provider-
 // agnostic chart). Quiet monochrome chips for everyone; the host gets
 // click-to-edit, with an "Add community links" prompt when empty. Frontend
@@ -460,10 +494,14 @@ function CommunityLinks({
     value,
     canEdit,
     onSave,
+    labeled = false,
 }: {
     value: CommunityLinkValues;
     canEdit: boolean;
     onSave: (links: CommunityLinkValues) => void;
+    /** Co-brand hero row: render labeled chips (icon + "Follow"/"Discord"/…)
+     *  instead of the compact icon-only chips used elsewhere. */
+    labeled?: boolean;
 }) {
     const [editing, setEditing] = useState(false);
     const [draft, setDraft] = useState<CommunityLinkValues>(value);
@@ -475,11 +513,26 @@ function CommunityLinks({
         'rgba(11, 20, 48, 0.03)',
         'rgba(255, 255, 255, 0.04)'
     );
+    const chipHover = useColorModeValue(
+        'rgba(11, 20, 48, 0.06)',
+        'rgba(255, 255, 255, 0.07)'
+    );
 
-    const present: { label: string; tone: SocialTone; href: string }[] = [];
+    const present: {
+        label: string;
+        tone: SocialTone;
+        href: string;
+        icon: IconType;
+    }[] = [];
     for (const f of LINK_FIELDS) {
         const href = value[f.key]?.trim();
-        if (href) present.push({ label: f.label, tone: f.tone, href });
+        if (href)
+            present.push({
+                label: f.label,
+                tone: f.tone,
+                href,
+                icon: f.icon,
+            });
     }
 
     const begin = () => {
@@ -563,6 +616,68 @@ function CommunityLinks({
             >
                 Add community links
             </Button>
+        );
+    }
+
+    if (labeled) {
+        return (
+            <HStack spacing={2} role="group" flexWrap="wrap">
+                {present.map((f) => (
+                    <Link
+                        key={f.label}
+                        href={f.href}
+                        isExternal
+                        aria-label={`${SOCIAL_ACTION[f.tone]} on ${f.label}`}
+                        borderRadius="10px"
+                        textDecoration="none !important"
+                        _focusVisible={{
+                            outline: '2px solid',
+                            outlineColor: 'brand.green',
+                            outlineOffset: '2px',
+                        }}
+                    >
+                        <HStack
+                            as="span"
+                            spacing={2}
+                            h="34px"
+                            px={3}
+                            borderRadius="10px"
+                            borderWidth="1px"
+                            borderColor={chipBorder}
+                            bg={editorBg}
+                            transition="background-color 120ms ease"
+                            _hover={{ bg: chipHover }}
+                        >
+                            <Icon
+                                as={f.icon}
+                                boxSize="14px"
+                                color={SOCIAL_INK[f.tone]}
+                                flexShrink={0}
+                            />
+                            <Text
+                                fontSize="sm"
+                                fontWeight="bold"
+                                color="text.primary"
+                                whiteSpace="nowrap"
+                            >
+                                {SOCIAL_ACTION[f.tone]}
+                            </Text>
+                        </HStack>
+                    </Link>
+                ))}
+                {canEdit && (
+                    <IconButton
+                        aria-label="Edit community links"
+                        icon={<Icon as={FiEdit2} boxSize="14px" />}
+                        size="sm"
+                        variant="tactileGhost"
+                        color="text.muted"
+                        opacity={{ base: 1, md: 0 }}
+                        _groupHover={{ opacity: 1 }}
+                        onClick={begin}
+                    />
+                )}
+            </HStack>
         );
     }
 
@@ -653,20 +768,14 @@ export default function TournamentDetail({
         'rgba(54, 163, 123, 0.08)',
         'rgba(54, 163, 123, 0.16)'
     );
+    // Felt-green wash behind the elevated 24h-self-withdraw trust line.
+    const trustBg = useColorModeValue(
+        'rgba(54, 163, 123, 0.08)',
+        'rgba(54, 163, 123, 0.13)'
+    );
+    const prefersReducedMotion = usePrefersReducedMotion();
     const yellowText = useColorModeValue('brand.yellowDark', 'brand.yellow');
     const linkColor = useColorModeValue('brand.navy', 'brand.lightGray');
-    // Faint chip behind the back button so it stays legible over the ambient wash.
-    const navBackdrop = useColorModeValue(
-        'rgba(255, 255, 255, 0.6)',
-        'rgba(11, 20, 48, 0.4)'
-    );
-    // Page-bg-colored wash over the blurred banner. Tuned so the page clearly
-    // takes on the tournament's colors while text on the surface stays legible
-    // (cards are opaque on top). Lighter scrim = more of the image shows through.
-    const ambientScrim = useColorModeValue(
-        'rgba(236, 238, 245, 0.58)',
-        'rgba(25, 20, 20, 0.62)'
-    );
 
     const freePlay = getIsFreePlay(t);
     const tableSize = t.table_size || 9;
@@ -676,7 +785,7 @@ export default function TournamentDetail({
     // Default branding (used when the host uploaded no logo/banner): the type's
     // icon avatar + a card-suit cover wallpaper in the type's accent color.
     const typeIdentity = identityFor(blindLabel);
-    const avatarSize = useBreakpointValue({ base: 96, md: 112 }) ?? 112;
+    const avatarSize = useBreakpointValue({ base: 84, md: 96 }) ?? 96;
 
     const now = new Date();
     const lateRegCloseAt = new Date(t.late_reg_close_at);
@@ -935,8 +1044,47 @@ export default function TournamentDetail({
             lateRegLevels={t.late_reg_levels}
             currentLevel={blindLevel}
             onBreak={onBreak}
+            summary
+            defaultOpen={false}
         />
     );
+
+    // Hero-derived facts: the prize ladder summary line, the computed speed-feel
+    // sentence (commas, no em dashes), and the host attribution handle.
+    const heroPaidPlaces = placesPaid(effectiveEntrants);
+    const heroItmPct =
+        effectiveEntrants > 0
+            ? Math.round((heroPaidPlaces / effectiveEntrants) * 100)
+            : 0;
+    const heroTopPrize = payoutForPosition(
+        1,
+        effectiveEntrants,
+        effectivePrizePool
+    );
+    const heroProjecting =
+        t.status === 'registration' || t.status === 'pending';
+    const showPayline =
+        !freePlay &&
+        heroPaidPlaces > 0 &&
+        (t.status === 'registration' ||
+            t.status === 'pending' ||
+            t.status === 'running' ||
+            t.status === 'completed');
+    const heroStartBB = startingBigBlinds(t.starting_stack, blindLabel);
+    const heroLateRegValid = t.late_reg_levels > 0;
+    const heroCloseBB = bbAtLateRegClose(
+        t.starting_stack,
+        blindLabel,
+        t.late_reg_levels
+    );
+    const showTrust =
+        !freePlay &&
+        !!t.contract_address &&
+        !!t.chain &&
+        (t.status === 'registration' ||
+            t.status === 'pending' ||
+            t.status === 'running');
+    const hostHandle = xHandle(t.x_url);
 
     // About card: the Host's (possibly tall, formatted) description, in its own
     // readable body card. Shown when there is content, or to the Host so they can
@@ -951,10 +1099,88 @@ export default function TournamentDetail({
                 border={border}
             />
         ) : null;
-    const hasLeftColumn = !!(aboutEl || standingsEl);
+    const hasMainColumn = !!(aboutEl || standingsEl);
+
+    // Live: is the viewer's current place in the money?
+    const inMoney =
+        myLadderPos != null &&
+        heroPaidPlaces > 0 &&
+        myLadderPos <= heroPaidPlaces;
+
+    // Mobile sticky action bar: the phase decision, always reachable. Each state
+    // carries a small status dot so it pops and reads differently at a glance;
+    // the live state gets a breathing Neon Stake "on-air" pulse.
+    let stickyFact: {
+        label: string;
+        value: string;
+        dot: string;
+        pulse: boolean;
+    } | null = null;
+    let stickyAction: {
+        label: string;
+        loading: boolean;
+        onClick: () => void;
+    } | null = null;
+    if (canRegister || canLateReg) {
+        stickyFact = freePlay
+            ? {
+                  label: 'Free Play',
+                  value: 'No buy-in',
+                  dot: 'brand.green',
+                  pulse: false,
+              }
+            : {
+                  label: canLateReg ? 'Late reg open' : 'Buy-in',
+                  value: canLateReg
+                      ? `$${formatUsdc(t.buy_in_usdc)} to join`
+                      : `$${formatUsdc(t.buy_in_usdc)}`,
+                  dot: canLateReg ? 'brand.yellow' : 'brand.green',
+                  pulse: false,
+              };
+        stickyAction = {
+            label: !isSignedIn
+                ? 'Sign in'
+                : canLateReg
+                  ? 'Late register'
+                  : freePlay
+                    ? 'Join'
+                    : 'Register',
+            loading: actionLoading,
+            onClick: () => onRegister?.(false),
+        };
+    } else if (t.status === 'running' && isRegistered && !isEliminated) {
+        stickyFact = {
+            label: 'Live',
+            value: blindLevel != null ? `Level ${blindLevel}` : 'You’re in',
+            dot: 'brand.pink',
+            pulse: true,
+        };
+        stickyAction = {
+            label: 'Go to my table',
+            loading: goToTableLoading,
+            onClick: () => onGoToTable?.(),
+        };
+    } else if (canReenter) {
+        stickyFact = {
+            label: 'Eliminated',
+            value: 'Re-entry open',
+            dot: 'brand.yellow',
+            pulse: false,
+        };
+        stickyAction = {
+            label: 'Re-enter',
+            loading: actionLoading,
+            onClick: () => onRegister?.(true),
+        };
+    }
 
     return (
-        <Flex direction="column" minH="100vh" bg="card.lightGray">
+        <Flex
+            direction="column"
+            minH="100vh"
+            bg="card.lightGray"
+            pb={{ base: '76px', lg: 0 }}
+        >
             <Box
                 flex="1"
                 pt={{ base: 20, md: 24 }}
@@ -962,30 +1188,6 @@ export default function TournamentDetail({
                 position="relative"
                 overflow="hidden"
             >
-                {/* Ambient background — a blurred wash of the uploaded banner so the
-                whole page takes on the tournament's vibe. Generated tournaments
-                keep the neutral page color. Cards stay opaque on top. */}
-                {bannerUrl && (
-                    <Box
-                        aria-hidden
-                        position="absolute"
-                        inset={0}
-                        zIndex={0}
-                        pointerEvents="none"
-                        overflow="hidden"
-                    >
-                        <Box
-                            position="absolute"
-                            inset={0}
-                            bgImage={`url(${bannerUrl})`}
-                            bgSize="cover"
-                            bgPosition="center"
-                            transform="scale(1.1)"
-                            filter="blur(32px) saturate(1.2)"
-                        />
-                        <Box position="absolute" inset={0} bg={ambientScrim} />
-                    </Box>
-                )}
                 <Container
                     maxW="container.lg"
                     px={{ base: 3, md: 6 }}
@@ -999,8 +1201,6 @@ export default function TournamentDetail({
                             alignSelf="flex-start"
                             leftIcon={<Icon as={FiArrowLeft} />}
                             onClick={onBack}
-                            bg={navBackdrop}
-                            backdropFilter="blur(8px)"
                         >
                             All tournaments
                         </Button>
@@ -1017,7 +1217,7 @@ export default function TournamentDetail({
                             {/* Cover: uploaded banner, else a card-suit wallpaper in
                             the type's accent color over the neutral surface. */}
                             <Box
-                                h={{ base: '140px', md: '184px' }}
+                                h={{ base: '118px', md: '150px' }}
                                 position="relative"
                                 overflow="hidden"
                             >
@@ -1066,7 +1266,7 @@ export default function TournamentDetail({
                                 {/* Avatar (logo or initial) straddles the cover edge. */}
                                 <Flex align="flex-start" gap={3}>
                                     <Box
-                                        mt={{ base: '-50px', md: '-58px' }}
+                                        mt={{ base: '-54px', md: '-62px' }}
                                         borderRadius="22px"
                                         borderWidth="4px"
                                         borderColor={cardBg}
@@ -1112,20 +1312,15 @@ export default function TournamentDetail({
                                     </Box>
                                 </Flex>
 
-                                <VStack align="stretch" spacing={4} mt={3}>
-                                    {/* Name + format */}
-                                    <VStack align="start" spacing={2} minW={0}>
+                                <VStack align="stretch" spacing={3} mt={0}>
+                                    {/* Header in two tight rows: name | status, then
+                                    host + link-outs | format + chain. Pairing the
+                                    left and right content kills the dead space. */}
+                                    <VStack align="stretch" spacing={1.5} minW={0}>
                                         <Flex
-                                            direction={{
-                                                base: 'column',
-                                                md: 'row',
-                                            }}
                                             justify="space-between"
-                                            align={{
-                                                base: 'start',
-                                                md: 'flex-start',
-                                            }}
-                                            gap={{ base: 1.5, md: 4 }}
+                                            align="flex-start"
+                                            gap={3}
                                             w="full"
                                         >
                                             <Text
@@ -1146,15 +1341,131 @@ export default function TournamentDetail({
                                                         ? 'Free-play tournament'
                                                         : 'No-limit Hold’em')}
                                             </Text>
+                                            <Box flexShrink={0}>
+                                                <StatusPill status={t.status} />
+                                            </Box>
+                                        </Flex>
+                                        <Flex
+                                            direction={{
+                                                base: 'column',
+                                                md: 'row',
+                                            }}
+                                            justify="space-between"
+                                            align={{
+                                                base: 'start',
+                                                md: 'flex-start',
+                                            }}
+                                            gap={{ base: 2, md: 4 }}
+                                            rowGap={2}
+                                            w="full"
+                                        >
+                                            {/* Presented by {host} + the community's
+                                            link-outs: the co-branded billboard, one
+                                            host credit (the footer one is removed). */}
+                                            {t.host_wallet ? (
+                                                <Flex
+                                                    align="center"
+                                                    gap={{ base: 2, md: 3 }}
+                                                    flexWrap="wrap"
+                                                    rowGap={2}
+                                                    flex="1"
+                                                    minW={0}
+                                                >
+                                                    <HStack
+                                                        spacing={1.5}
+                                                        fontSize="sm"
+                                                        minW={0}
+                                                    >
+                                                    <Text
+                                                        color="text.secondary"
+                                                        fontWeight="medium"
+                                                        whiteSpace="nowrap"
+                                                    >
+                                                        Presented by
+                                                    </Text>
+                                                    {hostHandle ? (
+                                                        <Box
+                                                            as="a"
+                                                            href={t.x_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            display="inline-flex"
+                                                            alignItems="center"
+                                                            gap="4px"
+                                                            fontWeight="bold"
+                                                            color={linkColor}
+                                                            _hover={{
+                                                                color: 'brand.green',
+                                                                textDecoration:
+                                                                    'underline',
+                                                            }}
+                                                        >
+                                                            <Icon
+                                                                as={FaXTwitter}
+                                                                boxSize="11px"
+                                                            />
+                                                            {hostHandle}
+                                                        </Box>
+                                                    ) : t.chain ? (
+                                                        <Box
+                                                            as="a"
+                                                            href={`${explorerBase(t.chain)}/address/${t.host_wallet}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            fontFamily="mono"
+                                                            fontWeight="bold"
+                                                            color={linkColor}
+                                                            _hover={{
+                                                                color: 'brand.green',
+                                                                textDecoration:
+                                                                    'underline',
+                                                            }}
+                                                        >
+                                                            {shortAddr(
+                                                                t.host_wallet
+                                                            )}
+                                                        </Box>
+                                                    ) : (
+                                                        <Text
+                                                            fontFamily="mono"
+                                                            fontWeight="bold"
+                                                            color="text.secondary"
+                                                        >
+                                                            {shortAddr(
+                                                                t.host_wallet
+                                                            )}
+                                                        </Text>
+                                                    )}
+                                                    {isHost && (
+                                                        <Text
+                                                            fontSize="2xs"
+                                                            fontWeight="bold"
+                                                            color="brand.green"
+                                                            textTransform="uppercase"
+                                                            letterSpacing="0.05em"
+                                                        >
+                                                            you
+                                                        </Text>
+                                                    )}
+                                                </HStack>
+                                                <CommunityLinks
+                                                    value={links}
+                                                    canEdit={isHost}
+                                                    onSave={updateLinks}
+                                                    labeled
+                                                    />
+                                                </Flex>
+                                            ) : (
+                                                <Box flex="1" />
+                                            )}
                                             <VStack
                                                 align={{
                                                     base: 'start',
                                                     md: 'end',
                                                 }}
-                                                spacing={1.5}
+                                                spacing={1}
                                                 flexShrink={0}
                                             >
-                                                <StatusPill status={t.status} />
                                                 <Text
                                                     fontSize="2xs"
                                                     color="text.muted"
@@ -1164,8 +1475,7 @@ export default function TournamentDetail({
                                                     whiteSpace="nowrap"
                                                 >
                                                     {blindLabel} · NLH ·{' '}
-                                                    {tableSize}
-                                                    -max
+                                                    {tableSize}-max
                                                 </Text>
                                                 {!freePlay && t.chain && (
                                                     <ChainBadge
@@ -1175,11 +1485,6 @@ export default function TournamentDetail({
                                                 )}
                                             </VStack>
                                         </Flex>
-                                        <CommunityLinks
-                                            value={links}
-                                            canEdit={isHost}
-                                            onSave={updateLinks}
-                                        />
                                     </VStack>
 
                                     {/* Hero: money + timing */}
@@ -1200,42 +1505,205 @@ export default function TournamentDetail({
                                             blindLevel={blindLevel}
                                             playersLeft={playersLeft}
                                         />
-                                        {!freePlay && !heroShowsBuyIn && (
-                                            <Stat label="Buy-in">
-                                                <HStack spacing={1}>
-                                                    <Image
-                                                        src={USDC_LOGO}
-                                                        alt=""
-                                                        boxSize="14px"
-                                                        flexShrink={0}
-                                                    />
+                                    </Flex>
+
+                                    {/* Payouts summary line: how many places pay,
+                                    and the top prize (projected pre-start). */}
+                                    {showPayline && (
+                                        <Text
+                                            fontSize="sm"
+                                            color="text.secondary"
+                                            fontWeight="semibold"
+                                        >
+                                            Pays top{' '}
+                                            <Text
+                                                as="span"
+                                                color="text.primary"
+                                                fontWeight="bold"
+                                            >
+                                                {heroPaidPlaces}
+                                            </Text>{' '}
+                                            (~{heroItmPct}% of field)
+                                            {heroTopPrize > 0 && (
+                                                <>
+                                                    {' · top prize '}
                                                     <Text
+                                                        as="span"
+                                                        color="text.primary"
                                                         fontWeight="bold"
-                                                        color={USDC_BLUE}
                                                         sx={{
                                                             fontVariantNumeric:
                                                                 'tabular-nums',
                                                         }}
                                                     >
+                                                        {heroProjecting
+                                                            ? '~'
+                                                            : ''}
                                                         $
-                                                        {formatUsdc(
-                                                            t.buy_in_usdc
+                                                        {formatUsdcAuto(
+                                                            heroTopPrize
                                                         )}
                                                     </Text>
-                                                </HStack>
-                                            </Stat>
-                                        )}
-                                        {t.reentry_allowed && (
-                                            <Stat label="Re-entry">
+                                                    {heroProjecting
+                                                        ? ' projected'
+                                                        : ''}
+                                                </>
+                                            )}
+                                        </Text>
+                                    )}
+
+                                    {/* Speed-feel sentence (commas, no em dashes). */}
+                                    <Text
+                                        fontSize="sm"
+                                        color="text.secondary"
+                                        lineHeight="1.45"
+                                    >
+                                        <Text
+                                            as="span"
+                                            color="brand.green"
+                                            fontWeight="semibold"
+                                        >
+                                            {templateLabel(blindLabel)} speed,{' '}
+                                            {levelDurationMin(blindLabel)}-minute
+                                            levels.
+                                        </Text>{' '}
+                                        {heroLateRegValid
+                                            ? `About ${heroCloseBB} big blinds left when late registration closes.`
+                                            : `You start with about ${heroStartBB} big blinds.`}
+                                    </Text>
+
+                                    {/* Ticket-stub fact strip (conditional cells). */}
+                                    {(() => {
+                                        const cells: {
+                                            label: string;
+                                            node: ReactNode;
+                                        }[] = [];
+                                        if (!freePlay && !heroShowsBuyIn) {
+                                            cells.push({
+                                                label: 'Buy-in',
+                                                node: (
+                                                    <HStack spacing={1}>
+                                                        <Image
+                                                            src={USDC_LOGO}
+                                                            alt=""
+                                                            boxSize="14px"
+                                                            flexShrink={0}
+                                                        />
+                                                        <Text
+                                                            fontWeight="bold"
+                                                            color={USDC_BLUE}
+                                                            sx={{
+                                                                fontVariantNumeric:
+                                                                    'tabular-nums',
+                                                            }}
+                                                        >
+                                                            $
+                                                            {formatUsdc(
+                                                                t.buy_in_usdc
+                                                            )}
+                                                        </Text>
+                                                    </HStack>
+                                                ),
+                                            });
+                                        }
+                                        cells.push({
+                                            label: 'Starting stack',
+                                            node: (
                                                 <Text
-                                                    fontWeight="semibold"
+                                                    fontWeight="bold"
                                                     color="text.primary"
+                                                    sx={{
+                                                        fontVariantNumeric:
+                                                            'tabular-nums',
+                                                    }}
                                                 >
-                                                    up to {t.reentry_max}×
+                                                    {heroStartBB} BB
                                                 </Text>
-                                            </Stat>
-                                        )}
-                                    </Flex>
+                                            ),
+                                        });
+                                        if (t.reentry_allowed) {
+                                            cells.push({
+                                                label: 'Re-entry',
+                                                node: (
+                                                    <Text
+                                                        fontWeight="bold"
+                                                        color="text.primary"
+                                                        sx={{
+                                                            fontVariantNumeric:
+                                                                'tabular-nums',
+                                                        }}
+                                                    >
+                                                        up to {t.reentry_max}×
+                                                    </Text>
+                                                ),
+                                            });
+                                        }
+                                        if (
+                                            heroLateRegValid &&
+                                            (heroProjecting ||
+                                                t.status === 'running')
+                                        ) {
+                                            cells.push({
+                                                label: 'Late reg',
+                                                node: (
+                                                    <Text
+                                                        fontWeight="bold"
+                                                        color="text.primary"
+                                                        sx={{
+                                                            fontVariantNumeric:
+                                                                'tabular-nums',
+                                                        }}
+                                                    >
+                                                        {t.late_reg_levels}{' '}
+                                                        {t.late_reg_levels === 1
+                                                            ? 'level'
+                                                            : 'levels'}
+                                                    </Text>
+                                                ),
+                                            });
+                                        }
+                                        return (
+                                            <Flex
+                                                borderWidth="1px"
+                                                borderColor={border}
+                                                borderRadius="12px"
+                                                overflow="hidden"
+                                                flexWrap="wrap"
+                                            >
+                                                {cells.map((c, i) => (
+                                                    <Box
+                                                        key={c.label}
+                                                        flex="1 1 0"
+                                                        minW="92px"
+                                                        px={3}
+                                                        py={2}
+                                                        borderRightWidth={
+                                                            i < cells.length - 1
+                                                                ? '1px'
+                                                                : 0
+                                                        }
+                                                        borderColor={border}
+                                                    >
+                                                        <Text
+                                                            fontSize="2xs"
+                                                            color="text.muted"
+                                                            textTransform="uppercase"
+                                                            letterSpacing="0.08em"
+                                                            fontWeight="semibold"
+                                                        >
+                                                            {c.label}
+                                                        </Text>
+                                                        <Box
+                                                            mt="2px"
+                                                            fontSize="sm"
+                                                        >
+                                                            {c.node}
+                                                        </Box>
+                                                    </Box>
+                                                ))}
+                                            </Flex>
+                                        );
+                                    })()}
 
                                     {/* Players fill */}
                                     <PlayersBar
@@ -1262,6 +1730,46 @@ export default function TournamentDetail({
                                                 t.late_reg_close_at
                                             )}
                                         </Text>
+                                    )}
+
+                                    {/* The trust story, led with (not a footer
+                                    footnote): funds in the table's contract + the
+                                    24-hour self-withdraw safety net. */}
+                                    {showTrust && (
+                                        <HStack
+                                            align="flex-start"
+                                            spacing={2.5}
+                                            bg={trustBg}
+                                            borderRadius="12px"
+                                            px={3.5}
+                                            py={3}
+                                        >
+                                            <Icon
+                                                as={FiShield}
+                                                boxSize="16px"
+                                                color="brand.green"
+                                                flexShrink={0}
+                                                mt="1px"
+                                            />
+                                            <Text
+                                                fontSize="sm"
+                                                color="text.secondary"
+                                                lineHeight="1.45"
+                                            >
+                                                <Text
+                                                    as="span"
+                                                    color="text.primary"
+                                                    fontWeight="bold"
+                                                >
+                                                    Held in the table&apos;s
+                                                    contract.
+                                                </Text>{' '}
+                                                If prizes aren&apos;t paid out,
+                                                any player can withdraw their own
+                                                funds 24 hours after the end, no
+                                                permission needed.
+                                            </Text>
+                                        </HStack>
                                     )}
 
                                     {/* Footer: contract details (left), action or payout status (right) */}
@@ -1325,13 +1833,6 @@ export default function TournamentDetail({
                                                         </Box>
                                                     </HStack>
                                                 )}
-                                            {t.host_wallet && (
-                                                <HostedByLine
-                                                    tournament={t}
-                                                    linkColor={linkColor}
-                                                    isHost={isHost}
-                                                />
-                                            )}
                                         </VStack>
                                         {t.status === 'completed' &&
                                         !freePlay &&
@@ -1411,15 +1912,108 @@ export default function TournamentDetail({
                             </Box>
                         </Box>
 
-                        {/* Desktop (lg+): two columns — standings (left) · payouts
-                        over structure (right). */}
+                        {/* Live: the player's own standing, pinned at the top of
+                        the body (their actual question while a tournament runs). */}
+                        {t.status === 'running' &&
+                            myPlayer &&
+                            !isEliminated && (
+                                <Flex
+                                    bg={meHighlight}
+                                    borderRadius="14px"
+                                    px={{ base: 4, md: 5 }}
+                                    py={3}
+                                    align="center"
+                                    justify="space-between"
+                                    gap={3}
+                                    flexWrap="wrap"
+                                >
+                                    <HStack spacing={4} minW={0}>
+                                        <VStack align="start" spacing={0}>
+                                            <Text
+                                                fontSize="2xs"
+                                                color="text.muted"
+                                                textTransform="uppercase"
+                                                letterSpacing="0.08em"
+                                                fontWeight="semibold"
+                                            >
+                                                Your position
+                                            </Text>
+                                            <Text
+                                                fontWeight="bold"
+                                                color="text.primary"
+                                                sx={{
+                                                    fontVariantNumeric:
+                                                        'tabular-nums',
+                                                }}
+                                            >
+                                                {myLadderPos
+                                                    ? `${myLadderPos}${
+                                                          playersLeft > 0
+                                                              ? ` of ${playersLeft}`
+                                                              : ''
+                                                      }`
+                                                    : 'In play'}
+                                            </Text>
+                                        </VStack>
+                                        <VStack align="start" spacing={0}>
+                                            <Text
+                                                fontSize="2xs"
+                                                color="text.muted"
+                                                textTransform="uppercase"
+                                                letterSpacing="0.08em"
+                                                fontWeight="semibold"
+                                            >
+                                                Your stack
+                                            </Text>
+                                            <Text
+                                                fontWeight="bold"
+                                                color="text.primary"
+                                                sx={{
+                                                    fontVariantNumeric:
+                                                        'tabular-nums',
+                                                }}
+                                            >
+                                                {myPlayer.stack.toLocaleString(
+                                                    'en-US'
+                                                )}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                    <HStack
+                                        spacing={2}
+                                        color={
+                                            inMoney
+                                                ? 'brand.green'
+                                                : 'text.secondary'
+                                        }
+                                    >
+                                        <Icon
+                                            as={inMoney ? FiCheck : FiClock}
+                                            boxSize="14px"
+                                        />
+                                        <Text
+                                            fontSize="sm"
+                                            fontWeight="bold"
+                                        >
+                                            {inMoney
+                                                ? 'In the money'
+                                                : `${heroPaidPlaces} places paid`}
+                                        </Text>
+                                    </HStack>
+                                </Flex>
+                            )}
+
+                        {/* Desktop (lg+): asymmetric two columns. Wide main = the
+                        community narrative (About first, since hosts put extra
+                        prizes / house rules there), then standings/registrants.
+                        Narrow rail = the prize ladder over the blind structure. */}
                         <Flex
                             display={{ base: 'none', lg: 'flex' }}
                             direction="row"
                             align="flex-start"
                             gap={6}
                         >
-                            {hasLeftColumn && (
+                            {hasMainColumn && (
                                 <VStack
                                     align="stretch"
                                     spacing={6}
@@ -1430,14 +2024,14 @@ export default function TournamentDetail({
                                     {standingsEl}
                                 </VStack>
                             )}
-                            {/* Fixed 360px beside the left column; grows to fill when
-                            there is no left column (e.g. cancelled, empty field,
-                            no description) so the cards don't orphan left. */}
+                            {/* Fixed 360px rail; grows to fill when there is no
+                            main column (e.g. cancelled, empty field) so the rail
+                            cards don't orphan left. */}
                             <VStack
                                 align="stretch"
                                 spacing={6}
-                                w={hasLeftColumn ? '360px' : 'full'}
-                                flexShrink={hasLeftColumn ? 0 : 1}
+                                w={hasMainColumn ? '360px' : 'full'}
+                                flexShrink={hasMainColumn ? 0 : 1}
                             >
                                 {payoutsEl}
                                 {structureEl}
@@ -1472,6 +2066,77 @@ export default function TournamentDetail({
                     </VStack>
                 </Container>
             </Box>
+
+            {/* Mobile sticky action bar (graft from the "decision rail"): the
+            phase fact + phase CTA, always reachable without scrolling. Hidden on
+            desktop, where the hero CTA stays in view. */}
+            {stickyFact && stickyAction && (
+                <Flex
+                    display={{ base: 'flex', lg: 'none' }}
+                    position="fixed"
+                    bottom={0}
+                    left={0}
+                    right={0}
+                    zIndex={20}
+                    align="center"
+                    justify="space-between"
+                    gap={3}
+                    bg={cardBg}
+                    borderTopWidth="1px"
+                    borderColor={border}
+                    px={4}
+                    pt={3}
+                    boxShadow="0 -6px 24px rgba(11, 20, 48, 0.12)"
+                    sx={{
+                        paddingBottom:
+                            'max(0.75rem, env(safe-area-inset-bottom))',
+                    }}
+                >
+                    <Box minW={0}>
+                        <HStack spacing={1.5}>
+                            <Box
+                                w="8px"
+                                h="8px"
+                                borderRadius="full"
+                                bg={stickyFact.dot}
+                                flexShrink={0}
+                                aria-hidden
+                                animation={
+                                    stickyFact.pulse && !prefersReducedMotion
+                                        ? `${livePulseRed} 1.8s ease-in-out infinite`
+                                        : undefined
+                                }
+                            />
+                            <Text
+                                fontSize="2xs"
+                                color="text.muted"
+                                textTransform="uppercase"
+                                letterSpacing="0.08em"
+                                fontWeight="semibold"
+                            >
+                                {stickyFact.label}
+                            </Text>
+                        </HStack>
+                        <Text
+                            fontWeight="bold"
+                            color="text.primary"
+                            noOfLines={1}
+                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                            {stickyFact.value}
+                        </Text>
+                    </Box>
+                    <Button
+                        variant="tactilePrimary"
+                        minH="44px"
+                        flexShrink={0}
+                        isLoading={stickyAction.loading}
+                        onClick={stickyAction.onClick}
+                    >
+                        {stickyAction.label}
+                    </Button>
+                </Flex>
+            )}
             <Footer />
         </Flex>
     );
@@ -1586,9 +2251,9 @@ function RegistrantsPanel({
                             borderRadius="full"
                             overflow="hidden"
                             boxShadow={`0 0 0 2px ${ring}`}
-                            transition="transform 140ms ease-out"
+                            transition="box-shadow 140ms ease-out"
                             _hover={{
-                                transform: 'translateY(-3px)',
+                                boxShadow: `0 0 0 2px ${ring}, 0 0 0 4px var(--chakra-colors-brand-green)`,
                                 zIndex: 1,
                             }}
                             position="relative"
@@ -1753,37 +2418,46 @@ function MoneyHero({
     tournament: t,
     freePlay,
     finalPrizePoolUsdc,
+    scale = 'hero',
 }: {
     tournament: Tournament;
     freePlay: boolean;
     finalPrizePoolUsdc?: number;
+    /** 'hero' = the page's protagonist figure; 'stat' = a smaller secondary read
+     *  (e.g. beside the live blind level). */
+    scale?: 'hero' | 'stat';
 }) {
+    // The pool/prize leads in USDC blue to rhyme with the USDC coin mark and the
+    // payout ladder (a lighter blue in dark mode so the big figure clears AA).
+    const moneyColor = useColorModeValue(USDC_BLUE, '#5C9DEF');
+    const projecting = t.status === 'registration' || t.status === 'pending';
+
     let label = 'Buy-in';
     let value = `$${formatUsdc(t.buy_in_usdc)}`;
-    let suffix: string | undefined;
+    let caption: string | undefined;
     if (freePlay) {
         label = 'Entry';
         value = 'Free';
     } else if (t.guarantee_usdc > 0) {
         label = 'Guaranteed pool';
         value = `$${formatUsdcAuto(t.guarantee_usdc)}`;
-        suffix = 'GTD';
+        caption = 'Guaranteed by the host, grows with the field';
     } else if (t.prize_pool_usdc > 0) {
         label = 'Prize pool';
         value = `$${formatUsdcAuto(t.prize_pool_usdc)}`;
     }
     // Registration/pending: once the live field's projected pool overtakes the
-    // guarantee floor, lead with the bigger projected number instead of a now-stale
-    // GTD, keeping the hero in step with the projected payout ladder.
+    // guarantee floor, lead with the bigger projected number, in step with the
+    // projected payout ladder. Plain-language caption, never bare "GTD".
     if (
         !freePlay &&
-        (t.status === 'registration' || t.status === 'pending') &&
+        projecting &&
         t.guarantee_usdc > 0 &&
         (finalPrizePoolUsdc ?? 0) > t.guarantee_usdc
     ) {
         label = 'Projected pool';
         value = `$${formatUsdcAuto(finalPrizePoolUsdc as number)}`;
-        suffix = undefined;
+        caption = 'Projected, grows as players register';
     }
     if (
         !freePlay &&
@@ -1791,25 +2465,28 @@ function MoneyHero({
         (finalPrizePoolUsdc ?? 0) > t.guarantee_usdc
     ) {
         // Underway: entries are locked, so the pool is realized, not projected.
-        // When it cleared the guarantee, lead with the real figure (matching the
-        // payout ladder) instead of the now-stale GTD floor.
         label = 'Prize pool';
         value = `$${formatUsdcAuto(finalPrizePoolUsdc as number)}`;
-        suffix = undefined;
+        caption = undefined;
     }
     if (t.status === 'completed' && (finalPrizePoolUsdc ?? 0) > 0) {
-        // Once settled, lead with the full prize pool that was paid out — the
-        // realized figure (sum of every payout), not the guarantee or the stale
-        // stored pool — and drop the GTD suffix since it's no longer a promise.
+        // Settled: lead with the realized pool that was paid out (sum of payouts).
         label = 'Prize pool';
-        const pool = finalPrizePoolUsdc as number;
-        value = `$${formatUsdcAuto(pool)}`;
-        suffix = undefined;
+        value = `$${formatUsdcAuto(finalPrizePoolUsdc as number)}`;
+        caption = 'Paid out in full';
+    }
+    if (t.status === 'cancelled' || t.status === 'emergency_refund') {
+        // No live present-tense framing once it's off: the pool never filled.
+        caption =
+            t.status === 'cancelled'
+                ? 'Tournament cancelled, buy-ins refundable'
+                : 'Refunds open, withdraw your buy-in';
     }
     const usdc = !freePlay;
+    const isHero = scale === 'hero';
 
     return (
-        <VStack align="start" spacing={0.5} minW={0}>
+        <VStack align="start" spacing={1} minW={0}>
             <Text
                 fontSize="2xs"
                 color="text.muted"
@@ -1824,34 +2501,32 @@ function MoneyHero({
                     <Image
                         src={USDC_LOGO}
                         alt=""
-                        boxSize={{ base: '22px', md: '26px' }}
+                        boxSize={
+                            isHero ? { base: '22px', md: '26px' } : '18px'
+                        }
                         flexShrink={0}
                     />
                 )}
                 <Text
                     fontWeight="bold"
-                    fontSize={{ base: '3xl', md: '4xl' }}
+                    fontSize={
+                        isHero ? { base: '3xl', md: '4xl' } : { base: 'xl', md: '2xl' }
+                    }
                     lineHeight="1"
                     letterSpacing="-0.02em"
-                    color={usdc ? USDC_BLUE : 'text.primary'}
+                    color={usdc ? moneyColor : 'text.primary'}
                     noOfLines={1}
                     minW={0}
                     sx={{ fontVariantNumeric: 'tabular-nums' }}
                 >
                     {value}
                 </Text>
-                {suffix && (
-                    <Text
-                        fontSize="sm"
-                        fontWeight="bold"
-                        color={USDC_BLUE}
-                        letterSpacing="0.06em"
-                        flexShrink={0}
-                    >
-                        {suffix}
-                    </Text>
-                )}
             </HStack>
+            {caption && isHero && (
+                <Text fontSize="xs" color="text.secondary" fontWeight="medium">
+                    {caption}
+                </Text>
+            )}
         </VStack>
     );
 }
@@ -2359,8 +3034,8 @@ function HostPanel({
                         isLoading={actionLoading}
                         onClick={onFundAndOpen}
                     >
-                        Fund ${formatUsdcAuto(t.guarantee_usdc)}{' '}
-                        GTD &amp; open registration
+                        Fund ${formatUsdcAuto(t.guarantee_usdc)} guarantee &amp;
+                        open registration
                     </Button>
                 </VStack>
             )}
@@ -2916,93 +3591,6 @@ function Standings({
                 </Table>
             </Box>
         </Box>
-    );
-}
-
-// Subtle host attribution for the main details card: the host's X handle (when
-// they've added one) and their wallet, both linked. Sits beside the contract
-// trust line so "who runs this table" is one quiet glance away.
-function HostedByLine({
-    tournament: t,
-    linkColor,
-    isHost,
-}: {
-    tournament: Tournament;
-    linkColor: string;
-    isHost: boolean;
-}) {
-    const handle = xHandle(t.x_url);
-    return (
-        <HStack spacing={1.5} fontSize="xs" color="text.muted" minW={0}>
-            <Icon as={FiUser} boxSize="12px" flexShrink={0} />
-            <Text color="text.muted" whiteSpace="nowrap">
-                Hosted by
-            </Text>
-            {handle && (
-                <>
-                    <Box
-                        as="a"
-                        href={t.x_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        display="inline-flex"
-                        alignItems="center"
-                        gap="3px"
-                        fontWeight="semibold"
-                        color={linkColor}
-                        _hover={{
-                            color: 'brand.green',
-                            textDecoration: 'underline',
-                        }}
-                    >
-                        <Icon as={FaXTwitter} boxSize="9px" />
-                        {handle}
-                    </Box>
-                    <Text color="text.muted" aria-hidden>
-                        ·
-                    </Text>
-                </>
-            )}
-            {t.chain ? (
-                <Box
-                    as="a"
-                    href={`${explorerBase(t.chain)}/address/${t.host_wallet}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    fontFamily="mono"
-                    display="inline-flex"
-                    alignItems="center"
-                    gap="3px"
-                    color={linkColor}
-                    _hover={{
-                        color: 'brand.green',
-                        textDecoration: 'underline',
-                    }}
-                >
-                    {shortAddr(t.host_wallet)}
-                    <Icon as={FiExternalLink} boxSize="10px" />
-                </Box>
-            ) : (
-                <Text
-                    color="text.muted"
-                    fontFamily="mono"
-                    whiteSpace="nowrap"
-                >
-                    {shortAddr(t.host_wallet)}
-                </Text>
-            )}
-            {isHost && (
-                <Text
-                    fontSize="2xs"
-                    fontWeight="bold"
-                    color="brand.green"
-                    textTransform="uppercase"
-                    letterSpacing="0.05em"
-                >
-                    you
-                </Text>
-            )}
-        </HStack>
     );
 }
 

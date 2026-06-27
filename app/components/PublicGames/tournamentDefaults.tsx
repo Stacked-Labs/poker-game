@@ -97,13 +97,21 @@ const TYPE_ACCENT: Record<TemplateName, TypeAccent> = {
         inkDark: '#5FD0A8',
     },
     deep: {
-        hue: '#2775CA',
-        tintLight: 'rgba(39, 117, 202, 0.12)',
-        tintDark: 'rgba(39, 117, 202, 0.20)',
-        inkLight: '#1F5FA3',
-        inkDark: '#7FB4E0',
+        // Indigo, deliberately OFF the USDC-blue ramp so the only blue that means
+        // money stays the prize figure (DESIGN: USDC blue is reserved).
+        hue: '#6D5DD3',
+        tintLight: 'rgba(109, 93, 211, 0.12)',
+        tintDark: 'rgba(109, 93, 211, 0.22)',
+        inkLight: '#4A3CA6',
+        inkDark: '#B7ABF2',
     },
 };
+
+/** The per-type accent (suit hue + AA-tuned ink/tint per mode). Shared so the
+ *  lobby card can tint its suit mark to match the create-game picker identity. */
+export function accentFor(type?: string | null): TypeAccent {
+    return TYPE_ACCENT[normalizeTemplate(type)];
+}
 
 function clamp(n: number, lo: number, hi: number): number {
     return Math.min(hi, Math.max(lo, n));
@@ -236,7 +244,7 @@ export function TournamentDefaultCover({ type }: TournamentDefaultCoverProps) {
     const t = normalizeTemplate(type);
     const a = TYPE_ACCENT[t];
     const surface = useColorModeValue('brand.lightGray', 'charcoal.800');
-    const opacity = useColorModeValue(0.1, 0.14);
+    const opacity = useColorModeValue(0.12, 0.1);
     const svg = buildSuitWallpaper(t, a.hue, opacity);
 
     return (

@@ -6,7 +6,7 @@ import {
     Flex,
     HStack,
     Text,
-    useColorModeValue,
+    usePrefersReducedMotion,
 } from '@chakra-ui/react';
 
 export type GameFormat = 'cash' | 'tournaments';
@@ -23,17 +23,13 @@ export function isGameFormat(value: string | null | undefined): value is GameFor
 }
 
 const FORMATS: ReadonlyArray<{ id: GameFormat; label: string }> = [
-    { id: 'cash', label: 'Cash games' },
+    { id: 'cash', label: 'Cash' },
     { id: 'tournaments', label: 'Tournaments' },
 ];
 
 export default function FormatTabs({ format, onChange, tournamentCount }: FormatTabsProps) {
-    const ruleColor = useColorModeValue(
-        'rgba(11, 20, 48, 0.10)',
-        'rgba(255, 255, 255, 0.10)'
-    );
-
     const tabRefs = useRef<Array<HTMLDivElement | null>>([]);
+    const prefersReducedMotion = usePrefersReducedMotion();
 
     const badgeFor = (
         id: GameFormat
@@ -69,7 +65,7 @@ export default function FormatTabs({ format, onChange, tournamentCount }: Format
             role="tablist"
             aria-label="Game format"
             borderBottom="1px solid"
-            borderColor={ruleColor}
+            borderColor="border.pillNeutral"
             gap={{ base: 5, md: 7 }}
         >
             {FORMATS.map((item, index) => (
@@ -78,11 +74,25 @@ export default function FormatTabs({ format, onChange, tournamentCount }: Format
                     ref={(el) => {
                         tabRefs.current[index] = el;
                     }}
+                    id={`format-tab-${item.id}`}
+                    controls={`format-panel-${item.id}`}
                     isActive={format === item.id}
                     onSelect={() => onChange(item.id)}
                     onKeyDown={(e) => onKeyDown(e, index)}
                     label={item.label}
                     badge={badgeFor(item.id)}
+                    // Tournaments is the growth bet — keep a faint persistent
+                    // accent so it reads as the thing to click even at zero count,
+                    // without stealing the default tab.
+                    hint={item.id === 'tournaments'}
+                    ariaLabel={
+                        item.id === 'tournaments' &&
+                        typeof tournamentCount === 'number' &&
+                        tournamentCount > 0
+                            ? `Tournaments, ${tournamentCount} open`
+                            : undefined
+                    }
+                    reduceMotion={Boolean(prefersReducedMotion)}
                 />
             ))}
         </Flex>
@@ -90,33 +100,47 @@ export default function FormatTabs({ format, onChange, tournamentCount }: Format
 }
 
 interface TabProps {
+    id: string;
+    controls: string;
     isActive: boolean;
     onSelect: () => void;
     onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => void;
     label: string;
     badge?: { label: string; tone: 'neutral' | 'accent' };
+    /** Keep a faint resting underline even when inactive (the growth-bet nudge). */
+    hint?: boolean;
+    /** Overrides the accessible name so a bare count badge reads "N open". */
+    ariaLabel?: string;
+    reduceMotion?: boolean;
 }
 
 const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
-    { isActive, onSelect, onKeyDown, label, badge },
+    {
+        id,
+        controls,
+        isActive,
+        onSelect,
+        onKeyDown,
+        label,
+        badge,
+        hint,
+        ariaLabel,
+        reduceMotion,
+    },
     ref
 ) {
     const accent = 'brand.green';
-    const neutralBadgeBg = useColorModeValue(
-        'rgba(11, 20, 48, 0.06)',
-        'rgba(255, 255, 255, 0.08)'
-    );
-    const accentBadgeBg = useColorModeValue(
-        'rgba(54, 163, 123, 0.10)',
-        'rgba(54, 163, 123, 0.18)'
-    );
     const isAccent = badge?.tone === 'accent';
+    const underlineOpacity = isActive ? 1 : hint ? 0.35 : 0;
 
     return (
         <Box
             ref={ref}
             role="tab"
+            id={id}
+            aria-controls={controls}
             aria-selected={isActive}
+            aria-label={ariaLabel}
             tabIndex={isActive ? 0 : -1}
             onClick={onSelect}
             onKeyDown={onKeyDown}
@@ -124,7 +148,7 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
             position="relative"
             pb={3}
             mt={1}
-            transition="color 140ms ease"
+            transition={reduceMotion ? 'none' : 'color 140ms ease'}
             color={isActive ? 'text.primary' : 'text.muted'}
             _hover={{ color: 'text.primary' }}
             _focusVisible={{
@@ -146,8 +170,11 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
                 </Text>
                 {badge && (
                     <Box
-                        bg={isAccent ? accentBadgeBg : neutralBadgeBg}
-                        color={isAccent ? accent : 'text.muted'}
+                        bg={isAccent ? 'bg.greenTint' : 'bg.pillNeutral'}
+                        // brand.green text on the green tint is ~3:1 in light mode;
+                        // deepen to the AA-safe edge tone (and lighten in dark).
+                        color={isAccent ? 'brand.greenEdge' : 'text.muted'}
+                        _dark={isAccent ? { color: '#5CCBA0' } : undefined}
                         fontSize="2xs"
                         fontWeight="bold"
                         letterSpacing="0.08em"
@@ -170,9 +197,13 @@ const Tab = forwardRef<HTMLDivElement, TabProps>(function Tab(
                 h="2px"
                 bg={accent}
                 borderRadius="2px"
-                opacity={isActive ? 1 : 0}
+                opacity={underlineOpacity}
                 transform={isActive ? 'scaleX(1)' : 'scaleX(0.5)'}
-                transition="opacity 180ms ease, transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)"
+                transition={
+                    reduceMotion
+                        ? 'none'
+                        : 'opacity 180ms ease, transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)'
+                }
                 transformOrigin="center"
             />
         </Box>

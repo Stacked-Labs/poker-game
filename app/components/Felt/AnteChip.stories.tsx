@@ -35,7 +35,14 @@ function makeGame(over: {
 function Board({ children }: { children: React.ReactNode }) {
     return (
         <Box bg="#16321f" minH="240px" p={10} display="grid" placeItems="center">
-            <Flex position="relative" gap={2} align="center">
+            <Flex
+                position="relative"
+                gap={2}
+                align="center"
+                // The ante chip sizes itself in `cqw`; mirror the felt query
+                // container so the isolated story renders it at a realistic size.
+                sx={{ containerType: 'inline-size' }}
+            >
                 {[0, 1, 2, 3, 4].map((i) => (
                     <Box
                         key={i}

@@ -4,17 +4,17 @@ import CommunitySection from './components/HomePage/CommunitySection';
 import FeaturesSection from './components/HomePage/FeaturesSection';
 import HostToEarnSection from './components/HomePage/HostToEarnSection';
 import UpcomingTournamentsSection from './components/HomePage/UpcomingTournamentsSection';
-import NewsletterSection from './components/HomePage/NewsletterSection';
 import YourTableVaultSection from './components/HomePage/YourTableVaultSection';
 import CustomChipValueSection from './components/HomePage/CustomChipValueSection';
 import FAQSection from './components/HomePage/FAQSection';
+import FinalCtaSection from './components/HomePage/FinalCtaSection';
 import ComparisonSection from './components/HomePage/ComparisonSection';
 import Footer from './components/HomePage/Footer';
 import FloatingDecor from './components/HomePage/FloatingDecor';
 import { Metadata } from 'next';
 import BroadcastMotion from './components/HomePage/BroadcastMotion';
 import BackToTopButton from './components/HomePage/BackToTopButton';
-import CoinGecko from './components/HomePage/CoinGeckoClient';
+import { listTournaments, type Tournament } from './hooks/server_actions';
 
 export const metadata: Metadata = {
     title: 'Stacked Poker — Play Texas Hold\'em with USDC on Base. No Signup.',
@@ -56,14 +56,36 @@ interface HomePageProps {
     searchParams: Promise<{ broadcast?: string }>;
 }
 
+// Server-fetch the upcoming-tournaments list so its cards render in the SSR HTML
+// for crawlers and social unfurls (the client component still refreshes and
+// personalizes after mount). The tournament fetch is data-cached ~30s, and
+// time-boxed + caught so a slow or down backend never delays this
+// conversion-critical page. On timeout/failure we return null (distinct from a
+// genuine empty list) so the client falls back to its skeleton, then fills the
+// module in.
+async function fetchUpcomingTournaments(): Promise<Tournament[] | null> {
+    try {
+        const data = await Promise.race([
+            listTournaments({ revalidate: 30 }),
+            new Promise<{ tournaments: Tournament[]; total_count: number }>(
+                (_, reject) =>
+                    setTimeout(() => reject(new Error('timeout')), 800)
+            ),
+        ]);
+        return data.tournaments ?? [];
+    } catch {
+        return null;
+    }
+}
+
 const HomePage = async ({ searchParams }: HomePageProps) => {
-    // Lighter "broadcast mode" (?broadcast=1) for the 24/7 livestream worker: skip the
-    // price ticker + autoplay video + hero animations so the homepage renders stably in
-    // headless software-GL Chromium. Normal visitors (no param) are unaffected.
+    // Lighter "broadcast mode" (?broadcast=1) for the 24/7 livestream worker: skip
+    // the autoplay video + hero animations so the homepage renders stably in
+    // headless software-GL Chromium. Normal visitors are unaffected.
     const isBroadcast = (await searchParams)?.broadcast === '1';
+    const initialTournaments = await fetchUpcomingTournaments();
     const content = (
         <>
-            {!isBroadcast && <CoinGecko />}
             <Box w="100vw">
                 <VStack spacing={0} align="stretch" height={'fit-content'}>
                     <Flex
@@ -80,15 +102,17 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
                     >
                         <FloatingDecor scale="page" />
                         <Box position="relative" zIndex={1}>
-                            <UpcomingTournamentsSection />
+                            <UpcomingTournamentsSection
+                                initialTournaments={initialTournaments}
+                            />
                             <CommunitySection />
-                            <ComparisonSection />
                             <FeaturesSection isBroadcast={isBroadcast} />
+                            <ComparisonSection />
                             <HostToEarnSection />
                             <CustomChipValueSection />
                             <YourTableVaultSection />
                             <FAQSection />
-                            <NewsletterSection />
+                            <FinalCtaSection />
                             <Footer />
                         </Box>
                     </Box>

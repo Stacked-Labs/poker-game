@@ -680,6 +680,9 @@ export interface Tournament {
 export async function listTournaments(opts?: {
     limit?: number;
     offset?: number;
+    // Server-side ISR cache window in seconds, for the homepage SSR fetch. Omit
+    // to keep the default (uncached) behaviour the lobby's client calls rely on.
+    revalidate?: number;
 }): Promise<{ tournaments: Tournament[]; total_count: number }> {
     isBackendUrlValid();
     const params = new URLSearchParams();
@@ -688,7 +691,12 @@ export async function listTournaments(opts?: {
     const qs = params.toString();
     const res = await fetch(
         `${backendUrl}/api/tournaments${qs ? `?${qs}` : ''}`,
-        { method: 'GET' }
+        {
+            method: 'GET',
+            ...(opts?.revalidate != null
+                ? { next: { revalidate: opts.revalidate } }
+                : {}),
+        }
     );
     if (!res.ok) throw new Error(`listTournaments: ${res.statusText}`);
     return res.json();
@@ -775,15 +783,6 @@ export async function uploadTournamentBranding(
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
-}
-
-export async function openTournamentRegistration(id: number): Promise<void> {
-    isBackendUrlValid();
-    const res = await fetch(`${backendUrl}/api/tournaments/${id}/open-registration`, {
-        method: 'POST',
-        credentials: 'include',
-    });
-    if (!res.ok) throw new Error(await res.text());
 }
 
 export async function registerForTournament(
@@ -1375,6 +1374,43 @@ export async function addToSBTWhitelist(
         console.error('Unable to add to SBT whitelist.', error);
         return { success: false, added: 0, message: 'Network error' };
     }
+}
+
+// ── Waitlist announcements (admin) ──────────────────────────────────────────
+
+// Returns the number of non-suppressed waitlist subscribers — i.e. the real
+// recipient count for a "send to all" blast.
+export async function getWaitlistCount(): Promise<number> {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/waitlist`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!response.ok) throw new Error(`Waitlist count fetch failed: ${response.statusText}`);
+    const data = await response.json();
+    return typeof data.total_count === 'number' ? data.total_count : 0;
+}
+
+// Sends a pre-rendered HTML announcement to the waitlist. Pass `testEmail` to
+// deliver a single preview to that address; omit it to blast every subscriber.
+// The backend injects the per-recipient unsubscribe link + CAN-SPAM footer.
+export async function sendWaitlistAnnounce(payload: {
+    subject: string;
+    html: string;
+    testEmail?: string;
+}): Promise<{ success: boolean; sent: number; total?: number; test?: boolean }> {
+    isBackendUrlValid();
+    const response = await fetch(`${backendUrl}/api/admin/waitlist/announce`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data.error ?? `Announce failed: ${response.statusText}`);
+    }
+    return data;
 }
 
 export async function fetchTableLedger(tableName: string) {

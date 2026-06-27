@@ -27,7 +27,6 @@ import {
     RiVipCrownLine,
     RiBookOpenLine,
     RiExternalLinkLine,
-    RiChat3Line,
 } from 'react-icons/ri';
 import { FaDiscord } from 'react-icons/fa';
 import WalletButton from '../WalletButton';
@@ -56,60 +55,73 @@ const HomeNavBar: React.FC = () => {
 
     const NavButtons = React.memo(() => (
         <>
-            <Button
-                as="a"
-                href="/public-games"
-                aria-label="Browse public games"
-                variant="navLink"
-            >
-                Games
-            </Button>
-            <Button
-                as="a"
-                href="/leaderboard"
-                aria-label="Leaderboard"
-                variant="navLink"
-            >
-                Leaderboard
-            </Button>
-            <Button
-                as="a"
-                href="/public-games?format=tournaments"
-                aria-label="Tournaments"
-                variant="navLink"
-            >
-                Tournaments
-            </Button>
-            <Button
-                as="a"
-                href="https://docs.stackedpoker.io/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Documentation"
-                variant="navLink"
-            >
-                Docs
-            </Button>
-            <Button
-                as="a"
-                href="https://discord.gg/xdaC5gRP4E"
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="navLink"
-            >
-                Support
-            </Button>
-            <Button
-                as="a"
-                href="https://discord.gg/xdaC5gRP4E"
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="navLink"
-                leftIcon={<FaDiscord />}
-            >
-                Discord
-            </Button>
-            <WalletButton width="160px" height="52px" label="Sign In" />
+            {/* Wayfinding links — one tight cluster so they read as a group,
+                not isolated islands floating across the bar. */}
+            <Flex gap={5} alignItems="center">
+                <Button
+                    as="a"
+                    href="/leaderboard"
+                    aria-label="Leaderboard"
+                    variant="navLink"
+                >
+                    Leaderboard
+                </Button>
+                <Button
+                    as="a"
+                    href="/public-games?format=tournaments"
+                    aria-label="Tournaments"
+                    variant="navLink"
+                >
+                    Tournaments
+                </Button>
+                <Button
+                    as="a"
+                    href="https://docs.stackedpoker.io/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Documentation"
+                    variant="navLink"
+                >
+                    Docs
+                </Button>
+                <Button
+                    as="a"
+                    href="https://discord.gg/xdaC5gRP4E"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="navLink"
+                    leftIcon={<FaDiscord />}
+                >
+                    Discord
+                </Button>
+            </Flex>
+
+            {/* Actions — a separate cluster. Browse Tables is a felt-green
+                "chip" pill (rounded silhouette + spade glyph) so it reads as a
+                distinct object from the solid-green Sign In CTA, not a competing
+                green twin. It owns /public-games (no-wallet path to the lobby).
+                Sign In stays the loud green CTA — we want sign-ins. */}
+            <Flex gap={3} alignItems="center">
+                <Button
+                    as="a"
+                    href="/public-games"
+                    aria-label="Browse live tables"
+                    variant="tactileOutline"
+                    height="48px"
+                    px={5}
+                    fontSize="md"
+                    borderRadius="full"
+                    bg="rgba(54, 163, 123, 0.08)"
+                    leftIcon={
+                        <Box as="span" fontSize="lg" lineHeight={1} mt="-2px">
+                            ♠
+                        </Box>
+                    }
+                >
+                    Browse Tables
+                </Button>
+                <WalletButton variant="cta" label="Sign In" height="48px" />
+            </Flex>
         </>
     ));
     NavButtons.displayName = 'NavButtons';
@@ -178,7 +190,7 @@ const HomeNavBar: React.FC = () => {
             {/* Desktop Navigation */}
             <Flex
                 display={{ base: 'none', lg: 'flex' }}
-                gap={8}
+                gap={6}
                 alignItems="center"
             >
                 <NavButtons />
@@ -288,10 +300,7 @@ const HomeNavBar: React.FC = () => {
                                     href="/create-game"
                                     onClick={onClose}
                                     leftIcon={
-                                        <Icon
-                                            as={RiGamepadLine}
-                                            boxSize={5}
-                                        />
+                                        <Icon as={RiGamepadLine} boxSize={5} />
                                     }
                                     variant="ghost"
                                     justifyContent="flex-start"
@@ -333,10 +342,7 @@ const HomeNavBar: React.FC = () => {
                                     href="/public-games"
                                     onClick={onClose}
                                     leftIcon={
-                                        <Icon
-                                            as={RiGlobalLine}
-                                            boxSize={5}
-                                        />
+                                        <Icon as={RiGlobalLine} boxSize={5} />
                                     }
                                     variant="ghost"
                                     justifyContent="flex-start"
@@ -378,10 +384,7 @@ const HomeNavBar: React.FC = () => {
                                     href="/leaderboard"
                                     onClick={onClose}
                                     leftIcon={
-                                        <Icon
-                                            as={RiTrophyLine}
-                                            boxSize={5}
-                                        />
+                                        <Icon as={RiTrophyLine} boxSize={5} />
                                     }
                                     variant="ghost"
                                     justifyContent="flex-start"
@@ -423,10 +426,7 @@ const HomeNavBar: React.FC = () => {
                                     href="/public-games?format=tournaments"
                                     onClick={onClose}
                                     leftIcon={
-                                        <Icon
-                                            as={RiVipCrownLine}
-                                            boxSize={5}
-                                        />
+                                        <Icon as={RiVipCrownLine} boxSize={5} />
                                     }
                                     variant="ghost"
                                     justifyContent="flex-start"
@@ -495,10 +495,7 @@ const HomeNavBar: React.FC = () => {
                                     rel="noopener noreferrer"
                                     onClick={onClose}
                                     leftIcon={
-                                        <Icon
-                                            as={RiBookOpenLine}
-                                            boxSize={5}
-                                        />
+                                        <Icon as={RiBookOpenLine} boxSize={5} />
                                     }
                                     rightIcon={
                                         <Icon
@@ -553,68 +550,7 @@ const HomeNavBar: React.FC = () => {
                                     rel="noopener noreferrer"
                                     onClick={onClose}
                                     leftIcon={
-                                        <Icon
-                                            as={RiChat3Line}
-                                            boxSize={5}
-                                        />
-                                    }
-                                    rightIcon={
-                                        <Icon
-                                            as={RiExternalLinkLine}
-                                            boxSize={3.5}
-                                            color="text.muted"
-                                        />
-                                    }
-                                    variant="ghost"
-                                    justifyContent="flex-start"
-                                    height="44px"
-                                    px={3}
-                                    borderRadius="12px"
-                                    fontWeight="semibold"
-                                    fontSize="sm"
-                                    color="text.primary"
-                                    bg="transparent"
-                                    border="none"
-                                    transition={TACTILE_TRANSITION}
-                                    _hover={{
-                                        bg: 'rgba(12, 21, 49, 0.06)',
-                                    }}
-                                    _active={{
-                                        bg: 'rgba(12, 21, 49, 0.10)',
-                                        transform: 'translateY(1px)',
-                                        boxShadow:
-                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
-                                    }}
-                                    _dark={{
-                                        _hover: {
-                                            bg: 'rgba(255, 255, 255, 0.08)',
-                                        },
-                                        _active: {
-                                            bg: 'rgba(255, 255, 255, 0.14)',
-                                            transform: 'translateY(1px)',
-                                            boxShadow:
-                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
-                                        },
-                                    }}
-                                    sx={{
-                                        '& > span:last-of-type': {
-                                            ml: 'auto',
-                                        },
-                                    }}
-                                >
-                                    Support
-                                </Button>
-                                <Button
-                                    as="a"
-                                    href="https://discord.gg/xdaC5gRP4E"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={onClose}
-                                    leftIcon={
-                                        <Icon
-                                            as={FaDiscord}
-                                            boxSize={5}
-                                        />
+                                        <Icon as={FaDiscord} boxSize={5} />
                                     }
                                     rightIcon={
                                         <Icon
@@ -669,7 +605,29 @@ const HomeNavBar: React.FC = () => {
                         <Box flex={1} minH={6} />
 
                         {/* Bottom Section */}
-                        <VStack spacing={4} align="stretch">
+                        <VStack spacing={3} align="stretch">
+                            {/* Primary action: sign in — the loud green CTA so
+                                it's the obvious thing to tap (we want sign-ins). */}
+                            <WalletButton
+                                variant="cta"
+                                label="Sign In"
+                                width="100%"
+                                height="52px"
+                            />
+
+                            {/* Secondary: a no-wallet path straight to the lobby. */}
+                            <Button
+                                as="a"
+                                href="/public-games"
+                                onClick={onClose}
+                                variant="tactileOutline"
+                                height="48px"
+                                w="100%"
+                                fontSize="md"
+                            >
+                                Browse Tables
+                            </Button>
+
                             {/* Theme Toggle */}
                             <HStack spacing={2} px={1}>
                                 <ColorModeButton />
@@ -682,28 +640,13 @@ const HomeNavBar: React.FC = () => {
                                 </Text>
                             </HStack>
 
-                            {/* Wallet */}
-                            <WalletButton
-                                width="100%"
-                                height="48px"
-                                label="Sign In"
-                            />
-
                             {/* Social Row */}
-                            <HStack
-                                justify="center"
-                                spacing={5}
-                                pt={2}
-                                pb={1}
-                            >
+                            <HStack justify="center" spacing={5} pt={2} pb={1}>
                                 <Link
                                     href="https://x.com/stacked_poker"
                                     isExternal
                                 >
-                                    <SocialIconButton
-                                        tone="x"
-                                        chipSize="lg"
-                                    />
+                                    <SocialIconButton tone="x" chipSize="lg" />
                                 </Link>
                                 <Link
                                     href="https://discord.gg/xdaC5gRP4E"

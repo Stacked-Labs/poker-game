@@ -1,64 +1,67 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-    Box,
-    Container,
-    Flex,
-    HStack,
-    VStack,
-    Text,
-    Heading,
-    Image,
-    SimpleGrid,
-    Badge,
-    Divider,
-    Spinner,
-    Link,
-    Icon,
-} from '@chakra-ui/react';
+import { Button, Container, Heading, VStack } from '@chakra-ui/react';
+import NextLink from 'next/link';
 import { blo } from 'blo';
 import { useActiveAccount } from 'thirdweb/react';
-import { FiExternalLink } from 'react-icons/fi';
+import { GiPokerHand, GiTrophyCup, GiCardAceSpades } from 'react-icons/gi';
+import { FaCrown, FaMedal } from 'react-icons/fa';
+import { FiPercent, FiUserPlus } from 'react-icons/fi';
 import {
     getPlayerProfile,
+    getLeaderboard,
+    getReferralInfo,
     type PlayerProfile,
 } from '@/app/hooks/server_actions';
-import { playerDisplayName, shortenAddress } from '@/app/utils/address';
-import { TIER_EMOJI } from '@/app/components/Leaderboard/tierUtils';
+import { playerDisplayName } from '@/app/utils/address';
+import { tierFromString } from '@/app/components/Leaderboard/tierUtils';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useConnectX } from '@/app/hooks/useConnectX';
+import { useRankHistory } from '@/app/hooks/useRankHistory';
+import QuestsSection from '@/app/components/Leaderboard/QuestsSection';
 import ReferralCodeSection from '@/app/components/Leaderboard/ReferralCodeSection';
+import ShareRankCard from '@/app/components/Leaderboard/ShareRankCard';
+import ProfileHub from '@/app/components/Profile/ProfileHub';
+import ProfileHero, { type HostLedger } from '@/app/components/Profile/ProfileHero';
+import RankLadderInline from '@/app/components/Profile/RankLadderInline';
+import ConnectXStrip from '@/app/components/Profile/ConnectXStrip';
+import StatLedger, { type StatItem } from '@/app/components/Profile/StatLedger';
+import RecentLedger, { type Activity, ordinal } from '@/app/components/Profile/RecentLedger';
+import HostingScorecard from '@/app/components/Profile/HostingScorecard';
+import RecruitStrip from '@/app/components/Profile/RecruitStrip';
+import ProfileSkeleton from '@/app/components/Profile/ProfileSkeleton';
 import ProfileShareButton from './ProfileShareButton';
 
-function usdc(base: number): string {
-    return (base / 1_000_000).toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    });
-}
-
-function ordinal(n: number): string {
-    const s = ['th', 'st', 'nd', 'rd'];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
-
-function StatCell({ label, value }: { label: string; value: string | number }) {
-    return (
-        <VStack spacing={0} align="start">
-            <Text fontSize={{ base: 'lg', md: 'xl' }} fontWeight={800} color="text.primary">
-                {value}
-            </Text>
-            <Text fontSize="xs" color="text.secondary">
-                {label}
-            </Text>
-        </VStack>
-    );
+interface RankProgress {
+    pointsToNext: number | null;
+    nextRank: number | null;
+    total: number;
 }
 
 export default function ProfileView({ address }: { address: string }) {
     const [profile, setProfile] = useState<PlayerProfile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [progress, setProgress] = useState<RankProgress | null>(null);
+    const [referral, setReferral] = useState<
+        Awaited<ReturnType<typeof getReferralInfo>> | null
+    >(null);
+
     const account = useActiveAccount();
+    const { isAuthenticated, xUsername } = useAuth();
+    const { connectX, isConnecting } = useConnectX();
+
+    const isOwn =
+        !!account?.address &&
+        !!profile &&
+        account.address.toLowerCase() === profile.address.toLowerCase();
+
+    // Confetti owner for the hub (namespaced so the leaderboard can't consume the climb).
+    const { improved, previousRank } = useRankHistory(
+        isOwn ? profile?.address : undefined,
+        isOwn ? profile?.rank : undefined,
+        'profile-hub'
+    );
 
     useEffect(() => {
         let active = true;
@@ -71,210 +74,172 @@ export default function ProfileView({ address }: { address: string }) {
         };
     }, [address]);
 
-    if (loading) {
-        return (
-            <Flex justify="center" align="center" minH="60vh">
-                <Spinner size="lg" color="brand.green" />
-            </Flex>
-        );
-    }
+    const showEngagement = isOwn && isAuthenticated;
+
+    // Own-only engagement fetches: rank progress (from the leaderboard) + referral info.
+    useEffect(() => {
+        if (!showEngagement || !profile) return;
+        let active = true;
+        Promise.all([getLeaderboard(profile.address), getReferralInfo(profile.address)])
+            .then(([lb, ref]) => {
+                if (!active) return;
+                const above = lb.leaderboard.find((e) => e.rank === profile.rank - 1);
+                setProgress({
+                    pointsToNext: above ? Math.max(0, above.points - profile.points) : null,
+                    nextRank: above?.rank ?? null,
+                    total: lb.total,
+                });
+                setReferral(ref);
+            })
+            .catch(() => {});
+        return () => {
+            active = false;
+        };
+    }, [showEngagement, profile]);
+
+    if (loading) return <ProfileSkeleton />;
 
     if (!profile) {
         return (
             <Container maxW="container.md" py={16}>
-                <VStack spacing={3}>
+                <VStack spacing={4}>
                     <Heading size="md" color="text.primary">
                         Player not found
                     </Heading>
-                    <Text color="text.secondary" fontFamily="mono">
-                        {shortenAddress(address)}
-                    </Text>
+                    <Button as={NextLink} href="/leaderboard" variant="tactileNeutral">
+                        View the leaderboard
+                    </Button>
                 </VStack>
             </Container>
         );
     }
 
-    const { identity, stats, host_earnings, recent } = profile;
+    const { identity, stats } = profile;
     const name = playerDisplayName(
         identity.x_username ? `@${identity.x_username}` : null,
         profile.address,
         identity.x_display_name
     );
-    const avatar =
-        identity.avatar_url || blo(profile.address as `0x${string}`);
-    const tierEmoji = TIER_EMOJI[profile.tier.toLowerCase()] ?? '';
-    const isOwn =
-        !!account?.address &&
-        account.address.toLowerCase() === profile.address.toLowerCase();
+    const tier = tierFromString(profile.tier);
+    const hasAvatar = !!identity.avatar_url;
+    const avatar = identity.avatar_url || blo(profile.address as `0x${string}`);
+    const isRanked = profile.rank > 0;
+    const hostActivity = stats.tables_hosted > 0 || stats.tournaments_hosted > 0;
+
+    const host: HostLedger = {
+        usdc: profile.host_earnings.usdc,
+        available: profile.host_earnings.available,
+        hasActivity: hostActivity,
+    };
+
+    // Play record (tournament + lifetime depth). Hosting counts live in HostingScorecard,
+    // points in the rank ladder/pill, referrals in the referral module for own — no dup.
+    const winRate =
+        stats.tournaments_entered > 0
+            ? Math.round((stats.tournaments_won / stats.tournaments_entered) * 100)
+            : 0;
+    const statCandidates: (StatItem & { include: boolean })[] = [
+        { key: 'hands', label: 'Hands', value: stats.hands_played.toLocaleString(), icon: GiPokerHand, tooltip: 'Total hands you have played on Stacked', headline: true, include: stats.hands_played > 0 },
+        { key: 'wins', label: 'Wins', value: stats.tournaments_won.toLocaleString(), icon: FaCrown, tooltip: 'First-place tournament finishes', headline: true, include: stats.tournaments_won > 0 },
+        { key: 'best', label: 'Best finish', value: stats.best_finish > 0 ? ordinal(stats.best_finish) : '—', icon: FaMedal, tooltip: 'Your highest tournament placement to date', headline: true, podium: stats.best_finish >= 1 && stats.best_finish <= 3, include: stats.best_finish > 0 },
+        { key: 'entered', label: 'Tournaments', value: stats.tournaments_entered.toLocaleString(), icon: GiTrophyCup, tooltip: 'Tournaments you have bought into', include: stats.tournaments_entered > 0 },
+        { key: 'final', label: 'Final tables', value: stats.final_tables.toLocaleString(), icon: GiCardAceSpades, tooltip: 'Times you reached the final table', include: stats.final_tables > 0 },
+        { key: 'winrate', label: 'Win rate', value: `${winRate}%`, icon: FiPercent, tooltip: 'Tournaments won ÷ tournaments entered', include: stats.tournaments_entered > 0 && stats.tournaments_won > 0 },
+        { key: 'refs', label: 'Referrals', value: profile.referrals_count.toLocaleString(), icon: FiUserPlus, tooltip: 'Friends who joined with your code', include: !isOwn && profile.referrals_count > 0 },
+    ];
+    const statItems: StatItem[] = statCandidates
+        .filter((s) => s.include)
+        .map(({ include: _i, ...rest }) => rest);
+
+    const recent: Activity[] = [
+        ...profile.recent.results.map(
+            (r): Activity => ({ type: 'result', id: r.tournament_id, name: r.name, finishPosition: r.finish_position, prizeUsdc: r.prize_usdc, endedAt: r.ended_at, buyInUsdc: r.buy_in_usdc, fieldSize: r.field_size, format: r.format })
+        ),
+        ...profile.recent.hosted.map(
+            (h): Activity => ({ type: 'hosted', id: h.tournament_id, name: h.name, entrants: h.entrants, endedAt: h.ended_at, status: h.status, buyInUsdc: h.buy_in_usdc, format: h.format })
+        ),
+    ]
+        .sort((a, b) => {
+            if (a.endedAt === null && b.endedAt === null) return 0;
+            if (a.endedAt === null) return -1;
+            if (b.endedAt === null) return 1;
+            return b.endedAt.localeCompare(a.endedAt);
+        })
+        .slice(0, 10);
+
+    const rankLadder =
+        isOwn && isRanked ? (
+            <RankLadderInline
+                rank={profile.rank}
+                points={profile.points}
+                tier={tier}
+                pointsToNext={progress?.pointsToNext ?? null}
+                nextRank={progress?.nextRank ?? null}
+                improved={improved}
+                previousRank={previousRank}
+                loading={progress === null}
+                shareSlot={
+                    <ShareRankCard
+                        rank={profile.rank}
+                        points={profile.points}
+                        address={profile.address}
+                        total={progress?.total ?? 0}
+                    />
+                }
+            />
+        ) : undefined;
 
     return (
-        <Container maxW="container.lg" py={{ base: 6, md: 10 }}>
-            {/* Identity header */}
-            <Flex
-                direction={{ base: 'column', sm: 'row' }}
-                align={{ base: 'start', sm: 'center' }}
-                gap={4}
-                mb={6}
-            >
-                <Image
-                    src={avatar}
-                    alt={name}
-                    boxSize={{ base: '72px', md: '88px' }}
-                    borderRadius="full"
-                    border="2px solid"
-                    borderColor="whiteAlpha.300"
+        <ProfileHub
+            isOwn={isOwn}
+            hero={
+                <ProfileHero
+                    name={name}
+                    tier={tier}
+                    rank={profile.rank}
+                    points={profile.points}
+                    avatarUrl={avatar}
+                    hasAvatar={hasAvatar}
+                    xUsername={identity.x_username}
+                    address={profile.address}
+                    host={host}
+                    rankLadderSlot={rankLadder}
+                    shareSlot={
+                        <ProfileShareButton
+                            address={profile.address}
+                            name={name}
+                            tier={profile.tier}
+                            rank={profile.rank}
+                            isOwn={isOwn}
+                            width={{ base: 'full', md: 'auto' }}
+                        />
+                    }
                 />
-                <VStack align="start" spacing={1} flex={1} minW={0}>
-                    <Heading size="lg" color="text.primary" noOfLines={1}>
-                        {name}
-                    </Heading>
-                    <HStack spacing={2} color="text.secondary" fontSize="sm" flexWrap="wrap">
-                        {identity.x_username && (
-                            <Link href={`https://x.com/${identity.x_username}`} isExternal>
-                                @{identity.x_username}
-                            </Link>
-                        )}
-                        <Text fontFamily="mono">{shortenAddress(profile.address)}</Text>
-                    </HStack>
-                    <HStack spacing={2} pt={1}>
-                        <Badge colorScheme="purple" fontSize="xs">
-                            {tierEmoji} {profile.tier}
-                        </Badge>
-                        {profile.rank > 0 && (
-                            <Badge fontSize="xs">Rank #{profile.rank}</Badge>
-                        )}
-                    </HStack>
-                </VStack>
-                <ProfileShareButton address={profile.address} name={name} />
-            </Flex>
-
-            {/* HERO — Earned from Hosting (the marketing centerpiece) */}
-            <Box
-                borderRadius="2xl"
-                p={{ base: 5, md: 6 }}
-                mb={6}
-                bgGradient="linear(to-br, brand.green, brand.darkNavy)"
-                color="white"
-            >
-                <Text fontSize="xs" letterSpacing="widest" opacity={0.8} mb={1}>
-                    EARNED FROM HOSTING
-                </Text>
-                <Heading size="2xl" lineHeight={1}>
-                    {host_earnings.available ? `$${usdc(host_earnings.usdc)}` : '—'}
-                    <Text as="span" fontSize="md" fontWeight={500} ml={2} opacity={0.85}>
-                        in platform fees
-                    </Text>
-                </Heading>
-                <Text mt={2} fontSize="sm" opacity={0.9}>
-                    {stats.tables_hosted} tables hosted · {stats.tournaments_hosted}{' '}
-                    tournaments run
-                </Text>
-                <Text mt={1} fontSize="sm" opacity={0.75}>
-                    Hosts earn ~1% of every pot they run.
-                </Text>
-                {!host_earnings.available && (
-                    <Text mt={2} fontSize="xs" opacity={0.6}>
-                        Host earnings total is being wired up.
-                    </Text>
-                )}
-            </Box>
-
-            {/* Stats grid (status only — no $) */}
-            <Box
-                bg="card.white"
-                borderRadius="2xl"
-                p={{ base: 5, md: 6 }}
-                mb={6}
-                boxShadow="0 14px 28px rgba(12,21,49,0.08)"
-                _dark={{ boxShadow: '0 16px 30px rgba(0,0,0,0.35)' }}
-            >
-                <Text fontSize="xs" letterSpacing="widest" color="text.secondary" mb={4}>
-                    STATS
-                </Text>
-                <SimpleGrid columns={{ base: 2, sm: 3, md: 4 }} spacingY={5} spacingX={4}>
-                    <StatCell label="Hands" value={stats.hands_played.toLocaleString()} />
-                    <StatCell label="Tournaments" value={stats.tournaments_entered} />
-                    <StatCell label="Won" value={stats.tournaments_won} />
-                    <StatCell label="Final tables" value={stats.final_tables} />
-                    <StatCell
-                        label="Best finish"
-                        value={stats.best_finish > 0 ? ordinal(stats.best_finish) : '—'}
+            }
+            connectX={
+                showEngagement && !xUsername ? (
+                    <ConnectXStrip isConnecting={isConnecting} onConnect={connectX} />
+                ) : null
+            }
+            quests={showEngagement ? <QuestsSection tablesCreated={stats.tables_hosted} /> : null}
+            referral={
+                showEngagement ? (
+                    <ReferralCodeSection referralInfo={referral ?? undefined} />
+                ) : null
+            }
+            record={<StatLedger stats={statItems} />}
+            recent={recent.length > 0 ? <RecentLedger items={recent} /> : null}
+            hosting={
+                hostActivity ? (
+                    <HostingScorecard
+                        tablesHosted={stats.tables_hosted}
+                        tournamentsHosted={stats.tournaments_hosted}
+                        isOwn={isOwn}
+                        name={name}
                     />
-                    <StatCell label="Tables hosted" value={stats.tables_hosted} />
-                    <StatCell label="Referrals" value={profile.referrals_count} />
-                    <StatCell label="Points" value={profile.points.toLocaleString()} />
-                </SimpleGrid>
-            </Box>
-
-            {/* Recent activity */}
-            {(recent.results.length > 0 || recent.hosted.length > 0) && (
-                <Box
-                    bg="card.white"
-                    borderRadius="2xl"
-                    p={{ base: 5, md: 6 }}
-                    mb={6}
-                    boxShadow="0 14px 28px rgba(12,21,49,0.08)"
-                    _dark={{ boxShadow: '0 16px 30px rgba(0,0,0,0.35)' }}
-                >
-                    <Text fontSize="xs" letterSpacing="widest" color="text.secondary" mb={4}>
-                        RECENT
-                    </Text>
-                    <VStack align="stretch" spacing={3} divider={<Divider />}>
-                        {recent.results.map((r) => (
-                            <HStack key={`r-${r.tournament_id}`} justify="space-between">
-                                <HStack spacing={3} minW={0}>
-                                    <Text fontSize="lg">
-                                        {r.finish_position === 1
-                                            ? '🥇'
-                                            : r.finish_position <= 3
-                                              ? '🏅'
-                                              : '🎯'}
-                                    </Text>
-                                    <Text color="text.primary" noOfLines={1}>
-                                        {r.name}
-                                    </Text>
-                                </HStack>
-                                <Text color="text.secondary" fontSize="sm" whiteSpace="nowrap">
-                                    {ordinal(r.finish_position)}
-                                </Text>
-                            </HStack>
-                        ))}
-                        {recent.hosted.map((h) => (
-                            <HStack key={`h-${h.tournament_id}`} justify="space-between">
-                                <HStack spacing={3} minW={0}>
-                                    <Text fontSize="lg">🎟</Text>
-                                    <Text color="text.primary" noOfLines={1}>
-                                        Hosted · {h.name}
-                                    </Text>
-                                </HStack>
-                                <Text color="text.secondary" fontSize="sm" whiteSpace="nowrap">
-                                    {h.entrants} entrants
-                                </Text>
-                            </HStack>
-                        ))}
-                    </VStack>
-                </Box>
-            )}
-
-            {/* Own profile: the referral module (reuses the leaderboard component) */}
-            {isOwn && (
-                <Box mb={6}>
-                    <ReferralCodeSection />
-                </Box>
-            )}
-
-            <Flex justify="center" pt={2}>
-                <Link
-                    href="/leaderboard"
-                    color="text.secondary"
-                    fontSize="sm"
-                    display="inline-flex"
-                    alignItems="center"
-                    gap={1}
-                >
-                    View the leaderboard <Icon as={FiExternalLink} boxSize={3} />
-                </Link>
-            </Flex>
-        </Container>
+                ) : null
+            }
+            recruit={<RecruitStrip isOwn={isOwn} />}
+        />
     );
 }

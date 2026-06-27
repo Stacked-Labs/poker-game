@@ -242,10 +242,16 @@ const semanticTokens = {
         // Tier identity ramp — replaces off-brand AI-lavender (#A78BFA) on the leaderboard.
         // Placeholder values; the leaderboard bold pass tunes and verifies them.
         'tier.diamond': { default: '#5E86B0', _dark: '#9BC0E0' },
-        'tier.gold': { default: 'brand.yellowDark', _dark: 'brand.yellow' },
+        // Antique brass, NOT the bright Chip Yellow — keeps the tier-identity ramp (a metal
+        // family) quarantined from the saturated win/podium gold (brand.yellow).
+        'tier.gold': { default: '#B8893A', _dark: '#D6A84E' },
         'tier.silver': { default: '#7C8699', _dark: '#AEB6C6' },
         'tier.bronze': { default: '#A8703F', _dark: '#C2885A' },
         'tier.iron': { default: '#5F6470', _dark: '#878B96' },
+
+        // The one money color (USDC blue) as a token so the "only host earnings are
+        // money-colored" law is greppable and can't drift across call sites.
+        'text.usdc': { default: '#2775CA', _dark: '#5C9DEF' },
 
         // Felt Table — a card-room "felt" surface (newsletter, future seat-pickers)
         // Penthouse-Midnight ground in both modes; the felt is the room, not the color.

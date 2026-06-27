@@ -723,6 +723,11 @@ export interface PlayerProfileRecentResult {
     finish_position: number;
     prize_usdc: number;
     ended_at: string | null;
+    // Optional enrichment (cheap backend add: JOIN tournaments + COUNT entries). The recent
+    // table surfaces these when present and degrades gracefully when absent.
+    buy_in_usdc?: number;
+    field_size?: number;
+    format?: string;
 }
 export interface PlayerProfileHosted {
     tournament_id: number;
@@ -730,6 +735,9 @@ export interface PlayerProfileHosted {
     status: string;
     entrants: number;
     ended_at: string | null;
+    // Optional enrichment (from the tournaments row): buy-in + format.
+    buy_in_usdc?: number;
+    format?: string;
 }
 export interface PlayerProfile {
     address: string;

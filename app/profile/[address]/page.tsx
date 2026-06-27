@@ -31,7 +31,7 @@ export async function generateMetadata({
         : `${name} — Stacked Poker`;
     const description = profile
         ? `${profile.stats.hands_played.toLocaleString()} hands · ${profile.stats.tournaments_entered} tournaments · ${profile.stats.tournaments_won} wins on Stacked Poker.`
-        : 'Player profile on Stacked Poker — on-chain poker on Base.';
+        : 'Player profile on Stacked Poker. Onchain poker on Base.';
     const ogUrl = `${SITE}/api/og/profile?address=${encodeURIComponent(address)}`;
 
     return {

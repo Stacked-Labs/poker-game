@@ -13,10 +13,14 @@ interface RankHistoryResult {
 // false positive — a moment never fires without a prior snapshot).
 export function useRankHistory(
     address: string | undefined,
-    currentRank: number | undefined
+    currentRank: number | undefined,
+    // Namespace the seen-marker per surface so two surfaces (leaderboard + profile hub)
+    // each get their own fire-once climb detection instead of the first to mount
+    // consuming it for both.
+    keyPrefix = 'leaderboard'
 ): RankHistoryResult {
     const { triggered, previous } = useMomentDetector({
-        storageKey: address ? `rank:${address.toLowerCase()}` : undefined,
+        storageKey: address ? `${keyPrefix}:rank:${address.toLowerCase()}` : undefined,
         value: currentRank,
         trigger: (prev, curr) => curr < prev,
     });

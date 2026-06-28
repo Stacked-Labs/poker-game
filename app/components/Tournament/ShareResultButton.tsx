@@ -2,23 +2,28 @@
 
 import { Button, Icon } from '@chakra-ui/react';
 import { useState } from 'react';
+import type { IconType } from 'react-icons';
 import { FiShare2 } from 'react-icons/fi';
 
 /**
- * Shares the player's tournament finish. Prefers the native share sheet (mobile
- * and some desktop browsers) so the OS can route to X, Telegram, Messages, etc.;
- * falls back to the X composer where the Web Share API is unavailable. Both the
- * sheet and the composer receive the tournament link, which unfurls into the
- * per-tournament OG card.
+ * Shares a link through the native share sheet (mobile and some desktop browsers)
+ * so the OS can route to X, Telegram, Messages, etc.; falls back to the X composer
+ * where the Web Share API is unavailable. Used for tournament results (default copy)
+ * and the bring-a-friend invite (label="Invite a friend", variant="tactilePrimary").
+ * The link unfurls into the matching OG card.
  */
 export default function ShareResultButton({
     shareText,
     shareUrl,
     variant = 'tactileNeutral',
+    label = 'Share result',
+    idleIcon = FiShare2,
 }: {
     shareText: string;
     shareUrl: string;
     variant?: string;
+    label?: string;
+    idleIcon?: IconType;
 }) {
     const [sharing, setSharing] = useState(false);
 
@@ -59,12 +64,12 @@ export default function ShareResultButton({
             size="sm"
             w="full"
             minH="42px"
-            leftIcon={<Icon as={FiShare2} boxSize="14px" />}
+            leftIcon={<Icon as={idleIcon} boxSize="14px" />}
             isLoading={sharing}
             loadingText="Sharing…"
             onClick={handleShare}
         >
-            Share result
+            {label}
         </Button>
     );
 }

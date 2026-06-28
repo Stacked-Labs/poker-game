@@ -571,6 +571,7 @@ type LeaderboardPlayerEntry = {
     handsPlayed: number;
     rank: number;
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
 };
 
@@ -593,6 +594,211 @@ export async function getLeaderboard(address?: string): Promise<{
     } catch (error) {
         console.error('Unable to fetch leaderboard.', error);
         return { leaderboard: [], player: null, total: 0, updatedAt: null };
+    }
+}
+
+// Multi-board leaderboards (Viral §2 / #349). One API serving the 5 Stats Hub boards. Mirrors the
+// poker-server boardResponse — value labels (e.g. "$4,812", "3,420") are formatted server-side so
+// the Stats Hub and the Top Hosts share card stay consistent.
+export type BoardId =
+    | 'points'
+    | 'hands'
+    | 'tournaments_won'
+    | 'top_hosts'
+    | 'referrals';
+
+export type BoardValueKind = 'points' | 'count' | 'usdc';
+
+export interface BoardMeta {
+    id: BoardId;
+    title: string;
+    icon: string;
+    value_kind: BoardValueKind;
+    real_money: boolean;
+    available: boolean;
+    note?: string;
+}
+
+export interface BoardRow {
+    rank: number;
+    wallet: string;
+    x_username?: string;
+    x_display_name?: string;
+    avatar_url?: string;
+    tier: string;
+    value: number;
+    value_label: string;
+    // Top Hosts carries { tables_hosted, tournaments_run }.
+    extra?: Record<string, number>;
+}
+
+export interface BoardResponse {
+    board: BoardId;
+    title: string;
+    icon: string;
+    value_kind: BoardValueKind;
+    page: number;
+    page_size: number;
+    total: number;
+    updated_at: string | null;
+    rows: BoardRow[];
+    player: BoardRow | null;
+    real_money: boolean;
+    available: boolean;
+    note?: string;
+}
+
+// getBoards returns the tab metadata for the Stats Hub tab strip.
+export async function getBoards(): Promise<BoardMeta[]> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/boards`, { method: 'GET' });
+        if (!response.ok) throw new Error(`Boards fetch failed: ${response.statusText}`);
+        const data = await response.json();
+        return (data.boards ?? []) as BoardMeta[];
+    } catch (error) {
+        console.error('Unable to fetch boards.', error);
+        return [];
+    }
+}
+
+// getBoard returns one ranked, paginated board page plus the caller's own position (when address
+// is supplied). Returns an empty, flagged page on failure so the hub can render a graceful shell.
+export async function getBoard(
+    board: BoardId,
+    opts: { page?: number; limit?: number; address?: string } = {}
+): Promise<BoardResponse> {
+    const empty: BoardResponse = {
+        board,
+        title: board,
+        icon: '',
+        value_kind: 'count',
+        page: opts.page ?? 1,
+        page_size: opts.limit ?? 50,
+        total: 0,
+        updated_at: null,
+        rows: [],
+        player: null,
+        real_money: false,
+        available: false,
+    };
+    isBackendUrlValid();
+    try {
+        const params = new URLSearchParams();
+        if (opts.page) params.set('page', String(opts.page));
+        if (opts.limit) params.set('limit', String(opts.limit));
+        if (opts.address) params.set('address', opts.address);
+        const qs = params.toString();
+        const url = `${backendUrl}/api/boards/${board}${qs ? `?${qs}` : ''}`;
+        const response = await fetch(url, { method: 'GET' });
+        if (!response.ok) throw new Error(`Board ${board} fetch failed: ${response.statusText}`);
+        return (await response.json()) as BoardResponse;
+    } catch (error) {
+        console.error(`Unable to fetch board ${board}.`, error);
+        return empty;
+    }
+}
+
+// Public player profile (Viral §1 / #343). Mirrors the poker-server payload.
+export interface PlayerProfileIdentity {
+    wallet: string;
+    has_x: boolean;
+    x_username?: string;
+    x_display_name?: string;
+    avatar_url?: string;
+}
+export interface PlayerProfileStats {
+    hands_played: number;
+    tournaments_entered: number;
+    tournaments_won: number;
+    final_tables: number;
+    best_finish: number;
+    tournaments_hosted: number;
+    tables_hosted: number;
+    referrals: number;
+}
+export interface PlayerProfileRecentResult {
+    tournament_id: number;
+    name: string;
+    finish_position: number;
+    prize_usdc: number;
+    ended_at: string | null;
+    // Optional enrichment (cheap backend add: JOIN tournaments + COUNT entries). The recent
+    // table surfaces these when present and degrades gracefully when absent.
+    buy_in_usdc?: number;
+    field_size?: number;
+    format?: string;
+}
+export interface PlayerProfileHosted {
+    tournament_id: number;
+    name: string;
+    status: string;
+    entrants: number;
+    ended_at: string | null;
+    // Optional enrichment (from the tournaments row): buy-in + format.
+    buy_in_usdc?: number;
+    format?: string;
+}
+export interface PlayerProfile {
+    address: string;
+    identity: PlayerProfileIdentity;
+    rank: number;
+    points: number;
+    tier: string;
+    referrals_count: number;
+    referral_multiplier: number;
+    stats: PlayerProfileStats;
+    host_earnings: { usdc: number; available: boolean; note?: string };
+    badges: { id?: string; label?: string; icon?: string }[];
+    recent: {
+        results: PlayerProfileRecentResult[];
+        hosted: PlayerProfileHosted[];
+    };
+}
+
+export async function getPlayerProfile(
+    address: string
+): Promise<PlayerProfile | null> {
+    isBackendUrlValid();
+    try {
+        const res = await fetch(
+            `${backendUrl}/api/players/${encodeURIComponent(address)}/profile`,
+            { method: 'GET' }
+        );
+        if (!res.ok) return null;
+        return (await res.json()) as PlayerProfile;
+    } catch (error) {
+        console.error('Unable to fetch player profile.', error);
+        return null;
+    }
+}
+
+// Player search (Viral §1 / #344).
+export interface PlayerSearchResult {
+    wallet: string;
+    x_username?: string;
+    x_display_name?: string;
+    avatar_url?: string;
+    rank: number;
+    tier: string;
+}
+export async function searchPlayers(
+    query: string
+): Promise<PlayerSearchResult[]> {
+    isBackendUrlValid();
+    const q = query.trim();
+    if (q.length < 2) return [];
+    try {
+        const res = await fetch(
+            `${backendUrl}/api/players/search?q=${encodeURIComponent(q)}`,
+            { method: 'GET' }
+        );
+        if (!res.ok) return [];
+        const data = (await res.json()) as { results?: PlayerSearchResult[] };
+        return data.results ?? [];
+    } catch (error) {
+        console.error('Unable to search players.', error);
+        return [];
     }
 }
 
@@ -658,8 +864,17 @@ export interface Tournament {
     chain?: string;
     is_private: boolean;
     registered_count?: number;
+    // Buy-in bullets only (free seats excluded) — use this, not registered_count, to project
+    // the prize pool over real money. A free seat is a body in the field, not a dollar in the
+    // pool. Absent on list payloads; the detail endpoint populates it.
+    paid_entries?: number;
     reentry_allowed: boolean;
     reentry_max: number;
+    // Free Tickets (Viral §3). free_seats_total is the Host cap (0 = Infinite, bounded by
+    // max seats); free_codes_per_claimer is the bring-a-friend multiplier.
+    free_tickets_enabled?: boolean;
+    free_seats_total?: number;
+    free_codes_per_claimer?: number;
     started_at?: string;
     ended_at?: string;
     settlement_tx_hash?: string;
@@ -725,6 +940,9 @@ export async function createTournament(data: {
     chain?: string;
     is_private?: boolean;
     password_code_hash?: string;
+    free_tickets_enabled?: boolean;
+    free_seats_total?: number;
+    free_codes_per_claimer?: number;
 }): Promise<{ tournament: Tournament }> {
     isBackendUrlValid();
     const res = await fetch(`${backendUrl}/api/tournaments`, {
@@ -735,6 +953,171 @@ export async function createTournament(data: {
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
+}
+
+// ── Free Tickets (Viral §3) ──────────────────────────────────────────────────
+
+export interface FreeTicketCode {
+    id: number;
+    code: string;
+    code_type: 'public' | 'tagged' | 'friend';
+    source_tag: string | null;
+    max_claims: number | null;
+    claims_count: number;
+    claim_path: string;
+    share_url?: string;
+}
+
+export interface FreeTicketsPanelData {
+    enabled: boolean;
+    cap: number; // 0 = Infinite
+    infinite: boolean;
+    codes_per_claimer: number;
+    max_entries: number;
+    codes: FreeTicketCode[];
+    claimed: number;
+    registered: number;
+    played: number;
+    codes_in_circulation: number;
+}
+
+// getFreeTickets returns the owner-only Free Tickets panel (config + codes + counters).
+export async function getFreeTickets(id: number): Promise<FreeTicketsPanelData> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/free-tickets`, {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// updateFreeTickets updates the toggle / cap / multiplier (host-only).
+export async function updateFreeTickets(
+    id: number,
+    data: { enabled?: boolean; cap?: number; codes_per_claimer?: number }
+): Promise<void> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/free-tickets`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(await res.text());
+}
+
+// createFreeCode mints a channel-tagged tracking link (host-only).
+export async function createFreeCode(
+    id: number,
+    sourceTag: 'x' | 'discord' | 'tg' | 'custom'
+): Promise<{ code: FreeTicketCode }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/free-tickets/codes`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source_tag: sourceTag }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// redeemFreeEntry claims a free seat for the signed-in wallet (first buy-in waived).
+export async function redeemFreeEntry(
+    id: number,
+    code: string
+): Promise<{ ok: boolean; player_uuid: string }> {
+    isBackendUrlValid();
+    const res = await fetch(`${backendUrl}/api/tournaments/${id}/free-tickets/redeem`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+}
+
+// Free-entry claim states (§3.5), surfaced by the public preview endpoint (§3.2).
+export type FreeEntryState =
+    | 'available'
+    | 'full'
+    | 'started'
+    | 'used'
+    | 'invalid'
+    | 'disabled';
+
+export interface FreeTicketPreview {
+    tournament: {
+        id: number;
+        name: string;
+        scheduled_start_at: string;
+        status: string;
+        buy_in_usdc: number;
+        guarantee_usdc: number;
+        prize_pool_usdc: number | null;
+        free_tickets_enabled: boolean;
+    };
+    free_entry: {
+        code: string;
+        state: FreeEntryState;
+        available: boolean;
+        claim_path?: string;
+    };
+}
+
+// getFreeTicketPreview returns the public, pre-sign-in claim state (§3.2). No auth.
+// A clean not-found / bad code resolves to null (the claim page shows "invalid"),
+// while a network/backend failure throws so the caller can show a distinct
+// "try again" state instead of mislabeling a good code as invalid.
+export async function getFreeTicketPreview(
+    id: number,
+    code?: string
+): Promise<FreeTicketPreview | null> {
+    isBackendUrlValid();
+    const qs = code ? `?c=${encodeURIComponent(code)}` : '';
+    const res = await fetch(
+        `${backendUrl}/api/tournaments/${id}/free-tickets/preview${qs}`,
+        { method: 'GET' }
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as FreeTicketPreview;
+}
+
+// Bring-a-friend invite codes (§3.3).
+export interface FriendCode {
+    id: number;
+    code: string;
+    code_type: string;
+    claim_path: string;
+    share_url?: string;
+    claimed: boolean;
+}
+export interface FriendCodesResponse {
+    enabled: boolean;
+    issued: number;
+    joined: number;
+    codes_per_claimer: number;
+    codes: FriendCode[];
+}
+
+// issueFriendCodes mints (idempotently) and returns the signed-in player's invite codes (§3.3).
+export async function issueFriendCodes(
+    id: number
+): Promise<FriendCodesResponse | null> {
+    isBackendUrlValid();
+    try {
+        const res = await fetch(
+            `${backendUrl}/api/tournaments/${id}/friend-codes`,
+            { method: 'POST', credentials: 'include' }
+        );
+        if (!res.ok) return null;
+        return (await res.json()) as FriendCodesResponse;
+    } catch (error) {
+        console.error('Unable to issue friend codes.', error);
+        return null;
+    }
 }
 
 // Host-only partial update of a tournament's cosmetic fields (description,
@@ -1161,6 +1544,10 @@ export async function getPlayerStats(address: string): Promise<{
 
 export async function getReferralInfo(address: string): Promise<{
     count: number;
+    // Invited = friends linked to you; activated = those who took a real-money action (§4).
+    // Legacy backends only return `count` (== activated); both default to it when absent.
+    activated?: number;
+    invited?: number;
     multiplier: number;
     nextTier: { required: number; multiplier: number } | null;
     hasReferrer: boolean;
@@ -1179,6 +1566,56 @@ export async function getReferralInfo(address: string): Promise<{
     } catch (error) {
         console.error('Unable to fetch referral info.', error);
         return { count: 0, multiplier: 1.0, nextTier: { required: 5, multiplier: 1.1 }, hasReferrer: false, myCode: null };
+    }
+}
+
+// Records a referral link from a stamped tournament invite (§4 / #353). Referee = the signed-in
+// caller (cookie auth); precedence + self-referral are enforced server-side.
+export async function attributeReferral(input: {
+    referrerCode: string;
+    tournamentId?: number;
+    source?: 'free_seat' | 'invite_link' | 'code';
+}): Promise<{ success: boolean; message: string; referrerAddress?: string }> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/referral/attribute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                referrerCode: input.referrerCode,
+                tournamentId: input.tournamentId != null ? String(input.tournamentId) : undefined,
+                source: input.source ?? 'invite_link',
+            }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to attribute referral.', error);
+        return { success: false, message: 'Network error' };
+    }
+}
+
+// Invited-vs-Activated tracking for the referrer's own view (§4 / #354). Status only.
+export async function getReferralStats(address: string): Promise<{
+    invited: number;
+    activated: number;
+    multiplier: number;
+    board_rank: number | null;
+    board_total?: number;
+}> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(
+            `${backendUrl}/api/referral/stats?address=${encodeURIComponent(address)}`,
+            { method: 'GET' }
+        );
+        if (!response.ok) {
+            throw new Error(`Referral stats fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch referral stats.', error);
+        return { invited: 0, activated: 0, multiplier: 1.0, board_rank: null };
     }
 }
 
@@ -1215,6 +1652,55 @@ export async function setMyReferralCode(
     } catch (error) {
         console.error('Unable to set referral code.', error);
         return { success: false, message: 'Network error' };
+    }
+}
+
+// ============================================================
+// Notification preferences API (Viral §6 / #362)
+// ============================================================
+
+export interface NotificationPreferences {
+    push_enabled: boolean;
+    events: { tournament_reminders?: boolean } & Record<string, boolean>;
+}
+
+// Reads the signed-in user's notification preferences (wallet from the auth cookie). Defaults to
+// everything on so an unauthenticated/offline read renders a sensible, non-alarming UI.
+export async function getNotificationPreferences(): Promise<NotificationPreferences> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/notifications/preferences`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            throw new Error(`Preferences fetch failed: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to fetch notification preferences.', error);
+        return { push_enabled: true, events: { tournament_reminders: true } };
+    }
+}
+
+// Updates notification preferences (partial). Returns the resolved state the server reports back.
+export async function updateNotificationPreferences(input: {
+    push_enabled?: boolean;
+    events?: Record<string, boolean>;
+}): Promise<NotificationPreferences | null> {
+    isBackendUrlValid();
+    try {
+        const response = await fetch(`${backendUrl}/api/notifications/preferences`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(input),
+        });
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (error) {
+        console.error('Unable to update notification preferences.', error);
+        return null;
     }
 }
 

@@ -32,6 +32,7 @@ import { PiCrownFill } from 'react-icons/pi';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import PlayerAvatar from '../PlayerAvatar';
 import PlayerNameLink from '../PlayerNameLink';
+import { playerDisplayName } from '@/app/utils/address';
 import ExternalLink from '../ExternalLink';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
@@ -278,7 +279,11 @@ export default function TournamentTabPanel() {
             const nameByUuid = new Map(
                 leaderboard.map((p) => [
                     p.uuid,
-                    p.xUsername ? `@${p.xUsername}` : shortAddr(p.wallet),
+                    playerDisplayName(
+                        p.xUsername ? `@${p.xUsername}` : null,
+                        p.wallet,
+                        p.xDisplayName
+                    ) || shortAddr(p.wallet),
                 ])
             );
             const aliveDenom = aliveRows.length || aliveCount || 1;
@@ -1092,6 +1097,7 @@ const StandingsRow = React.memo(function StandingsRow({
                     {p.xUsername ? (
                         <PlayerNameLink
                             username={`@${p.xUsername}`}
+                            displayName={p.xDisplayName}
                             fontSize="sm"
                             fontWeight="semibold"
                             noOfLines={1}

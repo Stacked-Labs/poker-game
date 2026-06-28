@@ -34,6 +34,7 @@ import { resolvePlayerIdentity, shortenAddress } from '@/app/utils/address';
 interface PlayerSession {
     uuid: string;
     username: string;
+    xDisplayName?: string;
     profileImageUrl?: string;
     address?: string;
     totalBuyIns: number;
@@ -372,6 +373,7 @@ const MobileSessionCard = ({
                             <PlayerNameLink
                                 username={session.username}
                                 address={showWallet ? session.address : undefined}
+                                displayName={session.xDisplayName}
                                 chain={chain}
                                 fontWeight={700}
                                 color="text.primary"
@@ -621,6 +623,8 @@ const Ledger = () => {
                     session.currentStack = player.stack;
                     session.isActive = !player.left && player.in;
                     session.username = player.username || session.username;
+                    session.xDisplayName =
+                        player.xDisplayName ?? session.xDisplayName;
                     session.profileImageUrl =
                         player.profileImageUrl ?? session.profileImageUrl;
                     session.address = player.address ?? session.address;
@@ -629,6 +633,7 @@ const Ledger = () => {
                     playerMap.set(player.uuid, {
                         uuid: player.uuid,
                         username: player.username,
+                        xDisplayName: player.xDisplayName,
                         profileImageUrl: player.profileImageUrl,
                         address: player.address,
                         totalBuyIns: player.totalBuyIn || 0,
@@ -962,6 +967,9 @@ const Ledger = () => {
                                                                 showWallet
                                                                     ? session.address
                                                                     : undefined
+                                                            }
+                                                            displayName={
+                                                                session.xDisplayName
                                                             }
                                                             chain={chain}
                                                             fontWeight={700}

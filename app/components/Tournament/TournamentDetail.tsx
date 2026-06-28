@@ -60,6 +60,7 @@ import Footer from '../HomePage/Footer';
 import StructureSheet from './StructureSheet';
 import PayoutLadder, { RankBadge } from './PayoutLadder';
 import AboutPanel from './AboutPanel';
+import FreeTicketsPanel from './FreeTicketsPanel';
 import { USDC_BLUE, USDC_LOGO } from '../PublicGames/types';
 import {
     formatTournamentStart,
@@ -86,7 +87,7 @@ import {
     placesPaid,
     projectedPrizePoolUsdc,
 } from '../PublicGames/payouts';
-import { shortenAddress } from '@/app/utils/address';
+import { shortenAddress, playerDisplayName } from '@/app/utils/address';
 
 // LeaderboardPlayer now lives in app/interfaces (shared with the live-tournament
 // state slice). Re-exported here so existing `from './TournamentDetail'` imports
@@ -1013,14 +1014,19 @@ export default function TournamentDetail({
     // max() against it would pin the projection to the guarantee. Mirror the
     // coordinator's pool math from the live field instead, so projected payouts
     // grow with entries and overtake the guarantee once buy-ins exceed it.
+    //
+    // The pool grows with PAID buy-ins only — free-ticket seats are bodies in the field
+    // (they count toward places paid via effectiveEntrants) but put no money in the pool,
+    // so project over paid_entries. Fall back to the full field when the API omits it.
     const projecting =
         t.status === 'registration' || t.status === 'pending';
+    const effectivePaidEntrants = t.paid_entries ?? effectiveEntrants;
     const effectivePrizePool =
         settledPrizePool > 0
             ? settledPrizePool
             : projecting
               ? projectedPrizePoolUsdc(
-                    effectiveEntrants,
+                    effectivePaidEntrants,
                     t.buy_in_usdc,
                     t.fee_bps,
                     t.guarantee_usdc ?? 0
@@ -1906,6 +1912,17 @@ export default function TournamentDetail({
                                                     onClaimHostEmergencyRefund
                                                 }
                                             />
+                                            {t.free_tickets_enabled && (
+                                                <>
+                                                    <Divider
+                                                        borderColor={border}
+                                                    />
+                                                    <FreeTicketsPanel
+                                                        tournamentId={t.id}
+                                                        rowBg={rowHover}
+                                                    />
+                                                </>
+                                            )}
                                         </>
                                     )}
                                 </VStack>
@@ -2180,7 +2197,11 @@ function RegistrantsPanel({
     const isHost = (r: LeaderboardPlayer) =>
         !!host && r.wallet?.toLowerCase() === host;
     const labelOf = (r: LeaderboardPlayer) =>
-        r.xUsername ? `@${r.xUsername}` : shortAddr(r.wallet);
+        playerDisplayName(
+            r.xUsername ? `@${r.xUsername}` : null,
+            r.wallet,
+            r.xDisplayName
+        ) || shortAddr(r.wallet);
 
     // Lead with you, so a registered player always sees themselves first.
     const ordered = me
@@ -2194,6 +2215,7 @@ function RegistrantsPanel({
         return r.xUsername ? (
             <PlayerNameLink
                 username={`@${r.xUsername}`}
+                displayName={r.xDisplayName}
                 fontSize="sm"
                 fontWeight={mine ? 'bold' : 'semibold'}
                 color={mine ? 'brand.green' : 'text.primary'}
@@ -2977,8 +2999,9 @@ function HostPanel({
     );
     const needsFunding =
         t.status === 'pending' && t.guarantee_usdc > 0 && !!t.contract_address;
-    // What the host still covers if buy-ins fall short of the guarantee.
-    const buyInsCollected = registeredCount * t.buy_in_usdc;
+    // What the host still covers if buy-ins fall short of the guarantee. Free seats collect
+    // no buy-in, so exposure/fees track paid_entries — not the full registered field.
+    const buyInsCollected = (t.paid_entries ?? registeredCount) * t.buy_in_usdc;
     const exposure = Math.max(0, t.guarantee_usdc - buyInsCollected);
     // The host's projected take: 25% of the platform fee (fee_bps of every
     // buy-in), mirroring Tournament.sol's HOST_SHARE_BPS. Grows as the field
@@ -3424,6 +3447,7 @@ function Standings({
                                                     {p.xUsername ? (
                                                         <PlayerNameLink
                                                             username={`@${p.xUsername}`}
+                                                            displayName={p.xDisplayName}
                                                             fontSize="sm"
                                                             fontWeight="semibold"
                                                             noOfLines={1}

@@ -3,11 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { Flex, Stack, Box } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import LeaderboardTable, { LeaderboardEntry } from '@/app/components/Leaderboard/LeaderboardTable';
+import type { LeaderboardEntry } from '@/app/components/Leaderboard/LeaderboardTable';
+import StatsHub from '@/app/components/StatsHub/StatsHub';
 import PlayerCard from '@/app/components/Leaderboard/PlayerCard';
 import QuestsSection from '@/app/components/Leaderboard/QuestsSection';
+import PlayerSearch from '@/app/components/PlayerSearch';
 import FloatingDecor from '@/app/components/HomePage/FloatingDecor';
 import Footer from '@/app/components/HomePage/Footer';
+import StatusMomentWatcher from '@/app/components/Moments/StatusMomentWatcher';
 import { getLeaderboard, getPlayerStats, getReferralInfo } from '@/app/hooks/server_actions';
 import { useActiveAccount } from 'thirdweb/react';
 import type { UserStats } from '@/app/components/Leaderboard/StatsSection';
@@ -91,6 +94,15 @@ const LeaderboardPage: React.FC = () => {
         >
             <FloatingDecor density="light" />
 
+            {/* Share Moments (Viral §5 / #358): ranked-up / new-tier / hands-milestone celebrations */}
+            <StatusMomentWatcher
+                address={account?.address}
+                rank={playerEntry?.rank}
+                points={playerEntry?.points}
+                total={total}
+                handsPlayed={playerEntry?.handsPlayed}
+            />
+
             <Box
                 aria-hidden="true"
                 position="absolute"
@@ -146,16 +158,16 @@ const LeaderboardPage: React.FC = () => {
                             nextPoints={nextPoints}
                             total={total}
                             xUsername={playerEntry?.xUsername}
+                            xDisplayName={playerEntry?.xDisplayName}
                             xProfileImageUrl={playerEntry?.xProfileImageUrl}
                         />
                         <QuestsSection tablesCreated={stats.gamesCreated} />
                     </Box>
                     <Box flex="1" w="full">
-                        <LeaderboardTable
-                            data={entries}
-                            currentAddress={account?.address}
-                            total={total}
-                        />
+                        <Flex justify="flex-end" mb={3}>
+                            <PlayerSearch maxW={{ base: '100%', sm: '320px' }} />
+                        </Flex>
+                        <StatsHub currentAddress={account?.address} />
                     </Box>
                 </Stack>
             </Flex>

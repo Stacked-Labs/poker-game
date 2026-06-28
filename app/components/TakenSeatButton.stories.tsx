@@ -661,6 +661,23 @@ export const XProfileSelf: Story = {
 };
 
 /**
+ * Long X handle — must ellipsize inside the plate, not overflow the seat (#604).
+ * The handle renders as an `<a>` link; the regression here is that an inline
+ * anchor ignores `isTruncated`'s overflow clip unless it is `display: block`.
+ */
+export const LongXHandle: Story = {
+    name: 'X Avatar — long handle truncates',
+    args: {
+        player: {
+            ...basePlayer,
+            username: '@an_extremely_long_twitter_handle_that_should_truncate',
+            profileImageUrl:
+                'https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg',
+        },
+    },
+};
+
+/**
  * Self player without X linked — glassmorphism hover card auto-reveals once per
  * session (~1.2 s after mount). Hover the avatar to re-trigger the card after it
  * auto-hides. Dismiss button persists via localStorage up to 3 times.

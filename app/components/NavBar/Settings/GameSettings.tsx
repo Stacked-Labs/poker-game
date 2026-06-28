@@ -24,6 +24,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { SocketContext } from '@/app/contexts/WebSocketProvider';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { playerDisplayName } from '@/app/utils/address';
 import { CardBack } from '@/app/components/Card';
 import type { CardBackVariant, DisplayMode } from '@/app/interfaces';
 import useIsTableOwner from '@/app/hooks/useIsTableOwner';
@@ -36,6 +37,7 @@ import {
 import { useConnectX } from '@/app/hooks/useConnectX';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import NotificationSettings from './NotificationSettings';
 
 // Chip Display backgrounds — chips/bb use brand tokens (raw hex avoided
 // where possible). USDC keeps its real brand hex since it identifies
@@ -105,7 +107,8 @@ const SectionGroupHeader = ({
 );
 
 const ConnectXSection = () => {
-    const { isAuthenticated, xUsername, xProfileImageUrl } = useAuth();
+    const { isAuthenticated, xUsername, xDisplayName, xProfileImageUrl } =
+        useAuth();
     const { connectX, disconnectX, isConnecting, isDisconnecting } = useConnectX();
     const sectionShadow = useColorModeValue(
         '0 2px 8px rgba(0, 0, 0, 0.06)',
@@ -163,7 +166,11 @@ const ConnectXSection = () => {
                                 textOverflow="ellipsis"
                                 maxW={{ base: '140px', md: '200px' }}
                             >
-                                @{xUsername}
+                                {playerDisplayName(
+                                    `@${xUsername}`,
+                                    null,
+                                    xDisplayName
+                                )}
                             </Text>
                             <HStack spacing={1} px={1.5} py={0.5} bg="rgba(54, 163, 123, 0.08)" borderRadius="full">
                                 <Box boxSize="5px" borderRadius="full" bg="brand.green" />
@@ -1160,6 +1167,12 @@ const GameSettings = () => {
                 </Flex>
             </Box>
                 </VStack>
+            </Box>
+
+            {/* Notifications — push controls + per-event preferences (§6 / #363) */}
+            <Box>
+                <SectionGroupHeader label="Notifications" />
+                <NotificationSettings />
             </Box>
         </VStack>
     );

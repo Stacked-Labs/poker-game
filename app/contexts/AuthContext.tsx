@@ -24,6 +24,7 @@ const DEBUG = process.env.NEXT_PUBLIC_DEBUG_WS === 'true';
 interface XAccountStatus {
     linked: boolean;
     x_username?: string;
+    x_display_name?: string;
     profile_image_url?: string;
 }
 
@@ -39,6 +40,7 @@ interface AuthContextProps {
     /** Reconciled relationship between the session cookie and the connected wallet. */
     walletSessionStatus: WalletSessionDecision['status'];
     xUsername: string | null;
+    xDisplayName: string | null;
     xProfileImageUrl: string | null;
     xStatusChecked: boolean;
     requestAuthentication: () => void;
@@ -57,6 +59,7 @@ export const AuthContext = createContext<AuthContextProps>({
     walletMismatch: false,
     walletSessionStatus: 'unauthenticated',
     xUsername: null,
+    xDisplayName: null,
     xProfileImageUrl: null,
     xStatusChecked: false,
     requestAuthentication: () => {},
@@ -81,6 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // X account state
     const [xUsername, setXUsername] = useState<string | null>(null);
+    const [xDisplayName, setXDisplayName] = useState<string | null>(null);
     const [xProfileImageUrl, setXProfileImageUrl] = useState<string | null>(null);
     const [xStatusChecked, setXStatusChecked] = useState(false);
 
@@ -120,19 +124,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
             if (!response.ok) {
                 setXUsername(null);
+                setXDisplayName(null);
                 setXProfileImageUrl(null);
                 return;
             }
             const data: XAccountStatus = await response.json();
             if (data.linked) {
                 setXUsername(data.x_username || null);
+                setXDisplayName(data.x_display_name || null);
                 setXProfileImageUrl(data.profile_image_url || null);
             } else {
                 setXUsername(null);
+                setXDisplayName(null);
                 setXProfileImageUrl(null);
             }
         } catch {
             setXUsername(null);
+            setXDisplayName(null);
             setXProfileImageUrl(null);
         } finally {
             setXStatusChecked(true);
@@ -198,6 +206,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             refreshXStatus();
         } else {
             setXUsername(null);
+            setXDisplayName(null);
             setXProfileImageUrl(null);
         }
     }, [isAuthenticated, refreshXStatus]);
@@ -264,6 +273,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         walletMismatch,
         walletSessionStatus: decision.status,
         xUsername,
+        xDisplayName,
         xProfileImageUrl,
         xStatusChecked,
         requestAuthentication,

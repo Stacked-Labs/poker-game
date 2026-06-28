@@ -9,6 +9,7 @@ import {
     type StatusTone,
     type TournamentMoneyDisplay,
 } from '../../../components/PublicGames/tournamentFormatPure';
+import { isMomentType, momentBadge } from '../../../lib/moments';
 
 export const runtime = 'edge';
 
@@ -57,6 +58,11 @@ const MAX_NAME_LENGTH = 38;
 
 export async function GET(req: NextRequest) {
     const id = parseInt(req.nextUrl.searchParams.get('id') || '', 10);
+    // Optional Share-Moment ribbon (Viral §5 / #359): "WINNER" / "DEEP RUN" stamped over the
+    // tournament card for a player's win / final-table share.
+    const mParam = req.nextUrl.searchParams.get('m');
+    const momentType = isMomentType(mParam) ? mParam : null;
+    const momentBanner = momentType ? momentBadge(momentType) : null;
     const origin = req.nextUrl.origin;
     const logoUrl = `${origin}/IconLogo.png`;
     const usdcLogoUrl = `${origin}/usdc-logo.png`;
@@ -151,6 +157,46 @@ export async function GET(req: NextRequest) {
                                 'linear-gradient(to top, rgba(236,238,245,0.85) 0%, rgba(236,238,245,0) 100%)',
                         }}
                     />
+
+                    {/* Share-Moment ribbon — celebratory banner over the tournament banner band */}
+                    {momentBanner && (
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: 28,
+                                left: 28,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 16,
+                                padding: '16px 40px',
+                                borderRadius: 20,
+                                background: GREEN,
+                                boxShadow: '0 8px 24px rgba(11,20,48,0.18)',
+                            }}
+                        >
+                            {/* Drawn celebratory mark — never an emoji glyph. */}
+                            <div
+                                style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 4,
+                                    background: '#ffffff',
+                                    transform: 'rotate(45deg)',
+                                    display: 'flex',
+                                }}
+                            />
+                            <span
+                                style={{
+                                    color: '#ffffff',
+                                    fontSize: 48,
+                                    fontWeight: 900,
+                                    letterSpacing: '0.06em',
+                                }}
+                            >
+                                {momentBanner}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Info panel (bottom) */}
@@ -197,28 +243,33 @@ export async function GET(req: NextRequest) {
                             </span>
                         </div>
 
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: '12px 26px',
-                                borderRadius: 40,
-                                background: status.bg,
-                                border: `2px solid ${status.border}`,
-                            }}
-                        >
-                            <span
+                        {/* The live status pill (Live / Registration / …) is suppressed on a
+                            Share-Moment card: a "WINNER" / "DEEP RUN" ribbon over a "Live" pill
+                            reads as a contradiction. The ribbon is the headline there. */}
+                        {!momentBanner && (
+                            <div
                                 style={{
-                                    fontSize: 24,
-                                    fontWeight: 800,
-                                    letterSpacing: '0.08em',
-                                    textTransform: 'uppercase',
-                                    color: status.fg,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '12px 26px',
+                                    borderRadius: 40,
+                                    background: status.bg,
+                                    border: `2px solid ${status.border}`,
                                 }}
                             >
-                                {statusLabel}
-                            </span>
-                        </div>
+                                <span
+                                    style={{
+                                        fontSize: 24,
+                                        fontWeight: 800,
+                                        letterSpacing: '0.08em',
+                                        textTransform: 'uppercase',
+                                        color: status.fg,
+                                    }}
+                                >
+                                    {statusLabel}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Tournament name */}

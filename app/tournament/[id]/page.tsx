@@ -1,6 +1,6 @@
 'use client';
 
-import { Flex, Spinner, Text } from '@chakra-ui/react';
+import { Box, Container, Flex, Spinner, Text } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useActiveAccount } from 'thirdweb/react';
@@ -30,6 +30,8 @@ import TournamentDetail, {
 } from '../../components/Tournament/TournamentDetail';
 import RegistrationConfirmationModal from '../../components/Tournament/RegistrationConfirmationModal';
 import TournamentRegisterModal from '../../components/Tournament/TournamentRegisterModal';
+import FriendInviteSection from '../../components/Tournament/FriendInviteSection';
+import TournamentInviteCard from '../../components/Tournament/TournamentInviteCard';
 
 export default function TournamentPage() {
     const params = useParams();
@@ -139,6 +141,7 @@ export default function TournamentPage() {
                                 uuid: string;
                                 wallet: string;
                                 xUsername?: string | null;
+                                xDisplayName?: string | null;
                                 xProfileImageUrl?: string | null;
                             },
                             i: number
@@ -149,6 +152,7 @@ export default function TournamentPage() {
                             finish_pos: 0,
                             table_index: -1,
                             xUsername: r.xUsername,
+                            xDisplayName: r.xDisplayName,
                             xProfileImageUrl: r.xProfileImageUrl,
                         })
                     )
@@ -167,6 +171,7 @@ export default function TournamentPage() {
                                 finish_position: number;
                                 prize_usdc: number;
                                 xUsername?: string | null;
+                                xDisplayName?: string | null;
                                 xProfileImageUrl?: string | null;
                             },
                             i: number
@@ -178,6 +183,7 @@ export default function TournamentPage() {
                             table_index: -1,
                             prize_usdc: r.prize_usdc,
                             xUsername: r.xUsername,
+                            xDisplayName: r.xDisplayName,
                             xProfileImageUrl: r.xProfileImageUrl,
                         })
                     )
@@ -541,6 +547,24 @@ export default function TournamentPage() {
                 onUpdateLinks={handleUpdateLinks}
                 onUploadImage={handleUploadImage}
             />
+
+            {/* Bring-a-friend (§3.3): registered entrants can invite friends into a free seat.
+                The section self-hides when the event has no free tickets. */}
+            {isRegistered && (
+                <Flex justify="center" px={{ base: 4, md: 6 }} pb={10}>
+                    <Box w="full" maxW="600px">
+                        <FriendInviteSection tournamentId={id} />
+                    </Box>
+                </Flex>
+            )}
+
+            {/* Invite to this tournament (§4 / #593): share-to-attribute card. */}
+            {tournament.status !== 'completed' &&
+                tournament.status !== 'cancelled' && (
+                    <Container maxW="container.lg" px={{ base: 3, md: 6 }} pb={6}>
+                        <TournamentInviteCard tournamentId={id} />
+                    </Container>
+                )}
 
             <TournamentRegisterModal
                 tournament={regModal ? tournament : null}

@@ -8,6 +8,8 @@ interface PlayerNameLinkProps extends TextProps {
     address?: string | null;
     /** Table chain (e.g. "base"), for building the explorer URL. */
     chain?: string | null;
+    /** X display name (#340) — preferred label; the link still targets the @handle. */
+    displayName?: string | null;
 }
 
 // The outbound link for a player identity: X profile for @handles, block explorer
@@ -32,9 +34,10 @@ export const PlayerNameLink = ({
     username,
     address,
     chain,
+    displayName,
     ...textProps
 }: PlayerNameLinkProps) => {
-    const { label } = resolvePlayerIdentity(username, address);
+    const { label } = resolvePlayerIdentity(username, address, displayName);
     const href = playerIdentityHref(username, address, chain);
 
     if (!href) {

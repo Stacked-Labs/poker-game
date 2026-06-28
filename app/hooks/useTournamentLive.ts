@@ -25,6 +25,7 @@ interface LeaderboardResponse {
         finish_position: number;
         prize_usdc: number;
         xUsername?: string | null;
+        xDisplayName?: string | null;
         xProfileImageUrl?: string | null;
     }[];
 }
@@ -40,6 +41,7 @@ function mapLeaderboard(lb: LeaderboardResponse | null): LeaderboardPlayer[] {
             table_index: -1,
             prize_usdc: r.prize_usdc,
             xUsername: r.xUsername,
+            xDisplayName: r.xDisplayName,
             xProfileImageUrl: r.xProfileImageUrl,
         }));
     }

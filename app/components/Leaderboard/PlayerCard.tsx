@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import {
     Box,
     VStack,
@@ -17,9 +17,10 @@ import { keyframes } from '@emotion/react';
 import { useActiveAccount } from 'thirdweb/react';
 import { FaWallet, FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
 import { FaMedal, FaXTwitter } from 'react-icons/fa6';
+import { FiTrendingUp } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
-import { shortenAddress } from '@/app/utils/address';
+import { playerDisplayName } from '@/app/utils/address';
 import WalletButton from '../WalletButton';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 import StatsSection from './StatsSection';
@@ -47,10 +48,6 @@ const rankBounce = keyframes`
   100% { transform: scale(1); }
 `;
 
-const pulseAmber = keyframes`
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.55; }
-`;
 
 interface ReferralInfo {
     count: number;
@@ -66,6 +63,7 @@ export interface PlayerCardViewProps {
     authState: PlayerAuthState;
     address?: string;
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
     rank?: number;
     points?: number;
@@ -99,6 +97,7 @@ interface PlayerCardProps {
     nextPoints?: number;
     total?: number;
     xUsername?: string | null;
+    xDisplayName?: string | null;
     xProfileImageUrl?: string | null;
 }
 
@@ -126,12 +125,11 @@ function CardBack({ style, accent }: { style?: React.CSSProperties; accent?: boo
     );
 }
 
-const truncateAddress = shortenAddress;
-
 export function PlayerCardView({
     authState,
     address,
     xUsername,
+    xDisplayName,
     xProfileImageUrl,
     rank,
     points,
@@ -384,7 +382,11 @@ export function PlayerCardView({
                                 _hover={{ color: 'brand.green' }}
                                 transition="color 0.2s ease"
                             >
-                                {xUsername ? `@${xUsername}` : address ? truncateAddress(address) : ''}
+                                {playerDisplayName(
+                                    xUsername ? `@${xUsername}` : null,
+                                    address,
+                                    xDisplayName
+                                )}
                             </Text>
 
                             {xUsername ? (
@@ -442,14 +444,12 @@ export function PlayerCardView({
                     </Flex>
 
                     {improved && previousRank != null && (
-                        <Text
-                            fontSize="xs"
-                            color="brand.green"
-                            fontWeight="semibold"
-                            textAlign="center"
-                        >
-                            🎉 Climbed from #{previousRank} → #{rank}!
-                        </Text>
+                        <HStack spacing={1.5} justify="center">
+                            <Icon as={FiTrendingUp} color="brand.green" boxSize="14px" aria-hidden />
+                            <Text fontSize="xs" color="brand.green" fontWeight="semibold">
+                                Climbed from #{previousRank} to #{rank}
+                            </Text>
+                        </HStack>
                     )}
 
                     <Box
@@ -512,34 +512,39 @@ export function PlayerCardView({
                             />
                             <Text
                                 fontSize="2xs"
-                                color={isNearMiss ? 'brand.yellow' : 'text.secondary'}
+                                color={isNearMiss ? 'brand.yellowDark' : 'text.secondary'}
+                                _dark={isNearMiss ? { color: 'brand.yellow' } : undefined}
+                                fontWeight={isNearMiss ? 700 : 400}
                                 textAlign="right"
                                 mt={1}
-                                animation={isNearMiss ? `${pulseAmber} 1.4s ease-in-out infinite` : undefined}
                             >
                                 {isNearMiss
-                                    ? `Almost there! ${gap.toLocaleString()} pts`
+                                    ? `Almost there · ${gap.toLocaleString()} pts`
                                     : `${gap.toLocaleString()} pts to #${nextRank}`}
                             </Text>
                         </Box>
                     )}
 
                     {rank === 1 && (
-                        <Text
-                            fontSize="xs"
-                            color="brand.green"
-                            fontWeight="semibold"
-                            textAlign="center"
-                        >
-                            👑 You&apos;re on top!
-                        </Text>
+                        <HStack spacing={1.5} justify="center">
+                            <Icon
+                                as={FaCrown}
+                                color="brand.yellowDark"
+                                _dark={{ color: 'brand.yellow' }}
+                                boxSize="13px"
+                                aria-hidden
+                            />
+                            <Text fontSize="xs" color="text.primary" fontWeight="semibold">
+                                You&apos;re on top
+                            </Text>
+                        </HStack>
                     )}
 
                     <StatsSection stats={stats} />
 
                     <Box h="1px" bg="border.lightGray" opacity={0.5} />
 
-                    <ReferralCodeSection referralInfo={referralInfo} initialReferralCode={initialReferralCode} />
+                    <ReferralCodeSection referralInfo={referralInfo} initialReferralCode={initialReferralCode} bare />
                 </VStack>
             </Box>
         </Box>
@@ -557,37 +562,26 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     nextPoints,
     total = 0,
     xUsername,
+    xDisplayName,
     xProfileImageUrl,
 }) => {
     const account = useActiveAccount();
     const {
         isAuthenticated, isAuthenticating, requestAuthentication,
-        xUsername: authXUsername, xProfileImageUrl: authXProfileImageUrl, xStatusChecked,
+        xUsername: authXUsername, xDisplayName: authXDisplayName, xProfileImageUrl: authXProfileImageUrl, xStatusChecked,
     } = useAuth();
     const { connectX, disconnectX, isConnecting: isConnectingX, isDisconnecting: isDisconnectingX } =
         useConnectX();
 
     const effectiveXUsername = xStatusChecked ? authXUsername : (xUsername ?? null);
+    const effectiveXDisplayName = xStatusChecked ? authXDisplayName : (xDisplayName ?? null);
     const effectiveXProfileImageUrl = xStatusChecked ? authXProfileImageUrl : (xProfileImageUrl ?? null);
     const isConnected = !!account;
     const isFullyAuthenticated = isConnected && isAuthenticated;
 
+    // Rank climbs are celebrated once, by the StatusMomentWatcher share modal (Viral §5). The card
+    // keeps only the ambient "Climbed from #X to #Y" badge — no competing confetti burst.
     const { improved, previousRank } = useRankHistory(account?.address, rank);
-    const confettiFired = useRef(false);
-
-    useEffect(() => {
-        if (!improved || confettiFired.current) return;
-        confettiFired.current = true;
-        import('canvas-confetti').then((mod) => {
-            const confetti = mod.default;
-            confetti({
-                particleCount: 80,
-                spread: 70,
-                origin: { y: 0.5 },
-                colors: ['#36A37B', '#FFD700', '#EB0B5C', '#A78BFA'],
-            });
-        });
-    }, [improved]);
 
     const authState: PlayerAuthState = isFullyAuthenticated
         ? 'authed'
@@ -600,6 +594,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             authState={authState}
             address={account?.address}
             xUsername={effectiveXUsername}
+            xDisplayName={effectiveXDisplayName}
             xProfileImageUrl={effectiveXProfileImageUrl}
             rank={rank}
             points={points}

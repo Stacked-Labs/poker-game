@@ -1,6 +1,8 @@
 'use client';
 
 import { useContext, useMemo } from 'react';
+import NextLink from 'next/link';
+import { useParams } from 'next/navigation';
 import {
     Box,
     Text,
@@ -10,7 +12,8 @@ import {
     useColorModeValue,
     useBreakpointValue,
 } from '@chakra-ui/react';
-import { FiUser } from 'react-icons/fi';
+import { FiUser, FiChevronLeft } from 'react-icons/fi';
+import { playerDisplayName } from '@/app/utils/address';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
 import ChainBadge from '../ChainBadge';
@@ -66,6 +69,22 @@ const GameConfigWatermark = () => {
     // Mobile-first: portrait phones get abbreviated, shorter copy so the watermark
     // doesn't bleed up into the hero's hole cards / seat HUD. SSR falls back to base.
     const compact = useBreakpointValue({ base: true, md: false }) ?? true;
+
+    // The table route slug is the source of truth for which table the player is
+    // actually viewing: tournament tables are `tournament-<id>-table-<n>`, cash
+    // tables are a bare id. We surface the table number (#604: "show people which
+    // table they are on") and a back link (#604/#605: return to the tournament
+    // details page, or the lobby for cash games).
+    const params = useParams();
+    const slug =
+        typeof params?.id === 'string'
+            ? params.id
+            : Array.isArray(params?.id)
+              ? params.id[0]
+              : '';
+    const tourTableMatch = slug.match(/^tournament-(\d+)-table-(\d+)$/);
+    const routeTournamentId = tourTableMatch ? Number(tourTableMatch[1]) : null;
+    const tableNumber = tourTableMatch ? Number(tourTableMatch[2]) : null;
     const formatBlinds = useMemo(
         () =>
             displayMode === 'bb'
@@ -88,11 +107,12 @@ const GameConfigWatermark = () => {
                       tMeta.hostWallet.toLowerCase()
               )
             : null;
-        const hostLabel = hostEntry?.xUsername
-            ? `@${hostEntry.xUsername}`
-            : tMeta.hostWallet
-              ? shortAddr(tMeta.hostWallet)
-              : null;
+        const hostLabel =
+            playerDisplayName(
+                hostEntry?.xUsername ? `@${hostEntry.xUsername}` : null,
+                tMeta.hostWallet,
+                hostEntry?.xDisplayName
+            ) || null;
         const lvl = clock
             ? {
                   levelNumber: clock.levelNumber,
@@ -168,12 +188,28 @@ const GameConfigWatermark = () => {
 
     const cashHostLabel = useMemo(() => {
         if (!config) return null;
-        if (config.ownerAddress) return shortAddr(config.ownerAddress);
+        const players = appState.game?.players;
+        // Prefer the host's X display name (#340), then their @handle, matched off
+        // the seated players by wallet (crypto) or session (free play). Falls back to
+        // the bare wallet / session id when the host isn't seated or hasn't linked X.
+        if (config.ownerAddress) {
+            const owner = players?.find(
+                (p) =>
+                    p.address?.toLowerCase() ===
+                    config.ownerAddress?.toLowerCase()
+            );
+            return (
+                owner?.xDisplayName?.trim() ||
+                owner?.username?.trim() ||
+                shortAddr(config.ownerAddress)
+            );
+        }
         if (config.ownerSessionUUID) {
-            const ownerPlayer = appState.game?.players.find(
+            const owner = players?.find(
                 (p) => p.uuid === config.ownerSessionUUID
             );
-            if (ownerPlayer?.username) return ownerPlayer.username;
+            if (owner?.xDisplayName?.trim()) return owner.xDisplayName.trim();
+            if (owner?.username) return owner.username;
             const uid = config.ownerSessionUUID;
             return `${uid.slice(0, 4)}...${uid.slice(-4)}`;
         }
@@ -202,7 +238,31 @@ const GameConfigWatermark = () => {
     const hostText =
         tournament && !compact && hostLabel ? `Host ${hostLabel}` : hostLabel;
 
-    if (!configText && !chain && !freePlay) return null;
+    // Wayfinding back link. On a tournament table it returns to the tournament
+    // details page and doubles as the "which table am I on" indicator; on a cash
+    // table it returns to the public games lobby. We trust the route slug so the
+    // link (and the table number) appear even before the live meta seed arrives.
+    const isTournamentSurface = !!tournament || tourTableMatch != null;
+    const tournamentId = live?.tournamentId ?? routeTournamentId;
+    const backLink =
+        isTournamentSurface && tournamentId != null
+            ? {
+                  href: `/tournament/${tournamentId}`,
+                  label: tableNumber != null ? `TABLE ${tableNumber}` : 'TOURNAMENT',
+                  ariaLabel:
+                      tableNumber != null
+                          ? `You're on table ${tableNumber} — back to tournament details`
+                          : 'Back to tournament details',
+              }
+            : !isTournamentSurface && config
+              ? {
+                    href: '/public-games',
+                    label: 'ALL GAMES',
+                    ariaLabel: 'Back to all games',
+                }
+              : null;
+
+    if (!configText && !chain && !freePlay && !backLink) return null;
 
     return (
         <Box
@@ -215,6 +275,40 @@ const GameConfigWatermark = () => {
             zIndex={1}
         >
             <Flex direction="column" gap={{ base: 0.5, md: 1 }}>
+                {backLink && (
+                    <Link
+                        as={NextLink}
+                        href={backLink.href}
+                        aria-label={backLink.ariaLabel}
+                        pointerEvents="auto"
+                        display="inline-flex"
+                        alignItems="center"
+                        gap={0.5}
+                        width="fit-content"
+                        color="text.secondary"
+                        fontSize={{ base: '10px', sm: '12px', md: '13px' }}
+                        lineHeight={{ base: 1.15, md: 1.2 }}
+                        fontWeight="bold"
+                        letterSpacing="0.06em"
+                        minW={0}
+                        transition="color 80ms ease"
+                        _hover={{
+                            color: 'text.primary',
+                            textDecoration: 'underline',
+                            textDecorationThickness: '1.5px',
+                            textUnderlineOffset: '3px',
+                        }}
+                    >
+                        <Icon
+                            as={FiChevronLeft}
+                            boxSize={{ base: '13px', md: '16px' }}
+                            flexShrink={0}
+                        />
+                        <Text as="span" noOfLines={1}>
+                            {backLink.label}
+                        </Text>
+                    </Link>
+                )}
                 {configText && (
                     <Text
                         color="text.primary"

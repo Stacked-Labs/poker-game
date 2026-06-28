@@ -20,6 +20,7 @@ import PlayerNameLink from '../PlayerNameLink';
 import TooltipOrPopover from '../TooltipOrPopover';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { shortenAddress } from '@/app/utils/address';
+import { formatUsdcMicro } from '@/app/utils/usdc';
 import type { TierInfo } from '../Leaderboard/tierUtils';
 
 // Host earnings, the page's single money moment. Counts (tables/tournaments hosted) live in
@@ -44,10 +45,6 @@ export interface ProfileHeroProps {
     shareSlot?: ReactNode;
     /** Own-hub rank ladder, rendered under identity. Absent => public (shows a points pill). */
     rankLadderSlot?: ReactNode;
-}
-
-function usdc(base: number): string {
-    return (base / 1_000_000).toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
 
 function HostBlock({ host }: { host: HostLedger }) {
@@ -79,7 +76,7 @@ function HostBlock({ host }: { host: HostLedger }) {
                                 color="text.usdc"
                                 sx={{ fontVariantNumeric: 'tabular-nums' }}
                             >
-                                ${usdc(host.usdc)}
+                                ${formatUsdcMicro(host.usdc)}
                             </Text>
                         </TooltipOrPopover>
                     </HStack>

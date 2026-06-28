@@ -61,12 +61,20 @@ export default function NotificationSettings() {
                 toast.error('Notifications not enabled', 'Your browser declined the permission.');
                 return;
             }
-            await updateNotificationPreferences({ push_enabled: true });
+            const saved = await updateNotificationPreferences({ push_enabled: true });
+            if (!saved) {
+                toast.error('Could not save', 'Please try again.');
+                return;
+            }
             setPushPref(true);
             toast.success('Notifications on', "We'll only ping you about what you choose below.");
         } else {
             await unsubscribe();
-            await updateNotificationPreferences({ push_enabled: false });
+            const saved = await updateNotificationPreferences({ push_enabled: false });
+            if (!saved) {
+                toast.error('Could not save', 'Please try again.');
+                return;
+            }
             setPushPref(false);
             toast.success('Notifications off', "You won't receive any push notifications.");
         }

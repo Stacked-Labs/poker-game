@@ -191,7 +191,7 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                     <HStack bg="bg.pillNeutral" borderRadius="full" px={2} py={0.5} spacing={1}>
                         <Icon as={FiUserPlus} color="text.secondary" boxSize="11px" aria-hidden />
                         <Text fontSize="2xs" fontWeight={700} color="text.secondary">
-                            {info.count} invited
+                            {invitedCount} invited
                         </Text>
                     </HStack>
                 </HStack>

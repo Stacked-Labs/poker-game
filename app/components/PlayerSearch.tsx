@@ -34,8 +34,8 @@ export default function PlayerSearch({
             return;
         }
         setLoading(true);
+        let active = true;
         const t = setTimeout(() => {
-            let active = true;
             searchPlayers(q)
                 .then((r) => {
                     if (active) {
@@ -44,11 +44,11 @@ export default function PlayerSearch({
                     }
                 })
                 .finally(() => active && setLoading(false));
-            return () => {
-                active = false;
-            };
         }, 300);
-        return () => clearTimeout(t);
+        return () => {
+            active = false;
+            clearTimeout(t);
+        };
     }, [query]);
 
     // Close on outside click.

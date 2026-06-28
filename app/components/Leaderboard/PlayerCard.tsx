@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import {
     Box,
     VStack,
@@ -579,22 +579,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     const isConnected = !!account;
     const isFullyAuthenticated = isConnected && isAuthenticated;
 
+    // Rank climbs are celebrated once, by the StatusMomentWatcher share modal (Viral §5). The card
+    // keeps only the ambient "Climbed from #X to #Y" badge — no competing confetti burst.
     const { improved, previousRank } = useRankHistory(account?.address, rank);
-    const confettiFired = useRef(false);
-
-    useEffect(() => {
-        if (!improved || confettiFired.current) return;
-        confettiFired.current = true;
-        import('canvas-confetti').then((mod) => {
-            const confetti = mod.default;
-            confetti({
-                particleCount: 80,
-                spread: 70,
-                origin: { y: 0.5 },
-                colors: ['#36A37B', '#FFD700', '#EB0B5C', '#A78BFA'],
-            });
-        });
-    }, [improved]);
 
     const authState: PlayerAuthState = isFullyAuthenticated
         ? 'authed'

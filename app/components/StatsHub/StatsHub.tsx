@@ -60,6 +60,23 @@ const StatsHub: React.FC<StatsHubProps> = ({ currentAddress }) => {
         return () => { cancelled = true; };
     }, []);
 
+    // Deep link: /leaderboard?board=referrals selects that tab once it's known (boards resolve
+    // async, so reapply when the list updates). Only honored on first load — never overrides clicks.
+    const deepLinkApplied = useRef(false);
+    useEffect(() => {
+        if (deepLinkApplied.current) return;
+        const want = new URLSearchParams(window.location.search).get('board');
+        if (!want) {
+            deepLinkApplied.current = true;
+            return;
+        }
+        const idx = boards.findIndex((b) => b.id === want);
+        if (idx >= 0) {
+            setActiveIndex(idx);
+            deepLinkApplied.current = true;
+        }
+    }, [boards]);
+
     const loadBoard = useCallback(
         async (board: BoardId) => {
             setLoading((s) => ({ ...s, [board]: true }));

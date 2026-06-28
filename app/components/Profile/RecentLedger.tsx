@@ -5,6 +5,7 @@ import { Box, Button, HStack, Icon, Text, VStack } from '@chakra-ui/react';
 import { FaCrown, FaUsers } from 'react-icons/fa';
 import { FaMedal } from 'react-icons/fa6';
 import { relativeTime, absoluteTime } from '@/app/utils/relativeTime';
+import { formatUsdcMicro } from '@/app/utils/usdc';
 
 export type Activity =
     | {
@@ -39,13 +40,9 @@ export function ordinal(n: number): string {
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-function usdc(base: number): string {
-    return (base / 1_000_000).toLocaleString('en-US', { maximumFractionDigits: 0 });
-}
-
 function stake(buyInUsdc?: number): string | null {
     if (buyInUsdc === undefined) return null;
-    return buyInUsdc === 0 ? 'Free' : `$${usdc(buyInUsdc)}`;
+    return buyInUsdc === 0 ? 'Free' : `$${formatUsdcMicro(buyInUsdc)}`;
 }
 
 const FORMAT_LABEL: Record<string, string> = {
@@ -287,7 +284,7 @@ function ResultRow({ item }: { item: Extract<Activity, { type: 'result' }> }) {
                         color="text.usdc"
                         sx={{ fontVariantNumeric: 'tabular-nums' }}
                     >
-                        +${usdc(item.prizeUsdc)}
+                        +${formatUsdcMicro(item.prizeUsdc)}
                     </Text>
                 ) : (
                     <Text fontSize="sm" color="text.muted">

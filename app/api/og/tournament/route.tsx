@@ -63,8 +63,6 @@ export async function GET(req: NextRequest) {
     const mParam = req.nextUrl.searchParams.get('m');
     const momentType = isMomentType(mParam) ? mParam : null;
     const momentBanner = momentType ? momentBadge(momentType) : null;
-    // A deep run is explicitly NOT a win — stamp a 🔥, never a winner's trophy (honest-stats card).
-    const momentEmoji = momentType === 'deeprun' ? '🔥' : '🏆';
     const origin = req.nextUrl.origin;
     const logoUrl = `${origin}/IconLogo.png`;
     const usdcLogoUrl = `${origin}/usdc-logo.png`;
@@ -172,12 +170,21 @@ export async function GET(req: NextRequest) {
                                 gap: 16,
                                 padding: '16px 40px',
                                 borderRadius: 20,
-                                background:
-                                    'linear-gradient(90deg, #36A37B 0%, #2A8463 100%)',
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                                background: GREEN,
+                                boxShadow: '0 8px 24px rgba(11,20,48,0.18)',
                             }}
                         >
-                            <span style={{ fontSize: 40 }}>{momentEmoji}</span>
+                            {/* Drawn celebratory mark — never an emoji glyph. */}
+                            <div
+                                style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 4,
+                                    background: '#ffffff',
+                                    transform: 'rotate(45deg)',
+                                    display: 'flex',
+                                }}
+                            />
                             <span
                                 style={{
                                     color: '#ffffff',

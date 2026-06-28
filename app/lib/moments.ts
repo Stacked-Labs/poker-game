@@ -69,33 +69,33 @@ export function momentCopy(p: MomentParams): {
     switch (p.type) {
         case 'win':
             return {
-                heading: 'You took it down! 🏆',
+                heading: 'You took it down',
                 sub: `1st place${p.fieldSize ? ` of ${p.fieldSize}` : ''}${where}${freeTag}.`,
-                shareText: `Took it down 🏆 1st${p.fieldSize ? ` of ${p.fieldSize}` : ''}${where}${freeTag} on @stacked_poker. On-chain poker on Base.`,
+                shareText: `Took it down. 1st${p.fieldSize ? ` of ${p.fieldSize}` : ''}${where}${freeTag} on @stacked_poker. Onchain poker on Base.`,
             };
         case 'deeprun':
             return {
-                heading: 'Deep run! 🔥',
+                heading: 'Deep run',
                 sub: `Final-table run${where}${freeTag}.`,
-                shareText: `Deep run 🔥 made the final table${where}${freeTag} on @stacked_poker. On-chain poker on Base.`,
+                shareText: `Deep run. Made the final table${where}${freeTag} on @stacked_poker. Onchain poker on Base.`,
             };
         case 'rankup':
             return {
-                heading: 'You ranked up! 📈',
+                heading: 'You ranked up',
                 sub: p.rank ? `Now #${p.rank} on the leaderboard.` : 'You climbed the leaderboard.',
-                shareText: `Climbing the @stacked_poker leaderboard${p.rank ? ` — now #${p.rank}` : ''}. On-chain poker on Base. 🃏`,
+                shareText: `Climbing the @stacked_poker leaderboard${p.rank ? `, now #${p.rank}` : ''}. Onchain poker on Base.`,
             };
         case 'tierup':
             return {
-                heading: 'New tier unlocked! ✨',
+                heading: 'New tier unlocked',
                 sub: p.tierLabel ? `Welcome to ${p.tierLabel}.` : 'You reached a new tier.',
-                shareText: `Just hit ${p.tierLabel ?? 'a new tier'} on @stacked_poker. On-chain poker on Base. 🃏`,
+                shareText: `Just hit ${p.tierLabel ?? 'a new tier'} on @stacked_poker. Onchain poker on Base.`,
             };
         case 'milestone':
             return {
-                heading: 'Milestone reached! 🎉',
+                heading: 'Milestone reached',
                 sub: p.hands ? `${p.hands.toLocaleString()} hands played.` : 'A new hands milestone.',
-                shareText: `${p.hands ? `Just hit ${p.hands.toLocaleString()} hands` : 'Another milestone'} on @stacked_poker. On-chain poker on Base. 🃏`,
+                shareText: `${p.hands ? `Just hit ${p.hands.toLocaleString()} hands` : 'Another milestone'} on @stacked_poker. Onchain poker on Base.`,
             };
     }
 }
@@ -157,10 +157,10 @@ export function momentMeta(p: MomentParams): { title: string; description: strin
     // Never assert a stablecoin buy-in for a Free Play moment — that would blur Free Play with
     // real-money play on the most public surface (the X / Telegram unfurl description).
     const tagline = p.isFreePlay
-        ? 'Free Play on Stacked — risk-free practice poker on Base.'
-        : 'On-chain poker on Base — stablecoin buy-ins, smart-contract custody.';
+        ? 'Free Play on Stacked. Risk-free practice poker on Base.'
+        : 'Onchain poker on Base: stablecoin buy-ins, smart-contract custody.';
     return {
-        title: `${plainHeading} — Stacked Poker`,
+        title: `${plainHeading} · Stacked Poker`,
         description: `${c.sub} ${tagline}`,
     };
 }

@@ -8,6 +8,7 @@ import {
     Icon,
     IconButton,
     Image,
+    Link,
     Modal,
     ModalBody,
     ModalContent,
@@ -16,8 +17,8 @@ import {
     Text,
     VStack,
 } from '@chakra-ui/react';
-import { FaTimes } from 'react-icons/fa';
-import { FaXTwitter, FaTelegram } from 'react-icons/fa6';
+import { FaTimes, FaStar } from 'react-icons/fa';
+import { SocialIconButton } from '@/app/components/SocialIconButton';
 import {
     buildMomentOgUrl,
     buildMomentShareUrl,
@@ -96,15 +97,21 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
                     right={{ base: 4, md: 6 }}
                     maxW="sm"
                     bg="card.white"
-                    _dark={{ bg: 'gray.800' }}
+                    border="1px solid"
+                    borderColor="border.felt"
                     borderRadius="14px"
-                    boxShadow="0 12px 32px rgba(0,0,0,0.22)"
+                    boxShadow="card.lift"
                     p={3}
                 >
                     <HStack spacing={3} align="center">
-                        <Text fontSize="xl" aria-hidden>
-                            🎉
-                        </Text>
+                        <Icon
+                            as={FaStar}
+                            color="brand.yellowDark"
+                            _dark={{ color: 'brand.yellow' }}
+                            boxSize="20px"
+                            flexShrink={0}
+                            aria-hidden
+                        />
                         <VStack align="start" spacing={0} flex={1} minW={0}>
                             <Text color="text.primary" fontSize="sm" fontWeight={700} noOfLines={1}>
                                 {copy.heading}
@@ -115,14 +122,9 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
                         </VStack>
                         <Button
                             size="sm"
-                            height="34px"
-                            borderRadius="9px"
-                            fontWeight={700}
-                            color="white"
-                            bg="brand.green"
-                            _hover={{ filter: 'brightness(0.95)' }}
-                            _active={{ filter: 'brightness(0.9)' }}
+                            variant="tactilePrimary"
                             onClick={openFromChip}
+                            _focusVisible={{ boxShadow: 'focus.ring' }}
                         >
                             Share
                         </Button>
@@ -130,11 +132,10 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
                             aria-label="Dismiss"
                             icon={<Icon as={FaTimes} boxSize="10px" />}
                             size="xs"
-                            variant="ghost"
+                            variant="tactileGhost"
                             onClick={() => setChipOpen(false)}
-                            color="text.secondary"
                             borderRadius="full"
-                            _dark={{ color: 'whiteAlpha.700' }}
+                            _focusVisible={{ boxShadow: 'focus.ring' }}
                         />
                     </HStack>
                 </Box>
@@ -145,8 +146,7 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
             <ModalContent
                 bg="card.white"
                 borderRadius="20px"
-                boxShadow="0 24px 48px rgba(0,0,0,0.25)"
-                _dark={{ boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
+                boxShadow="card.lift"
                 mx={4}
                 overflow="hidden"
             >
@@ -165,12 +165,10 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
                                 aria-label="Close"
                                 icon={<Icon as={FaTimes} boxSize="12px" />}
                                 size="sm"
-                                variant="ghost"
+                                variant="tactileGhost"
                                 onClick={close}
-                                color="text.secondary"
                                 borderRadius="full"
-                                _focusVisible={{ boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)' }}
-                                _dark={{ color: 'whiteAlpha.700' }}
+                                _focusVisible={{ boxShadow: 'focus.ring' }}
                             />
                         </HStack>
 
@@ -187,43 +185,27 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
                         </Box>
 
                         <Stack direction={{ base: 'column', sm: 'row' }} spacing={2} w="full">
-                            <Button
-                                as="a"
-                                href={tweetUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                leftIcon={<Icon as={FaXTwitter} boxSize="14px" />}
-                                flex={1}
-                                height="44px"
-                                borderRadius="10px"
-                                fontWeight={700}
-                                color="white"
-                                bg="#0F1419"
-                                _hover={{ bg: '#000000' }}
-                                _active={{ bg: '#000000' }}
-                            >
-                                Post on X
-                            </Button>
-                            <Button
-                                as="a"
-                                href={telegramUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                leftIcon={<Icon as={FaTelegram} boxSize="14px" />}
-                                flex={1}
-                                height="44px"
-                                borderRadius="10px"
-                                fontWeight={700}
-                                color="white"
-                                bg="#0088CC"
-                                _hover={{ bg: '#0077B5' }}
-                                _active={{ bg: '#0077B5' }}
-                            >
-                                Send
-                            </Button>
+                            <Link href={tweetUrl} isExternal flex={1} _hover={{ textDecoration: 'none' }}>
+                                <SocialIconButton
+                                    tone="x"
+                                    label="Post on X"
+                                    w="full"
+                                    height="44px"
+                                    _focusVisible={{ boxShadow: 'focus.ring' }}
+                                />
+                            </Link>
+                            <Link href={telegramUrl} isExternal flex={1} _hover={{ textDecoration: 'none' }}>
+                                <SocialIconButton
+                                    tone="telegram"
+                                    label="Send"
+                                    w="full"
+                                    height="44px"
+                                    _focusVisible={{ boxShadow: 'focus.ring' }}
+                                />
+                            </Link>
                         </Stack>
 
-                        <Button variant="ghost" size="sm" onClick={close} color="text.secondary">
+                        <Button variant="tactileGhost" size="sm" onClick={close} _focusVisible={{ boxShadow: 'focus.ring' }}>
                             Maybe later
                         </Button>
                     </VStack>

@@ -102,7 +102,7 @@ describe('momentMeta', () => {
         const { title, description } = momentMeta({ type: 'win', fieldSize: 120, tournamentName: 'Sunday Major' });
         expect(title).toContain('Stacked Poker');
         expect(title.includes('🏆')).toBe(false);
-        expect(description).toContain('On-chain poker on Base');
+        expect(description).toContain('Onchain poker on Base');
         expect(description).toContain('stablecoin buy-ins');
     });
 

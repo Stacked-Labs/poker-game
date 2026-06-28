@@ -86,7 +86,7 @@ const TopHostsBoard: React.FC<TopHostsBoardProps> = ({
             <Box
                 px={{ base: 4, md: 6 }}
                 pt={{ base: 4, md: 5 }}
-                pb={{ base: 3, md: 4 }}
+                pb={{ base: 4, md: 5 }}
                 bg="bg.greenTint"
                 borderBottom="1px solid"
                 borderColor="border.greenSubtle"
@@ -100,6 +100,31 @@ const TopHostsBoard: React.FC<TopHostsBoardProps> = ({
                 <Text fontSize={{ base: 'sm', md: 'md' }} color="text.secondary">
                     {HEADLINE}
                 </Text>
+
+                {/* CTA up top — the recruit hook is the most eye-catching thing on the card. */}
+                {showCta && (
+                    <Flex
+                        direction={{ base: 'column', sm: 'row' }}
+                        align={{ base: 'stretch', sm: 'center' }}
+                        justify="space-between"
+                        gap={3}
+                        mt={4}
+                    >
+                        <Text fontSize={{ base: 'sm', md: 'md' }} fontWeight="semibold" color="text.primary">
+                            {SUBLINE}
+                        </Text>
+                        <Button
+                            as={NextLink}
+                            href="/create-game"
+                            size="md"
+                            variant="tactilePrimary"
+                            rightIcon={<Icon as={FaArrowRight} boxSize="12px" />}
+                            flexShrink={0}
+                        >
+                            Host a table
+                        </Button>
+                    </Flex>
+                )}
             </Box>
 
             {/* Board */}
@@ -152,35 +177,6 @@ const TopHostsBoard: React.FC<TopHostsBoardProps> = ({
                         <BoardRow row={player} isCurrent pinned moneyStat />
                     </Box>
                 </Box>
-            )}
-
-            {/* CTA — drive hosting. Outcome framing, not a vendor or a guarantee. */}
-            {showCta && (
-                <Flex
-                    direction={{ base: 'column', sm: 'row' }}
-                    align={{ base: 'stretch', sm: 'center' }}
-                    justify="space-between"
-                    gap={3}
-                    px={{ base: 4, md: 6 }}
-                    py={{ base: 4, md: 4 }}
-                    borderTop="1px solid"
-                    borderColor="border.lightGray"
-                    _dark={{ borderColor: 'whiteAlpha.100' }}
-                >
-                    <Text fontSize={{ base: 'sm', md: 'md' }} fontWeight="semibold" color="text.primary">
-                        {SUBLINE}
-                    </Text>
-                    <Button
-                        as={NextLink}
-                        href="/create-game"
-                        size="md"
-                        variant="tactilePrimary"
-                        rightIcon={<Icon as={FaArrowRight} boxSize="12px" />}
-                        flexShrink={0}
-                    >
-                        Host a table
-                    </Button>
-                </Flex>
             )}
 
             {/* Honest framing footnote: real, past earnings — never implied future returns. */}

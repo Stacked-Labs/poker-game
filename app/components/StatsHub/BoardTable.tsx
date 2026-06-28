@@ -45,6 +45,27 @@ const BoardTable: React.FC<BoardTableProps> = ({
 
     return (
         <Box width="100%">
+            {/* "Your position" surfaced on top when the signed-in player is off the current page. */}
+            {showPinned && player && (
+                <Box
+                    mb={3}
+                    bg="card.white"
+                    borderRadius="16px"
+                    border="1px solid"
+                    borderColor="brand.green"
+                    boxShadow="card.lift"
+                    px={{ base: 1, md: 2 }}
+                    py={1}
+                >
+                    <HStack px={3} pt={2} pb={1}>
+                        <Text fontSize="2xs" fontWeight={800} letterSpacing="0.12em" color="brand.green" textTransform="uppercase">
+                            Your position
+                        </Text>
+                    </HStack>
+                    <BoardRow row={player} isCurrent pinned />
+                </Box>
+            )}
+
             <Box
                 width="100%"
                 bg="card.white"
@@ -90,29 +111,6 @@ const BoardTable: React.FC<BoardTableProps> = ({
                     </VStack>
                 )}
             </Box>
-
-            {/* Sticky "your position" when the signed-in player is off the current page. */}
-            {showPinned && player && (
-                <Box
-                    position="sticky"
-                    bottom={3}
-                    mt={3}
-                    bg="card.white"
-                    borderRadius="16px"
-                    border="1px solid"
-                    borderColor="brand.green"
-                    boxShadow="card.lift"
-                    px={{ base: 1, md: 2 }}
-                    py={1}
-                >
-                    <HStack px={3} pt={2} pb={1}>
-                        <Text fontSize="2xs" fontWeight={800} letterSpacing="0.12em" color="brand.green" textTransform="uppercase">
-                            Your position
-                        </Text>
-                    </HStack>
-                    <BoardRow row={player} isCurrent pinned />
-                </Box>
-            )}
         </Box>
     );
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     Box,
@@ -23,6 +23,7 @@ import {
 import { MdClose } from 'react-icons/md';
 import { RiVipCrownLine } from 'react-icons/ri';
 import { useAuth } from '../../contexts/AuthContext';
+import { getTournamentLeaderboard } from '../../hooks/server_actions';
 import {
     selectEligibleReminders,
     useTournamentReminderStore,
@@ -38,6 +39,9 @@ export default function TournamentReminderBanner() {
     const router = useRouter();
     const pathname = usePathname();
     const { userAddress } = useAuth();
+    // Which tournament we're currently resolving a seat for (drives the button
+    // spinner while we look up the player's live table — see goToSeat).
+    const [seatingId, setSeatingId] = useState<number | null>(null);
 
     // Subscribe to the raw state slices the selectors depend on, not to the
     // derived getters: a getter that returns a fresh array each call would
@@ -79,7 +83,39 @@ export default function TournamentReminderBanner() {
 
     const remainderCount = remainder.length;
 
-    const goToSeat = (id: number) => {
+    const goToSeat = async (id: number) => {
+        // "Take your seat" should actually seat the player (#605). Once the
+        // tournament is running they have a live table assignment, so resolve it
+        // from the leaderboard and jump straight to that table. Before the field
+        // is drawn (pre-start / late reg without a seat yet) there is no table, so
+        // we fall back to the lobby/details route which the player came from.
+        if (userAddress && seatingId == null) {
+            setSeatingId(id);
+            try {
+                const data = await getTournamentLeaderboard(id);
+                const me = (data?.players ?? []).find(
+                    (p: {
+                        wallet?: string;
+                        finish_pos?: number;
+                        table_index?: number;
+                    }) =>
+                        p.wallet?.toLowerCase() === userAddress.toLowerCase() &&
+                        p.finish_pos === 0 &&
+                        typeof p.table_index === 'number' &&
+                        p.table_index >= 0
+                );
+                if (me) {
+                    router.push(
+                        `/table/tournament-${id}-table-${me.table_index + 1}`
+                    );
+                    return;
+                }
+            } catch {
+                // Network/seat lookup failed — fall through to the lobby below.
+            } finally {
+                setSeatingId(null);
+            }
+        }
         // Land on the lobby route; it resolves the live table and avoids a 404
         // before the player is actually seated.
         router.push(`/tournament/${id}`);
@@ -285,6 +321,9 @@ export default function TournamentReminderBanner() {
                                                             minH="44px"
                                                             color="brand.green"
                                                             flexShrink={0}
+                                                            isLoading={
+                                                                seatingId === t.id
+                                                            }
                                                             onClick={() =>
                                                                 goToSeat(t.id)
                                                             }
@@ -308,6 +347,8 @@ export default function TournamentReminderBanner() {
                         px={{ base: 4, md: 5 }}
                         flex={{ base: '1 1 auto', md: '0 0 auto' }}
                         _focusVisible={{ boxShadow: 'outline' }}
+                        isLoading={seatingId === mostUrgent.id}
+                        loadingText="Seating"
                         onClick={() => goToSeat(mostUrgent.id)}
                     >
                         Take your seat

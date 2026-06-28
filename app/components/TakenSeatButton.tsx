@@ -1539,6 +1539,11 @@ const TakenSeatButton = ({
                                                                 : 'gray.400'
                                                         }
                                                         cursor="pointer"
+                                                        // A long X handle/wallet renders as `as="a"` below;
+                                                        // an inline <a> ignores isTruncated's overflow clip, so
+                                                        // it must be block for the handle to ellipsize (#604).
+                                                        display="block"
+                                                        maxWidth="100%"
                                                         isTruncated
                                                         lineHeight="1.2"
                                                         {...(seatNameHref

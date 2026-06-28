@@ -1,16 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-    Box,
-    HStack,
-    VStack,
-    Text,
-    Switch,
-    Icon,
-    Spinner,
-} from '@chakra-ui/react';
-import { FiBell, FiInfo, FiSmartphone } from 'react-icons/fi';
 import { useActiveAccount } from 'thirdweb/react';
 import { usePushReminders } from '@/app/hooks/usePushReminders';
 import useToastHelper from '@/app/hooks/useToastHelper';
@@ -18,73 +8,12 @@ import {
     getNotificationPreferences,
     updateNotificationPreferences,
 } from '@/app/hooks/server_actions';
+import NotificationSettingsView from './NotificationSettingsView';
 
-// Notification preferences & push controls (Viral §6 / #363). The one place a user controls
-// notifications: enable/disable push (wires the real subscribe + unsubscribe paths from
-// usePushReminders), toggle per-event delivery (tournament reminders today), and an honest read of
-// the browser's permission state + the iOS-PWA constraint. Calm copy, no dark patterns — a
+// Notification preferences & push controls (Viral §6 / #363). Container: wires the real subscribe +
+// unsubscribe paths from usePushReminders, loads/saves per-event preferences, and reads the browser
+// permission state, then hands the calm card off to the presentational view. No dark patterns — a
 // real-money product earns trust by being quiet.
-
-function Hint({ icon, children }: { icon: typeof FiInfo; children: React.ReactNode }) {
-    return (
-        <HStack
-            spacing={2}
-            align="start"
-            bg="card.lightGray"
-            _dark={{ bg: 'rgba(255,255,255,0.04)' }}
-            borderRadius="10px"
-            px={3}
-            py={2}
-        >
-            <Icon as={icon} color="text.secondary" boxSize="14px" mt="2px" flexShrink={0} />
-            <Text fontSize="xs" color="text.secondary">
-                {children}
-            </Text>
-        </HStack>
-    );
-}
-
-function Row({
-    title,
-    desc,
-    isChecked,
-    isDisabled,
-    isBusy,
-    onChange,
-    testId,
-}: {
-    title: string;
-    desc: string;
-    isChecked: boolean;
-    isDisabled?: boolean;
-    isBusy?: boolean;
-    onChange: (next: boolean) => void;
-    testId?: string;
-}) {
-    return (
-        <HStack justify="space-between" align="center" spacing={3} opacity={isDisabled ? 0.5 : 1}>
-            <VStack align="start" spacing={0} flex={1} minW={0}>
-                <Text fontSize="sm" fontWeight={600} color="text.primary">
-                    {title}
-                </Text>
-                <Text fontSize="xs" color="text.secondary">
-                    {desc}
-                </Text>
-            </VStack>
-            {isBusy ? (
-                <Spinner size="sm" color="brand.green" />
-            ) : (
-                <Switch
-                    colorScheme="green"
-                    isChecked={isChecked}
-                    isDisabled={isDisabled}
-                    onChange={(e) => onChange(e.target.checked)}
-                    data-testid={testId}
-                />
-            )}
-        </HStack>
-    );
-}
 
 export default function NotificationSettings() {
     const account = useActiveAccount();
@@ -122,7 +51,6 @@ export default function NotificationSettings() {
         };
     }, [account?.address]);
 
-    const blockedByBrowser = !isSupported || isIOSNonPWA || permission === 'denied';
     // "Push on" = the browser is subscribed AND the user hasn't turned the global pref off.
     const pushOn = isSubscribed && pushPref;
 
@@ -156,63 +84,17 @@ export default function NotificationSettings() {
     };
 
     return (
-        <VStack spacing={3} align="stretch">
-            <HStack spacing={2} align="center">
-                <Icon as={FiBell} color="brand.green" boxSize={4} />
-                <Text fontSize="sm" fontWeight={700} color="text.primary">
-                    Notifications
-                </Text>
-            </HStack>
-
-            {!isSupported && (
-                <Hint icon={FiInfo}>This browser doesn’t support push notifications.</Hint>
-            )}
-            {isSupported && isIOSNonPWA && (
-                <Hint icon={FiSmartphone}>
-                    On iPhone &amp; iPad, add Stacked to your home screen first — tap Share, then “Add
-                    to Home Screen” — to turn on notifications.
-                </Hint>
-            )}
-            {isSupported && !isIOSNonPWA && permission === 'denied' && (
-                <Hint icon={FiInfo}>
-                    Notifications are blocked in your browser settings. Re-enable them there to turn
-                    these on.
-                </Hint>
-            )}
-
-            <Box
-                borderWidth="1px"
-                borderColor="border.lightGray"
-                _dark={{ borderColor: 'rgba(255,255,255,0.12)' }}
-                borderRadius="12px"
-                p={3}
-            >
-                <VStack spacing={3} align="stretch">
-                    <Row
-                        title="Push notifications"
-                        desc="Turn on to let Stacked send you the alerts you pick below."
-                        isChecked={pushOn}
-                        isDisabled={blockedByBrowser}
-                        isBusy={pushBusy}
-                        onChange={handlePushToggle}
-                        testId="toggle-push"
-                    />
-                    <Box h="1px" bg="border.lightGray" _dark={{ bg: 'rgba(255,255,255,0.08)' }} />
-                    <Row
-                        title="Tournament reminders"
-                        desc="A heads-up before a tournament you’ve registered for starts."
-                        isChecked={pushOn && remindersOn}
-                        isDisabled={blockedByBrowser || !pushOn || prefsLoading}
-                        isBusy={savingReminders}
-                        onChange={handleRemindersToggle}
-                        testId="toggle-tournament-reminders"
-                    />
-                </VStack>
-            </Box>
-
-            <Text fontSize="2xs" color="text.secondary">
-                We’ll only ping you about what you choose here — nothing else.
-            </Text>
-        </VStack>
+        <NotificationSettingsView
+            isSupported={isSupported}
+            isIOSNonPWA={isIOSNonPWA}
+            permission={permission}
+            pushOn={pushOn}
+            remindersOn={remindersOn}
+            pushBusy={pushBusy}
+            savingReminders={savingReminders}
+            prefsLoading={prefsLoading}
+            onPushToggle={handlePushToggle}
+            onRemindersToggle={handleRemindersToggle}
+        />
     );
 }

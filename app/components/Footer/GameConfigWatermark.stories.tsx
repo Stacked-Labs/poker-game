@@ -42,7 +42,16 @@ const portraitMobile = {
 const meta = {
     title: 'Tournament/InTable/GameConfigWatermark',
     component: GameConfigWatermark,
-    parameters: { layout: 'fullscreen' },
+    parameters: {
+        layout: 'fullscreen',
+        // The watermark reads the table route slug to show the table number and
+        // the "back to tournament" link (#604). Default the stories to a live
+        // tournament table; the cash story overrides this with a bare table id.
+        nextjs: {
+            appDirectory: true,
+            navigation: { segments: [['id', 'tournament-7-table-3']] },
+        },
+    },
 } satisfies Meta<typeof GameConfigWatermark>;
 
 export default meta;
@@ -152,7 +161,15 @@ export const EarlyLevelNoAnte: Story = {
 };
 
 // Regression: cash tables must keep the original "NLH - sb/bb · Max Buy-In" line.
+// A bare table id (no `tournament-..` prefix) drives the "All games" lobby link
+// instead of the tournament-table number/return link.
 export const CashTable: Story = {
+    parameters: {
+        nextjs: {
+            appDirectory: true,
+            navigation: { segments: [['id', 'abc']] },
+        },
+    },
     render: () => (
         <MockAppStateProvider
             state={mockAppState({

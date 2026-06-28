@@ -48,9 +48,8 @@ const BoardTable: React.FC<BoardTableProps> = ({
             <Box
                 width="100%"
                 bg="card.white"
-                borderRadius="24px"
-                boxShadow="0 14px 28px rgba(12, 21, 49, 0.08)"
-                _dark={{ boxShadow: '0 16px 30px rgba(0, 0, 0, 0.35)' }}
+                borderRadius="20px"
+                boxShadow="card.lift"
                 py={{ base: 2, md: 3 }}
                 px={{ base: 1, md: 2 }}
             >
@@ -80,11 +79,9 @@ const BoardTable: React.FC<BoardTableProps> = ({
                             <Flex justify="center" py={3}>
                                 <Button
                                     size="sm"
-                                    variant="ghost"
-                                    color="text.secondary"
+                                    variant="tactileNeutral"
                                     isLoading={loadingMore}
                                     onClick={onLoadMore}
-                                    _hover={{ bg: 'card.lightGray', _dark: { bg: 'legacy.grayDark' } }}
                                 >
                                     Load more
                                 </Button>
@@ -104,8 +101,7 @@ const BoardTable: React.FC<BoardTableProps> = ({
                     borderRadius="16px"
                     border="1px solid"
                     borderColor="brand.green"
-                    boxShadow="0 8px 24px rgba(54, 163, 123, 0.18)"
-                    _dark={{ boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
+                    boxShadow="card.lift"
                     px={{ base: 1, md: 2 }}
                     py={1}
                 >

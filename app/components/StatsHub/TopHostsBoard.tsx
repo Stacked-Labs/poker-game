@@ -5,6 +5,7 @@ import { Box, Flex, VStack, HStack, Text, Button, Spinner, Icon } from '@chakra-
 import NextLink from 'next/link';
 import { FaArrowRight } from 'react-icons/fa6';
 import BoardRow from './BoardRow';
+import { BOARD_ICON } from './boardIcons';
 import { getBoard, type BoardResponse } from '@/app/hooks/server_actions';
 
 // The recruitment centerpiece (Viral §2 / #351): a public board of real players earning real USDC
@@ -77,9 +78,8 @@ const TopHostsBoard: React.FC<TopHostsBoardProps> = ({
         <Box
             width="100%"
             bg="card.white"
-            borderRadius="24px"
-            boxShadow="0 14px 28px rgba(12, 21, 49, 0.08)"
-            _dark={{ boxShadow: '0 16px 30px rgba(0, 0, 0, 0.35)' }}
+            borderRadius="20px"
+            boxShadow="card.lift"
             overflow="hidden"
         >
             {/* Marketing header — honest social proof, never a guaranteed-return promise. */}
@@ -87,14 +87,12 @@ const TopHostsBoard: React.FC<TopHostsBoardProps> = ({
                 px={{ base: 4, md: 6 }}
                 pt={{ base: 4, md: 5 }}
                 pb={{ base: 3, md: 4 }}
-                bgGradient="linear(to-r, rgba(54,163,123,0.10), rgba(54,163,123,0.02))"
-                _dark={{ bgGradient: 'linear(to-r, rgba(54,163,123,0.18), rgba(54,163,123,0.04))' }}
+                bg="bg.greenTint"
                 borderBottom="1px solid"
-                borderColor="border.lightGray"
-                sx={{ '@media (prefers-reduced-motion: no-preference)': {} }}
+                borderColor="border.greenSubtle"
             >
                 <HStack spacing={2} mb={1}>
-                    <Text fontSize={{ base: 'lg', md: 'xl' }}>🎟</Text>
+                    <Icon as={BOARD_ICON.top_hosts} color="brand.green" boxSize="18px" aria-hidden />
                     <Text fontSize={{ base: 'lg', md: 'xl' }} fontWeight="extrabold" color="text.primary">
                         Top Hosts
                     </Text>
@@ -123,17 +121,16 @@ const TopHostsBoard: React.FC<TopHostsBoardProps> = ({
                                 key={`${row.wallet}-${row.rank}`}
                                 row={row}
                                 isCurrent={row.wallet.toLowerCase() === normalizedCurrent}
+                                moneyStat
                             />
                         ))}
                         {hasMore && (
                             <Flex justify="center" py={3}>
                                 <Button
                                     size="sm"
-                                    variant="ghost"
-                                    color="text.secondary"
+                                    variant="tactileNeutral"
                                     isLoading={loadingMore}
                                     onClick={onLoadMore}
-                                    _hover={{ bg: 'card.lightGray', _dark: { bg: 'legacy.grayDark' } }}
                                 >
                                     Load more
                                 </Button>
@@ -152,7 +149,7 @@ const TopHostsBoard: React.FC<TopHostsBoardProps> = ({
                         border="1px solid"
                         borderColor="brand.green"
                     >
-                        <BoardRow row={player} isCurrent pinned />
+                        <BoardRow row={player} isCurrent pinned moneyStat />
                     </Box>
                 </Box>
             )}
@@ -177,13 +174,9 @@ const TopHostsBoard: React.FC<TopHostsBoardProps> = ({
                         as={NextLink}
                         href="/create-game"
                         size="md"
-                        bg="brand.green"
-                        color="white"
+                        variant="tactilePrimary"
                         rightIcon={<Icon as={FaArrowRight} boxSize="12px" />}
                         flexShrink={0}
-                        _hover={{ bg: 'brand.green', opacity: 0.92, transform: 'translateY(-1px)' }}
-                        _active={{ transform: 'translateY(0)' }}
-                        _focusVisible={{ boxShadow: '0 0 0 3px rgba(54, 163, 123, 0.45)' }}
                     >
                         Host a table
                     </Button>

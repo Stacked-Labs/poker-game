@@ -1,58 +1,45 @@
 'use client';
 
 import React from 'react';
-import { Box, Flex, HStack, Text, Icon, Tooltip, Spacer } from '@chakra-ui/react';
+import { Box, Flex, HStack, Text, Icon, Spacer } from '@chakra-ui/react';
 import NextLink from 'next/link';
-import { FaGem, FaCrown, FaAward } from 'react-icons/fa';
-import { FaMedal } from 'react-icons/fa6';
-import type { IconType } from 'react-icons';
 import { blo } from 'blo';
 import { playerDisplayName } from '@/app/utils/address';
+import { tierFromString } from '@/app/components/Leaderboard/tierUtils';
+import TooltipOrPopover from '@/app/components/TooltipOrPopover';
 import type { BoardRow as BoardRowData } from '@/app/hooks/server_actions';
-
-// The backend sends a status tier per row ("Diamond"…"Bronze"/"Unranked"); map it to an icon so
-// the board reads at a glance. Kept here (not theme.ts) — it's local presentation, not a token.
-const TIER_ICON: Record<string, IconType> = {
-    diamond: FaGem,
-    platinum: FaCrown,
-    gold: FaCrown,
-    silver: FaMedal,
-    bronze: FaAward,
-};
-const TIER_COLOR: Record<string, string> = {
-    diamond: '#A78BFA',
-    platinum: '#7DD3FC',
-    gold: '#FFD700',
-    silver: '#C0C0C0',
-    bronze: '#CD7F32',
-};
-
-const PODIUM_COLORS: Record<number, string> = { 1: '#FFD700', 2: '#C0C0C0', 3: '#CD7F32' };
 
 export interface BoardRowProps {
     row: BoardRowData;
     isCurrent: boolean;
     // pinned = rendered in the sticky "your position" slot (visual divider above).
     pinned?: boolean;
+    // moneyStat = the stat is host USDC earnings (Top Hosts) — the one money-colored figure.
+    moneyStat?: boolean;
 }
 
-// One ranked row of any board. Identity links to the player's public profile (Viral §1), the stat
-// uses the server-formatted value_label, and Top Hosts rows surface their two activity counts.
-const BoardRow: React.FC<BoardRowProps> = ({ row, isCurrent, pinned }) => {
-    const tierKey = (row.tier || '').toLowerCase();
-    const tierIcon = TIER_ICON[tierKey];
-    const podiumColor = PODIUM_COLORS[row.rank];
+// One ranked row of any board. Identity links to the public profile (Viral §1); the stat uses the
+// server-formatted value_label. Tier color + icon come from the shared tierFromString so every
+// surface speaks one visual language (steel/brass ramp, never the stale lavender). Podium: only the
+// champion (#1) wears the quarantined win gold — tiers keep their own ramp so the two golds never
+// collide; ranks 2–3 read as podium through weight/size, not a trophy-shop gold/silver/bronze.
+const BoardRow: React.FC<BoardRowProps> = ({ row, isCurrent, pinned, moneyStat }) => {
+    const tier = tierFromString(row.tier);
+    const showTier = tier.name !== 'unranked';
+    const isChampion = row.rank === 1;
+    const isPodium = row.rank >= 1 && row.rank <= 3;
+
     const label = playerDisplayName(
         row.x_username ? `@${row.x_username}` : undefined,
         row.wallet,
         row.x_display_name
     );
-    const accentColor = isCurrent
-        ? 'var(--chakra-colors-brand-green)'
-        : podiumColor ?? undefined;
 
     const tablesHosted = row.extra?.tables_hosted;
     const tournamentsRun = row.extra?.tournaments_run;
+
+    // Left accent stripe: "you" (green) wins; otherwise only the champion gets win gold.
+    const stripe = isCurrent ? 'brand.green' : isChampion ? 'brand.yellow' : undefined;
 
     return (
         <Flex
@@ -61,35 +48,40 @@ const BoardRow: React.FC<BoardRowProps> = ({ row, isCurrent, pinned }) => {
             px={{ base: 3, md: 4 }}
             borderRadius="14px"
             position="relative"
-            bg={isCurrent ? 'rgba(54, 163, 123, 0.06)' : undefined}
-            transition="all 0.2s ease"
-            _hover={{
-                bg: isCurrent ? 'rgba(54, 163, 123, 0.1)' : 'card.lightGray',
-                transform: 'translateX(4px)',
-                _dark: { bg: isCurrent ? 'rgba(54, 163, 123, 0.12)' : 'legacy.grayDark' },
-            }}
+            bg={isCurrent ? 'bg.greenSubtle' : undefined}
+            transition="background-color 0.15s ease"
+            _hover={{ bg: isCurrent ? 'bg.greenTint' : 'card.lightGray' }}
             _before={
-                accentColor
+                stripe
                     ? {
                           content: '""',
                           position: 'absolute',
-                          left: '0',
-                          top: '20%',
-                          bottom: '20%',
+                          left: 0,
+                          top: '22%',
+                          bottom: '22%',
                           width: '3px',
                           borderRadius: 'full',
-                          bg: accentColor,
+                          bg: stripe,
                       }
                     : undefined
             }
         >
-            {/* Rank */}
+            {/* Rank — champion in win gold, podium bumped by weight, you in green. */}
             <Text
                 w="44px"
                 flexShrink={0}
-                fontSize={podiumColor ? { base: 'md', md: 'lg' } : { base: 'sm', md: 'md' }}
-                fontWeight={podiumColor ? 900 : 700}
-                color={podiumColor ?? 'text.secondary'}
+                fontSize={isPodium ? { base: 'md', md: 'lg' } : { base: 'sm', md: 'md' }}
+                fontWeight={isPodium ? 900 : 700}
+                color={
+                    isCurrent
+                        ? 'brand.green'
+                        : isChampion
+                          ? 'brand.yellowDark'
+                          : isPodium
+                            ? 'text.primary'
+                            : 'text.secondary'
+                }
+                _dark={isChampion && !isCurrent ? { color: 'brand.yellow' } : undefined}
                 sx={{ fontVariantNumeric: 'tabular-nums' }}
             >
                 {row.rank > 0 ? `#${row.rank}` : '—'}
@@ -106,7 +98,7 @@ const BoardRow: React.FC<BoardRowProps> = ({ row, isCurrent, pinned }) => {
                     borderRadius={row.avatar_url ? 'full' : '4px'}
                     flexShrink={0}
                     objectFit="cover"
-                    boxShadow={isCurrent ? '0 0 0 2px #36A37B' : undefined}
+                    boxShadow={isCurrent ? '0 0 0 2px var(--chakra-colors-brand-green)' : undefined}
                 />
                 <Text
                     as={NextLink}
@@ -130,12 +122,10 @@ const BoardRow: React.FC<BoardRowProps> = ({ row, isCurrent, pinned }) => {
                         {pinned ? 'YOU ▸' : 'YOU'}
                     </Text>
                 )}
-                {tierIcon && (
-                    <Tooltip label={`${row.tier} tier`} hasArrow placement="top" fontSize="xs">
-                        <span>
-                            <Icon as={tierIcon} color={TIER_COLOR[tierKey] ?? '#9CA3AF'} boxSize="14px" />
-                        </span>
-                    </Tooltip>
+                {showTier && (
+                    <TooltipOrPopover label={`${tier.label} tier`} aria-label={`${tier.label} tier`}>
+                        <Icon as={tier.icon} color={tier.token} boxSize="14px" aria-hidden />
+                    </TooltipOrPopover>
                 )}
             </HStack>
 
@@ -155,9 +145,9 @@ const BoardRow: React.FC<BoardRowProps> = ({ row, isCurrent, pinned }) => {
                 </Text>
             )}
 
-            {/* Stat (server-formatted label) */}
+            {/* Stat — host earnings ride the one money color; every other board stays neutral. */}
             <Text
-                color={isCurrent ? 'brand.green' : 'text.primary'}
+                color={isCurrent ? 'brand.green' : moneyStat ? 'text.usdc' : 'text.primary'}
                 fontWeight="bold"
                 fontSize={{ base: 'md', md: 'lg' }}
                 flexShrink={0}

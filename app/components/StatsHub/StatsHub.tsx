@@ -5,6 +5,7 @@ import {
     Box,
     Text,
     HStack,
+    Icon,
     Tabs,
     TabList,
     Tab,
@@ -13,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import BoardTable from './BoardTable';
 import TopHostsBoard from './TopHostsBoard';
+import { BOARD_ICON } from './boardIcons';
 import {
     getBoards,
     getBoard,
@@ -145,18 +147,23 @@ const StatsHub: React.FC<StatsHubProps> = ({ currentAddress }) => {
                             borderRadius="10px"
                             whiteSpace="nowrap"
                             transition="background-color 80ms ease, color 80ms ease, transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1)"
-                            _hover={{ bg: 'rgba(0,0,0,0.04)', color: 'text.primary' }}
-                            _dark={{ _hover: { bg: 'whiteAlpha.100', color: 'white' } }}
+                            _hover={{ bg: 'bg.navyTint', color: 'text.primary' }}
                             _selected={{
                                 color: 'white',
                                 bg: 'brand.green',
                                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 1px 0 #22674E',
                             }}
-                            _focusVisible={{ boxShadow: '0 0 0 3px rgba(54, 163, 123, 0.45)' }}
+                            _focusVisible={{ boxShadow: 'focus.ring' }}
                             _active={{ transform: 'translateY(1px)' }}
                         >
                             <HStack spacing={1.5}>
-                                <Text as="span">{b.icon}</Text>
+                                {BOARD_ICON[b.id] ? (
+                                    <Icon as={BOARD_ICON[b.id]} boxSize="13px" aria-hidden />
+                                ) : (
+                                    <Text as="span" aria-hidden>
+                                        {b.icon}
+                                    </Text>
+                                )}
                                 <Text as="span">{b.title}</Text>
                             </HStack>
                         </Tab>

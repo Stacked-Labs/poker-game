@@ -27,7 +27,7 @@ function HostStat({
 }) {
     return (
         <TooltipOrPopover label={tooltip} aria-label={label}>
-            <VStack align="start" spacing={0.5} flex={1}>
+            <VStack align="start" spacing={0.5}>
                 <HStack spacing={1.5}>
                     <Icon as={icon} color="text.muted" boxSize="13px" aria-hidden />
                     <Text
@@ -65,8 +65,10 @@ export default function HostingScorecard({
 
     return (
         <Flex
-            direction="column"
-            gap={4}
+            direction={{ base: 'column', md: 'row' }}
+            align={{ base: 'stretch', md: 'center' }}
+            justify="space-between"
+            gap={{ base: 4, md: 6 }}
             bg="card.white"
             border="1px solid"
             borderColor="border.felt"
@@ -85,7 +87,7 @@ export default function HostingScorecard({
                 >
                     Hosting
                 </Text>
-                <HStack align="start" spacing={4}>
+                <HStack align="start" spacing={{ base: 8, md: 10 }}>
                     {tablesHosted > 0 && (
                         <HostStat
                             value={tablesHosted}
@@ -111,9 +113,11 @@ export default function HostingScorecard({
                 variant={isOwn ? 'tactileOutline' : 'tactilePrimary'}
                 size="sm"
                 height="44px"
+                flexShrink={0}
+                w={{ base: 'full', md: 'auto' }}
+                minW={{ md: '210px' }}
                 _focusVisible={{ boxShadow: 'focus.ring' }}
                 rightIcon={<Icon as={FiArrowRight} />}
-                w="full"
             >
                 {isOwn ? 'Manage your tables' : `Play at ${name || 'their'} tables`}
             </Button>

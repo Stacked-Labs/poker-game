@@ -68,7 +68,7 @@ export default function RankLadderInline({
     const nearMiss = gap > 0 && total > 0 && gap / total <= 0.1;
 
     return (
-        <VStack align="stretch" spacing={2} w="full">
+        <VStack align="stretch" spacing={2} w="full" maxW={{ base: 'full', md: '360px' }}>
             <HStack justify="space-between" align="center">
                 <HStack spacing={2} align="baseline">
                     <Text

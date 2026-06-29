@@ -54,7 +54,6 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const [showReferralInput, setShowReferralInput] = useState(!!initialReferralCode);
     const [codeInput, setCodeInput] = useState('');
     const [settingCode, setSettingCode] = useState(false);
-    const [showSetCode, setShowSetCode] = useState(false);
     const [localCode, setLocalCode] = useState<string | null>(null);
     // Invited-vs-Activated tracking + Most Referrals board position (§4 / #356).
     const [tracking, setTracking] = useState<{
@@ -128,7 +127,6 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
             if (result.success) {
                 toast.success('Code set', 'Your referral code is ready to share.');
                 setLocalCode(code);
-                setShowSetCode(false);
             } else {
                 const { title, description } = friendlyMessage(result.message, { title: 'Could not set code', description: 'Please try a different code.' });
                 toast.error(title, description);
@@ -263,51 +261,47 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                 </VStack>
             ) : (
                 <VStack align="stretch" spacing={2}>
-                    {!showSetCode ? (
-                        <Button
-                            onClick={() => setShowSetCode(true)}
-                            variant="tactileOutline"
-                            size="sm"
+                    <HStack spacing={2} align="stretch">
+                        <Input
+                            variant="unstyled"
+                            placeholder="claim your code"
+                            value={codeInput}
+                            onChange={(e) => setCodeInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
                             isDisabled={referralLoading}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSetCode(); }}
+                            flex={1}
+                            minW={0}
+                            h="42px"
+                            px={3.5}
+                            bg="bg.pillNeutral"
+                            border="1px solid"
+                            borderColor="border.felt"
+                            borderRadius="11px"
+                            fontFamily="mono"
+                            fontSize="sm"
+                            fontWeight={600}
+                            color="text.primary"
+                            maxLength={20}
+                            _placeholder={{ color: 'text.muted', fontWeight: 500 }}
+                            _hover={{ borderColor: 'border.pillNeutral' }}
+                            _focus={{ borderColor: 'brand.green', boxShadow: 'focus.ring' }}
+                        />
+                        <Button
+                            onClick={handleSetCode}
+                            variant="tactilePrimary"
+                            h="42px"
+                            px={5}
+                            flexShrink={0}
+                            isDisabled={!codeInput.trim() || settingCode || referralLoading}
+                            isLoading={settingCode}
                             _focusVisible={{ boxShadow: 'focus.ring' }}
                         >
-                            {referralLoading ? '…' : 'Set your referral code'}
+                            Set
                         </Button>
-                    ) : (
-                        <>
-                            <HStack
-                                bg="bg.pillNeutral"
-                                borderRadius="10px"
-                                px={3}
-                                py={1}
-                                spacing={2}
-                            >
-                                <Input
-                                    variant="unstyled"
-                                    placeholder="pick a code"
-                                    value={codeInput}
-                                    onChange={(e) => setCodeInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
-                                    fontFamily="mono"
-                                    fontSize="sm"
-                                    maxLength={20}
-                                    _placeholder={{ color: 'text.muted' }}
-                                />
-                                <Button
-                                    onClick={handleSetCode}
-                                    variant="tactilePrimary"
-                                    size="sm"
-                                    isDisabled={!codeInput.trim() || settingCode}
-                                    isLoading={settingCode}
-                                    _focusVisible={{ boxShadow: 'focus.ring' }}
-                                >
-                                    Set
-                                </Button>
-                            </HStack>
-                            <Text fontSize="2xs" color="text.muted">
-                                3–20 chars · letters, numbers, _ or - · set once, permanent
-                            </Text>
-                        </>
-                    )}
+                    </HStack>
+                    <Text fontSize="2xs" color="text.muted">
+                        3–20 chars · letters, numbers, _ or - · set once, permanent
+                    </Text>
                 </VStack>
             )}
 

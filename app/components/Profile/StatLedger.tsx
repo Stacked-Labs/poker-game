@@ -10,97 +10,71 @@ export interface StatItem {
     value: string;
     icon: IconType;
     tooltip: string;
-    /** Podium finish (1st–3rd) — the one warm focal accent. */
-    podium?: boolean;
-    /** Headline stat — rendered larger for intra-ledger hierarchy. */
-    headline?: boolean;
+    /** Money figure (tournament cash) — rendered in USDC blue. */
+    usdc?: boolean;
 }
 
 export interface StatLedgerProps {
     stats: StatItem[];
-    title?: string;
 }
 
-function StatCell({ s }: { s: StatItem }) {
-    return (
-        <TooltipOrPopover label={s.tooltip} aria-label={s.label}>
-            <VStack
-                align="start"
-                spacing={0.5}
-                p={2.5}
-                w="full"
-                borderRadius="12px"
-                bg={s.podium ? 'bg.yellowTint' : 'transparent'}
-                border="1px solid"
-                borderColor={s.podium ? 'border.yellowSubtle' : 'transparent'}
-                transition="background-color 0.15s ease"
-                _hover={{ bg: s.podium ? 'bg.yellowTint' : 'bg.pillNeutral' }}
-            >
-                <HStack spacing={1.5} align="center">
-                    <Box
-                        as={s.icon}
-                        color={s.podium ? 'brand.yellowDark' : 'text.muted'}
-                        _dark={s.podium ? { color: 'brand.yellow' } : undefined}
-                        boxSize="13px"
-                        flexShrink={0}
-                        aria-hidden
-                    />
-                    <Text
-                        fontSize={s.headline ? { base: 'xl', md: '2xl' } : 'lg'}
-                        fontWeight={800}
-                        lineHeight={1.1}
-                        color={s.podium ? 'brand.yellowDark' : 'text.primary'}
-                        _dark={s.podium ? { color: 'brand.yellow' } : undefined}
-                        sx={{ fontVariantNumeric: 'tabular-nums' }}
-                    >
-                        {s.value}
-                    </Text>
-                </HStack>
-                <Text
-                    fontSize="2xs"
-                    fontWeight={700}
-                    letterSpacing="0.04em"
-                    textTransform="uppercase"
-                    color="text.muted"
-                >
-                    {s.label}
-                </Text>
-            </VStack>
-        </TooltipOrPopover>
-    );
-}
-
-// The play record: an iconified, tooltipped, hierarchical stat ledger (not a flat fintech
-// wall). Headline stats render larger; podium best-finish carries the one warm focal accent.
-// Tonal/hairline panel (border.felt, no shadow) so the hero stays the one elevated object.
-export default function StatLedger({ stats, title = 'Play record' }: StatLedgerProps) {
+// The play record as one divided row at the foot of the profile hero card: value-forward cells
+// with hairline dividers on desktop, collapsing to a 3-up grid on mobile. No card of its own —
+// the hero stays the single elevated object.
+export default function StatLedger({ stats }: StatLedgerProps) {
     if (stats.length === 0) return null;
 
     return (
-        <Box
-            bg="card.white"
-            border="1px solid"
-            borderColor="border.felt"
-            borderRadius="20px"
-            p={{ base: 4, md: 5 }}
-            h="full"
+        <SimpleGrid
+            columns={{ base: 3, md: stats.length }}
+            spacingX={{ base: 3, md: 0 }}
+            spacingY={4}
         >
-            <Text
-                as="h2"
-                fontSize="xs"
-                fontWeight={700}
-                letterSpacing="0.04em"
-                textTransform="uppercase"
-                color="text.muted"
-                mb={3}
-            >
-                {title}
-            </Text>
-            <SimpleGrid columns={{ base: 2, sm: 3, md: 4 }} spacingX={3} spacingY={1}>
-                {stats.map((s) => (
-                    <StatCell key={s.key} s={s} />
-                ))}
-            </SimpleGrid>
-        </Box>
+            {stats.map((s, i) => (
+                <Box
+                    key={s.key}
+                    minW={0}
+                    pl={{ md: i === 0 ? 0 : 4 }}
+                    pr={{ md: 4 }}
+                    borderLeft={{ base: 'none', md: i === 0 ? 'none' : '1px solid' }}
+                    borderColor="border.lightGray"
+                >
+                    <TooltipOrPopover label={s.tooltip} aria-label={s.label}>
+                        <VStack align="start" spacing={0.5} cursor="default" minW={0}>
+                            <Text
+                                fontSize={{ base: 'lg', md: 'xl' }}
+                                fontWeight={800}
+                                lineHeight={1.1}
+                                color={s.usdc ? 'text.usdc' : 'text.primary'}
+                                sx={{ fontVariantNumeric: 'tabular-nums' }}
+                                noOfLines={1}
+                                maxW="full"
+                            >
+                                {s.value}
+                            </Text>
+                            <HStack spacing={1} minW={0} maxW="full">
+                                <Box
+                                    as={s.icon}
+                                    boxSize="10px"
+                                    color="text.muted"
+                                    flexShrink={0}
+                                    aria-hidden
+                                />
+                                <Text
+                                    fontSize="2xs"
+                                    fontWeight={700}
+                                    letterSpacing="0.04em"
+                                    textTransform="uppercase"
+                                    color="text.muted"
+                                    noOfLines={1}
+                                >
+                                    {s.label}
+                                </Text>
+                            </HStack>
+                        </VStack>
+                    </TooltipOrPopover>
+                </Box>
+            ))}
+        </SimpleGrid>
     );
 }

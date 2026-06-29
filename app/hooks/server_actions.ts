@@ -716,6 +716,9 @@ export interface PlayerProfileStats {
     tournaments_hosted: number;
     tables_hosted: number;
     referrals: number;
+    // Biggest single-tournament cash (USDC micro). Optional: when the backend omits it the
+    // profile falls back to the max prize across recent results.
+    largest_cash_usdc?: number;
 }
 export interface PlayerProfileRecentResult {
     tournament_id: number;

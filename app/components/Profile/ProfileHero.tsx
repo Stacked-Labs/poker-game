@@ -18,6 +18,7 @@ import { GiTwoCoins } from 'react-icons/gi';
 import { USDC_LOGO } from '../PublicGames/types';
 import PlayerNameLink from '../PlayerNameLink';
 import TooltipOrPopover from '../TooltipOrPopover';
+import { SocialIconButton } from '../SocialIconButton';
 import useToastHelper from '@/app/hooks/useToastHelper';
 import { shortenAddress } from '@/app/utils/address';
 import { formatUsdcMicro } from '@/app/utils/usdc';
@@ -45,6 +46,10 @@ export interface ProfileHeroProps {
     shareSlot?: ReactNode;
     /** Own-hub rank ladder, rendered under identity. Absent => public (shows a points pill). */
     rankLadderSlot?: ReactNode;
+    /** Own-hub, unlinked-X: shows a compact "Link X" CTA inline by the address. */
+    linkX?: { onConnect: () => void; isConnecting?: boolean } | null;
+    /** Play-record stat strip, rendered as a divided row at the foot of the hero card. */
+    statsSlot?: ReactNode;
 }
 
 function HostBlock({ host }: { host: HostLedger }) {
@@ -105,6 +110,8 @@ export default function ProfileHero({
     host,
     shareSlot,
     rankLadderSlot,
+    linkX,
+    statsSlot,
 }: ProfileHeroProps) {
     const { success } = useToastHelper();
     const isRanked = rank > 0;
@@ -254,6 +261,18 @@ export default function ProfileHero({
                                 >
                                     {shortenAddress(address)}
                                 </Button>
+
+                                {/* Own + unlinked X: a compact CTA inline, instead of a full-width strip. */}
+                                {!xUsername && linkX && (
+                                    <SocialIconButton
+                                        tone="x"
+                                        chipSize="sm"
+                                        label={linkX.isConnecting ? 'Linking…' : 'Link X'}
+                                        onClick={linkX.onConnect}
+                                        isDisabled={linkX.isConnecting}
+                                        aria-label="Link your X account"
+                                    />
+                                )}
                             </Flex>
                         </VStack>
                     </HStack>
@@ -279,6 +298,19 @@ export default function ProfileHero({
                     </Box>
                 </Flex>
             </Flex>
+
+            {statsSlot && (
+                <Box
+                    mt={{ base: 5, md: 6 }}
+                    pt={{ base: 5, md: 6 }}
+                    borderTop="1px solid"
+                    borderColor="border.lightGray"
+                    position="relative"
+                    zIndex={1}
+                >
+                    {statsSlot}
+                </Box>
+            )}
         </Box>
     );
 }

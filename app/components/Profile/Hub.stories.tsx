@@ -4,14 +4,15 @@ import { Box, Button, Icon } from '@chakra-ui/react';
 import { FiShare2, FiChevronDown } from 'react-icons/fi';
 import { FaShareAlt } from 'react-icons/fa';
 import { GiPokerHand, GiTrophyCup, GiCardAceSpades } from 'react-icons/gi';
-import { FaCrown, FaMedal } from 'react-icons/fa';
+import { FaCrown } from 'react-icons/fa';
+import { FaSackDollar } from 'react-icons/fa6';
 import { FiPercent } from 'react-icons/fi';
 import { blo } from 'blo';
 import type { QuestItem } from '@/app/hooks/server_actions';
 import ProfileHub from './ProfileHub';
 import ProfileHero from './ProfileHero';
+import PlayerSearch from '../PlayerSearch';
 import RankLadderInline from './RankLadderInline';
-import ConnectXStrip from './ConnectXStrip';
 import StatLedger, { type StatItem } from './StatLedger';
 import RecentLedger, { type Activity } from './RecentLedger';
 import HostingScorecard from './HostingScorecard';
@@ -43,9 +44,9 @@ const QUESTS: QuestItem[] = [
 ];
 
 const STATS: StatItem[] = [
-    { key: 'hands', label: 'Hands', value: '18,402', icon: GiPokerHand, tooltip: 'Total hands played', headline: true },
-    { key: 'wins', label: 'Wins', value: '6', icon: FaCrown, tooltip: 'First-place finishes', headline: true },
-    { key: 'best', label: 'Best finish', value: '1st', icon: FaMedal, tooltip: 'Highest placement', headline: true, podium: true },
+    { key: 'hands', label: 'Hands', value: '18,402', icon: GiPokerHand, tooltip: 'Total hands played' },
+    { key: 'wins', label: 'Wins', value: '6', icon: FaCrown, tooltip: 'First-place finishes' },
+    { key: 'topcash', label: 'Top cash', value: '$540', icon: FaSackDollar, tooltip: 'Biggest tournament cash', usdc: true },
     { key: 'entered', label: 'Tournaments', value: '44', icon: GiTrophyCup, tooltip: 'Bought in' },
     { key: 'final', label: 'Final tables', value: '11', icon: GiCardAceSpades, tooltip: 'Reached final table' },
     { key: 'winrate', label: 'Win rate', value: '14%', icon: FiPercent, tooltip: 'Won ÷ entered' },
@@ -87,17 +88,18 @@ function buildHub(a: HubArgs) {
                     <RankLadderInline rank={a.rank} points={4820} tier={tier} pointsToNext={180} nextRank={a.rank - 1} shareSlot={RankShareStub} />
                 ) : undefined
             }
+            linkX={a.isOwn && a.unlinkedX ? { onConnect: noop } : null}
+            statsSlot={a.thin ? null : <StatLedger stats={STATS} />}
             shareSlot={ShareStub}
         />
     );
     return (
         <ProfileHub
             isOwn={a.isOwn}
+            search={<PlayerSearch maxW={{ base: '100%', sm: '320px' }} />}
             hero={hero}
-            connectX={a.isOwn && a.unlinkedX ? <ConnectXStrip onConnect={noop} /> : null}
             quests={a.isOwn ? <QuestsSectionView quests={QUESTS} totalQuestPoints={200} loading={false} isQuestLocked={(q) => q.id === 'create_table'} onClaim={noop} /> : null}
             referral={a.isOwn ? <ReferralCodeSection referralInfo={{ count: 3, multiplier: 1.2, nextTier: { required: 5, multiplier: 1.3 }, hasReferrer: false, myCode: 'mikedawson' }} /> : null}
-            record={a.thin ? null : <StatLedger stats={STATS} />}
             recent={a.thin ? null : <RecentLedger items={RECENT} />}
             hosting={a.thin ? null : <HostingScorecard tablesHosted={12} tournamentsHosted={4} isOwn={a.isOwn} name="goldrush" />}
             recruit={<RecruitStrip isOwn={a.isOwn} />}

@@ -6,7 +6,8 @@ import NextLink from 'next/link';
 import { blo } from 'blo';
 import { useActiveAccount } from 'thirdweb/react';
 import { GiPokerHand, GiTrophyCup, GiCardAceSpades } from 'react-icons/gi';
-import { FaCrown, FaMedal } from 'react-icons/fa';
+import { FaCrown } from 'react-icons/fa';
+import { FaSackDollar } from 'react-icons/fa6';
 import { FiPercent, FiUserPlus } from 'react-icons/fi';
 import {
     getPlayerProfile,
@@ -15,19 +16,20 @@ import {
     type PlayerProfile,
 } from '@/app/hooks/server_actions';
 import { playerDisplayName } from '@/app/utils/address';
+import { formatUsdcMicro } from '@/app/utils/usdc';
 import { tierFromString } from '@/app/components/Leaderboard/tierUtils';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useConnectX } from '@/app/hooks/useConnectX';
 import { useRankHistory } from '@/app/hooks/useRankHistory';
+import PlayerSearch from '@/app/components/PlayerSearch';
 import QuestsSection from '@/app/components/Leaderboard/QuestsSection';
 import ReferralCodeSection from '@/app/components/Leaderboard/ReferralCodeSection';
 import ShareRankCard from '@/app/components/Leaderboard/ShareRankCard';
 import ProfileHub from '@/app/components/Profile/ProfileHub';
 import ProfileHero, { type HostLedger } from '@/app/components/Profile/ProfileHero';
 import RankLadderInline from '@/app/components/Profile/RankLadderInline';
-import ConnectXStrip from '@/app/components/Profile/ConnectXStrip';
 import StatLedger, { type StatItem } from '@/app/components/Profile/StatLedger';
-import RecentLedger, { type Activity, ordinal } from '@/app/components/Profile/RecentLedger';
+import RecentLedger, { type Activity } from '@/app/components/Profile/RecentLedger';
 import HostingScorecard from '@/app/components/Profile/HostingScorecard';
 import RecruitStrip from '@/app/components/Profile/RecruitStrip';
 import ProfileSkeleton from '@/app/components/Profile/ProfileSkeleton';
@@ -138,10 +140,15 @@ export default function ProfileView({ address }: { address: string }) {
         stats.tournaments_entered > 0
             ? Math.round((stats.tournaments_won / stats.tournaments_entered) * 100)
             : 0;
+    // Biggest tournament cash: the backend figure when present, else the best across recent results.
+    const topCash =
+        stats.largest_cash_usdc && stats.largest_cash_usdc > 0
+            ? stats.largest_cash_usdc
+            : profile.recent.results.reduce((m, r) => Math.max(m, r.prize_usdc), 0);
     const statCandidates: (StatItem & { include: boolean })[] = [
-        { key: 'hands', label: 'Hands', value: stats.hands_played.toLocaleString(), icon: GiPokerHand, tooltip: 'Total hands you have played on Stacked', headline: true, include: stats.hands_played > 0 },
-        { key: 'wins', label: 'Wins', value: stats.tournaments_won.toLocaleString(), icon: FaCrown, tooltip: 'First-place tournament finishes', headline: true, include: stats.tournaments_won > 0 },
-        { key: 'best', label: 'Best finish', value: stats.best_finish > 0 ? ordinal(stats.best_finish) : '—', icon: FaMedal, tooltip: 'Your highest tournament placement to date', headline: true, podium: stats.best_finish >= 1 && stats.best_finish <= 3, include: stats.best_finish > 0 },
+        { key: 'hands', label: 'Hands', value: stats.hands_played.toLocaleString(), icon: GiPokerHand, tooltip: 'Total hands you have played on Stacked', include: stats.hands_played > 0 },
+        { key: 'wins', label: 'Wins', value: stats.tournaments_won.toLocaleString(), icon: FaCrown, tooltip: 'First-place tournament finishes', include: stats.tournaments_won > 0 },
+        { key: 'topcash', label: 'Top cash', value: `$${formatUsdcMicro(topCash)}`, icon: FaSackDollar, tooltip: 'Your biggest tournament cash on Stacked', usdc: true, include: topCash > 0 },
         { key: 'entered', label: 'Tournaments', value: stats.tournaments_entered.toLocaleString(), icon: GiTrophyCup, tooltip: 'Tournaments you have bought into', include: stats.tournaments_entered > 0 },
         { key: 'final', label: 'Final tables', value: stats.final_tables.toLocaleString(), icon: GiCardAceSpades, tooltip: 'Times you reached the final table', include: stats.final_tables > 0 },
         { key: 'winrate', label: 'Win rate', value: `${winRate}%`, icon: FiPercent, tooltip: 'Tournaments won ÷ tournaments entered', include: stats.tournaments_entered > 0 && stats.tournaments_won > 0 },
@@ -192,6 +199,7 @@ export default function ProfileView({ address }: { address: string }) {
     return (
         <ProfileHub
             isOwn={isOwn}
+            search={<PlayerSearch maxW={{ base: '100%', sm: '320px' }} />}
             hero={
                 <ProfileHero
                     name={name}
@@ -204,6 +212,14 @@ export default function ProfileView({ address }: { address: string }) {
                     address={profile.address}
                     host={host}
                     rankLadderSlot={rankLadder}
+                    linkX={
+                        showEngagement && !xUsername
+                            ? { onConnect: connectX, isConnecting }
+                            : null
+                    }
+                    statsSlot={
+                        statItems.length > 0 ? <StatLedger stats={statItems} /> : null
+                    }
                     shareSlot={
                         <ProfileShareButton
                             address={profile.address}
@@ -216,18 +232,12 @@ export default function ProfileView({ address }: { address: string }) {
                     }
                 />
             }
-            connectX={
-                showEngagement && !xUsername ? (
-                    <ConnectXStrip isConnecting={isConnecting} onConnect={connectX} />
-                ) : null
-            }
             quests={showEngagement ? <QuestsSection tablesCreated={stats.tables_hosted} /> : null}
             referral={
                 showEngagement ? (
                     <ReferralCodeSection referralInfo={referral ?? undefined} />
                 ) : null
             }
-            record={<StatLedger stats={statItems} />}
             recent={recent.length > 0 ? <RecentLedger items={recent} /> : null}
             hosting={
                 hostActivity ? (

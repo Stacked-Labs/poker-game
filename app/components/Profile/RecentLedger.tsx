@@ -111,6 +111,7 @@ export default function RecentLedger({ items }: RecentLedgerProps) {
                                     key={f.key}
                                     onClick={() => setFilter(f.key)}
                                     variant="unstyled"
+                                    border="none"
                                     h="28px"
                                     minW="auto"
                                     px={2.5}
@@ -119,6 +120,12 @@ export default function RecentLedger({ items }: RecentLedgerProps) {
                                     fontWeight={700}
                                     bg={active ? 'bg.greenTint' : 'bg.pillNeutral'}
                                     color={active ? 'brand.green' : 'text.secondary'}
+                                    transition="background-color 0.12s ease, color 0.12s ease"
+                                    _hover={
+                                        active
+                                            ? { bg: 'bg.greenTint', color: 'brand.greenDark' }
+                                            : { bg: 'border.pillNeutral', color: 'text.primary' }
+                                    }
                                     _focusVisible={{ boxShadow: 'focus.ring' }}
                                 >
                                     {f.label}

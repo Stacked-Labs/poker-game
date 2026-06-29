@@ -14,10 +14,10 @@ export interface ProfileHubProps {
     isOwn: boolean;
     hero: ReactNode;
     recruit: ReactNode;
-    connectX?: ReactNode | null;
+    /** Player search, rendered top-right above the hero (mirrors the leaderboard). */
+    search?: ReactNode | null;
     quests?: ReactNode | null;
     referral?: ReactNode | null;
-    record?: ReactNode | null;
     recent?: ReactNode | null;
     hosting?: ReactNode | null;
 }
@@ -44,29 +44,32 @@ export default function ProfileHub({
     isOwn,
     hero,
     recruit,
-    connectX,
+    search,
     quests,
     referral,
-    record,
     recent,
     hosting,
 }: ProfileHubProps) {
     const tiles: Tile[] = [];
     if (isOwn) {
-        if (connectX) tiles.push({ key: 'connectX', node: connectX, span: 12 });
         tiles.push(...pair(quests, 'quests', referral, 'referral', 6, 6));
-        tiles.push(...pair(record, 'record', hosting, 'hosting', 8, 4));
+        if (hosting) tiles.push({ key: 'hosting', node: hosting, span: 12 });
         if (recent) tiles.push({ key: 'recent', node: recent, span: 12 });
         tiles.push({ key: 'recruit', node: recruit, span: 12 });
     } else {
         tiles.push({ key: 'recruit', node: recruit, span: 12 });
-        tiles.push(...pair(record, 'record', hosting, 'hosting', 8, 4));
+        if (hosting) tiles.push({ key: 'hosting', node: hosting, span: 12 });
         if (recent) tiles.push({ key: 'recent', node: recent, span: 12 });
     }
 
     return (
-        <Container maxW="container.xl" py={{ base: 5, md: 8 }}>
+        <Container maxW="container.xl" pt={{ base: 24, md: 28 }} pb={{ base: 10, md: 16 }}>
             <VStack align="stretch" spacing={4}>
+                {search && (
+                    <Flex justify={{ base: 'stretch', sm: 'flex-end' }}>
+                        {search}
+                    </Flex>
+                )}
                 {hero}
                 <Grid templateColumns="repeat(12, 1fr)" gap={4}>
                     {tiles.map((t) => (

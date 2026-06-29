@@ -85,6 +85,20 @@ export const FinalMinute: Story = {
     ],
 };
 
+export const RunningSeatLink: Story = {
+    name: 'Single — running (Take your seat)',
+    decorators: [
+        makeDecorator([
+            makeTournament({
+                name: 'Turbo Bounty',
+                status: 'running',
+                scheduled_start_at: fromNow(-5 * MINUTE),
+                late_reg_close_at: fromNow(20 * MINUTE),
+            }),
+        ]),
+    ],
+};
+
 export const MultipleApproaching: Story = {
     name: 'Multiple — most urgent + N more',
     decorators: [

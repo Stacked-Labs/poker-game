@@ -17,8 +17,9 @@ const mockAuth = {
     lastAuthenticatedAddress: '0x1A2b3C4d5E6f7890aBCdef1234567890DeAdBeEf',
     walletMismatch: false,
     walletSessionStatus: 'authenticated',
-    xUsername: 'mikedawson',
-    xDisplayName: 'Mike Dawson',
+    // No X linked — the live scenario where the header used to show the address twice.
+    xUsername: null,
+    xDisplayName: null,
     xProfileImageUrl: null,
     xStatusChecked: true,
     requestAuthentication: () => {},

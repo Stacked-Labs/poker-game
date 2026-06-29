@@ -4,10 +4,11 @@
  * Signed-in account control for the marketing/lobby nav (HomeNavBar).
  *
  * Gives a logged-in player a clear path to their OWN profile (the gap the
- * thirdweb connect button left), while preserving the full thirdweb wallet
- * modal: the "Wallet" row and "Add" both open `useWalletDetailsModal()`,
- * the same send / receive / bridge / buy / history / disconnect surface the
- * old ConnectButton details modal showed.
+ * thirdweb connect button left), the connected chain, and money actions:
+ *  - Add funds -> thirdweb BuyWidget (buy / onramp)
+ *  - Bridge    -> thirdweb BridgeWidget (cross-chain)
+ *  - Send & receive / Network -> the full wallet details modal
+ * (the Buy/Bridge widgets are lazy-loaded from ./FundsWidgets).
  *
  * `AccountMenu` is the desktop chip + dropdown; `MobileAccountCard` is the
  * drawer identity card. Both share `useAccountControls`.
@@ -25,23 +26,30 @@ import {
     MenuList,
     Text,
     useColorMode,
+    useDisclosure,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
     FiUser,
     FiLogOut,
     FiCreditCard,
     FiChevronDown,
+    FiChevronRight,
     FiArrowRight,
+    FiArrowUpRight,
     FiPlus,
+    FiRepeat,
 } from 'react-icons/fi';
 import { RiGamepadLine } from 'react-icons/ri';
 import {
     useActiveWallet,
+    useActiveWalletChain,
     useDisconnect,
     useWalletBalance,
     useWalletDetailsModal,
 } from 'thirdweb/react';
+import { base, baseSepolia } from 'thirdweb/chains';
 import {
     client,
     defaultChain,
@@ -50,24 +58,21 @@ import {
 } from '@/app/thirdwebclient';
 import { useAuth } from '@/app/contexts/AuthContext';
 import PlayerAvatar from '../PlayerAvatar';
+import type { FundsMode } from './FundsWidgets';
+
+// Heavy thirdweb Bridge/Buy UI: only fetched when a player opens Add/Bridge.
+const FundsModal = dynamic(
+    () => import('./FundsWidgets').then((m) => m.FundsModal),
+    { ssr: false }
+);
 
 const CHIP_SHADOW =
     'inset 0 1px 0 rgba(255,255,255,0.55), 0 1px 0 rgba(11,20,48,0.08)';
 const MENU_SHADOW =
     '0 18px 44px rgba(11, 20, 48, 0.16), 0 0 0 1px rgba(11, 20, 48, 0.04)';
-
-// Prefill the thirdweb Buy/onramp flow with USDC on the chain the app transacts on.
-const BUY_OPTIONS = {
-    prefillBuy: {
-        token: {
-            address: defaultUsdcAddress,
-            name: 'USD Coin',
-            symbol: 'USDC',
-            icon: '/usdc-logo.png',
-        },
-        chain: defaultChain,
-        allowEdits: { amount: true, token: false, chain: false },
-    },
+const DIVIDER = {
+    borderColor: 'border.felt',
+    _dark: { borderColor: 'rgba(255,255,255,0.12)' },
 } as const;
 
 const shorten = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
@@ -81,6 +86,7 @@ export function useAccountControls() {
 
     const { colorMode } = useColorMode();
     const wallet = useActiveWallet();
+    const chain = useActiveWalletChain();
     const { disconnect } = useDisconnect();
     const detailsModal = useWalletDetailsModal();
     const { data: balance } = useWalletBalance({
@@ -90,8 +96,12 @@ export function useAccountControls() {
         tokenAddress: defaultUsdcAddress,
     });
 
-    const handle = xUsername ? `@${xUsername}` : address ? shorten(address) : '';
+    const hasHandle = Boolean(xUsername);
+    const handle = hasHandle ? `@${xUsername}` : address ? shorten(address) : '';
     const shortAddress = address ? shorten(address) : '';
+    // Secondary line: the address, but only when the primary line is the X
+    // handle (otherwise the primary line already IS the address).
+    const secondary = hasHandle ? shortAddress : null;
     const profileHref = address ? `/profile/${address}` : '/';
     const balanceLabel = balance
         ? `$${Number(balance.displayValue).toLocaleString('en-US', {
@@ -100,12 +110,14 @@ export function useAccountControls() {
           })}`
         : null;
 
-    const openWallet = (withBuy = false) =>
+    const chainName = chain?.name ?? defaultChain.name ?? 'Base';
+    const chainIsBase = chain ? chain.id === base.id || chain.id === baseSepolia.id : true;
+
+    const openWallet = () =>
         detailsModal.open({
             client,
             theme: colorMode === 'dark' ? 'dark' : 'light',
             supportedTokens,
-            ...(withBuy ? { payOptions: BUY_OPTIONS } : {}),
         });
 
     // Mirror the ConnectButton's deliberate-disconnect: drop the wallet AND the
@@ -121,12 +133,28 @@ export function useAccountControls() {
     return {
         address,
         handle,
+        secondary,
         shortAddress,
         profileHref,
         avatarUrl: xProfileImageUrl,
         balanceLabel,
+        chainName,
+        chainIsBase,
         openWallet,
         signOut,
+    };
+}
+
+// Small Buy/Bridge modal controller shared by desktop + mobile.
+function useFunds() {
+    const { isOpen, onOpen, onClose } = useDisclosure();
+    const [mode, setMode] = useState<FundsMode>('buy');
+    return {
+        open: (m: FundsMode) => {
+            setMode(m);
+            onOpen();
+        },
+        props: { isOpen, onClose, mode },
     };
 }
 
@@ -151,19 +179,27 @@ const AccountAvatar: React.FC<{
     </Box>
 );
 
+const ChainDot: React.FC<{ isBase: boolean }> = ({ isBase }) => (
+    <Box
+        w="8px"
+        h="8px"
+        borderRadius="full"
+        bg={isBase ? 'brand.base' : 'text.muted'}
+        flexShrink={0}
+    />
+);
+
 const RowItem: React.FC<{
     icon: React.ElementType;
     label: string;
-    sub?: string;
     tone?: 'accent' | 'neutral' | 'muted';
     href?: string;
     onClick?: () => void;
-}> = ({ icon, label, sub, tone = 'neutral', href, onClick }) => {
+    right?: React.ReactNode;
+}> = ({ icon, label, tone = 'neutral', href, onClick, right }) => {
     const accent = tone === 'accent';
     const muted = tone === 'muted';
-    const linkProps = href
-        ? ({ as: 'a', href } as const)
-        : ({ onClick } as const);
+    const linkProps = href ? ({ as: 'a', href } as const) : ({ onClick } as const);
     return (
         <MenuItem
             {...linkProps}
@@ -181,258 +217,187 @@ const RowItem: React.FC<{
                 <Icon
                     as={icon}
                     boxSize={4}
-                    color={
-                        accent
-                            ? 'brand.green'
-                            : muted
-                              ? 'text.muted'
-                              : 'text.secondary'
-                    }
+                    color={accent ? 'brand.green' : muted ? 'text.muted' : 'text.secondary'}
                 />
-                <Box flex={1}>
-                    <Text
-                        fontWeight="600"
-                        fontSize="sm"
-                        lineHeight="1.25"
-                        color={
-                            accent
-                                ? 'brand.greenDark'
-                                : muted
-                                  ? 'text.muted'
-                                  : 'text.primary'
-                        }
-                    >
-                        {label}
-                    </Text>
-                    {sub && (
-                        <Text fontSize="11px" color="text.muted" lineHeight="1.25">
-                            {sub}
-                        </Text>
-                    )}
-                </Box>
-                {accent && (
-                    <Icon as={FiArrowRight} boxSize={3.5} color="brand.green" />
-                )}
+                <Text
+                    flex={1}
+                    fontWeight="600"
+                    fontSize="sm"
+                    color={accent ? 'brand.greenDark' : muted ? 'text.muted' : 'text.primary'}
+                >
+                    {label}
+                </Text>
+                {right ?? (accent && <Icon as={FiArrowRight} boxSize={3.5} color="brand.green" />)}
             </HStack>
         </MenuItem>
     );
 };
 
+const IdentityHeader: React.FC<{
+    c: ReturnType<typeof useAccountControls>;
+    size?: number;
+    bg?: string;
+}> = ({ c, size = 40, bg }) => (
+    <HStack spacing={3} p={4} bg={bg} align="center">
+        <AccountAvatar size={size} avatarUrl={c.avatarUrl} address={c.address} handle={c.handle} />
+        <Box flex={1} minW={0}>
+            <Text fontWeight="700" fontSize="sm" color="text.primary" noOfLines={1}>
+                {c.handle}
+            </Text>
+            {c.secondary && (
+                <Text fontSize="12px" color="text.muted">
+                    {c.secondary}
+                </Text>
+            )}
+        </Box>
+        {c.balanceLabel && (
+            <Text fontWeight="700" fontSize="sm" color="brand.usdc">
+                {c.balanceLabel}
+            </Text>
+        )}
+    </HStack>
+);
+
 export function AccountMenu({ defaultIsOpen }: { defaultIsOpen?: boolean } = {}) {
     const c = useAccountControls();
+    const funds = useFunds();
     return (
-        <Menu
-            placement="bottom-end"
-            autoSelect={false}
-            isLazy
-            defaultIsOpen={defaultIsOpen}
-        >
-            <MenuButton
-                h="44px"
-                pl={2}
-                pr={3}
-                borderRadius="full"
-                bg="card.white"
-                border="1px solid"
-                borderColor="border.felt"
-                boxShadow={CHIP_SHADOW}
-                transition="border-color 120ms ease"
-                _hover={{ borderColor: 'border.pillNeutral' }}
-                _dark={{ boxShadow: 'none' }}
-            >
-                <HStack spacing={2.5} align="center">
-                    <AccountAvatar
-                        size={30}
-                        avatarUrl={c.avatarUrl}
-                        address={c.address}
-                        handle={c.handle}
-                    />
-                    <Text
-                        fontWeight="700"
-                        fontSize="sm"
-                        color="text.primary"
-                        noOfLines={1}
-                        maxW="140px"
-                    >
-                        {c.handle}
-                    </Text>
-                    <Icon as={FiChevronDown} boxSize="14px" color="text.gray600" />
-                </HStack>
-            </MenuButton>
-            <MenuList
-                p={0}
-                overflow="hidden"
-                minW="284px"
-                bg="card.white"
-                border="1px solid"
-                borderColor="border.felt"
-                borderRadius="16px"
-                boxShadow={MENU_SHADOW}
-            >
-                <HStack spacing={3} p={4} bg="bg.pillNeutral" align="center">
-                    <AccountAvatar
-                        size={40}
-                        avatarUrl={c.avatarUrl}
-                        address={c.address}
-                        handle={c.handle}
-                    />
-                    <Box minW={0}>
-                        <Text
-                            fontWeight="700"
-                            fontSize="sm"
-                            color="text.primary"
-                            noOfLines={1}
-                        >
+        <>
+            <Menu placement="bottom-end" autoSelect={false} isLazy defaultIsOpen={defaultIsOpen}>
+                <MenuButton
+                    h="44px"
+                    pl={2}
+                    pr={3}
+                    borderRadius="full"
+                    bg="card.white"
+                    border="1px solid"
+                    borderColor="border.felt"
+                    boxShadow={CHIP_SHADOW}
+                    transition="border-color 120ms ease"
+                    _hover={{ borderColor: 'border.pillNeutral' }}
+                    _dark={{ boxShadow: 'none' }}
+                >
+                    <HStack spacing={2.5} align="center">
+                        <AccountAvatar size={30} avatarUrl={c.avatarUrl} address={c.address} handle={c.handle} />
+                        <Text fontWeight="700" fontSize="sm" color="text.primary" noOfLines={1} maxW="140px">
                             {c.handle}
                         </Text>
-                        <Text fontSize="12px" color="text.muted">
-                            {c.shortAddress}
-                        </Text>
-                    </Box>
-                </HStack>
-                <HStack
-                    justify="space-between"
-                    px={4}
-                    py={3}
-                    borderBottom="1px solid"
+                        <Icon as={FiChevronDown} boxSize="14px" color="text.gray600" />
+                    </HStack>
+                </MenuButton>
+                <MenuList
+                    p={0}
+                    overflow="hidden"
+                    minW="288px"
+                    bg="card.white"
+                    border="1px solid"
                     borderColor="border.felt"
-                    _dark={{ borderColor: 'rgba(255,255,255,0.12)' }}
+                    borderRadius="16px"
+                    boxShadow={MENU_SHADOW}
                 >
-                    <Box>
-                        <Text
-                            fontSize="10px"
-                            fontWeight="700"
-                            letterSpacing="0.06em"
-                            color="text.muted"
-                        >
-                            BALANCE
-                        </Text>
-                        <Text
-                            fontWeight="700"
-                            fontSize="16px"
-                            color="brand.usdc"
-                            lineHeight="1.2"
-                        >
-                            {c.balanceLabel ?? '…'}
-                        </Text>
+                    <IdentityHeader c={c} bg="bg.pillNeutral" />
+                    <MenuDivider {...DIVIDER} my={0} />
+                    <Box py={2}>
+                        <RowItem icon={FiUser} label="My profile" tone="accent" href={c.profileHref} />
+                        <RowItem icon={FiPlus} label="Add funds" onClick={() => funds.open('buy')} />
+                        <RowItem icon={FiRepeat} label="Bridge" onClick={() => funds.open('bridge')} />
+                        <RowItem icon={FiArrowUpRight} label="Send & receive" onClick={c.openWallet} />
+                        <RowItem icon={RiGamepadLine} label="Create Game" href="/create-game" />
                     </Box>
-                    <Button
-                        variant="tactileOutline"
-                        size="sm"
-                        height="32px"
-                        leftIcon={<Icon as={FiPlus} boxSize={3.5} />}
-                        onClick={() => c.openWallet(true)}
-                    >
-                        Add
-                    </Button>
-                </HStack>
-                <Box py={2}>
-                    <RowItem
-                        icon={FiUser}
-                        label="My profile"
-                        sub="stats, results, hosting"
-                        tone="accent"
-                        href={c.profileHref}
-                    />
-                    <RowItem
-                        icon={FiCreditCard}
-                        label="Wallet"
-                        sub="send, receive, bridge, buy"
-                        onClick={() => c.openWallet()}
-                    />
-                    <RowItem
-                        icon={RiGamepadLine}
-                        label="Create Game"
-                        href="/create-game"
-                    />
-                </Box>
-                <MenuDivider
-                    borderColor="border.felt"
-                    _dark={{ borderColor: 'rgba(255,255,255,0.12)' }}
-                    my={0}
-                />
-                <Box py={2}>
-                    <RowItem
-                        icon={FiLogOut}
-                        label="Sign out"
-                        tone="muted"
-                        onClick={c.signOut}
-                    />
-                </Box>
-            </MenuList>
-        </Menu>
+                    <MenuDivider {...DIVIDER} my={0} />
+                    <Box py={2}>
+                        <RowItem
+                            icon={FiCreditCard}
+                            label="Network"
+                            onClick={c.openWallet}
+                            right={
+                                <HStack spacing={1.5} align="center">
+                                    <ChainDot isBase={c.chainIsBase} />
+                                    <Text fontSize="13px" fontWeight="600" color="text.secondary">
+                                        {c.chainName}
+                                    </Text>
+                                    <Icon as={FiChevronRight} boxSize={4} color="text.muted" />
+                                </HStack>
+                            }
+                        />
+                        <RowItem icon={FiLogOut} label="Sign out" tone="muted" onClick={c.signOut} />
+                    </Box>
+                </MenuList>
+            </Menu>
+            {funds.props.isOpen && <FundsModal {...funds.props} />}
+        </>
     );
 }
 
 export function MobileAccountCard({ onNavigate }: { onNavigate?: () => void }) {
     const c = useAccountControls();
+    const funds = useFunds();
     return (
-        <Box
-            bg="card.white"
-            border="1px solid"
-            borderColor="border.felt"
-            borderRadius="16px"
-            p={4}
-            mb={4}
-        >
-            <HStack spacing={3} mb={3}>
-                <AccountAvatar
-                    size={44}
-                    avatarUrl={c.avatarUrl}
-                    address={c.address}
-                    handle={c.handle}
-                />
-                <Box flex={1} minW={0}>
-                    <Text
-                        fontWeight="700"
-                        fontSize="sm"
-                        color="text.primary"
-                        noOfLines={1}
-                    >
-                        {c.handle}
-                    </Text>
-                    <Text fontSize="12px" color="text.muted">
-                        {c.shortAddress}
-                    </Text>
-                </Box>
-                {c.balanceLabel && (
-                    <Text fontWeight="700" fontSize="sm" color="brand.usdc">
-                        {c.balanceLabel}
-                    </Text>
-                )}
-            </HStack>
-            <Button
-                as="a"
-                href={c.profileHref}
-                onClick={onNavigate}
-                variant="tactileOutline"
-                w="full"
-                height="44px"
-                leftIcon={<Icon as={FiUser} boxSize={4} />}
-                rightIcon={<Icon as={FiArrowRight} boxSize={4} />}
-            >
-                My profile
-            </Button>
-            <HStack spacing={3} mt={2.5}>
+        <>
+            <Box bg="card.white" border="1px solid" borderColor="border.felt" borderRadius="16px" p={4} mb={4}>
+                <HStack spacing={3} mb={3}>
+                    <AccountAvatar size={44} avatarUrl={c.avatarUrl} address={c.address} handle={c.handle} />
+                    <Box flex={1} minW={0}>
+                        <Text fontWeight="700" fontSize="sm" color="text.primary" noOfLines={1}>
+                            {c.handle}
+                        </Text>
+                        <HStack spacing={1.5} align="center">
+                            <ChainDot isBase={c.chainIsBase} />
+                            <Text fontSize="12px" color="text.muted">
+                                {c.chainName}
+                            </Text>
+                        </HStack>
+                    </Box>
+                    {c.balanceLabel && (
+                        <Text fontWeight="700" fontSize="sm" color="brand.usdc">
+                            {c.balanceLabel}
+                        </Text>
+                    )}
+                </HStack>
                 <Button
-                    variant="tactileChrome"
-                    flex={1}
+                    as="a"
+                    href={c.profileHref}
+                    onClick={onNavigate}
+                    variant="tactileOutline"
+                    w="full"
                     height="44px"
-                    leftIcon={<Icon as={FiCreditCard} boxSize={4} />}
-                    onClick={() => c.openWallet()}
+                    leftIcon={<Icon as={FiUser} boxSize={4} />}
+                    rightIcon={<Icon as={FiArrowRight} boxSize={4} />}
                 >
-                    Wallet
+                    My profile
                 </Button>
+                <HStack spacing={3} mt={2.5}>
+                    <Button
+                        variant="tactileChrome"
+                        flex={1}
+                        height="44px"
+                        leftIcon={<Icon as={FiRepeat} boxSize={4} />}
+                        onClick={() => funds.open('bridge')}
+                    >
+                        Bridge
+                    </Button>
+                    <Button
+                        variant="tactileChrome"
+                        flex={1}
+                        height="44px"
+                        leftIcon={<Icon as={FiCreditCard} boxSize={4} />}
+                        onClick={c.openWallet}
+                    >
+                        Wallet
+                    </Button>
+                </HStack>
                 <Button
                     variant="tactileChrome"
-                    flex={1}
+                    w="full"
                     height="44px"
+                    mt={3}
                     leftIcon={<Icon as={FiLogOut} boxSize={4} />}
                     onClick={c.signOut}
                 >
                     Sign out
                 </Button>
-            </HStack>
-        </Box>
+            </Box>
+            {funds.props.isOpen && <FundsModal {...funds.props} />}
+        </>
     );
 }

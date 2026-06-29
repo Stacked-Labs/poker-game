@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Box } from '@chakra-ui/react';
 import BoardTable from './BoardTable';
 import TopHostsBoard from './TopHostsBoard';
+import StatsHub from './StatsHub';
 import type { BoardResponse, BoardRow } from '@/app/hooks/server_actions';
 
 const ME = '0x1111111111111111111111111111111111111111';
@@ -90,4 +91,9 @@ export const TopHosts: Story = {
 
 export const Loading: Story = {
     render: () => <BoardTable data={null} loading currentAddress={ME} />,
+};
+
+// Full hub with the board tabs — verifies tab text/icon color in selected + unselected states.
+export const FullHub: Story = {
+    render: () => <StatsHub currentAddress={ME} />,
 };

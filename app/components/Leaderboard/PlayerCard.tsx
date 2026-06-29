@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box,
     VStack,
@@ -9,17 +9,20 @@ import {
     HStack,
     Icon,
     Button,
+    Link,
     Progress,
     Tooltip,
     AspectRatio,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
+import NextLink from 'next/link';
 import { useActiveAccount } from 'thirdweb/react';
 import { FaWallet, FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
 import { FaMedal, FaXTwitter } from 'react-icons/fa6';
-import { FiTrendingUp } from 'react-icons/fi';
+import { FiTrendingUp, FiArrowRight } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
+import { getPlayerProfile, type PlayerProfile } from '@/app/hooks/server_actions';
 import { playerDisplayName } from '@/app/utils/address';
 import WalletButton from '../WalletButton';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
@@ -74,6 +77,8 @@ export interface PlayerCardViewProps {
     improved?: boolean;
     previousRank?: number;
     stats?: UserStats;
+    /** Richer poker stats from the player's profile; falls back to StatsSection when absent. */
+    summaryStats?: { key: string; label: string; value: string }[];
     referralInfo?: ReferralInfo;
     initialReferralCode?: string;
     isAuthenticating?: boolean;
@@ -140,6 +145,7 @@ export function PlayerCardView({
     improved,
     previousRank,
     stats,
+    summaryStats,
     referralInfo,
     initialReferralCode,
     isAuthenticating,
@@ -540,7 +546,66 @@ export function PlayerCardView({
                         </HStack>
                     )}
 
-                    <StatsSection stats={stats} />
+                    {summaryStats && summaryStats.length > 0 ? (
+                        <HStack spacing={0} justify="space-between" px={1} py={1}>
+                            {summaryStats.map((s, i) => (
+                                <React.Fragment key={s.key}>
+                                    {i > 0 && (
+                                        <Box
+                                            w="1px"
+                                            h="26px"
+                                            bg="border.lightGray"
+                                            opacity={0.6}
+                                            _dark={{ opacity: 0.3 }}
+                                        />
+                                    )}
+                                    <VStack spacing={0.5} flex={1} align="center" minW={0}>
+                                        <Text
+                                            fontSize="lg"
+                                            fontWeight={800}
+                                            color="text.primary"
+                                            lineHeight={1.2}
+                                            sx={{ fontVariantNumeric: 'tabular-nums' }}
+                                        >
+                                            {s.value}
+                                        </Text>
+                                        <Text
+                                            fontSize="2xs"
+                                            fontWeight={700}
+                                            color="text.muted"
+                                            letterSpacing="0.08em"
+                                            textTransform="uppercase"
+                                        >
+                                            {s.label}
+                                        </Text>
+                                    </VStack>
+                                </React.Fragment>
+                            ))}
+                        </HStack>
+                    ) : (
+                        <StatsSection stats={stats} />
+                    )}
+
+                    {address && (
+                        <Link
+                            as={NextLink}
+                            href={`/profile/${address}`}
+                            display="inline-flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            gap={1}
+                            mt={-1}
+                            fontSize="xs"
+                            fontWeight={700}
+                            color="text.secondary"
+                            _hover={{ color: 'brand.green', textDecoration: 'none' }}
+                            _focusVisible={{ boxShadow: 'focus.ring', borderRadius: '6px' }}
+                            transition="color 0.15s ease"
+                        >
+                            View full profile
+                            <Icon as={FiArrowRight} boxSize="12px" />
+                        </Link>
+                    )}
 
                     <Box h="1px" bg="border.lightGray" opacity={0.5} />
 
@@ -583,6 +648,30 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     // keeps only the ambient "Climbed from #X to #Y" badge — no competing confetti burst.
     const { improved, previousRank } = useRankHistory(account?.address, rank);
 
+    // Richer poker stats for the card's mini-summary (the full set lives on /profile).
+    const [profile, setProfile] = useState<PlayerProfile | null>(null);
+    useEffect(() => {
+        if (!account?.address) {
+            setProfile(null);
+            return;
+        }
+        let active = true;
+        getPlayerProfile(account.address)
+            .then((p) => active && setProfile(p))
+            .catch(() => {});
+        return () => {
+            active = false;
+        };
+    }, [account?.address]);
+
+    const summaryStats = profile
+        ? [
+              { key: 'hands', label: 'Hands', value: profile.stats.hands_played.toLocaleString() },
+              { key: 'wins', label: 'Wins', value: profile.stats.tournaments_won.toLocaleString() },
+              { key: 'tourneys', label: 'Tournaments', value: profile.stats.tournaments_entered.toLocaleString() },
+          ]
+        : undefined;
+
     const authState: PlayerAuthState = isFullyAuthenticated
         ? 'authed'
         : isConnected
@@ -605,6 +694,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             improved={improved}
             previousRank={previousRank ?? undefined}
             stats={stats}
+            summaryStats={summaryStats}
             referralInfo={referralInfo}
             initialReferralCode={initialReferralCode}
             isAuthenticating={isAuthenticating}

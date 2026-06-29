@@ -181,7 +181,7 @@ const StatsHub: React.FC<StatsHubProps> = ({ currentAddress }) => {
                                         {b.icon}
                                     </Text>
                                 )}
-                                <Text as="span">{b.title}</Text>
+                                <Text as="span" color="inherit">{b.title}</Text>
                             </HStack>
                         </Tab>
                     ))}

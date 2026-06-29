@@ -138,6 +138,11 @@ const baseAuthedWithX = {
     nextRank: 2,
     nextPoints: 5700,
     stats: { gamesCreated: 30, gamesPlayed: 89, handsPlayed: 620 },
+    summaryStats: [
+        { key: 'hands', label: 'Hands', value: '620' },
+        { key: 'wins', label: 'Wins', value: '4' },
+        { key: 'tourneys', label: 'Tournaments', value: '18' },
+    ],
     referralInfo: {
         count: 5,
         multiplier: 1.25,

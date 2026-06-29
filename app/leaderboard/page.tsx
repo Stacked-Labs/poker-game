@@ -146,7 +146,12 @@ const LeaderboardPage: React.FC = () => {
                     width="100%"
                     animation={`${fadeIn} 0.5s ease-out`}
                 >
-                    <Box w="full" maxW={{ base: '100%', lg: '400px' }}>
+                    <Stack
+                        w="full"
+                        maxW={{ base: '100%', lg: '400px' }}
+                        spacing={6}
+                        align="stretch"
+                    >
                         <PlayerCard
                             rank={playerEntry?.rank}
                             points={playerEntry?.points}
@@ -162,7 +167,7 @@ const LeaderboardPage: React.FC = () => {
                             xProfileImageUrl={playerEntry?.xProfileImageUrl}
                         />
                         <QuestsSection tablesCreated={stats.gamesCreated} />
-                    </Box>
+                    </Stack>
                     <Box flex="1" w="full">
                         <Flex justify="flex-end" mb={3}>
                             <PlayerSearch maxW={{ base: '100%', sm: '320px' }} />

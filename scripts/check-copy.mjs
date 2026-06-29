@@ -30,7 +30,8 @@ const BANS = [
 ];
 
 const isCode = (line) =>
-    /^\s*(import|export\s+\*)/.test(line) || // imports
+    /^\s*(import|export\s+\*)/.test(line) || // imports (single-line or first line)
+    /^\s*\}?\s*from\s+['"]/.test(line) || // closing line of a multi-line import
     /\/\*|\*\/|^\s*\*|\/\//.test(line) || // block / JSX {/* */} / line comments
     /\b(src|href|srcSet|poster)\s*=/.test(line) || // asset paths
     /\.(png|jpe?g|svg|webp|gif|mp4|webm)\b/i.test(line); // asset filenames

@@ -17,7 +17,7 @@ import {
     Icon,
 } from '@chakra-ui/react';
 import { Image } from '@chakra-ui/next-js';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     RiMenu3Line,
     RiCloseLine,
@@ -34,6 +34,8 @@ import { SocialIconButton } from '../SocialIconButton';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ColorModeButton } from '../ColorModeButton';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { AccountMenu, MobileAccountCard } from './AccountMenu';
 
 const MotionFlex = motion(Flex);
 
@@ -44,87 +46,143 @@ const logoSizes = '(max-width: 48em) 56px, (max-width: 62em) 64px, 72px';
 const TACTILE_TRANSITION =
     'transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 80ms ease, background-color 120ms ease, color 120ms ease';
 
+// Desktop wayfinding link. The current page carries a Neon Stake underline —
+// the documented lobby-nav signature, here used structurally (not just on hover).
+const NavLink: React.FC<{
+    href: string;
+    active?: boolean;
+    external?: boolean;
+    children: React.ReactNode;
+}> = ({ href, active, external, children }) => (
+    <Box position="relative" display="inline-flex">
+        <Button
+            as="a"
+            href={href}
+            variant="navLink"
+            fontSize="md"
+            aria-label={typeof children === 'string' ? children : undefined}
+            aria-current={active ? 'page' : undefined}
+            fontWeight={active ? '800' : undefined}
+            color={active ? 'text.primary' : undefined}
+            {...(external
+                ? { target: '_blank', rel: 'noopener noreferrer' }
+                : {})}
+        >
+            {children}
+        </Button>
+        {active && (
+            <Box
+                position="absolute"
+                bottom="-6px"
+                left="8px"
+                right="8px"
+                h="2px"
+                borderRadius="full"
+                bg="brand.pink"
+            />
+        )}
+    </Box>
+);
+
+// Drawer nav row — the tactile inset row used in the mobile menu. `green` tone
+// tints toward Felt Green (primary destinations); `neutral` for resources.
+const DrawerLink: React.FC<{
+    href: string;
+    icon: React.ElementType;
+    label: string;
+    tone?: 'green' | 'neutral';
+    external?: boolean;
+    onClose: () => void;
+}> = ({ href, icon, label, tone = 'green', external, onClose }) => (
+    <Button
+        as="a"
+        href={href}
+        onClick={onClose}
+        leftIcon={<Icon as={icon} boxSize={5} />}
+        {...(external
+            ? {
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+                  rightIcon: (
+                      <Icon
+                          as={RiExternalLinkLine}
+                          boxSize={3.5}
+                          color="text.muted"
+                      />
+                  ),
+              }
+            : {})}
+        variant="ghost"
+        justifyContent="flex-start"
+        height="44px"
+        px={3}
+        borderRadius="12px"
+        fontWeight="semibold"
+        fontSize="sm"
+        color="text.primary"
+        bg="transparent"
+        border="none"
+        transition={TACTILE_TRANSITION}
+        _hover={
+            tone === 'green'
+                ? { bg: 'rgba(54, 163, 123, 0.10)', color: 'brand.green' }
+                : { bg: 'rgba(12, 21, 49, 0.06)' }
+        }
+        _active={{
+            bg:
+                tone === 'green'
+                    ? 'rgba(54, 163, 123, 0.16)'
+                    : 'rgba(12, 21, 49, 0.10)',
+            transform: 'translateY(1px)',
+            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.10)',
+        }}
+        _dark={
+            tone === 'green'
+                ? {
+                      _hover: { bg: 'rgba(54, 163, 123, 0.16)' },
+                      _active: {
+                          bg: 'rgba(54, 163, 123, 0.22)',
+                          transform: 'translateY(1px)',
+                          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.20)',
+                      },
+                  }
+                : {
+                      _hover: { bg: 'rgba(255, 255, 255, 0.08)' },
+                      _active: {
+                          bg: 'rgba(255, 255, 255, 0.14)',
+                          transform: 'translateY(1px)',
+                          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.20)',
+                      },
+                  }
+        }
+        sx={external ? { '& > span:last-of-type': { ml: 'auto' } } : undefined}
+    >
+        {label}
+    </Button>
+);
+
 const HomeNavBar: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
-
     const pathname = usePathname();
+    const { isAuthenticated } = useAuth();
+
+    // Active-route key. Read the query client-side (nav links are full-reload
+    // anchors, so this resolves correctly on mount) to avoid pulling
+    // useSearchParams into this layout-level component.
+    const [activeKey, setActiveKey] = useState<string | null>(null);
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const fmt = new URLSearchParams(window.location.search).get('format');
+        if (pathname.startsWith('/leaderboard')) setActiveKey('leaderboard');
+        else if (pathname === '/public-games')
+            setActiveKey(fmt === 'tournaments' ? 'tournaments' : 'lobby');
+        else setActiveKey(null);
+    }, [pathname]);
+
     const showHomeNavBar = !pathname.startsWith('/table');
     if (!showHomeNavBar) {
         return null; // Do not render the navbar on /table pages
     }
-
-    const NavButtons = React.memo(() => (
-        <>
-            {/* Wayfinding links — one tight cluster so they read as a group,
-                not isolated islands floating across the bar. */}
-            <Flex gap={5} alignItems="center">
-                <Button
-                    as="a"
-                    href="/leaderboard"
-                    aria-label="Leaderboard"
-                    variant="navLink"
-                >
-                    Leaderboard
-                </Button>
-                <Button
-                    as="a"
-                    href="/public-games?format=tournaments"
-                    aria-label="Tournaments"
-                    variant="navLink"
-                >
-                    Tournaments
-                </Button>
-                <Button
-                    as="a"
-                    href="https://docs.stackedpoker.io/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Documentation"
-                    variant="navLink"
-                >
-                    Docs
-                </Button>
-                <Button
-                    as="a"
-                    href="https://discord.gg/xdaC5gRP4E"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    variant="navLink"
-                    leftIcon={<FaDiscord />}
-                >
-                    Discord
-                </Button>
-            </Flex>
-
-            {/* Actions — a separate cluster. Browse Tables is a felt-green
-                "chip" pill (rounded silhouette + spade glyph) so it reads as a
-                distinct object from the solid-green Sign In CTA, not a competing
-                green twin. It owns /public-games (no-wallet path to the lobby).
-                Sign In stays the loud green CTA — we want sign-ins. */}
-            <Flex gap={3} alignItems="center">
-                <Button
-                    as="a"
-                    href="/public-games"
-                    aria-label="Browse live tables"
-                    variant="tactileOutline"
-                    height="48px"
-                    px={5}
-                    fontSize="md"
-                    borderRadius="full"
-                    bg="rgba(54, 163, 123, 0.08)"
-                    leftIcon={
-                        <Box as="span" fontSize="lg" lineHeight={1} mt="-2px">
-                            ♠
-                        </Box>
-                    }
-                >
-                    Browse Tables
-                </Button>
-                <WalletButton variant="cta" label="Sign In" height="48px" />
-            </Flex>
-        </>
-    ));
-    NavButtons.displayName = 'NavButtons';
 
     return (
         <MotionFlex
@@ -152,51 +210,88 @@ const HomeNavBar: React.FC = () => {
                 delay: 0.1,
             }}
         >
-            {/* Logo Section */}
-            <Flex alignItems={'center'}>
-                <Flex
-                    as="a"
-                    href="/"
-                    alignItems="center"
-                    textDecoration="none"
-                    _hover={{ textDecoration: 'none' }}
-                    transition="transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                    _active={{
-                        transform: 'scale(0.95)',
-                    }}
+            {/* Logo + wordmark lockup */}
+            <Flex
+                as="a"
+                href="/"
+                alignItems="center"
+                gap={2.5}
+                textDecoration="none"
+                _hover={{ textDecoration: 'none' }}
+                _active={{ transform: 'scale(0.97)' }}
+                transition="transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+            >
+                <Box
+                    position="relative"
+                    width={{ base: '52px', md: '60px', lg: '64px' }}
+                    height={{ base: '52px', md: '60px', lg: '64px' }}
+                    flexShrink={0}
+                    transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                    _hover={{ transform: 'rotate(-8deg) scale(1.08)' }}
                 >
-                    <Box
-                        position="relative"
-                        width={{ base: '56px', md: '64px', lg: '72px' }}
-                        height={{ base: '56px', md: '64px', lg: '72px' }}
-                        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                        _hover={{
-                            transform: 'rotate(-8deg) scale(1.08)',
-                        }}
-                    >
-                        <Image
-                            alt="Stacked Logo"
-                            src={logoImage}
-                            fill
-                            sizes={logoSizes}
-                            quality={60}
-                            style={{ objectFit: 'contain' }}
-                        />
-                    </Box>
-                </Flex>
-                <ColorModeButton />
+                    <Image
+                        alt="Stacked Logo"
+                        src={logoImage}
+                        fill
+                        sizes={logoSizes}
+                        quality={60}
+                        style={{ objectFit: 'contain' }}
+                    />
+                </Box>
+                <Text
+                    display={{ base: 'none', sm: 'block' }}
+                    fontFamily="heading"
+                    fontWeight="900"
+                    fontSize={{ sm: '20px', lg: '22px' }}
+                    letterSpacing="-0.03em"
+                    color="text.primary"
+                    lineHeight="1"
+                >
+                    STACKED
+                </Text>
             </Flex>
 
-            {/* Desktop Navigation */}
+            {/* Desktop navigation */}
             <Flex
                 display={{ base: 'none', lg: 'flex' }}
                 gap={6}
                 alignItems="center"
             >
-                <NavButtons />
+                <HStack spacing={5} alignItems="center">
+                    <NavLink href="/public-games" active={activeKey === 'lobby'}>
+                        Lobby
+                    </NavLink>
+                    <NavLink
+                        href="/public-games?format=tournaments"
+                        active={activeKey === 'tournaments'}
+                    >
+                        Tournaments
+                    </NavLink>
+                    <NavLink
+                        href="/leaderboard"
+                        active={activeKey === 'leaderboard'}
+                    >
+                        Leaderboard
+                    </NavLink>
+                    <NavLink href="https://docs.stackedpoker.io/" external>
+                        Docs
+                    </NavLink>
+                </HStack>
+                <HStack spacing={3} alignItems="center">
+                    <ColorModeButton />
+                    {isAuthenticated ? (
+                        <AccountMenu />
+                    ) : (
+                        <WalletButton
+                            variant="cta"
+                            label="Sign In"
+                            height="48px"
+                        />
+                    )}
+                </HStack>
             </Flex>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile menu button */}
             <IconButton
                 aria-label="Open menu"
                 icon={<RiMenu3Line size={24} />}
@@ -205,7 +300,7 @@ const HomeNavBar: React.FC = () => {
                 variant="tactileChrome"
             />
 
-            {/* Mobile Drawer */}
+            {/* Mobile drawer */}
             <Drawer
                 placement="right"
                 onClose={onClose}
@@ -233,9 +328,7 @@ const HomeNavBar: React.FC = () => {
                         py={4}
                         borderBottom="1px solid"
                         borderColor="rgba(12, 21, 49, 0.06)"
-                        _dark={{
-                            borderColor: 'rgba(255, 255, 255, 0.06)',
-                        }}
+                        _dark={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
                     >
                         <Flex align="center" gap={2}>
                             <Box
@@ -281,6 +374,11 @@ const HomeNavBar: React.FC = () => {
                         display="flex"
                         flexDirection="column"
                     >
+                        {/* Signed-in identity — profile + wallet at the top */}
+                        {isAuthenticated && (
+                            <MobileAccountCard onNavigate={onClose} />
+                        )}
+
                         {/* Play Section */}
                         <Box>
                             <Text
@@ -295,183 +393,37 @@ const HomeNavBar: React.FC = () => {
                                 Play
                             </Text>
                             <VStack spacing={1} align="stretch">
-                                <Button
-                                    as="a"
+                                <DrawerLink
                                     href="/create-game"
-                                    onClick={onClose}
-                                    leftIcon={
-                                        <Icon as={RiGamepadLine} boxSize={5} />
-                                    }
-                                    variant="ghost"
-                                    justifyContent="flex-start"
-                                    height="44px"
-                                    px={3}
-                                    borderRadius="12px"
-                                    fontWeight="semibold"
-                                    fontSize="sm"
-                                    color="text.primary"
-                                    bg="transparent"
-                                    border="none"
-                                    transition={TACTILE_TRANSITION}
-                                    _hover={{
-                                        bg: 'rgba(54, 163, 123, 0.10)',
-                                        color: 'brand.green',
-                                    }}
-                                    _active={{
-                                        bg: 'rgba(54, 163, 123, 0.16)',
-                                        transform: 'translateY(1px)',
-                                        boxShadow:
-                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
-                                    }}
-                                    _dark={{
-                                        _hover: {
-                                            bg: 'rgba(54, 163, 123, 0.16)',
-                                        },
-                                        _active: {
-                                            bg: 'rgba(54, 163, 123, 0.22)',
-                                            transform: 'translateY(1px)',
-                                            boxShadow:
-                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
-                                        },
-                                    }}
-                                >
-                                    Create Game
-                                </Button>
-                                <Button
-                                    as="a"
+                                    icon={RiGamepadLine}
+                                    label="Create Game"
+                                    onClose={onClose}
+                                />
+                                <DrawerLink
                                     href="/public-games"
-                                    onClick={onClose}
-                                    leftIcon={
-                                        <Icon as={RiGlobalLine} boxSize={5} />
-                                    }
-                                    variant="ghost"
-                                    justifyContent="flex-start"
-                                    height="44px"
-                                    px={3}
-                                    borderRadius="12px"
-                                    fontWeight="semibold"
-                                    fontSize="sm"
-                                    color="text.primary"
-                                    bg="transparent"
-                                    border="none"
-                                    transition={TACTILE_TRANSITION}
-                                    _hover={{
-                                        bg: 'rgba(54, 163, 123, 0.10)',
-                                        color: 'brand.green',
-                                    }}
-                                    _active={{
-                                        bg: 'rgba(54, 163, 123, 0.16)',
-                                        transform: 'translateY(1px)',
-                                        boxShadow:
-                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
-                                    }}
-                                    _dark={{
-                                        _hover: {
-                                            bg: 'rgba(54, 163, 123, 0.16)',
-                                        },
-                                        _active: {
-                                            bg: 'rgba(54, 163, 123, 0.22)',
-                                            transform: 'translateY(1px)',
-                                            boxShadow:
-                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
-                                        },
-                                    }}
-                                >
-                                    Public Games
-                                </Button>
-                                <Button
-                                    as="a"
+                                    icon={RiGlobalLine}
+                                    label="Lobby"
+                                    onClose={onClose}
+                                />
+                                <DrawerLink
                                     href="/leaderboard"
-                                    onClick={onClose}
-                                    leftIcon={
-                                        <Icon as={RiTrophyLine} boxSize={5} />
-                                    }
-                                    variant="ghost"
-                                    justifyContent="flex-start"
-                                    height="44px"
-                                    px={3}
-                                    borderRadius="12px"
-                                    fontWeight="semibold"
-                                    fontSize="sm"
-                                    color="text.primary"
-                                    bg="transparent"
-                                    border="none"
-                                    transition={TACTILE_TRANSITION}
-                                    _hover={{
-                                        bg: 'rgba(54, 163, 123, 0.10)',
-                                        color: 'brand.green',
-                                    }}
-                                    _active={{
-                                        bg: 'rgba(54, 163, 123, 0.16)',
-                                        transform: 'translateY(1px)',
-                                        boxShadow:
-                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
-                                    }}
-                                    _dark={{
-                                        _hover: {
-                                            bg: 'rgba(54, 163, 123, 0.16)',
-                                        },
-                                        _active: {
-                                            bg: 'rgba(54, 163, 123, 0.22)',
-                                            transform: 'translateY(1px)',
-                                            boxShadow:
-                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
-                                        },
-                                    }}
-                                >
-                                    Leaderboard
-                                </Button>
-                                <Button
-                                    as="a"
+                                    icon={RiTrophyLine}
+                                    label="Leaderboard"
+                                    onClose={onClose}
+                                />
+                                <DrawerLink
                                     href="/public-games?format=tournaments"
-                                    onClick={onClose}
-                                    leftIcon={
-                                        <Icon as={RiVipCrownLine} boxSize={5} />
-                                    }
-                                    variant="ghost"
-                                    justifyContent="flex-start"
-                                    height="44px"
-                                    px={3}
-                                    borderRadius="12px"
-                                    fontWeight="semibold"
-                                    fontSize="sm"
-                                    color="text.primary"
-                                    bg="transparent"
-                                    border="none"
-                                    transition={TACTILE_TRANSITION}
-                                    _hover={{
-                                        bg: 'rgba(54, 163, 123, 0.10)',
-                                        color: 'brand.green',
-                                    }}
-                                    _active={{
-                                        bg: 'rgba(54, 163, 123, 0.16)',
-                                        transform: 'translateY(1px)',
-                                        boxShadow:
-                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
-                                    }}
-                                    _dark={{
-                                        _hover: {
-                                            bg: 'rgba(54, 163, 123, 0.16)',
-                                        },
-                                        _active: {
-                                            bg: 'rgba(54, 163, 123, 0.22)',
-                                            transform: 'translateY(1px)',
-                                            boxShadow:
-                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
-                                        },
-                                    }}
-                                >
-                                    Tournaments
-                                </Button>
+                                    icon={RiVipCrownLine}
+                                    label="Tournaments"
+                                    onClose={onClose}
+                                />
                             </VStack>
                         </Box>
 
                         <Divider
                             my={4}
                             borderColor="rgba(12, 21, 49, 0.06)"
-                            _dark={{
-                                borderColor: 'rgba(255, 255, 255, 0.06)',
-                            }}
+                            _dark={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
                         />
 
                         {/* Resources Section */}
@@ -488,116 +440,22 @@ const HomeNavBar: React.FC = () => {
                                 Resources
                             </Text>
                             <VStack spacing={1} align="stretch">
-                                <Button
-                                    as="a"
+                                <DrawerLink
                                     href="https://docs.stackedpoker.io/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={onClose}
-                                    leftIcon={
-                                        <Icon as={RiBookOpenLine} boxSize={5} />
-                                    }
-                                    rightIcon={
-                                        <Icon
-                                            as={RiExternalLinkLine}
-                                            boxSize={3.5}
-                                            color="text.muted"
-                                        />
-                                    }
-                                    variant="ghost"
-                                    justifyContent="flex-start"
-                                    height="44px"
-                                    px={3}
-                                    borderRadius="12px"
-                                    fontWeight="semibold"
-                                    fontSize="sm"
-                                    color="text.primary"
-                                    bg="transparent"
-                                    border="none"
-                                    transition={TACTILE_TRANSITION}
-                                    _hover={{
-                                        bg: 'rgba(12, 21, 49, 0.06)',
-                                    }}
-                                    _active={{
-                                        bg: 'rgba(12, 21, 49, 0.10)',
-                                        transform: 'translateY(1px)',
-                                        boxShadow:
-                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
-                                    }}
-                                    _dark={{
-                                        _hover: {
-                                            bg: 'rgba(255, 255, 255, 0.08)',
-                                        },
-                                        _active: {
-                                            bg: 'rgba(255, 255, 255, 0.14)',
-                                            transform: 'translateY(1px)',
-                                            boxShadow:
-                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
-                                        },
-                                    }}
-                                    sx={{
-                                        '& > span:last-of-type': {
-                                            ml: 'auto',
-                                        },
-                                    }}
-                                >
-                                    Docs
-                                </Button>
-                                <Button
-                                    as="a"
+                                    icon={RiBookOpenLine}
+                                    label="Docs"
+                                    tone="neutral"
+                                    external
+                                    onClose={onClose}
+                                />
+                                <DrawerLink
                                     href="https://discord.gg/xdaC5gRP4E"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={onClose}
-                                    leftIcon={
-                                        <Icon as={FaDiscord} boxSize={5} />
-                                    }
-                                    rightIcon={
-                                        <Icon
-                                            as={RiExternalLinkLine}
-                                            boxSize={3.5}
-                                            color="text.muted"
-                                        />
-                                    }
-                                    variant="ghost"
-                                    justifyContent="flex-start"
-                                    height="44px"
-                                    px={3}
-                                    borderRadius="12px"
-                                    fontWeight="semibold"
-                                    fontSize="sm"
-                                    color="text.primary"
-                                    bg="transparent"
-                                    border="none"
-                                    transition={TACTILE_TRANSITION}
-                                    _hover={{
-                                        bg: 'rgba(12, 21, 49, 0.06)',
-                                    }}
-                                    _active={{
-                                        bg: 'rgba(12, 21, 49, 0.10)',
-                                        transform: 'translateY(1px)',
-                                        boxShadow:
-                                            'inset 0 1px 2px rgba(0,0,0,0.10)',
-                                    }}
-                                    _dark={{
-                                        _hover: {
-                                            bg: 'rgba(255, 255, 255, 0.08)',
-                                        },
-                                        _active: {
-                                            bg: 'rgba(255, 255, 255, 0.14)',
-                                            transform: 'translateY(1px)',
-                                            boxShadow:
-                                                'inset 0 1px 2px rgba(0,0,0,0.20)',
-                                        },
-                                    }}
-                                    sx={{
-                                        '& > span:last-of-type': {
-                                            ml: 'auto',
-                                        },
-                                    }}
-                                >
-                                    Discord
-                                </Button>
+                                    icon={FaDiscord}
+                                    label="Discord"
+                                    tone="neutral"
+                                    external
+                                    onClose={onClose}
+                                />
                             </VStack>
                         </Box>
 
@@ -606,27 +464,28 @@ const HomeNavBar: React.FC = () => {
 
                         {/* Bottom Section */}
                         <VStack spacing={3} align="stretch">
-                            {/* Primary action: sign in — the loud green CTA so
-                                it's the obvious thing to tap (we want sign-ins). */}
-                            <WalletButton
-                                variant="cta"
-                                label="Sign In"
-                                width="100%"
-                                height="52px"
-                            />
-
-                            {/* Secondary: a no-wallet path straight to the lobby. */}
-                            <Button
-                                as="a"
-                                href="/public-games"
-                                onClick={onClose}
-                                variant="tactileOutline"
-                                height="48px"
-                                w="100%"
-                                fontSize="md"
-                            >
-                                Browse Tables
-                            </Button>
+                            {/* Signed-out: the loud green CTA + a no-wallet path to the lobby. */}
+                            {!isAuthenticated && (
+                                <>
+                                    <WalletButton
+                                        variant="cta"
+                                        label="Sign In"
+                                        width="100%"
+                                        height="52px"
+                                    />
+                                    <Button
+                                        as="a"
+                                        href="/public-games"
+                                        onClick={onClose}
+                                        variant="tactileOutline"
+                                        height="48px"
+                                        w="100%"
+                                        fontSize="md"
+                                    >
+                                        Browse Tables
+                                    </Button>
+                                </>
+                            )}
 
                             {/* Theme Toggle */}
                             <HStack spacing={2} px={1}>

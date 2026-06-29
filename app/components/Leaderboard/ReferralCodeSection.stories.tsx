@@ -51,6 +51,15 @@ export const NoReferrals: Story = {
     },
 };
 
+// initialReferralCode auto-opens the "Have a referral code?" input so the Apply field shows.
+export const EnterFriendCode: Story = {
+    name: 'Enter a friend code (Apply field)',
+    args: {
+        referralInfo: { count: 0, multiplier: 1.0, nextTier: { required: 5, multiplier: 1.1 }, hasReferrer: false, myCode: 'mikedawson' },
+        initialReferralCode: 'goldrush',
+    },
+};
+
 export const FirstTierUnlocked: Story = {
     name: '1.1x Tier Unlocked',
     args: {

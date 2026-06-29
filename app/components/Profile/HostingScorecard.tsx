@@ -107,20 +107,24 @@ export default function HostingScorecard({
                 </HStack>
             </Box>
 
-            <Button
-                as={NextLink}
-                href={isOwn ? '/create-game' : '/public-games'}
-                variant={isOwn ? 'tactileOutline' : 'tactilePrimary'}
-                size="sm"
-                height="44px"
-                flexShrink={0}
-                w={{ base: 'full', md: 'auto' }}
-                minW={{ md: '210px' }}
-                _focusVisible={{ boxShadow: 'focus.ring' }}
-                rightIcon={<Icon as={FiArrowRight} />}
-            >
-                {isOwn ? 'Manage your tables' : `Play at ${name || 'their'} tables`}
-            </Button>
+            {/* Own = a clean track-record stat (creating a table lives in the recruit strip, and the
+                hosted tournaments are listed in Recent). Public = a real "go play there" action. */}
+            {!isOwn && (
+                <Button
+                    as={NextLink}
+                    href="/public-games"
+                    variant="tactilePrimary"
+                    size="sm"
+                    height="44px"
+                    flexShrink={0}
+                    w={{ base: 'full', md: 'auto' }}
+                    minW={{ md: '210px' }}
+                    _focusVisible={{ boxShadow: 'focus.ring' }}
+                    rightIcon={<Icon as={FiArrowRight} />}
+                >
+                    Play at {name || 'their'} tables
+                </Button>
+            )}
         </Flex>
     );
 }

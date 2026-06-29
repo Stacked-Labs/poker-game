@@ -364,20 +364,35 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
                                 transition={{ duration: 0.2, ease: 'easeInOut' }}
                                 overflow="hidden"
                             >
-                                <HStack bg="bg.pillNeutral" borderRadius="10px" px={3} py={1} spacing={2} mt={2}>
+                                <HStack spacing={2} align="stretch" mt={2}>
                                     <Input
                                         variant="unstyled"
-                                        placeholder="Enter code"
+                                        placeholder="enter a friend's code"
                                         value={referralInput}
                                         onChange={(e) => setReferralInput(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleSubmitReferral(); }}
+                                        flex={1}
+                                        minW={0}
+                                        h="42px"
+                                        px={3.5}
+                                        bg="bg.pillNeutral"
+                                        border="1px solid"
+                                        borderColor="border.felt"
+                                        borderRadius="11px"
                                         fontFamily="mono"
                                         fontSize="sm"
-                                        _placeholder={{ color: 'text.muted' }}
+                                        fontWeight={600}
+                                        color="text.primary"
+                                        _placeholder={{ color: 'text.muted', fontWeight: 500 }}
+                                        _hover={{ borderColor: 'border.pillNeutral' }}
+                                        _focus={{ borderColor: 'brand.green', boxShadow: 'focus.ring' }}
                                     />
                                     <Button
                                         onClick={handleSubmitReferral}
                                         variant="tactilePrimary"
-                                        size="sm"
+                                        h="42px"
+                                        px={5}
+                                        flexShrink={0}
                                         isDisabled={!referralInput.trim() || !account?.address || submitting}
                                         isLoading={submitting}
                                         _focusVisible={{ boxShadow: 'focus.ring' }}

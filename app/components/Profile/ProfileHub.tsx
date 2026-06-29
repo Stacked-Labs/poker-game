@@ -52,8 +52,16 @@ export default function ProfileHub({
 }: ProfileHubProps) {
     const tiles: Tile[] = [];
     if (isOwn) {
-        tiles.push(...pair(quests, 'quests', referral, 'referral', 6, 6));
-        if (hosting) tiles.push({ key: 'hosting', node: hosting, span: 12 });
+        // Right column stacks the referral card + hosting so it fills the height next to the
+        // taller Quests card, instead of stranding a gap with a full-width hosting bar below.
+        const engage =
+            referral || hosting ? (
+                <VStack align="stretch" spacing={4}>
+                    {referral}
+                    {hosting}
+                </VStack>
+            ) : null;
+        tiles.push(...pair(quests, 'quests', engage, 'engage', 6, 6));
         if (recent) tiles.push({ key: 'recent', node: recent, span: 12 });
         tiles.push({ key: 'recruit', node: recruit, span: 12 });
     } else {

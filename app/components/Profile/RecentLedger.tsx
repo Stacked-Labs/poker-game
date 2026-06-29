@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Box, Button, HStack, Icon, Text, VStack } from '@chakra-ui/react';
 import { FaCrown, FaUsers } from 'react-icons/fa';
 import { FaMedal } from 'react-icons/fa6';
@@ -56,6 +56,58 @@ function formatLabel(format?: string): string | null {
     return FORMAT_LABEL[format] ?? format.replace(/_/g, ' ');
 }
 
+// Hosted-tournament lifecycle → a friendly status chip. The chip is driven by the real status,
+// NOT by a missing end-timestamp, so a Cancelled/Completed tournament never reads "Live".
+const STATUS_META: Record<
+    string,
+    { label: string; fg: string; fgDark?: string; bg: string; live?: boolean }
+> = {
+    running: { label: 'Live', fg: 'brand.green', bg: 'bg.greenTint', live: true },
+    late_registration: { label: 'Live', fg: 'brand.green', bg: 'bg.greenTint', live: true },
+    registration: { label: 'Registering', fg: 'text.secondary', bg: 'bg.pillNeutral' },
+    pending: { label: 'Upcoming', fg: 'text.secondary', bg: 'bg.pillNeutral' },
+    completed: { label: 'Completed', fg: 'text.muted', bg: 'bg.pillNeutral' },
+    cancelled: { label: 'Cancelled', fg: 'text.muted', bg: 'bg.pillNeutral' },
+    emergency_refund: { label: 'Refunded', fg: 'brand.yellowDark', fgDark: 'brand.yellow', bg: 'bg.yellowTint' },
+};
+function humanizeStatus(s: string): string {
+    return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function StatusChip({ status }: { status: string }) {
+    const m = STATUS_META[status.toLowerCase()];
+    const label = m?.label ?? humanizeStatus(status);
+    return (
+        <HStack
+            spacing={1}
+            bg={m?.bg ?? 'bg.pillNeutral'}
+            px={1.5}
+            py={0.5}
+            borderRadius="full"
+            flexShrink={0}
+        >
+            {m?.live && <Box boxSize="5px" borderRadius="full" bg="brand.green" aria-hidden />}
+            <Text
+                fontSize="2xs"
+                fontWeight={700}
+                letterSpacing="0.02em"
+                color={m?.fg ?? 'text.secondary'}
+                _dark={m?.fgDark ? { color: m.fgDark } : undefined}
+            >
+                {label}
+            </Text>
+        </HStack>
+    );
+}
+
+function MetaText({ children, title }: { children: ReactNode; title?: string }) {
+    return (
+        <Text fontSize="2xs" color="text.muted" fontWeight={500} title={title}>
+            {children}
+        </Text>
+    );
+}
+
 type Filter = 'all' | 'played' | 'hosted';
 const FILTERS: { key: Filter; label: string }[] = [
     { key: 'all', label: 'All' },
@@ -66,10 +118,12 @@ const FILTERS: { key: Filter; label: string }[] = [
 // Column widths shared by header + rows so everything aligns into a real table.
 const COL_RESULT = { base: '76px', md: '104px' };
 const COL_RIGHT = { base: '72px', md: '96px' };
+// One horizontal padding for EVERY row (and the header) so nothing insets differently — the win
+// highlight is a full-width tint, not a box that sticks out.
+const ROW_PX = { base: 2, md: 3 };
 
-// The recent ledger: ONE uniform row shape for both played + hosted (identity + meta on the
-// left, a result column, a prize/status column), aligned like a table and as data-rich as the
-// payload allows. Live/in-progress is pinned by the container; win gold is quarantined from tier.
+// The recent ledger: one uniform row shape for played + hosted, aligned like a table. The win row
+// carries the single warm accent as a same-width tint; hosted status reads from a real chip.
 export default function RecentLedger({ items }: RecentLedgerProps) {
     const [filter, setFilter] = useState<Filter>('all');
     const hasResults = items.some((i) => i.type === 'result');
@@ -136,11 +190,11 @@ export default function RecentLedger({ items }: RecentLedgerProps) {
                 )}
             </HStack>
 
-            {/* Column header (desktop) — gives the ledger a real table read. */}
+            {/* Column header (desktop) — same horizontal padding as the rows so columns line up. */}
             <HStack
                 display={{ base: 'none', md: 'flex' }}
                 spacing={3}
-                px={1}
+                px={ROW_PX}
                 pb={2}
                 borderBottom="1px solid"
                 borderColor="border.lightGray"
@@ -156,11 +210,7 @@ export default function RecentLedger({ items }: RecentLedgerProps) {
                 </Text>
             </HStack>
 
-            <VStack
-                align="stretch"
-                spacing={0}
-                divider={<Box h="1px" bg="border.lightGray" opacity={0.55} />}
-            >
+            <VStack align="stretch" spacing={1} mt={1}>
                 {shown.map((it) =>
                     it.type === 'result' ? (
                         <ResultRow key={`r-${it.id}`} item={it} />
@@ -173,35 +223,36 @@ export default function RecentLedger({ items }: RecentLedgerProps) {
     );
 }
 
-// Shared left zone: type icon + name + a compact meta sub-line (date · buy-in · format).
+function Row({ children, highlight }: { children: ReactNode; highlight?: boolean }) {
+    return (
+        <HStack
+            spacing={3}
+            px={ROW_PX}
+            py={2.5}
+            borderRadius="10px"
+            bg={highlight ? 'bg.yellowTint' : 'transparent'}
+            transition="background-color 0.15s ease"
+            _hover={{ bg: highlight ? 'bg.yellowTint' : 'bg.pillNeutral' }}
+        >
+            {children}
+        </HStack>
+    );
+}
+
+// Left zone: type icon + name + a compact meta line built by each row.
 function EventCell({
     icon,
     iconColor,
     iconDark,
     name,
-    endedAt,
-    buyInUsdc,
-    format,
+    meta,
 }: {
     icon: typeof FaCrown;
     iconColor: string;
     iconDark?: string;
     name: string;
-    endedAt: string | null;
-    buyInUsdc?: number;
-    format?: string;
+    meta: ReactNode[];
 }) {
-    const meta: { text: string; live?: boolean }[] = [];
-    if (endedAt === null) meta.push({ text: 'Live', live: true });
-    else {
-        const rel = relativeTime(endedAt);
-        if (rel) meta.push({ text: rel });
-    }
-    const s = stake(buyInUsdc);
-    if (s) meta.push({ text: s });
-    const fmt = formatLabel(format);
-    if (fmt) meta.push({ text: fmt });
-
     return (
         <HStack spacing={2.5} flex={1} minW={0}>
             <Icon
@@ -212,32 +263,24 @@ function EventCell({
                 flexShrink={0}
                 aria-hidden
             />
-            <VStack align="start" spacing={0} minW={0}>
+            <VStack align="start" spacing={1} minW={0}>
                 <Text color="text.primary" noOfLines={1} fontWeight={600} fontSize="sm">
                     {name}
                 </Text>
-                <HStack spacing={1.5} minW={0}>
-                    {meta.map((m, i) => (
-                        <HStack key={i} spacing={1.5} flexShrink={0}>
-                            {i > 0 && (
-                                <Text fontSize="2xs" color="text.muted" aria-hidden>
-                                    ·
-                                </Text>
-                            )}
-                            {m.live && (
-                                <Box boxSize="6px" borderRadius="full" bg="brand.green" />
-                            )}
-                            <Text
-                                fontSize="2xs"
-                                color={m.live ? 'brand.green' : 'text.muted'}
-                                fontWeight={m.live ? 700 : 500}
-                                title={!m.live && endedAt ? absoluteTime(endedAt) : undefined}
-                            >
-                                {m.text}
-                            </Text>
-                        </HStack>
-                    ))}
-                </HStack>
+                {meta.length > 0 && (
+                    <HStack spacing={1.5} minW={0} rowGap={1} flexWrap="wrap">
+                        {meta.map((m, i) => (
+                            <HStack key={i} spacing={1.5} flexShrink={0}>
+                                {i > 0 && (
+                                    <Text fontSize="2xs" color="text.muted" aria-hidden>
+                                        ·
+                                    </Text>
+                                )}
+                                {m}
+                            </HStack>
+                        ))}
+                    </HStack>
+                )}
             </VStack>
         </HStack>
     );
@@ -246,26 +289,24 @@ function EventCell({
 function ResultRow({ item }: { item: Extract<Activity, { type: 'result' }> }) {
     const isWin = item.finishPosition === 1;
     const isPodium = item.finishPosition >= 1 && item.finishPosition <= 3;
+
+    const meta: ReactNode[] = [];
+    if (item.endedAt) {
+        meta.push(<MetaText title={absoluteTime(item.endedAt)}>{relativeTime(item.endedAt)}</MetaText>);
+    }
+    const s = stake(item.buyInUsdc);
+    if (s) meta.push(<MetaText>{s}</MetaText>);
+    const fmt = formatLabel(item.format);
+    if (fmt) meta.push(<MetaText>{fmt}</MetaText>);
+
     return (
-        <HStack
-            spacing={3}
-            py={2}
-            px={isWin ? 2 : 0}
-            bg={isWin ? 'bg.yellowTint' : 'transparent'}
-            border={isWin ? '1px solid' : undefined}
-            borderColor={isWin ? 'border.yellowSubtle' : undefined}
-            borderRadius={isWin ? '8px' : undefined}
-            transition="background-color 0.15s ease"
-            _hover={{ bg: isWin ? 'bg.yellowTint' : 'bg.pillNeutral' }}
-        >
+        <Row highlight={isWin}>
             <EventCell
                 icon={isWin ? FaCrown : isPodium ? FaMedal : FaUsers}
                 iconColor={isWin ? 'brand.yellowDark' : isPodium ? 'text.gray600' : 'text.muted'}
                 iconDark={isWin ? 'brand.yellow' : undefined}
                 name={item.name}
-                endedAt={item.endedAt}
-                buyInUsdc={item.buyInUsdc}
-                format={item.format}
+                meta={meta}
             />
             <Box w={COL_RESULT} textAlign="right" flexShrink={0}>
                 <Text
@@ -285,12 +326,7 @@ function ResultRow({ item }: { item: Extract<Activity, { type: 'result' }> }) {
             </Box>
             <Box w={COL_RIGHT} textAlign="right" flexShrink={0}>
                 {item.prizeUsdc > 0 ? (
-                    <Text
-                        fontSize="sm"
-                        fontWeight={700}
-                        color="text.usdc"
-                        sx={{ fontVariantNumeric: 'tabular-nums' }}
-                    >
+                    <Text fontSize="sm" fontWeight={700} color="text.usdc" sx={{ fontVariantNumeric: 'tabular-nums' }}>
                         +${formatUsdcMicro(item.prizeUsdc)}
                     </Text>
                 ) : (
@@ -299,33 +335,26 @@ function ResultRow({ item }: { item: Extract<Activity, { type: 'result' }> }) {
                     </Text>
                 )}
             </Box>
-        </HStack>
+        </Row>
     );
 }
 
 function HostedRow({ item }: { item: Extract<Activity, { type: 'hosted' }> }) {
+    const meta: ReactNode[] = [];
+    if (item.status) meta.push(<StatusChip status={item.status} />);
+    if (item.endedAt) {
+        meta.push(<MetaText title={absoluteTime(item.endedAt)}>{relativeTime(item.endedAt)}</MetaText>);
+    }
+    const s = stake(item.buyInUsdc);
+    if (s) meta.push(<MetaText>{s}</MetaText>);
+    const fmt = formatLabel(item.format);
+    if (fmt) meta.push(<MetaText>{fmt}</MetaText>);
+
     return (
-        <HStack
-            spacing={3}
-            py={2}
-            transition="background-color 0.15s ease"
-            _hover={{ bg: 'bg.pillNeutral' }}
-        >
-            <EventCell
-                icon={FaUsers}
-                iconColor="text.secondary"
-                name={`Hosted · ${item.name}`}
-                endedAt={item.endedAt}
-                buyInUsdc={item.buyInUsdc}
-                format={item.format}
-            />
+        <Row>
+            <EventCell icon={FaUsers} iconColor="text.secondary" name={`Hosted · ${item.name}`} meta={meta} />
             <Box w={COL_RESULT} textAlign="right" flexShrink={0}>
-                <Text
-                    fontSize="sm"
-                    fontWeight={700}
-                    color="text.primary"
-                    sx={{ fontVariantNumeric: 'tabular-nums' }}
-                >
+                <Text fontSize="sm" fontWeight={700} color="text.primary" sx={{ fontVariantNumeric: 'tabular-nums' }}>
                     {item.entrants.toLocaleString()}
                 </Text>
                 <Text fontSize="2xs" color="text.muted">
@@ -333,26 +362,10 @@ function HostedRow({ item }: { item: Extract<Activity, { type: 'hosted' }> }) {
                 </Text>
             </Box>
             <Box w={COL_RIGHT} textAlign="right" flexShrink={0}>
-                {item.status ? (
-                    <Text
-                        fontSize="2xs"
-                        fontWeight={700}
-                        color="text.secondary"
-                        bg="bg.pillNeutral"
-                        px={1.5}
-                        py={0.5}
-                        borderRadius="full"
-                        textTransform="capitalize"
-                        display="inline-block"
-                    >
-                        {item.status}
-                    </Text>
-                ) : (
-                    <Text fontSize="sm" color="text.muted">
-                        —
-                    </Text>
-                )}
+                <Text fontSize="sm" color="text.muted">
+                    —
+                </Text>
             </Box>
-        </HStack>
+        </Row>
     );
 }

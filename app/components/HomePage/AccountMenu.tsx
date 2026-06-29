@@ -46,6 +46,8 @@ import {
     FiCheck,
 } from 'react-icons/fi';
 import { RiGamepadLine, RiTwitterXLine } from 'react-icons/ri';
+import { SocialIconButton } from '../SocialIconButton';
+import { useConnectX } from '@/app/hooks/useConnectX';
 import {
     useActiveWallet,
     useActiveWalletChain,
@@ -92,6 +94,7 @@ export function useAccountControls() {
     const wallet = useActiveWallet();
     const chain = useActiveWalletChain();
     const { disconnect } = useDisconnect();
+    const { connectX, isConnecting: isLinkingX } = useConnectX();
     const detailsModal = useWalletDetailsModal();
     const { data: balance } = useWalletBalance({
         client,
@@ -147,6 +150,8 @@ export function useAccountControls() {
         chainIsBase,
         openWallet,
         signOut,
+        connectX,
+        isLinkingX,
     };
 }
 
@@ -333,6 +338,40 @@ const RowItem: React.FC<{
     );
 };
 
+// Slim "complete your profile" nudge shown under the header when X isn't linked.
+// The X-brand button gets a hairline in dark so it doesn't blend into the panel.
+const LinkXBar: React.FC<{ onConnect: () => void; isConnecting: boolean }> = ({
+    onConnect,
+    isConnecting,
+}) => (
+    <HStack
+        justify="space-between"
+        gap={2}
+        px={4}
+        py={2.5}
+        bg="rgba(15, 20, 25, 0.04)"
+        borderBottom="1px solid"
+        borderColor="border.felt"
+        _dark={{ borderColor: 'rgba(255,255,255,0.12)', bg: 'rgba(255,255,255,0.04)' }}
+    >
+        <HStack spacing={2} minW={0}>
+            <Icon as={RiTwitterXLine} boxSize={3.5} color="text.secondary" />
+            <Text fontSize="12px" color="text.secondary" noOfLines={1}>
+                Link X for your handle &amp; photo
+            </Text>
+        </HStack>
+        <SocialIconButton
+            tone="x"
+            label="Link"
+            chipSize="sm"
+            onClick={onConnect}
+            isLoading={isConnecting}
+            flexShrink={0}
+            _dark={{ border: '1px solid', borderColor: 'rgba(255,255,255,0.22)' }}
+        />
+    </HStack>
+);
+
 export const IdentityHeader: React.FC<{
     c: ReturnType<typeof useAccountControls>;
     size?: number;
@@ -392,7 +431,11 @@ export function AccountMenu({ defaultIsOpen }: { defaultIsOpen?: boolean } = {})
                     boxShadow={MENU_SHADOW}
                 >
                     <IdentityHeader c={c} bg="bg.pillNeutral" />
-                    <MenuDivider {...DIVIDER} my={0} />
+                    {c.xUsername ? (
+                        <MenuDivider {...DIVIDER} my={0} />
+                    ) : (
+                        <LinkXBar onConnect={c.connectX} isConnecting={c.isLinkingX} />
+                    )}
                     <Box py={2}>
                         <RowItem icon={FiUser} label="My profile" tone="accent" href={c.profileHref} />
                         <RowItem icon={FiPlus} label="Add funds" onClick={() => funds.open('buy')} />
@@ -460,6 +503,17 @@ export function MobileAccountCard({ onNavigate }: { onNavigate?: () => void }) {
                 >
                     My profile
                 </Button>
+                {!c.xUsername && (
+                    <SocialIconButton
+                        tone="x"
+                        label="Link X account"
+                        chipSize="md"
+                        w="full"
+                        mt={2.5}
+                        onClick={c.connectX}
+                        isLoading={c.isLinkingX}
+                    />
+                )}
                 <HStack spacing={3} mt={2.5}>
                     <Button
                         variant="tactileChrome"

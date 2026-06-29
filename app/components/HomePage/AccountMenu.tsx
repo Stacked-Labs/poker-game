@@ -19,12 +19,15 @@ import {
     Button,
     HStack,
     Icon,
+    IconButton,
+    Link,
     Menu,
     MenuButton,
     MenuDivider,
     MenuItem,
     MenuList,
     Text,
+    VStack,
     useColorMode,
     useDisclosure,
 } from '@chakra-ui/react';
@@ -40,8 +43,10 @@ import {
     FiArrowUpRight,
     FiPlus,
     FiRepeat,
+    FiCopy,
+    FiCheck,
 } from 'react-icons/fi';
-import { RiGamepadLine } from 'react-icons/ri';
+import { RiGamepadLine, RiTwitterXLine } from 'react-icons/ri';
 import {
     useActiveWallet,
     useActiveWalletChain,
@@ -135,6 +140,7 @@ export function useAccountControls() {
         handle,
         secondary,
         shortAddress,
+        xUsername,
         profileHref,
         avatarUrl: xProfileImageUrl,
         balanceLabel,
@@ -189,6 +195,96 @@ const ChainDot: React.FC<{ isBase: boolean }> = ({ isBase }) => (
     />
 );
 
+const ChainLabel: React.FC<{ isBase: boolean; name: string }> = ({ isBase, name }) => (
+    <HStack spacing={1.5} align="center">
+        <ChainDot isBase={isBase} />
+        <Text fontSize="12px" fontWeight="600" color="text.muted">
+            {name}
+        </Text>
+    </HStack>
+);
+
+// Copy-to-clipboard chip; flips to a green check for ~1.5s. Stops propagation
+// so clicking it inside the menu header doesn't dismiss the menu.
+const CopyButton: React.FC<{ value: string | null }> = ({ value }) => {
+    const [copied, setCopied] = useState(false);
+    const onCopy = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!value) return;
+        void navigator.clipboard?.writeText(value).then(() => {
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 1500);
+        });
+    };
+    return (
+        <IconButton
+            aria-label="Copy address"
+            size="xs"
+            variant="ghost"
+            minW="auto"
+            h="18px"
+            w="18px"
+            onClick={onCopy}
+            icon={
+                <Icon
+                    as={copied ? FiCheck : FiCopy}
+                    boxSize={3.5}
+                    color={copied ? 'brand.green' : 'text.muted'}
+                />
+            }
+            _hover={{ bg: 'transparent', color: 'text.secondary' }}
+        />
+    );
+};
+
+// Wallet address + copy. `primary` = the identity line (no X); otherwise a muted subtext.
+const AddressLine: React.FC<{
+    address: string | null;
+    short: string;
+    primary?: boolean;
+}> = ({ address, short, primary }) => (
+    <HStack spacing={1} align="center">
+        <Text
+            fontSize={primary ? 'sm' : '12px'}
+            fontWeight={primary ? '700' : '500'}
+            color={primary ? 'text.primary' : 'text.muted'}
+        >
+            {short}
+        </Text>
+        <CopyButton value={address} />
+    </HStack>
+);
+
+// @handle that links out to the player's X profile, with the X glyph.
+const XHandleLink: React.FC<{ handle: string; username: string }> = ({ handle, username }) => (
+    <Link
+        href={`https://x.com/${username}`}
+        isExternal
+        display="inline-flex"
+        alignItems="center"
+        gap="5px"
+        fontWeight="700"
+        fontSize="sm"
+        color="text.primary"
+        _hover={{ color: 'brand.pink', textDecoration: 'none' }}
+    >
+        {handle}
+        <Icon as={RiTwitterXLine} boxSize="11px" color="text.muted" />
+    </Link>
+);
+
+// USDC balance with the coin mark (the balance is the player's USDC, never ETH).
+const BalanceTag: React.FC<{ label: string | null }> = ({ label }) =>
+    label ? (
+        <HStack spacing={1.5} align="center" flexShrink={0}>
+            <Box as="img" src="/usdc-logo.png" alt="" w="16px" h="16px" borderRadius="full" />
+            <Text fontWeight="700" fontSize="sm" color="brand.usdc">
+                {label}
+            </Text>
+        </HStack>
+    ) : null;
+
 const RowItem: React.FC<{
     icon: React.ElementType;
     label: string;
@@ -233,7 +329,7 @@ const RowItem: React.FC<{
     );
 };
 
-const IdentityHeader: React.FC<{
+export const IdentityHeader: React.FC<{
     c: ReturnType<typeof useAccountControls>;
     size?: number;
     bg?: string;
@@ -241,20 +337,16 @@ const IdentityHeader: React.FC<{
     <HStack spacing={3} p={4} bg={bg} align="center">
         <AccountAvatar size={size} avatarUrl={c.avatarUrl} address={c.address} handle={c.handle} />
         <Box flex={1} minW={0}>
-            <Text fontWeight="700" fontSize="sm" color="text.primary" noOfLines={1}>
-                {c.handle}
-            </Text>
-            {c.secondary && (
-                <Text fontSize="12px" color="text.muted">
-                    {c.secondary}
-                </Text>
+            {c.xUsername ? (
+                <>
+                    <XHandleLink handle={c.handle} username={c.xUsername} />
+                    <AddressLine address={c.address} short={c.shortAddress} />
+                </>
+            ) : (
+                <AddressLine address={c.address} short={c.shortAddress} primary />
             )}
         </Box>
-        {c.balanceLabel && (
-            <Text fontWeight="700" fontSize="sm" color="brand.usdc">
-                {c.balanceLabel}
-            </Text>
-        )}
+        <BalanceTag label={c.balanceLabel} />
     </HStack>
 );
 
@@ -335,24 +427,22 @@ export function MobileAccountCard({ onNavigate }: { onNavigate?: () => void }) {
     return (
         <>
             <Box bg="card.white" border="1px solid" borderColor="border.felt" borderRadius="16px" p={4} mb={4}>
-                <HStack spacing={3} mb={3}>
+                <HStack spacing={3} mb={3} align="center">
                     <AccountAvatar size={44} avatarUrl={c.avatarUrl} address={c.address} handle={c.handle} />
                     <Box flex={1} minW={0}>
-                        <Text fontWeight="700" fontSize="sm" color="text.primary" noOfLines={1}>
-                            {c.handle}
-                        </Text>
-                        <HStack spacing={1.5} align="center">
-                            <ChainDot isBase={c.chainIsBase} />
-                            <Text fontSize="12px" color="text.muted">
-                                {c.chainName}
-                            </Text>
-                        </HStack>
+                        {c.xUsername ? (
+                            <>
+                                <XHandleLink handle={c.handle} username={c.xUsername} />
+                                <AddressLine address={c.address} short={c.shortAddress} />
+                            </>
+                        ) : (
+                            <AddressLine address={c.address} short={c.shortAddress} primary />
+                        )}
                     </Box>
-                    {c.balanceLabel && (
-                        <Text fontWeight="700" fontSize="sm" color="brand.usdc">
-                            {c.balanceLabel}
-                        </Text>
-                    )}
+                    <VStack spacing={1} align="flex-end">
+                        <BalanceTag label={c.balanceLabel} />
+                        <ChainLabel isBase={c.chainIsBase} name={c.chainName} />
+                    </VStack>
                 </HStack>
                 <Button
                     as="a"

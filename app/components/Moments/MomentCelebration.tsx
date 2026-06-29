@@ -13,10 +13,13 @@ import {
     ModalBody,
     ModalContent,
     ModalOverlay,
+    Skeleton,
     Stack,
     Text,
+    usePrefersReducedMotion,
     VStack,
 } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
 import { FaTimes, FaStar } from 'react-icons/fa';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
 import {
@@ -36,6 +39,12 @@ import {
 //     hands milestone) AND for a deep run, which fires mid-hand at a live final table where a
 //     focus-trapping modal would block gameplay. The chip opens the same share card on tap.
 
+// Arrival on the settle curve (DESIGN.md §5): a short rise + fade, no overshoot.
+const chipIn = keyframes`
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+`;
+
 function origin(): string {
     return typeof window !== 'undefined' && window.location?.origin
         ? window.location.origin
@@ -50,7 +59,10 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
     const [active, setActive] = useState<MomentParams | null>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [chipOpen, setChipOpen] = useState(false);
+    const [imgLoaded, setImgLoaded] = useState(false);
+    const [imgError, setImgError] = useState(false);
     const shownRef = useRef<string | null>(null);
+    const reduceMotion = usePrefersReducedMotion();
 
     useEffect(() => {
         if (!moment) return;
@@ -59,6 +71,8 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
         shownRef.current = sig;
 
         setActive(moment);
+        setImgLoaded(false);
+        setImgError(false);
         // Auto-open the full celebration only where it can't interrupt play. A deep run fires while
         // the player is still seated at a live final table, so it (and the quiet moments) gets the
         // non-blocking chip instead of a focus-trapping modal.
@@ -102,6 +116,7 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
                     borderRadius="14px"
                     boxShadow="card.lift"
                     p={3}
+                    animation={reduceMotion ? undefined : `${chipIn} 220ms cubic-bezier(0.16, 1, 0.3, 1)`}
                 >
                     <HStack spacing={3} align="center">
                         <Icon
@@ -154,7 +169,7 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
                     <VStack spacing={3} align="stretch">
                         <HStack justify="space-between" align="start" px={1}>
                             <VStack align="start" spacing={0}>
-                                <Text color="text.primary" fontSize="lg" fontWeight={800} letterSpacing="-0.01em">
+                                <Text color="text.primary" fontSize={{ base: 'xl', sm: '2xl' }} fontWeight={800} letterSpacing="-0.01em">
                                     {copy.heading}
                                 </Text>
                                 <Text color="text.secondary" fontSize="sm">
@@ -173,15 +188,48 @@ export default function MomentCelebration({ moment }: { moment: MomentParams | n
                         </HStack>
 
                         {/* The actual share card (the OG image the link will unfurl into). */}
-                        <Box borderRadius="14px" overflow="hidden" bg="card.lightGray" position="relative">
-                            <Image
-                                src={ogUrl}
-                                alt={copy.heading}
-                                w="100%"
-                                style={{ aspectRatio: '1200 / 630' }}
-                                objectFit="cover"
-                                loading="eager"
-                            />
+                        <Box
+                            borderRadius="14px"
+                            overflow="hidden"
+                            bg="card.lightGray"
+                            position="relative"
+                            style={{ aspectRatio: '1200 / 630' }}
+                        >
+                            {!imgLoaded && !imgError && (
+                                <Skeleton
+                                    position="absolute"
+                                    inset={0}
+                                    startColor="card.lightGray"
+                                    endColor="border.felt"
+                                />
+                            )}
+                            {imgError ? (
+                                <VStack position="absolute" inset={0} justify="center" spacing={2} px={4}>
+                                    <Icon
+                                        as={FaStar}
+                                        color="brand.yellowDark"
+                                        _dark={{ color: 'brand.yellow' }}
+                                        boxSize="28px"
+                                        aria-hidden
+                                    />
+                                    <Text color="text.primary" fontWeight={700} fontSize="md" textAlign="center" noOfLines={2}>
+                                        {copy.heading}
+                                    </Text>
+                                </VStack>
+                            ) : (
+                                <Image
+                                    src={ogUrl}
+                                    alt={copy.heading}
+                                    w="100%"
+                                    h="100%"
+                                    objectFit="cover"
+                                    loading="eager"
+                                    opacity={imgLoaded ? 1 : 0}
+                                    transition="opacity 220ms cubic-bezier(0.16, 1, 0.3, 1)"
+                                    onLoad={() => setImgLoaded(true)}
+                                    onError={() => setImgError(true)}
+                                />
+                            )}
                         </Box>
 
                         <Stack direction={{ base: 'column', sm: 'row' }} spacing={2} w="full">

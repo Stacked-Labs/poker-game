@@ -90,3 +90,21 @@ export const HighRankNumber: Story = {
     name: 'Edge — rank #999',
     args: { rank: 999, points: 5, total: 1000 },
 };
+
+// Card-open variants (the share modal seeded open) so the baked card itself is
+// reviewable. Diamond is the key one: the tier chip is now the on-brand steel-blue
+// (tier.diamond), not the legacy AI-lavender, and the glow halo is gone.
+export const DiamondCardOpen: Story = {
+    name: '💎 Card open — Diamond #1',
+    args: { rank: 1, points: 9200, defaultOpen: true },
+};
+
+export const GoldCardOpen: Story = {
+    name: '⭐ Card open — Gold #20',
+    args: { rank: 20, points: 3400, defaultOpen: true },
+};
+
+export const IronCardOpen: Story = {
+    name: '🔩 Card open — Iron #150',
+    args: { rank: 150, points: 30, defaultOpen: true },
+};

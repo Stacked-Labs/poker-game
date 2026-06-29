@@ -49,7 +49,7 @@ const meta = {
         docs: {
             description: {
                 component:
-                    'Live social-proof pill shown bottom-left on `/`. Renders a chip-avatar with a randomized suit glyph, a truncated address, and a flat felt-green points chip.',
+                    'Live social-proof pill shown bottom-left on `/`. Renders the player avatar (X photo when linked, otherwise a deterministic blockie derived from their address), a truncated address or @handle, and a flat felt-green points chip.',
             },
         },
         nextjs: { navigation: { pathname: '/' } },
@@ -92,12 +92,35 @@ export const SlidingOut: Story = {
 };
 
 export const Stack: Story = {
-    name: 'Stack — variety of suits',
+    name: 'Stack — address blockies',
     render: () => (
         <VStack align="start" spacing={4}>
             {MOCK_EVENTS.map((e) => (
                 <PointsPill key={e.id} address={e.address} points={e.points} delta={e.delta} kind={e.kind} />
             ))}
+        </VStack>
+    ),
+};
+
+// Avatar resolves X photo first, address blockie otherwise. This pair proves
+// both paths render correctly in the pill (linked @handle vs raw address).
+const X_AVATAR =
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="%23EB0B5C"/><text x="48" y="64" font-size="48" text-anchor="middle" fill="white" font-family="sans-serif">M</text></svg>';
+
+export const IdentityXVsAddress: Story = {
+    name: 'Identity — X linked vs. address blockie',
+    render: () => (
+        <VStack align="start" spacing={4}>
+            <PointsPill
+                address={MOCK_STANDINGS[0].address}
+                xUsername="degenmike"
+                xDisplayName="Degen Mike"
+                xProfileImageUrl={X_AVATAR}
+                points={MOCK_STANDINGS[0].points}
+                rank={MOCK_STANDINGS[0].rank}
+                kind="standings"
+            />
+            <PointsPill {...MOCK_STANDINGS[1]} />
         </VStack>
     ),
 };

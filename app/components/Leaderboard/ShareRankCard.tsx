@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Box,
     Button,
@@ -35,11 +35,39 @@ interface ShareRankCardProps {
     points: number;
     address: string;
     total: number;
+    /** Seed the modal open (Storybook / tests only). */
+    defaultOpen?: boolean;
 }
 
 // Solid tactile button tones for the share-action row.
-const X_TONE = { bg: '#0F1419', bgPress: '#000000', edge: '#000000' };
+const X_TONE = { bg: '#0F1419', bgPress: '#0A0E14', edge: '#000000' };
 const TG_TONE = { bg: '#0088CC', bgPress: '#0077B5', edge: '#006A9D' };
+
+// On-brand tier colors for the baked card. getTier().color still returns the
+// legacy ramp (lavender diamond) that DESIGN.md auto-fails; these mirror the
+// `tier.*` _dark tokens (the card always sits on a dark photo) so the mark a
+// player posts matches the rest of the product.
+const TIER_HEX: Record<string, string> = {
+    diamond: '#9BC0E0',
+    gold: '#D6A84E',
+    silver: '#AEB6C6',
+    bronze: '#C2885A',
+    iron: '#878B96',
+};
+
+// Inline an image asset as a base64 data URL so html-to-image can rasterize it
+// into the captured PNG (a raw/cross-origin <img> renders blank in the capture).
+async function toDataUrl(path: string): Promise<string> {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`asset ${path}: ${res.status}`);
+    const blob = await res.blob();
+    return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+    });
+}
 
 interface SolidShareButtonProps {
     onClick?: () => void;
@@ -50,6 +78,7 @@ interface SolidShareButtonProps {
     color: string;
     children: React.ReactNode;
     flex?: number | string;
+    isDisabled?: boolean;
 }
 
 const ShareActionButton: React.FC<SolidShareButtonProps> = ({
@@ -61,11 +90,14 @@ const ShareActionButton: React.FC<SolidShareButtonProps> = ({
     color,
     children,
     flex,
+    isDisabled,
 }) => (
     <Button
         onClick={onClick}
         leftIcon={leftIcon}
         flex={flex}
+        isDisabled={isDisabled}
+        _disabled={{ opacity: 0.45, cursor: 'not-allowed', transform: 'none' }}
         height="44px"
         borderRadius="10px"
         fontWeight={700}
@@ -92,6 +124,7 @@ interface ChromeShareButtonProps {
     leftIcon: React.ReactElement;
     children: React.ReactNode;
     flex?: number | string;
+    isDisabled?: boolean;
 }
 
 const ChromeShareButton: React.FC<ChromeShareButtonProps> = ({
@@ -99,6 +132,7 @@ const ChromeShareButton: React.FC<ChromeShareButtonProps> = ({
     leftIcon,
     children,
     flex,
+    isDisabled,
 }) => {
     const bg = useColorModeValue('#F2F4FA', 'rgba(255,255,255,0.06)');
     const bgHover = useColorModeValue('#E8EBF4', 'rgba(255,255,255,0.10)');
@@ -110,6 +144,8 @@ const ChromeShareButton: React.FC<ChromeShareButtonProps> = ({
             onClick={onClick}
             leftIcon={leftIcon}
             flex={flex}
+            isDisabled={isDisabled}
+            _disabled={{ opacity: 0.45, cursor: 'not-allowed', transform: 'none' }}
             height="44px"
             borderRadius="10px"
             fontWeight={700}
@@ -139,35 +175,41 @@ function ordinalSuffix(n: number) {
     return s[(v - 20) % 10] ?? s[v] ?? s[0];
 }
 
-const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, total }) => {
-    const { isOpen, onOpen, onClose } = useDisclosure();
+const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, total, defaultOpen }) => {
+    const { isOpen, onOpen, onClose } = useDisclosure({ defaultIsOpen: defaultOpen });
     const cardRef = useRef<HTMLDivElement>(null);
     const [sharing, setSharing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [ready, setReady] = useState(false);
+    const [loadError, setLoadError] = useState(false);
     const [bgSrc, setBgSrc] = useState('/video/bgplaceholder.webp');
     const [logoSrc, setLogoSrc] = useState('/IconLogo.png');
 
-    // Preload images as base64 data URLs so html-to-image can inline them
-    useEffect(() => {
-        if (!isOpen) return;
-        const toDataUrl = async (path: string) => {
-            const res = await fetch(path);
-            const blob = await res.blob();
-            return new Promise<string>((resolve) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result as string);
-                reader.readAsDataURL(blob);
-            });
-        };
-        Promise.all([
-            toDataUrl('/video/bgplaceholder.webp'),
-            toDataUrl('/IconLogo.png'),
-        ]).then(([bg, logo]) => {
+    // Inline the card's images before any capture so html-to-image bakes them in;
+    // the capture-dependent actions stay disabled until this resolves (a tap before
+    // then would post a blank card). A failed preload surfaces a retry, never a dud.
+    const loadAssets = useCallback(async () => {
+        setReady(false);
+        setLoadError(false);
+        try {
+            const [bg, logo] = await Promise.all([
+                toDataUrl('/video/bgplaceholder.webp'),
+                toDataUrl('/IconLogo.png'),
+            ]);
             setBgSrc(bg);
             setLogoSrc(logo);
-        });
-    }, [isOpen]);
+            setReady(true);
+        } catch {
+            setLoadError(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isOpen) loadAssets();
+    }, [isOpen, loadAssets]);
 
     const tier = getTier(rank, total);
+    const tierColor = TIER_HEX[tier.name] ?? tier.color;
     const suffix = ordinalSuffix(rank);
     const shareText = `I'm ranked #${rank} on @stacked_poker with ${points.toLocaleString()} pts! ${TIER_EMOJI[tier.name]} ${tier.label} tier. Play on-chain poker on Base. 🃏`;
 
@@ -243,8 +285,13 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
     };
 
     const handleDownload = async () => {
-        const blob = await captureBlob();
-        if (blob) triggerDownload(blob);
+        setSaving(true);
+        try {
+            const blob = await captureBlob();
+            if (blob) triggerDownload(blob);
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -259,7 +306,7 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                 alignItems="center"
                 justifyContent="center"
                 color="text.secondary"
-                opacity={0.6}
+                opacity={0.75}
                 bg="transparent"
                 border="none"
                 borderRadius="full"
@@ -269,12 +316,12 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                     boxShadow: '0 0 0 2px rgba(54, 163, 123, 0.4)',
                 }}
                 _dark={{
-                    color: 'whiteAlpha.600',
+                    color: 'whiteAlpha.700',
                     _hover: { opacity: 1, color: 'brand.green' },
                 }}
                 transition="opacity 80ms ease, color 80ms ease"
-                minW="auto"
-                h="auto"
+                minW="44px"
+                minH="44px"
                 p={1.5}
             />
 
@@ -370,9 +417,7 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                 <div style={{
                                     position: 'absolute',
                                     top: 12, left: 12,
-                                    background: 'rgba(0, 0, 0, 0.55)',
-                                    backdropFilter: 'blur(12px)',
-                                    WebkitBackdropFilter: 'blur(12px)',
+                                    background: 'rgba(11, 20, 48, 0.62)',
                                     borderRadius: 14,
                                     padding: '10px 16px',
                                 }}>
@@ -404,11 +449,11 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                     display: 'flex', alignItems: 'center', gap: 5,
                                     padding: '5px 13px', borderRadius: 20,
                                     background: 'rgba(0,0,0,0.62)',
-                                    border: `1.5px solid ${tier.color}`,
-                                    boxShadow: `0 0 10px ${tier.color}55`,
+                                    border: `1.5px solid ${tierColor}`,
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.4)',
                                 }}>
-                                    <Icon as={TIER_ICON[tier.name]} color={tier.color} boxSize="12px" style={{ filter: `drop-shadow(0 0 4px ${tier.color})` }} />
-                                    <span style={{ color: '#ffffff', fontSize: 13, fontWeight: 800, letterSpacing: '0.04em', textShadow: `0 0 8px ${tier.color}` }}>{tier.label}</span>
+                                    <Icon as={TIER_ICON[tier.name]} color={tierColor} boxSize="12px" />
+                                    <span style={{ color: '#ffffff', fontSize: 13, fontWeight: 800, letterSpacing: '0.04em' }}>{tier.label}</span>
                                 </div>
 
                                 {/* ── Rank — bottom-left ── */}
@@ -466,6 +511,7 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                     edge={X_TONE.edge}
                                     color="white"
                                     flex={1}
+                                    isDisabled={!ready}
                                 >
                                     {sharing ? 'Sharing…' : 'Post on X'}
                                 </ShareActionButton>
@@ -484,10 +530,28 @@ const ShareRankCard: React.FC<ShareRankCardProps> = ({ rank, points, address, to
                                     onClick={handleDownload}
                                     leftIcon={<Icon as={FaDownload} boxSize="13px" />}
                                     flex={1}
+                                    isDisabled={!ready}
                                 >
-                                    Save image
+                                    {saving ? 'Saving…' : 'Save image'}
                                 </ChromeShareButton>
                             </Stack>
+
+                            {loadError && (
+                                <Text fontSize="xs" color="text.secondary" textAlign="center">
+                                    Couldn&apos;t build your card.{' '}
+                                    <Box
+                                        as="button"
+                                        type="button"
+                                        onClick={loadAssets}
+                                        display="inline"
+                                        color="brand.green"
+                                        fontWeight={600}
+                                        _hover={{ textDecoration: 'underline' }}
+                                    >
+                                        Try again
+                                    </Box>
+                                </Text>
+                            )}
 
                         </VStack>
                     </ModalBody>

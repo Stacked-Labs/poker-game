@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { keyframes } from '@emotion/react';
+import { blo } from 'blo';
 
 const POLL_INTERVAL_MS = 60_000;
 const DISPLAY_DURATION_MS = 4_000;
@@ -60,23 +61,8 @@ function shuffle<T>(arr: T[]): T[] {
     return out;
 }
 
-// Suits are decorative: drawn at random per event, pairing brand
-// color with shape so identity survives color-blindness checks.
-const SUITS = [
-    { glyph: '♠', token: 'brand.darkNavy' },
-    { glyph: '♥', token: 'brand.pink' },
-    { glyph: '♦', token: 'brand.navy' },
-    { glyph: '♣', token: 'brand.green' },
-] as const;
-
-type Suit = (typeof SUITS)[number];
-
 function truncate(addr: string) {
     return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
-
-function randomSuit(): Suit {
-    return SUITS[Math.floor(Math.random() * SUITS.length)];
 }
 
 function randomGap() {
@@ -94,44 +80,6 @@ export interface PointsPillProps {
     kind?: PointsEventKind;
     hiding?: boolean;
     reducedMotion?: boolean;
-}
-
-// Chip avatar: poker-chip cross-section with a suit glyph. Dashed
-// outer ring stands in for the painted edge stripes on a real chip.
-function ChipAvatar({ reducedMotion, seed }: { reducedMotion?: boolean; seed?: string }) {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const suit = useMemo(() => randomSuit(), [seed]);
-    const flip = reducedMotion
-        ? undefined
-        : `${chipFlip} 0.55s ${EASE_OUT_QUART} backwards`;
-    return (
-        <Box
-            w="34px"
-            h="34px"
-            borderRadius="full"
-            bg={suit.token}
-            border="2px dashed"
-            borderColor="rgba(255, 255, 255, 0.55)"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            flexShrink={0}
-            boxShadow="0 1px 2px rgba(11, 20, 48, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.08)"
-            animation={flip}
-            sx={{ transformStyle: 'preserve-3d', backfaceVisibility: 'hidden' }}
-        >
-            <Text
-                as="span"
-                fontSize="15px"
-                lineHeight={1}
-                color="white"
-                fontWeight={800}
-                aria-hidden
-            >
-                {suit.glyph}
-            </Text>
-        </Box>
-    );
 }
 
 function PillFrame({
@@ -181,6 +129,13 @@ export function PointsPill({
     );
     const standingsChipBg = useColorModeValue('brand.darkNavy', 'rgba(255, 255, 255, 0.10)');
 
+    // Standardized identity: the player's X photo when linked, otherwise a
+    // deterministic blockie derived from their address (matches the leaderboard).
+    const blockie = useMemo(() => blo(address as `0x${string}`), [address]);
+    const avatarFlip = reducedMotion
+        ? undefined
+        : `${chipFlip} 0.55s ${EASE_OUT_QUART} backwards`;
+
     const isStandings = kind === 'standings';
     const labelText = isStandings
         ? rank
@@ -217,21 +172,19 @@ export function PointsPill({
                 }}
             >
                 <HStack spacing={3} align="center" position="relative" zIndex={1}>
-                    {xProfileImageUrl ? (
-                        <Box
-                            as="img"
-                            src={xProfileImageUrl}
-                            alt=""
-                            w="34px"
-                            h="34px"
-                            borderRadius="full"
-                            flexShrink={0}
-                            objectFit="cover"
-                            boxShadow="0 1px 2px rgba(11, 20, 48, 0.18)"
-                        />
-                    ) : (
-                        <ChipAvatar seed={address} reducedMotion={reducedMotion} />
-                    )}
+                    <Box
+                        as="img"
+                        src={xProfileImageUrl ?? blockie}
+                        alt=""
+                        w="34px"
+                        h="34px"
+                        borderRadius={xProfileImageUrl ? 'full' : '7px'}
+                        flexShrink={0}
+                        objectFit="cover"
+                        boxShadow="0 1px 2px rgba(11, 20, 48, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.06)"
+                        animation={avatarFlip}
+                        sx={{ transformStyle: 'preserve-3d', backfaceVisibility: 'hidden' }}
+                    />
                     <Box flex={1} minW={0}>
                         <Text
                             fontSize="13px"

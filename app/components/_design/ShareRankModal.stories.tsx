@@ -245,7 +245,7 @@ const SavedChip: React.FC = () => {
         >
             <Icon as={FaCheck} boxSize="10px" color={fg} />
             <Text fontSize="2xs" fontWeight={700} color={fg} letterSpacing="0.04em">
-                Saved — attach to your tweet
+                Image saved. Add it to your post.
             </Text>
         </HStack>
     );

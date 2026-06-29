@@ -19,7 +19,6 @@ import {
     Button,
     HStack,
     Icon,
-    IconButton,
     Link,
     Menu,
     MenuButton,
@@ -204,57 +203,61 @@ const ChainLabel: React.FC<{ isBase: boolean; name: string }> = ({ isBase, name 
     </HStack>
 );
 
-// Copy-to-clipboard chip; flips to a green check for ~1.5s. Stops propagation
-// so clicking it inside the menu header doesn't dismiss the menu.
-const CopyButton: React.FC<{ value: string | null }> = ({ value }) => {
+// Wallet address rendered as a single subtle "tap to copy" chip: the whole
+// address + icon is one button with a quiet hover tint; the icon flips to a
+// green check for ~1.5s. `primary` = the identity line (no X); else a subtext.
+const AddressLine: React.FC<{
+    address: string | null;
+    short: string;
+    primary?: boolean;
+}> = ({ address, short, primary }) => {
     const [copied, setCopied] = useState(false);
     const onCopy = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!value) return;
-        void navigator.clipboard?.writeText(value).then(() => {
+        if (!address) return;
+        void navigator.clipboard?.writeText(address).then(() => {
             setCopied(true);
             window.setTimeout(() => setCopied(false), 1500);
         });
     };
     return (
-        <IconButton
-            aria-label="Copy address"
-            size="xs"
-            variant="ghost"
-            minW="auto"
-            h="18px"
-            w="18px"
+        <HStack
+            as="button"
+            type="button"
             onClick={onCopy}
-            icon={
-                <Icon
-                    as={copied ? FiCheck : FiCopy}
-                    boxSize={3.5}
-                    color={copied ? 'brand.green' : 'text.muted'}
-                />
-            }
-            _hover={{ bg: 'transparent', color: 'text.secondary' }}
-        />
+            aria-label="Copy address"
+            spacing={1.5}
+            px={1}
+            mx="-1"
+            h="22px"
+            borderRadius="6px"
+            align="center"
+            color={primary ? 'text.primary' : 'text.muted'}
+            transition="background-color 120ms ease, color 120ms ease"
+            outline="none"
+            _hover={{ bg: 'bg.pillNeutral', color: primary ? 'text.primary' : 'text.secondary' }}
+            // No focus ring on mouse click; keyboard focus shows the same quiet tint as hover.
+            _focus={{ boxShadow: 'none' }}
+            _focusVisible={{ bg: 'bg.pillNeutral', boxShadow: 'none' }}
+        >
+            <Text
+                fontSize={primary ? 'sm' : '12px'}
+                fontWeight={primary ? '700' : '500'}
+                color="inherit"
+                lineHeight="1"
+            >
+                {short}
+            </Text>
+            <Icon
+                as={copied ? FiCheck : FiCopy}
+                boxSize="12px"
+                color={copied ? 'brand.green' : 'inherit'}
+                opacity={copied ? 1 : 0.5}
+            />
+        </HStack>
     );
 };
-
-// Wallet address + copy. `primary` = the identity line (no X); otherwise a muted subtext.
-const AddressLine: React.FC<{
-    address: string | null;
-    short: string;
-    primary?: boolean;
-}> = ({ address, short, primary }) => (
-    <HStack spacing={1} align="center">
-        <Text
-            fontSize={primary ? 'sm' : '12px'}
-            fontWeight={primary ? '700' : '500'}
-            color={primary ? 'text.primary' : 'text.muted'}
-        >
-            {short}
-        </Text>
-        <CopyButton value={address} />
-    </HStack>
-);
 
 // @handle that links out to the player's X profile, with the X glyph.
 const XHandleLink: React.FC<{ handle: string; username: string }> = ({ handle, username }) => (
@@ -274,14 +277,15 @@ const XHandleLink: React.FC<{ handle: string; username: string }> = ({ handle, u
     </Link>
 );
 
-// USDC balance with the coin mark (the balance is the player's USDC, never ETH).
+// USDC balance with the coin mark to the RIGHT of the figure (the balance is
+// the player's USDC, never ETH).
 const BalanceTag: React.FC<{ label: string | null }> = ({ label }) =>
     label ? (
         <HStack spacing={1.5} align="center" flexShrink={0}>
-            <Box as="img" src="/usdc-logo.png" alt="" w="16px" h="16px" borderRadius="full" />
             <Text fontWeight="700" fontSize="sm" color="brand.usdc">
                 {label}
             </Text>
+            <Box as="img" src="/usdc-logo.png" alt="" w="16px" h="16px" borderRadius="full" />
         </HStack>
     ) : null;
 

@@ -83,16 +83,17 @@ export default function TournamentReminderBanner() {
 
     const remainderCount = remainder.length;
 
-    const goToSeat = async (id: number) => {
+    const goToSeat = async (t: ReminderTournament) => {
         // "Take your seat" should actually seat the player (#605). Once the
         // tournament is running they have a live table assignment, so resolve it
-        // from the leaderboard and jump straight to that table. Before the field
-        // is drawn (pre-start / late reg without a seat yet) there is no table, so
-        // we fall back to the lobby/details route which the player came from.
-        if (userAddress && seatingId == null) {
-            setSeatingId(id);
+        // from the leaderboard and jump straight to that table. Before it starts
+        // (status 'registration') the field isn't drawn, so there is no seat to
+        // take: the button reads "Details" and we open the lobby directly,
+        // skipping the leaderboard lookup that could only ever miss.
+        if (t.status === 'running' && userAddress && seatingId == null) {
+            setSeatingId(t.id);
             try {
-                const data = await getTournamentLeaderboard(id);
+                const data = await getTournamentLeaderboard(t.id);
                 const me = (data?.players ?? []).find(
                     (p: {
                         wallet?: string;
@@ -106,7 +107,7 @@ export default function TournamentReminderBanner() {
                 );
                 if (me) {
                     router.push(
-                        `/table/tournament-${id}-table-${me.table_index + 1}`
+                        `/table/tournament-${t.id}-table-${me.table_index + 1}`
                     );
                     return;
                 }
@@ -118,7 +119,7 @@ export default function TournamentReminderBanner() {
         }
         // Land on the lobby route; it resolves the live table and avoids a 404
         // before the player is actually seated.
-        router.push(`/tournament/${id}`);
+        router.push(`/tournament/${t.id}`);
     };
 
     const onDismiss = () => {
@@ -325,10 +326,13 @@ export default function TournamentReminderBanner() {
                                                                 seatingId === t.id
                                                             }
                                                             onClick={() =>
-                                                                goToSeat(t.id)
+                                                                goToSeat(t)
                                                             }
                                                         >
-                                                            Take seat
+                                                            {t.status ===
+                                                            'running'
+                                                                ? 'Take seat'
+                                                                : 'Details'}
                                                         </Button>
                                                     </Flex>
                                                 </Box>
@@ -349,9 +353,11 @@ export default function TournamentReminderBanner() {
                         _focusVisible={{ boxShadow: 'outline' }}
                         isLoading={seatingId === mostUrgent.id}
                         loadingText="Seating"
-                        onClick={() => goToSeat(mostUrgent.id)}
+                        onClick={() => goToSeat(mostUrgent)}
                     >
-                        Take your seat
+                        {mostUrgent.status === 'running'
+                            ? 'Take your seat'
+                            : 'Details'}
                     </Button>
 
                     <IconButton

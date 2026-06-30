@@ -275,7 +275,11 @@ export default function FreeClaimScreen({
                         Go to the tournament
                     </Button>
                     {friendInviteSlot && (
-                        <Box w="full" pt={2}>
+                        <Box
+                            w="full"
+                            pt={2}
+                            sx={{ '&:empty': { display: 'none', p: 0 } }}
+                        >
                             {friendInviteSlot}
                         </Box>
                     )}
@@ -318,7 +322,18 @@ export default function FreeClaimScreen({
                                 ? 'Go to the tournament'
                                 : `View ${tournament.name}`}
                         </Button>
-                    ) : null}
+                    ) : (
+                        <Button
+                            as="a"
+                            href="/"
+                            variant="tactileNeutral"
+                            w="full"
+                            maxW="280px"
+                            _hover={{ textDecoration: 'none' }}
+                        >
+                            Explore Stacked
+                        </Button>
+                    )}
                 </VStack>
             </Shell>
         );

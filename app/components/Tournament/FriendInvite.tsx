@@ -56,7 +56,7 @@ export default function FriendInvite({
                         Bring a friend
                     </Text>
                     <Text fontSize="sm" color="text.secondary">
-                        Each invite is a free seat at this event.
+                        Each invite covers your friend’s first entry.
                     </Text>
                 </VStack>
 
@@ -120,7 +120,7 @@ export default function FriendInvite({
                             <Button
                                 variant="tactileNeutral"
                                 size="sm"
-                                minH="40px"
+                                minH="44px"
                                 leftIcon={
                                     <Icon as={copied ? FiCheck : FiCopy} />
                                 }
@@ -131,23 +131,25 @@ export default function FriendInvite({
                             <Link
                                 href={tweetUrl}
                                 isExternal
+                                aria-label="Share on X"
                                 _hover={{ textDecoration: 'none' }}
                             >
                                 <SocialIconButton
                                     tone="x"
                                     tabIndex={-1}
-                                    aria-label="Share on X"
+                                    aria-hidden
                                 />
                             </Link>
                             <Link
                                 href={telegramUrl}
                                 isExternal
+                                aria-label="Share on Telegram"
                                 _hover={{ textDecoration: 'none' }}
                             >
                                 <SocialIconButton
                                     tone="telegram"
                                     tabIndex={-1}
-                                    aria-label="Share on Telegram"
+                                    aria-hidden
                                 />
                             </Link>
                         </HStack>

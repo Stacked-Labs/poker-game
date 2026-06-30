@@ -49,7 +49,7 @@ export default function FriendInviteSection({
         ? nextCode.share_url || `${origin}${nextCode.claim_path}`
         : origin;
     const shareText =
-        'I saved you a seat at my table on Stacked. First entry’s on me.';
+        'I saved you a seat on Stacked. Your first entry’s on me.';
     const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
 

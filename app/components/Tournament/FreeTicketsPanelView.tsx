@@ -86,8 +86,11 @@ export default function FreeTicketsPanelView({
     const publicCode = data.codes.find((c) => c.code_type === 'public');
     const taggedCodes = data.codes.filter((c) => c.code_type === 'tagged');
     const capped = !data.infinite && data.cap > 0;
+    const claimed = data.claimed ?? 0;
+    const played = data.played ?? 0;
+    const codesOut = data.codes_in_circulation ?? 0;
     const claimedPct = capped
-        ? Math.min(100, Math.round((data.claimed / data.cap) * 100))
+        ? Math.min(100, Math.round((claimed / data.cap) * 100))
         : 0;
 
     return (
@@ -101,7 +104,7 @@ export default function FreeTicketsPanelView({
             {/* Share hero — the host's #1 recurring job: grab the link and send it.
                 The link field confirms what they're sharing; the full-width tactile
                 CTA is the unmissable top-of-fold tap target. */}
-            {publicCode && (
+            {publicCode ? (
                 <Box>
                     <SectionLabel>Your invite link</SectionLabel>
                     <Box
@@ -140,6 +143,15 @@ export default function FreeTicketsPanelView({
                             : 'Copy invite link'}
                     </Button>
                 </Box>
+            ) : (
+                <Box>
+                    <SectionLabel>Your invite link</SectionLabel>
+                    <Box mt={2} bg={rowBg} borderRadius="12px" px={3} py={2.5}>
+                        <Text fontSize="sm" color="text.muted">
+                            Your invite link is being set up.
+                        </Text>
+                    </Box>
+                </Box>
             )}
 
             {/* Status scoreboard — how the drop is doing, at a glance. Green-tinted
@@ -167,7 +179,7 @@ export default function FreeTicketsPanelView({
                             color="text.primary"
                             sx={{ fontVariantNumeric: 'tabular-nums' }}
                         >
-                            {data.claimed}
+                            {claimed}
                         </Text>
                         {capped && (
                             <Text
@@ -193,13 +205,13 @@ export default function FreeTicketsPanelView({
                 )}
                 <Text fontSize="sm" color="text.secondary" mt={2.5}>
                     <Text as="span" fontWeight={700} color="text.primary">
-                        {data.played}
+                        {played}
                     </Text>{' '}
                     played ·{' '}
                     <Text as="span" fontWeight={700} color="text.primary">
-                        {data.codes_in_circulation}
+                        {codesOut}
                     </Text>{' '}
-                    codes out{!capped && ' · no cap'}
+                    links shared{!capped && ' · no cap'}
                 </Text>
             </Box>
 
@@ -265,9 +277,12 @@ export default function FreeTicketsPanelView({
                                     <IconButton
                                         aria-label={`Copy ${ch.label} link`}
                                         size="sm"
+                                        minW="44px"
+                                        minH="44px"
                                         variant="tactileGhost"
                                         color="text.muted"
                                         flexShrink={0}
+                                        _focusVisible={{ boxShadow: 'focus.ring' }}
                                         icon={
                                             copiedId === c.id ? (
                                                 <FiCheck />

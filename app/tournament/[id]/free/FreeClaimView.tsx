@@ -138,7 +138,7 @@ export default function FreeClaimView({
             claiming={claiming}
             reminder={reminder}
             onClaim={onClaim}
-            walletSlot={<WalletButton />}
+            walletSlot={<WalletButton variant="cta" width="100%" label="Sign in to claim" />}
             onView={goToTournament}
             onRetry={load}
             friendInviteSlot={<FriendInviteSection tournamentId={id} />}

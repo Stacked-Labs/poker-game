@@ -172,6 +172,7 @@ function InviteRow({
             </Text>
             <Button
                 size="xs"
+                minH="44px"
                 variant="tactileGhost"
                 leftIcon={<Icon as={copied ? FaCheck : FaRegCopy} boxSize="11px" />}
                 color={copied ? 'brand.green' : undefined}
@@ -183,6 +184,7 @@ function InviteRow({
             </Button>
             <Button
                 size="xs"
+                minH="44px"
                 variant="tactileGhost"
                 leftIcon={<Icon as={FiShare2} boxSize="12px" />}
                 onClick={onShare}

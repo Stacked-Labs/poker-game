@@ -70,6 +70,7 @@ export default function MockSocketProvider({
 
             {/* ── Floating dev control panel ──────────────────────────────── */}
             <Box
+                data-testid="ui-test-panel"
                 position="fixed"
                 bottom={3}
                 left="50%"

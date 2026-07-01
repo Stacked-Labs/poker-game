@@ -386,8 +386,89 @@ export const scenarioWaitingForBB: Game = {
     waitingForBB: [true, false, false],
 };
 
+// ─── Scenario 8 — Status banner over seat furniture (z-order repro) ────────
+// A running hand where the bottom-centre seat (self) holds the dealer button AND
+// has a live bet, with pending blinds forcing the status banner. Reproduces the
+// banner painting over the dealer button + bet bubble — worst on tight / mobile
+// layouts, where the bottom seat's chips ride up into the banner's band.
+export const scenarioBanner: Game = {
+    running: true,
+    dealer: 0, // position 0 = seat 1 (self, bottom-centre) holds the button
+    action: 1, // seat 2 is acting → keeps self off the pulsing-turn state
+    utg: 0,
+    sb: 1,
+    bb: 2,
+    communityCards: [], // preflop — matches the reported tournament state
+    stage: 2,
+    betting: true,
+    config: { ...cfg, tournament: { tournamentId: 'demo', ante: 600 } },
+    players: [
+        // Seat 1 = self = dealer with a live bet → "D 120" sits under the banner
+        mkPlayer(1, 0, { ready: true, in: true, stack: 880, bet: 120, totalBet: 120, cards: [CARDS.As, CARDS.Kh] }),
+        // Seat 2 = SB, acting
+        mkPlayer(2, 1, { ready: true, in: true, stack: 960, bet: 40, totalBet: 40, cards: [0, 0] }),
+        // Seat 3 = BB, called the bet
+        mkPlayer(3, 2, { ready: true, in: true, stack: 880, bet: 120, totalBet: 120, called: true, cards: [0, 0] }),
+        // Seat 5 = folded
+        mkPlayer(5, 4, { ready: true, in: false, stack: 1000 }),
+        // Seat 8 = called
+        mkPlayer(8, 7, { ready: true, in: true, stack: 880, bet: 120, totalBet: 120, called: true, cards: [0, 0] }),
+    ],
+    pots: [{ topShare: 400, amount: 400, eligiblePlayerNums: [0, 1, 2, 7], winningPlayerNums: [], winningScore: 0 }],
+    minRaise: 120,
+    readyCount: 5,
+    paused: false,
+    actionDeadline: Date.now() + 20000,
+    pendingBlinds: { sb: 50, bb: 100 },
+};
+
+// ─── Scenario 9 — Run It Twice dual board + status banner (z-order repro) ────
+// All-in showdown run twice: two community boards, board 2 cascading down into the
+// felt's lower band — exactly where the status banner sits. Pending blinds force
+// the banner so the overlap with board 2 is visible for design review.
+export const scenarioRitBanner: Game = {
+    running: true,
+    dealer: 2, // seat 3 holds the button (off to the side)
+    action: 0,
+    utg: 0,
+    sb: 0,
+    bb: 1,
+    communityCards: [],
+    stage: 1, // showdown
+    betting: false,
+    config: cfg,
+    players: [
+        // Seat 1 = self — all in, revealed
+        mkPlayer(1, 0, { ready: true, in: true, hasRevealed: true, stack: 0, bet: 0, totalBet: 1000, cards: [CARDS.Ah, CARDS.Ad] }),
+        // Seat 3 = opponent — all in, revealed
+        mkPlayer(3, 2, { ready: true, in: true, hasRevealed: true, stack: 0, bet: 0, totalBet: 1000, cards: [CARDS.Kh, CARDS.Kc] }),
+        // Others folded
+        mkPlayer(2, 1, { ready: true, in: false, stack: 900 }),
+        mkPlayer(6, 5, { ready: true, in: false, stack: 750 }),
+    ],
+    pots: [{ topShare: 2000, amount: 2000, eligiblePlayerNums: [0, 2], winningPlayerNums: [], winningScore: 0 }],
+    minRaise: 0,
+    readyCount: 4,
+    paused: false,
+    actionDeadline: 0,
+    ritPhase: 3,
+    // Shared flop pre-exists (no flip); each board gets its own turn + river.
+    ritPreExistingCards: [CARDS.Ac, CARDS.Kd, CARDS._9s, 0, 0],
+    ritBoard1Cards: [CARDS.Ac, CARDS.Kd, CARDS._9s, CARDS.Td, CARDS._7h],
+    ritBoard2Cards: [CARDS.Ac, CARDS.Kd, CARDS._9s, CARDS.Qh, CARDS._2c],
+    ritBoard1Pots: [{
+        topShare: 2000, amount: 2000, eligiblePlayerNums: [0, 2], winningPlayerNums: [0], winningScore: 9999,
+        winners: [{ playerNum: 0, uuid: PLAYER_IDS[0], share: 1000, winningHand: [CARDS.Ah, CARDS.Ad, CARDS.Ac, CARDS.Kd, CARDS.Td] }],
+    }],
+    ritBoard2Pots: [{
+        topShare: 2000, amount: 2000, eligiblePlayerNums: [0, 2], winningPlayerNums: [2], winningScore: 8888,
+        winners: [{ playerNum: 2, uuid: PLAYER_IDS[2], share: 1000, winningHand: [CARDS.Kh, CARDS.Kc, CARDS.Kd, CARDS.Ac, CARDS.Qh] }],
+    }],
+    pendingBlinds: { sb: 50, bb: 100 },
+};
+
 // ─── Scenario registry ─────────────────────────────────────────────────────
-export type ScenarioKey = 'idle' | 'preflop' | 'postflop' | 'showdown' | 'states' | 'blind_obligation' | 'waiting_for_bb';
+export type ScenarioKey = 'idle' | 'preflop' | 'postflop' | 'showdown' | 'states' | 'blind_obligation' | 'waiting_for_bb' | 'banner' | 'rit_banner';
 
 export const SCENARIOS: Record<ScenarioKey, { label: string; description: string; game: Game }> = {
     idle: {
@@ -424,6 +505,16 @@ export const SCENARIOS: Record<ScenarioKey, { label: string; description: string
         label: 'Waiting BB',
         description: 'Player 1 (self) owes SB and has chosen to wait for their BB seat',
         game: scenarioWaitingForBB,
+    },
+    banner: {
+        label: 'Banner',
+        description: 'Status banner (pending blinds) over the bottom seat dealer button + bet bubble',
+        game: scenarioBanner,
+    },
+    rit_banner: {
+        label: 'RIT Banner',
+        description: 'Run It Twice dual board with the status banner overlapping board 2',
+        game: scenarioRitBanner,
     },
 };
 

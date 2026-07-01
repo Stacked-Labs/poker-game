@@ -230,7 +230,13 @@ const GameStatusBanner = () => {
             top={{ base: 'calc(100% + 6px)', md: 'calc(100% + 8px)' }}
             left="50%"
             transform="translateX(-50%)"
-            zIndex={990}
+            // Ambient felt-band status pill: it must sit BEHIND the seat furniture.
+            // Nothing between here and the table's stacking root creates a stacking
+            // context, so this z-index competes directly with the seat dealer button +
+            // bet bubbles (z-index 5). It was 990 and painted the pill over the bottom
+            // seat's chips on tight / mobile layouts. Kept above the community cards
+            // and RIT boards (z 1–2) so it still reads over the felt.
+            zIndex={4}
             textAlign="center"
             pointerEvents={isOwner && (mode === 'paused' || mode === 'pausing') ? 'auto' : 'none'}
             userSelect="none"

@@ -11,7 +11,9 @@ import type { Card, Pot } from '@/app/interfaces';
 // the cards tiny), board 2 is dealt IN FRONT of board 1, dropped down by ~half a card:
 // it covers board 1's big centre pip but never the top-left index (rank + corner suit),
 // so both boards stay readable while the pair occupies ~1.5 card-heights — cards stay big.
-const BOARD2_DROP = 0.52; // board 2's top, as a fraction of a card's height
+// board 2's top, as a fraction of a card's height. Exported so the status banner
+// can anchor itself below the full dual board (board 2 bottom = 1 + BOARD2_DROP).
+export const BOARD2_DROP = 0.52;
 
 // Board 2 is also nudged to the RIGHT so its columns don't sit exactly under board 1's —
 // the diagonal offset reads as a deck fanned forward, not one card clipped in half, and

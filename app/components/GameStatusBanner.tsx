@@ -19,6 +19,12 @@ import { keyframes } from '@emotion/react';
 import useIsTableOwner from '../hooks/useIsTableOwner';
 import { useLevelCountdown } from '../hooks/useLevelCountdown';
 import { sendResumeGameCommand } from '../hooks/server_actions';
+import { BOARD2_DROP } from './Felt/DualBoardCommunityCards';
+
+// Run It Twice deals board 2 in front of board 1, cascading its bottom down to
+// (1 + BOARD2_DROP) of the felt height. When that dual board is up, drop the
+// banner to sit just below it instead of over board 2's card faces.
+const RIT_BANNER_TOP = `${(1 + BOARD2_DROP) * 100}%`;
 
 // ── Cycling copy for pending settlement ──────────────────────────────
 const PENDING_MESSAGES = [
@@ -81,6 +87,7 @@ const GameStatusBanner = () => {
 
     const isPaused = appState.game?.paused;
     const isPendingPause = appState.game?.pendingPause;
+    const showDualBoard = (appState.game?.ritPhase ?? 0) >= 2;
     const settlementStatus = appState.settlementStatus;
     const pendingBlinds = appState.game?.pendingBlinds;
     const tournamentClock = appState.tournamentLive?.clock ?? null;
@@ -227,7 +234,14 @@ const GameStatusBanner = () => {
             data-testid="game-status-banner"
             className="game-status-banner"
             position="absolute"
-            top={{ base: 'calc(100% + 6px)', md: 'calc(100% + 8px)' }}
+            top={
+                showDualBoard
+                    ? {
+                          base: `calc(${RIT_BANNER_TOP} + 6px)`,
+                          md: `calc(${RIT_BANNER_TOP} + 8px)`,
+                      }
+                    : { base: 'calc(100% + 6px)', md: 'calc(100% + 8px)' }
+            }
             left="50%"
             transform="translateX(-50%)"
             // Ambient felt-band status pill: it must sit BEHIND the seat furniture.

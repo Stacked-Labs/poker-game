@@ -32,6 +32,55 @@ function Stage({
     );
 }
 
+// The honest contrast test: mount the watermark over the REAL table image (green
+// felt in a near-black rail) the way it sits in-app, not the flat letterbox above.
+// This is where the color-mode-driven text used to vanish in light mode — the
+// fixed-ink + halo treatment must stay legible here in both modes.
+function TableFeltStage({
+    children,
+    orientation = 'horizontal',
+    width = '780px',
+    height = '470px',
+    anchorTop = '76%',
+}: {
+    children: React.ReactNode;
+    orientation?: 'horizontal' | 'vertical';
+    width?: string;
+    height?: string;
+    anchorTop?: string;
+}) {
+    const img =
+        orientation === 'horizontal'
+            ? '/table-horizontal-green.webp'
+            : '/table-vertical-green.webp';
+    return (
+        <Box
+            bg="bg.letterbox"
+            p={6}
+            minH="560px"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+        >
+            <Box
+                position="relative"
+                width={width}
+                height={height}
+                sx={{
+                    backgroundImage: `url(${img})`,
+                    backgroundSize: 'contain',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                }}
+            >
+                <Box position="absolute" left="7%" top={anchorTop} width="86%">
+                    {children}
+                </Box>
+            </Box>
+        </Box>
+    );
+}
+
 // 390px ≈ iPhone 14 portrait — the screen the watermark was crowding.
 const portraitMobile = {
     name: 'Portrait phone',
@@ -191,6 +240,50 @@ export const CashTable: Story = {
             <Stage>
                 <GameConfigWatermark />
             </Stage>
+        </MockAppStateProvider>
+    ),
+};
+
+// Contrast regression tests over the real felt (see TableFeltStage). Tournament
+// shows the trophy-chip back-link; cash shows no back-link (Home button owns it).
+export const RealMoneyOverFelt: Story = {
+    render: () => (
+        <MockAppStateProvider state={mockAppState()}>
+            <TableFeltStage>
+                <GameConfigWatermark />
+            </TableFeltStage>
+        </MockAppStateProvider>
+    ),
+};
+
+export const CashOverFelt: Story = {
+    parameters: {
+        nextjs: {
+            appDirectory: true,
+            navigation: { segments: [['id', 'abc']] },
+        },
+    },
+    render: () => (
+        <MockAppStateProvider
+            state={mockAppState({
+                tournamentLive: null,
+                table: 'abc',
+                game: {
+                    config: {
+                        sb: 1,
+                        bb: 2,
+                        maxBuyIn: 200,
+                        crypto: true,
+                        chain: 'base',
+                        ownerAddress:
+                            '0x1234567890abcdef1234567890abcdef12345678',
+                    },
+                } as unknown as Game,
+            })}
+        >
+            <TableFeltStage>
+                <GameConfigWatermark />
+            </TableFeltStage>
         </MockAppStateProvider>
     ),
 };

@@ -25,6 +25,12 @@ export interface ChainBadgeProps {
     variant?: 'lockup' | 'symbol';
     /** Show a "Testnet" tag next to Base on Sepolia. Default true. */
     showTestnet?: boolean;
+    /**
+     * Force the on-dark (white) lockup + a light Testnet tag, for surfaces whose
+     * backdrop does not track color mode (e.g. the in-table watermark over the
+     * felt). Without this the light-mode 2-color lockup's dark wordmark fades.
+     */
+    onDark?: boolean;
 }
 
 export default function ChainBadge({
@@ -32,22 +38,30 @@ export default function ChainBadge({
     size = 'sm',
     variant = 'lockup',
     showTestnet = true,
+    onDark = false,
 }: ChainBadgeProps) {
     const c = (chain ?? '').toLowerCase();
     const isBaseMainnet = c === 'base' || c === 'base-mainnet';
     const isBaseSepolia = c.includes('sepolia');
     const isBase = isBaseMainnet || isBaseSepolia;
 
-    const lockupSrc = useColorModeValue(
+    const modeLockup = useColorModeValue(
         '/networkLogos/base-lockup-2color.svg',
         '/networkLogos/base-lockup-white.svg'
     );
+    // On a mode-invariant dark backdrop the light-mode 2-color wordmark fades, so
+    // force the white lockup (and the brighter Testnet tag) when onDark.
+    const lockupSrc = onDark
+        ? '/networkLogos/base-lockup-white.svg'
+        : modeLockup;
     const symbolSrc = '/networkLogos/base-square-blue.svg';
-    const testnetBg = useColorModeValue(
+    const modeTestnetBg = useColorModeValue(
         'rgba(237, 137, 54, 0.14)',
         'rgba(237, 137, 54, 0.22)'
     );
-    const testnetFg = useColorModeValue('orange.600', 'orange.300');
+    const testnetBg = onDark ? 'rgba(237, 137, 54, 0.22)' : modeTestnetBg;
+    const modeTestnetFg = useColorModeValue('orange.600', 'orange.300');
+    const testnetFg = onDark ? 'orange.300' : modeTestnetFg;
 
     const h = HEIGHTS[size];
 

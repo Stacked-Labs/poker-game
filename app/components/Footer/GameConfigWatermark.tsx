@@ -9,10 +9,10 @@ import {
     Flex,
     Link,
     Icon,
-    useColorModeValue,
     useBreakpointValue,
 } from '@chakra-ui/react';
-import { FiUser, FiChevronLeft } from 'react-icons/fi';
+import { FiUser, FiChevronRight } from 'react-icons/fi';
+import { FaTrophy } from 'react-icons/fa';
 import { playerDisplayName } from '@/app/utils/address';
 import { AppContext } from '@/app/contexts/AppStoreProvider';
 import { useFormatAmount } from '@/app/hooks/useFormatAmount';
@@ -57,15 +57,34 @@ function explorerAddressUrl(
     return null;
 }
 
+// The watermark floats over the table image (green felt in a near-black rail) and,
+// at the edges, the letterbox — a backdrop that does NOT track color mode. So it
+// paints a fixed light ink plus a dark halo (map-label / subtitle style) that stays
+// legible over felt, rail, white community cards AND the light letterbox in both
+// modes, instead of the color-mode text tokens (which vanished on the felt in light).
+const WM_INK = '#F4F6FB';
+const WM_INK_PLAYERS = 'rgba(244,246,251,0.90)';
+const WM_INK_HOST = 'rgba(244,246,251,0.76)';
+const WM_INK_FREE = '#8FE7C4';
+const WM_HALO = '0 1px 2px rgba(6,10,24,0.95), 0 0 4px rgba(6,10,24,0.82)';
+const WM_ICON_HALO = 'drop-shadow(0 1px 1.5px rgba(6,10,24,0.9))';
+// Invisible hit-slop so the small back-link / host links reach a comfortable tap
+// target without inflating the watermark's visual footprint.
+const WM_HIT_SLOP = {
+    content: '""',
+    position: 'absolute' as const,
+    top: '-9px',
+    bottom: '-9px',
+    left: '-6px',
+    right: '-6px',
+};
+
 const GameConfigWatermark = () => {
     const { appState } = useContext(AppContext);
     const config = appState.game?.config;
     const live = appState.tournamentLive;
     const tMeta = live?.meta ?? null;
     const { format, mode: displayMode } = useFormatAmount();
-    // brand.green is only ~2.2:1 on the light letterbox/footer surface (fails AA);
-    // use the darker greenEdge in light mode, keep the brighter green in dark.
-    const freePlayGreen = useColorModeValue('brand.greenEdge', 'brand.green');
     // Mobile-first: portrait phones get abbreviated, shorter copy so the watermark
     // doesn't bleed up into the hero's hole cards / seat HUD. SSR falls back to base.
     const compact = useBreakpointValue({ base: true, md: false }) ?? true;
@@ -238,10 +257,11 @@ const GameConfigWatermark = () => {
     const hostText =
         tournament && !compact && hostLabel ? `Host ${hostLabel}` : hostLabel;
 
-    // Wayfinding back link. On a tournament table it returns to the tournament
-    // details page and doubles as the "which table am I on" indicator; on a cash
-    // table it returns to the public games lobby. We trust the route slug so the
-    // link (and the table number) appear even before the live meta seed arrives.
+    // Tournament wayfinding back link: returns to the tournament details page and
+    // doubles as the "which table am I on" indicator. Cash tables no longer show a
+    // back link here; the shared navbar Home button owns "return to the lobby" for
+    // both surfaces (dedupe). We trust the route slug so the link (and the table
+    // number) appear even before the live meta seed arrives.
     const isTournamentSurface = !!tournament || tourTableMatch != null;
     const tournamentId = live?.tournamentId ?? routeTournamentId;
     const backLink =
@@ -254,13 +274,7 @@ const GameConfigWatermark = () => {
                           ? `You're on table ${tableNumber} — back to tournament details`
                           : 'Back to tournament details',
               }
-            : !isTournamentSurface && config
-              ? {
-                    href: '/public-games',
-                    label: 'ALL GAMES',
-                    ariaLabel: 'Back to all games',
-                }
-              : null;
+            : null;
 
     if (!configText && !chain && !freePlay && !backLink) return null;
 
@@ -269,13 +283,17 @@ const GameConfigWatermark = () => {
             position="absolute"
             bottom={{ base: 'calc(100% + 4px)', md: 'calc(100% + 8px)' }}
             left={0}
-            maxW={{ base: '70%', sm: '85%', md: '100%' }}
+            maxW={{ base: '85%', sm: '88%', md: '100%' }}
             px={{ base: 2, md: 4 }}
             pointerEvents="none"
             zIndex={1}
         >
             <Flex direction="column" gap={{ base: 0.5, md: 1 }}>
                 {backLink && (
+                    // Tournament wayfinding chip: a tappable tag (trophy = the
+                    // tournament, trailing chevron = "opens") that stands apart
+                    // from the read-only config lines below. The semi-opaque
+                    // navy pill is its own contrast carrier, so no text halo.
                     <Link
                         as={NextLink}
                         href={backLink.href}
@@ -283,85 +301,103 @@ const GameConfigWatermark = () => {
                         pointerEvents="auto"
                         display="inline-flex"
                         alignItems="center"
-                        gap={0.5}
+                        gap={1.5}
                         width="fit-content"
-                        color="text.secondary"
+                        position="relative"
+                        color={WM_INK}
                         fontSize={{ base: '10px', sm: '12px', md: '13px' }}
                         lineHeight={{ base: 1.15, md: 1.2 }}
                         fontWeight="bold"
                         letterSpacing="0.06em"
                         minW={0}
-                        transition="color 80ms ease"
+                        bg="rgba(6,10,24,0.44)"
+                        border="1px solid rgba(244,246,251,0.20)"
+                        borderRadius="full"
+                        px={2.5}
+                        py={0.5}
+                        transition="background-color 80ms ease, border-color 80ms ease"
+                        _after={WM_HIT_SLOP}
                         _hover={{
-                            color: 'text.primary',
-                            textDecoration: 'underline',
-                            textDecorationThickness: '1.5px',
-                            textUnderlineOffset: '3px',
+                            bg: 'rgba(6,10,24,0.60)',
+                            borderColor: 'rgba(244,246,251,0.34)',
                         }}
                     >
                         <Icon
-                            as={FiChevronLeft}
-                            boxSize={{ base: '13px', md: '16px' }}
+                            as={FaTrophy}
+                            boxSize={{ base: '10px', md: '11px' }}
                             flexShrink={0}
                         />
-                        <Text as="span" noOfLines={1}>
+                        <Text as="span" color={WM_INK} noOfLines={1}>
                             {backLink.label}
                         </Text>
+                        <Icon
+                            as={FiChevronRight}
+                            boxSize={{ base: '12px', md: '13px' }}
+                            flexShrink={0}
+                            opacity={0.7}
+                        />
                     </Link>
                 )}
                 {configText && (
                     <Text
-                        color="text.primary"
+                        color={WM_INK}
                         fontSize={{ base: '10px', sm: '12px', md: '13px' }}
                         lineHeight={{ base: 1.15, md: 1.2 }}
-                        fontWeight="semibold"
+                        fontWeight="bold"
                         letterSpacing="0.04em"
                         noOfLines={1}
+                        sx={{ textShadow: WM_HALO }}
                     >
                         {configText}
                     </Text>
                 )}
                 {playersLine && (
                     <Text
-                        color="text.secondary"
+                        color={WM_INK_PLAYERS}
                         fontSize={{ base: '9px', sm: '11px', md: '12px' }}
                         lineHeight={{ base: 1.15, md: 1.2 }}
                         fontWeight="semibold"
                         letterSpacing="0.06em"
                         noOfLines={1}
-                        sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        sx={{
+                            fontVariantNumeric: 'tabular-nums',
+                            textShadow: WM_HALO,
+                        }}
                     >
                         {playersLine}
                     </Text>
                 )}
                 {freePlay ? (
                     <Text
-                        color={freePlayGreen}
+                        color={WM_INK_FREE}
                         fontSize={{ base: '9px', sm: '11px' }}
                         lineHeight={{ base: 1.15, md: 1.2 }}
                         fontWeight="bold"
                         letterSpacing="0.08em"
                         noOfLines={1}
+                        sx={{ textShadow: WM_HALO }}
                     >
                         {compact ? 'FREE PLAY' : 'FREE PLAY · NO REAL VALUE'}
                     </Text>
                 ) : (
-                    chain && <ChainBadge chain={chain} size="sm" />
+                    chain && <ChainBadge chain={chain} size="sm" onDark />
                 )}
                 {hostLabel && (
                     <Flex align="center" gap={1.5} minW={0}>
                         <Icon
                             as={FiUser}
                             boxSize={{ base: '11px', md: '14px' }}
-                            color="text.muted"
+                            color={WM_INK_HOST}
                             flexShrink={0}
+                            sx={{ filter: WM_ICON_HALO }}
                         />
                         {hostExplorerUrl ? (
                             <Link
                                 href={hostExplorerUrl}
                                 isExternal
                                 pointerEvents="auto"
-                                color="text.muted"
+                                position="relative"
+                                color={WM_INK_HOST}
                                 fontSize={{
                                     base: '9px',
                                     sm: '11px',
@@ -373,8 +409,10 @@ const GameConfigWatermark = () => {
                                 noOfLines={1}
                                 minW={0}
                                 transition="color 80ms ease"
+                                sx={{ textShadow: WM_HALO }}
+                                _after={WM_HIT_SLOP}
                                 _hover={{
-                                    color: 'text.primary',
+                                    color: WM_INK,
                                     textDecoration: 'underline',
                                     textDecorationThickness: '1.5px',
                                     textUnderlineOffset: '3px',
@@ -384,7 +422,7 @@ const GameConfigWatermark = () => {
                             </Link>
                         ) : (
                             <Text
-                                color="text.muted"
+                                color={WM_INK_HOST}
                                 fontSize={{
                                     base: '9px',
                                     sm: '11px',
@@ -395,6 +433,7 @@ const GameConfigWatermark = () => {
                                 letterSpacing="0.04em"
                                 noOfLines={1}
                                 minW={0}
+                                sx={{ textShadow: WM_HALO }}
                             >
                                 {hostText}
                             </Text>

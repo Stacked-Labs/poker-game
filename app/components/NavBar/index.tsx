@@ -34,6 +34,7 @@ import {
     handleCancelRejoin,
 } from '@/app/hooks/useTableOptions';
 import TableMenuBurger from './TableMenuBurger';
+import HomeButton from './HomeButton';
 import AwayButton from './AwayButton';
 import LeaveButton from './LeaveButton';
 import WithdrawButton from './WithdrawButton';
@@ -173,6 +174,7 @@ const Navbar = () => {
                     alignItems="stretch"
                     pointerEvents={'auto'}
                 >
+                    <HomeButton />
                     <TableMenuBurger
                         isUserSeated={isUserSeated}
                         isAway={isAway}

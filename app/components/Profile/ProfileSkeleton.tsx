@@ -10,18 +10,14 @@ import {
     Skeleton,
     SkeletonCircle,
     VStack,
-    useColorModeValue,
-    usePrefersReducedMotion,
 } from '@chakra-ui/react';
+import { useWarmSkeleton } from '@/app/components/Skeletons/useWarmSkeleton';
 
 // Mirrors the bento silhouette so a cold load resolves into shape (no CLS). Lighter + calmer
 // than Chakra's default cool-gray pulse: warm low-contrast colors, gentler speed, still on
 // reduced-motion.
 export default function ProfileSkeleton() {
-    const reduce = usePrefersReducedMotion();
-    const startColor = useColorModeValue('#F3F1EC', 'rgba(255,255,255,0.05)');
-    const endColor = useColorModeValue('#E6E3DC', 'rgba(255,255,255,0.10)');
-    const sk = { startColor, endColor, speed: reduce ? 0 : 1.1 };
+    const sk = useWarmSkeleton();
 
     const Tile = ({ lines = 3 }: { lines?: number }) => (
         <Box

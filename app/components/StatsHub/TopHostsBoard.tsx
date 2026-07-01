@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Box, Flex, VStack, HStack, Text, Button, Spinner, Icon } from '@chakra-ui/react';
+import { Box, Flex, VStack, HStack, Text, Button, Icon } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { FaArrowRight } from 'react-icons/fa6';
 import BoardRow from './BoardRow';
+import BoardRowsSkeleton from '@/app/components/Skeletons/BoardRowsSkeleton';
 import { BOARD_ICON } from './boardIcons';
 import { getBoard, type BoardResponse } from '@/app/hooks/server_actions';
 
@@ -130,9 +131,7 @@ const TopHostsBoard: React.FC<TopHostsBoardProps> = ({
             {/* Board */}
             <Box px={{ base: 1, md: 2 }} py={{ base: 2, md: 3 }}>
                 {isLoading ? (
-                    <Flex justify="center" align="center" py={12}>
-                        <Spinner size="lg" color="brand.green" thickness="3px" speed="0.7s" />
-                    </Flex>
+                    <BoardRowsSkeleton rows={5} />
                 ) : rows.length === 0 ? (
                     <Flex justify="center" align="center" py={10} px={4}>
                         <Text color="text.secondary" fontSize="sm" textAlign="center">

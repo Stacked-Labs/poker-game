@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Box, Flex, VStack, Text, Button, Spinner, HStack } from '@chakra-ui/react';
+import { Box, Flex, VStack, Text, Button, HStack } from '@chakra-ui/react';
 import BoardRow from './BoardRow';
+import BoardRowsSkeleton from '@/app/components/Skeletons/BoardRowsSkeleton';
 import type { BoardResponse } from '@/app/hooks/server_actions';
 
 export interface BoardTableProps {
@@ -37,9 +38,18 @@ const BoardTable: React.FC<BoardTableProps> = ({
 
     if (loading) {
         return (
-            <Flex justify="center" align="center" py={16}>
-                <Spinner size="lg" color="brand.green" thickness="3px" speed="0.7s" />
-            </Flex>
+            <Box width="100%">
+                <Box
+                    width="100%"
+                    bg="card.white"
+                    borderRadius="20px"
+                    boxShadow="card.lift"
+                    py={{ base: 2, md: 3 }}
+                    px={{ base: 1, md: 2 }}
+                >
+                    <BoardRowsSkeleton rows={6} />
+                </Box>
+            </Box>
         );
     }
 

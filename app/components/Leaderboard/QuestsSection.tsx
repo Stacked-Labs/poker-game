@@ -8,10 +8,11 @@ import {
     HStack,
     Icon,
     Progress,
-    Spinner,
+    Skeleton,
     Text,
     VStack,
 } from '@chakra-ui/react';
+import { useWarmSkeleton } from '@/app/components/Skeletons/useWarmSkeleton';
 import {
     FaArrowRight,
     FaCheck,
@@ -257,6 +258,7 @@ export const QuestsSectionView: React.FC<QuestsSectionViewProps> = ({
     const done = quests.filter((q) => q.completed).length;
     const total = quests.length;
     const allDone = total > 0 && done === total;
+    const sk = useWarmSkeleton();
 
     // Activation ladder: claimable easiest-first (lowest points), then locked, then done.
     const sorted = useMemo(() => {
@@ -307,9 +309,30 @@ export const QuestsSectionView: React.FC<QuestsSectionViewProps> = ({
             )}
 
             {loading && quests.length === 0 ? (
-                <Flex justify="center" py={6}>
-                    <Spinner size="sm" color="brand.green" />
-                </Flex>
+                <VStack
+                    align="stretch"
+                    spacing={2}
+                    py={2}
+                    aria-busy="true"
+                    aria-label="Loading quests"
+                >
+                    {[0, 1, 2].map((i) => (
+                        <HStack key={i} spacing={3} py={2} align="center">
+                            <Skeleton
+                                boxSize="34px"
+                                borderRadius="7px"
+                                flexShrink={0}
+                                {...sk}
+                            />
+                            <Skeleton
+                                h="12px"
+                                w={`${60 - i * 8}%`}
+                                borderRadius="md"
+                                {...sk}
+                            />
+                        </HStack>
+                    ))}
+                </VStack>
             ) : allDone ? (
                 <HStack spacing={3} py={3} align="center">
                     <Flex w="34px" h="34px" borderRadius="7px" bg="bg.greenTint" align="center" justify="center" flexShrink={0}>

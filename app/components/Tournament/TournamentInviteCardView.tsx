@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Box, VStack, HStack, Text, Icon, Button, Skeleton, Link } from '@chakra-ui/react';
 import { FaCheck, FaRegCopy, FaTicketAlt } from 'react-icons/fa';
 import { FiShare2 } from 'react-icons/fi';
-import useToastHelper from '@/app/hooks/useToastHelper';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
+import { useWarmSkeleton } from '@/app/components/Skeletons/useWarmSkeleton';
 
 // Clean, brand-safe share line: no em dash, "onchain" one word, no emoji — matches the referral
 // section's share string so every share surface speaks the same sentence.
@@ -40,16 +41,14 @@ export default function TournamentInviteCardView({
     loading,
     freeSeats,
 }: TournamentInviteCardViewProps) {
-    const toast = useToastHelper();
+    const { copy } = useCopyToClipboard();
+    const sk = useWarmSkeleton();
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-    const copy = async (key: string, url: string) => {
-        try {
-            await navigator.clipboard.writeText(url);
+    const handleCopy = async (key: string, url: string) => {
+        if (await copy(url)) {
             setCopiedKey(key);
             setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 2000);
-        } catch {
-            toast.error('Could not copy', 'Failed to copy your invite link.');
         }
     };
 
@@ -86,7 +85,7 @@ export default function TournamentInviteCardView({
                 </HStack>
 
                 {loading ? (
-                    <Skeleton height="92px" borderRadius="12px" />
+                    <Skeleton height="92px" borderRadius="12px" {...sk} />
                 ) : !myCode ? (
                     <Text fontSize="sm" color="text.secondary">
                         Set your referral code on the{' '}
@@ -113,7 +112,7 @@ export default function TournamentInviteCardView({
                                             key={key}
                                             url={url}
                                             copied={copiedKey === key}
-                                            onCopy={() => copy(key, url)}
+                                            onCopy={() => handleCopy(key, url)}
                                             onShare={() => share(url)}
                                         />
                                     );
@@ -133,7 +132,7 @@ export default function TournamentInviteCardView({
                                     <InviteRow
                                         url={url}
                                         copied={copiedKey === 'plain'}
-                                        onCopy={() => copy('plain', url)}
+                                        onCopy={() => handleCopy('plain', url)}
                                         onShare={() => share(url)}
                                     />
                                 );

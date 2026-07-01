@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo, useContext } from 'react';
 import { Box } from '@chakra-ui/react';
 import type { Card as CardType, CardBackVariant } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
+import { decideFlip } from './cardFlip';
 
 type CardProps = {
     card: CardType;
@@ -559,19 +560,25 @@ const SVGCard = ({
         const cardChanged = !hasPrev || prevCardString !== cardString;
         prevCardStringRef.current = cardString;
 
-        if (placeholder) {
+        const decision = decideFlip({
+            placeholder,
+            cardString,
+            skipAnimation,
+            hasPrev,
+            cardChanged,
+        });
+
+        if (decision === 'back') {
             setFlipState('back');
             return;
         }
 
-        // If skipAnimation is true, show front immediately without animation
-        // Also skip animation if the effective card value did not change (e.g. back → back)
-        if (skipAnimation || (hasPrev && !cardChanged)) {
+        if (decision === 'front') {
             setFlipState('front');
             return;
         }
 
-        // Otherwise, start with back and animate
+        // decision === 'animate': start on the back, then flip.
         setFlipState('back');
 
         const startFlip = () => {

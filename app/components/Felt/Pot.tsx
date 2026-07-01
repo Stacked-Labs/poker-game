@@ -26,7 +26,6 @@ const POT_MAIN_FONT = 'clamp(12px, 4.2cqw, 30px)';
 const POT_TOTAL_LABEL_FONT = 'clamp(9px, 2cqw, 15px)';
 const POT_TOTAL_AMOUNT_FONT = 'clamp(10px, 2.5cqw, 18px)';
 const POT_SIDE_FONT = 'clamp(9px, 1.8cqw, 13px)';
-const POT_RIT_FONT = 'clamp(7px, 1.4cqw, 11px)';
 const POT_BOARDLABEL_FONT = 'clamp(8px, 1.6cqw, 12px)';
 
 const pulsePotPrimary = keyframes`
@@ -48,14 +47,6 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
     const game = appState.game;
     const ritPhase = game?.ritPhase ?? 0;
     const ritActive = ritPhase >= 2;
-    const boardEvalLabel =
-        ritPhase === 2
-            ? 'Board 1'
-            : ritPhase === 3
-              ? 'Board 2'
-              : ritPhase === 4
-                ? 'Final'
-                : null;
     const prefersReducedMotion = usePrefersReducedMotion();
     const pots = useMemo(() => {
         if (!game?.pots || game.stage === 2) return initialPot;
@@ -118,8 +109,6 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
             >
                 {pots.map((pot, index) => {
                     if (pot.amount !== 0) {
-                        const halfAmount = Math.floor(pot.amount / 2);
-                        const remainder = pot.amount - halfAmount;
                         return (
                             <Fragment key={`main-pot-${index}`}>
                                 <Flex
@@ -182,37 +171,6 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                         >
                                             {format(pot.amount)}
                                         </Text>
-                                        {ritActive && (
-                                            <Flex
-                                                gap={1}
-                                                align="center"
-                                                lineHeight={1}
-                                                fontSize={POT_RIT_FONT}
-                                                fontWeight="bold"
-                                                whiteSpace="nowrap"
-                                            >
-                                                {/* B1/B2 text markers (not color alone)
-                                                    tie each half to its board. */}
-                                                <Text
-                                                    as="span"
-                                                    color="green.200"
-                                                >
-                                                    B1 {format(remainder)}
-                                                </Text>
-                                                <Text
-                                                    as="span"
-                                                    color="whiteAlpha.500"
-                                                >
-                                                    ·
-                                                </Text>
-                                                <Text
-                                                    as="span"
-                                                    color="blue.200"
-                                                >
-                                                    B2 {format(halfAmount)}
-                                                </Text>
-                                            </Flex>
-                                        )}
                                     </Flex>
                                 )}
                             </Fragment>
@@ -268,32 +226,35 @@ const Pot = ({ activePotIndex }: { activePotIndex: number | null }) => {
                                         whiteSpace="nowrap"
                                     >
                                         SP{index}: {format(pot.amount)}
-                                        {ritActive
-                                            ? ` (${format(Math.floor(pot.amount / 2))}/${format(pot.amount - Math.floor(pot.amount / 2))})`
-                                            : ''}
                                     </Text>
                                 </Flex>
                             )
                     )}
                 </Flex>
-                {ritActive && boardEvalLabel && (
+                {ritActive && (
+                    // A calm "runs twice" tag above the pill (each board plays for
+                    // half the pot) replaces the crammed in-pill B1/B2 split. The
+                    // total stays the single hero number inside the pill.
                     <Text
+                        as="span"
                         position="absolute"
-                        top={{ base: '-18px', md: '-20px' }}
+                        top={{ base: '-20px', md: '-22px' }}
                         left="50%"
                         transform="translateX(-50%)"
                         fontSize={POT_BOARDLABEL_FONT}
-                        fontWeight="bold"
-                        color={
-                            ritPhase === 2
-                                ? 'green.200'
-                                : ritPhase === 3
-                                  ? 'blue.200'
-                                  : 'yellow.200'
-                        }
+                        fontWeight="800"
+                        letterSpacing="0.05em"
+                        lineHeight={1.5}
+                        px={1.5}
+                        borderRadius="full"
+                        color="brand.yellow"
+                        bg="rgba(0, 0, 0, 0.28)"
+                        border="1px solid"
+                        borderColor="rgba(253, 197, 29, 0.55)"
                         whiteSpace="nowrap"
+                        pointerEvents="none"
                     >
-                        {boardEvalLabel}
+                        RUNS 2×
                     </Text>
                 )}
             </Flex>

@@ -28,6 +28,7 @@ import {
     AnimatePresence,
 } from 'framer-motion';
 import PlayerAvatar from './PlayerAvatar';
+import SeatName from './SeatName';
 import { Card, DisplayMode, Player } from '../interfaces';
 import { AppContext } from '../contexts/AppStoreProvider';
 import { SocketContext } from '../contexts/WebSocketProvider';
@@ -1527,50 +1528,22 @@ const TakenSeatButton = ({
                                                         ease: 'easeOut',
                                                     }}
                                                 >
-                                                    <Text
-                                                        className="player-username"
-                                                        variant="seatText"
-                                                        fontSize={SEAT_NAME_FONT}
-                                                        fontWeight="bold"
+                                                    <SeatName
+                                                        label={playerDisplayName(
+                                                            player.username,
+                                                            player.address,
+                                                            player.xDisplayName
+                                                        )}
+                                                        href={seatNameHref}
+                                                        active={isCurrentTurn}
                                                         color={
                                                             isCurrentTurn ||
                                                             showWinnerHighlight
                                                                 ? 'gray.500'
                                                                 : 'gray.400'
                                                         }
-                                                        cursor="pointer"
-                                                        // A long X handle/wallet renders as `as="a"` below;
-                                                        // an inline <a> ignores isTruncated's overflow clip, so
-                                                        // it must be block for the handle to ellipsize (#604).
-                                                        display="block"
-                                                        maxWidth="100%"
-                                                        isTruncated
-                                                        lineHeight="1.2"
-                                                        {...(seatNameHref
-                                                            ? {
-                                                                  as: 'a',
-                                                                  href: seatNameHref,
-                                                                  target: '_blank',
-                                                                  rel: 'noopener noreferrer',
-                                                                  onClick: (
-                                                                      e: React.MouseEvent
-                                                                  ) =>
-                                                                      e.stopPropagation(),
-                                                                  _hover: {
-                                                                      textDecoration:
-                                                                          'underline',
-                                                                      textUnderlineOffset:
-                                                                          '2px',
-                                                                  },
-                                                              }
-                                                            : {})}
-                                                    >
-                                                        {playerDisplayName(
-                                                            player.username,
-                                                            player.address,
-                                                            player.xDisplayName
-                                                        )}
-                                                    </Text>
+                                                        fontSize={SEAT_NAME_FONT}
+                                                    />
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>

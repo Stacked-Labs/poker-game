@@ -10,7 +10,6 @@ import {
     Stack,
     Text,
     Tooltip,
-    useClipboard,
     Icon,
     Modal,
     useDisclosure,
@@ -19,6 +18,7 @@ import { keyframes } from '@emotion/react';
 import { useContext, useEffect } from 'react';
 import { FaCopy, FaCheck } from 'react-icons/fa';
 import { AppContext } from '../contexts/AppStoreProvider';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 import { SocialIconButton } from './SocialIconButton';
 
 const pulse = keyframes`
@@ -50,7 +50,8 @@ const fadeIn = keyframes`
 const LinkBox = () => {
     const currentUrl =
         typeof window !== 'undefined' ? window.location.href : '';
-    const { hasCopied, onCopy } = useClipboard(currentUrl || '');
+    const { copy, copied } = useCopyToClipboard();
+    const onCopy = () => void copy(currentUrl);
 
     return (
         <Flex
@@ -89,7 +90,7 @@ const LinkBox = () => {
                 />
             </Box>
             <Tooltip
-                label={hasCopied ? 'Copied!' : 'Copy Link'}
+                label={copied ? 'Copied!' : 'Copy Link'}
                 closeOnClick={false}
             >
                 <Flex
@@ -110,7 +111,7 @@ const LinkBox = () => {
                             'inset 0 2px 4px rgba(0,0,0,0.18), inset 2px 0 0 rgba(0,0,0,0.10)',
                     }}
                 >
-                    <Icon as={hasCopied ? FaCheck : FaCopy} boxSize={3.5} />
+                    <Icon as={copied ? FaCheck : FaCopy} boxSize={3.5} />
                 </Flex>
             </Tooltip>
         </Flex>

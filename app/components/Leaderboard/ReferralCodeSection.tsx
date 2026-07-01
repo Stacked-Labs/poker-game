@@ -19,6 +19,7 @@ import { FaCheck } from 'react-icons/fa';
 import { FiArrowRight, FiCopy, FiUserPlus, FiZap } from 'react-icons/fi';
 import { useActiveAccount } from 'thirdweb/react';
 import useToastHelper from '@/app/hooks/useToastHelper';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 import { friendlyMessage } from '@/app/utils/toastErrors';
 import { registerReferral, setMyReferralCode, getReferralStats } from '@/app/hooks/server_actions';
 import { SocialIconButton } from '@/app/components/SocialIconButton';
@@ -47,7 +48,7 @@ interface ReferralCodeSectionProps {
 
 const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo, initialReferralCode, bare }) => {
     const account = useActiveAccount();
-    const [copied, setCopied] = useState(false);
+    const { copy, copied } = useCopyToClipboard();
     const [referralInput, setReferralInput] = useState(initialReferralCode ?? '');
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -107,15 +108,9 @@ const ReferralCodeSection: React.FC<ReferralCodeSectionProps> = ({ referralInfo,
     const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(refUrl)}&via=${X_HANDLE}`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(refUrl)}&text=${encodeURIComponent(shareText)}`;
 
-    const handleCopy = async () => {
+    const handleCopy = () => {
         if (!myCode) return;
-        try {
-            await navigator.clipboard.writeText(refUrl);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } catch {
-            toast.error('Could not copy', 'Failed to copy your referral link.');
-        }
+        void copy(refUrl);
     };
 
     const handleSetCode = async () => {

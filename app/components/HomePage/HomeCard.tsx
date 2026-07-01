@@ -120,7 +120,6 @@ const HomeCard = ({ isBroadcast = false }: HomeCardProps) => {
             if (response.ok) {
                 setIsSubscribed(true);
                 setEmail('');
-                toast.success("You're in!", 'Check your inbox for updates.');
                 onSuccessOpen();
             } else {
                 toast.error(

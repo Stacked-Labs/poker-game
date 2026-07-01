@@ -46,7 +46,6 @@ const NewsletterSection = () => {
             if (response.ok) {
                 setIsSubmitted(true);
                 setEmail('');
-                toast.success("You're in!", 'Check your inbox for updates.');
                 onSuccessOpen();
                 setTimeout(() => setIsSubmitted(false), 5000);
             } else {

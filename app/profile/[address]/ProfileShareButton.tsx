@@ -10,9 +10,9 @@ import {
     MenuItem,
     Link,
 } from '@chakra-ui/react';
-import { FiShare2, FiCopy, FiChevronDown } from 'react-icons/fi';
+import { FiShare2, FiCopy, FiCheck, FiChevronDown } from 'react-icons/fi';
 import { FaXTwitter, FaTelegram } from 'react-icons/fa6';
-import useToastHelper from '@/app/hooks/useToastHelper';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 
 const X_HANDLE = 'stacked_poker';
 
@@ -65,7 +65,7 @@ export default function ProfileShareButton({
     isOwn?: boolean;
     width?: ButtonProps['width'];
 }) {
-    const { success } = useToastHelper();
+    const { copy, copied } = useCopyToClipboard();
 
     const url =
         typeof window !== 'undefined'
@@ -75,14 +75,7 @@ export default function ProfileShareButton({
     const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&via=${X_HANDLE}`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
 
-    const copy = async () => {
-        try {
-            await navigator.clipboard.writeText(url);
-            success('Profile link copied');
-        } catch {
-            // Clipboard unavailable — the URL is visible in the address bar.
-        }
-    };
+    const copyLink = () => void copy(url);
 
     return (
         <Menu placement="bottom-end">
@@ -100,8 +93,12 @@ export default function ProfileShareButton({
                 Share
             </MenuButton>
             <MenuList>
-                <MenuItem icon={<Icon as={FiCopy} />} onClick={copy}>
-                    Copy link
+                <MenuItem
+                    icon={<Icon as={copied ? FiCheck : FiCopy} color={copied ? 'brand.green' : undefined} />}
+                    onClick={copyLink}
+                    closeOnSelect={false}
+                >
+                    {copied ? 'Copied' : 'Copy link'}
                 </MenuItem>
                 <MenuItem
                     as={Link}

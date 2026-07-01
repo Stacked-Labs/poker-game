@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Flex, Spinner, Text } from '@chakra-ui/react';
 import useToastHelper from '../../hooks/useToastHelper';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 import {
     createFreeCode,
     getFreeTickets,
@@ -24,6 +25,7 @@ export default function FreeTicketsPanel({
     rowBg = 'bg.pillNeutral',
 }: FreeTicketsPanelProps) {
     const toast = useToastHelper();
+    const { copy } = useCopyToClipboard();
     const [data, setData] = useState<FreeTicketsPanelData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -50,16 +52,12 @@ export default function FreeTicketsPanel({
             const url =
                 code.share_url ||
                 `${typeof window !== 'undefined' ? window.location.origin : ''}${code.claim_path}`;
-            try {
-                await navigator.clipboard.writeText(url);
+            if (await copy(url)) {
                 setCopiedId(code.id);
                 window.setTimeout(() => setCopiedId(null), 1500);
-                toast.success('Link copied');
-            } catch {
-                toast.error('Could not copy link');
             }
         },
-        [toast]
+        [copy]
     );
 
     const onAddTag = useCallback(

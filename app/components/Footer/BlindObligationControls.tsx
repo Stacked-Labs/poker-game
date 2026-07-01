@@ -189,36 +189,15 @@ const BlindObligationControls = () => {
 
         switch (choice) {
             case 'post_now':
-                setQueuedBlindAction((prev) => {
-                    if (prev === 'post_now') {
-                        toast.info(
-                            'Auto action cleared',
-                            'Post blind now request removed.'
-                        );
-                        return null;
-                    }
-                    toast.info(
-                        'Auto post ready',
-                        'We will post your blinds once this hand ends.'
-                    );
-                    return 'post_now';
-                });
+                // Confirmation is the button's own queued/idle state flip; no toast.
+                setQueuedBlindAction((prev) =>
+                    prev === 'post_now' ? null : 'post_now'
+                );
                 break;
             case 'wait_bb':
-                setQueuedBlindAction((prev) => {
-                    if (prev === 'wait_bb') {
-                        toast.info(
-                            'Auto action cleared',
-                            'Wait for big blind request removed.'
-                        );
-                        return null;
-                    }
-                    toast.info(
-                        'Will wait for big blind',
-                        'We will auto-select wait once this hand ends.'
-                    );
-                    return 'wait_bb';
-                });
+                setQueuedBlindAction((prev) =>
+                    prev === 'wait_bb' ? null : 'wait_bb'
+                );
                 break;
             case 'sit_out':
                 setSubmitting('sit_out');

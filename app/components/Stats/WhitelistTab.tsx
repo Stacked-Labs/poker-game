@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
     Text,
     Flex,
@@ -19,11 +20,14 @@ import {
     Button,
     Textarea,
     Badge,
+    Icon,
 } from '@chakra-ui/react';
+import { FiCheck, FiCopy } from 'react-icons/fi';
 import {
     addToSBTWhitelist,
     type SBTWhitelistEntry,
 } from '../../hooks/server_actions';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 
 interface WhitelistTabProps {
     whitelist: SBTWhitelistEntry[];
@@ -92,6 +96,10 @@ export const WhitelistTab = ({
     setWlAdding,
     loadWhitelist,
 }: WhitelistTabProps) => {
+    const { copy } = useCopyToClipboard();
+    // Per-row inline confirmation: the hook's single `copied` would flip every
+    // row at once, so track the copied address locally instead.
+    const [copiedAddr, setCopiedAddr] = useState<string | null>(null);
     const claimRate = wlTotal > 0 ? Math.round((wlTotalClaimed / wlTotal) * 100) : 0;
     const { valid, invalid } = parseAddresses(wlPasteText);
     const hasPreview = wlPasteText.trim().length > 0;
@@ -285,20 +293,38 @@ export const WhitelistTab = ({
                                                 <Text fontSize="xs" fontFamily="monospace" color="text.primary">
                                                     {entry.address.slice(0, 6)}…{entry.address.slice(-4)}
                                                 </Text>
-                                                <Button
-                                                    variant="tactileGhost"
-                                                    size="sm"
-                                                    height="22px"
-                                                    px={2}
-                                                    fontSize="2xs"
-                                                    fontWeight={700}
-                                                    letterSpacing="0.04em"
-                                                    textTransform="uppercase"
-                                                    onClick={() => navigator.clipboard.writeText(entry.address)}
-                                                    aria-label={`Copy address ${entry.address}`}
-                                                >
-                                                    Copy
-                                                </Button>
+                                                {(() => {
+                                                    const isCopied = copiedAddr === entry.address;
+                                                    return (
+                                                        <Button
+                                                            variant="tactileGhost"
+                                                            size="sm"
+                                                            height="22px"
+                                                            px={2}
+                                                            fontSize="2xs"
+                                                            fontWeight={700}
+                                                            letterSpacing="0.04em"
+                                                            textTransform="uppercase"
+                                                            color={isCopied ? 'brand.green' : undefined}
+                                                            leftIcon={
+                                                                <Icon as={isCopied ? FiCheck : FiCopy} boxSize="11px" />
+                                                            }
+                                                            onClick={async () => {
+                                                                if (await copy(entry.address)) {
+                                                                    setCopiedAddr(entry.address);
+                                                                    setTimeout(() => setCopiedAddr(null), 1500);
+                                                                }
+                                                            }}
+                                                            aria-label={
+                                                                isCopied
+                                                                    ? `Address ${entry.address} copied`
+                                                                    : `Copy address ${entry.address}`
+                                                            }
+                                                        >
+                                                            {isCopied ? 'Copied' : 'Copy'}
+                                                        </Button>
+                                                    );
+                                                })()}
                                             </HStack>
                                         </Td>
                                         <Td py={2.5}>

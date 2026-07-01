@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { HStack, Icon, IconButton, Text, Tooltip } from '@chakra-ui/react';
 import { FiCheck, FiCopy, FiExternalLink } from 'react-icons/fi';
 import ExternalLink from '@/app/components/ExternalLink';
 import { truncateAddress } from './formatters';
-import { useCopy } from '@/app/hooks/useExplorerUrl';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 
 interface AddressChipProps {
     address: string;
@@ -20,16 +19,9 @@ const AddressChip = ({
     label,
     showCopy = true,
 }: AddressChipProps) => {
-    const copy = useCopy();
-    const [copied, setCopied] = useState(false);
+    const { copy, copied } = useCopyToClipboard();
 
-    const handleCopy = async () => {
-        const ok = await copy(address);
-        if (ok) {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1400);
-        }
-    };
+    const handleCopy = () => void copy(address);
 
     const shortened = truncateAddress(address);
     const display = label ?? shortened;

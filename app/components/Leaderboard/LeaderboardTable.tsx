@@ -22,8 +22,7 @@ import {
 import { FaGem, FaCrown, FaAward, FaBolt } from 'react-icons/fa';
 import { FaMedal, FaXTwitter } from 'react-icons/fa6';
 import { FiExternalLink, FiCopy, FiCheck } from 'react-icons/fi';
-import useToastHelper from '@/app/hooks/useToastHelper';
-import { TOAST_BANNER_DURATION_SHORT_MS } from '@/app/utils/toastDefaults';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 import { shortenAddress, playerDisplayName } from '@/app/utils/address';
 import type { IconType } from 'react-icons';
 import { blo } from 'blo';
@@ -354,8 +353,7 @@ const WalletPopoverContent = ({
     xUsername,
     truncateAddress,
 }: WalletPopoverContentProps) => {
-    const toast = useToastHelper();
-    const [copied, setCopied] = React.useState(false);
+    const { copy, copied } = useCopyToClipboard();
 
     const bg = useColorModeValue('white', '#171717');
     const borderColor = useColorModeValue(
@@ -379,17 +377,10 @@ const WalletPopoverContent = ({
         '0 10px 30px rgba(0, 0, 0, 0.45)'
     );
 
-    const handleCopy = async (e: React.MouseEvent) => {
+    const handleCopy = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        try {
-            await navigator.clipboard.writeText(address);
-            setCopied(true);
-            toast.success('Address copied', '', TOAST_BANNER_DURATION_SHORT_MS);
-            setTimeout(() => setCopied(false), 1500);
-        } catch {
-            toast.error('Could not copy');
-        }
+        void copy(address);
     };
 
     return (

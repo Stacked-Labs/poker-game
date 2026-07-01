@@ -135,7 +135,6 @@ const FinalCtaSection = () => {
             if (response.ok) {
                 setIsSubscribed(true);
                 setEmail('');
-                toast.success("You're in!", 'Check your inbox for updates.');
             } else {
                 toast.error(
                     "Couldn't subscribe",

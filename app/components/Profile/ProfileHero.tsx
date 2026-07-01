@@ -13,13 +13,13 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { blo } from 'blo';
-import { FiCopy } from 'react-icons/fi';
+import { FiCheck, FiCopy } from 'react-icons/fi';
 import { GiTwoCoins } from 'react-icons/gi';
 import { USDC_LOGO } from '../PublicGames/types';
 import PlayerNameLink from '../PlayerNameLink';
 import TooltipOrPopover from '../TooltipOrPopover';
 import { SocialIconButton } from '../SocialIconButton';
-import useToastHelper from '@/app/hooks/useToastHelper';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 import { shortenAddress } from '@/app/utils/address';
 import { formatUsdcMicro } from '@/app/utils/usdc';
 import type { TierInfo } from '../Leaderboard/tierUtils';
@@ -113,18 +113,11 @@ export default function ProfileHero({
     linkX,
     statsSlot,
 }: ProfileHeroProps) {
-    const { success } = useToastHelper();
+    const { copy, copied } = useCopyToClipboard();
     const isRanked = rank > 0;
     const avatarRadius = hasAvatar ? 'full' : '12px';
 
-    const copyAddress = async () => {
-        try {
-            await navigator.clipboard.writeText(address);
-            success('Address copied');
-        } catch {
-            // Clipboard unavailable — address is visible.
-        }
-    };
+    const copyAddress = () => void copy(address);
 
     return (
         <Box
@@ -249,14 +242,15 @@ export default function ProfileHero({
                                 {/* Copy-address button (was a static label). */}
                                 <Button
                                     onClick={copyAddress}
+                                    aria-label={copied ? 'Address copied' : 'Copy address'}
                                     variant="tactileGhost"
                                     h="26px"
                                     px={2}
                                     fontFamily="mono"
                                     fontSize="xs"
                                     fontWeight={500}
-                                    color="text.muted"
-                                    rightIcon={<Icon as={FiCopy} boxSize="11px" />}
+                                    color={copied ? 'brand.green' : 'text.muted'}
+                                    rightIcon={<Icon as={copied ? FiCheck : FiCopy} boxSize="11px" />}
                                     _focusVisible={{ boxShadow: 'focus.ring' }}
                                 >
                                     {shortenAddress(address)}

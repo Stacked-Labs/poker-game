@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import useToastHelper from '@/app/hooks/useToastHelper';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 import {
     issueFriendCodes,
     type FriendCodesResponse,
@@ -19,10 +19,9 @@ export default function FriendInviteSection({
     tournamentId: number;
 }) {
     const { isAuthenticated } = useAuth();
-    const { success } = useToastHelper();
+    const { copy, copied } = useCopyToClipboard();
     const [data, setData] = useState<FriendCodesResponse | null>(null);
     const [loading, setLoading] = useState(true);
-    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -53,16 +52,7 @@ export default function FriendInviteSection({
     const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
 
-    const onCopy = async () => {
-        try {
-            await navigator.clipboard.writeText(shareUrl);
-            setCopied(true);
-            success('Invite link copied');
-            setTimeout(() => setCopied(false), 2000);
-        } catch {
-            // Clipboard unavailable — the share buttons still work.
-        }
-    };
+    const onCopy = () => void copy(shareUrl);
 
     return (
         <FriendInvite

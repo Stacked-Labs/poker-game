@@ -63,6 +63,7 @@ import {
     supportedTokens,
 } from '@/app/thirdwebclient';
 import { useAuth } from '@/app/contexts/AuthContext';
+import useCopyToClipboard from '@/app/hooks/useCopyToClipboard';
 import PlayerAvatar from '../PlayerAvatar';
 import type { FundsMode } from './FundsWidgets';
 
@@ -216,15 +217,12 @@ const AddressLine: React.FC<{
     short: string;
     primary?: boolean;
 }> = ({ address, short, primary }) => {
-    const [copied, setCopied] = useState(false);
+    const { copy, copied } = useCopyToClipboard();
     const onCopy = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         if (!address) return;
-        void navigator.clipboard?.writeText(address).then(() => {
-            setCopied(true);
-            window.setTimeout(() => setCopied(false), 1500);
-        });
+        void copy(address);
     };
     return (
         <HStack
